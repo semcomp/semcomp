@@ -1,0 +1,22 @@
+.home-about-beta {
+  background-color: var(--color-blue-main);
+  padding: 5rem 2rem;
+  color: white;
+  text-align: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-about-beta > h1 {
+  font-weight: bold;
+  font-size: 2.5rem;
+  margin: 0;
+}
+
+.home-about-beta > p {
+  margin: 2rem 0 0 0;
+  max-width: 60rem;
+}

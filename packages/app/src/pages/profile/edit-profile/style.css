@@ -1,0 +1,55 @@
+.edit-user-data-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 1rem;
+}
+
+.edit-user-data-modal > h1 {
+  text-align: center;
+  color: white;
+}
+
+.edit-user-data-modal > label {
+  width: 100%;
+  margin: 0.5rem 0;
+  color: white;
+}
+
+.edit-user-data-modal > label > p {
+  width: 100%;
+  margin: 0;
+}
+
+.edit-user-data-modal > label > input {
+  width: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  padding: 0.2rem 0.5rem;
+  color: black;
+}
+
+.edit-user-data-modal > .buttons-container {
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.edit-user-data-modal > .buttons-container > button {
+  padding: 0.5rem 2rem;
+  border-radius: 12px;
+  margin: 0 0.5rem;
+  color: white;
+}
+
+.edit-user-data-modal > .buttons-container > button.cancel {
+  background-color: #f44336;
+}
+
+.edit-user-data-modal > .buttons-container > button.confirm {
+  background-color: #4caf50;
+  display: flex;
+}

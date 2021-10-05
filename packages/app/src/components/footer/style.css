@@ -1,0 +1,38 @@
+.footer-component {
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #1d1d1b;
+  padding: 2rem;
+  background-image: url("../../assets/footer-background.png");
+}
+
+.footer-component > div {
+  display: flex;
+  margin: 1rem 0;
+}
+
+.footer-component > div > a {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: block;
+  padding: 0.4rem;
+  margin: 0 0.4rem;
+}
+
+.footer-component > div > a > img {
+  width: 100%;
+  height: 100%;
+}
+
+.footer-component > p {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.footer-component > p.copyright {
+  font-size: 0.8rem;
+}

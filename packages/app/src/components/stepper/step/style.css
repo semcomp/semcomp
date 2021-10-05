@@ -1,0 +1,39 @@
+.step-component-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+
+  /* The position is relative so the div can create it's own z-index stack, and render
+	on top of the connecting line */
+  position: relative;
+}
+
+.step-component-root:focus {
+  outline: none;
+}
+
+.step-component-root > .index-ball {
+  margin: 0;
+  border-radius: 100%;
+  padding: 0.2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  width: 32px;
+  height: 32px;
+  transition: 200ms;
+}
+
+.step-component-root > .title {
+  text-align: center;
+  margin: 0.2rem 0 0 0;
+}
+
+.step-component-root > .index-ball.isActive {
+  background-color: var(--color-blue-main);
+  color: white;
+}

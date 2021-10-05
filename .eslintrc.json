@@ -1,0 +1,34 @@
+{
+  "env": {
+    "browser": true,
+    "commonjs": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": ["plugin:react/recommended", "google", "prettier"],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "plugins": ["react"],
+  "ignorePatterns": ["**/build/**/*.*"],
+  "rules": {
+    "linebreak-style": "off",
+    "max-len": "off",
+    "new-cap": "off",
+    "guard-for-in": "off",
+    "react-hooks/exhaustive-deps": "off",
+    "no-invalid-this": "off",
+    "react/prop-types": "off",
+    "require-jsdoc": "off",
+    "valid-jsdoc": "off",
+    "react/jsx-key": "off",
+    "no-unused-vars": "off",
+    "prefer-const": "off",
+    "react/display-name": "off",
+    "react/no-unknown-property": "off"
+  }
+}

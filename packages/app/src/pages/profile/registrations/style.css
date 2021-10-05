@@ -1,0 +1,85 @@
+.modal-component > .card {
+  background-color: var(--color-blue-secondary);
+  padding: 0;
+  max-width: 40rem !important;
+}
+
+.title {
+  padding: 15px 0px;
+  background-color: var(--color-blue-secondary);
+  width: 100%;
+  text-align: center;
+  border-radius: 10px 10px 0 0;
+  font-weight: bold;
+}
+
+.tab-events > div > span {
+  background-color: #1f6e99;
+}
+
+.event:enabled {
+  background-color: var(--color-blue-secondary);
+}
+
+.tab-options {
+  max-height: 60vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.tab-options > div {
+  padding: 0;
+  background-color: var(--color-blue-secondary);
+  border: none;
+}
+
+.item-title {
+  background-color: var(--color-blue-secondary) !important;
+  padding: 0 !important;
+  color: #ccd2db !important;
+}
+
+.item-title > div {
+  padding: 0 15px;
+  color: white;
+}
+
+.item-radio > label > span:first-child {
+  color: var(--color-blue-main) !important;
+}
+
+.item-radio > label > span:last-child {
+  font-weight: bold !important;
+}
+
+.item-description {
+  font-size: small;
+  padding: 0 25px;
+  text-align: justify;
+}
+
+input {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+  width: 100%;
+  padding: 0.5rem 1rem;
+}
+
+.ratio-options {
+  padding: 0;
+}
+
+button.cancel {
+  padding: 0.5rem 2rem;
+  border-radius: 12px;
+  margin: 1rem;
+  color: white;
+  background-color: #f44336;
+}
+
+button.item-register {
+  padding: 0.5rem 2rem;
+  border-radius: 12px;
+  margin: 0 0.5rem;
+  color: white;
+  background-color: var(--color-blue-main);
+}

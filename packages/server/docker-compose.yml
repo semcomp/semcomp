@@ -1,0 +1,18 @@
+version: "2"
+services:
+  server:
+    restart: always
+    build: .
+    ports:
+      - "8090:8090"
+    container_name: server
+    depends_on:
+      - redis
+    links:
+      - redis
+  redis:
+    restart: always
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"

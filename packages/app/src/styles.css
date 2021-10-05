@@ -1,0 +1,20 @@
+:root {
+  --color-blue-main: #8d3d99;
+  --color-blue-secondary: #002940;
+  --color-black-main: #1d1d1b;
+  --color-grey-1: #3d3d3d;
+  --color-grey-2: #c2c2c2;
+  --color-grey-3: #f0f0f0;
+  --color-white: #fafafa;
+}
+
+body,
+html,
+#root {
+  height: 100vh;
+  scroll-behavior: smooth;
+  font-family: Roboto, sans-serif;
+
+  /* The whole page is not a perfect white so it goes a bit easier on the reader's eyes */
+  background-color: #fafafa;
+}

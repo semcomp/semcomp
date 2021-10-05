@@ -1,0 +1,35 @@
+.navbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 4rem;
+  width: 100%;
+}
+
+.navbar-content > .links-container {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-content > a > img {
+  width: 80px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Small notebook */
+@media screen and (max-width: 1024px) {
+  .navbar-content {
+    flex-direction: column;
+    padding: 0;
+    margin-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  .navbar-content > a > img {
+    margin-bottom: 1rem;
+  }
+  .navbar-content > .links-container {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
