@@ -30,9 +30,9 @@
     "socket.io-client": "^4.0.2"
   },
   "scripts": {
-    "start": "cross-env BROWSER=false EXTEND_ESLINT=true react-scripts start",
+    "start": "cross-env BROWSER=false EXTEND_ESLINT=false SKIP_PREFLIGHT_CHECK=true react-scripts start",
     "lint": "eslint src",
-    "build": "react-scripts build",
+    "build": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
