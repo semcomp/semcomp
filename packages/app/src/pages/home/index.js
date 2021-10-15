@@ -5,7 +5,6 @@ import { useSelector } from "react-redux";
 import About from "./about";
 // import AboutBeta from "./about-beta";
 import Footer from "../../components/footer";
-import A11yHeader from "../../components/a11yheader";
 import HomeHeader from "./header";
 import Schedule from "./schedule";
 import FAQ from "./faq";
@@ -18,8 +17,7 @@ function Home() {
   return (
     <main className="home">
       <div>
-        <A11yHeader/>
-        {/* <LiveNow /> */}
+        <LiveNow />
         <HomeHeader user={user} />
         {/* <Stats /> */}
         <About />
