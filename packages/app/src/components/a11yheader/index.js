@@ -63,10 +63,10 @@ const A11yHeader = () => {
       {/* <div className="links-container">
         <ul class="nav justify-content-end"> */}
             <NavItem class="nav-item">
-              <NavLink  class="nav-link" href="#signup-button" accesskey="1">Ir para o Conteúdo Principal [Alt + 1]</NavLink>
+              <NavLink  class="nav-link" href="#about" accesskey="1">Ir para o Conteúdo Principal [Alt + 1]</NavLink>
             </NavItem>
             <NavItem class="nav-item">
-              <NavLink  class="nav-link" href="#menu" accesskey="2">Início do Menu [Alt + 2]</NavLink>
+              <NavLink  class="nav-link" href="#home-header" accesskey="2">Início do Menu [Alt + 2]</NavLink>
             </NavItem>
             <NavItem class="nav-item">
               <NavLink  class="nav-link" href="#altocontraste" id="altocontraste" accesskey="3" onclick="window.toggleContrast()" onkeydown="window.toggleContrast()">Alto contraste [Alt + 3]</NavLink>
