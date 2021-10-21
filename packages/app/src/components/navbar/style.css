@@ -33,3 +33,12 @@
     justify-content: center;
   }
 }
+
+
+a:focus, a:hover {  
+  border: 2px solid #F00;  
+} 
+
+a:focus, a:hover {  
+  border: 2px solid #F00;  
+} 
