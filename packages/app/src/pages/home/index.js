@@ -1,5 +1,10 @@
 import React from "react";
 import "./style.css";
+import "./../../components/a11yheader/high-contrast-actions.css";
+import "./../../components/a11yheader/high-contrast-backgrounds.css";
+import "./../../components/a11yheader/high-contrast-forms.css";
+import "./../../components/a11yheader/high-contrast-images.css";
+import "./../../components/a11yheader/high-contrast-texts.css";
 import { useSelector } from "react-redux";
 
 import About from "./about";
