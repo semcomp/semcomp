@@ -1,4 +1,5 @@
 import React from "react";
+import './contrast.js';
 import { Nav, NavItem, NavLink } from 'reactstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./high-contrast-actions.css";
@@ -21,7 +22,10 @@ const A11yHeader = () => {
         updateView: updateViewContrast
     };
 
-    window.toggleContrast = function () { Contrast.toogle(); };
+    window.toggleContrast = function () {
+      console.log("TOGGLANDO")
+      Contrast.toogle(); 
+    };
 
     Contrast.check();
 
@@ -41,27 +45,37 @@ const A11yHeader = () => {
 
     function updateViewContrast() {
         let body = document.body;
+        console.log("CONTRASTANTOOOOOOO", body)
         
-        if (!body) return;
+        if (!body) {
+          console.log("NOBODY")
+          return;
+        }
+        else{
+          console.log("YESBODY", this.currentState)
+        }
 
         if (this.currentState === null)
             this.currentState = this.getState();
+            console.log("NEW STATE", this.currentState)
 
-        if (this.currentState)
-            body.classList.add(this.cssClass);
-        else
+        if (this.currentState){
+            console.log("CLASSE ADICIONADAAAA =D")
+            body.classList.add(this.cssClass);}
+        else{
+            console.log("CLASSE NÃÃÃÃÃO ADICIONADAAAA T_T")
             body.classList.remove(this.cssClass);
+        }
     }
 
     function toogleContrast() {
+        console.log("TOGGLE CONTRAST")
         this.setState(!this.currentState);
     }
-  })();
+  })(); 
 
   return (
     <Nav className="a11ybar-content justify-content-end">
-      {/* <div className="links-container">
-        <ul class="nav justify-content-end"> */}
             <NavItem class="nav-item">
               <NavLink  class="nav-link" href="#about" accesskey="1">Ir para o Conteúdo Principal [Alt + 1]</NavLink>
             </NavItem>
@@ -69,10 +83,8 @@ const A11yHeader = () => {
               <NavLink  class="nav-link" href="#home-header" accesskey="2">Início do Menu [Alt + 2]</NavLink>
             </NavItem>
             <NavItem class="nav-item">
-              <NavLink  class="nav-link" href="#altocontraste" id="altocontraste" accesskey="3" onclick="window.toggleContrast()" onkeydown="window.toggleContrast()">Alto contraste [Alt + 3]</NavLink>
+              <NavLink  class="nav-link" href="#altocontraste" id="altocontraste" accesskey="3" onkeydown={window.toggleContrast()}>Alto contraste [Alt + 3]</NavLink>
             </NavItem>
-        {/* </ul> 
-      </div> */}
     </Nav>
   );
 };

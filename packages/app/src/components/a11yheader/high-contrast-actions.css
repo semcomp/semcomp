@@ -1,8 +1,9 @@
-.contrast a{
+.contrast a {
     color: yellow !important;
 }
 
 .contrast button,
+.contrast nav,
 .contrast input[type=button],
 .contrast input[type=reset],
 .contrast input[type=submit] {

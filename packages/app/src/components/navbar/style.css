@@ -34,7 +34,7 @@
   }
 }
 
-
+/* A11y - Focusable links */
 a:focus, a:hover {  
   border: 2px solid #F00;  
 } 
