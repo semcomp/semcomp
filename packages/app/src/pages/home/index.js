@@ -18,6 +18,8 @@ import LiveNow from "./live-now";
 import Sponsors from "./sponsors";
 // import Stats from "./stats";
 
+import VLibras from "@djpfs/react-vlibras";
+
 function Home() {
   const user = useSelector((state) => state.auth.user);
   return (
@@ -33,6 +35,7 @@ function Home() {
         <Sponsors />
         <FAQ />
         <Footer />
+        <VLibras />
       </div>
     </main>
   );
