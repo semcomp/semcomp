@@ -38,6 +38,19 @@ function Sponsors() {
     TokenlabLogo,
     UltraLogo,
   ];
+  const companyAlts = [
+    "Amdocs",
+    "Americanas",
+    "Arquivei",
+    "Elo7",
+    "Globo",
+    "Luizalabs",
+    "Monitora",
+    "Netbr",
+    "Opus",
+    "Tokenlab",
+    "Ultra",
+  ];
 
   const supporterLogos = [
     IcmcImage,
@@ -48,6 +61,15 @@ function Sponsors() {
     GemaImage,
     PetImage,
   ];
+  const supporterAlts = [
+    "ICMC",
+    "Fellowship of the Game",
+    "USP Codelab",
+    "Ganesh",
+    "ICMC Junior",
+    "Gema",
+    "Pet Computação",
+  ];
 
   return (
     <>
@@ -56,10 +78,11 @@ function Sponsors() {
         <h1>Patrocínio</h1>
         <div className="home-sponsors-card">
           <div className="home-sponsors-card-content">
-            {companyLogos.map((companyLogo) => (
+            {companyLogos.map((companyLogo, i) => (
               <div
                 className="company-logo"
                 style={{ backgroundImage: `url('${companyLogo}')` }}
+                alt={companyAlts[i]}
               />
             ))}
           </div>
@@ -68,10 +91,11 @@ function Sponsors() {
         <h1>Apoio</h1>
         <div className="home-sponsors-card">
           <div className="home-sponsors-card-content">
-            {supporterLogos.map((supporterLogo) => (
+            {supporterLogos.map((supporterLogo, i) => (
               <div
                 className="company-logo"
                 style={{ backgroundImage: `url('${supporterLogo}')` }}
+                alt={supporterAlts[i]}
               />
             ))}
           </div>
