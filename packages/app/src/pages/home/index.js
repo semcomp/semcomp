@@ -18,7 +18,7 @@ import LiveNow from "./live-now";
 import Sponsors from "./sponsors";
 // import Stats from "./stats";
 
-import VLibras from "@djpfs/react-vlibras";
+//import VLibras from "@djpfs/react-vlibras";
 
 function Home() {
   const user = useSelector((state) => state.auth.user);
@@ -35,7 +35,7 @@ function Home() {
         <Sponsors />
         <FAQ />
         <Footer />
-        <VLibras />
+        {/* <VLibras /> */}
       </div>
     </main>
   );
