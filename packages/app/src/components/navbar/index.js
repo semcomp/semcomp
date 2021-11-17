@@ -23,7 +23,7 @@ const Navbar = () => {
   return (
     <nav className="navbar-content">
       <HashLink to={Routes.home + "#home-header"}>
-        <img alt="Semcomp logo" src={SemcompLogo} />
+        <img alt="Logo da Semcomp" src={SemcompLogo} />
       </HashLink>
       <div className="links-container">
         <Navlink
