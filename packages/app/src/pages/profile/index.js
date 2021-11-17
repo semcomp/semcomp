@@ -210,7 +210,7 @@ function Profile({ user }) {
               Overflow
             </h1>
             <strong>Sua casa é...</strong>
-            <img alt="User house" src={houseImageSrc} />
+            <img alt={`Imagem da casa ${userHouseName}`} src={houseImageSrc} />
             <p className="house-name">{userHouseName}</p>
             <button
               style={{ backgroundColor: "#0088cc" }}
@@ -281,7 +281,7 @@ function Profile({ user }) {
                     <img
                       key={conquista._id}
                       src={achievementsImageSrc}
-                      alt={conquista.title}
+                      alt={`Conquista ${conquista.title}`}
                       style={{ padding: ".3rem", maxHeight: "80px" }}
                     />
                   </>

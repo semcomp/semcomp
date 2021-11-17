@@ -52,7 +52,7 @@ const About = () => {
 					Inscrições em breve!
 				</button> */}
           </div>
-          <img alt="Banner Semcomp" src={BannerSemcomp} />
+          <img alt="Banner da Semcomp" src={BannerSemcomp} />
         </div>
         <div className="shiny-divider"></div>
       </div>
