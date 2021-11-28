@@ -12,7 +12,7 @@ const Footer = () => {
   return (
     <div className="footer-container">
       <div className="shiny-divider"></div>
-      <footer className="footer-component">
+      <footer className="footer-component" role="contentinfo">
         <p>Nos siga nas redes sociais</p>
         <div>
           {/* Don't forget to add a `rel="noopnener"` to any link that goes outside the

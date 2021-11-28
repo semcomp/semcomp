@@ -15,7 +15,7 @@ const HomeHeader = (props) => {
   const isUserLoggedIn = Boolean(useSelector((state) => state.auth.token));
 
   return (
-    <header className="home-header" id="home-header">
+    <header className="home-header" id="home-header" role="banner">
       {/* <img alt='' src={BackgroundImage} /> */}
       <div className="backdrop" />
       <div className="navbar-container">
