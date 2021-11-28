@@ -160,7 +160,7 @@ function HardToClick() {
       <SocketProvider>
         <TeamProvider>
           <div className="HardToClick-page__root">
-            <main className="HardToClick-page__main">
+            <main className="HardToClick-page__main" role="main">
               {/* <aside className="HardToClick-page__sidenav">
                 <VerticalStepper collapseButton={collapseButton} />
               </aside> */}

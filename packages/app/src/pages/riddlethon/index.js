@@ -148,7 +148,7 @@ function Riddlethon() {
       <SocketProvider>
         <TeamProvider>
           <div className="Riddlethon-page__root">
-            <main className="Riddlethon-page__main">
+            <main className="Riddlethon-page__main" role="main">
               {/* <aside className="Riddlethon-page__sidenav">
                 <VerticalStepper collapseButton={collapseButton} />
               </aside> */}

@@ -161,7 +161,7 @@ function SignupPage() {
   return (
     <div className="signup-page-container">
       <Header />
-      <main className="main-container">
+      <main className="main-container" role="main">
         <div className="card">
           <h1>Cadastrar</h1>
           <div className="stepper-container">

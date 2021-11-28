@@ -189,7 +189,7 @@ function Profile({ user }) {
         />
       )}
       <Header />
-      <main className="main-container">
+      <main className="main-container" role="main">
         <div className="left-side">
           <div className="user-house-card">
             <p className="username">{user.name}</p>

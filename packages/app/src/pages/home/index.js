@@ -23,7 +23,7 @@ import Sponsors from "./sponsors";
 function Home() {
   const user = useSelector((state) => state.auth.user);
   return (
-    <main className="home">
+    <main className="home" role="main">
       <div>
         <A11yHeader/>
         {/* <LiveNow /> */}

@@ -46,7 +46,7 @@ function Login() {
   return (
     <div className="login-page-container">
       <Header />
-      <main className="main-container">
+      <main className="main-container" role="main">
         <form onSubmit={handleSubmit}>
           <h1>Entrar</h1>
           <label>
