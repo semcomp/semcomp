@@ -6,7 +6,7 @@ import EventsCalendar from "../../../components/events-calendar";
 const Schedule = () => {
   return (
     <div id="schedule" className="home-schedule-container">
-      <h1>Cronograma</h1>
+      <h2>Cronograma</h2>
       <div className="schedule-container">
         <EventsCalendar />
       </div>

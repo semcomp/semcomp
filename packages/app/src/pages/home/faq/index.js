@@ -55,7 +55,7 @@ const FAQ = () => {
     <>
       <div className="shiny-divider"></div>
       <div className="home-faq-container">
-        <h1>FAQ</h1>
+        <h2>FAQ</h2>
         <div className="questions-container">
           <Question
             question="Como faço para participar da Semcomp?"

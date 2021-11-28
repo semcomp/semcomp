@@ -20,7 +20,7 @@ const About = () => {
       <div className="home-about-background">
         <div className="home-about-container" id="about">
           <div className="text-container">
-            <h1>Sobre a Semcomp</h1>
+            <h2>Sobre a Semcomp</h2>
             <p>
               A Semcomp é a Semana Acadêmica de Computação dos cursos de
               Ciências de Computação e Sistemas de Informação do ICMC da USP.

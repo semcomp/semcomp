@@ -6,7 +6,7 @@ function AboutBeta() {
   return (
     <>
       <section className="home-about-beta">
-        <h1>Sobre a Semcomp Beta</h1>
+        <h2>Sobre a Semcomp Beta</h2>
         <p>
           Durante o primeiro semestre de cada ano, a comissão organizadora
           realiza a Semcomp beta, uma prévia do nosso evento principal que

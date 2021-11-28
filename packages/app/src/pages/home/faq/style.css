@@ -9,7 +9,7 @@
   background-color: var(--color-blue-main);
 }
 
-.home-faq-container > h1 {
+.home-faq-container > h2 {
   text-align: center;
   font-size: 2.5rem;
   margin-bottom: 2rem;
