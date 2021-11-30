@@ -176,7 +176,7 @@ function Livestream() {
       <div className="livestream-page-content-container">
         {loading || event ? (
           <>
-            <main className="main-container">
+            <main className="main-container" role="main">
               <div className="livestream-container">
                 {youtubeVideoId ? (
                   <>
@@ -230,7 +230,7 @@ function Livestream() {
             </aside>
           </>
         ) : (
-          <main className="main-container">
+          <main className="main-container" role="main">
             <div className="no-livestream">
               <p>
                 Nenhum evento sendo transmitido agora!

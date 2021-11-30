@@ -151,7 +151,7 @@ function Riddle() {
       <SocketProvider>
         <TeamProvider>
           <div className="Riddle-page__root">
-            <main className="Riddle-page__main">
+            <main className="Riddle-page__main" role="main">
               {/* <aside className="Riddle-page__sidenav">
                 <VerticalStepper collapseButton={collapseButton} />
               </aside> */}

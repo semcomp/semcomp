@@ -173,7 +173,7 @@ const SponsorsPage = () => {
 
       {/* This div is here to allow for the aside to be on the right side of the page */}
       <div className="content-container">
-        <main className="main-container">
+        <main className="main-container" role="main">
           <h2>Patrocinadores</h2>
           <p className="thanks-from-semcomp">
             Queremos agradecer aos patrocinadores, sem os quais seria impossível

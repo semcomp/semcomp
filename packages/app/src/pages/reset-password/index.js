@@ -128,7 +128,7 @@ function ResetPassword() {
   return (
     <div className="reset-password-page-container">
       <Header />
-      <main className="main-container">
+      <main className="main-container" role="main">
         <div className="card">
           <h1>Recuperar senha</h1>
           <div className="stepper-container">
