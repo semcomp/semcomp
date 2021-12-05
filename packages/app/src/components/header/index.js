@@ -6,7 +6,7 @@ import HeaderBackground from "../../assets/navbar-background.png";
 
 const Header = (props) => {
   return (
-    <header className="header">
+    <header className="header"  id="header">
       <img src={HeaderBackground} alt="" />
 
       {/* This div is used to show a dark overlay on top of the image. */}

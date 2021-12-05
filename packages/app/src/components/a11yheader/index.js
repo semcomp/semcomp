@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Nav, NavItem, NavLink } from 'reactstrap';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -51,10 +51,10 @@ const A11yHeader = () => {
   return (
     <Nav className="a11ybar-content justify-content-end">
       <NavItem class="nav-item">
-        <NavLink  class="nav-link" href="#about" accesskey="1">Ir para o Conteúdo Principal [Alt + 1]</NavLink>
+        <NavLink  class="nav-link" href="#conteudo" accesskey="1">Conteúdo Principal [Alt + 1]</NavLink>
       </NavItem>
       <NavItem class="nav-item">
-        <NavLink  class="nav-link" href="#home-header" accesskey="2">Início do Menu [Alt + 2]</NavLink>
+        <NavLink  class="nav-link" href="#header" accesskey="2">Início do Menu [Alt + 2]</NavLink>
       </NavItem>
       <NavItem class="nav-item">
         <NavLink 

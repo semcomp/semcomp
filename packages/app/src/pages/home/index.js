@@ -29,7 +29,9 @@ function Home() {
         {/* <LiveNow /> */}
         <HomeHeader user={user} />
         {/* <Stats /> */}
-        <About />
+        <div id="conteudo">
+            <About />
+        </div>
         <Schedule />
         {/* <AboutBeta /> */}
         <Sponsors />

@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import BackendURL from "../../constants/api-url";
 import { login as loginAction } from "../../redux/actions/auth";
 import LoadingButton from "../../components/loading-button";
+import A11yHeader from "../../components/a11yheader";
 import Header from "../../components/header";
 import Footer from "../../components/footer";
 
@@ -45,8 +46,9 @@ function Login() {
 
   return (
     <div className="login-page-container">
+      <A11yHeader />
       <Header />
-      <main className="main-container" role="main">
+      <main className="main-container" role="main" id="conteudo">
         <form onSubmit={handleSubmit}>
           <h1>Entrar</h1>
           <label>

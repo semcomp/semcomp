@@ -2,6 +2,7 @@ import React from "react";
 import API from "../../api";
 import _ from "lodash";
 
+import A11yHeader from "../../components/a11yheader";
 import Header from "../../components/header";
 import Footer from "../../components/footer";
 import EventsCalendar from "../../components/events-calendar";
@@ -188,6 +189,7 @@ function Profile({ user }) {
           onRequestClose={() => setIsAboutOverflowModalOpen(false)}
         />
       )}
+      <A11yHeader/>
       <Header />
       <main className="main-container" role="main">
         <div className="left-side">

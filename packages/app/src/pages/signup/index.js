@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 
+import A11yHeader from "../../components/a11yheader";
 import Footer from "../../components/footer/index";
 import Header from "../../components/header/index";
 import Stepper from "../../components/stepper";
@@ -160,8 +161,9 @@ function SignupPage() {
 
   return (
     <div className="signup-page-container">
+      <A11yHeader />
       <Header />
-      <main className="main-container" role="main">
+      <main className="main-container" role="main" id="conteudo">
         <div className="card">
           <h1>Cadastrar</h1>
           <div className="stepper-container">
