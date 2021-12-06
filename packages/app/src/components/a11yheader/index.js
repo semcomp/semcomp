@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Nav, NavItem, NavLink } from 'reactstrap';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-import "./high-contrast-actions.css";
-import "./high-contrast-backgrounds.css";
-import "./high-contrast-forms.css";
-import "./high-contrast-images.css";
-import "./high-contrast-texts.css";
+import "./high-contrast.css";
+import "./larger-text.css";
 import "./style.css";
 
-const storageKey = 'isAtHighContrast'
+const contrastStrgKey = 'isAtHighContrast'
+const resizeStrgKey = 'isTextResized'
 const cssContrastClass = 'contrast'
+const cssResizeClass = 'larger-text'
 
 const A11yHeader = () => {
   // NOTE: HC = High Contrast
 
+  // Set high contrast functions in the page
   (function() {
     const Contrast = {
       isAtHC: false,
@@ -22,7 +22,7 @@ const A11yHeader = () => {
         this.setContrast(!this.isAtHC);
       },
       setContrast: function (isAtHighContrast) {
-        localStorage[storageKey] = '' + isAtHighContrast;
+        localStorage[contrastStrgKey] = '' + isAtHighContrast;
         this.isAtHC = isAtHighContrast;
         this.updateSiteBody();
       },
@@ -30,7 +30,7 @@ const A11yHeader = () => {
         const body = document.body;
         if (!body) return;
         
-        this.isAtHC = this.isAtHC || localStorage[storageKey] === 'true';
+        this.isAtHC = this.isAtHC || localStorage[contrastStrgKey] === 'true';
         
         if (this.isAtHC) {
           body.classList.add(cssContrastClass);
@@ -47,6 +47,40 @@ const A11yHeader = () => {
 
     Contrast.updateSiteBody();
   })();
+
+  // Set text resizing functions in the page
+  (function() {
+    const TextResize = {
+      isResized: false,
+      toggle: function () {
+        this.setResize(!this.isResized);
+      },
+      setResize: function (isResized) {
+        localStorage[resizeStrgKey] = '' + isResized;
+        this.isResized = isResized;
+        this.updateSiteBody();
+      },
+      updateSiteBody: function () {
+        const body = document.body;
+        if (!body) return;
+        
+        this.isResized = this.isResized || localStorage[resizeStrgKey] === 'true';
+        
+        if (this.isResized) {
+          body.classList.add(cssResizeClass);
+        }
+        else {
+          body.classList.remove(cssResizeClass);
+        }
+      }
+    }
+
+    window.toggleResize = function () {
+      TextResize.toggle(); 
+    };
+
+    TextResize.updateSiteBody();
+  })();
   
   return (
     <Nav className="a11ybar-content justify-content-end">
@@ -59,12 +93,22 @@ const A11yHeader = () => {
       <NavItem class="nav-item">
         <NavLink 
           class="nav-link" 
-          href="#altocontraste" 
-          id="altocontraste" 
+          href="#high-contrast" 
+          id="high-contrast" 
           accesskey="3" 
           onClick={() => { window.toggleContrast() }}
           onKeyDown={() => { window.toggleContrast() }}
         >Alto contraste [Alt + 3]</NavLink>
+      </NavItem>
+      <NavItem class="nav-item">
+        <NavLink 
+          class="nav-link" 
+          href="#fontsize" 
+          id="fontsize" 
+          accesskey="4" 
+          onClick={() => { window.toggleResize() }}
+          onKeyDown={() => { window.toggleResize() }}
+        >Aumentar/diminuir texto [Alt + 4]</NavLink>
       </NavItem>
     </Nav>
   );

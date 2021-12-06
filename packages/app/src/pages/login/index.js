@@ -51,7 +51,7 @@ function Login() {
           <h1>Entrar</h1>
           <label>
             <p>E-mail</p>
-            <input name="email" />
+            <input type="text" name="email" />
           </label>
           <label>
             <p>Senha</p>

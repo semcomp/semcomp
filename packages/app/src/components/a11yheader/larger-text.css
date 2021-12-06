@@ -1,0 +1,46 @@
+/* enqueue these as a separate stylesheet so they can be filtered */
+.larger-text,
+.larger-text h1,
+.larger-text h2,
+.larger-text h3,
+.larger-text h4,
+.larger-text h5,
+.larger-text h6,
+.larger-text p,
+.larger-text li:not(.a11y-toolbar-list-item),
+.larger-text label,
+.larger-text input,
+.larger-text select,
+.larger-text textarea,
+.larger-text legend,
+.larger-text code,
+.larger-text pre,
+.larger-text dd,
+.larger-text dt,
+.larger-text blockquote {
+	font-size: 150% !important;
+	line-height: 1.6;
+}
+
+.larger-text h1,
+.larger-text h2,
+.larger-text h3,
+.larger-text h4,
+.larger-text h5,
+.larger-text h6 {
+	font-size: 200% !important;
+}
+
+.larger-text a,
+.larger-text button {
+	font-size: 110% !important;
+}
+
+/* Otherwise, these get larger with each level of nesting. */
+.larger-text li li {
+	font-size: 110% !important;
+}
+
+.larger-text li li li {
+	font-size: 100% !important;
+}
