@@ -39,17 +39,17 @@ function Sponsors() {
     UltraLogo,
   ];
   const companyAlts = [
-    "Amdocs",
-    "Americanas",
-    "Arquivei",
-    "Elo7",
-    "Globo",
-    "Luizalabs",
-    "Monitora",
-    "Netbr",
-    "Opus",
-    "Tokenlab",
-    "Ultra",
+    "Logo da Amdocs com um degradê de laranja para rosa e o nome da empresa ao lado",
+    "Logo da Americanas vermelho, com linhas em cima e embaixo do nome da empresa",
+    "Logo da Arquivei azul, com uma seta em formato de nuvem apontando para uma folha de papel",
+    "Logo da Elo7 amarelo",
+    "Logo da Globo colorido em tons de arco-íris",
+    "Logo da Luizalabs azul e cinza com um círculo no canto superior direito",
+    "Logo da Monitora verde e preto",
+    "Logo da Netbr azul e verde",
+    "Logo da Opus vermelho e cinza",
+    "Logo da Tokenlab azul e cinza com o nome da empresa em cinza",
+    "Logo da Ultra azul e verde com o nome da empresa em azul escuro",
   ];
 
   const supporterLogos = [
@@ -62,13 +62,13 @@ function Sponsors() {
     PetImage,
   ];
   const supporterAlts = [
-    "ICMC",
-    "Fellowship of the Game",
-    "USP Codelab",
-    "Ganesh",
-    "ICMC Junior",
-    "Gema",
-    "Pet Computação",
+    "Logo do ICMC azul",
+    "Logo do Fellowship of the Game azul e amarelo",
+    "Logo do USP Codelab preto e verde com nome do grupo ao lado",
+    "Logo do Ganesh verde e rosa",
+    "Logo do ICMC Junior azul com o nome do grupo em azul e verde ao lado",
+    "Logo do Gema azul com o balão amarelo ao lado",
+    "Logo do Pet Computação verde com nome do grupo em preto ao lado",
   ];
 
   return (
