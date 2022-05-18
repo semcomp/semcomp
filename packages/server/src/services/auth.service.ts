@@ -40,7 +40,13 @@ const authService = {
       disabilities,
     }) as any;
     await createdUser.save();
-    await assignUserHouse(createdUser.id);
+
+    try {
+      await assignUserHouse(createdUser.id);
+    } catch (error) {
+      await UserModel.findByIdAndDelete(createdUser.id);
+      throw error;
+    }
 
     await sendEmail(
       createdUser.email,
