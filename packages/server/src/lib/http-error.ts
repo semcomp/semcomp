@@ -1,12 +1,9 @@
-export const HttpError = class Error {
-  statusCode;
+export default class HttpError {
+  public statusCode: number;
+  public errors: string[];
 
-  /**
-   * constructor
-   *
-   * @param {string} statusCode
-   */
-  constructor(statusCode) {
+  constructor(statusCode: number, errors: string[]) {
     this.statusCode = statusCode;
+    this.errors = errors;
   }
 };

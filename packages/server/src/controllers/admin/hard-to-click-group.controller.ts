@@ -1,7 +1,7 @@
 import HardToClickGroupModel from "../../models/hard-to-click-group";
 import AdminLog from "../../models/admin-log";
 
-import { HttpError } from "../../lib/http-error";
+import HttpError from "../../lib/http-error";
 
 export const list = async (req, res) => {
   const groupsFound = await HardToClickGroupModel.find().populate("members");
@@ -17,7 +17,7 @@ export const get = async (req, res) => {
       "members"
     );
     if (!groupFound) {
-      throw new HttpError(404);
+      throw new HttpError(404, ["Grupo não encontrado."]);
     }
 
     return res.status(200).json(groupFound);
@@ -35,13 +35,13 @@ export const deleteById = async (req, res) => {
 
     const groupFound = await HardToClickGroupModel.findById(id);
     if (!groupFound) {
-      throw new HttpError(404);
+      throw new HttpError(404, ["Grupo não encontrado."]);
     }
     if (
       groupFound.members.length > 0 ||
       groupFound.completedQuestionsIndexes.length > 0
     ) {
-      throw new HttpError(400);
+      throw new HttpError(400, ["Grupo com progresso."]);
     }
 
     await HardToClickGroupModel.findByIdAndDelete(id);

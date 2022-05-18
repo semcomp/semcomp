@@ -159,7 +159,7 @@ app.get(
 app.use("/api", Routes);
 
 app.use((error, req, res, next) => {
-  return res.status(error.status).json({ message: error.message });
+  return res.status(error.statusCode).json({ message: error.errors });
 });
 
 app.get("/semcomp-mente", (req, res) =>

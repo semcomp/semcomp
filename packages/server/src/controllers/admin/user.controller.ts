@@ -4,7 +4,7 @@ import HouseModel from "../../models/house";
 import EventModel from "../../models/event";
 import AdminLog from "../../models/admin-log";
 
-import { HttpError } from "../../lib/http-error";
+import HttpError from "../../lib/http-error";
 
 export const list = async (req, res) => {
   const usersFound = await UserModel.find({}, "-password").populate(
@@ -48,7 +48,7 @@ export const get = async (req, res) => {
 
     const userFound = await UserModel.findById(id);
     if (!userFound) {
-      throw new HttpError(404);
+      throw new HttpError(404, ["Usuário não encontrado."]);
     }
 
     return res.status(200).json(userFound);
@@ -69,7 +69,7 @@ export const getAttendance = async (req, res) => {
       "name email nusp course userTelegram"
     );
     if (!user) {
-      throw new HttpError(404);
+      throw new HttpError(404, ["Usuário não encontrado."]);
     }
 
     const attendedEvents = await EventModel.find(
@@ -100,18 +100,18 @@ export const addUserAchievement = async (req, res) => {
 
     const user = await UserModel.findById(userId);
     if (!user) {
-      throw new HttpError(404);
+      throw new HttpError(404, ["Usuário não encontrado."]);
     }
     const achievement = await AchievementModel.findOne({
       _id: achievementId,
       type: "Individual",
     });
     if (!achievement) {
-      throw new HttpError(404);
+      throw new HttpError(404, ["Conquista não encontrado."]);
     }
 
     if (user.achievements.includes(achievement._id)) {
-      throw new HttpError(400);
+      throw new HttpError(400, ["Conquista já completa."]);
     }
 
     user.achievements.push(achievement);
@@ -174,7 +174,7 @@ export const deleteById = async (req, res) => {
 
     const userFound = await UserModel.findById(id);
     if (!userFound) {
-      throw new HttpError(404);
+      throw new HttpError(404, ["Usuário não encontrado."]);
     }
 
     await UserModel.findByIdAndDelete(id);

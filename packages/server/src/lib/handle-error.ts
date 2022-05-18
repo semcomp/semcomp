@@ -1,18 +1,12 @@
-import createError from "http-errors";
+import { NextFunction } from "express";
 
-/**
- * handleValidationResult
- *
- * @param {object} error
- * @param {object} next Express next object
- *
- * @return {object}
- */
-export function handleError(error, next) {
+import HttpError from "./http-error";
+
+export function handleError(error, next): NextFunction {
   console.log(error);
 
-  if (!(error instanceof createError.HttpError)) {
-    error = new createError.InternalServerError("Erro no servidor.");
+  if (!(error instanceof HttpError)) {
+    error = new HttpError(500, ["Erro no servidor."]);
   }
 
   return next(error);

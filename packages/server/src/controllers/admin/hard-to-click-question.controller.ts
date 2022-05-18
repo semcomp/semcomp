@@ -1,7 +1,7 @@
 import HardToClickQuestionModel from "../../models/hard-to-click-question";
 import AdminLog from "../../models/admin-log";
 
-import { HttpError } from "../../lib/http-error";
+import HttpError from "../../lib/http-error";
 
 export const list = async (req, res) => {
   const questionsFound = await HardToClickQuestionModel.find();
@@ -15,7 +15,7 @@ export const get = async (req, res) => {
 
     const questionFound = await HardToClickQuestionModel.findById(id);
     if (!questionFound) {
-      throw new HttpError(404);
+      throw new HttpError(404, ["Pergunta não encontrada."]);
     }
 
     return res.status(200).json(questionFound);
@@ -33,7 +33,7 @@ export const create = async (req, res) => {
 
     const questionFound = await HardToClickQuestionModel.findOne({ index });
     if (questionFound) {
-      throw new HttpError(400);
+      throw new HttpError(400, ["Pergunta já existente."]);
     }
 
     const createdQuestion = new HardToClickQuestionModel({
@@ -67,7 +67,7 @@ export const update = async (req, res) => {
 
     const questionFound = await HardToClickQuestionModel.findById(id);
     if (!questionFound) {
-      throw new HttpError(404);
+      throw new HttpError(404, ["Pergunta não encontrada"]);
     }
 
     const updatedQuestion = await HardToClickQuestionModel.findByIdAndUpdate(
@@ -104,7 +104,7 @@ export const deleteById = async (req, res) => {
 
     const questionFound = await HardToClickQuestionModel.findById(id);
     if (!questionFound) {
-      throw new HttpError(404);
+      throw new HttpError(404, ["Pergunta não encontrada."]);
     }
 
     await HardToClickQuestionModel.findByIdAndDelete(id);
