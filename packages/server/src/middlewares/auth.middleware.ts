@@ -1,25 +1,18 @@
 import createError from "http-errors";
-import jwt from "jsonwebtoken";
 
-import UserModel from "../models/user";
+import { handleError } from "../lib/handle-error";
 import HouseModel from "../models/house";
+import AuthService from "../services/auth.service";
 
 export const authenticate = async (req, res, next) => {
   try {
     let token = req.header("Authorization");
-    if (token) {
-      token = token.replace("Bearer ", "");
-      const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY).data;
 
-      const user = await UserModel.findById(decoded.id);
-
-      req.user = user;
-    }
+    req.user = await AuthService.authenticate(token);
 
     next();
   } catch (error) {
-    console.log(error);
-    return next(new createError.InternalServerError("Erro no servidor."));
+    return handleError(error, next);
   }
 };
 
@@ -31,8 +24,7 @@ export const authenticateUserHouse = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.log(error);
-    return next(new createError.InternalServerError("Erro no servidor."));
+    return handleError(error, next);
   }
 };
 
@@ -44,7 +36,6 @@ export const isAuthenticated = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.log(error);
-    return next(new createError.InternalServerError("Erro no servidor."));
+    return handleError(error, next);
   }
 };

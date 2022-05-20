@@ -1,17 +1,30 @@
 import crypto from "crypto";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import createError from "http-errors";
+import 'dotenv/config'
 
 import { sendEmail } from "../lib/send-email";
 import { assignUserHouse } from "../lib/assign-user-house";
 import UserModel from "../models/user";
+import JsonWebToken from "./json-web-token.service";
+
+const tokenService = new JsonWebToken(process.env.JWT_PRIVATE_KEY, "30d");
 
 const authService = {
   createToken: (user) => {
-    return jwt.sign({ data: { id: user._id } }, process.env.JWT_PRIVATE_KEY, {
-      expiresIn: "30d",
-    });
+    return tokenService.create({ data: { id: user._id } });
+  },
+  authenticate: async (token) => {
+    if (token) {
+      token = token.replace("Bearer ", "");
+      const decoded = tokenService.decode(token);
+
+      const user = await UserModel.findById(decoded.id);
+
+      return user;
+    } else {
+      throw new createError.Unauthorized();
+    }
   },
   signup: async (
     email,
