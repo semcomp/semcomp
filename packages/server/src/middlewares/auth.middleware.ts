@@ -4,6 +4,20 @@ import { handleError } from "../lib/handle-error";
 import HouseModel from "../models/house";
 import AuthService from "../services/auth.service";
 
+export default class AuthMiddleware {
+  public async authenticate(req, res, next) {
+    return authenticate(req, res, next);
+  }
+
+  public async authenticateUserHouse(req, res, next) {
+    return authenticateUserHouse(req, res, next);
+  }
+
+  public async isAuthenticated(req, res, next) {
+    return isAuthenticated(req, res, next);
+  }
+}
+
 export const authenticate = async (req, res, next) => {
   try {
     let token = req.header("Authorization");

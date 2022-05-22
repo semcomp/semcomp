@@ -7,18 +7,35 @@ import UserModel from "../models/user";
 import RiddleGroupModel from "../models/riddle-group";
 import HouseModel from "../models/house";
 
-const userService = {
-  getUserHouse: async (userId) => {
+export interface UserService {
+  findByStringId(id: string): Promise<any>;
+  pay(id: string): Promise<void>;
+}
+
+export class User {
+  public id: string;
+  public email: string;
+
+  constructor(id: string, email: string) {
+    this.id = id;
+    this.email = email;
+  }
+}
+
+class UserServiceImpl implements UserService {
+  async getUserHouse(userId) {
     const userHouse = await HouseModel.findOne({ members: userId });
 
     return userHouse;
-  },
-  get: async () => {
+  }
+
+  async get() {
     const users = await UserModel.find();
 
     return users;
-  },
-  getOne: async (id) => {
+  }
+
+  async getOne(id) {
     const user = await UserModel.findById(id);
 
     if (!user) {
@@ -28,8 +45,9 @@ const userService = {
     }
 
     return user;
-  },
-  create: async (nusp, name, course, userTelegram, permission) => {
+  }
+
+  async create(nusp, name, course, userTelegram, permission) {
     const newUser = new UserModel() as any;
 
     newUser._id = new ObjectId();
@@ -42,8 +60,9 @@ const userService = {
     await newUser.save();
 
     return newUser;
-  },
-  update: async (id, nusp, name, course, userTelegram, permission) => {
+  }
+
+  async update(id, nusp, name, course, userTelegram, permission) {
     const updatedUser = await UserModel.findByIdAndUpdate(
       id,
       {
@@ -57,13 +76,15 @@ const userService = {
     );
 
     return updatedUser;
-  },
-  delete: async (id) => {
+  }
+
+  async delete(id) {
     const deletedUser = await UserModel.findByIdAndDelete(id);
 
     return deletedUser;
-  },
-  checkAchievements: async () => {
+  }
+
+  async checkAchievements() {
     const users = await UserModel.find();
     const events = await EventModel.find();
     const riddleGroups = await RiddleGroupModel.find();
@@ -117,7 +138,19 @@ const userService = {
       }
       await user.save();
     }
-  },
+  }
+
+  async findByStringId(id: string): Promise<any> {
+    const user = await UserModel.findOne({ _id: new ObjectId(id) });
+
+    return new User(user.id.toString(), user.email);
+  }
+
+  async pay(id: string): Promise<void> {
+    await UserModel.findByIdAndUpdate(new ObjectId(id), {
+      paid: true,
+    })
+  }
 };
 
-export default userService;
+export default new UserServiceImpl();
