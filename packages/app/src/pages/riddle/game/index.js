@@ -1,11 +1,12 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
 
-import TextField from "@material-ui/core/TextField";
-import DoneIcon from "@material-ui/icons/Done";
-import NavigateNextIcon from "@material-ui/icons/NavigateNext";
-import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
-import { Button } from "@material-ui/core";
+import {
+  Done,
+  NavigateNextSharp,
+  NavigateBeforeSharp,
+} from "@mui/icons-material";
+import { Button, TextField } from "@mui/material";
 import { toast } from "react-toastify";
 
 import API from "../../../api";
