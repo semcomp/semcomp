@@ -6,23 +6,22 @@ import Modal from "../../../components/modal";
 import LoadingButton from "../../../components/loading-button";
 import API from "../../../api";
 
-import AppBar from "@material-ui/core/AppBar";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-import Typography from "@material-ui/core/Typography";
-import Box from "@material-ui/core/Box";
-import Chip from "@material-ui/core/Chip";
-
-import Accordion from "@material-ui/core/Accordion";
-import AccordionSummary from "@material-ui/core/AccordionSummary";
-import AccordionDetails from "@material-ui/core/AccordionDetails";
-import AccordionActions from "@material-ui/core/AccordionActions";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-
-import Radio from "@material-ui/core/Radio";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import FormControl from "@material-ui/core/FormControl";
+import {
+  AppBar,
+  Tabs,
+  Tab,
+  Typography,
+  Box,
+  Chip,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  AccordionActions,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
+} from "@mui/material";
 
 import ReactLinkify from "react-linkify";
 
@@ -31,6 +30,7 @@ import "./style.css";
 import AdditionalValuesAccordion from "./additional-values-accordion";
 import ContestRegistration from "./additional-values-accordion/contest-registration";
 import NickRegistration from "./additional-values-accordion/nick-registration";
+import { ExpandMore } from "@mui/icons-material";
 
 const zeroPad = (num, places) => String(num).padStart(places, "0");
 
@@ -196,7 +196,7 @@ function Options({ item, type, fetchEvents }) {
       <Accordion>
         <AccordionSummary
           className="item-title"
-          expandIcon={<ExpandMoreIcon />}
+          expandIcon={<ExpandMore />}
           aria-controls="panel1a-content"
           id="panel1a-header"
         >

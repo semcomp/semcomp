@@ -1,4 +1,4 @@
-import { Button } from "@material-ui/core";
+import { Button } from "@mui/material";
 import React from "react";
 import { useHistory } from "react-router-dom";
 import { RiddlethonRoutes } from "..";

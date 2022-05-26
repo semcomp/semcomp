@@ -4,10 +4,6 @@ import { Switch, Route, Redirect, useHistory } from "react-router-dom";
 import IOSocket from "socket.io-client";
 import { useSelector } from "react-redux";
 
-// import MenuIcon from '@material-ui/icons/Menu';
-// import MenuOpenIcon from '@material-ui/icons/MenuOpen';
-// import { Button } from '@material-ui/core';
-
 import HardToClickStart from "./start";
 import HardToClickLobby from "./lobby";
 import HardToClickJoinTeam from "./join/join";

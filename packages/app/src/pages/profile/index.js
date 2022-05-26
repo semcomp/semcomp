@@ -21,13 +21,8 @@ import EventsOverview from "../../components/events-overview";
 import HouseScores from "../../components/house-scores";
 
 import ImgLogo from "../../assets/logo-24.png";
-import {
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  ListSubheader,
-} from "@material-ui/core";
+import { Divider, List, ListItem, ListItemText } from "@mui/material";
+
 import AboutOverflow from "./about-overflow";
 import AchievementsImages from "./achievements_images";
 
