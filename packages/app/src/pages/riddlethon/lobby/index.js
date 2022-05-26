@@ -1,8 +1,7 @@
 import React from "react";
 
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import CloseIcon from "@material-ui/icons/HighlightOff";
+import { Button, Dialog } from "@mui/material";
+import { Close } from "@mui/icons-material";
 
 import { useHistory } from "react-router-dom";
 
