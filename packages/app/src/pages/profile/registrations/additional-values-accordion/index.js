@@ -1,13 +1,13 @@
 import React from "react";
 
 import "./style.css";
+import { ExpandMore } from "@mui/icons-material";
 import {
   Accordion,
-  AccordionDetails,
   AccordionSummary,
+  AccordionDetails,
   Typography,
-} from "@material-ui/core";
-import ExpandMore from "@material-ui/icons/ExpandMore";
+} from "@mui/material";
 
 function AdditionalValuesAccordion({
   additionalValuesComponent: AdditionalValues,

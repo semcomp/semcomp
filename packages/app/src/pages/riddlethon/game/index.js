@@ -1,9 +1,11 @@
 import React from "react";
 
-import TextField from "@material-ui/core/TextField";
-import DoneIcon from "@material-ui/icons/Done";
-import NavigateNextIcon from "@material-ui/icons/NavigateNext";
-import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
+import TextField from "@mui/material";
+import {
+  Done,
+  NavigateNextSharp,
+  NavigateBeforeSharp,
+} from "@mui/icons-material";
 import { toast } from "react-toastify";
 
 import API from "../../../api";
@@ -91,7 +93,7 @@ function Question({ questionIndex, onCorrectAnswer }) {
         />
       );
     else if (wasCorrectlyAnswered) {
-      return <DoneIcon className="mr-2" htmlColor="#28a745" />;
+      return <Done className="mr-2" htmlColor="#28a745" />;
     } else return null;
   }
 
@@ -198,7 +200,7 @@ function Riddlethon() {
       <div className={styles.container}>
         <div className={styles.toolbar}>
           {canRenderNavicatioPrevArrow() ? (
-            <NavigateBeforeIcon
+            <NavigateBefore
               onClick={prevQuestion}
               className="cursor-pointer mr-4"
             />
@@ -209,7 +211,7 @@ function Riddlethon() {
             {currentQuestionIndex + 1}/{NUMBER_OF_QUESTIONS}
           </p>
           {canRenderNavicationNextArrow() ? (
-            <NavigateNextIcon
+            <NavigateNext
               onClick={nextQuestion}
               className="cursor-pointer ml-4"
             />
