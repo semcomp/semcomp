@@ -1,6 +1,6 @@
 import React from "react";
 import { useTeam, useSocket } from "..";
-import TextField from "@material-ui/core/TextField";
+import { TextField } from "@mui/material";
 import { useSelector } from "react-redux";
 import Spinner from "../../../components/spinner";
 import { EVENTS_PREFIX } from "../../../constants/riddlethon";

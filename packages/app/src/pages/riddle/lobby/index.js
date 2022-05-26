@@ -1,7 +1,7 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
 
-import Button from "@material-ui/core/Button";
+import { Button } from "@mui/icons-material";
 import { toast } from "react-toastify";
 
 import API from "../../../api";

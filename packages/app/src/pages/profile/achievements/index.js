@@ -1,7 +1,6 @@
 import Modal from "../../../components/modal";
 import React from "react";
-import { AppBar, Box, Tabs, Tooltip, Typography } from "@material-ui/core";
-import Tab from "@material-ui/core/Tab";
+import { AppBar, Box, Tab, Tabs, Tooltip, Typography } from "@mui/material";
 
 import "./styles.css";
 import AchievementsImages from "../achievements_images";
