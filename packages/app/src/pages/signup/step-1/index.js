@@ -29,7 +29,7 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
   const userTelegramRef = React.useRef();
   const isStudentRef = React.useRef();
   const courseRef = React.useRef();
-  const discordRef = React.useRef();
+  // const discordRef = React.useRef();
   const disabilitiesRef = React.useRef({});
   const canShareDataRef = React.useRef();
   const [termsOfUse, setTermsOfUse] = React.useState(false);
@@ -61,7 +61,7 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
     const userTelegram = userTelegramRef.current.value;
     const isStudent = isStudentRef.current.checked;
     const course = courseRef.current.value;
-    const discord = discordRef.current.value;
+    // const discord = discordRef.current.value;
     const disabilities = getDisabilitiesArray(disabilitiesRef.current);
     const canShareData = canShareDataRef.current.checked;
 
@@ -70,7 +70,7 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
       userTelegram,
       isStudent,
       course,
-      discord,
+      // discord,
       disabilities,
       canShareData,
     });
@@ -134,7 +134,7 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
           disabled={!needsCourse}
         />
       </label>
-      <label>
+      {/* <label>
         <p>Discord (opcional)</p>
         <input
           type="text"
@@ -142,7 +142,7 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
           onChange={handleFormUpdate}
           defaultValue={formValue.discord}
         />
-      </label>
+      </label> */}
       <div>
         <p>
           Você é PCD? Se sim, em qual categoria sua deficiência se enquadra?
