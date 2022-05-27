@@ -12,12 +12,6 @@ router.get(
   AdminEventController.list
 );
 
-router.get(
-  "/:id/emails",
-  [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminEventController.listSubscriptionsEmails
-);
-
 router.post(
   "/",
   [

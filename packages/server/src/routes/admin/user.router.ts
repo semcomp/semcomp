@@ -47,10 +47,4 @@ router.delete(
   AdminUserController.deleteById
 );
 
-router.post(
-  "/merge-presences",
-  [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.mergePresences
-);
-
 export default router;

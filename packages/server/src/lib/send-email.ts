@@ -11,11 +11,11 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendEmail = async function (to, subject, text, html) {
-  await transporter.sendMail({
-    from: '"Semcomp ❤" <noreply.semcomp@gmail.com>',
-    to,
-    subject,
-    text,
-    html,
-  });
+  // await transporter.sendMail({
+  //   from: '"Semcomp ❤" <noreply.semcomp@gmail.com>',
+  //   to,
+  //   subject,
+  //   text,
+  //   html,
+  // });
 };
