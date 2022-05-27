@@ -1,18 +1,16 @@
 import Mongoose from "mongoose";
 
-type Subscription = {
+type Attendance = {
   id?: string;
   eventId: string;
   userId: string;
-  info: object;
-  hasGroup: boolean;
   createdAt?: number;
   updatedAt?: number;
 }
 
-export default Subscription;
+export default Attendance;
 
-const SubscriptionSchema = new Mongoose.Schema(
+const AttendanceSchema = new Mongoose.Schema(
   {
     id: {
       type: String,
@@ -28,13 +26,6 @@ const SubscriptionSchema = new Mongoose.Schema(
       type: String,
       required: true,
     },
-    info: {
-      type: Object,
-    },
-    hasGroup: {
-      type: Mongoose.Schema.Types.Boolean,
-      default: false,
-    },
     createdAt: {
       type: Number,
       default: Date.now(),
@@ -44,7 +35,7 @@ const SubscriptionSchema = new Mongoose.Schema(
       default: Date.now(),
     },
   },
-  { collection: "subscription" }
+  { collection: "attendance" }
 );
 
-export const SubscriptionModel = Mongoose.model("subscription", SubscriptionSchema);
+export const AttendanceModel = Mongoose.model("attendance", AttendanceSchema);

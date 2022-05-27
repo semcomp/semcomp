@@ -2,10 +2,11 @@ import createError from "http-errors";
 import { ObjectId } from "mongodb";
 
 import AchievementModel from "../models/achievement";
-import EventModel from "../models/event";
 import UserModel from "../models/user";
 import RiddleGroupModel from "../models/riddle-group";
 import HouseModel from "../models/house";
+import eventService from "./event.service";
+import attendanceService from "./attendance.service";
 
 export interface UserService {
   findByStringId(id: string): Promise<any>;
@@ -86,7 +87,7 @@ class UserServiceImpl implements UserService {
 
   async checkAchievements() {
     const users = await UserModel.find();
-    const events = await EventModel.find();
+    const events = await eventService.find();
     const riddleGroups = await RiddleGroupModel.find();
     const userAchievements = await AchievementModel.find({
       type: "Individual",
@@ -118,7 +119,10 @@ class UserServiceImpl implements UserService {
           for (const event of events) {
             if (
               event.type === achievement.eventType &&
-              event.presentUsers.includes(user._id)
+              (await attendanceService.find({
+                eventId: event.id,
+                userId: user.id.toString(),
+              }))[0]
             ) {
               i++;
             }

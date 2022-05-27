@@ -1,10 +1,11 @@
 import AchievementModel from "../../models/achievement";
 import UserModel from "../../models/user";
 import HouseModel from "../../models/house";
-import EventModel from "../../models/event";
 import AdminLog from "../../models/admin-log";
 
 import HttpError from "../../lib/http-error";
+import eventService from "../../services/event.service";
+import attendanceService from "../../services/attendance.service";
 
 export const list = async (req, res) => {
   const usersFound = await UserModel.find({}, "-password").populate(
@@ -72,16 +73,15 @@ export const getAttendance = async (req, res) => {
       throw new HttpError(404, ["Usuário não encontrado."]);
     }
 
-    const attendedEvents = await EventModel.find(
+    const attendedEvents = await attendanceService.find(
       {
-        presentUsers: userId,
-      },
-      "type name"
+        userId,
+      }
     );
 
     console.log(attendedEvents);
 
-    const totalNumEvents = await EventModel.estimatedDocumentCount();
+    const totalNumEvents = await eventService.count();
     let attendancePercent = 100 * (attendedEvents.length / totalNumEvents);
     attendancePercent = Math.round(attendancePercent * 100) / 100; // truncate to precision 2
 
@@ -187,59 +187,6 @@ export const deleteById = async (req, res) => {
     })).save();
 
     return res.status(200).send(userFound);
-  } catch (e) {
-    if (e.statusCode) {
-      return res.status(e.statusCode).json(e);
-    }
-    return res.status(500).json(e);
-  }
-};
-
-export const mergePresences = async (req, res) => {
-  try {
-    const eventsFound = await EventModel.find();
-
-    for (let i = 0; i < eventsFound.length; i += 1) {
-      for (let j = 0; j < eventsFound[i].presentUsers.length; j += 1) {
-        // eslint-disable-next-line no-await-in-loop
-        const userPresent = await UserModel.findById(
-          eventsFound[i].presentUsers[j]._id
-        );
-
-        if (!userPresent) {
-          continue;
-        }
-        // eslint-disable-next-line no-await-in-loop
-        const userPresentOtherAccount = await UserModel.findOne({
-          email: userPresent.email,
-          _id: { $ne: userPresent._id },
-        });
-
-        if (!userPresentOtherAccount) {
-          // eslint-disable-next-line no-continue
-          continue;
-        }
-
-        let addOtherAccount = true;
-        for (let k = 0; k < eventsFound[i].presentUsers.length; k += 1) {
-          if (
-            eventsFound[i].presentUsers[k] ==
-            userPresentOtherAccount._id.toString()
-          ) {
-            addOtherAccount = false;
-            break;
-          }
-        }
-
-        if (addOtherAccount) {
-          eventsFound[i].presentUsers.push(userPresentOtherAccount._id);
-          // eslint-disable-next-line no-await-in-loop
-          await eventsFound[i].save();
-        }
-      }
-    }
-
-    return res.status(200).send();
   } catch (e) {
     if (e.statusCode) {
       return res.status(e.statusCode).json(e);
