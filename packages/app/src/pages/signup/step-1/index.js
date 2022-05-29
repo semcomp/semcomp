@@ -26,7 +26,7 @@ import "./style.css";
  */
 function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
   // These refs will be used later to gather the input's values.
-  const userTelegramRef = React.useRef();
+  const telegramRef = React.useRef();
   const isStudentRef = React.useRef();
   const courseRef = React.useRef();
   const discordRef = React.useRef();
@@ -58,7 +58,7 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
 
   function handleFormUpdate() {
     // Get the input's values from their refs.
-    const userTelegram = userTelegramRef.current.value;
+    const telegram = telegramRef.current.value;
     const isStudent = isStudentRef.current.checked;
     const course = courseRef.current.value;
     const discord = discordRef.current.value;
@@ -67,7 +67,7 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
 
     // Updates the `formValue` prop with the newest values given by the user.
     updateFormValue({
-      userTelegram,
+      telegram,
       isStudent,
       course,
       discord,
@@ -107,9 +107,9 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
         <p>Usuário do Telegram (opcional)</p>
         <input
           type="text"
-          ref={userTelegramRef}
+          ref={telegramRef}
           onChange={handleFormUpdate}
-          defaultValue={formValue.userTelegram}
+          defaultValue={formValue.telegram}
         />
       </label>
       <label className="inline">
