@@ -25,8 +25,6 @@ class AuthService {
       const user = await userService.findById(decoded.id);
 
       return user;
-    } else {
-      throw new createError.Unauthorized();
     }
   }
 
