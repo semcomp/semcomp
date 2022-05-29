@@ -1,135 +1,99 @@
-import createError from "http-errors";
-
-import AdminUserModel from "../../models/admin-user";
 import AdminLog from "../../models/admin-log";
 
 import {
   handleValidationResult,
 } from "../../lib/handle-validation-result";
+import { handleError } from "../../lib/handle-error";
+import adminUserService from "../../services/admin-user.service";
+import HttpError from "../../lib/http-error";
 
-export const list = async (req, res, next) => {
-  try {
-    const adminUsers = await AdminUserModel.find({}, "-password");
+class AdminUserController {
+  public async list(req, res, next) {
+    try {
+      const adminUsers = await adminUserService.find();
 
-    return res.status(200).json({
-      adminUsers,
-    });
-  } catch (error) {
-    console.log(error);
-
-    if (!(error instanceof createError.HttpError)) {
-      error = new createError.InternalServerError("Erro no servidor.");
+      return res.status(200).json({
+        adminUsers,
+      });
+    } catch (error) {
+      return handleError(error, next);
     }
+  };
 
-    return next(error);
-  }
-};
+  public async create(req, res, next) {
+    try {
+      handleValidationResult(req);
 
-export const create = async (req, res, next) => {
-  try {
-    handleValidationResult(req);
-
-    const { email, password, adminRole } = req.body;
-
-    const foundUser = await AdminUserModel.findOne({ email });
-    if (foundUser) {
-      throw new createError.Unauthorized();
-    }
-
-    const createdUser = new AdminUserModel({
-      email,
-      password,
-      adminRole,
-    });
-    await createdUser.save();
-
-    await (new AdminLog({
-      user: req.adminUser,
-      type: "create",
-      collectionName: "admin-user",
-      objectAfter: JSON.stringify(createdUser),
-    })).save();
-
-    return res.status(200).json(createdUser);
-  } catch (error) {
-    console.log(error);
-
-    if (!(error instanceof createError.HttpError)) {
-      error = new createError.InternalServerError("Erro no servidor.");
-    }
-
-    return next(error);
-  }
-};
-
-export const update = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-
-    // self-invoking anonymous function. Returns the object it receives as argument
-    const filteredBody = (({ email, password, adminRole }) => ({
-      email,
-      password,
-      adminRole,
-    }))(req.body);
-
-    const newInfo = Object.keys(filteredBody).reduce((acc, key) => {
-      const obj = acc;
-      if (filteredBody[key] !== undefined) {
-        obj[key] = filteredBody[key];
+      const foundUser = (await adminUserService.find({ email: req.body.email }))[0];
+      if (foundUser) {
+        throw new HttpError(401, []);
       }
-      return obj;
-    }, {});
 
-    const updatedAdminUser = await AdminUserModel.findByIdAndUpdate(id, {
-      $set: newInfo,
-    });
+      const createdUser = await adminUserService.create(req.body);
 
-    await (new AdminLog({
-      user: req.adminUser,
-      type: "update",
-      collectionName: "admin-user",
-      objectAfter: JSON.stringify(updatedAdminUser),
-    })).save();
+      await (new AdminLog({
+        user: req.adminUser,
+        type: "update",
+        collectionName: "admin-user",
+        objectAfter: JSON.stringify(createdUser),
+      })).save();
 
-    return res.status(200).send(updatedAdminUser);
-  } catch (error) {
-    console.log(error);
-
-    if (!(error instanceof createError.HttpError)) {
-      error = new createError.InternalServerError("Erro no servidor.");
+      return res.status(200).send(createdUser);
+    } catch (error) {
+      return handleError(error, next);
     }
+  };
 
-    return next(error);
-  }
-};
+  public async update(req, res, next) {
+    try {
+      const { id } = req.params;
 
-export const deleteById = async (req, res, next) => {
-  try {
-    const { id } = req.params;
+      const adminUser = await adminUserService.findById(id);
 
-    const adminUserFound = await AdminUserModel.findById(id);
-    if (!adminUserFound) {
-      throw new createError.NotFound();
+      for (const key of Object.keys(req.body)) {
+        if (req.body[key] !== undefined) {
+          adminUser[key] = req.body[key];
+        }
+      }
+
+      const updatedAdminUser = await adminUserService.update(adminUser);
+
+      await (new AdminLog({
+        user: req.adminUser,
+        type: "update",
+        collectionName: "admin-user",
+        objectAfter: JSON.stringify(updatedAdminUser),
+      })).save();
+
+      return res.status(200).send(updatedAdminUser);
+    } catch (error) {
+      return handleError(error, next);
     }
+  };
 
-    await AdminUserModel.findByIdAndDelete(id);
+  public async deleteById(req, res, next) {
+    try {
+      const { id } = req.params;
 
-    await (new AdminLog({
-      user: req.adminUser,
-      type: "delete",
-      collectionName: "admin-user",
-      objectBefore: JSON.stringify(adminUserFound),
-    })).save();
+      const adminUserFound = await adminUserService.findById(id);
+      if (!adminUserFound) {
+        throw new HttpError(404, ["Usuário não encontrado."]);
+      }
 
-    return res.status(200).send(adminUserFound);
-  } catch (error) {
-    console.log(error);
+      await adminUserService.delete(adminUserFound);
 
-    if (!(error instanceof createError.HttpError)) {
-      error = new createError.InternalServerError("Erro no servidor.");
+      await (new AdminLog({
+        user: req.adminUser,
+        type: "delete",
+        collectionName: "admin-user",
+        objectBefore: JSON.stringify(adminUserFound),
+      })).save();
+
+      return res.status(200).send(adminUserFound);
+    } catch (error) {
+      return handleError(error, next);
     }
+  };
+}
 
-    return next(error);
-  }
-};
+export default new AdminUserController();

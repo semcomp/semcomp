@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { body } from "express-validator";
 
-import * as AuthMiddleware from "../middlewares/auth.middleware";
+import authMiddleware from "../middlewares/auth.middleware";
 import AuthController from "../controllers/auth.controller";
 
 const router = Router();
@@ -21,8 +21,8 @@ router.post(
   "/signup-usp-second-step",
   [
     body("permission", "Invalid field 'permission'").isBoolean(),
-    AuthMiddleware.authenticate,
-    AuthMiddleware.isAuthenticated,
+    authMiddleware.authenticate,
+    authMiddleware.isAuthenticated,
   ],
   AuthController.signupUspSecondStep
 );
@@ -54,7 +54,7 @@ router.post(
 
 router.get(
   "/me",
-  [AuthMiddleware.authenticate, AuthMiddleware.isAuthenticated],
+  [authMiddleware.authenticate, authMiddleware.isAuthenticated],
   AuthController.getLoggedUser
 );
 

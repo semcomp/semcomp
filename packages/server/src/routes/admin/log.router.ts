@@ -1,13 +1,13 @@
 import { Router } from "express";
 
-import * as AdminAuthMiddleware from "../../middlewares/admin-auth.middleware";
+import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
 import * as AdminLogController from "../../controllers/admin/log.controller";
 
 const router = Router();
 
 router.get(
   "/",
-  [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
   AdminLogController.list
 );
 

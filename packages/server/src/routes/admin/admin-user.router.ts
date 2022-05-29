@@ -1,15 +1,15 @@
 import { Router } from "express";
 import { body } from "express-validator";
 
-import * as AdminAuthMiddleware from "../../middlewares/admin-auth.middleware";
-import * as AdminUserController from "../../controllers/admin/admin-user.controller";
+import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
+import adminUserController from "../../controllers/admin/admin-user.controller";
 
 const router = Router();
 
 router.get(
   "/",
-  [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.list
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+  adminUserController.list
 );
 
 router.post(
@@ -18,22 +18,22 @@ router.post(
     body("email", "Invalid field 'email'").isEmail(),
     body("password", "Invalid field 'password'").isLength({ min: 6 }),
     body("adminRole", "Invalid field 'adminRole'").not().isEmpty(),
-    AdminAuthMiddleware.authenticate,
-    AdminAuthMiddleware.isAuthenticated,
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
   ],
-  AdminUserController.create
+  adminUserController.create
 );
 
 router.put(
   "/:id",
-  [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.update
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+  adminUserController.update
 );
 
 router.delete(
   "/:id",
-  [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.deleteById
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+  adminUserController.deleteById
 );
 
 export default router;

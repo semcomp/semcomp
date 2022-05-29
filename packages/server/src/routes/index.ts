@@ -12,7 +12,7 @@ import userRouter from "./user.router";
 import houseRouter from "./house.router";
 import PaymentRouter from "./payment.router";
 import pushNotificationRouter from "./push-notification.router";
-import AuthMiddleware from "../middlewares/auth.middleware";
+import authMiddleware from "../middlewares/auth.middleware";
 import PaymentController from "../controllers/payment.controller";
 import IdSeviceImpl from "../services/id-impl.service";
 import PaymentServiceImpl from "../services/payment-impl.service";
@@ -21,7 +21,6 @@ import userServiceImpl from "../services/user.service";
 
 const router = Router();
 
-const authMiddleware = new AuthMiddleware();
 const idServiceImpl = new IdSeviceImpl();
 const mercadoPagoPaymentService = new MercadoPagoPaymentService(process.env.MERCADO_PAGO_TOKEN);
 const paymentServiceImpl = new PaymentServiceImpl(

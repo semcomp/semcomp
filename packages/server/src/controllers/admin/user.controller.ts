@@ -11,9 +11,10 @@ import achievementService from "../../services/achievement.service";
 import AchievementTypes from "../../lib/constants/achievement-types-enum";
 import userAchievementService from "../../services/user-achievement.service";
 import UserAchievement from "../../models/user-achievement";
+import { handleError } from "../../lib/handle-error";
 
 class UserController {
-  public async list(req, res) {
+  public async list(req, res, next) {
     const usersFound = await userService.find();
     const housesFound = await houseService.find();
     const houseMembersFound = await houseMemberService.find();
@@ -46,13 +47,13 @@ class UserController {
     });
   };
 
-  public async listForEnterprise(req, res) {
+  public async listForEnterprise(req, res, next) {
     const usersFound = await userService.find({ permission: true });
 
     return res.status(200).json(usersFound);
   };
 
-  public async get(req, res) {
+  public async get(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -62,15 +63,12 @@ class UserController {
       }
 
       return res.status(200).json(userFound);
-    } catch (e) {
-      if (e.statusCode) {
-        return res.status(e.statusCode).json(e);
-      }
-      return res.status(500).json(e);
+    } catch (error) {
+      return handleError(error, next);
     }
   };
 
-  public async getAttendance(req, res) {
+  public async getAttendance(req, res, next) {
     try {
       const userId = req.params.id;
 
@@ -90,15 +88,12 @@ class UserController {
       attendancePercent = Math.round(attendancePercent * 100) / 100; // truncate to precision 2
 
       return res.status(200).json({ attendancePercent, attendedEvents, user });
-    } catch (e) {
-      if (e.statusCode) {
-        return res.status(e.statusCode).json(e);
-      }
-      return res.status(500).json(e);
+    } catch (error) {
+      return handleError(error, next);
     }
   };
 
-  public async addUserAchievement(req, res) {
+  public async addUserAchievement(req, res, next) {
     try {
       const { userId, achievementId } = req.params;
 
@@ -129,15 +124,12 @@ class UserController {
       await userAchievementService.create(userAchievement);
 
       return res.status(200).send(user);
-    } catch (e) {
-      if (e.statusCode) {
-        return res.status(e.statusCode).json(e);
-      }
-      return res.status(500).json(e);
+    } catch (error) {
+      return handleError(error, next);
     }
   };
 
-  public async update(req, res) {
+  public async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -159,15 +151,12 @@ class UserController {
       })).save();
 
       return res.status(200).send(updatedUser);
-    } catch (e) {
-      if (e.statusCode) {
-        return res.status(e.statusCode).json(e);
-      }
-      return res.status(500).json(e);
+    } catch (error) {
+      return handleError(error, next);
     }
   };
 
-  public async deleteById(req, res) {
+  public async deleteById(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -186,11 +175,8 @@ class UserController {
       })).save();
 
       return res.status(200).send(userFound);
-    } catch (e) {
-      if (e.statusCode) {
-        return res.status(e.statusCode).json(e);
-      }
-      return res.status(500).json(e);
+    } catch (error) {
+      return handleError(error, next);
     }
   };
 }
