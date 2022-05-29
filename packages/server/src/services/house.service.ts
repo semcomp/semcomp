@@ -1,89 +1,140 @@
-import createError from "http-errors";
-import { ObjectId } from "mongodb";
+import { Model } from "mongoose";
 
-import AchievementModel from "../models/achievement";
-import HouseModel from "../models/house";
+import houseAchievementService from "./house-achievement.service";
+import houseMemberService from "./house-member.service";
+import House, { HouseModel } from "../models/house";
+import IdServiceImpl from "./id-impl.service";
+import achievementService from "./achievement.service";
+import AchievementTypes from "../lib/constants/achievement-types-enum";
+import attendanceService from "./attendance.service";
+import HouseAchievement from "../models/house-achievement";
+import AchievementCategories from "../lib/constants/achievement-categories-enum";
 
-const houseService = {
-  get: async () => {
-    const houses = await HouseModel.find();
+const idService = new IdServiceImpl();
 
-    return houses;
-  },
-  getOne: async (id) => {
-    const house = await HouseModel.findById(id);
+class HouseService {
+  public async find(filters?: Partial<House>): Promise<House[]> {
+    const houses = await HouseModel.find(filters);
 
-    if (!house) {
-      throw new createError.NotFound(`Não foi encontrada casa com o id ${id}`);
+    const entities: House[] = [];
+    for (const house of houses) {
+      entities.push(this.mapEntity(house));
     }
 
-    return house;
-  },
-  create: async (name, description) => {
-    const newHouse = new HouseModel() as any;
+    return entities;
+  }
 
-    newHouse._id = new ObjectId();
-    newHouse.name = name;
-    newHouse.description = description;
-    newHouse.score = 0;
+  public async findById(id: string): Promise<House> {
+    const entity = await HouseModel.findOne({ id });
 
-    await newHouse.save();
+    return this.mapEntity(entity);
+  }
 
-    return newHouse;
-  },
-  update: async (id, name, description, score) => {
-    const updatedHouse = await HouseModel.findByIdAndUpdate(
-      id,
-      {
-        name,
-        description,
-        score,
-      },
-      { new: true }
-    );
+  public async count(filters?: Partial<House>): Promise<number> {
+    const count = await HouseModel.count(filters);
 
-    return updatedHouse;
-  },
-  delete: async (id) => {
-    const deletedHouse = await HouseModel.findByIdAndDelete(id);
+    return count;
+  }
 
-    return deletedHouse;
-  },
-  checkAchievements: async () => {
-    const houses = await HouseModel.find();
-    const houseAchievements = await AchievementModel.find({
-      type: "Casa",
-    }).populate("event");
+  public async create(house: House): Promise<House> {
+    house.id = await idService.create();
+    const entity = await HouseModel.create(house);
+
+    return this.findById(entity.id);
+  }
+
+  public async update(house: House): Promise<House> {
+    const entity = await HouseModel.findOneAndUpdate({ id: house.id });
+
+    return this.findById(entity.id);
+  }
+
+  public async delete(house: House): Promise<House> {
+    const entity = await HouseModel.findOneAndDelete({ id: house.id });
+
+    const houseAchievements = await houseAchievementService.find({ houseId: house.id });
+    for (const houseAchievement of houseAchievements) {
+      await houseAchievementService.delete(houseAchievement);
+    }
+
+    const houseMembers = await houseMemberService.find({ houseId: house.id });
+    for (const houseMember of houseMembers) {
+      await houseMemberService.delete(houseMember);
+    }
+
+    return entity && this.mapEntity(entity);
+  }
+
+  public async checkAchievements() {
+    const houses = await this.find();
+    const achievements = await achievementService.find({
+      type: AchievementTypes.CASA,
+    });
 
     for (const house of houses) {
-      for (const achievement of houseAchievements) {
-        if (house.achievements.includes(achievement._id)) {
+      const houseMemberCount = await houseMemberService.count({ houseId: house.id });
+      const houseMembers = await houseMemberService.find({ houseId: house.id });
+      const houseAchievementCount = await houseAchievementService.count({ houseId: house.id });
+      for (const achievement of achievements) {
+        const houseAchievement = (await houseAchievementService.find({ houseId: house.id, achievementId: achievement.id }))[0];
+
+        if (houseAchievement) {
           continue;
         }
 
         // Presença em Evento
-        if (achievement.category === "Presença em Evento") {
+        if (achievement.category === AchievementCategories.PRESENCA_EM_EVENTO) {
           let i = 0;
-          for (const user of achievement.event.presentUsers) {
-            if (house.members.includes(user)) {
-              i++;
+          const totalUsersWhoAttendedThisEventCount = await attendanceService.count({ eventId: achievement.eventId });
+          let houseMembersWhoAttendedThisEventCount = 0
+          for (const houseMember of houseMembers) {
+            if ((await attendanceService.find({ eventId: achievement.eventId, userId: houseMember.userId }))[0]) {
+              houseMembersWhoAttendedThisEventCount++;
             }
           }
-          if (i > house.members.length * (achievement.minPercentage / 100)) {
-            house.achievements.push(achievement);
+
+          if (houseMembersWhoAttendedThisEventCount > houseMemberCount * (achievement.minPercentage / 100)) {
+            const newHouseAchievement: HouseAchievement = {
+              achievementId: achievement.id,
+              houseId: house.id,
+            };
+            await houseAchievementService.create(newHouseAchievement);
           }
         }
 
         // Número de Conquistas
-        if (achievement.category === "Número de Conquistas") {
-          if (house.achievements.length >= achievement.numberOfAchievements) {
-            house.achievements.push(achievement);
+        if (achievement.category === AchievementCategories.NUMERO_DE_CONQUISTAS) {
+          if (houseAchievementCount >= achievement.numberOfAchievements) {
+            const newHouseAchievement: HouseAchievement = {
+              achievementId: achievement.id,
+              houseId: house.id,
+            };
+            await houseAchievementService.create(newHouseAchievement);
           }
         }
       }
-      await house.save();
     }
-  },
-};
+  }
 
-export default houseService;
+  public async addHousePoints(house: House, points: number): Promise<House> {
+    if (house) {
+      house.score += Math.floor(+points);
+    }
+
+    return this.update(house);
+  };
+
+  private mapEntity(entity: Model<House> & House): House {
+    return {
+      id: entity.id,
+      name: entity.name,
+      description: entity.description,
+      telegramLink: entity.telegramLink,
+      score: entity.score,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
+  }
+}
+
+export default new HouseService();

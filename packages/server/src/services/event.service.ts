@@ -6,10 +6,10 @@ import subscriptionService from "./subscription.service";
 import Attendance from "../models/attendance";
 import attendanceService from "./attendance.service";
 
-import { addHousePoints } from "../lib/add-house-points";
 import EventTypes from "../lib/constants/event-types-enum";
 import Subscription from "../models/subscription";
 import IdServiceImpl from "./id-impl.service";
+import houseService from "./house.service";
 
 const idService = new IdServiceImpl();
 
@@ -180,7 +180,7 @@ class EventService {
       }
       await attendanceService.create(attendance);
 
-      addHousePoints(userHouse, event.type === "Minicurso" ? 30 : 10);
+      await houseService.addHousePoints(userHouse, event.type === EventTypes.MINICURSO ? 30 : 10);
 
       await userHouse.save();
 
@@ -272,7 +272,7 @@ class EventService {
       await subscriptionService.delete(subscription);
     }
 
-    return this.mapEntity(entity);
+    return entity && this.mapEntity(entity);
   }
 
   private mapEntity(entity: Model<Event> & Event): Event {

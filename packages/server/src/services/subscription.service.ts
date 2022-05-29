@@ -45,7 +45,7 @@ class SubscriptionService {
   public async delete(subscription: Subscription): Promise<Subscription> {
     const entity = await SubscriptionModel.findOneAndDelete({ id: subscription.id });
 
-    return this.findById(entity.id);
+    return entity && this.mapEntity(entity);
   }
 
   private mapEntity(entity: Model<Subscription> & Subscription): Subscription {

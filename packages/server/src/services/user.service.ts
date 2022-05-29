@@ -1,120 +1,106 @@
-import createError from "http-errors";
+import { Model } from "mongoose";
 import { ObjectId } from "mongodb";
 
-import AchievementModel from "../models/achievement";
-import UserModel from "../models/user";
+import User, { UserModel } from "../models/user";
 import RiddleGroupModel from "../models/riddle-group";
-import HouseModel from "../models/house";
 import eventService from "./event.service";
 import attendanceService from "./attendance.service";
+import IdServiceImpl from "./id-impl.service";
+import houseMemberService from "./house-member.service";
+import houseService from "./house.service";
+import House from "../models/house";
+import achievementService from "./achievement.service";
+import AchievementTypes from "../lib/constants/achievement-types-enum";
+import userAchievementService from "./user-achievement.service";
+import AchievementCategories from "../lib/constants/achievement-categories-enum";
+import UserAchievement from "../models/user-achievement";
+
+const idService = new IdServiceImpl();
 
 export interface UserService {
-  findByStringId(id: string): Promise<any>;
+  findById(id: string): Promise<User>;
   pay(id: string): Promise<void>;
 }
 
-export class User {
-  public id: string;
-  public email: string;
-
-  constructor(id: string, email: string) {
-    this.id = id;
-    this.email = email;
-  }
-}
-
 class UserServiceImpl implements UserService {
-  async getUserHouse(userId) {
-    const userHouse = await HouseModel.findOne({ members: userId });
+  public async find(filters?: Partial<User>): Promise<User[]> {
+    const users = await UserModel.find(filters);
+
+    const entities: User[] = [];
+    for (const user of users) {
+      entities.push(this.mapEntity(user));
+    }
+
+    return entities;
+  }
+
+  public async findById(id: string): Promise<User> {
+    const entity = await UserModel.findOne({ id });
+
+    return entity && this.mapEntity(entity);
+  }
+
+  public async count(filters?: Partial<User>): Promise<number> {
+    const count = await UserModel.count(filters);
+
+    return count;
+  }
+
+  public async create(user: User): Promise<User> {
+    user.id = await idService.create();
+    const entity = await UserModel.create(user);
+
+    return this.findById(entity.id);
+  }
+
+  public async update(user: User): Promise<User> {
+    const entity = await UserModel.findOneAndUpdate({ id: user.id });
+
+    return this.findById(entity.id);
+  }
+
+  public async delete(user: User): Promise<User> {
+    const entity = await UserModel.findOneAndDelete({ id: user.id });
+
+    return entity && this.mapEntity(entity);
+  }
+
+  async getUserHouse(userId: string): Promise<House> {
+    const userHouseMember = (await houseMemberService.find({ userId }))[0];
+    const userHouse = (await houseService.find({ id: userHouseMember.houseId }))[0];
 
     return userHouse;
   }
 
-  async get() {
-    const users = await UserModel.find();
-
-    return users;
-  }
-
-  async getOne(id) {
-    const user = await UserModel.findById(id);
-
-    if (!user) {
-      throw new createError.NotFound(
-        `Não foi encontrado usuário com o id ${id}`
-      );
-    }
-
-    return user;
-  }
-
-  async create(nusp, name, course, userTelegram, permission) {
-    const newUser = new UserModel() as any;
-
-    newUser._id = new ObjectId();
-    newUser.nusp = nusp;
-    newUser.name = name;
-    newUser.course = course;
-    newUser.userTelegram = userTelegram;
-    newUser.permission = permission;
-
-    await newUser.save();
-
-    return newUser;
-  }
-
-  async update(id, nusp, name, course, userTelegram, permission) {
-    const updatedUser = await UserModel.findByIdAndUpdate(
-      id,
-      {
-        nusp,
-        name,
-        course,
-        userTelegram,
-        permission,
-      },
-      { new: true }
-    );
-
-    return updatedUser;
-  }
-
-  async delete(id) {
-    const deletedUser = await UserModel.findByIdAndDelete(id);
-
-    return deletedUser;
-  }
-
-  async checkAchievements() {
-    const users = await UserModel.find();
+  async checkAchievements(): Promise<void> {
+    const users = await this.find();
     const events = await eventService.find();
-    const riddleGroups = await RiddleGroupModel.find();
-    const userAchievements = await AchievementModel.find({
-      type: "Individual",
-    }).populate("event");
+    const individualAchievements = await achievementService.find({
+      type: AchievementTypes.INDIVIDUAL,
+    });
 
     for (const user of users) {
-      for (const achievement of userAchievements) {
-        if (user.achievements.includes(achievement._id)) {
+      const userAchievementCount = await userAchievementService.count({ userId: user.id });
+      for (const achievement of individualAchievements) {
+        const userAchievement = (await userAchievementService.find({ userId: user.id, achievementId: achievement.id }))[0];
+
+        if (userAchievement) {
           continue;
         }
 
         // Presença em Evento
-        if (achievement.category === "Presença em Evento") {
-          if (achievement.event.presentUsers.includes(user._id)) {
-            user.achievements.push(achievement);
-          }
-          if (achievement.title === "Então você gosta de enigmas?") {
-            for (const group of riddleGroups) {
-              if (group.members.includes(user._id)) {
-                user.achievements.push(achievement);
-              }
-            }
+        if (achievement.category === AchievementCategories.PRESENCA_EM_EVENTO) {
+          if ((await attendanceService.find({ eventId: achievement.eventId, userId: user.id }))[0]) {
+            const newUserAchievement: UserAchievement = {
+              achievementId: achievement.id,
+              userId: user.id,
+            };
+            await userAchievementService.create(newUserAchievement);
           }
         }
 
         // Presença em Tipo de Evento
-        if (achievement.category === "Presença em Tipo de Evento") {
+        if (achievement.category === AchievementCategories.PRESENCA_EM_TIPO_DE_EVENTO) {
           let i = 0;
           for (const event of events) {
             if (
@@ -129,31 +115,52 @@ class UserServiceImpl implements UserService {
           }
 
           if (i >= achievement.numberOfPresences) {
-            user.achievements.push(achievement);
+            const newUserAchievement: UserAchievement = {
+              achievementId: achievement.id,
+              userId: user.id,
+            };
+            await userAchievementService.create(newUserAchievement);
           }
         }
 
         // Número de Conquistas
-        if (achievement.category === "Número de Conquistas") {
-          if (user.achievements.length >= achievement.numberOfAchievements) {
-            user.achievements.push(achievement);
+        if (achievement.category === AchievementCategories.NUMERO_DE_CONQUISTAS) {
+          if (userAchievementCount >= achievement.numberOfAchievements) {
+            const newUserAchievement: UserAchievement = {
+              achievementId: achievement.id,
+              userId: user.id,
+            };
+            await userAchievementService.create(newUserAchievement);
           }
         }
       }
-      await user.save();
     }
   }
 
-  async findByStringId(id: string): Promise<any> {
-    const user = await UserModel.findOne({ _id: new ObjectId(id) });
+  async pay(id: string): Promise<void> {
+    const user = await this.findById(id);
 
-    return new User(user.id.toString(), user.email);
+    user.paid = true;
+
+    await this.update(user);
   }
 
-  async pay(id: string): Promise<void> {
-    await UserModel.findByIdAndUpdate(new ObjectId(id), {
-      paid: true,
-    })
+  private mapEntity(entity: Model<User> & User): User {
+    return {
+      id: entity.id,
+      nusp: entity.nusp,
+      email: entity.email,
+      name: entity.name,
+      password: entity.password,
+      course: entity.course,
+      discord: entity.discord,
+      telegram: entity.telegram,
+      permission: entity.permission,
+      resetPasswordCode: entity.resetPasswordCode,
+      paid: entity.paid,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
   }
 };
 

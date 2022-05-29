@@ -5,92 +5,52 @@ import {
 } from "../../lib/handle-validation-result";
 import { handleError } from "../../lib/handle-error";
 
-const achievementController = {
-  list: async (req, res, next) => {
+class AchievementController {
+  public async list(req, res, next) {
     try {
-      const achievements = await achievementService.get();
+      const achievements = await achievementService.find();
 
       return res.status(200).json(achievements);
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  create: async (req, res, next) => {
+  }
+
+  public async create(req, res, next) {
     try {
       handleValidationResult(req);
 
-      const {
-        title,
-        description,
-        startDate,
-        endDate,
-        type,
-        category,
-        eventId,
-        eventType,
-        minPercentage,
-        numberOfAchievements,
-        numberOfPresences,
-      } = req.body;
-
-      const achievement = await achievementService.create({
-        title,
-        description,
-        startDate,
-        endDate,
-        type,
-        category,
-        eventId,
-        eventType,
-        minPercentage,
-        numberOfAchievements,
-        numberOfPresences,
-      });
+      const achievement = await achievementService.create(req.body);
 
       return res.status(200).json(achievement);
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  update: async (req, res, next) => {
+  }
+
+  public async update(req, res, next) {
     try {
       handleValidationResult(req);
 
       const { id } = req.params;
-      const {
-        title,
-        description,
-        startDate,
-        endDate,
-        type,
-        category,
-        eventId,
-        eventType,
-        minPercentage,
-        numberOfAchievements,
-        numberOfPresences,
-      } = req.body;
 
-      const achievement = await achievementService.update(id, {
-        title,
-        description,
-        startDate,
-        endDate,
-        type,
-        category,
-        eventId,
-        eventType,
-        minPercentage,
-        numberOfAchievements,
-        numberOfPresences,
-      });
+      const achievement = await achievementService.findById(id);
 
-      return res.status(200).json(achievement);
+      for (const key of Object.keys(req.body)) {
+        if (req.body[key] !== undefined) {
+          achievement[key] = req.body[key];
+        }
+      }
+
+      const updatedAchievement = await achievementService.update(achievement);
+
+      return res.status(200).json(updatedAchievement);
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  delete: async (req, res, next) => {
+  }
+
+  public async delete(req, res, next) {
     try {
       handleValidationResult(req);
 
@@ -102,7 +62,7 @@ const achievementController = {
     } catch (error) {
       return handleError(error, next);
     }
-  },
-};
+  }
+}
 
-export default achievementController;
+export default new AchievementController();

@@ -3,6 +3,8 @@ import createError from "http-errors";
 import { handleError } from "../lib/handle-error";
 import HouseModel from "../models/house";
 import AuthService from "../services/auth.service";
+import houseMemberService from "../services/house-member.service";
+import houseService from "../services/house.service";
 
 export default class AuthMiddleware {
   public async authenticate(req, res, next) {
@@ -32,7 +34,8 @@ export const authenticate = async (req, res, next) => {
 
 export const authenticateUserHouse = async (req, res, next) => {
   try {
-    const userHouse = await HouseModel.findOne({ members: req.user.id });
+    const userHouseMember = (await houseMemberService.find({ userId: req.user.id }))[0];
+    const userHouse = await houseService.findById(userHouseMember.houseId);
 
     req.userHouse = userHouse;
 

@@ -1,8 +1,30 @@
-import Mongoose, { NativeError } from "mongoose";
-const bcrypt = require("bcryptjs");
+import Mongoose from "mongoose";
+
+type User = {
+  id?: string;
+  nusp: string;
+  email: string;
+  name: string;
+  password?: string;
+  course?: string;
+  discord?: string;
+  telegram?: string;
+  permission?: boolean;
+  resetPasswordCode?: string;
+  paid?: boolean;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export default User;
 
 const UserSchema = new Mongoose.Schema(
   {
+    id: {
+      type: String,
+      unique: true,
+      required: true,
+    },
     nusp: {
       type: String,
     },
@@ -28,7 +50,7 @@ const UserSchema = new Mongoose.Schema(
       type: String,
       default: "Não informado",
     },
-    userTelegram: {
+    telegram: {
       type: String,
     },
     permission: {
@@ -36,32 +58,20 @@ const UserSchema = new Mongoose.Schema(
       default: false,
       required: true,
     },
-    disabilities: [
-      {
-        type: String,
-        enum: ["Visual", "Motora", "Auditiva", "Outra"],
-      },
-    ],
     resetPasswordCode: {
       type: String,
     },
-    achievements: [
-      {
-        type: Mongoose.Schema.Types.ObjectId,
-        ref: "achievement",
-      },
-    ],
     paid: {
       type: Boolean,
       default: false,
       required: true,
     },
     createdAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
     updatedAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
   },
@@ -70,17 +80,4 @@ const UserSchema = new Mongoose.Schema(
 
 UserSchema.index({ nusp: 1, email: 1 }, { unique: true });
 
-UserSchema.pre(["save", "updateOne"], function (next) {
-  const user = this as any;
-
-  if (user.password && this.isModified("password")) {
-    try {
-      user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10));
-    } catch (err) {
-      return next(err as NativeError);
-    }
-  }
-  next();
-});
-
-export default Mongoose.model("user", UserSchema);
+export const UserModel = Mongoose.model("user", UserSchema);
