@@ -1,5 +1,4 @@
 import { Model } from "mongoose";
-import createError from "http-errors";
 
 import Event, { EventModel } from "../models/event";
 import subscriptionService from "./subscription.service";
@@ -10,6 +9,7 @@ import EventTypes from "../lib/constants/event-types-enum";
 import Subscription from "../models/subscription";
 import IdServiceImpl from "./id-impl.service";
 import houseService from "./house.service";
+import HttpError from "../lib/http-error";
 
 const idService = new IdServiceImpl();
 
@@ -158,11 +158,11 @@ class EventService {
         event.type === EventTypes.CONTEST) &&
       !subscription
     ) {
-      throw new createError.BadRequest("Não inscrito no evento!");
+      throw new HttpError(400, ["Não inscrito no evento!"]);
     }
 
     if (await attendanceService.findById(userId)) {
-      throw new createError.BadRequest("Presença já existente!");
+      throw new HttpError(400, ["Presença já existente!"]);
     }
 
     const now = Date.now();
@@ -187,9 +187,9 @@ class EventService {
       return { message: "Presença salva com sucesso!" };
     }
     if (now < newStartedDateObj.getDate()) {
-      throw new createError.BadRequest("O evento ainda não começou!");
+      throw new HttpError(400, ["O evento ainda não começou!"]);
     }
-    throw new createError.BadRequest("O evento já terminou!");
+    throw new HttpError(400, ["O evento já terminou!"]);
   }
 
   public async subscribe(eventId: string, userId: string, info: object) {
@@ -197,15 +197,13 @@ class EventService {
     const numberOfSubscribes = await subscriptionService.count({ eventId });
 
     if (numberOfSubscribes >= event.maxOfSubscriptions) {
-      throw new createError.BadRequest(`O evento está cheio!`);
+      throw new HttpError(400, ["O evento está cheio!"]);
     }
 
     const subscription = (await subscriptionService.find({ userId, eventId }))[0];
 
     if (event.type !== "Contest" && subscription) {
-      throw new createError.BadRequest(
-        `O usuário já esta inscrito em um evento nesse horário!`
-      );
+      throw new HttpError(400, ["O usuário já esta inscrito em um evento nesse horário!"]);
     }
 
     const newSubscription: Subscription = {
