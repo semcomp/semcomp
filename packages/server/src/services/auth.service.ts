@@ -1,6 +1,5 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import createError from "http-errors";
 import 'dotenv/config'
 
 import { sendEmail } from "../lib/send-email";
@@ -9,6 +8,7 @@ import userService from "./user.service";
 import User from "../models/user";
 import houseMemberService from "./house-member.service";
 import Disability from "../lib/constants/disabilities-enum";
+import HttpError from "../lib/http-error";
 
 const tokenService = new JsonWebToken(process.env.JWT_PRIVATE_KEY, "30d");
 
@@ -18,20 +18,22 @@ class AuthService {
   }
 
   public async authenticate(token: string): Promise<User> {
-    if (token) {
-      token = token.replace("Bearer ", "");
-      const decoded = tokenService.decode(token);
-
-      const user = await userService.findById(decoded.id);
-
-      return user;
+    if (!token) {
+      return;
     }
+
+    token = token.replace("Bearer ", "");
+    const decoded = tokenService.decode(token);
+
+    const user = await userService.findById(decoded.id);
+
+    return user;
   }
 
   public async signup(user: User): Promise<User> {
     const foundUser = (await userService.find({ email: user.email }))[0];
     if (foundUser) {
-      throw new createError.Unauthorized();
+      throw new HttpError(401, []);
     }
 
     user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10));
@@ -101,16 +103,16 @@ class AuthService {
       !foundUser.password ||
       !bcrypt.compareSync(password, foundUser.password)
     ) {
-      throw new createError.Unauthorized();
+      throw new HttpError(401, []);
     }
 
     return foundUser;
   }
 
-  public async forgotPassword(email: string): Promise<void> {
+  public async forgotPassword(email: string): Promise<User> {
     const user = (await userService.find({ email }))[0];
     if (!user || !user.password) {
-      throw new createError.Unauthorized();
+      throw new HttpError(401, []);
     }
 
     const code = crypto.randomBytes(6).toString("hex");
@@ -126,16 +128,18 @@ class AuthService {
       <h1>Seu&nbsp;c&oacute;digo&nbsp;para&nbsp;recupera&ccedil;&atilde;o&nbsp;de&nbsp;senha:&nbsp;${user.resetPasswordCode}</h1>
       </div>`
     );
+
+    return user;
   }
 
-  public async resetPassword(email: string, code: string, password: string) {
+  public async resetPassword(email: string, code: string, password: string): Promise<User> {
     const user = (await userService.find({ email }))[0];
     if (
       !user ||
       !user.password ||
       code !== user.resetPasswordCode
     ) {
-      throw new createError.Unauthorized();
+      throw new HttpError(401, []);
     }
 
     user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10));
