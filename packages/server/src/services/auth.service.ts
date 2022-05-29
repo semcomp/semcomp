@@ -43,7 +43,7 @@ class AuthService {
     try {
       await houseMemberService.assignUserHouse(createdUser.id);
     } catch (error) {
-      await userService.create(createdUser);
+      await userService.delete(createdUser);
       throw error;
     }
 
