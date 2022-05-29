@@ -12,6 +12,8 @@ RUN npm install
 # Bundle app source
 COPY . .
 
+RUN npm run build
+
 EXPOSE 8090
 
 ENV TZ America/Sao_Paulo
