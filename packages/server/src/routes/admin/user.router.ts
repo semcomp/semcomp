@@ -1,50 +1,50 @@
 import { Router } from "express";
 
 import * as AdminAuthMiddleware from "../../middlewares/admin-auth.middleware";
-import * as AdminUserController from "../../controllers/admin/user.controller";
+import adminUserController from "../../controllers/admin/user.controller";
 
 const router = Router();
 
 router.get(
   "/",
   [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.list
+  adminUserController.list
 );
 
 router.get(
   "/for-enterprise",
   [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.listForEnterprise
+  adminUserController.listForEnterprise
 );
 
 router.get(
   "/attendance/:id",
   [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.getAttendance
+  adminUserController.getAttendance
 );
 
 router.post(
   "/:userId/achievements/:achievementId",
   [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.addUserAchievement
+  adminUserController.addUserAchievement
 );
 
 router.get(
   "/:id",
   [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.get
+  adminUserController.get
 );
 
 router.put(
   "/:id",
   [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.update
+  adminUserController.update
 );
 
 router.delete(
   "/:id",
   [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.deleteById
+  adminUserController.deleteById
 );
 
 export default router;

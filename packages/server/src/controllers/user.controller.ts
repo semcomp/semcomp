@@ -26,17 +26,16 @@ const userController = {
     try {
       handleValidationResult(req);
 
-      const { _id, nusp, name, course } = req.user;
+      const { nusp, name, course } = req.user;
       const { userTelegram, permission } = req.body;
 
-      const editedUser = await userService.update(
-        _id,
-        nusp,
-        name,
-        course,
-        userTelegram,
-        permission
-      );
+      req.user = nusp;
+      req.user = name;
+      req.user = course;
+      req.user = userTelegram;
+      req.user = permission;
+
+      const editedUser = await userService.update(req.user);
 
       return res.status(200).json(formatUserResponse(editedUser));
     } catch (error) {

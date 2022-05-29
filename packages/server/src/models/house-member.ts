@@ -1,18 +1,16 @@
 import Mongoose from "mongoose";
 
-type House = {
+type HouseMember = {
   id?: string;
-  name: string;
-  description: string;
-  telegramLink: string;
-  score: number;
+  houseId: string;
+  userId: string;
   createdAt?: number;
   updatedAt?: number;
 }
 
-export default House;
+export default HouseMember;
 
-const HouseSchema = new Mongoose.Schema(
+const HouseMemberSchema = new Mongoose.Schema(
   {
     id: {
       type: String,
@@ -20,22 +18,14 @@ const HouseSchema = new Mongoose.Schema(
       required: true,
       index: true,
     },
-    name: {
+    houseId: {
       type: String,
       required: true,
     },
-    description: {
+    userId: {
       type: String,
+      unique: true,
       required: true,
-    },
-    telegramLink: {
-      type: String,
-      required: true,
-    },
-    score: {
-      type: Number,
-      default: 0,
-      min: 0,
     },
     createdAt: {
       type: Number,
@@ -46,7 +36,7 @@ const HouseSchema = new Mongoose.Schema(
       default: Date.now(),
     },
   },
-  { collection: "house" }
+  { collection: "house-member" }
 );
 
-export const HouseModel = Mongoose.model("house", HouseSchema);
+export const HouseMemberModel = Mongoose.model("house-member", HouseMemberSchema);

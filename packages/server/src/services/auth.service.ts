@@ -4,60 +4,46 @@ import createError from "http-errors";
 import 'dotenv/config'
 
 import { sendEmail } from "../lib/send-email";
-import { assignUserHouse } from "../lib/assign-user-house";
-import UserModel from "../models/user";
 import JsonWebToken from "./json-web-token.service";
+import userService from "./user.service";
+import User from "../models/user";
+import houseMemberService from "./house-member.service";
+import Disability from "../lib/constants/disabilities-enum";
 
 const tokenService = new JsonWebToken(process.env.JWT_PRIVATE_KEY, "30d");
 
-const authService = {
-  createToken: (user) => {
-    return tokenService.create({ data: { id: user._id } });
-  },
-  authenticate: async (token) => {
+class AuthService {
+  public async createToken(user: User): Promise<string> {
+    return tokenService.create({ data: { id: user.id } });
+  }
+
+  public async authenticate(token: string): Promise<User> {
     if (token) {
       token = token.replace("Bearer ", "");
       const decoded = tokenService.decode(token);
 
-      const user = await UserModel.findById(decoded.id);
+      const user = await userService.findById(decoded.id);
 
       return user;
     } else {
       throw new createError.Unauthorized();
     }
-  },
-  signup: async (
-    email,
-    name,
-    password,
-    course,
-    discord,
-    userTelegram,
-    permission,
-    disabilities
-  ) => {
-    const foundUser = await UserModel.findOne({ email });
+  }
+
+  public async signup(user: User): Promise<User> {
+    const foundUser = (await userService.find({ email: user.email }))[0];
     if (foundUser) {
       throw new createError.Unauthorized();
     }
 
-    const createdUser = new UserModel({
-      email,
-      nusp: null,
-      name,
-      password,
-      course,
-      discord,
-      userTelegram,
-      permission,
-      disabilities,
-    }) as any;
-    await createdUser.save();
+    user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10));
+
+    const createdUser = await userService.create(user);
 
     try {
-      await assignUserHouse(createdUser.id);
+      await houseMemberService.assignUserHouse(createdUser.id);
     } catch (error) {
-      await UserModel.findByIdAndDelete(createdUser.id);
+      await userService.create(createdUser);
       throw error;
     }
 
@@ -77,22 +63,22 @@ const authService = {
     );
 
     return createdUser;
-  },
-  signupUspSecondStep: async (
-    user,
-    course,
-    discord,
-    userTelegram,
-    permission,
-    disabilities
-  ) => {
+  }
+
+  public async signupUspSecondStep(
+    user: User,
+    course: string,
+    discord: string,
+    userTelegram: string,
+    permission: boolean,
+    disabilities: Disability[],
+  ): Promise<void> {
     user.course = course;
     user.discord = discord;
-    user.userTelegram = userTelegram;
+    user.telegram = userTelegram;
     user.permission = permission;
-    user.disabilities = disabilities;
-    await user.save();
-    await assignUserHouse(user.id);
+    await userService.update(user);
+    await houseMemberService.assignUserHouse(user.id);
 
     await sendEmail(
       user.email,
@@ -108,9 +94,10 @@ const authService = {
       <p>Nos&nbsp;vemos&nbsp;no&nbsp;sábado&nbsp;dia&nbsp;19/06!&nbsp;At&eacute;&nbsp;mais!</p>
       </div>`
     );
-  },
-  login: async (email, password) => {
-    const foundUser = await UserModel.findOne({ email }).populate("house");
+  }
+
+  public async login(email: string, password: string): Promise<User> {
+    const foundUser = (await userService.find({ email }))[0];
     if (
       !foundUser ||
       !foundUser.password ||
@@ -120,56 +107,59 @@ const authService = {
     }
 
     return foundUser;
-  },
-  forgotPassword: async (email) => {
-    const foundUser = await UserModel.findOne({ email });
-    if (!foundUser || !foundUser.password) {
+  }
+
+  public async forgotPassword(email: string): Promise<void> {
+    const user = (await userService.find({ email }))[0];
+    if (!user || !user.password) {
       throw new createError.Unauthorized();
     }
 
     const code = crypto.randomBytes(6).toString("hex");
 
-    foundUser.resetPasswordCode = code;
-    await foundUser.save();
+    user.resetPasswordCode = code;
+    await userService.update(user);
 
     await sendEmail(
-      foundUser.email,
+      user.email,
       "Recuperação de Senha",
-      `Seu código para recuperação de senha: ${foundUser.resetPasswordCode}`,
+      `Seu código para recuperação de senha: ${user.resetPasswordCode}`,
       `<div>
-      <h1>Seu&nbsp;c&oacute;digo&nbsp;para&nbsp;recupera&ccedil;&atilde;o&nbsp;de&nbsp;senha:&nbsp;${foundUser.resetPasswordCode}</h1>
+      <h1>Seu&nbsp;c&oacute;digo&nbsp;para&nbsp;recupera&ccedil;&atilde;o&nbsp;de&nbsp;senha:&nbsp;${user.resetPasswordCode}</h1>
       </div>`
     );
-  },
-  resetPassword: async (email, code, password) => {
-    const foundUser = await UserModel.findOne({ email }).populate("house");
+  }
+
+  public async resetPassword(email: string, code: string, password: string) {
+    const user = (await userService.find({ email }))[0];
     if (
-      !foundUser ||
-      !foundUser.password ||
-      code !== foundUser.resetPasswordCode
+      !user ||
+      !user.password ||
+      code !== user.resetPasswordCode
     ) {
       throw new createError.Unauthorized();
     }
 
-    foundUser.password = password;
-    await foundUser.save();
+    user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10));
+    await userService.update(user);
 
-    return foundUser;
-  },
-  authenticateUser: async (nusp, email, name) => {
-    let currentUser = await UserModel.findOne({ nusp, email });
+    return user;
+  }
+
+  public async authenticateUser(nusp: string, email: string, name: string): Promise<User> {
+    let currentUser = (await userService.find({ nusp, email }))[0];
 
     if (!currentUser) {
-      currentUser = new UserModel({
+      currentUser = {
         nusp,
         email,
         name,
-      });
-      await currentUser.save();
+      };
+      await userService.create(currentUser);
     }
 
     return currentUser;
-  },
-};
+  }
+}
 
-export default authService;
+export default new AuthService();

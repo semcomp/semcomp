@@ -24,7 +24,7 @@ export default class PaymentServiceImpl implements PaymentService {
   }
 
   public async create(userId: string): Promise<any> {
-    const user = await this.userService.findByStringId(userId);
+    const user = await this.userService.findById(userId);
     const id = this.idService.create();
 
     await PaymentModel.create({

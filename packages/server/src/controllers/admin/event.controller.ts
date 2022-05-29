@@ -17,7 +17,7 @@ export default {
 
         event.attendances = []
         for (const eventAttendance of eventAttendances) {
-          const user = await userService.findByStringId(eventAttendance.userId);
+          const user = await userService.findById(eventAttendance.userId);
           event.attendances.push(user);
         }
 
@@ -25,7 +25,7 @@ export default {
 
         event.subscriptions = []
         for (const eventSubscription of eventSubscriptions) {
-          const user = await userService.findByStringId(eventSubscription.userId);
+          const user = await userService.findById(eventSubscription.userId);
           event.subscriptions.push(user);
         }
       }

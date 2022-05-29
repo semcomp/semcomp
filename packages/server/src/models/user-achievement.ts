@@ -1,18 +1,16 @@
 import Mongoose from "mongoose";
 
-type House = {
+type UserAchievement = {
   id?: string;
-  name: string;
-  description: string;
-  telegramLink: string;
-  score: number;
+  userId: string;
+  achievementId: string;
   createdAt?: number;
   updatedAt?: number;
 }
 
-export default House;
+export default UserAchievement;
 
-const HouseSchema = new Mongoose.Schema(
+const UserAchievementSchema = new Mongoose.Schema(
   {
     id: {
       type: String,
@@ -20,22 +18,13 @@ const HouseSchema = new Mongoose.Schema(
       required: true,
       index: true,
     },
-    name: {
+    userId: {
       type: String,
       required: true,
     },
-    description: {
+    achievementId: {
       type: String,
       required: true,
-    },
-    telegramLink: {
-      type: String,
-      required: true,
-    },
-    score: {
-      type: Number,
-      default: 0,
-      min: 0,
     },
     createdAt: {
       type: Number,
@@ -46,7 +35,7 @@ const HouseSchema = new Mongoose.Schema(
       default: Date.now(),
     },
   },
-  { collection: "house" }
+  { collection: "user-achievement" }
 );
 
-export const HouseModel = Mongoose.model("house", HouseSchema);
+export const UserAchievementModel = Mongoose.model("user-achievement", UserAchievementSchema);
