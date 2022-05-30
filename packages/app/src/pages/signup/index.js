@@ -76,7 +76,7 @@ function SignupPage() {
     // Don't let the user do anything if it's sending a request.
     if (isSigningUp) return;
 
-    const { userTelegram, course, discord, isStudent } = formValue;
+    const { telegram, course, discord, isStudent } = formValue;
 
     // Some validation
     // TODO - move validation to a different file. Validation logic should be
@@ -102,7 +102,7 @@ function SignupPage() {
       const userInfo = isAuthUSP
         ? {
             permission: canShareData,
-            userTelegram,
+            telegram,
             course,
             discord,
             disabilities,
@@ -113,7 +113,7 @@ function SignupPage() {
             email,
             password,
             permission: canShareData,
-            userTelegram,
+            telegram,
             course,
             discord,
             disabilities,

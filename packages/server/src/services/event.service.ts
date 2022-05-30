@@ -1,99 +1,97 @@
-import createError from "http-errors";
-import { ObjectId } from "mongodb";
+import { Model } from "mongoose";
 
-import EventModel from "../models/event";
-import SubscriptionModel from "../models/subscription";
+import Event, { EventModel } from "../models/event";
 import subscriptionService from "./subscription.service";
+import Attendance from "../models/attendance";
+import attendanceService from "./attendance.service";
 
-import { formatEvent } from "../lib/format-event";
-import { addHousePoints } from "../lib/add-house-points";
-import eventTypeEnum from "../lib/constants/event-type-enum";
+import EventTypes from "../lib/constants/event-types-enum";
+import Subscription from "../models/subscription";
+import IdServiceImpl from "./id-impl.service";
+import houseService from "./house.service";
+import HttpError from "../lib/http-error";
 
-const eventService = {
-  getInfo: async (user) => {
+const idService = new IdServiceImpl();
+
+class EventService {
+  public async getInfo(userId: string) {
     const events = await EventModel.find({ showOnSchedule: true });
-    let userSubscriptions;
-    if (user) {
-      userSubscriptions = await SubscriptionModel.find({ user: user._id });
-    }
 
     const eventsInfo = [];
     for (const event of events) {
+      let hasAttend = false;
+      let isSubscribed = false;
+      if (userId) {
+        hasAttend = (await attendanceService.find({
+          userId,
+          eventId: event.id.toString(),
+        })).length > 0;
+
+        isSubscribed = (await subscriptionService.find({
+          userId,
+          eventId: event.id.toString(),
+        })).length > 0;
+      }
+
       eventsInfo.push({
-        ...formatEvent(event, [
-          "_id",
-          "name",
-          "description",
-          "speaker",
-          "link",
-          "startDate",
-          "endDate",
-          "type",
-        ]),
-        wasPresent: user ? event.presentUsers.includes(user._id) : false,
-        isSubscribed: user
-          ? !!userSubscriptions.find(
-            (subscription) =>
-              event._id.toString() === subscription.event._id.toString()
-          )
-          : false,
+        ...(this.mapEntity(event)),
+        hasAttend,
+        isSubscribed,
       });
     }
 
     return eventsInfo;
-  },
-  getCurrent: async (user) => {
+  }
+
+  public async getCurrent(userId: string) {
     const events = await EventModel.find({ showStream: true });
-    let userSubscriptions;
-    if (user) {
-      userSubscriptions = await SubscriptionModel.find({ user: user._id });
-    }
 
     let currentEvent;
     for (const event of events) {
       const now = Date.now();
 
-      const startedDateObj = new Date(event.startDate).getDate();
-      const endDateObj = new Date(event.endDate).getDate();
+      const startedDate = event.startDate;
+      const endDate = event.endDate;
 
-      if (now > startedDateObj && now < endDateObj) {
+      if (now > startedDate && now < endDate) {
+        let hasAttend = false;
+        let isSubscribed = false;
+        if (userId) {
+          hasAttend = (await attendanceService.find({
+            userId,
+            eventId: event.id.toString(),
+          })).length > 0;
+
+          isSubscribed = (await subscriptionService.find({
+            userId,
+            eventId: event.id.toString(),
+          })).length > 0;
+        }
+
         currentEvent = {
-          ...formatEvent(event, [
-            "_id",
-            "name",
-            "description",
-            "speaker",
-            "link",
-            "startDate",
-            "endDate",
-            "type",
-          ]),
-          wasPresent: user ? event.presentUsers.includes(user._id) : false,
-          isSubscribed: user
-            ? !!userSubscriptions.find(
-              (subscription) =>
-                event._id.toString() === subscription.event._id.toString()
-            )
-            : false,
+          ...(this.mapEntity(event)),
+          hasAttend,
+          isSubscribed,
         };
       }
     }
 
     return currentEvent;
-  },
-  getSubscribables: async (user) => {
+  }
+
+  public async getSubscribables(userId: string) {
     const desiredEventTypesEnum = {
-      MINICURSO: eventTypeEnum.MINICURSO,
-      GAMENIGHT: eventTypeEnum.GAME_NIGHT,
-      CONCURSO: eventTypeEnum.CONCURSO,
-      CONTEST: eventTypeEnum.CONTEST,
-      RODA: eventTypeEnum.RODA,
+      MINICURSO: EventTypes.MINICURSO,
+      GAMENIGHT: EventTypes.GAME_NIGHT,
+      CONCURSO: EventTypes.CONCURSO,
+      CONTEST: EventTypes.CONTEST,
+      RODA: EventTypes.RODA,
     };
     const events = await EventModel.find({
       type: { $in: Object.values(desiredEventTypesEnum) },
       showOnSubscribables: true,
     });
-    const userSubscriptions = await subscriptionService.get({ user: user.id });
+    const userSubscriptions = await subscriptionService.find({ userId });
 
     const eventsInfo = [];
     for (const eventType of Object.values(desiredEventTypesEnum)) {
@@ -125,50 +123,46 @@ const eventService = {
         eventsInfoOfType.items.push(itemsOnThisHour);
       }
 
+      let hasAttend = false;
+      let isSubscribed = false;
+      if (userId) {
+        hasAttend = (await attendanceService.find({
+          userId,
+          eventId: event.id.toString(),
+        })).length > 0;
+
+        isSubscribed = (await subscriptionService.find({
+          userId,
+          eventId: event.id.toString(),
+        })).length > 0;
+      }
+
       itemsOnThisHour.events.push({
-        ...formatEvent(event, [
-          "id",
-          "name",
-          "description",
-          "speaker",
-          "maxOfSubscriptions",
-          "link",
-          "type",
-          "isInGroup",
-          "needInfoOnSubscription",
-        ]),
-        isSubscribed: !!userSubscriptions.find(
-          (subscription) =>
-            subscription.event.toString() === event.id.toString()
-        ),
+        ...(this.mapEntity(event)),
+        hasAttend,
+        isSubscribed,
       });
     }
 
     return eventsInfo.filter((eventInfo) => eventInfo.items.length > 0);
-  },
-  markPresence: async (eventId, user, userHouse) => {
-    const event = await eventService.getOne(eventId);
-    const subscription = await SubscriptionModel.findOne({
-      user: user._id,
-      event: eventId,
-    });
+  }
+
+  public async markPresence(eventId: string, userId: string, userHouse: any) {
+    const event = await this.findById(eventId);
+    const subscription = (await subscriptionService.find({ userId, eventId }))[0];
 
     if (
-      (event.type === eventTypeEnum.MINICURSO ||
-        event.type === eventTypeEnum.GAME_NIGHT ||
-        event.type === eventTypeEnum.CONCURSO ||
-        event.type === eventTypeEnum.CONTEST) &&
+      (event.type === EventTypes.MINICURSO ||
+        event.type === EventTypes.GAME_NIGHT ||
+        event.type === EventTypes.CONCURSO ||
+        event.type === EventTypes.CONTEST) &&
       !subscription
     ) {
-      throw new createError.BadRequest("Não inscrito no evento!");
+      throw new HttpError(400, ["Não inscrito no evento!"]);
     }
 
-    if (
-      event.presentUsers.find(
-        (presentUser) => presentUser.toString() === user._id.toString()
-      )
-    ) {
-      throw new createError.BadRequest("Presença já existente!");
+    if (await attendanceService.findById(userId)) {
+      throw new HttpError(400, ["Presença já existente!"]);
     }
 
     const now = Date.now();
@@ -180,155 +174,125 @@ const eventService = {
     newEndDateObj.setMinutes(newEndDateObj.getMinutes() + 5);
 
     if (now > newStartedDateObj.getDate() && now < newEndDateObj.getDate()) {
-      event.presentUsers.push(user);
-      addHousePoints(userHouse, event.type === "Minicurso" ? 30 : 10);
+      const attendance: Attendance = {
+        userId: userId,
+        eventId: eventId,
+      }
+      await attendanceService.create(attendance);
+
+      await houseService.addHousePoints(userHouse, event.type === EventTypes.MINICURSO ? 30 : 10);
+
       await userHouse.save();
-      await event.save();
-      await user.save();
 
       return { message: "Presença salva com sucesso!" };
     }
     if (now < newStartedDateObj.getDate()) {
-      throw new createError.BadRequest("O evento ainda não começou!");
+      throw new HttpError(400, ["O evento ainda não começou!"]);
     }
-    throw new createError.BadRequest("O evento já terminou!");
-  },
-  subscribe: async (eventId, user, info) => {
-    const event = await eventService.getOne(eventId);
-    const numberOfSubscribes = await subscriptionService.count({
-      event: eventId,
-    });
+    throw new HttpError(400, ["O evento já terminou!"]);
+  }
+
+  public async subscribe(eventId: string, userId: string, info: object) {
+    const event = await this.findById(eventId);
+    const numberOfSubscribes = await subscriptionService.count({ eventId });
 
     if (numberOfSubscribes >= event.maxOfSubscriptions) {
-      throw new createError.BadRequest(`O evento está cheio!`);
+      throw new HttpError(400, ["O evento está cheio!"]);
     }
 
-    const subscriptions = await SubscriptionModel.find({
-      user: user.id,
-    }).populate("event");
+    const subscription = (await subscriptionService.find({ userId, eventId }))[0];
 
-    if (
-      event.type !== "Contest" &&
-      subscriptions.find((subscription) => {
-        return (
-          new Date(subscription.event.startDate).getTime() ===
-          new Date(event.startDate).getTime() &&
-          new Date(subscription.event.endDate).getTime() ===
-          new Date(event.endDate).getTime() &&
-          subscription.event.type === event.type
-        );
-      })
-    ) {
-      throw new createError.BadRequest(
-        `O usuário já esta inscrito em um evento nesse horário!`
-      );
+    if (event.type !== "Contest" && subscription) {
+      throw new HttpError(400, ["O usuário já esta inscrito em um evento nesse horário!"]);
     }
 
-    await subscriptionService.create(user.id, event.id, info, true);
+    const newSubscription: Subscription = {
+      userId, eventId, info, hasGroup: true
+    };
+    await subscriptionService.create(newSubscription);
 
     return { message: "Inscrição salva com sucesso!" };
-  },
-  unsubscribe: async (eventId, user) => {
-    await subscriptionService.delete({ event: eventId, user: user.id });
+  }
+
+  public async unsubscribe(eventId: string, userId: string) {
+    const subscription = (await subscriptionService.find({ eventId, userId }))[0];
+    await subscriptionService.delete(subscription);
 
     return { message: "Inscrição removida com sucesso!" };
-  },
-  get: async (filter) => {
-    const events = await EventModel.find(filter);
+  }
 
-    return events;
-  },
-  getOne: async (id) => {
-    const event = await EventModel.findById(id);
+  public async find(filters?: Partial<Event>): Promise<Event[]> {
+    const events = await EventModel.find(filters);
 
-    if (!event) {
-      throw new createError.NotFound(
-        `Não foi encontrado evento com o id ${id}`
-      );
+    const entities: Event[] = [];
+    for (const event of events) {
+      entities.push(this.mapEntity(event));
     }
 
-    return event;
-  },
-  create: async ({
-    name,
-    description,
-    speaker,
-    maxOfSubscriptions,
-    link,
-    startDate,
-    endDate,
-    type,
-    isInGroup,
-    showOnSchedule,
-    showOnSubscribables,
-    showStream,
-  }) => {
-    const newEvent = new EventModel() as any;
+    return entities;
+  }
 
-    newEvent._id = new ObjectId();
-    newEvent.name = name;
-    newEvent.description = description;
-    newEvent.speaker = speaker;
-    newEvent.maxOfSubscriptions = maxOfSubscriptions;
-    newEvent.link = link;
-    newEvent.startDate = startDate;
-    newEvent.endDate = endDate;
-    newEvent.type = type;
-    newEvent.presentUsers = [];
-    newEvent.isInGroup = isInGroup;
-    newEvent.showOnSchedule = showOnSchedule;
-    newEvent.showOnSubscribables = showOnSubscribables;
-    newEvent.showStream = showStream;
+  public async findById(id: string): Promise<Event> {
+    const entity = await EventModel.findOne({ id });
 
-    await newEvent.save();
+    return this.mapEntity(entity);
+  }
 
-    return newEvent;
-  },
-  update: async (
-    id,
-    {
-      name,
-      description,
-      speaker,
-      maxOfSubscriptions,
-      link,
-      startDate,
-      endDate,
-      type,
-      isInGroup,
-      showOnSchedule,
-      showOnSubscribables,
-      showStream,
+  public async count(filters?: Partial<Event>): Promise<number> {
+    const count = await EventModel.count(filters);
+
+    return count;
+  }
+
+  public async create(event: Event): Promise<Event> {
+    event.id = await idService.create();
+    const entity = await EventModel.create(event);
+
+    return this.findById(entity.id);
+  }
+
+  public async update(event: Event): Promise<Event> {
+    const entity = await EventModel.findOneAndUpdate({ id: event.id });
+
+    return this.findById(entity.id);
+  }
+
+  public async delete(event: Event): Promise<Event> {
+    const entity = await EventModel.findOneAndDelete({ id: event.id });
+
+    const attendances = await attendanceService.find({ eventId: event.id });
+    for (const attendance of attendances) {
+      await attendanceService.delete(attendance);
     }
-  ) => {
-    const updatedEvent = await EventModel.findByIdAndUpdate(
-      id,
-      {
-        name,
-        description,
-        speaker,
-        maxOfSubscriptions,
-        link,
-        startDate,
-        endDate,
-        type,
-        isInGroup,
-        showOnSchedule,
-        showOnSubscribables,
-        showStream,
-      },
-      { new: true }
-    );
 
-    return updatedEvent;
-  },
-  delete: async (id) => {
-    const deletedEvent = await EventModel.findByIdAndDelete(id);
+    const subscriptions = await subscriptionService.find({ eventId: event.id });
+    for (const subscription of subscriptions) {
+      await subscriptionService.delete(subscription);
+    }
 
-    await subscriptionService.delete({ event: id });
+    return entity && this.mapEntity(entity);
+  }
 
-    return deletedEvent;
-  },
+  private mapEntity(entity: Model<Event> & Event): Event {
+    return {
+      id: entity.id,
+      name: entity.name,
+      description: entity.description,
+      speaker: entity.speaker,
+      link: entity.link,
+      maxOfSubscriptions: entity.maxOfSubscriptions,
+      startDate: entity.startDate,
+      endDate: entity.endDate,
+      type: entity.type,
+      isInGroup: entity.isInGroup,
+      showOnSchedule: entity.showOnSchedule,
+      showOnSubscribables: entity.showOnSubscribables,
+      showStream: entity.showStream,
+      needInfoOnSubscription: entity.needInfoOnSubscription,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
+  }
 };
 
-export default eventService;
+export default new EventService();

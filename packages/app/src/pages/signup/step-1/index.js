@@ -33,7 +33,7 @@ import "./style.css";
  */
 function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
   // These refs will be used later to gather the input's values.
-  const userTelegramRef = useRef();
+  const telegramRef = useRef();
   const isStudentRef = useRef();
   const courseRef = useRef();
   // const discordRef = useRef();
@@ -67,7 +67,7 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
 
   function handleFormUpdate() {
     // Get the input's values from their refs.
-    const userTelegram = userTelegramRef.current.value;
+    const telegram = telegramRef.current.value;
     const isStudent = isStudentRef.current.checked;
     const course = isStudent ? courseRef.current.value : undefined;
     // const discord = discordRef.current.value;
@@ -76,7 +76,7 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
 
     // Updates the `formValue` prop with the newest values given by the user.
     updateFormValue({
-      userTelegram,
+      telegram,
       isStudent,
       course,
       // discord,
@@ -114,9 +114,9 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
         <p>Usuário do Telegram (opcional)</p>
         <TextField
           type="text"
-          inputRef={userTelegramRef}
+          inputRef={telegramRef}
           onChange={handleFormUpdate}
-          value={formValue.userTelegram}
+          value={formValue.telegram}
           id="standard-adornment-telegram"
           variant="standard"
           sx={{ width: "100%" }}

@@ -5,6 +5,7 @@ import RiddleQuestionModel from "../models/riddle-question";
 import RiddleGroupModel from "../models/riddle-group";
 
 import { getRiddleGroupQuestion } from "../lib/get-riddle-group-question";
+import adminLogService from "./admin-log.service";
 
 const riddleQuestionService = {
   get: async () => {
@@ -43,12 +44,13 @@ const riddleQuestionService = {
     });
     await newRiddleQuestion.save();
 
-    await (new AdminLog({
-      user: adminUser,
+    const adminLog: AdminLog = {
+      adminId: adminUser.id,
       type: "create",
       collectionName: "riddle-question",
       objectAfter: JSON.stringify(newRiddleQuestion),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return newRiddleQuestion;
   },
@@ -73,13 +75,14 @@ const riddleQuestionService = {
       { new: true }
     );
 
-    await (new AdminLog({
-      user: adminUser,
+    const adminLog: AdminLog = {
+      adminId: adminUser.id,
       type: "update",
       collectionName: "riddle-question",
       objectBefore: JSON.stringify(questionFound),
       objectAfter: JSON.stringify(updatedRiddleQuestion),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return updatedRiddleQuestion;
   },
@@ -88,12 +91,13 @@ const riddleQuestionService = {
 
     await RiddleQuestionModel.findByIdAndDelete(id);
 
-    await (new AdminLog({
-      user: adminUser,
+    const adminLog: AdminLog = {
+      adminId: adminUser.id,
       type: "delete",
       collectionName: "riddle-question",
       objectBefore: JSON.stringify(questionFound),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return questionFound;
   },

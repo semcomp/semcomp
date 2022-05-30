@@ -1,15 +1,31 @@
 import Mongoose from "mongoose";
 
+type Subscription = {
+  id?: string;
+  eventId: string;
+  userId: string;
+  info: object;
+  hasGroup: boolean;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export default Subscription;
+
 const SubscriptionSchema = new Mongoose.Schema(
   {
-    user: {
-      type: Mongoose.Schema.Types.ObjectId,
-      ref: "user",
+    id: {
+      type: String,
+      unique: true,
+      required: true,
+      index: true,
+    },
+    eventId: {
+      type: String,
       required: true,
     },
-    event: {
-      type: Mongoose.Schema.Types.ObjectId,
-      ref: "event",
+    userId: {
+      type: String,
       required: true,
     },
     info: {
@@ -20,15 +36,15 @@ const SubscriptionSchema = new Mongoose.Schema(
       default: false,
     },
     createdAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
     updatedAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
   },
   { collection: "subscription" }
 );
 
-export default Mongoose.model("subscription", SubscriptionSchema);
+export const SubscriptionModel = Mongoose.model("subscription", SubscriptionSchema);

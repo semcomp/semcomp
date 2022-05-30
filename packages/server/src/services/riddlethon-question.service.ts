@@ -3,6 +3,7 @@ import createError from "http-errors";
 import AdminLog from "../models/admin-log";
 import RiddlethonQuestionModel from "../models/riddlethon-question";
 import RiddlethonGroupModel from "../models/riddlethon-group";
+import adminLogService from "./admin-log.service";
 
 const riddlethonQuestionService = {
   get: async () => {
@@ -41,12 +42,13 @@ const riddlethonQuestionService = {
     });
     await newRiddlethonQuestion.save();
 
-    await (new AdminLog({
-      user: adminUser,
+    const adminLog: AdminLog = {
+      adminId: adminUser.id,
       type: "create",
       collectionName: "riddlethon-question",
       objectAfter: JSON.stringify(newRiddlethonQuestion),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return newRiddlethonQuestion;
   },
@@ -72,13 +74,14 @@ const riddlethonQuestionService = {
         { new: true }
       );
 
-    await (new AdminLog({
-      user: adminUser,
+    const adminLog: AdminLog = {
+      adminId: adminUser.id,
       type: "update",
       collectionName: "riddlethon-question",
       objectBefore: JSON.stringify(questionFound),
       objectAfter: JSON.stringify(updatedRiddlethonQuestion),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return updatedRiddlethonQuestion;
   },
@@ -87,12 +90,13 @@ const riddlethonQuestionService = {
 
     await RiddlethonQuestionModel.findByIdAndDelete(id);
 
-    await (new AdminLog({
-      user: adminUser,
+    const adminLog: AdminLog = {
+      adminId: adminUser.id,
       type: "delete",
       collectionName: "riddlethon-question",
       objectBefore: JSON.stringify(questionFound),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return questionFound;
   },

@@ -1,57 +1,65 @@
-import createError from "http-errors";
-import { ObjectId } from "mongodb";
+import { Model } from "mongoose";
 
-import AdminLogModel from "../models/admin-log";
+import AdminLog, { AdminLogModel } from "../models/admin-log";
+import IdServiceImpl from "./id-impl.service";
 
-const adminLogService = {
-  get: async () => {
-    const adminLogs = await AdminLogModel.find();
+const idService = new IdServiceImpl();
 
-    return adminLogs;
-  },
-  getOne: async (id) => {
-    const adminLog = await AdminLogModel.findById(id);
+class AdminLogService {
+  public async find(filters?: Partial<AdminLog>): Promise<AdminLog[]> {
+    const houseAchievements = await AdminLogModel.find(filters);
 
-    if (!adminLog) {
-      throw new createError.NotFound(`Não foi encontrado log com o id ${id}`);
+    const entities: AdminLog[] = [];
+    for (const houseAchievement of houseAchievements) {
+      entities.push(this.mapEntity(houseAchievement));
     }
 
-    return adminLog;
-  },
-  create: async (user, type, collectionName, objectBefore, objectAfter) => {
-    const newAdminLog = new AdminLogModel() as any;
+    return entities;
+  }
 
-    newAdminLog._id = new ObjectId();
-    newAdminLog.user = user;
-    newAdminLog.type = type;
-    newAdminLog.collectionName = collectionName;
-    newAdminLog.objectBefore = objectBefore;
-    newAdminLog.objectAfter = objectAfter;
+  public async findById(id: string): Promise<AdminLog> {
+    const entity = await AdminLogModel.findOne({ id });
 
-    await newAdminLog.save();
+    return this.mapEntity(entity);
+  }
 
-    return newAdminLog;
-  },
-  update: async (id, user, type, collectionName, objectBefore, objectAfter) => {
-    const updatedAdminLog = await AdminLogModel.findByIdAndUpdate(
-      id,
-      {
-        user,
-        type,
-        collectionName,
-        objectBefore,
-        objectAfter,
-      },
-      { new: true }
-    );
+  public async count(filters?: Partial<AdminLog>): Promise<number> {
+    const count = await AdminLogModel.count(filters);
 
-    return updatedAdminLog;
-  },
-  delete: async (id) => {
-    const deletedAdminLog = await AdminLogModel.findByIdAndDelete(id);
+    return count;
+  }
 
-    return deletedAdminLog;
-  },
+  public async create(houseAchievement: AdminLog): Promise<AdminLog> {
+    houseAchievement.id = await idService.create();
+    const entity = await AdminLogModel.create(houseAchievement);
+
+    return this.findById(entity.id);
+  }
+
+  public async update(houseAchievement: AdminLog): Promise<AdminLog> {
+    const entity = await AdminLogModel.findOneAndUpdate({ id: houseAchievement.id });
+
+    return this.findById(entity.id);
+  }
+
+  public async delete(houseAchievement: AdminLog): Promise<AdminLog> {
+    const entity = await AdminLogModel.findOneAndDelete({ id: houseAchievement.id });
+
+    return entity && this.mapEntity(entity);
+  }
+
+  private mapEntity(entity: Model<AdminLog> & AdminLog): AdminLog {
+    return {
+      id: entity.id,
+      adminId: entity.adminId,
+      type: entity.type,
+      collectionName: entity.collectionName,
+      objectBefore: entity.objectBefore,
+      objectAfter: entity.objectAfter,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
+  }
 };
 
-export default adminLogService;
+export default new AdminLogService();
