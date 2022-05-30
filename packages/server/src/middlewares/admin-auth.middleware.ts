@@ -8,7 +8,7 @@ class AdminAuthMiddleware {
     try {
       let token = req.header("Authorization");
 
-      req.user = await adminAuthService.authenticate(token);
+      req.adminUser = await adminAuthService.authenticate(token);
 
       next();
     } catch (error) {
@@ -18,7 +18,7 @@ class AdminAuthMiddleware {
 
   public async isAuthenticated(req, res, next) {
     try {
-      if (!req.user) {
+      if (!req.adminUser) {
         return next(new createError.Unauthorized());
       }
 
