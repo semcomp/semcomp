@@ -7,7 +7,7 @@
   justify-items: center;
   position: relative;
 
-  background-image: url("../../../assets/home-background.png");
+  background-image: url("../../../assets/moacir-doutrinando2.jpg");
   background-size: cover;
   background-position: center;
   filter: brightness(115%);
@@ -73,10 +73,6 @@
 }
 
 @media (max-width: 1024px) {
-  .home-header {
-    background-image: url("../../../assets/home-background-empty.png");
-  }
-
   .home-header > .text-container {
     justify-content: center;
   }

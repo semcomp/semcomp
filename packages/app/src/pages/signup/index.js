@@ -190,9 +190,7 @@ function SignupPage() {
           muita comida.
           <br />
           <br />
-          Infelizmente por conta da pandemia, não pudemos realizar o evento
-          presencial e estamos nos reinventando com muito empenho para ainda
-          trazer a Semcomp pertinho de você! Esperamos que todos vocês gostem e
+          Esperamos que todos vocês gostem e
           aguardem para mais informações. <br />
           <br />
           Com carinho, Equipe Semcomp!

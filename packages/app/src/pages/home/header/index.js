@@ -24,8 +24,8 @@ const HomeHeader = (props) => {
       <div className="text-container">
         <h1>
           A maior semana acadêmica de computação do Brasil!
-          <br />
-          De 25 de setembro a 01 de outubro
+          {/* <br />
+          De 25 de setembro a 01 de outubro */}
         </h1>
         {!isUserLoggedIn && (
           <Link className="home-signup-button" to={Routes.signup}>

@@ -200,7 +200,7 @@ function Profile({ user }) {
               </button>
             }
           </div>
-          <div className="user-house-card">
+          {/* <div className="user-house-card">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Overflow
             </h1>
@@ -218,8 +218,8 @@ function Profile({ user }) {
             <button onClick={() => setIsAboutOverflowModalOpen(true)}>
               O que é o Overflow?
             </button>
-          </div>
-          <div className="user-house-card">
+          </div> */}
+          {/* <div className="user-house-card">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Eventos
             </h1>
@@ -261,8 +261,8 @@ function Profile({ user }) {
                 Inscrever
               </button>
             }
-          </div>
-          <div className="user-house-card">
+          </div> */}
+          {/* <div className="user-house-card">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Conquistas
             </h1>
@@ -293,12 +293,12 @@ function Profile({ user }) {
                 Ver mais
               </button>
             }
-          </div>
-          <HouseScores />
+          </div> */}
+          {/* <HouseScores /> */}
         </div>
         <div className="profile-info-card">
-          <EventsOverview />
-          <span className="spacing" />
+          {/* <EventsOverview />
+          <span className="spacing" /> */}
           <EventsCalendar />
         </div>
       </main>

@@ -8,13 +8,13 @@
 
 .edit-user-data-modal > h1 {
   text-align: center;
-  color: white;
+  color: black;
 }
 
 .edit-user-data-modal > label {
   width: 100%;
   margin: 0.5rem 0;
-  color: white;
+  color: black;
 }
 
 .edit-user-data-modal > label > p {
