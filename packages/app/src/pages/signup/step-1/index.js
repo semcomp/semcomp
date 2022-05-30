@@ -31,6 +31,40 @@ import "./style.css";
  * to show a cool spinner to the user, indicating that something is happening, and
  * that the user should wait.
  */
+
+const ICMCCourses = [
+  {
+    name: "Ciência de Dados",
+  },
+  {
+    name: "Ciências de Computação",
+  },
+  {
+    name: "Ciências Exatas",
+  },
+  {
+    name: "Engenharia de Computação",
+  },
+  {
+    name: "Estatística e Ciência de Dados",
+  },
+  {
+    name: "Matemática Aplicada e Computação Científica",
+  },
+  {
+    name: "Matemática (Bacharelado)",
+  },
+  {
+    name: "Matemática (Licenciatura)",
+  },
+  {
+    name: "Sistemas de Informação",
+  },
+  {
+    name: "Outro",
+  },
+];
+
 function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
   // These refs will be used later to gather the input's values.
   const telegramRef = useRef();
@@ -147,11 +181,11 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
           disabled={!needsCourse}
           variant="standard"
         >
-          <MenuItem value={"Ciências de Computação"}>BCC</MenuItem>
-          <MenuItem value={"Sistemas de Informação"}>BSI</MenuItem>
-          <MenuItem value={"Ciência de Dados"}>BECD</MenuItem>
-          <MenuItem value={"Engenharia de Computação"}>Eng.Comp</MenuItem>
-          <MenuItem value={"Outros"}>Outros</MenuItem>
+          {ICMCCourses.map((course) => (
+            <MenuItem key={course.name} value={course.name}>
+              {course.name}
+            </MenuItem>
+          ))}
         </Select>
       </label>
       {/* <label>
