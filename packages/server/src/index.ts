@@ -30,6 +30,7 @@ const port = process.env.PORT || 8080;
 const corsConfig = {
   origin: [
     env.FRONTEND_URL,
+    env.FRONTEND_NETLIFY_URL,
     env.FRONTEND_LOCAL_URL,
     env.BACKOFFICE_URL,
     env.BACKOFFICE_LOCAL_URL,
