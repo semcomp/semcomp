@@ -7,7 +7,7 @@ import MessageModel from "../../models/message";
 
 import { SocketError } from "../../lib/socket-error";
 import { normalizeString } from "../../lib/normalize-string";
-import { addHousePoints } from "../../lib/add-house-points";
+import houseService from "../../services/house.service";
 
 const EVENTS_PREFIX = "hard-to-click-";
 const END_DATE = new Date("2021-06-19 15:00");
@@ -184,7 +184,7 @@ async function tryAnswer(socket, ioServer, token, index, answer) {
       await HardToClickGroupModel.findByIdAndUpdate(group._id, {
         $push: { completedQuestionsIndexes: { index, createdAt: Date.now() } },
       });
-      await addHousePoints(user.house && user.house._id, 5);
+      await houseService.addHousePoints(user.house, 5);
     } else {
       socket.emit(`${EVENTS_PREFIX}correct-answer`, { index, correct: false });
     }

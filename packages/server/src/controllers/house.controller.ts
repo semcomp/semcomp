@@ -17,7 +17,7 @@ function formatHouseResponse(house) {
 const houseController = {
   getScores: async (req, res, next) => {
     try {
-      const houses = await houseService.get();
+      const houses = await houseService.find();
 
       const formatedHouses = houses.map((house) => {
         return {
