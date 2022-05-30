@@ -1,12 +1,27 @@
 import Mongoose from "mongoose";
 
-const ObjectID = Mongoose.Schema.Types.ObjectId;
+type AdminLog = {
+  id?: string;
+  adminId: string;
+  type: string;
+  collectionName: string;
+  objectBefore?: string;
+  objectAfter?: string;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export default AdminLog;
 
 const AdminLogSchema = new Mongoose.Schema(
   {
-    user: {
-      type: ObjectID,
-      ref: "user",
+    id: {
+      type: String,
+      unique: true,
+      required: true,
+    },
+    adminId: {
+      type: String,
       required: true,
     },
     type: {
@@ -30,15 +45,15 @@ const AdminLogSchema = new Mongoose.Schema(
       trim: true,
     },
     createdAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
     updatedAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
   },
   { collection: "admin-log" }
 );
 
-export default Mongoose.model("admin-log", AdminLogSchema);
+export const AdminLogModel = Mongoose.model("admin-log", AdminLogSchema);

@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import * as AuthMiddleware from "../middlewares/auth.middleware";
+import authMiddleware from "../middlewares/auth.middleware";
 import RiddleGroupController from "../controllers/riddle/riddle-group.controller";
 import RiddleQuestionController from "../controllers/riddle/riddle-question.controller";
 
@@ -8,15 +8,15 @@ const router = Router();
 
 router.post(
   "/group",
-  [AuthMiddleware.authenticate, AuthMiddleware.isAuthenticated],
+  [authMiddleware.authenticate, authMiddleware.isAuthenticated],
   RiddleGroupController.create
 );
 
 // router.put(
 //     '/group/join',
 //     [
-//       AuthMiddleware.authenticate,
-//       AuthMiddleware.isAuthenticated,
+//       authMiddleware.authenticate,
+//       authMiddleware.isAuthenticated,
 //     ],
 //     RiddleGroupController.join,
 // );
@@ -24,15 +24,15 @@ router.post(
 // router.put(
 //     '/group/leave',
 //     [
-//       AuthMiddleware.authenticate,
-//       AuthMiddleware.isAuthenticated,
+//       authMiddleware.authenticate,
+//       authMiddleware.isAuthenticated,
 //     ],
 //     RiddleGroupController.leave,
 // );
 
 router.get(
   "/question/:id",
-  [AuthMiddleware.authenticate, AuthMiddleware.isAuthenticated],
+  [authMiddleware.authenticate, authMiddleware.isAuthenticated],
   RiddleQuestionController.getQuestion
 );
 

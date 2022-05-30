@@ -22,11 +22,11 @@ function EditProfile({ onRequestClose }) {
 
     const formElem = event.currentTarget;
     const name = formElem["name"].value;
-    const userTelegram = formElem["userTelegram"].value;
+    const telegram = formElem["telegram"].value;
 
     if (!name) return toast.error("Você deve fornecer um nome");
 
-    const newUser = { ...user, name, userTelegram };
+    const newUser = { ...user, name, telegram };
     setIsUpdating(true);
     try {
       const response = await API.updateUserInfo(newUser);
@@ -51,9 +51,9 @@ function EditProfile({ onRequestClose }) {
         <label>
           <p>Usuário do Telegram</p>
           <input
-            name="userTelegram"
+            name="telegram"
             type="text"
-            defaultValue={user.userTelegram}
+            defaultValue={user.telegram}
           />
         </label>
         <div className="buttons-container">

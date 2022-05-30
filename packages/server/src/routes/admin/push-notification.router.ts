@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { body } from "express-validator";
 
-import * as AdminAuthMiddleware from "../../middlewares/admin-auth.middleware";
+import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
 import * as PushNotificationController from "../../controllers/admin/push-notification.controller";
 
 const router = Router();
@@ -14,8 +14,8 @@ router.post(
     body("image", "Invalid field 'image'").not().isEmpty(),
     body("tag", "Invalid field 'tag'").not().isEmpty(),
     body("url", "Invalid field 'url'").not().isEmpty(),
-    AdminAuthMiddleware.authenticate,
-    AdminAuthMiddleware.isAuthenticated,
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
   ],
   PushNotificationController.sendPushNotification
 );

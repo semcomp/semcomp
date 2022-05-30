@@ -45,7 +45,7 @@ class AttendanceService {
   public async delete(attendance: Attendance): Promise<Attendance> {
     const entity = await AttendanceModel.findOneAndDelete({ id: attendance.id });
 
-    return this.findById(entity.id);
+    return entity && this.mapEntity(entity);
   }
 
   private mapEntity(entity: Model<Attendance> & Attendance): Attendance {
