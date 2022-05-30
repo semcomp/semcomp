@@ -1,5 +1,12 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { toast } from "react-toastify";
+import {
+  Checkbox,
+  InputAdornment,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
 
 import LoadingButton from "../../../components/loading-button";
 import PrivacyPolicyModal from "./privacy-policy-modal";
@@ -26,13 +33,15 @@ import "./style.css";
  */
 function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
   // These refs will be used later to gather the input's values.
-  const telegramRef = React.useRef();
-  const isStudentRef = React.useRef();
-  const courseRef = React.useRef();
-  const discordRef = React.useRef();
-  const disabilitiesRef = React.useRef({});
-  const canShareDataRef = React.useRef();
-  const [termsOfUse, setTermsOfUse] = React.useState(false);
+  const telegramRef = useRef();
+  const isStudentRef = useRef();
+  const courseRef = useRef();
+  // const discordRef = useRef();
+  const disabilitiesRef = useRef({});
+  const canShareDataRef = useRef();
+  const [termsOfUse, setTermsOfUse] = useState(false);
+  const [isPrivacyPolicyModalOpen, setIsPrivacyPolicyModalOpen] =
+    useState(false);
 
   function getDisabilitiesArray(current) {
     const disabilitiesArray = [];
@@ -60,8 +69,8 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
     // Get the input's values from their refs.
     const telegram = telegramRef.current.value;
     const isStudent = isStudentRef.current.checked;
-    const course = courseRef.current.value;
-    const discord = discordRef.current.value;
+    const course = isStudent ? courseRef.current.value : undefined;
+    // const discord = discordRef.current.value;
     const disabilities = getDisabilitiesArray(disabilitiesRef.current);
     const canShareData = canShareDataRef.current.checked;
 
@@ -70,7 +79,7 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
       telegram,
       isStudent,
       course,
-      discord,
+      // discord,
       disabilities,
       canShareData,
     });
@@ -93,8 +102,6 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
   }
 
   const needsCourse = formValue.isStudent;
-  const [isPrivacyPolicyModalOpen, setIsPrivacyPolicyModalOpen] =
-    React.useState(false);
 
   return (
     <form className="signup-step-1-container" onSubmit={handleSubmit}>
@@ -105,17 +112,22 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
       )}
       <label>
         <p>Usuário do Telegram (opcional)</p>
-        <input
+        <TextField
           type="text"
-          ref={telegramRef}
+          inputRef={telegramRef}
           onChange={handleFormUpdate}
-          defaultValue={formValue.telegram}
+          value={formValue.telegram}
+          id="standard-adornment-telegram"
+          variant="standard"
+          sx={{ width: "100%" }}
+          InputProps={{
+            startAdornment: <InputAdornment position="start">@</InputAdornment>,
+          }}
         />
       </label>
       <label className="inline">
-        <input
-          type="checkbox"
-          ref={isStudentRef}
+        <Checkbox
+          inputRef={isStudentRef}
           onChange={handleFormUpdate}
           defaultChecked={needsCourse}
         />
@@ -126,15 +138,23 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
         title={needsCourse ? "" : "Apenas estudantes podem fornecer um curso"}
       >
         <p>Curso</p>
-        <input
+        <Select
+          fullWidth
           type="text"
-          ref={courseRef}
+          inputRef={courseRef}
           onChange={handleFormUpdate}
           defaultValue={formValue.course}
           disabled={!needsCourse}
-        />
+          variant="standard"
+        >
+          <MenuItem value={"Ciências de Computação"}>BCC</MenuItem>
+          <MenuItem value={"Sistemas de Informação"}>BSI</MenuItem>
+          <MenuItem value={"Ciência de Dados"}>BECD</MenuItem>
+          <MenuItem value={"Engenharia de Computação"}>Eng.Comp</MenuItem>
+          <MenuItem value={"Outros"}>Outros</MenuItem>
+        </Select>
       </label>
-      <label>
+      {/* <label>
         <p>Discord (opcional)</p>
         <input
           type="text"
@@ -142,40 +162,40 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
           onChange={handleFormUpdate}
           defaultValue={formValue.discord}
         />
-      </label>
+      </label> */}
       <div>
         <p>
           Você é PCD? Se sim, em qual categoria sua deficiência se enquadra?
         </p>
         <div className="disabilities-options">
           <label className="inline">
-            <input
+            <Checkbox
               type="checkbox"
-              ref={(val) => (disabilitiesRef.current["visual"] = val)}
+              inputRef={(val) => (disabilitiesRef.current["visual"] = val)}
               onChange={handleFormUpdate}
             />
             <p>Visual</p>
           </label>
           <label className="inline">
-            <input
+            <Checkbox
               type="checkbox"
-              ref={(val) => (disabilitiesRef.current["motor"] = val)}
+              inputRef={(val) => (disabilitiesRef.current["motor"] = val)}
               onChange={handleFormUpdate}
             />
             <p>Motora</p>
           </label>
           <label className="inline">
-            <input
+            <Checkbox
               type="checkbox"
-              ref={(val) => (disabilitiesRef.current["hearing"] = val)}
+              inputRef={(val) => (disabilitiesRef.current["hearing"] = val)}
               onChange={handleFormUpdate}
             />
             <p>Auditiva</p>
           </label>
           <label className="inline">
-            <input
+            <Checkbox
               type="checkbox"
-              ref={(val) => (disabilitiesRef.current["other"] = val)}
+              inputRef={(val) => (disabilitiesRef.current["other"] = val)}
               onChange={handleFormUpdate}
             />
             <p>Outra</p>
@@ -183,9 +203,9 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
         </div>
       </div>
       <label className="inline">
-        <input
+        <Checkbox
           type="checkbox"
-          ref={canShareDataRef}
+          inputRef={canShareDataRef}
           onChange={handleFormUpdate}
           defaultChecked={
             formValue.canShareData === undefined
@@ -199,7 +219,7 @@ function Step1({ formValue, updateFormValue, onSubmit, isSigningUp }) {
         </p>
       </label>
       <label className="inline">
-        <input
+        <Checkbox
           type="checkbox"
           onChange={() => setTermsOfUse(!termsOfUse)}
           value={termsOfUse}
