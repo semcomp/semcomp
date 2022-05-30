@@ -37,7 +37,7 @@ class AdminLogService {
   }
 
   public async update(houseAchievement: AdminLog): Promise<AdminLog> {
-    const entity = await AdminLogModel.findOneAndUpdate({ id: houseAchievement.id });
+    const entity = await AdminLogModel.findOneAndUpdate({ id: houseAchievement.id }, houseAchievement);
 
     return this.findById(entity.id);
   }

@@ -54,7 +54,7 @@ class UserServiceImpl implements UserService {
   }
 
   public async update(user: User): Promise<User> {
-    const entity = await UserModel.findOneAndUpdate({ id: user.id });
+    const entity = await UserModel.findOneAndUpdate({ id: user.id }, user);
 
     return this.findById(entity.id);
   }

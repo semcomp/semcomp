@@ -37,7 +37,7 @@ class HouseAchievementService {
   }
 
   public async update(houseAchievement: HouseAchievement): Promise<HouseAchievement> {
-    const entity = await HouseAchievementModel.findOneAndUpdate({ id: houseAchievement.id });
+    const entity = await HouseAchievementModel.findOneAndUpdate({ id: houseAchievement.id }, houseAchievement);
 
     return this.findById(entity.id);
   }

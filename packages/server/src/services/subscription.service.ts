@@ -37,7 +37,7 @@ class SubscriptionService {
   }
 
   public async update(subscription: Subscription): Promise<Subscription> {
-    const entity = await SubscriptionModel.findOneAndUpdate({ id: subscription.id });
+    const entity = await SubscriptionModel.findOneAndUpdate({ id: subscription.id }, subscription);
 
     return this.findById(entity.id);
   }

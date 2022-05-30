@@ -37,7 +37,7 @@ class AdminUserService {
   }
 
   public async update(adminUser: AdminUser): Promise<AdminUser> {
-    const entity = await AdminUserModel.findOneAndUpdate({ id: adminUser.id });
+    const entity = await AdminUserModel.findOneAndUpdate({ id: adminUser.id }, adminUser);
 
     return this.findById(entity.id);
   }

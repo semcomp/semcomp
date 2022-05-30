@@ -39,7 +39,7 @@ class HouseMemberService {
   }
 
   public async update(houseMember: HouseMember): Promise<HouseMember> {
-    const entity = await HouseMemberModel.findOneAndUpdate({ id: houseMember.id });
+    const entity = await HouseMemberModel.findOneAndUpdate({ id: houseMember.id }, houseMember);
 
     return this.findById(entity.id);
   }
