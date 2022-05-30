@@ -4,7 +4,7 @@ import { logout } from "../../redux/actions/auth";
 
 import Navlink from "./nav-link"; // a link reference 'a' with the appearance of a button
 import { Routes } from "../../router";
-import SemcompLogo from "../../assets/logo-24.png";
+import SemcompLogo from "../../assets/logo.webp";
 import { HashLink } from "react-router-hash-link";
 
 import "./style.css";
@@ -26,14 +26,14 @@ const Navbar = () => {
         <img alt="Semcomp logo" src={SemcompLogo} />
       </HashLink>
       <div className="links-container">
-        <Navlink
+        {/* <Navlink
           style={{ color: "yellow" }}
           onClick={() =>
             window.open(tShirtsFormLink, "_blank", "noopener noreferrer")
           }
         >
           Comprar camiseta
-        </Navlink>
+        </Navlink> */}
         <Navlink href={Routes.home + "#about"}>Sobre nós</Navlink>
         {/* <Navlink
 					href={Routes.sponsors}

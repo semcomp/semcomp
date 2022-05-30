@@ -40,7 +40,7 @@ const Footer = () => {
           </a>
         </div>
         <p className="copyright">
-          © Semcomp 2021. Todos os direitos reservados.
+          © Semcomp 2022. Todos os direitos reservados.
         </p>
       </footer>
     </div>

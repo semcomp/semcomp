@@ -43,7 +43,7 @@ const EventsCalendar = () => {
   }, []);
 
   if (events.length === 0) {
-    return <p>Por enquanto não temos nenhum evento divulgado!</p>;
+    return <p className="text-white">Por enquanto não temos nenhum evento divulgado!</p>;
   }
 
   let splittedEventList = []; // will be a list of lists
