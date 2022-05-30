@@ -142,7 +142,7 @@ class AuthService {
       throw new HttpError(401, []);
     }
 
-    user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10));
+    user.password = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
     await userService.update(user);
 
     return user;
