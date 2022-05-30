@@ -13,6 +13,7 @@ import achievementService from "../../services/achievement.service";
 import AchievementTypes from "../../lib/constants/achievement-types-enum";
 import houseAchievementService from "../../services/house-achievement.service";
 import HouseAchievement from "../../models/house-achievement";
+import adminLogService from "../../services/admin-log.service";
 
 class HouseController {
   public async list(req, res, next) {
@@ -31,12 +32,13 @@ class HouseController {
 
       const createdHouse = await houseService.create(req.body);
 
-      await (new AdminLog({
-        user: req.adminUser,
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
         type: "create",
         collectionName: "house",
         objectAfter: JSON.stringify(createdHouse),
-      })).save();
+      };
+      await adminLogService.create(adminLog);
 
       return res.status(200).json(createdHouse);
     } catch (error) {
@@ -60,13 +62,14 @@ class HouseController {
 
       const updatedHouse = await houseService.update(house);
 
-      await (new AdminLog({
-        user: req.adminUser,
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
         type: "update",
         collectionName: "house",
         objectBefore: JSON.stringify(house),
         objectAfter: JSON.stringify(updatedHouse),
-      })).save();
+      };
+      await adminLogService.create(adminLog);
 
       return res.status(200).json(updatedHouse);
     } catch (error) {
@@ -104,13 +107,14 @@ class HouseController {
 
       const updatedHouse = await houseService.addHousePoints(house, points);
 
-      await (new AdminLog({
-        user: req.adminUser,
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
         type: "add-points",
         collectionName: "house",
         objectBefore: JSON.stringify(house),
         objectAfter: JSON.stringify(updatedHouse),
-      })).save();
+      };
+      await adminLogService.create(adminLog);
 
       return res.status(200).json();
     } catch (error) {
