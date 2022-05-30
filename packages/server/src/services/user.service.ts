@@ -1,8 +1,8 @@
+
+import bcrypt from "bcryptjs";
 import { Model } from "mongoose";
-import { ObjectId } from "mongodb";
 
 import User, { UserModel } from "../models/user";
-import RiddleGroupModel from "../models/riddle-group";
 import eventService from "./event.service";
 import attendanceService from "./attendance.service";
 import IdServiceImpl from "./id-impl.service";
@@ -48,6 +48,7 @@ class UserServiceImpl implements UserService {
 
   public async create(user: User): Promise<User> {
     user.id = await idService.create();
+    user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10));
     const entity = await UserModel.create(user);
 
     return this.findById(entity.id);

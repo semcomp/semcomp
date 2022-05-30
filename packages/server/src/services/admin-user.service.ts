@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { Model } from "mongoose";
 
 import AdminUser, { AdminUserModel } from "../models/admin-user";
@@ -31,6 +32,7 @@ class AdminUserService {
 
   public async create(adminUser: AdminUser): Promise<AdminUser> {
     adminUser.id = await idService.create();
+    adminUser.password = bcrypt.hashSync(adminUser.password, bcrypt.genSaltSync(10));
     const entity = await AdminUserModel.create(adminUser);
 
     return this.findById(entity.id);
