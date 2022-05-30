@@ -1,4 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
+
+import { IconButton, Input, InputAdornment, TextField } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
@@ -15,7 +18,8 @@ import "./style.css";
 function Login() {
   // This state is used to indicate to the user when the login is happening though a Spinner.
   // See the `LoadingButton` component below in the return statement.
-  const [isLoggingIn, setIsLoggingIn] = React.useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
 
   async function handleSubmit(event) {
@@ -51,11 +55,23 @@ function Login() {
           <h1>Entrar</h1>
           <label>
             <p>E-mail</p>
-            <input name="email" />
+            <TextField variant="standard" fullWidth type="email" name="email" />
           </label>
           <label>
             <p>Senha</p>
-            <input type="password" name="password" />
+            <Input
+              variant="standard"
+              name="password"
+              fullWidth
+              type={showPassword ? "text" : "password"}
+              endAdornment={
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              }
+            />
           </label>
           <LoadingButton
             className="form-button login"
@@ -90,8 +106,8 @@ function Login() {
           muita comida.
           <br />
           <br />
-          Esperamos que todos vocês gostem e
-          aguardem para mais informações. <br />
+          Esperamos que todos vocês gostem e aguardem para mais informações.{" "}
+          <br />
           <br />
           Com carinho, Equipe Semcomp!
         </aside>
