@@ -1,7 +1,8 @@
 import HardToClickQuestionModel from "../../models/hard-to-click-question";
-import AdminLog from "../../models/admin-log";
 
 import HttpError from "../../lib/http-error";
+import adminLogService from "../../services/admin-log.service";
+import AdminLog from "../../models/admin-log";
 
 export const list = async (req, res) => {
   const questionsFound = await HardToClickQuestionModel.find();
@@ -44,12 +45,13 @@ export const create = async (req, res) => {
     });
     await createdQuestion.save();
 
-    await (new AdminLog({
-      user: req.adminUser,
+    const adminLog: AdminLog = {
+      adminId: req.adminUser.id,
       type: "create",
       collectionName: "hard-to-click-question",
       objectAfter: JSON.stringify(createdQuestion),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return res.status(200).send(createdQuestion);
   } catch (e) {
@@ -81,13 +83,14 @@ export const update = async (req, res) => {
       { new: true }
     );
 
-    await (new AdminLog({
-      user: req.adminUser,
+    const adminLog: AdminLog = {
+      adminId: req.adminUser.id,
       type: "update",
       collectionName: "hard-to-click-question",
       objectBefore: JSON.stringify(questionFound),
       objectAfter: JSON.stringify(updatedQuestion),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return res.status(200).send(updatedQuestion);
   } catch (e) {
@@ -109,12 +112,13 @@ export const deleteById = async (req, res) => {
 
     await HardToClickQuestionModel.findByIdAndDelete(id);
 
-    await (new AdminLog({
-      user: req.adminUser,
+    const adminLog: AdminLog = {
+      adminId: req.adminUser.id,
       type: "delete",
       collectionName: "hard-to-click-question",
       objectBefore: JSON.stringify(questionFound),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return res.status(200).send(questionFound);
   } catch (e) {

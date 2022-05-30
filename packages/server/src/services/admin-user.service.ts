@@ -1,59 +1,64 @@
-import createError from "http-errors";
-import { ObjectId } from "mongodb";
+import { Model } from "mongoose";
 
-import AdminUserModel from "../models/admin-user";
+import AdminUser, { AdminUserModel } from "../models/admin-user";
+import IdServiceImpl from "./id-impl.service";
 
-const adminUserService = {
-  get: async () => {
-    const adminUsers = await AdminUserModel.find();
+const idService = new IdServiceImpl();
 
-    return adminUsers;
-  },
-  getOne: async (id) => {
-    const adminUser = await AdminUserModel.findById(id);
+class AdminUserService {
+  public async find(filters?: Partial<AdminUser>): Promise<AdminUser[]> {
+    const adminUsers = await AdminUserModel.find(filters);
 
-    if (!adminUser) {
-      throw new createError.NotFound(
-        `Não foi encontrado administrador com o id ${id}`
-      );
+    const entities: AdminUser[] = [];
+    for (const adminUser of adminUsers) {
+      entities.push(this.mapEntity(adminUser));
     }
 
-    return adminUser;
-  },
-  create: async (nusp, name, course, userTelegram, permission) => {
-    const newAdminUser = new AdminUserModel() as any;
+    return entities;
+  }
 
-    newAdminUser._id = new ObjectId();
-    newAdminUser.nusp = nusp;
-    newAdminUser.name = name;
-    newAdminUser.course = course;
-    newAdminUser.userTelegram = userTelegram;
-    newAdminUser.permission = permission;
+  public async findById(id: string): Promise<AdminUser> {
+    const entity = await AdminUserModel.findOne({ id });
 
-    await newAdminUser.save();
+    return entity && this.mapEntity(entity);
+  }
 
-    return newAdminUser;
-  },
-  update: async (id, nusp, name, course, userTelegram, permission) => {
-    const updatedAdminUser = await AdminUserModel.findByIdAndUpdate(
-      id,
-      {
-        nusp,
-        name,
-        course,
-        userTelegram,
-        permission,
-      },
-      { new: true }
-    );
+  public async count(filters?: Partial<AdminUser>): Promise<number> {
+    const count = await AdminUserModel.count(filters);
 
-    return updatedAdminUser;
-  },
-  delete: async (id) => {
-    const deletedAdminUser = await AdminUserModel.findByIdAndDelete(id);
+    return count;
+  }
 
-    return deletedAdminUser;
-  },
+  public async create(adminUser: AdminUser): Promise<AdminUser> {
+    adminUser.id = await idService.create();
+    const entity = await AdminUserModel.create(adminUser);
+
+    return this.findById(entity.id);
+  }
+
+  public async update(adminUser: AdminUser): Promise<AdminUser> {
+    const entity = await AdminUserModel.findOneAndUpdate({ id: adminUser.id });
+
+    return this.findById(entity.id);
+  }
+
+  public async delete(adminUser: AdminUser): Promise<AdminUser> {
+    const entity = await AdminUserModel.findOneAndDelete({ id: adminUser.id });
+
+    return entity && this.mapEntity(entity);
+  }
+
+  private mapEntity(entity: Model<AdminUser> & AdminUser): AdminUser {
+    return {
+      id: entity.id,
+      email: entity.email,
+      password: entity.password,
+      adminRole: entity.adminRole,
+      resetPasswordCode: entity.resetPasswordCode,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
+  }
 };
 
-export default adminUserService;
+export default new AdminUserService();

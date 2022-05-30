@@ -1,9 +1,36 @@
 import Mongoose from "mongoose";
 
-import eventTypeEnum from "./../lib/constants/event-type-enum";
+import AchievementCategories from "../lib/constants/achievement-categories-enum";
+import AchievementTypes from "../lib/constants/achievement-types-enum";
+import EventTypes from "../lib/constants/event-types-enum";
+
+type Achievement = {
+  id?: string;
+  title: string,
+  description: string,
+  startDate: number,
+  endDate: number,
+  type: AchievementTypes,
+  minPercentage: number,
+  category: AchievementCategories,
+  eventId: string,
+  eventType: EventTypes,
+  numberOfPresences: number,
+  numberOfAchievements: number,
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export default Achievement;
 
 const AchievementSchema = new Mongoose.Schema(
   {
+    id: {
+      type: String,
+      unique: true,
+      required: true,
+      index: true,
+    },
     title: {
       type: String,
       required: true,
@@ -13,18 +40,18 @@ const AchievementSchema = new Mongoose.Schema(
       required: true,
     },
     startDate: {
-      type: Date,
+      type: Number,
       required: true,
     },
     endDate: {
-      type: Date,
+      type: Number,
       required: true,
     },
     type: {
       type: String,
-      enum: ["Individual", "Casa"],
+      enum: Object.values(AchievementTypes),
       required: true,
-      default: "Individual",
+      default: AchievementTypes.INDIVIDUAL,
     },
     minPercentage: {
       type: Number,
@@ -33,23 +60,17 @@ const AchievementSchema = new Mongoose.Schema(
     },
     category: {
       type: String,
-      enum: [
-        "Manual",
-        "Presença em Evento",
-        "Presença em Tipo de Evento",
-        "Número de Conquistas",
-      ],
+      enum: Object.values(AchievementCategories),
       required: true,
-      default: "Manual",
+      default: AchievementCategories.MANUAL,
     },
-    event: {
-      type: Mongoose.Schema.Types.ObjectId,
-      ref: "event",
+    eventId: {
+      type: String,
     },
     eventType: {
       type: String,
-      enum: Object.values(eventTypeEnum),
-      default: eventTypeEnum.PALESTRA,
+      enum: Object.values(EventTypes),
+      default: EventTypes.PALESTRA,
     },
     numberOfPresences: {
       type: Number,
@@ -60,15 +81,15 @@ const AchievementSchema = new Mongoose.Schema(
       min: 0,
     },
     createdAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
     updatedAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
   },
   { collection: "achievement" }
 );
 
-export default Mongoose.model("achievement", AchievementSchema);
+export const AchievementModel = Mongoose.model("achievement", AchievementSchema);

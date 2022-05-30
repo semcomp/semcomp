@@ -2,6 +2,7 @@ import createError from "http-errors";
 
 import AdminLog from "../models/admin-log";
 import RiddleGroupModel from "../models/riddle-group";
+import adminLogService from "./admin-log.service";
 
 const MAX_MEMBERS_IN_GROUP = 1;
 
@@ -26,12 +27,13 @@ const riddleGroupService = {
     });
     await newRiddleGroup.save();
 
-    await (new AdminLog({
-      user: adminUser,
+    const adminLog: AdminLog = {
+      adminId: adminUser.id,
       type: "create",
       collectionName: "riddle-group",
       objectAfter: JSON.stringify(newRiddleGroup),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return newRiddleGroup;
   },
@@ -46,13 +48,14 @@ const riddleGroupService = {
       { new: true }
     );
 
-    await (new AdminLog({
-      user: adminUser,
+    const adminLog: AdminLog = {
+      adminId: adminUser.id,
       type: "update",
       collectionName: "riddle-group",
       objectBefore: JSON.stringify(groupFound),
       objectAfter: JSON.stringify(updatedRiddleGroup),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return updatedRiddleGroup;
   },
@@ -61,13 +64,14 @@ const riddleGroupService = {
 
     const deletedRiddleGroup = await RiddleGroupModel.findByIdAndDelete(id);
 
-    await (new AdminLog({
-      user: adminUser,
+    const adminLog: AdminLog = {
+      adminId: adminUser.id,
       type: "delete",
       collectionName: "riddle-group",
       objectBefore: JSON.stringify(groupFound),
       objectAfter: JSON.stringify(deletedRiddleGroup),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return deletedRiddleGroup;
   },

@@ -1,50 +1,50 @@
 import { Router } from "express";
 
-import * as AdminAuthMiddleware from "../../middlewares/admin-auth.middleware";
-import * as AdminUserController from "../../controllers/admin/user.controller";
+import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
+import adminUserController from "../../controllers/admin/user.controller";
 
 const router = Router();
 
 router.get(
   "/",
-  [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.list
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+  adminUserController.list
 );
 
 router.get(
   "/for-enterprise",
-  [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.listForEnterprise
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+  adminUserController.listForEnterprise
 );
 
 router.get(
   "/attendance/:id",
-  [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.getAttendance
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+  adminUserController.getAttendance
 );
 
 router.post(
   "/:userId/achievements/:achievementId",
-  [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.addUserAchievement
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+  adminUserController.addUserAchievement
 );
 
 router.get(
   "/:id",
-  [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.get
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+  adminUserController.get
 );
 
 router.put(
   "/:id",
-  [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.update
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+  adminUserController.update
 );
 
 router.delete(
   "/:id",
-  [AdminAuthMiddleware.authenticate, AdminAuthMiddleware.isAuthenticated],
-  AdminUserController.deleteById
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+  adminUserController.deleteById
 );
 
 export default router;

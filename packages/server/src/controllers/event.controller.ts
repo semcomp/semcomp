@@ -6,7 +6,7 @@ import { handleError } from "../lib/handle-error";
 const eventController = {
   getInfo: async (req, res, next) => {
     try {
-      const events = await eventService.getInfo(req.user?.id?.toString());
+      const events = await eventService.getInfo(req.user?.id);
 
       return res.status(200).json(events);
     } catch (error) {
@@ -15,7 +15,7 @@ const eventController = {
   },
   getCurrent: async (req, res, next) => {
     try {
-      const event = await eventService.getCurrent(req.user.id.toString());
+      const event = await eventService.getCurrent(req.user?.id);
 
       return res.status(200).json(event);
     } catch (error) {
@@ -24,7 +24,7 @@ const eventController = {
   },
   getSubscribables: async (req, res, next) => {
     try {
-      const events = await eventService.getSubscribables(req.user.id.toString());
+      const events = await eventService.getSubscribables(req.user.id);
 
       return res.status(200).json(events);
     } catch (error) {
@@ -50,7 +50,7 @@ const eventController = {
 
       const presence = await eventService.markPresence(
         eventId,
-        req.user.id.toString(),
+        req.user.id,
         req.userHouse
       );
 
@@ -66,7 +66,7 @@ const eventController = {
 
       const subscription = await eventService.subscribe(
         eventId,
-        req.user.id.toString(),
+        req.user.id,
         info
       );
 
@@ -79,7 +79,7 @@ const eventController = {
     try {
       const { eventId } = req.params;
 
-      const subscription = await eventService.unsubscribe(eventId, req.user.id.toString());
+      const subscription = await eventService.unsubscribe(eventId, req.user.id);
 
       return res.status(200).json(subscription);
     } catch (error) {

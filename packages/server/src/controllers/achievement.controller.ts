@@ -9,8 +9,7 @@ const userController = {
       handleValidationResult(req);
 
       const achievements = await achievementService.getUserAchievements(
-        req.user,
-        req.userHouse
+        req.user.id,
       );
 
       return res.status(200).json(achievements);
