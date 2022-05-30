@@ -1,3 +1,3 @@
-export const baseURL = "https://semcomp.icmc.usp.br";
+export const baseURL = "http://localhost:8080";
 
 export default baseURL + "/api";

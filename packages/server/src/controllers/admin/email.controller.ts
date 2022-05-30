@@ -2,6 +2,7 @@ import { validationResult } from "express-validator";
 
 import UserModel from "../../models/user";
 import { sendEmail as sendEmailAdapter } from "../../lib/send-email";
+import userService from "../../services/user.service";
 
 export const sendEmail = async (req, res) => {
   const validationErrors = validationResult(req);
@@ -12,11 +13,11 @@ export const sendEmail = async (req, res) => {
   try {
     const { subject, text, html } = req.body;
 
-    const users = await UserModel.find().select("email");
+    const users = await userService.find();
 
     const promises = [];
-    for (let i = 0; i < users.length; i += 1) {
-      promises.push(sendEmailAdapter(users[i].email, subject, text, html));
+    for (const user of users) {
+      promises.push(sendEmailAdapter(user.email, subject, text, html));
     }
 
     await Promise.all(promises);

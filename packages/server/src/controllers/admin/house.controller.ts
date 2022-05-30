@@ -1,115 +1,92 @@
 import createError from "http-errors";
 
-import AchievementModel from "../../models/achievement";
-import HouseModel from "../../models/house";
-import UserModel from "../../models/user";
 import AdminLog from "../../models/admin-log";
 
-import { addHousePoints } from "../../lib/add-house-points";
-import { assignUserHouse } from "../../lib/assign-user-house";
 import {
   handleValidationResult,
 } from "../../lib/handle-validation-result";
 import { handleError } from "../../lib/handle-error";
+import houseService from "../../services/house.service";
+import userService from "../../services/user.service";
+import houseMemberService from "../../services/house-member.service";
+import achievementService from "../../services/achievement.service";
+import AchievementTypes from "../../lib/constants/achievement-types-enum";
+import houseAchievementService from "../../services/house-achievement.service";
+import HouseAchievement from "../../models/house-achievement";
+import adminLogService from "../../services/admin-log.service";
 
-const houseController = {
-  list: async (req, res, next) => {
+class HouseController {
+  public async list(req, res, next) {
     try {
-      const foundHouses = await HouseModel.find().populate("achievements");
+      const foundHouses = await houseService.find();
 
       return res.status(200).json(foundHouses);
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  create: async (req, res, next) => {
+  }
+
+  public async create(req, res, next) {
     try {
       handleValidationResult(req);
 
-      const { name, description, telegramLink } = req.body;
+      const createdHouse = await houseService.create(req.body);
 
-      const createdHouse = new HouseModel({
-        name,
-        description,
-        telegramLink,
-        achievements: [],
-      });
-      await createdHouse.save();
-
-      await (new AdminLog({
-        user: req.adminUser,
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
         type: "create",
         collectionName: "house",
         objectAfter: JSON.stringify(createdHouse),
-      })).save();
+      };
+      await adminLogService.create(adminLog);
 
       return res.status(200).json(createdHouse);
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  update: async (req, res, next) => {
+  }
+
+  public async update(req, res, next) {
     try {
       handleValidationResult(req);
 
       const { id } = req.params;
 
-      // self-invoking anonymous function. Returns the object it receives as argument
-      const filteredBody = (({ name, description, telegramLink }) => ({
-        name,
-        description,
-        telegramLink,
-      }))(req.body);
+      const house = await houseService.findById(id);
 
-      const newInfo = Object.keys(filteredBody).reduce((acc, key) => {
-        const obj = acc;
-        if (filteredBody[key] !== undefined) {
-          obj[key] = filteredBody[key];
+      for (const key of Object.keys(req.body)) {
+        if (req.body[key] !== undefined) {
+          house[key] = req.body[key];
         }
-        return obj;
-      }, {});
-
-      const houseFound = await HouseModel.findById(id);
-      if (!houseFound) {
-        throw new createError.NotFound("Casa não encontrada.");
       }
 
-      const updatedHouse = await HouseModel.findByIdAndUpdate(id, {
-        $set: newInfo,
-      });
+      const updatedHouse = await houseService.update(house);
 
-      await (new AdminLog({
-        user: req.adminUser,
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
         type: "update",
         collectionName: "house",
-        objectBefore: JSON.stringify(houseFound),
+        objectBefore: JSON.stringify(house),
         objectAfter: JSON.stringify(updatedHouse),
-      })).save();
+      };
+      await adminLogService.create(adminLog);
 
       return res.status(200).json(updatedHouse);
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  assignHouses: async (req, res, next) => {
+  }
+
+  public async assignHouses(req, res, next) {
     try {
-      const users = await UserModel.find();
-      const houses = await HouseModel.find();
+      const users = await userService.find();
+      const houseMembers = await houseMemberService.find();
 
       for (const user of users) {
-        let userHasHouse = false;
-        for (const house of houses) {
-          if (
-            house.members.find((member) => {
-              return member.toString() === user.id.toString();
-            })
-          ) {
-            userHasHouse = true;
-          }
-        }
-
-        if (!userHasHouse) {
-          await assignUserHouse(user.id);
+        if (houseMembers.find((member) => {
+          return member.userId === user.id;
+        })) {
+          await houseMemberService.assignUserHouse(user.id);
         }
       }
 
@@ -117,66 +94,67 @@ const houseController = {
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  addPoints: async (req, res, next) => {
+  }
+
+  public async addPoints(req, res, next) {
     try {
       handleValidationResult(req);
 
       const { id } = req.params;
       const { points } = req.body;
 
-      const foundHouse = await HouseModel.findById(id);
+      const house = await houseService.findById(id);
 
-      addHousePoints(foundHouse, points);
-      await foundHouse.save();
+      const updatedHouse = await houseService.addHousePoints(house, points);
 
-      await (new AdminLog({
-        user: req.adminUser,
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
         type: "add-points",
         collectionName: "house",
-        objectBefore: JSON.stringify({
-          ...foundHouse,
-          score: foundHouse.score - Math.floor(+points),
-        }),
-        objectAfter: JSON.stringify(foundHouse),
-      })).save();
+        objectBefore: JSON.stringify(house),
+        objectAfter: JSON.stringify(updatedHouse),
+      };
+      await adminLogService.create(adminLog);
 
       return res.status(200).json();
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  addHouseAchievement: async (req, res, next) => {
+  }
+
+  public async addHouseAchievement(req, res, next) {
     try {
       handleValidationResult(req);
 
       const { houseId, achievementId } = req.params;
 
-      const house = await HouseModel.findById(houseId);
+      const house = await houseService.findById(houseId);
       if (!house) {
         throw new createError.NotFound("Casa não encontrada.");
       }
-      const achievement = await AchievementModel.findOne({
-        _id: achievementId,
-        type: "Casa",
+      const achievement = await achievementService.find({
+        id: achievementId,
+        type: AchievementTypes.CASA,
       });
       if (!achievement) {
         throw new createError.NotFound("Conquista não encontrada.");
       }
 
-      if (house.achievements.includes(achievement._id)) {
+      if ((await houseAchievementService.find({ houseId, achievementId }))[0]) {
         throw new createError.BadRequest("A casa já possui essa conquista.");
       }
 
-      house.achievements.push(achievement);
-
-      await house.save();
+      const houseAchievement: HouseAchievement = {
+        houseId,
+        achievementId,
+      }
+      await houseAchievementService.create(houseAchievement);
 
       return res.status(200).json(house);
     } catch (error) {
       return handleError(error, next);
     }
-  },
-};
+  }
+}
 
-export default houseController;
+export default new HouseController();

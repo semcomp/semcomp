@@ -1,39 +1,32 @@
 import createError from "http-errors";
-import jwt from "jsonwebtoken";
 
-import AdminUserModel from "../models/admin-user";
+import { handleError } from "../lib/handle-error";
+import adminAuthService from "../services/admin-auth.service";
 
-export const authenticate = async (req, res, next) => {
-  try {
-    let token = req.header("Authorization");
-    if (token) {
-      token = token.replace("Bearer ", "");
-      const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY).data;
+class AdminAuthMiddleware {
+  public async authenticate(req, res, next) {
+    try {
+      let token = req.header("Authorization");
 
-      const adminUser = await AdminUserModel.findById(
-        decoded.id,
-        "-password -createdAt -updatedAt -__v -resetPasswordCode"
-      );
+      req.user = await adminAuthService.authenticate(token);
 
-      req.adminUser = adminUser;
+      next();
+    } catch (error) {
+      return handleError(error, next);
     }
-
-    next();
-  } catch (error) {
-    console.log(error);
-    return next(new createError.InternalServerError("Erro no servidor."));
   }
-};
 
-export const isAuthenticated = async (req, res, next) => {
-  try {
-    if (!req.adminUser) {
-      return next(new createError.Unauthorized());
+  public async isAuthenticated(req, res, next) {
+    try {
+      if (!req.user) {
+        return next(new createError.Unauthorized());
+      }
+
+      next();
+    } catch (error) {
+      return handleError(error, next);
     }
-
-    next();
-  } catch (error) {
-    console.log(error);
-    return next(new createError.InternalServerError("Erro no servidor."));
   }
-};
+}
+
+export default new AdminAuthMiddleware();

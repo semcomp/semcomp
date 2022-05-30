@@ -2,102 +2,60 @@ import createError from "http-errors";
 
 import authService from "../services/auth.service";
 import userService from "../services/user.service";
-import { formatUser } from "../lib/format-user";
 import { handleValidationResult } from "../lib/handle-validation-result";
 import { handleError } from "../lib/handle-error";
+import User from "../models/user";
+import House from "../models/house";
 
-/**
- * formatUserResponse
- *
- * @param {object} user
- * @param {object} house
- *
- * @return {object} Formated user
- */
-function formatUserResponse(user, house) {
-  return {
-    email: user.email,
-    nusp: user.nusp,
-    name: user.name,
-    id: user._id,
-    course: user.course,
-    permission: user.permission,
-    userTelegram: user.userTelegram,
-    house: {
-      name: house && house.name,
-      description: house && house.description,
-      telegramLink: house && house.telegramLink,
-    },
-  };
-}
-
-const authController = {
-  signup: async (req, res, next) => {
+class AuthController {
+  public async signup(req, res, next) {
     try {
       handleValidationResult(req);
 
-      const {
-        email,
-        name,
-        password,
-        course,
-        discord,
-        userTelegram,
-        permission,
-        disabilities,
-      } = req.body;
+      const createdUser = await authService.signup(req.body);
 
-      const createdUser = await authService.signup(
-        email,
-        name,
-        password,
-        course,
-        discord,
-        userTelegram,
-        permission,
-        disabilities
-      );
-
-      const token = authService.createToken(createdUser);
+      const token = await authService.createToken(createdUser);
 
       res.setHeader("Authorization", `Bearer ${token}`);
 
       const userHouse = await userService.getUserHouse(createdUser.id);
 
-      return res.status(200).json(formatUserResponse(createdUser, userHouse));
+      return res.status(200).json(AuthController.mapUserResponse(createdUser, userHouse));
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  signupUspSecondStep: async (req, res, next) => {
+  }
+
+  public async signupUspSecondStep(req, res, next) {
     try {
       handleValidationResult(req);
 
       const user = req.user;
-      const { course, discord, userTelegram, permission, disabilities } =
+      const { course, discord, telegram, permission, disabilities } =
         req.body;
 
-      authService.signupUspSecondStep(
+      await authService.signupUspSecondStep(
         user,
         course,
         discord,
-        userTelegram,
+        telegram,
         permission,
         disabilities
       );
 
-      const token = authService.createToken(user);
+      const token = await authService.createToken(user);
 
       res.setHeader("Authorization", `Bearer ${token}`);
 
       const userHouse = await userService.getUserHouse(user.id);
 
-      return res.status(200).json(formatUserResponse(user, userHouse));
+      return res.status(200).json(AuthController.mapUserResponse(user, userHouse));
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  login: async (req, res, next) => {
+  }
+
+  public async login(req, res, next) {
     try {
       handleValidationResult(req);
 
@@ -105,31 +63,33 @@ const authController = {
 
       const foundUser = await authService.login(email, password);
 
-      const token = authService.createToken(foundUser);
+      const token = await authService.createToken(foundUser);
 
       res.setHeader("Authorization", `Bearer ${token}`);
 
       const userHouse = await userService.getUserHouse(foundUser.id);
 
-      return res.status(200).json(formatUserResponse(foundUser, userHouse));
+      return res.status(200).json(AuthController.mapUserResponse(foundUser, userHouse));
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  forgotPassword: async (req, res, next) => {
+  }
+
+  public async forgotPassword(req, res, next) {
     try {
       handleValidationResult(req);
 
       const { email } = req.body;
 
-      authService.forgotPassword(email);
+      await authService.forgotPassword(email);
 
       return res.status(200).json();
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  resetPassword: async (req, res, next) => {
+  }
+
+  public async resetPassword(req, res, next) {
     try {
       handleValidationResult(req);
 
@@ -137,27 +97,29 @@ const authController = {
 
       const foundUser = await authService.resetPassword(email, code, password);
 
-      const token = authService.createToken(foundUser);
+      const token = await authService.createToken(foundUser);
 
       res.setHeader("Authorization", `Bearer ${token}`);
 
       const userHouse = await userService.getUserHouse(foundUser.id);
 
-      return res.status(200).json(formatUserResponse(foundUser, userHouse));
+      return res.status(200).json(AuthController.mapUserResponse(foundUser, userHouse));
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  getLoggedUser: async (req, res, next) => {
+  }
+
+  public async getLoggedUser(req, res, next) {
     try {
       const userHouse = await userService.getUserHouse(req.user.id);
 
-      return res.status(200).json(formatUserResponse(req.user, userHouse));
+      return res.status(200).json(AuthController.mapUserResponse(req.user, userHouse));
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  authenticateUser: async (data, cb) => {
+  }
+
+  public async authenticateUser(data, cb) {
     const user = JSON.parse(data);
 
     const currentUser = await authService.authenticateUser(
@@ -166,15 +128,16 @@ const authController = {
       user.nomeUsuario
     );
 
-    return cb(null, formatUser(currentUser, ["_id"]));
-  },
-  authenticationSuccess: async (req, res, next) => {
+    return cb(null, currentUser);
+  }
+
+  public async authenticationSuccess(req, res, next) {
     try {
       if (!req.user) {
         throw new createError.Forbidden("Usuário não encontrado.");
       }
 
-      const token = authService.createToken(req.user);
+      const token = await authService.createToken(req.user);
 
       res.setHeader("Authorization", `Bearer ${token}`);
 
@@ -184,7 +147,7 @@ const authController = {
         return res.status(200).json({
           success: true,
           isSignup: false,
-          ...formatUserResponse(req.user, userHouse),
+          ...AuthController.mapUserResponse(req.user, userHouse),
           token,
         });
       }
@@ -196,19 +159,39 @@ const authController = {
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  authenticationFailure: async (req, res, next) => {
+  }
+
+  public async authenticationFailure(req, res, next) {
     return next(
       new createError.Forbidden({
         success: false,
         message: "Falha ao autenticar usuário.",
       }.toString())
     );
-  },
-  logout: async (req, res) => {
+  }
+
+  public async logout(req, res) {
     req.logout();
     res.redirect(process.env.FRONTEND_URL);
-  },
-};
+  }
 
-export default authController;
+  public static mapUserResponse(user: User, house: House) {
+    return {
+      email: user.email,
+      nusp: user.nusp,
+      name: user.name,
+      id: user.id,
+      course: user.course,
+      permission: user.permission,
+      discord: user.discord,
+      telegram: user.telegram,
+      house: {
+        name: house.name,
+        description: house.description,
+        telegramLink: house.telegramLink,
+      },
+    };
+  }
+}
+
+export default new AuthController();

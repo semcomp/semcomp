@@ -1,9 +1,36 @@
 import Mongoose from "mongoose";
 
-const eventTypeEnum = require("./../lib/constants/event-type-enum");
+import EventTypes from "../lib/constants/event-types-enum";
+
+type Event = {
+  id?: string;
+  name: string;
+  description: string;
+  speaker: string;
+  link: string;
+  maxOfSubscriptions: number;
+  startDate: number;
+  endDate: number;
+  type: EventTypes;
+  isInGroup: boolean;
+  showOnSchedule: boolean;
+  showOnSubscribables: boolean;
+  showStream: boolean;
+  needInfoOnSubscription: boolean;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export default Event;
 
 const EventSchema = new Mongoose.Schema(
   {
+    id: {
+      type: String,
+      unique: true,
+      required: true,
+      index: true,
+    },
     name: {
       type: String,
       required: true,
@@ -34,16 +61,10 @@ const EventSchema = new Mongoose.Schema(
     },
     type: {
       type: String,
-      enum: Object.values(eventTypeEnum),
+      enum: Object.values(EventTypes),
       required: true,
-      default: eventTypeEnum.PALESTRA,
+      default: EventTypes.PALESTRA,
     },
-    presentUsers: [
-      {
-        type: Mongoose.Schema.Types.ObjectId,
-        ref: "user",
-      },
-    ],
     isInGroup: {
       type: Mongoose.Schema.Types.Boolean,
       default: true,
@@ -65,15 +86,15 @@ const EventSchema = new Mongoose.Schema(
       default: false,
     },
     createdAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
     updatedAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
   },
   { collection: "event" }
 );
 
-export default Mongoose.model("event", EventSchema);
+export const EventModel = Mongoose.model("event", EventSchema);

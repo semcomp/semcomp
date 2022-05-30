@@ -1,60 +1,64 @@
-import createError from "http-errors";
-import { ObjectId } from "mongodb";
+import { Model } from "mongoose";
 
-import SubscriptionModel from "../models/subscription";
+import Subscription, { SubscriptionModel } from "../models/subscription";
+import IdServiceImpl from "./id-impl.service";
 
-const subscriptionService = {
-  get: async (filter) => {
-    const subscriptions = await SubscriptionModel.find(filter);
+const idService = new IdServiceImpl();
 
-    return subscriptions;
-  },
-  getOne: async (id) => {
-    const subscription = await SubscriptionModel.findById(id);
+class SubscriptionService {
+  public async find(filters?: Partial<Subscription>): Promise<Subscription[]> {
+    const subscriptions = await SubscriptionModel.find(filters);
 
-    if (!subscription) {
-      throw new createError.NotFound(
-        `Não foi encontrada inscrição com o id ${id}`
-      );
+    const entities: Subscription[] = [];
+    for (const subscription of subscriptions) {
+      entities.push(this.mapEntity(subscription));
     }
 
-    return subscription;
-  },
-  count: async (filter) => {
-    const numberOfSubscriptions = await SubscriptionModel.count(filter);
+    return entities;
+  }
 
-    return numberOfSubscriptions;
-  },
-  create: async (userId, eventId, info, hasGroup) => {
-    const newSubscription = new SubscriptionModel() as any;
+  public async findById(id: string): Promise<Subscription> {
+    const entity = await SubscriptionModel.findOne({ id });
 
-    newSubscription._id = new ObjectId();
-    newSubscription.user = userId;
-    newSubscription.event = eventId;
-    newSubscription.info = info;
-    newSubscription.hasGroup = hasGroup;
+    return this.mapEntity(entity);
+  }
 
-    await newSubscription.save();
+  public async count(filters?: Partial<Subscription>): Promise<number> {
+    const count = await SubscriptionModel.count(filters);
 
-    return newSubscription;
-  },
-  update: async (id, info, hasGroup) => {
-    const updatedSubscription = await SubscriptionModel.findByIdAndUpdate(
-      id,
-      {
-        info,
-        hasGroup,
-      },
-      { new: true }
-    );
+    return count;
+  }
 
-    return updatedSubscription;
-  },
-  delete: async (filter) => {
-    const deletedSubscription = await SubscriptionModel.deleteMany(filter);
+  public async create(subscription: Subscription): Promise<Subscription> {
+    subscription.id = await idService.create();
+    const entity = await SubscriptionModel.create(subscription);
 
-    return deletedSubscription;
-  },
+    return this.findById(entity.id);
+  }
+
+  public async update(subscription: Subscription): Promise<Subscription> {
+    const entity = await SubscriptionModel.findOneAndUpdate({ id: subscription.id });
+
+    return this.findById(entity.id);
+  }
+
+  public async delete(subscription: Subscription): Promise<Subscription> {
+    const entity = await SubscriptionModel.findOneAndDelete({ id: subscription.id });
+
+    return entity && this.mapEntity(entity);
+  }
+
+  private mapEntity(entity: Model<Subscription> & Subscription): Subscription {
+    return {
+      id: entity.id,
+      eventId: entity.eventId,
+      userId: entity.userId,
+      info: entity.info,
+      hasGroup: entity.hasGroup,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
+  }
 };
 
-export default subscriptionService;
+export default new SubscriptionService();

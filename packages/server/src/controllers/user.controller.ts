@@ -1,48 +1,50 @@
 import userService from "../services/user.service";
 
-import { formatUser } from "../lib/format-user";
 import { handleValidationResult } from "../lib/handle-validation-result";
 import { handleError } from "../lib/handle-error";
+import User from "../models/user";
+import House from "../models/house";
 
-/**
- * formatUserResponse
- *
- * @param {object} user
- *
- * @return {object}
- */
-function formatUserResponse(user) {
-  return formatUser(user, [
-    "email",
-    "name",
-    "course",
-    "userTelegram",
-    "permission",
-  ]);
-}
-
-const userController = {
-  update: async (req, res, next) => {
+class UserController {
+  public async update(req, res, next) {
     try {
       handleValidationResult(req);
 
-      const { _id, nusp, name, course } = req.user;
-      const { userTelegram, permission } = req.body;
+      const { nusp, name, course } = req.user;
+      const { telegram, permission } = req.body;
 
-      const editedUser = await userService.update(
-        _id,
-        nusp,
-        name,
-        course,
-        userTelegram,
-        permission
-      );
+      req.user.nusp = nusp;
+      req.user.name = name;
+      req.user.course = course;
+      req.user.telegram = telegram;
+      req.user.permission = permission;
 
-      return res.status(200).json(formatUserResponse(editedUser));
+      const editedUser = await userService.update(req.user);
+      const userHouse = await userService.getUserHouse(req.user.id);
+
+      return res.status(200).json(UserController.mapUserResponse(editedUser, userHouse));
     } catch (error) {
       return handleError(error, next);
     }
-  },
-};
+  }
 
-export default userController;
+  public static mapUserResponse(user: User, house: House) {
+    return {
+      email: user.email,
+      nusp: user.nusp,
+      name: user.name,
+      id: user.id,
+      course: user.course,
+      permission: user.permission,
+      discord: user.discord,
+      telegram: user.telegram,
+      house: {
+        name: house.name,
+        description: house.description,
+        telegramLink: house.telegramLink,
+      },
+    };
+  }
+}
+
+export default new UserController();

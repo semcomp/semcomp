@@ -1,49 +1,33 @@
-import createError from "http-errors";
-
-import EventModel from "../../models/event";
-import SubscriptionModel from "../../models/subscription";
-
 import {
   handleValidationResult,
 } from "../../lib/handle-validation-result";
 import { handleError } from "../../lib/handle-error";
+import eventService from "../../services/event.service";
+import subscriptionService from "../../services/subscription.service";
+import attendanceService from "../../services/attendance.service";
+import userService from "../../services/user.service";
 
 export default {
   list: async (req, res, next) => {
     try {
-      const eventsFound = await EventModel.find().populate(
-        "presentUsers",
-        "name email nusp"
-      );
+      const events: any = await eventService.find();
 
-      const events = [];
-      for (const event of eventsFound) {
-        const subscriptions = await SubscriptionModel.find({
-          event: event.id,
-        }).populate("user", "name email nusp");
+      for (const event of events) {
+        const eventAttendances = await attendanceService.find({ eventId: event.id.toString() });
 
-        events.push({ ...event._doc, subscriptions });
-      }
+        event.attendances = []
+        for (const eventAttendance of eventAttendances) {
+          const user = await userService.findById(eventAttendance.userId);
+          event.attendances.push(user);
+        }
 
-      return res.status(200).json(events);
-    } catch (error) {
-      return handleError(error, next);
-    }
-  },
-  listSubscriptionsEmails: async (req, res, next) => {
-    try {
-      const eventsFound = await EventModel.find().populate(
-        "presentUsers",
-        "name email nusp"
-      );
+        const eventSubscriptions = await subscriptionService.find({ eventId: event.id.toString() });
 
-      const events = [];
-      for (const event of eventsFound) {
-        const subscriptions = await SubscriptionModel.find({
-          event: event.id,
-        }).populate("user", "name email nusp");
-
-        events.push({ ...event._doc, subscriptions });
+        event.subscriptions = []
+        for (const eventSubscription of eventSubscriptions) {
+          const user = await userService.findById(eventSubscription.userId);
+          event.subscriptions.push(user);
+        }
       }
 
       return res.status(200).json(events);
@@ -55,39 +39,9 @@ export default {
     try {
       handleValidationResult(req);
 
-      const {
-        name,
-        description,
-        speaker,
-        maxOfSubscriptions,
-        link,
-        startDate,
-        endDate,
-        type,
-        isInGroup,
-        showOnSchedule,
-        showOnSubscribables,
-        showStream,
-        needInfoOnSubscription,
-      } = req.body;
+      const event = req.body;
 
-      const createdEvent = new EventModel({
-        name,
-        description,
-        speaker,
-        maxOfSubscriptions,
-        link,
-        startDate,
-        endDate,
-        type,
-        presentUsers: [],
-        isInGroup,
-        showOnSchedule,
-        showOnSubscribables,
-        showStream,
-        needInfoOnSubscription,
-      });
-      await createdEvent.save();
+      const createdEvent = await eventService.create(event);
 
       return res.status(200).send(createdEvent);
     } catch (error) {
@@ -100,50 +54,15 @@ export default {
 
       const { id } = req.params;
 
-      // self-invoking anonymous function. Returns the object it receives as argument
-      const filteredBody = (({
-        name,
-        description,
-        speaker,
-        maxOfSubscriptions,
-        link,
-        startDate,
-        endDate,
-        type,
-        isInGroup,
-        showOnSchedule,
-        showOnSubscribables,
-        showStream,
-        needInfoOnSubscription,
-      }) => ({
-        name,
-        description,
-        speaker,
-        maxOfSubscriptions,
-        link,
-        startDate,
-        endDate,
-        type,
-        isInGroup,
-        showOnSchedule,
-        showOnSubscribables,
-        showStream,
-        needInfoOnSubscription,
-      }))(req.body);
+      const event = req.body;
 
-      const newInfo = Object.keys(filteredBody).reduce((acc, key) => {
-        const obj = acc;
-        if (filteredBody[key] !== undefined) {
-          obj[key] = filteredBody[key];
-        }
-        return obj;
-      }, {});
-
-      const updatedEvent = await EventModel.findByIdAndUpdate(id, {
-        $set: newInfo,
+      const foundEvent = await eventService.findById(id);
+      const updatedEvent = await eventService.update({
+        ...foundEvent,
+        ...event,
       });
 
-      return res.status(200).send(updatedEvent);
+      return res.status(200).json(updatedEvent);
     } catch (error) {
       return handleError(error, next);
     }
@@ -154,14 +73,10 @@ export default {
 
       const { id } = req.params;
 
-      const eventFound = await EventModel.findById(id);
-      if (!eventFound) {
-        throw new createError.NotFound();
-      }
+      const foundEvent = await eventService.findById(id);
+      const deletedEvent = await eventService.delete(foundEvent);
 
-      await EventModel.findByIdAndDelete(id);
-
-      return res.status(200).send(eventFound);
+      return res.status(200).send(deletedEvent);
     } catch (error) {
       return handleError(error, next);
     }
