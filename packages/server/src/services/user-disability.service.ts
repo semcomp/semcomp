@@ -37,7 +37,7 @@ class UserDisabilityService {
   }
 
   public async update(userDisability: UserDisability): Promise<UserDisability> {
-    const entity = await UserDisabilityModel.findOneAndUpdate({ id: userDisability.id });
+    const entity = await UserDisabilityModel.findOneAndUpdate({ id: userDisability.id }, userDisability);
 
     return this.findById(entity.id);
   }

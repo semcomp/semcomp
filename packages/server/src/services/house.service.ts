@@ -44,7 +44,7 @@ class HouseService {
   }
 
   public async update(house: House): Promise<House> {
-    const entity = await HouseModel.findOneAndUpdate({ id: house.id });
+    const entity = await HouseModel.findOneAndUpdate({ id: house.id }, house);
 
     return this.findById(entity.id);
   }

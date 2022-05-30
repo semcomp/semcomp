@@ -252,7 +252,7 @@ class EventService {
   }
 
   public async update(event: Event): Promise<Event> {
-    const entity = await EventModel.findOneAndUpdate({ id: event.id });
+    const entity = await EventModel.findOneAndUpdate({ id: event.id }, event);
 
     return this.findById(entity.id);
   }

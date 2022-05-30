@@ -37,7 +37,7 @@ class UserAchievementService {
   }
 
   public async update(userAchievement: UserAchievement): Promise<UserAchievement> {
-    const entity = await UserAchievementModel.findOneAndUpdate({ id: userAchievement.id });
+    const entity = await UserAchievementModel.findOneAndUpdate({ id: userAchievement.id }, userAchievement);
 
     return this.findById(entity.id);
   }
