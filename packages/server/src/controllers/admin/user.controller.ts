@@ -12,6 +12,7 @@ import AchievementTypes from "../../lib/constants/achievement-types-enum";
 import userAchievementService from "../../services/user-achievement.service";
 import UserAchievement from "../../models/user-achievement";
 import { handleError } from "../../lib/handle-error";
+import adminLogService from "../../services/admin-log.service";
 
 class UserController {
   public async list(req, res, next) {
@@ -143,12 +144,13 @@ class UserController {
 
       const updatedUser = await userService.update(user);
 
-      await (new AdminLog({
-        user: req.adminUser,
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
         type: "update",
         collectionName: "user",
         objectAfter: JSON.stringify(updatedUser),
-      })).save();
+      };
+      await adminLogService.create(adminLog);
 
       return res.status(200).send(updatedUser);
     } catch (error) {
@@ -167,12 +169,13 @@ class UserController {
 
       await userService.delete(userFound);
 
-      await (new AdminLog({
-        user: req.adminUser,
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
         type: "delete",
         collectionName: "user",
         objectBefore: JSON.stringify(userFound),
-      })).save();
+      };
+      await adminLogService.create(adminLog);
 
       return res.status(200).send(userFound);
     } catch (error) {

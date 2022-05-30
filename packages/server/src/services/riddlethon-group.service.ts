@@ -2,6 +2,7 @@ import createError from "http-errors";
 
 import AdminLog from "../models/admin-log";
 import RiddlethonGroupModel from "../models/riddlethon-group";
+import adminLogService from "./admin-log.service";
 
 const MAX_MEMBERS_IN_GROUP = 3;
 
@@ -28,12 +29,13 @@ const riddlethonGroupService = {
     });
     await newRiddlethonGroup.save();
 
-    await (new AdminLog({
-      user: adminUser,
+    const adminLog: AdminLog = {
+      adminId: adminUser.id,
       type: "create",
       collectionName: "riddlethon-group",
       objectAfter: JSON.stringify(newRiddlethonGroup),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return newRiddlethonGroup;
   },
@@ -48,13 +50,14 @@ const riddlethonGroupService = {
       { new: true }
     );
 
-    await (new AdminLog({
-      user: adminUser,
+    const adminLog: AdminLog = {
+      adminId: adminUser.id,
       type: "update",
       collectionName: "riddlethon-group",
       objectBefore: JSON.stringify(groupFound),
       objectAfter: JSON.stringify(updatedRiddlethonGroup),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return updatedRiddlethonGroup;
   },
@@ -71,12 +74,13 @@ const riddlethonGroupService = {
       id
     );
 
-    await (new AdminLog({
-      user: adminUser,
+    const adminLog: AdminLog = {
+      adminId: adminUser.id,
       type: "delete",
       collectionName: "riddlethon-group",
       objectBefore: JSON.stringify(deletedRiddlethonGroup),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return deletedRiddlethonGroup;
   },

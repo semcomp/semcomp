@@ -2,6 +2,7 @@ import HardToClickGroupModel from "../../models/hard-to-click-group";
 import AdminLog from "../../models/admin-log";
 
 import HttpError from "../../lib/http-error";
+import adminLogService from "../../services/admin-log.service";
 
 export const list = async (req, res) => {
   const groupsFound = await HardToClickGroupModel.find().populate("members");
@@ -46,12 +47,13 @@ export const deleteById = async (req, res) => {
 
     await HardToClickGroupModel.findByIdAndDelete(id);
 
-    await (new AdminLog({
-      user: req.adminUser,
+    const adminLog: AdminLog = {
+      adminId: req.adminUser.id,
       type: "delete",
       collectionName: "hard-to-click-group",
       objectBefore: JSON.stringify(groupFound),
-    })).save();
+    };
+    await adminLogService.create(adminLog);
 
     return res.status(200).send(groupFound);
   } catch (e) {

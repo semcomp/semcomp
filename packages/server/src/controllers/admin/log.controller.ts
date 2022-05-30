@@ -1,8 +1,8 @@
-import AdminLog from "../../models/admin-log";
+import adminLogService from "../../services/admin-log.service";
 
 export const list = async (req, res) => {
   try {
-    const adminLogs = await AdminLog.find();
+    const adminLogs = await adminLogService.find();
 
     return res.status(200).json(adminLogs);
   } catch (e) {

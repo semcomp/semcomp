@@ -6,6 +6,7 @@ import {
 import { handleError } from "../../lib/handle-error";
 import adminUserService from "../../services/admin-user.service";
 import HttpError from "../../lib/http-error";
+import adminLogService from "../../services/admin-log.service";
 
 class AdminUserController {
   public async list(req, res, next) {
@@ -31,12 +32,13 @@ class AdminUserController {
 
       const createdUser = await adminUserService.create(req.body);
 
-      await (new AdminLog({
-        user: req.adminUser,
-        type: "update",
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
+        type: "create",
         collectionName: "admin-user",
         objectAfter: JSON.stringify(createdUser),
-      })).save();
+      };
+      await adminLogService.create(adminLog);
 
       return res.status(200).send(createdUser);
     } catch (error) {
@@ -58,12 +60,13 @@ class AdminUserController {
 
       const updatedAdminUser = await adminUserService.update(adminUser);
 
-      await (new AdminLog({
-        user: req.adminUser,
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
         type: "update",
         collectionName: "admin-user",
         objectAfter: JSON.stringify(updatedAdminUser),
-      })).save();
+      };
+      await adminLogService.create(adminLog);
 
       return res.status(200).send(updatedAdminUser);
     } catch (error) {
@@ -82,12 +85,13 @@ class AdminUserController {
 
       await adminUserService.delete(adminUserFound);
 
-      await (new AdminLog({
-        user: req.adminUser,
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
         type: "delete",
         collectionName: "admin-user",
         objectBefore: JSON.stringify(adminUserFound),
-      })).save();
+      };
+      await adminLogService.create(adminLog);
 
       return res.status(200).send(adminUserFound);
     } catch (error) {
