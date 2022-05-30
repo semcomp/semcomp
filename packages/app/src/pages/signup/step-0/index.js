@@ -1,4 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
+import { IconButton, Input, InputAdornment, TextField } from "@mui/material";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 import { Link } from "react-router-dom";
 
@@ -25,6 +28,7 @@ function Step0({ formValue, updateFormValue, onSubmit }) {
   const nameRef = React.useRef();
   const emailRef = React.useRef();
   const passwordRef = React.useRef();
+  const [showPassword, setShowPassword] = useState(false);
 
   function handleFormUpdate() {
     // Get the input's values from their refs.
@@ -47,35 +51,42 @@ function Step0({ formValue, updateFormValue, onSubmit }) {
     <form className="signup-step-0-container" onSubmit={handleSubmit}>
       <label>
         <p>Nome</p>
-        <input
+        <TextField
+          variant="standard"
+          fullWidth
           onChange={handleFormUpdate}
-          ref={nameRef}
+          inputRef={nameRef}
           type="text"
-          // The `defaultValue` prop will make the input start with a given text.
-          // If `formValue.name` is empty or undefined, the input will start empty.
-          // If it has a value in it (because the user already filled this input,
-          // and already moved to the next step, but went back to change it),
-          // the input will containt that value. This applies for all the
-          // other inputs.
           defaultValue={formValue.name}
         />
       </label>
       <label>
         <p>E-mail</p>
-        <input
+        <TextField
+          variant="standard"
+          fullWidth
           onChange={handleFormUpdate}
-          ref={emailRef}
+          inputRef={emailRef}
           type="text"
           defaultValue={formValue.email}
         />
       </label>
       <label>
         <p>Senha</p>
-        <input
+        <Input
+          variant="standard"
+          fullWidth
           onChange={handleFormUpdate}
-          ref={passwordRef}
-          type="password"
+          inputRef={passwordRef}
+          type={showPassword ? "text" : "password"}
           defaultValue={formValue.password}
+          endAdornment={
+            <InputAdornment position="end">
+              <IconButton onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          }
         />
       </label>
       <button type="submit" className="form-button signup">
