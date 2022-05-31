@@ -14,6 +14,7 @@ import AchievementTypes from "../lib/constants/achievement-types-enum";
 import userAchievementService from "./user-achievement.service";
 import AchievementCategories from "../lib/constants/achievement-categories-enum";
 import UserAchievement from "../models/user-achievement";
+import userDisabilityService from "./user-disability.service";
 
 const idService = new IdServiceImpl();
 
@@ -62,6 +63,21 @@ class UserServiceImpl implements UserService {
 
   public async delete(user: User): Promise<User> {
     const entity = await UserModel.findOneAndDelete({ id: user.id });
+
+    const disabilities = await userDisabilityService.find({ userId: user.id });
+    for (const disability of disabilities) {
+      await userDisabilityService.delete(disability);
+    }
+
+    const houseMemberships = await houseMemberService.find({ userId: user.id });
+    for (const houseMembership of houseMemberships) {
+      await houseMemberService.delete(houseMembership);
+    }
+
+    const userAchievements = await userAchievementService.find({ userId: user.id });
+    for (const userAchievement of userAchievements) {
+      await userAchievementService.delete(userAchievement);
+    }
 
     return entity && this.mapEntity(entity);
   }

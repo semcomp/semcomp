@@ -7,8 +7,10 @@ import JsonWebToken from "./json-web-token.service";
 import userService from "./user.service";
 import User from "../models/user";
 import houseMemberService from "./house-member.service";
-import Disability from "../lib/constants/disabilities-enum";
+import Disability from "../lib/constants/disability-enum";
 import HttpError from "../lib/http-error";
+import userDisabilityService from "./user-disability.service";
+import UserDisability from "../models/user-disability";
 
 const tokenService = new JsonWebToken(process.env.JWT_PRIVATE_KEY, "30d");
 
@@ -30,7 +32,7 @@ class AuthService {
     return user;
   }
 
-  public async signup(user: User): Promise<User> {
+  public async signup(user: User, disabilities: Disability[]): Promise<User> {
     const foundUser = (await userService.find({ email: user.email }))[0];
     if (foundUser) {
       throw new HttpError(401, []);
@@ -45,6 +47,14 @@ class AuthService {
     } catch (error) {
       await userService.delete(createdUser);
       throw error;
+    }
+
+    for (const disability of disabilities) {
+      const userDisability: UserDisability = {
+        userId: createdUser.id,
+        disability,
+      };
+      await userDisabilityService.create(userDisability);
     }
 
     await sendEmail(
@@ -77,8 +87,23 @@ class AuthService {
     user.discord = discord;
     user.telegram = userTelegram;
     user.permission = permission;
-    await userService.update(user);
-    await houseMemberService.assignUserHouse(user.id);
+
+    const updatedUser = await userService.update(user);
+
+    try {
+      await houseMemberService.assignUserHouse(updatedUser.id);
+    } catch (error) {
+      await userService.delete(updatedUser);
+      throw error;
+    }
+
+    for (const disability of disabilities) {
+      const userDisability: UserDisability = {
+        userId: updatedUser.id,
+        disability,
+      };
+      await userDisabilityService.create(userDisability);
+    }
 
     await sendEmail(
       user.email,
