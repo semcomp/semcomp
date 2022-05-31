@@ -13,17 +13,21 @@ import userAchievementService from "../../services/user-achievement.service";
 import UserAchievement from "../../models/user-achievement";
 import { handleError } from "../../lib/handle-error";
 import adminLogService from "../../services/admin-log.service";
+import userDisabilityService from "../../services/user-disability.service";
+import Disability from "../../lib/constants/disability-enum";
 
 class UserController {
   public async list(req, res, next) {
     const usersFound = await userService.find();
     const housesFound = await houseService.find();
     const houseMembersFound = await houseMemberService.find();
+    const userDisabilities = await userDisabilityService.find();
 
     const users: (User & {
       house: {
         name: string,
       },
+      disabilities: Disability[]
     })[] = [];
     for (const user of usersFound) {
       let userHouse = "Não possui";
@@ -40,6 +44,9 @@ class UserController {
         house: {
           name: userHouse,
         },
+        disabilities: userDisabilities
+          .filter((userDisability) => userDisability.userId === user.id)
+          .map((userDisability) => userDisability.disability),
       });
     }
 
