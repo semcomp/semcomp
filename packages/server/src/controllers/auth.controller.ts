@@ -12,7 +12,7 @@ class AuthController {
     try {
       handleValidationResult(req);
 
-      const createdUser = await authService.signup(req.body);
+      const createdUser = await authService.signup(req.body, req.body.disabilities);
 
       const token = await authService.createToken(createdUser);
 

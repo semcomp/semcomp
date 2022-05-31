@@ -1,10 +1,10 @@
 import Mongoose from "mongoose";
-import Disabilities from "../lib/constants/disabilities-enum";
+import Disability from "../lib/constants/disability-enum";
 
 type UserDisability = {
   id?: string;
   userId: string;
-  disability: Disabilities;
+  disability: Disability;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -25,7 +25,7 @@ const UserDisabilitySchema = new Mongoose.Schema(
     },
     disability: {
       type: String,
-      enum: Object.values(Disabilities),
+      enum: Object.values(Disability),
     },
     createdAt: {
       type: Number,
