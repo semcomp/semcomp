@@ -1,3 +1,3 @@
-export const baseURL = "https://uclsanca.icmc.usp.br/semcomp";
+export const baseURL = "https://semcomp.icmc.usp.br";
 
 export default baseURL + "/api";
