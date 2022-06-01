@@ -13,7 +13,7 @@ export default {
       const events: any = await eventService.find();
 
       for (const event of events) {
-        const eventAttendances = await attendanceService.find({ eventId: event.id.toString() });
+        const eventAttendances = await attendanceService.find({ eventId: event.id });
 
         event.attendances = []
         for (const eventAttendance of eventAttendances) {
@@ -21,7 +21,7 @@ export default {
           event.attendances.push(user);
         }
 
-        const eventSubscriptions = await subscriptionService.find({ eventId: event.id.toString() });
+        const eventSubscriptions = await subscriptionService.find({ eventId: event.id });
 
         event.subscriptions = []
         for (const eventSubscription of eventSubscriptions) {
