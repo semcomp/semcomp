@@ -9,6 +9,8 @@ COPY package*.json ./
 
 RUN npm install
 
+RUN npm install pm2 -g
+
 # Bundle app source
 COPY . .
 
@@ -18,4 +20,4 @@ EXPOSE 8090
 
 ENV TZ America/Sao_Paulo
 
-CMD [ "npm", "start" ]
+CMD [ "pm2", "start", "--attach", "--env=production" ]

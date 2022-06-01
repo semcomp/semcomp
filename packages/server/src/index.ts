@@ -11,17 +11,19 @@ import OAuth1Strategy from "passport-oauth1";
 import OAuth from "oauth";
 import session from "express-session";
 import cookieParser from "cookie-parser";
-import cron from "node-cron";
+// import cron from "node-cron";
 
 // import {riddleController} from './controllers/riddle/riddle.controller';
 // import {riddlethonController} from './controllers/riddlethon/riddlethon.controller';
 // import {hardToClickController} from './controllers/hard-to-click/hard-to-click.controller';
 import AuthController from "./controllers/auth.controller";
-import houseService from "./services/house.service";
-import userService from "./services/user.service";
+// import houseService from "./services/house.service";
+// import userService from "./services/user.service";
 import Routes from "./routes";
 
-import 'dotenv/config'
+import { config } from "dotenv";
+config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env` });
+
 const { env } = process;
 
 const app = express();
@@ -54,10 +56,10 @@ const httpServer = http.createServer(app);
 
 app.use(cors(corsConfig));
 
-cron.schedule("*/15 * * * *", () => {
-  houseService.checkAchievements();
-  userService.checkAchievements();
-});
+// cron.schedule("*/15 * * * *", () => {
+//   houseService.checkAchievements();
+//   userService.checkAchievements();
+// });
 
 // create a rotating write stream
 const accessLogStream = rfs.createStream("access.log", {
@@ -96,8 +98,6 @@ if (env.NODE_ENV === "production") {
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-app.use(express.json());
 
 passport.use(
   "provider",
