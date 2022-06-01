@@ -34,8 +34,6 @@ class AdminAuthService {
       throw new HttpError(401, []);
     }
 
-    adminUser.password = bcrypt.hashSync(adminUser.password, bcrypt.genSaltSync(10));
-
     const createdAdminUser = await adminUserService.create(adminUser);
 
     await sendEmail(
