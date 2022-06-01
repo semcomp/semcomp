@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import API from "../../api";
 import _ from "lodash";
 
@@ -25,17 +25,18 @@ import { Divider, List, ListItem, ListItemText } from "@mui/material";
 
 import AboutOverflow from "./about-overflow";
 import AchievementsImages from "./achievements_images";
+import CoffeePayment from "./coffeePayment";
 
 function Profile({ user }) {
-  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] =
-    React.useState(false);
-  const [isAchievementsModalOpen, setIsAchievementsModalOpen] =
-    React.useState(false);
-  const [events, setEvents] = React.useState([]);
-  const [achievements, setAchievements] = React.useState([]);
+    useState(false);
+  const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [achievements, setAchievements] = useState([]);
   const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] =
-    React.useState(false);
+    useState(false);
+  const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
 
   async function fetchAchievements() {
     try {
@@ -57,16 +58,16 @@ function Profile({ user }) {
     }
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchSubscribedEvents();
     fetchAchievements();
   }, []);
 
-  // React.useEffect(() => {
+  // useEffect(() => {
   //   printFunction();
   // });
 
-  // React.useEffect(() => {
+  // useEffect(() => {
   //   removeEventsWarning();
   // }, [events]);
 
@@ -183,6 +184,9 @@ function Profile({ user }) {
           onRequestClose={() => setIsAboutOverflowModalOpen(false)}
         />
       )}
+      {isCoffeeModalOpen && (
+        <CoffeePayment onRequestClose={() => setIsCoffeeModalOpen(false)} />
+      )}
       <Header />
       <main className="main-container">
         <div className="left-side">
@@ -199,6 +203,18 @@ function Profile({ user }) {
                 Editar
               </button>
             }
+          </div>
+          <div className="user-house-card">
+            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Coffee</h1>
+            <p>Pague com PIX o Coffee da Semcomp 25 Beta</p>
+            <button
+              onClick={() => {
+                setIsCoffeeModalOpen(true);
+                blockBodyScroll();
+              }}
+            >
+              Comprar coffee
+            </button>
           </div>
           {/* <div className="user-house-card">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
