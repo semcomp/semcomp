@@ -38,8 +38,6 @@ class AuthService {
       throw new HttpError(401, []);
     }
 
-    user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10));
-
     const createdUser = await userService.create(user);
 
     try {
