@@ -1,6 +1,7 @@
 import React from "react";
 import API from "../../api";
 import _ from "lodash";
+import Chip from '@mui/material/Chip';
 
 import Header from "../../components/header";
 import Footer from "../../components/footer";
@@ -27,6 +28,7 @@ import AboutOverflow from "./about-overflow";
 import AchievementsImages from "./achievements_images";
 
 function Profile({ user }) {
+  const [userFetched, setUserFetched] = React.useState();
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] =
     React.useState(false);
@@ -60,6 +62,11 @@ function Profile({ user }) {
   React.useEffect(() => {
     fetchSubscribedEvents();
     fetchAchievements();
+  }, []);
+
+  React.useEffect(async () => {
+    const { data } = await API.auth.me();
+    setUserFetched(data);
   }, []);
 
   // React.useEffect(() => {
@@ -189,6 +196,13 @@ function Profile({ user }) {
           <div className="user-house-card">
             <p className="username">{user.name}</p>
             <p className="course">{user.course}</p>
+            { userFetched && (
+              userFetched.paid ? (
+                <Chip label="Pago" color="warning" />
+              ) : (
+                <Chip label="Não pago" disabled="true" />
+              )
+            )}
             {
               <button
                 onClick={() => {
