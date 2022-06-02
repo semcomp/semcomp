@@ -24,6 +24,9 @@ const Handlers = {
       }),
     { 401: "Este e-mail já está cadastrado." }
   ),
+  auth: {
+    me: withNoErrorMessage(() => API.get("/auth/me")),
+  },
   updateUserInfo: (user) => API.put("/users", user),
   forgotPassword: withCustomError(
     (email) => API.post("/auth/forgot-password", { email }),
