@@ -3,8 +3,8 @@
   "version": "1.1.0",
   "main": "src/index.js",
   "scripts": {
-    "start": "node ./build/index.js -r dotenv/config ./src/index.js dotenv_config_path=./config/env/production.env",
-    "dev": "nodemon ./src/index.ts -r dotenv/config ./src/index.js dotenv_config_path=./config/env/development.env",
+    "start": "node -r dotenv/config ./build/index.js",
+    "dev": "nodemon ./src/index.ts -r dotenv/config",
     "build": "tsc"
   },
   "author": "Semcomp",

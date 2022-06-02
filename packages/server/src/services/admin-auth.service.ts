@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import 'dotenv/config'
+import { config } from "dotenv";
+config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env` });
 
 import { sendEmail } from "../lib/send-email";
 import JsonWebToken from "./json-web-token.service";
@@ -38,8 +39,8 @@ class AdminAuthService {
 
     await sendEmail(
       createdAdminUser.email,
-      "Bem vindo a Semcomp 2021!",
-      `Você se cadastrou no nosso app e já está tudo certo!!!`,
+      "Bem vindo a Semcomp Beta 2022!",
+      `Você se cadastrou no nosso backoffice e já está tudo certo!!!`,
       `<div><h1>Voc&ecirc;&nbsp;se&nbsp;cadastrou&nbsp;no&nbsp;nosso&nbsp;app&nbsp;e&nbsp;j&aacute;&nbsp;est&aacute;&nbsp;tudo&nbsp;certo!!!</h1></div>`
     );
 

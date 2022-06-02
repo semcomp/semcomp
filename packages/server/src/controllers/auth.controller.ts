@@ -182,6 +182,7 @@ class AuthController {
       name: user.name,
       id: user.id,
       course: user.course,
+      paid: user.paid,
       permission: user.permission,
       discord: user.discord,
       telegram: user.telegram,
