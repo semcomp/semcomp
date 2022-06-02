@@ -64,9 +64,12 @@ function Profile({ user }) {
     fetchAchievements();
   }, []);
 
-  React.useEffect(async () => {
-    const { data } = await API.auth.me();
-    setUserFetched(data);
+  React.useEffect(() => {
+    async function fetchData() {
+      const { data } = await API.auth.me();
+      setUserFetched(data);
+    }
+    fetchData();
   }, []);
 
   // React.useEffect(() => {
