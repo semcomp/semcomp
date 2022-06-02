@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import 'dotenv/config'
+import { config } from "dotenv";
+config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env` });
 
 import { sendEmail } from "../lib/send-email";
 import JsonWebToken from "./json-web-token.service";
