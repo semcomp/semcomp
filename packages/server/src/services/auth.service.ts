@@ -61,13 +61,13 @@ class AuthService {
       createdUser.email,
       "Bem vinde à Semcomp 25 Beta!",
       `Você se cadastrou no nosso site e já está tudo certo!
-      Se prepare para a prévia da 25° edição da maior Semana de Computação do Brasil! Aproveire o melhor das nossas palestras, minicursos, concursos e eventos culturais!
+      Se prepare para a prévia da 25° edição da maior Semana de Computação do Brasil! Aproveite o melhor das nossas palestras, minicursos, concursos e eventos culturais!
       Fique de olho no nosso site (https://semcomp.icmc.usp.br/), Facebook (https://www.facebook.com/Semcomp), Twitter (https://twitter.com/semcomp), e Instagram (https://www.instagram.com/semcomp/) para não perder nenhum detalhe da programação incrível que preparamos especialmente para VOCÊ!
       Nos vemos no dia 11/06 às 9h para a abertura do evento no Auditório Fernão!
       Até lá!`,
       `<div>
       <h1>Voc&ecirc; se cadastrou no nosso site e j&aacute; est&aacute; tudo certo!</h1>
-      <p>Se prepare para a pr&eacute;via da 25&deg; edi&ccedil;&atilde;o da maior Semana de Computa&ccedil;&atilde;o do Brasil! Aproveire o melhor das nossas palestras, minicursos, concursos e eventos culturais!</p>
+      <p>Se prepare para a pr&eacute;via da 25&deg; edi&ccedil;&atilde;o da maior Semana de Computa&ccedil;&atilde;o do Brasil! Aproveite o melhor das nossas palestras, minicursos, concursos e eventos culturais!</p>
       <p>Fique de olho no nosso <a href="https://semcomp.icmc.usp.br/">site</a>, <a href="https://www.facebook.com/Semcomp">Facebook</a>, <a href="https://twitter.com/semcomp">Twitter</a>, e <a href="https://www.instagram.com/semcomp/">Instagram</a>&nbsp;para n&atilde;o perder nenhum detalhe da programa&ccedil;&atilde;o incr&iacute;vel que preparamos especialmente para VOC&Ecirc;!</p>
       <p>Nos vemos no dia 11/06 &agrave;s 9h para a abertura do evento no Audit&oacute;rio Fern&atilde;o!</p>
       <p>At&eacute; l&aacute;!</p>
@@ -111,13 +111,13 @@ class AuthService {
       user.email,
       "Bem vinde à Semcomp 25 Beta!",
       `Você se cadastrou no nosso site e já está tudo certo!
-      Se prepare para a prévia da 25° edição da maior Semana de Computação do Brasil! Aproveire o melhor das nossas palestras, minicursos, concursos e eventos culturais!
+      Se prepare para a prévia da 25° edição da maior Semana de Computação do Brasil! Aproveite o melhor das nossas palestras, minicursos, concursos e eventos culturais!
       Fique de olho no nosso site (https://semcomp.icmc.usp.br/), Facebook (https://www.facebook.com/Semcomp), Twitter (https://twitter.com/semcomp), e Instagram (https://www.instagram.com/semcomp/) para não perder nenhum detalhe da programação incrível que preparamos especialmente para VOCÊ!
       Nos vemos no dia 11/06 às 9h para a abertura do evento no Auditório Fernão!
       Até lá!`,
       `<div>
       <h1>Voc&ecirc; se cadastrou no nosso site e j&aacute; est&aacute; tudo certo!</h1>
-      <p>Se prepare para a pr&eacute;via da 25&deg; edi&ccedil;&atilde;o da maior Semana de Computa&ccedil;&atilde;o do Brasil! Aproveire o melhor das nossas palestras, minicursos, concursos e eventos culturais!</p>
+      <p>Se prepare para a pr&eacute;via da 25&deg; edi&ccedil;&atilde;o da maior Semana de Computa&ccedil;&atilde;o do Brasil! Aproveite o melhor das nossas palestras, minicursos, concursos e eventos culturais!</p>
       <p>Fique de olho no nosso <a href="https://semcomp.icmc.usp.br/">site</a>, <a href="https://www.facebook.com/Semcomp">Facebook</a>, <a href="https://twitter.com/semcomp">Twitter</a>, e <a href="https://www.instagram.com/semcomp/">Instagram</a>&nbsp;para n&atilde;o perder nenhum detalhe da programa&ccedil;&atilde;o incr&iacute;vel que preparamos especialmente para VOC&Ecirc;!</p>
       <p>Nos vemos no dia 11/06 &agrave;s 9h para a abertura do evento no Audit&oacute;rio Fern&atilde;o!</p>
       <p>At&eacute; l&aacute;!</p>
