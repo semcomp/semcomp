@@ -1,5 +1,6 @@
 import { Router } from "express";
-import 'dotenv/config'
+import { config } from "dotenv";
+config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env` });
 
 import adminRouter from "./admin";
 import achievementsRouter from "./achievement.router";

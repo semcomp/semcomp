@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import API from "../../api";
 import _ from "lodash";
+import Chip from "@mui/material/Chip";
 
 import Header from "../../components/header";
 import Footer from "../../components/footer";
@@ -28,7 +29,8 @@ import AchievementsImages from "./achievements_images";
 import CoffeePayment from "./coffeePayment";
 
 function Profile({ user }) {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [userFetched, setUserFetched] = React.useState();
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] =
     useState(false);
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
@@ -63,7 +65,15 @@ function Profile({ user }) {
     fetchAchievements();
   }, []);
 
-  // useEffect(() => {
+  React.useEffect(() => {
+    async function fetchData() {
+      const { data } = await API.auth.me();
+      setUserFetched(data);
+    }
+    fetchData();
+  }, []);
+
+  // React.useEffect(() => {
   //   printFunction();
   // });
 
@@ -193,6 +203,12 @@ function Profile({ user }) {
           <div className="user-house-card">
             <p className="username">{user.name}</p>
             <p className="course">{user.course}</p>
+            {userFetched &&
+              (userFetched.paid ? (
+                <Chip label="Pago" color="warning" />
+              ) : (
+                <Chip label="Não pago" disabled="true" />
+              ))}
             {
               <button
                 onClick={() => {
