@@ -20,18 +20,16 @@ function CoffeePayment({ onRequestClose }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div>
-        <div className="coffeepayment-card">
-          <h1>Pagamento por PIX do Coffee da Semcomp Beta!</h1>
-          <div className="stepper-container">
-            <Stepper
-              numberOfSteps={3}
-              activeStep={coffeeStep}
-              onStepClick={handleStepClick}
-            />
-          </div>
-          {stepComponent}
+      <div className="coffeepayment-card">
+        <h1>Pagamento por PIX do Coffee da Semcomp Beta!</h1>
+        <div className="stepper-container">
+          <Stepper
+            numberOfSteps={3}
+            activeStep={coffeeStep}
+            onStepClick={handleStepClick}
+          />
         </div>
+        {stepComponent}
         <div className="buttons-container">
           {coffeeStep === 0 ? (
             <></>
@@ -44,16 +42,17 @@ function CoffeePayment({ onRequestClose }) {
               Voltar
             </button>
           )}
-          <button
-            className=""
-            type="button"
-            onClick={() => setCoffeeStep(coffeeStep + 1)}
-          >
-            Próximo
-          </button>
-          <button className="cancel" type="button" onClick={onRequestClose}>
-            Cancelar
-          </button>
+          {coffeeStep >= 2 ? (
+            <></>
+          ) : (
+            <button
+              className=""
+              type="button"
+              onClick={() => setCoffeeStep(coffeeStep + 1)}
+            >
+              Próximo
+            </button>
+          )}
         </div>
       </div>
     </Modal>

@@ -8,6 +8,12 @@
   margin-bottom: 1rem;
 }
 
+.buttons-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .buttons-container button {
   background-color: var(--color-blue-main);
   border-radius: 12px;
