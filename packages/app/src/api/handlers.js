@@ -94,6 +94,9 @@ const Handlers = {
   achievements: {
     getAchievements: withNoErrorMessage(() => API.get("/achievements")),
   },
+  coffee: {
+    createPayment: withNoErrorMessage(() => API.post("/payments")),
+  },
 };
 
 export default Handlers;
