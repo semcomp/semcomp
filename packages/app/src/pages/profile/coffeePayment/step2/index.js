@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import API from "../../../../api";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { Button, Input } from "@mui/material";
+import { toast } from "react-toastify";
 
 function CoffeeStep2() {
   const [qrCodeBase64, setqrCodeBase64] = useState("");
@@ -20,6 +23,11 @@ function CoffeeStep2() {
     getPayment();
   }, []);
 
+  function copyToClipboard() {
+    navigator.clipboard.writeText(qrCodeCopyPaste);
+    toast.success("Copiado!");
+  }
+
   return (
     <div>
       <h1>Passo 2 do coffee</h1>
@@ -35,12 +43,20 @@ function CoffeeStep2() {
             />
           </section>
           <section>
-            <input style={{ width: "200px" }} value={qrCodeCopyPaste} />
-            <button
-              onClick={() => navigator.clipboard.writeText(qrCodeCopyPaste)}
+            <Input
+              readOnly
+              aria-readonly
+              label="QR Code"
+              defaultValue={qrCodeCopyPaste}
+              variant="standard"
+            />
+            <Button
+              onClick={() => copyToClipboard()}
+              variant="contained"
+              endIcon={<ContentCopyIcon />}
             >
               Copiar
-            </button>
+            </Button>
           </section>
         </div>
       )}

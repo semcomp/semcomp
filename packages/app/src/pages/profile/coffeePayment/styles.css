@@ -1,0 +1,21 @@
+.coffeepayment-card {
+  margin: 1rem;
+}
+
+.coffeepayment-card h1 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.buttons-container button {
+  background-color: var(--color-blue-main);
+  border-radius: 12px;
+  padding: 0.5rem 2rem;
+  margin-top: 1rem;
+  color: white;
+}
+
+.buttons-container button.cancel {
+  background-color: #f44336;
+}
