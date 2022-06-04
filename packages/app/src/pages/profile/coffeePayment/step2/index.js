@@ -23,14 +23,26 @@ function CoffeeStep2() {
   return (
     <div>
       <h1>Passo 2 do coffee</h1>
-      {!qrCodeBase64 ? (
+      {!qrCodeBase64 || !qrCodeCopyPaste ? (
         <p>Loading...</p>
       ) : (
-        <img
-          style={{ height: "200px", width: "200px" }}
-          src={`data:image/png;base64, ${qrCodeBase64}`}
-          alt="QRcode"
-        />
+        <div>
+          <section>
+            <img
+              style={{ height: "200px", width: "200px" }}
+              src={`data:image/png;base64, ${qrCodeBase64}`}
+              alt="QRcode"
+            />
+          </section>
+          <section>
+            <input style={{ width: "200px" }} value={qrCodeCopyPaste} />
+            <button
+              onClick={() => navigator.clipboard.writeText(qrCodeCopyPaste)}
+            >
+              Copiar
+            </button>
+          </section>
+        </div>
       )}
     </div>
   );
