@@ -5,6 +5,8 @@ import CoffeeStep1 from "./step1";
 import CoffeeStep2 from "./step2";
 import CoffeeStep3 from "./step3";
 
+import "./styles.css";
+
 function CoffeePayment({ onRequestClose }) {
   const [coffeeStep, setCoffeeStep] = useState(0);
 
@@ -19,7 +21,7 @@ function CoffeePayment({ onRequestClose }) {
   return (
     <Modal onRequestClose={onRequestClose}>
       <div>
-        <div className="card">
+        <div className="coffeepayment-card">
           <h1>Pagamento por PIX do Coffee da Semcomp Beta!</h1>
           <div className="stepper-container">
             <Stepper
@@ -42,15 +44,15 @@ function CoffeePayment({ onRequestClose }) {
               Voltar
             </button>
           )}
-          <button className="cancel" type="button" onClick={onRequestClose}>
-            Cancelar
-          </button>
           <button
             className=""
             type="button"
             onClick={() => setCoffeeStep(coffeeStep + 1)}
           >
             Próximo
+          </button>
+          <button className="cancel" type="button" onClick={onRequestClose}>
+            Cancelar
           </button>
         </div>
       </div>
