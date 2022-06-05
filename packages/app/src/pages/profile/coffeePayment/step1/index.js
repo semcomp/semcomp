@@ -12,6 +12,7 @@ function CoffeeStep1() {
       </ul>
       <p>Local: Jardim Secreto do ICMC</p>
       <b>Valor: R$15,00</b>
+      <p>OBS: Não esquecer de trazer sua caneca!</p>
       <p>Clique em 'Próximo' para realizar o pagamento via PIX</p>
     </div>
   );
