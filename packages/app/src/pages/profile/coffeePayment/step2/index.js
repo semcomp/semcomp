@@ -7,22 +7,37 @@ import { toast } from "react-toastify";
 import "./styles.css";
 
 function CoffeeStep2() {
+  const [paymentId, setPaymentId] = useState("");
   const [qrCodeBase64, setqrCodeBase64] = useState("");
   const [qrCodeCopyPaste, setqrCodeCopyPaste] = useState("");
 
   useEffect(() => {
     async function getPayment() {
       try {
-        const response = await API.coffee.createPayment();
-        console.log(response.data);
-        setqrCodeBase64(response.data.qrCodeBase64);
-        setqrCodeCopyPaste(response.data.qrCode);
+        const { data } = await API.coffee.createPayment();
+        console.log(data);
+        setPaymentId(data.id);
+        setqrCodeBase64(data.qrCodeBase64);
+        setqrCodeCopyPaste(data.qrCode);
       } catch (e) {
         console.error(e);
       }
     }
 
     getPayment();
+  }, []);
+
+  useEffect(() => {
+    async function receivePayment() {
+      try {
+        const response = await API.coffee.receivePayment(paymentId);
+        console.log(response);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    receivePayment();
   }, []);
 
   function copyToClipboard() {
