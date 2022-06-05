@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import API from "../../../../api";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import { Button, Input } from "@mui/material";
+import { Button, Input, Skeleton } from "@mui/material";
 import { toast } from "react-toastify";
+
+import "./styles.css";
 
 function CoffeeStep2() {
   const [qrCodeBase64, setqrCodeBase64] = useState("");
@@ -29,35 +31,46 @@ function CoffeeStep2() {
   }
 
   return (
-    <div>
-      <h1>Passo 2 do coffee</h1>
+    <div className="step2-container">
       {!qrCodeBase64 || !qrCodeCopyPaste ? (
-        <p>Loading...</p>
-      ) : (
         <div>
-          <section>
-            <img
-              style={{ height: "200px", width: "200px" }}
-              src={`data:image/png;base64, ${qrCodeBase64}`}
-              alt="QRcode"
-            />
+          <Skeleton variant="rectangular" width={250} height={250} />
+        </div>
+      ) : (
+        <div className="QRCode-payment">
+          <section
+            className="QRCode-instructions"
+            style={{ flexDirection: "column" }}
+          >
+            <p>Escaneie o QR Code abaixo ou copie e cole o código do PIX</p>
+            <b>Valor: R$15,00</b>
           </section>
-          <section>
-            <Input
-              readOnly
-              aria-readonly
-              label="QR Code"
-              defaultValue={qrCodeCopyPaste}
-              variant="standard"
-            />
-            <Button
-              onClick={() => copyToClipboard()}
-              variant="contained"
-              endIcon={<ContentCopyIcon />}
-            >
-              Copiar
-            </Button>
-          </section>
+          <div>
+            <section className="QRCode-methods">
+              <img
+                style={{ height: "200px", width: "200px" }}
+                src={`data:image/png;base64, ${qrCodeBase64}`}
+                alt="QRcode"
+              />
+            </section>
+            <section className="QRCode-methods">
+              <Input
+                readOnly
+                aria-readonly
+                label="QR Code"
+                defaultValue={qrCodeCopyPaste}
+                variant="standard"
+                style={{ marginRight: "10px" }}
+              />
+              <Button
+                onClick={() => copyToClipboard()}
+                variant="contained"
+                endIcon={<ContentCopyIcon />}
+              >
+                Copiar
+              </Button>
+            </section>
+          </div>
         </div>
       )}
     </div>
