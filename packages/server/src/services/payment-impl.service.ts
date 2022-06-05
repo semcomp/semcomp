@@ -33,7 +33,7 @@ export default class PaymentServiceImpl implements PaymentService {
     });
 
     const paymentResponse = await this.paymentIntegrationService.create(
-      10.00,
+      0.01,
       user.email,
       "Semcomp",
       `${this.notificationUrl}/${id}`
