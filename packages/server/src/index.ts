@@ -66,6 +66,8 @@ const accessLogStream = rfs.createStream("access.log", {
   interval: "1d", // rotate daily
   path: path.join(__dirname, "..", "logs"),
 });
+
+app.use(morgan("dev"));
 app.use(morgan("combined", { stream: accessLogStream }));
 
 app.use(express.static(path.join(__dirname, "./assets")));
