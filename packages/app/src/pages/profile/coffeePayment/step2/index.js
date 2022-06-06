@@ -49,7 +49,8 @@ function CoffeeStep2() {
   return (
     <div className="step2-container">
       {!qrCodeBase64 || !qrCodeCopyPaste ? (
-        <div>
+        <div className="loading-skeleton">
+          <Skeleton variant="rectangular" width={250} height={250} />
           <Skeleton variant="rectangular" width={250} height={250} />
         </div>
       ) : (
@@ -59,7 +60,7 @@ function CoffeeStep2() {
             style={{ flexDirection: "column" }}
           >
             <p>Escaneie o QR Code abaixo ou copie e cole o código do PIX</p>
-            <b>Valor: R$15,00</b>
+            <b style={{ marginBottom: "1rem" }}>Valor: R$15,00</b>
             <p>
               Depois de realizar o pagamento no seu banco, clique em fechar e
               atualize a página.
@@ -73,23 +74,23 @@ function CoffeeStep2() {
                 src={`data:image/png;base64, ${qrCodeBase64}`}
                 alt="QRcode"
               />
-            </section>
-            <section className="QRCode-methods">
-              <Input
-                readOnly
-                aria-readonly
-                label="QR Code"
-                defaultValue={qrCodeCopyPaste}
-                variant="standard"
-                style={{ marginRight: "10px" }}
-              />
-              <Button
-                onClick={() => copyToClipboard()}
-                variant="contained"
-                endIcon={<ContentCopyIcon />}
-              >
-                Copiar
-              </Button>
+              <section className="QRCode-copy-paste">
+                <Input
+                  readOnly
+                  aria-readonly
+                  label="QR Code"
+                  defaultValue={qrCodeCopyPaste}
+                  variant="standard"
+                  style={{ marginRight: "10px" }}
+                />
+                <Button
+                  onClick={() => copyToClipboard()}
+                  variant="contained"
+                  endIcon={<ContentCopyIcon />}
+                >
+                  Copiar
+                </Button>
+              </section>
             </section>
           </div>
         </div>
