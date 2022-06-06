@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import "./styles.css";
 
 function CoffeeStep2() {
-  const [paymentId, setPaymentId] = useState("");
+  // const [userPaid, setUserPaid] = useState(false);
   const [qrCodeBase64, setqrCodeBase64] = useState("");
   const [qrCodeCopyPaste, setqrCodeCopyPaste] = useState("");
 
@@ -16,7 +16,6 @@ function CoffeeStep2() {
       try {
         const { data } = await API.coffee.createPayment();
         console.log(data);
-        setPaymentId(data.id);
         setqrCodeBase64(data.qrCodeBase64);
         setqrCodeCopyPaste(data.qrCode);
       } catch (e) {
@@ -27,18 +26,20 @@ function CoffeeStep2() {
     getPayment();
   }, []);
 
-  useEffect(() => {
-    async function receivePayment() {
-      try {
-        const response = await API.coffee.receivePayment(paymentId);
-        console.log(response);
-      } catch (e) {
-        console.error(e);
-      }
-    }
+  // useEffect(() => {
+  //   async function getUserData() {
+  //     try {
+  //       const { data } = await API.auth.me();
+  //       console.log(data);
+  //       setUserPaid(data.paid);
+  //       console.log(userPaid);
+  //     } catch (e) {
+  //       console.error(e);
+  //     }
+  //   }
 
-    receivePayment();
-  }, []);
+  //   getUserData();
+  // }, [userPaid]);
 
   function copyToClipboard() {
     navigator.clipboard.writeText(qrCodeCopyPaste);
@@ -59,6 +60,11 @@ function CoffeeStep2() {
           >
             <p>Escaneie o QR Code abaixo ou copie e cole o código do PIX</p>
             <b>Valor: R$15,00</b>
+            <p>
+              Depois de realizar o pagamento no seu banco, clique em fechar e
+              atualize a página.
+            </p>
+            <p>Pode ser que demore um tempo para o pagamento ser realizado.</p>
           </section>
           <div>
             <section className="QRCode-methods">
