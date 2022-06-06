@@ -21,7 +21,7 @@ export default class PaymentRouter {
       (req, res, next) => this.paymentController.create(req, res, next)
     );
 
-    router.get(
+    router.post(
       "/:id",
       (req, res, next) => this.paymentController.receive(req, res, next)
     );
