@@ -1,6 +1,16 @@
 import Mongoose from "mongoose";
 
-const ObjectID = Mongoose.Schema.Types.ObjectId;
+type Payment = {
+  id?: string;
+  paymentIntegrationId?: number;
+  userId: string;
+  qrCode?: string;
+  qrCodeBase64?: string;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export default Payment;
 
 const PaymentSchema = new Mongoose.Schema(
   {
@@ -8,25 +18,34 @@ const PaymentSchema = new Mongoose.Schema(
       type: String,
       unique: true,
       required: true,
-      trim: true,
+      index: true,
     },
     paymentIntegrationId: {
-      type: String,
+      type: Number,
     },
     userId: {
       type: String,
       required: true,
     },
+    qrCode: {
+      type: String,
+    },
+    qrCodeBase64: {
+      type: String,
+    },
     createdAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
     updatedAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
   },
   { collection: "payment" }
 );
 
-export default Mongoose.model("payment", PaymentSchema);
+export const PaymentModel = Mongoose.model(
+  "payment",
+  PaymentSchema,
+);

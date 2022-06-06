@@ -1,4 +1,6 @@
+import Payment from "../models/payment";
+
 export default interface PaymentService {
-  create(userId: string): Promise<any>;
+  createPayment(userId: string): Promise<Payment>;
   receive(id: number): Promise<void>;
 }
