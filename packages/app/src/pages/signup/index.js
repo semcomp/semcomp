@@ -180,7 +180,7 @@ function SignupPage() {
           <br /> <br />A Semcomp é 100% construída e pensada por alunos dos cursos de<strong> Ciências de Computação</strong> e de<strong> Sistemas de Informação</strong> do campus <strong>São Carlos da Universidade de São Paulo</strong>. Todo ano realizamos um evento presencial cheio de palestras, minicursos, concursos, diversão e muita comida!
           <br />
           <br />
-          Por conta da pandemia, a Semcomp ocorreu no formato remoto durante os dois últimos anos, porém agora teremos nosso grande retorno presencial! Esperamos que todos se divirtam bastante! Para mais informações, basta seguir a Semcomp no Instagram <a className="social-links" href="https://instagram.com/semcomp" rel="noreferrer" alt="Instagram da Semcomp">(@semcomp)</a> e no <a className="social-links" href="https://t.me/semcomp_avisos" rel="noreferrer" alt="Canal de avisos da Semcomp no Telegram">Telegram</a> (https://t.me/semcomp_avisos). <br />
+          Por conta da pandemia, a Semcomp ocorreu no formato remoto durante os dois últimos anos, porém agora teremos nosso grande retorno presencial! Esperamos que todos se divirtam bastante! Para mais informações, basta seguir a Semcomp no Instagram <a className="social-links" href="https://instagram.com/semcomp" rel="noopnener" alt="Instagram da Semcomp">(@semcomp)</a> e no <a className="social-links" href="https://t.me/semcomp_avisos" rel="noopnener" alt="Canal de avisos da Semcomp no Telegram">Telegram</a> (https://t.me/semcomp_avisos). <br />
           <br />
           Com carinho, Equipe Semcomp!
         </aside>
