@@ -195,7 +195,12 @@ function Profile({ user }) {
         />
       )}
       {isCoffeeModalOpen && (
-        <CoffeePayment onRequestClose={() => setIsCoffeeModalOpen(false)} />
+        <CoffeePayment
+          onRequestClose={() => {
+            setIsCoffeeModalOpen(false);
+            removeBodyStyle();
+          }}
+        />
       )}
       <Header />
       <main className="main-container">
