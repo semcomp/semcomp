@@ -33,7 +33,7 @@ export default class PaymentServiceImpl implements PaymentService {
     });
 
     const paymentResponse = await this.paymentIntegrationService.create(
-      10.00,
+      0.01,
       user.email,
       "Semcomp",
       `${this.notificationUrl}/${id}`
@@ -50,7 +50,7 @@ export default class PaymentServiceImpl implements PaymentService {
     const payment = await PaymentModel.findOne({ id });
     const paymentResponse = await this.paymentIntegrationService.receive(payment.paymentIntegrationId);
 
-    if (paymentResponse.status) {
+    if (paymentResponse.status === 'approved') {
       await this.userService.pay(payment.userId);
     }
   }
