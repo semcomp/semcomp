@@ -9,10 +9,6 @@ import "./styles.css";
 function CoffeePayment({ onRequestClose, userHasPaid }) {
   const [coffeeStep, setCoffeeStep] = useState(0);
 
-  function handleStepClick(newStep) {
-    setCoffeeStep(newStep);
-  }
-
   const stepComponent = [<CoffeeStep1 />, <CoffeeStep2 />][coffeeStep];
 
   return (
@@ -20,14 +16,9 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
       <div className="coffeepayment-card">
         <h1>Pagamento por PIX do Coffee da Semcomp Beta!</h1>
         <div className="stepper-container">
-          <Stepper
-            numberOfSteps={2}
-            activeStep={coffeeStep}
-            onStepClick={handleStepClick}
-          />
+          <Stepper numberOfSteps={2} activeStep={coffeeStep} />
         </div>
         {stepComponent}
-        <div>{}</div>
         <div className="buttons-container">
           <button
             style={{ backgroundColor: "#f44336" }}
