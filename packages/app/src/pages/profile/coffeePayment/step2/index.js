@@ -15,7 +15,6 @@ function CoffeeStep2() {
     async function getPayment() {
       try {
         const { data } = await API.coffee.createPayment();
-        console.log(data);
         setqrCodeBase64(data.qrCodeBase64);
         setqrCodeCopyPaste(data.qrCode);
       } catch (e) {
