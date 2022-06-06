@@ -1,10 +1,10 @@
 import React from "react";
 
-import Face from "../../assets/face_logo.png";
-import Ln from "../../assets/linkedin_logo.png";
-import Insta from "../../assets/instagram_logo.png";
-import Twt from "../../assets/twitter-logo.png";
-import Ytube from "../../assets/youtube-logo.png";
+import Face from "../../assets/round-facebook-white.png";
+import Ln from "../../assets/round-linkedin-white.png";
+import Insta from "../../assets/round-instagram-white.png";
+import Twt from "../../assets/round-twitter-white.png";
+import Ytube from "../../assets/round-youtube-white.png";
 
 import "./style.css";
 
