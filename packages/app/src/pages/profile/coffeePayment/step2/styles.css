@@ -3,4 +3,18 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
+}
+
+.QRCode-payment, .loading-skeleton{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.QRCode-copy-paste {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-content: center;
 }
