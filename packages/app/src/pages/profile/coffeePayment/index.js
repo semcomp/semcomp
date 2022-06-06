@@ -6,7 +6,7 @@ import CoffeeStep2 from "./step2";
 
 import "./styles.css";
 
-function CoffeePayment({ onRequestClose }) {
+function CoffeePayment({ onRequestClose, userHasPaid }) {
   const [coffeeStep, setCoffeeStep] = useState(0);
 
   function handleStepClick(newStep) {
@@ -27,6 +27,7 @@ function CoffeePayment({ onRequestClose }) {
           />
         </div>
         {stepComponent}
+        <div>{}</div>
         <div className="buttons-container">
           <button
             style={{ backgroundColor: "#f44336" }}
@@ -41,7 +42,7 @@ function CoffeePayment({ onRequestClose }) {
               Voltar
             </button>
           )}
-          {coffeeStep >= 1 ? (
+          {coffeeStep >= 1 || userHasPaid ? (
             <></>
           ) : (
             <button type="button" onClick={() => setCoffeeStep(coffeeStep + 1)}>
