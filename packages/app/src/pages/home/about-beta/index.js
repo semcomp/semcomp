@@ -5,7 +5,7 @@ import "./style.css";
 function AboutBeta() {
   return (
     <>
-      <section className="home-about-beta">
+      <section className="home-about-beta" id="about">
         <h1>Sobre a Semcomp Beta</h1>
         <p>
           A <strong>Semcomp</strong> é a <strong>Semana Acadêmica de Computação</strong>, realizada pelos cursos de <strong>Ciências de Computação</strong> e de <strong>Sistemas de Informação</strong> do Instituto de Ciências Matemáticas e de Computação (ICMC) da USP de São Carlos.
