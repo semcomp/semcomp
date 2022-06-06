@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import API from "../../api";
 import _ from "lodash";
-import Chip from '@mui/material/Chip';
+import Chip from "@mui/material/Chip";
 
 import Header from "../../components/header";
 import Footer from "../../components/footer";
@@ -26,18 +26,19 @@ import { Divider, List, ListItem, ListItemText } from "@mui/material";
 
 import AboutOverflow from "./about-overflow";
 import AchievementsImages from "./achievements_images";
+import CoffeePayment from "./coffeePayment";
 
 function Profile({ user }) {
   const [userFetched, setUserFetched] = React.useState();
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] =
-    React.useState(false);
-  const [isAchievementsModalOpen, setIsAchievementsModalOpen] =
-    React.useState(false);
-  const [events, setEvents] = React.useState([]);
-  const [achievements, setAchievements] = React.useState([]);
+    useState(false);
+  const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [achievements, setAchievements] = useState([]);
   const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] =
-    React.useState(false);
+    useState(false);
+  const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
 
   async function fetchAchievements() {
     try {
@@ -59,7 +60,7 @@ function Profile({ user }) {
     }
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchSubscribedEvents();
     fetchAchievements();
   }, []);
@@ -76,7 +77,7 @@ function Profile({ user }) {
   //   printFunction();
   // });
 
-  // React.useEffect(() => {
+  // useEffect(() => {
   //   removeEventsWarning();
   // }, [events]);
 
@@ -193,19 +194,21 @@ function Profile({ user }) {
           onRequestClose={() => setIsAboutOverflowModalOpen(false)}
         />
       )}
+      {isCoffeeModalOpen && (
+        <CoffeePayment
+          userHasPaid={userFetched.paid}
+          onRequestClose={() => {
+            setIsCoffeeModalOpen(false);
+            removeBodyStyle();
+          }}
+        />
+      )}
       <Header />
       <main className="main-container">
         <div className="left-side">
           <div className="user-house-card">
             <p className="username">{user.name}</p>
             <p className="course">{user.course}</p>
-            { userFetched && (
-              userFetched.paid ? (
-                <Chip label="Pago" color="warning" />
-              ) : (
-                <Chip label="Não pago" disabled="true" />
-              )
-            )}
             {
               <button
                 onClick={() => {
@@ -216,6 +219,35 @@ function Profile({ user }) {
                 Editar
               </button>
             }
+          </div>
+          <div className="user-house-card">
+            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Coffee</h1>
+            <p>Pague com PIX o Coffee da Semcomp 25 Beta</p>
+            {userFetched?.paid ? (
+              <>
+                <Chip label="Pago" color="warning" />
+                <button
+                  onClick={() => {
+                    setIsCoffeeModalOpen(true);
+                    blockBodyScroll();
+                  }}
+                >
+                  Ver infos coffee
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setIsCoffeeModalOpen(true);
+                    blockBodyScroll();
+                  }}
+                >
+                  Comprar coffee
+                </button>
+                <Chip label="Não pago" disabled="true" />
+              </>
+            )}
           </div>
           {/* <div className="user-house-card">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
