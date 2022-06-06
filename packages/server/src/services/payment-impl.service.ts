@@ -1,5 +1,7 @@
-import PaymentModel from "../models/payment";
+import { Model } from "mongoose";
+import HttpError from "../lib/http-error";
 
+import Payment, { PaymentModel } from "../models/payment";
 import IdService from "./id.service";
 import { UserService } from "./user.service";
 import PaymentIntegrationService from "./payment-integration.service";
@@ -23,27 +25,76 @@ export default class PaymentServiceImpl implements PaymentService {
     this.notificationUrl = notificationUrl;
   }
 
-  public async create(userId: string): Promise<any> {
-    const user = await this.userService.findById(userId);
-    const id = this.idService.create();
+  public async find(filters?: Partial<Payment>): Promise<Payment[]> {
+    const payments = await PaymentModel.find(filters);
 
-    await PaymentModel.create({
-      id,
+    const entities: Payment[] = [];
+    for (const payment of payments) {
+      entities.push(this.mapEntity(payment));
+    }
+
+    return entities;
+  }
+
+  public async findById(id: string): Promise<Payment> {
+    const entity = await PaymentModel.findOne({ id });
+
+    return this.mapEntity(entity);
+  }
+
+  public async count(filters?: Partial<Payment>): Promise<number> {
+    const count = await PaymentModel.count(filters);
+
+    return count;
+  }
+
+  public async create(payment: Payment): Promise<Payment> {
+    payment.id = await this.idService.create();
+    const entity = await PaymentModel.create(payment);
+
+    return this.findById(entity.id);
+  }
+
+  public async update(payment: Payment): Promise<Payment> {
+    const entity = await PaymentModel.findOneAndUpdate({ id: payment.id }, payment);
+
+    return this.findById(entity.id);
+  }
+
+  public async delete(payment: Payment): Promise<Payment> {
+    const entity = await PaymentModel.findOneAndDelete({ id: payment.id });
+
+    return entity && this.mapEntity(entity);
+  }
+
+  public async createPayment(userId: string): Promise<Payment> {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new HttpError(400, []);
+    }
+
+    const payment = (await this.find({ userId }))[0];
+    if (payment) {
+      return payment;
+    }
+
+    const newPaymentData: Payment = {
       userId: user.id,
-    });
+    };
+    const newPayment = await this.create(newPaymentData);
 
     const paymentResponse = await this.paymentIntegrationService.create(
-      0.01,
+      15.00,
       user.email,
       "Semcomp",
-      `${this.notificationUrl}/${id}`
+      `${this.notificationUrl}/${newPayment.id}`
     );
 
-    await PaymentModel.findOneAndUpdate({ id }, {
-      paymentIntegrationId: paymentResponse.id,
-    })
+    newPayment.paymentIntegrationId = paymentResponse.id;
+    newPayment.qrCode = paymentResponse.qrCode;
+    newPayment.qrCodeBase64 = paymentResponse.qrCodeBase64;
 
-    return paymentResponse;
+    return await this.update(newPayment);
   }
 
   public async receive(id: number): Promise<void> {
@@ -53,5 +104,17 @@ export default class PaymentServiceImpl implements PaymentService {
     if (paymentResponse.status === 'approved') {
       await this.userService.pay(payment.userId);
     }
+  }
+
+  private mapEntity(entity: Model<Payment> & Payment): Payment {
+    return {
+      id: entity.id,
+      paymentIntegrationId: entity.paymentIntegrationId,
+      userId: entity.userId,
+      qrCode: entity.qrCode,
+      qrCodeBase64: entity.qrCodeBase64,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
   }
 }
