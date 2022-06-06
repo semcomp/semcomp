@@ -5,7 +5,9 @@
   align-items: center;
   background-color: #1d1d1b;
   padding: 2rem;
-  background-image: url("../../assets/footer-background.png");
+  background-color: var(--color-green);
+  background-size: cover;
+  background-position: center;
 }
 
 .footer-component > div {
@@ -14,10 +16,10 @@
 }
 
 .footer-component > div > a {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 2.7rem;
+  height: 2.7rem;
+  /* border-radius: 100%; */
+  /* border: 1px solid rgba(255, 255, 255, 0.2); */
   display: block;
   padding: 0.4rem;
   margin: 0 0.4rem;
