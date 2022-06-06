@@ -196,6 +196,7 @@ function Profile({ user }) {
       )}
       {isCoffeeModalOpen && (
         <CoffeePayment
+          userHasPaid={userFetched.paid}
           onRequestClose={() => {
             setIsCoffeeModalOpen(false);
             removeBodyStyle();
@@ -208,12 +209,6 @@ function Profile({ user }) {
           <div className="user-house-card">
             <p className="username">{user.name}</p>
             <p className="course">{user.course}</p>
-            {userFetched &&
-              (userFetched.paid ? (
-                <Chip label="Pago" color="warning" />
-              ) : (
-                <Chip label="Não pago" disabled="true" />
-              ))}
             {
               <button
                 onClick={() => {
@@ -228,14 +223,31 @@ function Profile({ user }) {
           <div className="user-house-card">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Coffee</h1>
             <p>Pague com PIX o Coffee da Semcomp 25 Beta</p>
-            <button
-              onClick={() => {
-                setIsCoffeeModalOpen(true);
-                blockBodyScroll();
-              }}
-            >
-              Comprar coffee
-            </button>
+            {userFetched?.paid ? (
+              <>
+                <Chip label="Pago" color="warning" />
+                <button
+                  onClick={() => {
+                    setIsCoffeeModalOpen(true);
+                    blockBodyScroll();
+                  }}
+                >
+                  Ver infos coffee
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setIsCoffeeModalOpen(true);
+                    blockBodyScroll();
+                  }}
+                >
+                  Comprar coffee
+                </button>
+                <Chip label="Não pago" disabled="true" />
+              </>
+            )}
           </div>
           {/* <div className="user-house-card">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
