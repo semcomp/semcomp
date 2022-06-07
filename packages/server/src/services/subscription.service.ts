@@ -23,6 +23,12 @@ class SubscriptionService {
     return this.mapEntity(entity);
   }
 
+  public async findOne(filters?: Partial<Subscription>): Promise<Subscription> {
+    const entity = await SubscriptionModel.findOne(filters);
+
+    return entity && this.mapEntity(entity);
+  }
+
   public async count(filters?: Partial<Subscription>): Promise<number> {
     const count = await SubscriptionModel.count(filters);
 

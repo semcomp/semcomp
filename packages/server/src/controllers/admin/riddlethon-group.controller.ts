@@ -1,36 +1,47 @@
+import AdminLog from "../../models/admin-log";
+
+import { handleError } from "../../lib/handle-error";
+import HttpError from "../../lib/http-error";
+import adminLogService from "../../services/admin-log.service";
 import riddlethonGroupService from "../../services/riddlethon-group.service";
 
-import {
-  handleValidationResult,
-} from "../../lib/handle-validation-result";
-import { handleError } from "../../lib/handle-error";
+const RESOURCE = 'riddlethon-group';
 
-export default {
-  list: async (req, res, next) => {
+class RiddlethonGroupController {
+  public async list(req, res, next) {
     try {
-      handleValidationResult(req);
+      const entities = await riddlethonGroupService.find();
 
-      const groupsFound = await riddlethonGroupService.get();
-
-      return res.status(200).json(groupsFound);
+      return res.status(200).json(entities);
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  delete: async (req, res, next) => {
-    try {
-      handleValidationResult(req);
+  };
 
+  public async deleteById(req, res, next) {
+    try {
       const { id } = req.params;
 
-      const groupDeleted = await riddlethonGroupService.adminDelete(
-        id,
-        req.adminUser
-      );
+      const entity = await riddlethonGroupService.findById(id);
+      if (!entity) {
+        throw new HttpError(404, []);
+      }
 
-      return res.status(200).send(groupDeleted);
+      await riddlethonGroupService.delete(entity);
+
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
+        type: "delete",
+        collectionName: RESOURCE,
+        objectBefore: JSON.stringify(entity),
+      };
+      await adminLogService.create(adminLog);
+
+      return res.status(200).send(entity);
     } catch (error) {
       return handleError(error, next);
     }
-  },
-};
+  };
+}
+
+export default new RiddlethonGroupController();

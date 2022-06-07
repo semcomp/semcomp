@@ -24,6 +24,12 @@ class AdminUserService {
     return entity && this.mapEntity(entity);
   }
 
+  public async findOne(filters?: Partial<AdminUser>): Promise<AdminUser> {
+    const entity = await AdminUserModel.findOne(filters);
+
+    return entity && this.mapEntity(entity);
+  }
+
   public async count(filters?: Partial<AdminUser>): Promise<number> {
     const count = await AdminUserModel.count(filters);
 

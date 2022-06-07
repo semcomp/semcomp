@@ -52,11 +52,11 @@ const EventSchema = new Mongoose.Schema(
       min: 0,
     },
     startDate: {
-      type: Date,
+      type: Number,
       required: true,
     },
     endDate: {
-      type: Date,
+      type: Number,
       required: true,
     },
     type: {

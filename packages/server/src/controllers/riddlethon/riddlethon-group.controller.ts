@@ -1,12 +1,11 @@
-import riddlethonGroupService from "../../services/riddlethon-group.service";
-
 import {
   handleValidationResult,
 } from "../../lib/handle-validation-result";
 import { handleError } from "../../lib/handle-error";
+import riddlethonGroupService from "../../services/riddlethon-group.service";
 
-export default {
-  create: async (req, res, next) => {
+class RiddlethonGroupController {
+  public async create(req, res, next) {
     try {
       handleValidationResult(req);
 
@@ -15,37 +14,42 @@ export default {
 
       const createdGroup = await riddlethonGroupService.create({
         name,
-        userId: user._id,
       });
+      await riddlethonGroupService.join(
+        user.id,
+        createdGroup.id,
+      );
 
       return res.status(200).json(createdGroup);
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  join: async (req, res, next) => {
+  };
+
+  public async join(req, res, next) {
     try {
       const { id } = req.query;
       const { user } = req;
 
-      const joinedGroup = await riddlethonGroupService.join(id, {
-        userId: user._id,
-      });
+      const joinedGroup = await riddlethonGroupService.join(user.id, id);
 
       return res.status(200).json(joinedGroup);
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  leave: async (req, res, next) => {
+  };
+
+  public async leave(req, res, next) {
     try {
       const { user } = req;
 
-      await riddlethonGroupService.leave({ userId: user._id });
+      await riddlethonGroupService.leave(user.id);
 
       return res.status(200).json();
     } catch (error) {
       return handleError(error, next);
     }
-  },
-};
+  };
+}
+
+export default new RiddlethonGroupController();

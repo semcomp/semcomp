@@ -23,6 +23,12 @@ class HouseAchievementService {
     return this.mapEntity(entity);
   }
 
+  public async findOne(filters?: Partial<HouseAchievement>): Promise<HouseAchievement> {
+    const entity = await HouseAchievementModel.findOne(filters);
+
+    return entity && this.mapEntity(entity);
+  }
+
   public async count(filters?: Partial<HouseAchievement>): Promise<number> {
     const count = await HouseAchievementModel.count(filters);
 
