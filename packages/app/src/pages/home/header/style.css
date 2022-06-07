@@ -7,10 +7,11 @@
   justify-items: center;
   position: relative;
 
-  background-image: url("../../../assets/iara-background.svg");
+  background-image: url("../../../assets/iara-bg.svg");
   background-size: cover;
   background-position: center;
   filter: brightness(115%);
+  overflow: hidden;
 }
 
 .home-header > .backdrop {
@@ -34,6 +35,34 @@
 .home-header > .navbar-container {
   position: relative;
   width: 100%;
+}
+
+.home-header > .main-texts {
+  left: 7rem;
+  color: var(--color-blue-secondary);
+  font-weight: bold;
+  gap: 0px 0px;
+  grid-template-areas: 
+    "semcomp-edition"
+    "beta-text";
+  position: relative;
+  height: 90%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  font-family: "Staatliches", sans-serif;
+}
+
+.main-texts .semcomp-edition { 
+  grid-area: semcomp-edition;
+  font-size: 8.5rem;
+}
+
+.main-texts .beta-text { 
+  grid-area: beta-text; 
+  font-size: 5.5rem;
 }
 
 .home-header > .text-container {
@@ -73,7 +102,24 @@
 }
 
 @media (max-width: 1024px) {
+  .home-header {
+    background-image: url("../../../assets/iara-bg-mobile2.svg");
+  }
+  
   .home-header > .text-container {
     justify-content: center;
+  }
+
+  .home-header > .main-texts {
+    top: 7rem;
+    left: 0rem;
+  }
+
+  .main-texts .semcomp-edition { 
+    font-size: 5.5rem;
+  }
+  
+  .main-texts .beta-text { 
+    font-size: 3.5rem;
   }
 }
