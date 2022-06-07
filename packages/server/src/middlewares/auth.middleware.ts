@@ -20,7 +20,7 @@ class AuthMiddleware {
 
   public async authenticateUserHouse(req, res, next) {
     try {
-      const userHouseMember = (await houseMemberService.find({ userId: req.user.id }))[0];
+      const userHouseMember = await houseMemberService.findOne({ userId: req.user.id });
       const userHouse = await houseService.findById(userHouseMember.houseId);
 
       req.userHouse = userHouse;

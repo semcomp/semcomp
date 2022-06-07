@@ -25,7 +25,7 @@ class AdminUserController {
     try {
       handleValidationResult(req);
 
-      const foundUser = (await adminUserService.find({ email: req.body.email }))[0];
+      const foundUser = await adminUserService.findOne({ email: req.body.email });
       if (foundUser) {
         throw new HttpError(401, []);
       }

@@ -30,6 +30,12 @@ class HouseService {
     return this.mapEntity(entity);
   }
 
+  public async findOne(filters?: Partial<House>): Promise<House> {
+    const entity = await HouseModel.findOne(filters);
+
+    return entity && this.mapEntity(entity);
+  }
+
   public async count(filters?: Partial<House>): Promise<number> {
     const count = await HouseModel.count(filters);
 
@@ -76,7 +82,7 @@ class HouseService {
       const houseMembers = await houseMemberService.find({ houseId: house.id });
       const houseAchievementCount = await houseAchievementService.count({ houseId: house.id });
       for (const achievement of achievements) {
-        const houseAchievement = (await houseAchievementService.find({ houseId: house.id, achievementId: achievement.id }))[0];
+        const houseAchievement = await houseAchievementService.findOne({ houseId: house.id, achievementId: achievement.id });
 
         if (houseAchievement) {
           continue;
@@ -88,7 +94,7 @@ class HouseService {
           const totalUsersWhoAttendedThisEventCount = await attendanceService.count({ eventId: achievement.eventId });
           let houseMembersWhoAttendedThisEventCount = 0
           for (const houseMember of houseMembers) {
-            if ((await attendanceService.find({ eventId: achievement.eventId, userId: houseMember.userId }))[0]) {
+            if (await attendanceService.findOne({ eventId: achievement.eventId, userId: houseMember.userId })) {
               houseMembersWhoAttendedThisEventCount++;
             }
           }

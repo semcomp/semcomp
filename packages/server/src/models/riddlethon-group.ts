@@ -1,32 +1,29 @@
 import Mongoose from "mongoose";
 
-const ObjectID = Mongoose.Schema.Types.ObjectId;
+type RiddlethonGroup = {
+  id?: string;
+  name: string;
+  availableClues?: number;
+  availableSkips?: number;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export default RiddlethonGroup;
 
 const RiddlethonGroupSchema = new Mongoose.Schema(
   {
+    id: {
+      type: String,
+      unique: true,
+      required: true,
+      index: true,
+    },
     name: {
       type: String,
       unique: true,
       required: true,
       trim: true,
-    },
-    members: [
-      {
-        type: ObjectID,
-        ref: "user",
-      },
-    ],
-    completedQuestionsIndexes: {
-      type: Array,
-      default: [],
-    },
-    usedClueIndexes: {
-      type: [Number],
-      default: [],
-    },
-    usedSkipIndexes: {
-      type: [Number],
-      default: [],
     },
     availableClues: {
       type: Number,
@@ -37,15 +34,18 @@ const RiddlethonGroupSchema = new Mongoose.Schema(
       default: 0,
     },
     createdAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
     updatedAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
   },
   { collection: "riddlethon-group" }
 );
 
-export default Mongoose.model("riddlethon-group", RiddlethonGroupSchema);
+export const RiddlethonGroupModel = Mongoose.model(
+  "riddlethon-group",
+  RiddlethonGroupSchema,
+);

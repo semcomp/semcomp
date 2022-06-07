@@ -1,134 +1,148 @@
-import createError from "http-errors";
+import { Model } from "mongoose";
+import HttpError from "../lib/http-error";
 
-import AdminLog from "../models/admin-log";
-import RiddlethonGroupModel from "../models/riddlethon-group";
-import adminLogService from "./admin-log.service";
+import RiddlethonGroup, { RiddlethonGroupModel } from "../models/riddlethon-group";
+import RiddlethonGroupMember from "../models/riddlethon-group-member";
+import User from "../models/user";
+import IdServiceImpl from "./id-impl.service";
+import riddlethonGroupMemberService from "./riddlethon-group-member.service";
+import userService from "./user.service";
+
+const idService = new IdServiceImpl();
 
 const MAX_MEMBERS_IN_GROUP = 3;
 
-const riddlethonGroupService = {
-  get: async () => {
-    const riddlethonGroups = await RiddlethonGroupModel.find().populate(
-      "members"
-    );
+class RiddlethonGroupService {
+  public async find(filters?: Partial<RiddlethonGroup>): Promise<RiddlethonGroup[]> {
+    const riddlethonGroups = await RiddlethonGroupModel.find(filters);
 
-    return riddlethonGroups;
-  },
-  getOne: async (id) => {
-    const riddlethonGroup = await RiddlethonGroupModel.findById(id);
-
-    if (!riddlethonGroup) {
-      throw new createError.NotFound(`Não foi encontrado grupo com o id ${id}`);
+    const entities: RiddlethonGroup[] = [];
+    for (const riddlethonGroup of riddlethonGroups) {
+      entities.push(this.mapEntity(riddlethonGroup));
     }
 
-    return riddlethonGroup;
-  },
-  adminCreate: async ({ name }, adminUser) => {
-    const newRiddlethonGroup = new RiddlethonGroupModel({
-      name,
-    });
-    await newRiddlethonGroup.save();
+    return entities;
+  }
 
-    const adminLog: AdminLog = {
-      adminId: adminUser.id,
-      type: "create",
-      collectionName: "riddlethon-group",
-      objectAfter: JSON.stringify(newRiddlethonGroup),
-    };
-    await adminLogService.create(adminLog);
+  public async findById(id: string): Promise<RiddlethonGroup> {
+    const entity = await RiddlethonGroupModel.findOne({ id });
 
-    return newRiddlethonGroup;
-  },
-  adminUpdate: async (id, { name }, adminUser) => {
-    const groupFound = await riddlethonGroupService.getOne(id);
+    return this.mapEntity(entity);
+  }
 
-    const updatedRiddlethonGroup = await RiddlethonGroupModel.findByIdAndUpdate(
-      id,
-      {
-        name,
-      },
-      { new: true }
-    );
+  public async findOne(filters?: Partial<RiddlethonGroup>): Promise<RiddlethonGroup> {
+    const entity = await RiddlethonGroupModel.findOne(filters);
 
-    const adminLog: AdminLog = {
-      adminId: adminUser.id,
-      type: "update",
-      collectionName: "riddlethon-group",
-      objectBefore: JSON.stringify(groupFound),
-      objectAfter: JSON.stringify(updatedRiddlethonGroup),
-    };
-    await adminLogService.create(adminLog);
+    return entity && this.mapEntity(entity);
+  }
 
-    return updatedRiddlethonGroup;
-  },
-  adminDelete: async (id, adminUser) => {
-    const groupFound = await riddlethonGroupService.getOne(id);
-    if (
-      groupFound.members.length > 0 ||
-      groupFound.completedQuestionsIndexes.length > 0
-    ) {
-      throw new createError.BadRequest();
-    }
+  public async count(filters?: Partial<RiddlethonGroup>): Promise<number> {
+    const count = await RiddlethonGroupModel.count(filters);
 
-    const deletedRiddlethonGroup = await RiddlethonGroupModel.findByIdAndDelete(
-      id
-    );
+    return count;
+  }
 
-    const adminLog: AdminLog = {
-      adminId: adminUser.id,
-      type: "delete",
-      collectionName: "riddlethon-group",
-      objectBefore: JSON.stringify(deletedRiddlethonGroup),
-    };
-    await adminLogService.create(adminLog);
-
-    return deletedRiddlethonGroup;
-  },
-  create: async ({ name, userId }) => {
-    const groupFound = await RiddlethonGroupModel.findOne({ name });
+  public async create(riddlethonGroup: RiddlethonGroup): Promise<RiddlethonGroup> {
+    const groupFound = await RiddlethonGroupModel.findOne({ name: riddlethonGroup.id });
     if (groupFound) {
-      throw new createError.BadRequest();
+      throw new HttpError(400, []);
     }
 
-    const createdGroup = new RiddlethonGroupModel({
-      name,
-      members: [userId],
-      completedQuestionsIndexes: [],
-    });
-    await createdGroup.save();
+    riddlethonGroup.id = await idService.create();
+    riddlethonGroup.availableClues = 0;
+    riddlethonGroup.availableSkips = 0;
+    const entity = await RiddlethonGroupModel.create(riddlethonGroup);
 
-    return createdGroup;
-  },
-  join: async (id, { userId }) => {
-    const groupFound = await RiddlethonGroupModel.findById(id);
+    return this.findById(entity.id);
+  }
+
+  public async update(riddlethonGroup: RiddlethonGroup): Promise<RiddlethonGroup> {
+    const entity = await RiddlethonGroupModel.findOneAndUpdate({ id: riddlethonGroup.id }, riddlethonGroup);
+
+    return this.findById(entity.id);
+  }
+
+  public async delete(riddlethonGroup: RiddlethonGroup): Promise<RiddlethonGroup> {
+    const entity = await RiddlethonGroupModel.findOneAndDelete({ id: riddlethonGroup.id });
+
+    return entity && this.mapEntity(entity);
+  }
+
+  public async findUserGroup(userId: string): Promise<RiddlethonGroup> {
+    const userMembership = await riddlethonGroupMemberService.findOne({ userId });
+    if (!userMembership) {
+      throw new HttpError(404, []);
+    }
+
+    const group = await this.findOne({ id: userMembership.riddlethonGroupId });
+    if (!group) {
+      throw new HttpError(404, []);
+    }
+
+    return group;
+  }
+
+  public async findUserGroupWithMembers(userId: string): Promise<RiddlethonGroup & { members: Partial<User>[] }> {
+    const userMembership = await riddlethonGroupMemberService.findOne({ userId });
+    if (!userMembership) {
+      throw new HttpError(404, []);
+    }
+
+    const group = await this.findOne({ id: userMembership.riddlethonGroupId });
+    if (!group) {
+      throw new HttpError(404, []);
+    }
+
+    const groupMemberships = await riddlethonGroupMemberService.find({ riddlethonGroupId: group.id });
+    const members = await userService.find({
+      id: groupMemberships.map((groupMembership) => groupMembership.userId),
+    });
+
+    return {
+      ...group,
+      members: members.map((member) => userService.minimalMapEntity(member)),
+    };
+  }
+
+  public async join(userId: string, riddlethonGroupId: string): Promise<RiddlethonGroupMember> {
+    const groupMembers = await riddlethonGroupMemberService.find({ riddlethonGroupId });
     if (
-      !groupFound ||
-      !groupFound.members ||
-      groupFound.members.includes(userId) ||
-      groupFound.members.length >= MAX_MEMBERS_IN_GROUP
+      groupMembers.find((groupMember) => groupMember.id === userId) ||
+      groupMembers.length >= MAX_MEMBERS_IN_GROUP
     ) {
-      throw new createError.BadRequest();
+      throw new HttpError(400, []);
     }
 
-    const joinedGroup = await RiddlethonGroupModel.findByIdAndUpdate(id, {
-      $push: { members: userId },
-    });
+    const riddlethonGroupMember: RiddlethonGroupMember = {
+      riddlethonGroupId,
+      userId,
+    };
+    const joinedGroupMembership = await riddlethonGroupMemberService.create(riddlethonGroupMember);
 
-    return joinedGroup;
-  },
-  leave: async ({ userId }) => {
-    const groupFound = await RiddlethonGroupModel.updateOne(
-      { members: userId },
-      {
-        $pullAll: { members: [userId] },
-      }
-    );
-    if (!groupFound) {
-      throw new createError.BadRequest();
+    return joinedGroupMembership;
+  }
+
+  public async leave(userId: string): Promise<RiddlethonGroupMember> {
+    const groupMembership = await riddlethonGroupMemberService.findOne({ userId });
+    if (!groupMembership) {
+      throw new HttpError(404, []);
     }
 
-    return groupFound;
-  },
+    await riddlethonGroupMemberService.delete(groupMembership);
+
+    return groupMembership;
+  }
+
+  private mapEntity(entity: Model<RiddlethonGroup> & RiddlethonGroup): RiddlethonGroup {
+    return {
+      id: entity.id,
+      name: entity.name,
+      availableClues: entity.availableClues,
+      availableSkips: entity.availableSkips,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
+  }
 };
 
-export default riddlethonGroupService;
+export default new RiddlethonGroupService();

@@ -96,9 +96,6 @@ const Handlers = {
   },
   coffee: {
     createPayment: withNoErrorMessage(() => API.post("/payments")),
-    receivePayment: withNoErrorMessage((paymentId) =>
-      API.get("/payments/" + paymentId)
-    ),
   },
 };
 

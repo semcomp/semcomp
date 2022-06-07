@@ -18,13 +18,29 @@ import userDisabilityService from "./user-disability.service";
 
 const idService = new IdServiceImpl();
 
+type Filters = User | {
+  id: string[];
+  nusp: string[];
+  email: string[];
+  name: string[];
+  password: string[];
+  course: string[];
+  discord: string[];
+  telegram: string[];
+  permission: boolean[];
+  resetPasswordCode: string[];
+  paid: boolean[];
+  createdAt: number[];
+  updatedAt: number[];
+};
+
 export interface UserService {
   findById(id: string): Promise<User>;
   pay(id: string): Promise<void>;
 }
 
 class UserServiceImpl implements UserService {
-  public async find(filters?: Partial<User>): Promise<User[]> {
+  public async find(filters?: Partial<Filters>): Promise<User[]> {
     const users = await UserModel.find(filters);
 
     const entities: User[] = [];
@@ -41,7 +57,13 @@ class UserServiceImpl implements UserService {
     return entity && this.mapEntity(entity);
   }
 
-  public async count(filters?: Partial<User>): Promise<number> {
+  public async findOne(filters?: Partial<User>): Promise<User> {
+    const entity = await UserModel.findOne(filters);
+
+    return entity && this.mapEntity(entity);
+  }
+
+  public async count(filters?: Partial<Filters>): Promise<number> {
     const count = await UserModel.count(filters);
 
     return count;
@@ -83,8 +105,8 @@ class UserServiceImpl implements UserService {
   }
 
   async getUserHouse(userId: string): Promise<House> {
-    const userHouseMember = (await houseMemberService.find({ userId }))[0];
-    const userHouse = (await houseService.find({ id: userHouseMember.houseId }))[0];
+    const userHouseMember = await houseMemberService.findOne({ userId });
+    const userHouse = await houseService.findOne({ id: userHouseMember.houseId });
 
     return userHouse;
   }
@@ -99,15 +121,14 @@ class UserServiceImpl implements UserService {
     for (const user of users) {
       const userAchievementCount = await userAchievementService.count({ userId: user.id });
       for (const achievement of individualAchievements) {
-        const userAchievement = (await userAchievementService.find({ userId: user.id, achievementId: achievement.id }))[0];
-
+        const userAchievement = await userAchievementService.findOne({ userId: user.id, achievementId: achievement.id });
         if (userAchievement) {
           continue;
         }
 
         // Presença em Evento
         if (achievement.category === AchievementCategories.PRESENCA_EM_EVENTO) {
-          if ((await attendanceService.find({ eventId: achievement.eventId, userId: user.id }))[0]) {
+          if (await attendanceService.findOne({ eventId: achievement.eventId, userId: user.id })) {
             const newUserAchievement: UserAchievement = {
               achievementId: achievement.id,
               userId: user.id,
@@ -122,10 +143,10 @@ class UserServiceImpl implements UserService {
           for (const event of events) {
             if (
               event.type === achievement.eventType &&
-              (await attendanceService.find({
+              await attendanceService.findOne({
                 eventId: event.id,
-                userId: user.id.toString(),
-              }))[0]
+                userId: user.id,
+              })
             ) {
               i++;
             }
@@ -177,6 +198,17 @@ class UserServiceImpl implements UserService {
       paid: entity.paid,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
+    };
+  }
+
+  public minimalMapEntity(entity: User): Partial<User> {
+    return {
+      id: entity.id,
+      email: entity.email,
+      name: entity.name,
+      course: entity.course,
+      discord: entity.discord,
+      telegram: entity.telegram,
     };
   }
 };
