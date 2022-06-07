@@ -7,7 +7,7 @@
   justify-items: center;
   position: relative;
 
-  background-image: url("../../../assets/moacir-doutrinando2.jpg");
+  background-image: url("../../../assets/iara-background.svg");
   background-size: cover;
   background-position: center;
   filter: brightness(115%);
@@ -47,7 +47,7 @@
 }
 
 .home-header > .text-container > h1 {
-  color: #b0b0b0;
+  color: var(--color-blue-secondary);
   max-width: 70rem;
   text-align: center;
   font-family: "Staatliches", sans-serif;
@@ -55,7 +55,7 @@
 }
 
 .home-header > .text-container > .home-signup-button {
-  background-color: var(--color-blue-main);
+  background-color: var(--color-green);
   padding: 0.5rem 3rem;
   color: white;
   border-radius: 8px;

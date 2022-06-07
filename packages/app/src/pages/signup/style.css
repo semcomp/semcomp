@@ -49,6 +49,12 @@
   background-color: white;
 }
 
+.signup-page-container>.main-container a.social-links {
+  background-color: transparent;
+  color: var(--color-blue-main);
+  text-decoration: underline;
+}
+
 /* Mobile large */
 @media screen and (max-width: 426px) {
   .signup-page-container > .main-container {

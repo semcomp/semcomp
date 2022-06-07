@@ -17,7 +17,7 @@ const HomeHeader = (props) => {
   return (
     <header className="home-header" id="home-header">
       {/* <img alt='' src={BackgroundImage} /> */}
-      <div className="backdrop" />
+      {/* <div className="backdrop" /> */}
       <div className="navbar-container">
         <NavBar user={props.user} />
       </div>
