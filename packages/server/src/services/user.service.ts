@@ -60,7 +60,7 @@ class UserServiceImpl implements UserService {
   public async findOne(filters?: Partial<User>): Promise<User> {
     const entity = await UserModel.findOne(filters);
 
-    return this.mapEntity(entity);
+    return entity && this.mapEntity(entity);
   }
 
   public async count(filters?: Partial<Filters>): Promise<number> {

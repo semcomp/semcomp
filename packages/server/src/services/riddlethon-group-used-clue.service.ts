@@ -26,7 +26,7 @@ class RiddlethonGroupUsedClueService {
   public async findOne(filters?: Partial<RiddlethonGroupUsedClue>): Promise<RiddlethonGroupUsedClue> {
     const entity = await RiddlethonGroupUsedClueModel.findOne(filters);
 
-    return this.mapEntity(entity);
+    return entity && this.mapEntity(entity);
   }
 
   public async count(filters?: Partial<RiddlethonGroupUsedClue>): Promise<number> {

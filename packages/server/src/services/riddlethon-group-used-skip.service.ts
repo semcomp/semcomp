@@ -26,7 +26,7 @@ class RiddlethonGroupUsedSkipService {
   public async findOne(filters?: Partial<RiddlethonGroupUsedSkip>): Promise<RiddlethonGroupUsedSkip> {
     const entity = await RiddlethonGroupUsedSkipModel.findOne(filters);
 
-    return this.mapEntity(entity);
+    return entity && this.mapEntity(entity);
   }
 
   public async count(filters?: Partial<RiddlethonGroupUsedSkip>): Promise<number> {

@@ -26,7 +26,7 @@ class SubscriptionService {
   public async findOne(filters?: Partial<Subscription>): Promise<Subscription> {
     const entity = await SubscriptionModel.findOne(filters);
 
-    return this.mapEntity(entity);
+    return entity && this.mapEntity(entity);
   }
 
   public async count(filters?: Partial<Subscription>): Promise<number> {
