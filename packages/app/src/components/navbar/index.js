@@ -4,7 +4,7 @@ import { logout } from "../../redux/actions/auth";
 
 import Navlink from "./nav-link"; // a link reference 'a' with the appearance of a button
 import { Routes } from "../../router";
-import SemcompLogo from "../../assets/logo.webp";
+import SemcompLogo from "../../assets/logo-semcomp-folclore.png";
 import { HashLink } from "react-router-hash-link";
 
 import "./style.css";

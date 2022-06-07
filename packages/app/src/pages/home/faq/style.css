@@ -24,7 +24,7 @@
 }
 
 .home-faq-container > .questions-container > .question-component > .question {
-  background-color: var(--color-blue-secondary);
+  background-color: var(--color-blue-main);
   color: var(--color-white);
   padding: 1rem;
   margin: 0;

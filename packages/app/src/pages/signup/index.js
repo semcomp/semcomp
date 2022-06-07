@@ -101,24 +101,24 @@ function SignupPage() {
 
       const userInfo = isAuthUSP
         ? {
-            permission: canShareData,
-            telegram,
-            course,
-            discord,
-            disabilities,
-            isStudent,
-          }
+          permission: canShareData,
+          telegram,
+          course,
+          discord,
+          disabilities,
+          isStudent,
+        }
         : {
-            name,
-            email,
-            password,
-            permission: canShareData,
-            telegram,
-            course,
-            discord,
-            disabilities,
-            isStudent,
-          };
+          name,
+          email,
+          password,
+          permission: canShareData,
+          telegram,
+          course,
+          discord,
+          disabilities,
+          isStudent,
+        };
 
       /** This is related to USP signup. It should be empty (or false) on normal signup. */
       let USPToken = hash && hash.substr(1);
@@ -176,22 +176,11 @@ function SignupPage() {
           {stepComponent}
         </div>
         <aside>
-          Obrigado por se interessar no nosso evento! <br /> <br />A Semcomp é
-          100% construída e pensada por alunos da{" "}
-          <strong>Universidade de São Paulo, do campus São Carlos</strong>, dos
-          cursos de{" "}
-          <strong>Sistemas de informação e Ciências da Computação</strong>. Ela
-          ocorre todo ano no
-          <strong>
-            {" "}
-            ICMC - Instituto de Ciências Matemáticas e Computação
-          </strong>
-          , um evento presencial cheio de palestras, minicursos, aprendizado e
-          muita comida.
+          Ficamos muito felizes por se interessar em nosso evento!
+          <br /> <br />A Semcomp é 100% construída e pensada por alunos dos cursos de<strong> Ciências de Computação</strong> e de<strong> Sistemas de Informação</strong> do campus <strong>São Carlos da Universidade de São Paulo</strong>. Todo ano realizamos um evento presencial cheio de palestras, minicursos, concursos, diversão e muita comida!
           <br />
           <br />
-          Esperamos que todos vocês gostem e
-          aguardem para mais informações. <br />
+          Por conta da pandemia, a Semcomp ocorreu no formato remoto durante os dois últimos anos, porém agora teremos nosso grande retorno presencial! Esperamos que todos se divirtam bastante! Para mais informações, basta seguir a Semcomp no Instagram <a className="social-links" href="https://instagram.com/semcomp" rel="noopnener" alt="Instagram da Semcomp">(@semcomp)</a> e no <a className="social-links" href="https://t.me/semcomp_avisos" rel="noopnener" alt="Canal de avisos da Semcomp no Telegram">Telegram</a> (https://t.me/semcomp_avisos). <br />
           <br />
           Com carinho, Equipe Semcomp!
         </aside>

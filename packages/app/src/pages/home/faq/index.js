@@ -59,20 +59,25 @@ const FAQ = () => {
         <div className="questions-container">
           <Question
             question="Como faço para participar da Semcomp?"
-            answer="Para participar da Semcomp, basta se inscrever aqui mesmo no nosso site! Para mais notícias, acompanhe nossas redes sociais e nosso canal de avisos no Telegram!"
+            answer="Para participar, basta se inscrever aqui mesmo em nosso site! O evento será presencial, então é preciso comparecer à USP de São Carlos durante o período anunciado. Para mais notícias, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos)"
           />
-          <Question question="O evento é gratuito?" answer="Sim!" />
+          <Question
+            question="O evento é gratuito?"
+            answer="Para participar de minicursos e ter acesso ao coffee break, haverá uma taxa de inscrição. Porém, outros eventos como palestras, concursos e game night são de acesso gratuito para todos. Vale lembrar que eventos com premiação exigem inscrição na Semcomp mesmo sem pagamento da taxa de inscrição.
+" />
           <Question
             question="Onde tenho acesso aos avisos da Semcomp?"
-            answer="Para acompanhar tudo que está rolando na Semcomp em tempo real, basta entrar no nosso canal de avisos no telegram por esse link (https://t.me/semcomp_avisos)! É por lá que enviamos todas as notícias e informações sobre o evento, então sempre bom dar uma olhada!"
+            answer="Para ficar por dentro de tudo que vai rolar na Semcomp, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos). Enviaremos todas as novidades por lá!
+            "
           />
           <Question
             question="Tem certificado?"
-            answer="Tem sim, para garantir o certificado basta estar inscrito na Semcomp, participar dos eventos e marcar sua presença. Após o final do evento, será enviado um certificado de acordo à sua participação."
+            answer="Sim! Para garantir seu certificado, é preciso se inscrever na Semcomp e comparecer aos eventos. Após o final da Semcomp, emitiremos um certificado com a quantidade de horas correspondente às presenças que você coletar.
+            "
           />
           <Question
             question="Tem premiação?"
-            answer="Claro! Tanto os campeonatos da gamenight quanto os concursos terão premiações que serão divulgadas ao longo do evento."
+            answer="Sim! Campeonatos da game night e concursos terão premiações, mas não esqueça que, para poder participar, é preciso estar inscrito na Semcomp."
           />
         </div>
       </div>
