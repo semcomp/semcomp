@@ -1,6 +1,6 @@
 .event-component > .card {
   background-color: var(--color-blue-secondary);
-  color: var(--color-white);
+  color: var(--color-black-main);
   margin: 0;
   padding: 0;
   display: flex;
