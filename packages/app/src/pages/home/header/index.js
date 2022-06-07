@@ -22,8 +22,8 @@ const HomeHeader = (props) => {
         <NavBar user={props.user} />
       </div>
       <div className="main-texts" >
-        <div className="semcomp-edition"><h1>SEMCOMP 25</h1></div>
-        <div className="beta-text"><h1>BETA</h1></div>
+        <div className="semcomp-edition">SEMCOMP 25</div>
+        <div className="beta-text">BETA</div>
       </div>
       <div className="text-container">
         <h1>
