@@ -176,13 +176,7 @@ const SponsorsPage = () => {
         <main className="main-container">
           <h2>Patrocinadores</h2>
           <p className="thanks-from-semcomp">
-            Queremos agradecer aos patrocinadores, sem os quais seria impossível
-            organizar a nossa Semcomp virtual e gratuita para todo o país. O
-            auxílio deles ainda nos permitiu ampliar nossas fronteiras, por meio
-            da inclusão de acessibilidade das nossas atividades. Por fim,
-            esperamos que tanto os alunos quanto as empresas possam aproveitar
-            ao máximo a feira de profissões, e que ano que vem mantenhamos essa
-            parceria!
+            Queremos agradecer aos patrocinadores, sem os quais seria impossível organizar o nosso retorno à Semcomp presencial. Esperamos que tanto os alunos quanto as empresas possam aproveitar ao máximo a feira de profissões, as palestras, os minicursos e que ano que vem mantenhamos nossa parceria!
           </p>
           <div className="sponsor-cards-container">
             {allCompaniesInfo.map((info) => (
