@@ -14,11 +14,11 @@
 }
 
 .sponsors-page > .content-container > .main-container > h2 {
-  color: white;
+  color: var(--color-black-main);
 }
 
 .sponsors-page > .content-container > .main-container > .thanks-from-semcomp {
-  color: white;
+  color: var(--color-black-main);
 }
 
 @media screen and (max-width: 768px) {

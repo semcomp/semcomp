@@ -1,5 +1,5 @@
 .home-sponsors {
-  background-color: var(--color-blue-secondary);
+  background-color: var(--color-blue-main);
   padding: 5rem 2rem;
   color: white;
   text-align: center;
@@ -56,7 +56,7 @@
   justify-content: center;
   align-items: center;
   color: white;
-  background-color: var(--color-blue-main);
+  background-color: var(--color-green);
   border-radius: 8px;
   padding: 1rem 4rem;
   margin: 0 auto; /* Center button horizontaly */
