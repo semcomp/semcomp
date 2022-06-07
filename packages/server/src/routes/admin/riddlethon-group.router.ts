@@ -2,14 +2,14 @@ import { Router } from "express";
 import { param } from "express-validator";
 
 import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
-import AdminRiddlethonGroupsController from "../../controllers/admin/riddlethon-group.controller";
+import adminRiddlethonGroupsController from "../../controllers/admin/riddlethon-group.controller";
 
 const router = Router();
 
 router.get(
   "/",
   [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  AdminRiddlethonGroupsController.list
+  adminRiddlethonGroupsController.list
 );
 
 router.delete(
@@ -19,7 +19,7 @@ router.delete(
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],
-  AdminRiddlethonGroupsController.delete
+  adminRiddlethonGroupsController.deleteById
 );
 
 export default router;

@@ -2,14 +2,14 @@ import { Router } from "express";
 import { param, body } from "express-validator";
 
 import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
-import AdminRiddlethonQuestionsController from "../../controllers/admin/riddlethon-question.controller";
+import adminRiddlethonQuestionsController from "../../controllers/admin/riddlethon-question.controller";
 
 const router = Router();
 
 router.get(
   "/",
   [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  AdminRiddlethonQuestionsController.list
+  adminRiddlethonQuestionsController.list
 );
 
 router.post(
@@ -23,7 +23,7 @@ router.post(
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],
-  AdminRiddlethonQuestionsController.create
+  adminRiddlethonQuestionsController.create
 );
 
 router.put(
@@ -38,7 +38,7 @@ router.put(
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],
-  AdminRiddlethonQuestionsController.update
+  adminRiddlethonQuestionsController.updateById
 );
 
 router.delete(
@@ -48,7 +48,7 @@ router.delete(
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],
-  AdminRiddlethonQuestionsController.delete
+  adminRiddlethonQuestionsController.deleteById
 );
 
 export default router;

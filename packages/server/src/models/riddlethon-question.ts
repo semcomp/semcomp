@@ -1,7 +1,28 @@
 import Mongoose from "mongoose";
 
+type RiddlethonQuestion = {
+  id?: string;
+  index: number;
+  title: string;
+  question: string;
+  imgUrl: string;
+  clue: string;
+  answer: string;
+  isLegendary: boolean;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export default RiddlethonQuestion;
+
 const RiddlethonQuestionSchema = new Mongoose.Schema(
   {
+    id: {
+      type: String,
+      unique: true,
+      required: true,
+      index: true,
+    },
     index: {
       type: Number,
       unique: true,
@@ -30,18 +51,18 @@ const RiddlethonQuestionSchema = new Mongoose.Schema(
       default: false,
     },
     createdAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
     updatedAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
   },
   { collection: "riddlethon-question" }
 );
 
-export default Mongoose.model(
+export const RiddlethonQuestionModel = Mongoose.model(
   "riddlethon-question",
-  RiddlethonQuestionSchema
+  RiddlethonQuestionSchema,
 );
