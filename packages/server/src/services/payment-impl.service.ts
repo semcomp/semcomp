@@ -42,6 +42,12 @@ export default class PaymentServiceImpl implements PaymentService {
     return this.mapEntity(entity);
   }
 
+  public async findOne(filters?: Partial<Payment>): Promise<Payment> {
+    const entity = await PaymentModel.findOne(filters);
+
+    return this.mapEntity(entity);
+  }
+
   public async count(filters?: Partial<Payment>): Promise<number> {
     const count = await PaymentModel.count(filters);
 
@@ -73,7 +79,7 @@ export default class PaymentServiceImpl implements PaymentService {
       throw new HttpError(400, []);
     }
 
-    const payment = (await this.find({ userId }))[0];
+    const payment = await this.findOne({ userId });
     if (payment) {
       return payment;
     }

@@ -30,7 +30,7 @@ class AdminAuthService {
   }
 
   public async signup(adminUser: AdminUser): Promise<AdminUser> {
-    const foundAdminAdminUser = (await adminUserService.find({ email: adminUser.email }))[0];
+    const foundAdminAdminUser = await adminUserService.findOne({ email: adminUser.email });
     if (foundAdminAdminUser) {
       throw new HttpError(401, []);
     }
@@ -48,7 +48,7 @@ class AdminAuthService {
   }
 
   public async login(email: string, password: string): Promise<AdminUser> {
-    const foundAdminUser = (await adminUserService.find({ email }))[0];
+    const foundAdminUser = await adminUserService.findOne({ email });
     if (
       !foundAdminUser ||
       !foundAdminUser.password ||
@@ -61,7 +61,7 @@ class AdminAuthService {
   }
 
   public async forgotPassword(email: string): Promise<AdminUser> {
-    const adminUser = (await adminUserService.find({ email }))[0];
+    const adminUser = await adminUserService.findOne({ email });
     if (!adminUser || !adminUser.password) {
       throw new HttpError(401, []);
     }
@@ -82,7 +82,7 @@ class AdminAuthService {
   }
 
   public async resetPassword(email: string, code: string, password: string): Promise<AdminUser> {
-    const adminUser = (await adminUserService.find({ email }))[0];
+    const adminUser = await adminUserService.findOne({ email });
     if (
       !adminUser ||
       !adminUser.password ||

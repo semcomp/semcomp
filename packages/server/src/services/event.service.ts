@@ -22,15 +22,15 @@ class EventService {
       let hasAttend = false;
       let isSubscribed = false;
       if (userId) {
-        hasAttend = (await attendanceService.find({
+        hasAttend = !!(await attendanceService.findOne({
           userId,
-          eventId: event.id.toString(),
-        })).length > 0;
+          eventId: event.id,
+        }));
 
-        isSubscribed = (await subscriptionService.find({
+        isSubscribed = !!(await subscriptionService.findOne({
           userId,
-          eventId: event.id.toString(),
-        })).length > 0;
+          eventId: event.id,
+        }));
       }
 
       eventsInfo.push({
@@ -57,15 +57,15 @@ class EventService {
         let hasAttend = false;
         let isSubscribed = false;
         if (userId) {
-          hasAttend = (await attendanceService.find({
+          hasAttend = !!(await attendanceService.findOne({
             userId,
-            eventId: event.id.toString(),
-          })).length > 0;
+            eventId: event.id,
+          }));
 
-          isSubscribed = (await subscriptionService.find({
+          isSubscribed = !!(await subscriptionService.findOne({
             userId,
-            eventId: event.id.toString(),
-          })).length > 0;
+            eventId: event.id,
+          }));
         }
 
         currentEvent = {
@@ -91,7 +91,6 @@ class EventService {
       type: { $in: Object.values(desiredEventTypesEnum) },
       showOnSubscribables: true,
     });
-    const userSubscriptions = await subscriptionService.find({ userId });
 
     const eventsInfo = [];
     for (const eventType of Object.values(desiredEventTypesEnum)) {
@@ -126,15 +125,15 @@ class EventService {
       let hasAttend = false;
       let isSubscribed = false;
       if (userId) {
-        hasAttend = (await attendanceService.find({
+        hasAttend = !!(await attendanceService.findOne({
           userId,
-          eventId: event.id.toString(),
-        })).length > 0;
+          eventId: event.id,
+        }));
 
-        isSubscribed = (await subscriptionService.find({
+        isSubscribed = !!(await subscriptionService.findOne({
           userId,
-          eventId: event.id.toString(),
-        })).length > 0;
+          eventId: event.id,
+        }));
       }
 
       itemsOnThisHour.events.push({
@@ -149,7 +148,7 @@ class EventService {
 
   public async markPresence(eventId: string, userId: string, userHouse: any) {
     const event = await this.findById(eventId);
-    const subscription = (await subscriptionService.find({ userId, eventId }))[0];
+    const subscription = await subscriptionService.findOne({ userId, eventId });
 
     if (
       (event.type === EventTypes.MINICURSO ||
@@ -200,7 +199,7 @@ class EventService {
       throw new HttpError(400, ["O evento está cheio!"]);
     }
 
-    const subscription = (await subscriptionService.find({ userId, eventId }))[0];
+    const subscription = await subscriptionService.findOne({ userId, eventId });
 
     if (event.type !== "Contest" && subscription) {
       throw new HttpError(400, ["O usuário já esta inscrito em um evento nesse horário!"]);
@@ -215,7 +214,7 @@ class EventService {
   }
 
   public async unsubscribe(eventId: string, userId: string) {
-    const subscription = (await subscriptionService.find({ eventId, userId }))[0];
+    const subscription = await subscriptionService.findOne({ eventId, userId });
     await subscriptionService.delete(subscription);
 
     return { message: "Inscrição removida com sucesso!" };

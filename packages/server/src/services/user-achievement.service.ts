@@ -23,6 +23,12 @@ class UserAchievementService {
     return this.mapEntity(entity);
   }
 
+  public async findOne(filters?: Partial<UserAchievement>): Promise<UserAchievement> {
+    const entity = await UserAchievementModel.findOne(filters);
+
+    return this.mapEntity(entity);
+  }
+
   public async count(filters?: Partial<UserAchievement>): Promise<number> {
     const count = await UserAchievementModel.count(filters);
 
