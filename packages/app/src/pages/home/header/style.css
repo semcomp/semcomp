@@ -41,10 +41,6 @@
   left: 7rem;
   color: var(--color-blue-secondary);
   font-weight: bold;
-  gap: 0px 0px;
-  grid-template-areas: 
-    "semcomp-edition"
-    "beta-text";
   position: relative;
   height: 90%;
   width: 100%;
@@ -56,12 +52,10 @@
 }
 
 .main-texts .semcomp-edition { 
-  grid-area: semcomp-edition;
   font-size: 8.5rem;
 }
 
 .main-texts .beta-text { 
-  grid-area: beta-text; 
   font-size: 5.5rem;
 }
 
@@ -111,15 +105,16 @@
   }
 
   .home-header > .main-texts {
-    top: 7rem;
+    height: 170%;
     left: 0rem;
+    justify-content: center;
   }
 
   .main-texts .semcomp-edition { 
-    font-size: 5.5rem;
+    font-size: 3.5rem;
   }
   
   .main-texts .beta-text { 
-    font-size: 3.5rem;
+    font-size: 2.5rem;
   }
 }
