@@ -6,7 +6,7 @@ import About from "./about";
 import AboutBeta from "./about-beta";
 import Footer from "../../components/footer";
 import HomeHeader from "./header";
-// import Schedule from "./schedule";
+import Schedule from "./schedule";
 import FAQ from "./faq";
 import LiveNow from "./live-now";
 // import Sponsors from "./sponsors";
@@ -21,7 +21,7 @@ function Home() {
         <HomeHeader user={user} />
         {/* <Stats /> */}
         {/* <About /> */}
-        {/* <Schedule /> */}
+        <Schedule />
         <AboutBeta />
         {/* <Sponsors /> */}
         <FAQ />
