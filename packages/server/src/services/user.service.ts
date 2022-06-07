@@ -18,13 +18,29 @@ import userDisabilityService from "./user-disability.service";
 
 const idService = new IdServiceImpl();
 
+type Filters = User | {
+  id: string[];
+  nusp: string[];
+  email: string[];
+  name: string[];
+  password: string[];
+  course: string[];
+  discord: string[];
+  telegram: string[];
+  permission: boolean[];
+  resetPasswordCode: string[];
+  paid: boolean[];
+  createdAt: number[];
+  updatedAt: number[];
+};
+
 export interface UserService {
   findById(id: string): Promise<User>;
   pay(id: string): Promise<void>;
 }
 
 class UserServiceImpl implements UserService {
-  public async find(filters?: Partial<User>): Promise<User[]> {
+  public async find(filters?: Partial<Filters>): Promise<User[]> {
     const users = await UserModel.find(filters);
 
     const entities: User[] = [];
@@ -41,7 +57,7 @@ class UserServiceImpl implements UserService {
     return entity && this.mapEntity(entity);
   }
 
-  public async count(filters?: Partial<User>): Promise<number> {
+  public async count(filters?: Partial<Filters>): Promise<number> {
     const count = await UserModel.count(filters);
 
     return count;
@@ -177,6 +193,17 @@ class UserServiceImpl implements UserService {
       paid: entity.paid,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
+    };
+  }
+
+  public minimalMapEntity(entity: User): Partial<User> {
+    return {
+      id: entity.id,
+      email: entity.email,
+      name: entity.name,
+      course: entity.course,
+      discord: entity.discord,
+      telegram: entity.telegram,
     };
   }
 };

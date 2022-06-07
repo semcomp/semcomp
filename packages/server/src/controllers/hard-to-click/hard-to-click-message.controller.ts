@@ -1,6 +1,6 @@
 import createError from "http-errors";
 
-import HardToClickGroupModel from "../../models/riddlethon-group";
+import HardToClickGroupModel from "../../models/hard-to-click-group";
 import MessageModel from "../../models/message";
 
 import { handleError } from "../../lib/handle-error";

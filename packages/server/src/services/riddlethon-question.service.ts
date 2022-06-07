@@ -1,129 +1,107 @@
-import createError from "http-errors";
+import { Model } from "mongoose";
+import HttpError from "../lib/http-error";
 
-import AdminLog from "../models/admin-log";
-import RiddlethonQuestionModel from "../models/riddlethon-question";
-import RiddlethonGroupModel from "../models/riddlethon-group";
-import adminLogService from "./admin-log.service";
+import RiddlethonQuestion, { RiddlethonQuestionModel } from "../models/riddlethon-question";
+import IdServiceImpl from "./id-impl.service";
+import riddlethonGroupCompletedQuestionService from "./riddlethon-group-completed-question.service";
+import riddlethonGroupUsedClueService from "./riddlethon-group-used-clue.service";
+import riddlethonGroupService from "./riddlethon-group.service";
 
-const riddlethonQuestionService = {
-  get: async () => {
-    const riddlethonQuestions = await RiddlethonQuestionModel.find();
+const idService = new IdServiceImpl();
 
-    return riddlethonQuestions;
-  },
-  getOne: async (id) => {
-    const riddlethonQuestion = await RiddlethonQuestionModel.findById(id);
+type Filters = RiddlethonQuestion | {
+  id: string[];
+  index: number[];
+  title: string[];
+  question: string[];
+  imgUrl: string[];
+  clue: string[];
+  answer: string[];
+  isLegendary: boolean[];
+  createdAt: number[];
+  updatedAt: number[];
+};
 
-    if (!riddlethonQuestion) {
-      throw new createError.NotFound(
-        `Não foi encontrada pergunta com o id ${id}`
-      );
+class RiddlethonQuestionService {
+  public async find(filters?: Partial<Filters>): Promise<RiddlethonQuestion[]> {
+    const riddlethonQuestions = await RiddlethonQuestionModel.find(filters);
+
+    const entities: RiddlethonQuestion[] = [];
+    for (const riddlethonQuestion of riddlethonQuestions) {
+      entities.push(this.mapEntity(riddlethonQuestion));
     }
 
-    return riddlethonQuestion;
-  },
-  adminCreate: async (
-    { index, title, question, imgUrl, clue, answer, isLegendary },
-    adminUser
-  ) => {
-    const questionFound = await RiddlethonQuestionModel.findOne({ index });
-    if (questionFound) {
-      throw new createError.BadRequest();
-    }
+    return entities;
+  }
 
-    const newRiddlethonQuestion = new RiddlethonQuestionModel({
-      index,
-      title,
-      question,
-      imgUrl,
-      clue,
-      answer,
-      isLegendary,
-    });
-    await newRiddlethonQuestion.save();
+  public async findById(id: string): Promise<RiddlethonQuestion> {
+    const entity = await RiddlethonQuestionModel.findOne({ id });
 
-    const adminLog: AdminLog = {
-      adminId: adminUser.id,
-      type: "create",
-      collectionName: "riddlethon-question",
-      objectAfter: JSON.stringify(newRiddlethonQuestion),
-    };
-    await adminLogService.create(adminLog);
+    return this.mapEntity(entity);
+  }
 
-    return newRiddlethonQuestion;
-  },
-  adminUpdate: async (
-    id,
-    { index, title, question, imgUrl, clue, answer, isLegendary },
-    adminUser
-  ) => {
-    const questionFound = await riddlethonQuestionService.getOne(id);
+  public async findOne(filters?: Partial<Filters>): Promise<RiddlethonQuestion> {
+    const entity = await RiddlethonQuestionModel.findOne(filters);
 
-    const updatedRiddlethonQuestion =
-      await RiddlethonQuestionModel.findByIdAndUpdate(
-        id,
-        {
-          index,
-          title,
-          question,
-          imgUrl,
-          clue,
-          answer,
-          isLegendary,
-        },
-        { new: true }
-      );
+    return this.mapEntity(entity);
+  }
 
-    const adminLog: AdminLog = {
-      adminId: adminUser.id,
-      type: "update",
-      collectionName: "riddlethon-question",
-      objectBefore: JSON.stringify(questionFound),
-      objectAfter: JSON.stringify(updatedRiddlethonQuestion),
-    };
-    await adminLogService.create(adminLog);
+  public async count(filters?: Partial<Filters>): Promise<number> {
+    const count = await RiddlethonQuestionModel.count(filters);
 
-    return updatedRiddlethonQuestion;
-  },
-  adminDelete: async (id, adminUser) => {
-    const questionFound = await riddlethonQuestionService.getOne(id);
+    return count;
+  }
 
-    await RiddlethonQuestionModel.findByIdAndDelete(id);
+  public async create(riddlethonQuestion: RiddlethonQuestion): Promise<RiddlethonQuestion> {
+    riddlethonQuestion.id = await idService.create();
+    const entity = await RiddlethonQuestionModel.create(riddlethonQuestion);
 
-    const adminLog: AdminLog = {
-      adminId: adminUser.id,
-      type: "delete",
-      collectionName: "riddlethon-question",
-      objectBefore: JSON.stringify(questionFound),
-    };
-    await adminLogService.create(adminLog);
+    return this.findById(entity.id);
+  }
 
-    return questionFound;
-  },
-  getCompletedQuestion: async (index, { userId }) => {
-    const group = await RiddlethonGroupModel.findOne({ members: userId });
+  public async update(riddlethonQuestion: RiddlethonQuestion): Promise<RiddlethonQuestion> {
+    const entity = await RiddlethonQuestionModel.findOneAndUpdate({ id: riddlethonQuestion.id }, riddlethonQuestion);
+
+    return this.findById(entity.id);
+  }
+
+  public async delete(riddlethonQuestion: RiddlethonQuestion): Promise<RiddlethonQuestion> {
+    const entity = await RiddlethonQuestionModel.findOneAndDelete({ id: riddlethonQuestion.id });
+
+    return entity && this.mapEntity(entity);
+  }
+
+  public async getCompletedQuestion(userId: string, questionIndex: number) {
+    const group = await riddlethonGroupService.findUserGroup(userId);
     if (!group) {
-      throw new createError.BadRequest();
+      throw new HttpError(400, []);
     }
 
-    const completedQuestionsIndexes = group.completedQuestionsIndexes;
+    const riddlethonGroupCompletedQuestions = await riddlethonGroupCompletedQuestionService.find({
+      riddlethonGroupId: group.id,
+    });
+    const completedQuestions = await this.find({
+      id: riddlethonGroupCompletedQuestions.map((question) => question.riddlethonQuestionId),
+    });
 
-    const question = await RiddlethonQuestionModel.findOne({ index });
+    const question = await this.findOne({ index: questionIndex });
     if (!question) {
-      throw new createError.NotFound();
+      throw new HttpError(404, []);
     }
 
-    const isFirstQuestion = index === 0;
-    const currentQuestionIndex = completedQuestionsIndexes.reduce((a, b) =>
+    const isFirstQuestion = questionIndex === 0;
+    const currentQuestionIndex = completedQuestions.reduce((a, b) =>
       a.index > b.index ? a : b
     ).index;
-    const isQuestionCompleted = currentQuestionIndex >= index;
-    const isQuestionInProgress = currentQuestionIndex === index;
+    const isQuestionCompleted = currentQuestionIndex >= questionIndex;
+    const isQuestionInProgress = currentQuestionIndex === questionIndex;
     if (!isQuestionCompleted && !isQuestionInProgress && !isFirstQuestion) {
-      throw new createError.Forbidden();
+      throw new HttpError(403, []);
     }
 
-    const isClueUsedInQuestion = group.usedClueIndexes.includes(index);
+    const isClueUsedInQuestion = await riddlethonGroupUsedClueService.findOne({
+      riddlethonQuestionId: question.id,
+    });
 
     return {
       index: question.index,
@@ -134,7 +112,22 @@ const riddlethonQuestionService = {
       answer: isQuestionCompleted ? question.answer : null,
       clue: isClueUsedInQuestion ? question.clue : null,
     };
-  },
+  }
+
+  private mapEntity(entity: Model<RiddlethonQuestion> & RiddlethonQuestion): RiddlethonQuestion {
+    return {
+      id: entity.id,
+      index: entity.index,
+      title: entity.title,
+      question: entity.question,
+      imgUrl: entity.imgUrl,
+      clue: entity.clue,
+      answer: entity.answer,
+      isLegendary: entity.isLegendary,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
+  }
 };
 
-export default riddlethonQuestionService;
+export default new RiddlethonQuestionService();
