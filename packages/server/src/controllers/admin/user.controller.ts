@@ -109,18 +109,18 @@ class UserController {
       if (!user) {
         throw new HttpError(404, ["Usuário não encontrado."]);
       }
-      const achievement = (await achievementService.find({
+      const achievement = await achievementService.findOne({
         id: achievementId,
         type: AchievementTypes.INDIVIDUAL,
-      }))[0];
+      });
       if (!achievement) {
         throw new HttpError(404, ["Conquista não encontrado."]);
       }
 
-      let userAchievement: UserAchievement = (await userAchievementService.find({
+      let userAchievement: UserAchievement = await userAchievementService.findOne({
         userId: user.id,
         achievementId: achievement.id,
-      }))[0];
+      });
       if (userAchievement) {
         throw new HttpError(400, ["Conquista já completa."]);
       }

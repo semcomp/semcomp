@@ -26,6 +26,12 @@ class AchievementService {
     return this.mapEntity(entity);
   }
 
+  public async findOne(filters?: Partial<Achievement>): Promise<Achievement> {
+    const entity = await AchievementModel.findOne(filters);
+
+    return this.mapEntity(entity);
+  }
+
   public async count(filters?: Partial<Achievement>): Promise<number> {
     const count = await AchievementModel.count(filters);
 
@@ -58,7 +64,7 @@ class AchievementService {
 
   public async getUserAchievements(userId: string): Promise<(Achievement & { isEarned: boolean })[]> {
     const achievements = await this.find();
-    const userHouse = (await houseMemberService.find({ userId }))[0];
+    const userHouse = await houseMemberService.findOne({ userId });
     const userHouseAchievements = await houseAchievementService.find({ houseId: userHouse.id });
     const userAchievements = await userAchievementService.find({ userId });
 

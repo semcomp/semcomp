@@ -35,7 +35,7 @@ class AuthService {
   }
 
   public async signup(user: User, disabilities: Disability[]): Promise<User> {
-    const foundUser = (await userService.find({ email: user.email }))[0];
+    const foundUser = await userService.findOne({ email: user.email });
     if (foundUser) {
       throw new HttpError(401, []);
     }
@@ -126,7 +126,7 @@ class AuthService {
   }
 
   public async login(email: string, password: string): Promise<User> {
-    const foundUser = (await userService.find({ email }))[0];
+    const foundUser = await userService.findOne({ email });
     if (
       !foundUser ||
       !foundUser.password ||
@@ -139,7 +139,7 @@ class AuthService {
   }
 
   public async forgotPassword(email: string): Promise<User> {
-    const user = (await userService.find({ email }))[0];
+    const user = await userService.findOne({ email });
     if (!user || !user.password) {
       throw new HttpError(401, []);
     }
@@ -162,7 +162,7 @@ class AuthService {
   }
 
   public async resetPassword(email: string, code: string, password: string): Promise<User> {
-    const user = (await userService.find({ email }))[0];
+    const user = await userService.findOne({ email });
     if (
       !user ||
       !user.password ||
@@ -178,7 +178,7 @@ class AuthService {
   }
 
   public async authenticateUser(nusp: string, email: string, name: string): Promise<User> {
-    let currentUser = (await userService.find({ nusp, email }))[0];
+    let currentUser = await userService.findOne({ nusp, email });
 
     if (!currentUser) {
       currentUser = {

@@ -140,7 +140,7 @@ class HouseController {
         throw new createError.NotFound("Conquista não encontrada.");
       }
 
-      if ((await houseAchievementService.find({ houseId, achievementId }))[0]) {
+      if (await houseAchievementService.findOne({ houseId, achievementId })) {
         throw new createError.BadRequest("A casa já possui essa conquista.");
       }
 

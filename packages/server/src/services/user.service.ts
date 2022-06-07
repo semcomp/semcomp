@@ -57,6 +57,12 @@ class UserServiceImpl implements UserService {
     return entity && this.mapEntity(entity);
   }
 
+  public async findOne(filters?: Partial<User>): Promise<User> {
+    const entity = await UserModel.findOne(filters);
+
+    return this.mapEntity(entity);
+  }
+
   public async count(filters?: Partial<Filters>): Promise<number> {
     const count = await UserModel.count(filters);
 
@@ -99,8 +105,8 @@ class UserServiceImpl implements UserService {
   }
 
   async getUserHouse(userId: string): Promise<House> {
-    const userHouseMember = (await houseMemberService.find({ userId }))[0];
-    const userHouse = (await houseService.find({ id: userHouseMember.houseId }))[0];
+    const userHouseMember = await houseMemberService.findOne({ userId });
+    const userHouse = await houseService.findOne({ id: userHouseMember.houseId });
 
     return userHouse;
   }
@@ -115,15 +121,14 @@ class UserServiceImpl implements UserService {
     for (const user of users) {
       const userAchievementCount = await userAchievementService.count({ userId: user.id });
       for (const achievement of individualAchievements) {
-        const userAchievement = (await userAchievementService.find({ userId: user.id, achievementId: achievement.id }))[0];
-
+        const userAchievement = await userAchievementService.findOne({ userId: user.id, achievementId: achievement.id });
         if (userAchievement) {
           continue;
         }
 
         // Presença em Evento
         if (achievement.category === AchievementCategories.PRESENCA_EM_EVENTO) {
-          if ((await attendanceService.find({ eventId: achievement.eventId, userId: user.id }))[0]) {
+          if (await attendanceService.findOne({ eventId: achievement.eventId, userId: user.id })) {
             const newUserAchievement: UserAchievement = {
               achievementId: achievement.id,
               userId: user.id,
@@ -138,10 +143,10 @@ class UserServiceImpl implements UserService {
           for (const event of events) {
             if (
               event.type === achievement.eventType &&
-              (await attendanceService.find({
+              await attendanceService.findOne({
                 eventId: event.id,
-                userId: user.id.toString(),
-              }))[0]
+                userId: user.id,
+              })
             ) {
               i++;
             }

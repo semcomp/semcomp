@@ -23,6 +23,12 @@ class AttendanceService {
     return this.mapEntity(entity);
   }
 
+  public async findOne(filters?: Partial<Attendance>): Promise<Attendance> {
+    const entity = await AttendanceModel.findOne(filters);
+
+    return this.mapEntity(entity);
+  }
+
   public async count(filters?: Partial<Attendance>): Promise<number> {
     const count = await AttendanceModel.count(filters);
 
