@@ -21,6 +21,10 @@ const HomeHeader = (props) => {
       <div className="navbar-container">
         <NavBar user={props.user} />
       </div>
+      <div className="main-texts" >
+        <div className="semcomp-edition"><h1>SEMCOMP 25</h1></div>
+        <div className="beta-text"><h1>BETA</h1></div>
+      </div>
       <div className="text-container">
         <h1>
           A maior semana acadêmica de computação do Brasil!
