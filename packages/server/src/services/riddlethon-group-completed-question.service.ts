@@ -26,7 +26,7 @@ class RiddlethonGroupCompletedQuestionService {
   public async findOne(filters?: Partial<RiddlethonGroupCompletedQuestion>): Promise<RiddlethonGroupCompletedQuestion> {
     const entity = await RiddlethonGroupCompletedQuestionModel.findOne(filters);
 
-    return this.mapEntity(entity);
+    return entity && this.mapEntity(entity);
   }
 
   public async count(filters?: Partial<RiddlethonGroupCompletedQuestion>): Promise<number> {

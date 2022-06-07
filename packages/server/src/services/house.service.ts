@@ -33,7 +33,7 @@ class HouseService {
   public async findOne(filters?: Partial<House>): Promise<House> {
     const entity = await HouseModel.findOne(filters);
 
-    return this.mapEntity(entity);
+    return entity && this.mapEntity(entity);
   }
 
   public async count(filters?: Partial<House>): Promise<number> {

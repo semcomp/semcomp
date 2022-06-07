@@ -43,7 +43,7 @@ class RiddlethonQuestionService {
   public async findOne(filters?: Partial<Filters>): Promise<RiddlethonQuestion> {
     const entity = await RiddlethonQuestionModel.findOne(filters);
 
-    return this.mapEntity(entity);
+    return entity && this.mapEntity(entity);
   }
 
   public async count(filters?: Partial<Filters>): Promise<number> {

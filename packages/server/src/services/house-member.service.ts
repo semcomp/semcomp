@@ -28,7 +28,7 @@ class HouseMemberService {
   public async findOne(filters?: Partial<HouseMember>): Promise<HouseMember> {
     const entity = await HouseMemberModel.findOne(filters);
 
-    return this.mapEntity(entity);
+    return entity && this.mapEntity(entity);
   }
 
   public async count(filters?: Partial<HouseMember>): Promise<number> {

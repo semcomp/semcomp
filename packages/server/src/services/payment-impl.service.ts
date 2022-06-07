@@ -45,7 +45,7 @@ export default class PaymentServiceImpl implements PaymentService {
   public async findOne(filters?: Partial<Payment>): Promise<Payment> {
     const entity = await PaymentModel.findOne(filters);
 
-    return this.mapEntity(entity);
+    return entity && this.mapEntity(entity);
   }
 
   public async count(filters?: Partial<Payment>): Promise<number> {
