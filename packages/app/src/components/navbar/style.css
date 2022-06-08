@@ -26,10 +26,16 @@
     padding-bottom: 1rem;
   }
   .navbar-content > a > img {
-    margin-bottom: 1rem;
+    display: none;
   }
   .navbar-content > .links-container {
     flex-wrap: wrap;
     justify-content: center;
+  }
+}
+
+@media screen and (max-width: 640px){
+  .navbar-content > a > img {
+    display: none;
   }
 }

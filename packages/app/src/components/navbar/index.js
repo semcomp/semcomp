@@ -22,9 +22,10 @@ const Navbar = () => {
 
   return (
     <nav className="navbar-content">
-      <HashLink to={Routes.home + "#home-header"}>
+      <HashLink to={Routes.home}>
         <img alt="Semcomp logo" src={SemcompLogo} />
       </HashLink>
+
       <div className="links-container">
         {/* <Navlink
           style={{ color: "yellow" }}
@@ -34,6 +35,7 @@ const Navbar = () => {
         >
           Comprar camiseta
         </Navlink> */}
+        <Navlink href={Routes.home}>Início</Navlink>
         <Navlink href={Routes.home + "#about"}>Sobre nós</Navlink>
         {/* <Navlink
 					href={Routes.sponsors}
