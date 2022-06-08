@@ -6,7 +6,7 @@ import storage from "redux-persist/lib/storage";
 const persistConfig = {
   key: "root",
   storage,
-  version: 8, // Change the version to clear client state
+  version: 9, // Change the version to clear client state
   migrate: async (oldState, version) => {
     // If new version, clear state
     if (oldState._persist.version !== version) return {};
