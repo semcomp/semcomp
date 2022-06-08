@@ -147,7 +147,7 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
         </span>
         <span>
           {renderButtonIfHappening()}
-          {event.type === "Minicurso" && event.isSubscribed && (
+          {/* {event.type === "Minicurso" && event.isSubscribed && (
             <>
               <br />
               <button
@@ -162,7 +162,7 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
                 Enviar feedback
               </button>
             </>
-          )}
+          )} */}
           {event.type === "Contest" && event.isSubscribed && (
             <>
               <br />
