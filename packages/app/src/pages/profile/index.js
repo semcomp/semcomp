@@ -268,7 +268,7 @@ function Profile({ user }) {
               O que é o Overflow?
             </button>
           </div> */}
-          {/* <div className="user-house-card">
+          <div className="user-house-card">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Eventos
             </h1>
@@ -310,7 +310,7 @@ function Profile({ user }) {
                 Inscrever
               </button>
             }
-          </div> */}
+          </div>
           {/* <div className="user-house-card">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Conquistas

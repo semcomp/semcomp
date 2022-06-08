@@ -6,7 +6,7 @@
 
 .title {
   padding: 15px 0px;
-  background-color: var(--color-blue-secondary);
+  background-color: var(--color-blue-main);
   width: 100%;
   text-align: center;
   border-radius: 10px 10px 0 0;
@@ -41,7 +41,7 @@
 
 .item-title > div {
   padding: 0 15px;
-  color: white;
+  color: var(--color-black-main);
 }
 
 .item-radio > label > span:first-child {
