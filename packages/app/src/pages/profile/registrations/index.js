@@ -292,15 +292,19 @@ function Options({ item, type, fetchEvents }) {
             </FormControl>
           </Typography>
         </AccordionDetails>
-        <AccordionActions>
-          <LoadingButton
-            className="item-register"
-            type="submit"
-            isLoading={isUpdating}
-          >
-            Inscrever-se
-          </LoadingButton>
-        </AccordionActions>
+        {
+          !(item.events.find((event) => event.isSubscribed)) && (
+            <AccordionActions>
+              <LoadingButton
+                className="item-register"
+                type="submit"
+                isLoading={isUpdating}
+              >
+                Inscrever-se
+              </LoadingButton>
+            </AccordionActions>
+          )
+        }
       </Accordion>
     </form>
   );
