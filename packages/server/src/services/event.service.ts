@@ -13,30 +13,105 @@ import HttpError from "../lib/http-error";
 
 const idService = new IdServiceImpl();
 
+type Filters = {
+  id: string | string[];
+  name: string | string[];
+  description: string | string[];
+  speaker: string | string[];
+  link: string | string[];
+  maxOfSubscriptions: number | number[];
+  startDate: number | number[];
+  endDate: number | number[];
+  type: EventTypes | EventTypes[];
+  isInGroup: boolean | boolean[];
+  showOnSchedule: boolean | boolean[];
+  showOnSubscribables: boolean | boolean[];
+  showStream: boolean | boolean[];
+  needInfoOnSubscription: boolean | boolean[];
+  createdAt: number | number[];
+  updatedAt: number | number[];
+};
+
 class EventService {
+  public async find(filters?: Partial<Filters>): Promise<Event[]> {
+    const events = await EventModel.find(filters);
+
+    const entities: Event[] = [];
+    for (const event of events) {
+      entities.push(this.mapEntity(event));
+    }
+
+    return entities;
+  }
+
+  public async findById(id: string): Promise<Event> {
+    const entity = await EventModel.findOne({ id });
+
+    return this.mapEntity(entity);
+  }
+
+  public async count(filters?: Partial<Filters>): Promise<number> {
+    const count = await EventModel.count(filters);
+
+    return count;
+  }
+
+  public async create(event: Event): Promise<Event> {
+    event.id = await idService.create();
+    const entity = await EventModel.create(event);
+
+    return this.findById(entity.id);
+  }
+
+  public async update(event: Event): Promise<Event> {
+    const entity = await EventModel.findOneAndUpdate({ id: event.id }, event);
+
+    return this.findById(entity.id);
+  }
+
+  public async delete(event: Event): Promise<Event> {
+    const entity = await EventModel.findOneAndDelete({ id: event.id });
+
+    const attendances = await attendanceService.find({ eventId: event.id });
+    for (const attendance of attendances) {
+      await attendanceService.delete(attendance);
+    }
+
+    const subscriptions = await subscriptionService.find({ eventId: event.id });
+    for (const subscription of subscriptions) {
+      await subscriptionService.delete(subscription);
+    }
+
+    return entity && this.mapEntity(entity);
+  }
+
   public async getInfo(userId: string) {
-    const events = await EventModel.find({ showOnSchedule: true });
+    const events = await this.find({ showOnSchedule: true });
+    const userAttendances = await attendanceService.find({
+      userId,
+    });
+    const eventsSubscriptions = await subscriptionService.find();
 
     const eventsInfo = [];
     for (const event of events) {
       let hasAttend = false;
       let isSubscribed = false;
       if (userId) {
-        hasAttend = !!(await attendanceService.findOne({
-          userId,
-          eventId: event.id,
-        }));
-
-        isSubscribed = !!(await subscriptionService.findOne({
-          userId,
-          eventId: event.id,
-        }));
+        hasAttend = !!userAttendances.find((attendance) => attendance.eventId === event.id);
+        isSubscribed = !!eventsSubscriptions.find((subscription) => {
+          return subscription.eventId === event.id && subscription.userId === userId;
+        });
       }
 
+      const eventSubscriptionsCount = eventsSubscriptions.filter((subscription) => {
+        return subscription.eventId === event.id;
+      }).length;
+
       eventsInfo.push({
-        ...(this.mapEntity(event)),
+        ...event,
         hasAttend,
         isSubscribed,
+        subscriptionsCount: eventSubscriptionsCount,
       });
     }
 
@@ -44,7 +119,11 @@ class EventService {
   }
 
   public async getCurrent(userId: string) {
-    const events = await EventModel.find({ showStream: true });
+    const events = await this.find({ showStream: true });
+    const userAttendances = await attendanceService.find({
+      userId,
+    });
+    const eventsSubscriptions = await subscriptionService.find();
 
     let currentEvent;
     for (const event of events) {
@@ -57,21 +136,21 @@ class EventService {
         let hasAttend = false;
         let isSubscribed = false;
         if (userId) {
-          hasAttend = !!(await attendanceService.findOne({
-            userId,
-            eventId: event.id,
-          }));
-
-          isSubscribed = !!(await subscriptionService.findOne({
-            userId,
-            eventId: event.id,
-          }));
+          hasAttend = !!userAttendances.find((attendance) => attendance.eventId === event.id);
+          isSubscribed = !!eventsSubscriptions.find((subscription) => {
+            return subscription.eventId === event.id && subscription.userId === userId;
+          });
         }
 
+        const eventSubscriptionsCount = eventsSubscriptions.filter((subscription) => {
+          return subscription.eventId === event.id;
+        }).length;
+
         currentEvent = {
-          ...(this.mapEntity(event)),
+          ...event,
           hasAttend,
           isSubscribed,
+          subscriptionsCount: eventSubscriptionsCount,
         };
       }
     }
@@ -87,10 +166,14 @@ class EventService {
       CONTEST: EventTypes.CONTEST,
       RODA: EventTypes.RODA,
     };
-    const events = await EventModel.find({
-      type: { $in: Object.values(desiredEventTypesEnum) },
+    const events = await this.find({
+      type: Object.values(desiredEventTypesEnum),
       showOnSubscribables: true,
     });
+    const userAttendances = await attendanceService.find({
+      userId,
+    });
+    const eventsSubscriptions = await subscriptionService.find();
 
     const eventsInfo = [];
     for (const eventType of Object.values(desiredEventTypesEnum)) {
@@ -107,8 +190,8 @@ class EventService {
 
       let itemsOnThisHour = eventsInfoOfType.items.find((eventInfoOfType) => {
         return (
-          eventInfoOfType.startDate.getTime() === event.startDate.getTime() &&
-          eventInfoOfType.endDate.getTime() === event.endDate.getTime()
+          eventInfoOfType.startDate === event.startDate &&
+          eventInfoOfType.endDate === event.endDate
         );
       });
 
@@ -125,21 +208,21 @@ class EventService {
       let hasAttend = false;
       let isSubscribed = false;
       if (userId) {
-        hasAttend = !!(await attendanceService.findOne({
-          userId,
-          eventId: event.id,
-        }));
-
-        isSubscribed = !!(await subscriptionService.findOne({
-          userId,
-          eventId: event.id,
-        }));
+        hasAttend = !!userAttendances.find((attendance) => attendance.eventId === event.id);
+        isSubscribed = !!eventsSubscriptions.find((subscription) => {
+          return subscription.eventId === event.id && subscription.userId === userId;
+        });
       }
 
+      const eventSubscriptionsCount = eventsSubscriptions.filter((subscription) => {
+        return subscription.eventId === event.id;
+      }).length;
+
       itemsOnThisHour.events.push({
-        ...(this.mapEntity(event)),
+        ...event,
         hasAttend,
         isSubscribed,
+        subscriptionsCount: eventSubscriptionsCount,
       });
     }
 
@@ -179,9 +262,9 @@ class EventService {
       }
       await attendanceService.create(attendance);
 
-      await houseService.addHousePoints(userHouse, event.type === EventTypes.MINICURSO ? 30 : 10);
+      // await houseService.addHousePoints(userHouse, event.type === EventTypes.MINICURSO ? 30 : 10);
 
-      await userHouse.save();
+      // await userHouse.save();
 
       return { message: "Presença salva com sucesso!" };
     }
@@ -193,9 +276,9 @@ class EventService {
 
   public async subscribe(eventId: string, userId: string, info: object) {
     const event = await this.findById(eventId);
-    const numberOfSubscribes = await subscriptionService.count({ eventId });
+    const subscriptionsCount = await subscriptionService.count({ eventId });
 
-    if (numberOfSubscribes >= event.maxOfSubscriptions) {
+    if (subscriptionsCount >= event.maxOfSubscriptions) {
       throw new HttpError(400, ["O evento está cheio!"]);
     }
 
@@ -218,58 +301,6 @@ class EventService {
     await subscriptionService.delete(subscription);
 
     return { message: "Inscrição removida com sucesso!" };
-  }
-
-  public async find(filters?: Partial<Event>): Promise<Event[]> {
-    const events = await EventModel.find(filters);
-
-    const entities: Event[] = [];
-    for (const event of events) {
-      entities.push(this.mapEntity(event));
-    }
-
-    return entities;
-  }
-
-  public async findById(id: string): Promise<Event> {
-    const entity = await EventModel.findOne({ id });
-
-    return this.mapEntity(entity);
-  }
-
-  public async count(filters?: Partial<Event>): Promise<number> {
-    const count = await EventModel.count(filters);
-
-    return count;
-  }
-
-  public async create(event: Event): Promise<Event> {
-    event.id = await idService.create();
-    const entity = await EventModel.create(event);
-
-    return this.findById(entity.id);
-  }
-
-  public async update(event: Event): Promise<Event> {
-    const entity = await EventModel.findOneAndUpdate({ id: event.id }, event);
-
-    return this.findById(entity.id);
-  }
-
-  public async delete(event: Event): Promise<Event> {
-    const entity = await EventModel.findOneAndDelete({ id: event.id });
-
-    const attendances = await attendanceService.find({ eventId: event.id });
-    for (const attendance of attendances) {
-      await attendanceService.delete(attendance);
-    }
-
-    const subscriptions = await subscriptionService.find({ eventId: event.id });
-    for (const subscription of subscriptions) {
-      await subscriptionService.delete(subscription);
-    }
-
-    return entity && this.mapEntity(entity);
   }
 
   private mapEntity(entity: Model<Event> & Event): Event {
