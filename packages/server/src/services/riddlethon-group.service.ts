@@ -5,12 +5,17 @@ import RiddlethonGroup, { RiddlethonGroupModel } from "../models/riddlethon-grou
 import RiddlethonGroupMember from "../models/riddlethon-group-member";
 import User from "../models/user";
 import IdServiceImpl from "./id-impl.service";
+import riddlethonGroupCompletedQuestionService from "./riddlethon-group-completed-question.service";
 import riddlethonGroupMemberService from "./riddlethon-group-member.service";
+import riddlethonQuestionService from "./riddlethon-question.service";
 import userService from "./user.service";
 
 const idService = new IdServiceImpl();
 
 const MAX_MEMBERS_IN_GROUP = 3;
+const MAX_MEMBERS = 30;
+
+type RiddlethonGroupWithInfo = RiddlethonGroup & { members: Partial<User>[], completedQuestionIndexes: number[] };
 
 class RiddlethonGroupService {
   public async find(filters?: Partial<RiddlethonGroup>): Promise<RiddlethonGroup[]> {
@@ -43,6 +48,7 @@ class RiddlethonGroupService {
   }
 
   public async create(riddlethonGroup: RiddlethonGroup): Promise<RiddlethonGroup> {
+    await this.verifyMaxMembers();
     const groupFound = await RiddlethonGroupModel.findOne({ name: riddlethonGroup.id });
     if (groupFound) {
       throw new HttpError(400, []);
@@ -82,10 +88,10 @@ class RiddlethonGroupService {
     return group;
   }
 
-  public async findUserGroupWithMembers(userId: string): Promise<RiddlethonGroup & { members: Partial<User>[] }> {
+  public async findUserGroupWithMembers(userId: string): Promise<RiddlethonGroupWithInfo> {
     const userMembership = await riddlethonGroupMemberService.findOne({ userId });
     if (!userMembership) {
-      throw new HttpError(404, []);
+      return null;
     }
 
     const group = await this.findOne({ id: userMembership.riddlethonGroupId });
@@ -98,13 +104,12 @@ class RiddlethonGroupService {
       id: groupMemberships.map((groupMembership) => groupMembership.userId),
     });
 
-    return {
-      ...group,
-      members: members.map((member) => userService.minimalMapEntity(member)),
-    };
+    return await this.findGroupWithInfo(group.id);
   }
 
-  public async join(userId: string, riddlethonGroupId: string): Promise<RiddlethonGroupMember> {
+  public async join(userId: string, riddlethonGroupId: string): Promise<RiddlethonGroupWithInfo> {
+    await this.verifyMaxMembers();
+
     const groupMembers = await riddlethonGroupMemberService.find({ riddlethonGroupId });
     if (
       groupMembers.find((groupMember) => groupMember.id === userId) ||
@@ -117,9 +122,9 @@ class RiddlethonGroupService {
       riddlethonGroupId,
       userId,
     };
-    const joinedGroupMembership = await riddlethonGroupMemberService.create(riddlethonGroupMember);
+    await riddlethonGroupMemberService.create(riddlethonGroupMember);
 
-    return joinedGroupMembership;
+    return await this.findGroupWithInfo(riddlethonGroupId);
   }
 
   public async leave(userId: string): Promise<RiddlethonGroupMember> {
@@ -131,6 +136,36 @@ class RiddlethonGroupService {
     await riddlethonGroupMemberService.delete(groupMembership);
 
     return groupMembership;
+  }
+
+  private async verifyMaxMembers(): Promise<void> {
+    const membershipCount = await riddlethonGroupMemberService.count();
+    if (membershipCount >= MAX_MEMBERS) {
+      throw new HttpError(418, []);
+    }
+  }
+
+  private async findGroupWithInfo(riddlethonGroupId: string): Promise<RiddlethonGroupWithInfo> {
+    const group = await this.findOne({ id: riddlethonGroupId });
+    if (!group) {
+      return null;
+    }
+
+    const groupMemberships = await riddlethonGroupMemberService.find({ riddlethonGroupId: group.id });
+    const members = await userService.find({
+      id: groupMemberships.map((groupMembership) => groupMembership.userId),
+    });
+
+    const completedQuestions = await riddlethonGroupCompletedQuestionService.find({ riddlethonGroupId: group.id });
+    const completedQuestionss = await riddlethonQuestionService.find({
+      id: completedQuestions.map((question) => question.riddlethonQuestionId)
+    });
+
+    return {
+      ...group,
+      members: members.map((member) => userService.minimalMapEntity(member)),
+      completedQuestionIndexes: completedQuestionss.map((question) => question.index),
+    };
   }
 
   private mapEntity(entity: Model<RiddlethonGroup> & RiddlethonGroup): RiddlethonGroup {

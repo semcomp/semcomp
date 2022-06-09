@@ -1,10 +1,10 @@
 import React from "react";
 
-import TextField from "@mui/material";
+import TextField from '@mui/material/TextField';
 import {
   Done,
-  NavigateNextSharp,
-  NavigateBeforeSharp,
+  NavigateNext,
+  NavigateBefore,
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
 
