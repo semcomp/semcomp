@@ -12,7 +12,7 @@ function HardToClickStart() {
 
   return (
     <div className="HardToClick-page__card-content">
-      {/* 
+      {/*
         <br />
         Bem-vindo ao Duro de Clicar! Entre em um grupo com seus amigos e tente resolver os
         mapas!

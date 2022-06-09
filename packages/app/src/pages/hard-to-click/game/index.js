@@ -1,10 +1,10 @@
 import React from "react";
 
-import { TextField } from "@mui/material";
+import TextField from '@mui/material/TextField';
 import {
-  DoneAll,
-  NavigateNextSharp,
-  NavigateBeforeSharp,
+  Done,
+  NavigateNext,
+  NavigateBefore,
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
 
@@ -93,7 +93,7 @@ function Question({ questionIndex, onCorrectAnswer }) {
         />
       );
     else if (wasCorrectlyAnswered) {
-      return <DoneAll className="mr-2" htmlColor="#28a745" />;
+      return <Done className="mr-2" htmlColor="#28a745" />;
     } else return null;
   }
 
@@ -200,7 +200,7 @@ function HardToClick() {
       <div className={styles.container}>
         <div className={styles.toolbar}>
           {canRenderNavicatioPrevArrow() ? (
-            <NavigateBeforeSharp
+            <NavigateBefore
               onClick={prevQuestion}
               className="cursor-pointer mr-4"
             />
@@ -211,7 +211,7 @@ function HardToClick() {
             {currentQuestionIndex + 1}/{NUMBER_OF_QUESTIONS}
           </p>
           {canRenderNavicationNextArrow() ? (
-            <NavigateNextSharp
+            <NavigateNext
               onClick={nextQuestion}
               className="cursor-pointer ml-4"
             />

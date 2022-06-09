@@ -1,51 +1,54 @@
 import { Router } from "express";
-import { body } from "express-validator";
+import { param, body } from "express-validator";
 
 import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
-import * as AdminHardToClickQuestionsController from "../../controllers/admin/hard-to-click-question.controller";
+import adminHardToClickQuestionsController from "../../controllers/admin/hard-to-click-question.controller";
 
 const router = Router();
 
 router.get(
   "/",
   [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  AdminHardToClickQuestionsController.list
-);
-
-router.get(
-  "/:id",
-  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  AdminHardToClickQuestionsController.get
+  adminHardToClickQuestionsController.list
 );
 
 router.post(
   "/",
   [
     body("index", "Invalid field 'index'").not().isEmpty(),
+    body("title", "Invalid field 'title'").not().isEmpty(),
     body("question", "Invalid field 'question'").not().isEmpty(),
     body("answer", "Invalid field 'answer'").not().isEmpty(),
+    body("isLegendary", "Invalid field 'isLegendary'").not().isEmpty(),
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],
-  AdminHardToClickQuestionsController.create
+  adminHardToClickQuestionsController.create
 );
 
 router.put(
   "/:id",
   [
+    param("id", "Invalid field 'id'").not().isEmpty(),
     body("index", "Invalid field 'index'").not().isEmpty(),
+    body("title", "Invalid field 'title'").not().isEmpty(),
     body("question", "Invalid field 'question'").not().isEmpty(),
     body("answer", "Invalid field 'answer'").not().isEmpty(),
+    body("isLegendary", "Invalid field 'isLegendary'").not().isEmpty(),
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],
-  AdminHardToClickQuestionsController.update
+  adminHardToClickQuestionsController.updateById
 );
 
 router.delete(
   "/:id",
-  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  AdminHardToClickQuestionsController.deleteById
+  [
+    param("id", "Invalid field 'id'").not().isEmpty(),
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+  ],
+  adminHardToClickQuestionsController.deleteById
 );
 
 export default router;

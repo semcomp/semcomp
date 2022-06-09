@@ -1,9 +1,7 @@
 import React from "react";
-
+import { useTeam, useSocket } from "..";
 import { TextField } from "@mui/material";
 import { useSelector } from "react-redux";
-
-import { useTeam, useSocket } from "..";
 import Spinner from "../../../components/spinner";
 import { EVENTS_PREFIX } from "../../../constants/hard-to-click";
 

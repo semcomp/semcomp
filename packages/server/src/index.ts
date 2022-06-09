@@ -15,7 +15,7 @@ import cookieParser from "cookie-parser";
 
 // import {riddleController} from './controllers/riddle/riddle.controller';
 import RiddlethonController from './controllers/riddlethon/riddlethon.controller';
-// import {hardToClickController} from './controllers/hard-to-click/hard-to-click.controller';
+import HardToClickController from './controllers/hard-to-click/hard-to-click.controller';
 import AuthController from "./controllers/auth.controller";
 // import houseService from "./services/house.service";
 // import userService from "./services/user.service";
@@ -52,7 +52,7 @@ const io = new Server(httpServer, { cors: corsConfig });
 
 // riddleController(io);
 new RiddlethonController(io);
-// hardToClickController(io);
+new HardToClickController(io);
 
 app.use(cors(corsConfig));
 

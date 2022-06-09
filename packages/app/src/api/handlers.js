@@ -87,9 +87,15 @@ const Handlers = {
   hardToClick: {
     createTeam: withCustomError(
       (teamName) => API.post("/hard-to-click/group", { name: teamName }),
-      { 400: "Este nome já existe!" }
+      {
+        400: "Este nome já existe!",
+        418: `O limite de jogadores já foi atingido`,
+      }
     ),
-    joinTeam: (teamId) => API.put("/hard-to-click/group/join?id=" + teamId),
+    joinTeam: withCustomError(
+      (teamId) => API.put("/hard-to-click/group/join?id=" + teamId),
+      {418: `O limite de jogadores já foi atingido`},
+    ),
     leaveTeam: () => API.put("/hard-to-click/group/leave"),
 
     getQuestion: (questionIndex) =>

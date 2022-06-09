@@ -1,130 +1,103 @@
-import HardToClickQuestionModel from "../../models/hard-to-click-question";
-
-import HttpError from "../../lib/http-error";
-import adminLogService from "../../services/admin-log.service";
 import AdminLog from "../../models/admin-log";
 
-export const list = async (req, res) => {
-  const questionsFound = await HardToClickQuestionModel.find();
+import {
+  handleValidationResult,
+} from "../../lib/handle-validation-result";
+import { handleError } from "../../lib/handle-error";
+import HttpError from "../../lib/http-error";
+import adminLogService from "../../services/admin-log.service";
+import hardToClickQuestionService from "../../services/hard-to-click-question.service";
 
-  return res.status(200).json(questionsFound);
-};
+const RESOURCE = 'hardToClick-question';
 
-export const get = async (req, res) => {
-  try {
-    const { id } = req.params;
+class HardToClickQuestionController {
+  public async list(req, res, next) {
+    try {
+      const entities = await hardToClickQuestionService.find();
 
-    const questionFound = await HardToClickQuestionModel.findById(id);
-    if (!questionFound) {
-      throw new HttpError(404, ["Pergunta não encontrada."]);
+      return res.status(200).json(entities);
+    } catch (error) {
+      return handleError(error, next);
     }
+  };
 
-    return res.status(200).json(questionFound);
-  } catch (e) {
-    if (e.statusCode) {
-      return res.status(e.statusCode).json(e);
+  public async create(req, res, next) {
+    try {
+      handleValidationResult(req);
+
+      const entity = await hardToClickQuestionService.findOne({ index: req.body.index });
+      if (entity) {
+        throw new HttpError(401, []);
+      }
+
+      const createdEntity = await hardToClickQuestionService.create(req.body);
+
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
+        type: "create",
+        collectionName: RESOURCE,
+        objectAfter: JSON.stringify(createdEntity),
+      };
+      await adminLogService.create(adminLog);
+
+      return res.status(200).send(createdEntity);
+    } catch (error) {
+      return handleError(error, next);
     }
-    return res.status(500).json(e);
-  }
-};
+  };
 
-export const create = async (req, res) => {
-  try {
-    const { index, question, imgUrl, answer } = req.body;
+  public async updateById(req, res, next) {
+    try {
+      const { id } = req.params;
 
-    const questionFound = await HardToClickQuestionModel.findOne({ index });
-    if (questionFound) {
-      throw new HttpError(400, ["Pergunta já existente."]);
+      const entity = await hardToClickQuestionService.findById(id);
+
+      for (const key of Object.keys(req.body)) {
+        if (req.body[key] !== undefined) {
+          entity[key] = req.body[key];
+        }
+      }
+
+      const updatedEntity = await hardToClickQuestionService.update(entity);
+
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
+        type: "update",
+        collectionName: RESOURCE,
+        objectAfter: JSON.stringify(updatedEntity),
+      };
+      await adminLogService.create(adminLog);
+
+      return res.status(200).send(updatedEntity);
+    } catch (error) {
+      return handleError(error, next);
     }
+  };
 
-    const createdQuestion = new HardToClickQuestionModel({
-      index,
-      question,
-      imgUrl,
-      answer,
-    });
-    await createdQuestion.save();
+  public async deleteById(req, res, next) {
+    try {
+      const { id } = req.params;
 
-    const adminLog: AdminLog = {
-      adminId: req.adminUser.id,
-      type: "create",
-      collectionName: "hard-to-click-question",
-      objectAfter: JSON.stringify(createdQuestion),
-    };
-    await adminLogService.create(adminLog);
+      const entity = await hardToClickQuestionService.findById(id);
+      if (!entity) {
+        throw new HttpError(404, []);
+      }
 
-    return res.status(200).send(createdQuestion);
-  } catch (e) {
-    if (e.statusCode) {
-      return res.status(e.statusCode).json(e);
+      await hardToClickQuestionService.delete(entity);
+
+      const adminLog: AdminLog = {
+        adminId: req.adminUser.id,
+        type: "delete",
+        collectionName: RESOURCE,
+        objectBefore: JSON.stringify(entity),
+      };
+      await adminLogService.create(adminLog);
+
+      return res.status(200).send(entity);
+    } catch (error) {
+      return handleError(error, next);
     }
-    return res.status(500).json(e);
-  }
-};
+  };
+}
 
-export const update = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { index, question, imgUrl, answer } = req.body;
-
-    const questionFound = await HardToClickQuestionModel.findById(id);
-    if (!questionFound) {
-      throw new HttpError(404, ["Pergunta não encontrada"]);
-    }
-
-    const updatedQuestion = await HardToClickQuestionModel.findByIdAndUpdate(
-      id,
-      {
-        index,
-        question,
-        imgUrl,
-        answer,
-      },
-      { new: true }
-    );
-
-    const adminLog: AdminLog = {
-      adminId: req.adminUser.id,
-      type: "update",
-      collectionName: "hard-to-click-question",
-      objectBefore: JSON.stringify(questionFound),
-      objectAfter: JSON.stringify(updatedQuestion),
-    };
-    await adminLogService.create(adminLog);
-
-    return res.status(200).send(updatedQuestion);
-  } catch (e) {
-    if (e.statusCode) {
-      return res.status(e.statusCode).json(e);
-    }
-    return res.status(500).json(e);
-  }
-};
-
-export const deleteById = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const questionFound = await HardToClickQuestionModel.findById(id);
-    if (!questionFound) {
-      throw new HttpError(404, ["Pergunta não encontrada."]);
-    }
-
-    await HardToClickQuestionModel.findByIdAndDelete(id);
-
-    const adminLog: AdminLog = {
-      adminId: req.adminUser.id,
-      type: "delete",
-      collectionName: "hard-to-click-question",
-      objectBefore: JSON.stringify(questionFound),
-    };
-    await adminLogService.create(adminLog);
-
-    return res.status(200).send(questionFound);
-  } catch (e) {
-    if (e.statusCode) {
-      return res.status(e.statusCode).json(e);
-    }
-    return res.status(500).json(e);
-  }
-};
+export default new HardToClickQuestionController();
