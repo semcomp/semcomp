@@ -191,8 +191,6 @@ function Options({ item, type, fetchEvents }) {
     setFormValue({ ...formValue, ...newValue });
   }
 
-  console.log(item);
-
   return (
     <form onSubmit={handleSubmit}>
       {item.events.map((occasion, j) => (
