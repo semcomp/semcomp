@@ -7,6 +7,7 @@ enum EventTypes {
   GAME_NIGHT = "Game Night",
   CONCURSO = "Concurso",
   CONTEST = "Contest",
+  CULTURAL = "Cultural"
 }
 
 export default EventTypes;
