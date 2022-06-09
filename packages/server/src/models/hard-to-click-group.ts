@@ -1,35 +1,51 @@
 import Mongoose from "mongoose";
 
-const ObjectID = Mongoose.Schema.Types.ObjectId;
+type HardToClickGroup = {
+  id?: string;
+  name: string;
+  availableClues?: number;
+  availableSkips?: number;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export default HardToClickGroup;
 
 const HardToClickGroupSchema = new Mongoose.Schema(
   {
+    id: {
+      type: String,
+      unique: true,
+      required: true,
+      index: true,
+    },
     name: {
       type: String,
       unique: true,
       required: true,
       trim: true,
     },
-    members: [
-      {
-        type: ObjectID,
-        ref: "user",
-      },
-    ],
-    completedQuestionsIndexes: {
-      type: Array,
-      default: [],
+    availableClues: {
+      type: Number,
+      default: 0,
+    },
+    availableSkips: {
+      type: Number,
+      default: 0,
     },
     createdAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
     updatedAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
   },
   { collection: "hard-to-click-group" }
 );
 
-export default Mongoose.model("hard-to-click-group", HardToClickGroupSchema);
+export const HardToClickGroupModel = Mongoose.model(
+  "hard-to-click-group",
+  HardToClickGroupSchema,
+);

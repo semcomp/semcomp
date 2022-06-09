@@ -15,7 +15,7 @@ const idService = new IdServiceImpl();
 const MAX_MEMBERS_IN_GROUP = 3;
 const MAX_MEMBERS = 30;
 
-type RiddlethonGroupWithInfo = RiddlethonGroup & { members: Partial<User>[], completedQuestionIndexes: number[] };
+type RiddlethonGroupWithInfo = RiddlethonGroup & { members: Partial<User>[], completedQuestionsIndexes: number[] };
 
 class RiddlethonGroupService {
   public async find(filters?: Partial<RiddlethonGroup>): Promise<RiddlethonGroup[]> {
@@ -57,9 +57,9 @@ class RiddlethonGroupService {
     riddlethonGroup.id = await idService.create();
     riddlethonGroup.availableClues = 0;
     riddlethonGroup.availableSkips = 0;
-    const entity = await RiddlethonGroupModel.create(riddlethonGroup);
+    await RiddlethonGroupModel.create(riddlethonGroup);
 
-    return this.findById(entity.id);
+    return await this.findGroupWithInfo(riddlethonGroup.id);
   }
 
   public async update(riddlethonGroup: RiddlethonGroup): Promise<RiddlethonGroup> {
@@ -94,17 +94,7 @@ class RiddlethonGroupService {
       return null;
     }
 
-    const group = await this.findOne({ id: userMembership.riddlethonGroupId });
-    if (!group) {
-      throw new HttpError(404, []);
-    }
-
-    const groupMemberships = await riddlethonGroupMemberService.find({ riddlethonGroupId: group.id });
-    const members = await userService.find({
-      id: groupMemberships.map((groupMembership) => groupMembership.userId),
-    });
-
-    return await this.findGroupWithInfo(group.id);
+    return await this.findGroupWithInfo(userMembership.riddlethonGroupId);
   }
 
   public async join(userId: string, riddlethonGroupId: string): Promise<RiddlethonGroupWithInfo> {
@@ -164,7 +154,7 @@ class RiddlethonGroupService {
     return {
       ...group,
       members: members.map((member) => userService.minimalMapEntity(member)),
-      completedQuestionIndexes: completedQuestionss.map((question) => question.index),
+      completedQuestionsIndexes: completedQuestionss.map((question) => question.index),
     };
   }
 

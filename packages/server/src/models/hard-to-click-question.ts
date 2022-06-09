@@ -1,10 +1,35 @@
 import Mongoose from "mongoose";
 
+type HardToClickQuestion = {
+  id?: string;
+  index: number;
+  title: string;
+  question: string;
+  imgUrl: string;
+  clue: string;
+  answer: string;
+  isLegendary: boolean;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export default HardToClickQuestion;
+
 const HardToClickQuestionSchema = new Mongoose.Schema(
   {
+    id: {
+      type: String,
+      unique: true,
+      required: true,
+      index: true,
+    },
     index: {
       type: Number,
       unique: true,
+      required: true,
+    },
+    title: {
+      type: String,
       required: true,
     },
     question: {
@@ -13,25 +38,31 @@ const HardToClickQuestionSchema = new Mongoose.Schema(
     },
     imgUrl: {
       type: String,
-      required: true,
+    },
+    clue: {
+      type: String,
     },
     answer: {
       type: String,
       required: true,
     },
+    isLegendary: {
+      type: Mongoose.Schema.Types.Boolean,
+      default: false,
+    },
     createdAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
     updatedAt: {
-      type: Date,
+      type: Number,
       default: Date.now(),
     },
   },
   { collection: "hard-to-click-question" }
 );
 
-export default Mongoose.model(
+export const HardToClickQuestionModel = Mongoose.model(
   "hard-to-click-question",
-  HardToClickQuestionSchema
+  HardToClickQuestionSchema,
 );

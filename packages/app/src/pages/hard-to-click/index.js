@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { Switch, Route, Redirect, useHistory } from "react-router-dom";
 
 import IOSocket from "socket.io-client";
-import { useSelector } from "react-redux";
 
 import HardToClickStart from "./start";
 import HardToClickLobby from "./lobby";
@@ -10,15 +9,14 @@ import HardToClickJoinTeam from "./join/join";
 import HardToClickCreateTeam from "./create";
 import HardToClickLink from "./link";
 import HardToClickGame from "./game";
-import HardToClickQuestion from "./question";
 import HardToClickEnd from "./end";
 
 // import ChatApp from './chat';
 
-// import VerticalStepper from '../../components/verticalStepper';
 import Header from "../../components/header";
 import Footer from "../../components/footer";
 import { baseURL } from "../../constants/api-url";
+import { useSelector } from "react-redux";
 import { EVENTS_PREFIX, END_DATE } from "../../constants/hard-to-click";
 
 import "./style.css";
@@ -30,7 +28,6 @@ export const HardToClickRoutes = {
   createTeam: "/duro-de-clicar/criar",
   link: "/duro-de-clicar/link",
   game: "/duro-de-clicar/jogo",
-  question: "/duro-de-clicar/question/",
   end: "/duro-de-clicar/fim",
 };
 
@@ -127,11 +124,6 @@ export function useTeam() {
 
 function HardToClick() {
   const [isHappening, setIsHappening] = React.useState(verifyIfIsHappening());
-  const [collapseButton, setCollapseButton] = useState(true);
-
-  const handleCollapse = () => {
-    setCollapseButton(!collapseButton);
-  };
 
   function verifyIfIsHappening() {
     if (new Date(Math.max(Date.now() - END_DATE, 0)).getTime() > 0) {
@@ -194,11 +186,6 @@ function HardToClick() {
                       exact
                       path={HardToClickRoutes.link}
                       component={HardToClickLink}
-                    />
-                    <Route
-                      exact
-                      path={HardToClickRoutes.question}
-                      component={HardToClickQuestion}
                     />
                     <Route
                       exact

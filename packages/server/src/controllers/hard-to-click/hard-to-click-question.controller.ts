@@ -1,54 +1,24 @@
-import createError from "http-errors";
-
-import HardToClickGroupModel from "../../models/hard-to-click-group";
-import HardToClickQuestionModel from "../../models/hard-to-click-question";
-
+import {
+  handleValidationResult,
+} from "../../lib/handle-validation-result";
 import { handleError } from "../../lib/handle-error";
+import hardToClickQuestionService from "../../services/hard-to-click-question.service";
 
-const hardToClickQuestionController = {
-  getQuestion: async (req, res, next) => {
+class HardToClickQuestionController {
+  public async getQuestion(req, res, next) {
     try {
-      const { id } = req.params;
+      handleValidationResult(req);
+
+      const { index } = req.params;
       const { user } = req;
 
-      const groupFound = await HardToClickGroupModel.findOne({
-        members: user._id,
-      });
-      if (!groupFound) {
-        throw new createError.BadRequest();
-      }
+      const foundQuestion = await hardToClickQuestionService.getCompletedQuestion(user.id, index);
 
-      const completedQuestions = groupFound.completedQuestionsIndexes;
-
-      const foundQuestion = await HardToClickQuestionModel.findOne({
-        index: id,
-      });
-      if (!foundQuestion) {
-        throw new createError.NotFound();
-      }
-
-      const isFirstQuestion = +id === 0;
-      const actualQuestion = completedQuestions.length;
-      const isQuestionCompleted = actualQuestion > +id;
-      const isQuestionInProgress = actualQuestion === +id;
-      if (!isQuestionCompleted && !isQuestionInProgress && !isFirstQuestion) {
-        throw new createError.Forbidden();
-      }
-
-      return res.status(200).json({
-        index: foundQuestion.index,
-        title: foundQuestion.title,
-        question: foundQuestion.question,
-        imgUrl: foundQuestion.imgUrl,
-        answer:
-          isQuestionInProgress || (isFirstQuestion && !isQuestionCompleted)
-            ? null
-            : foundQuestion.answer,
-      });
+      return res.status(200).json(foundQuestion);
     } catch (error) {
       return handleError(error, next);
     }
-  },
-};
+  };
+}
 
-export default hardToClickQuestionController;
+export default new HardToClickQuestionController();
