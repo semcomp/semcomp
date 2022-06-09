@@ -12,7 +12,7 @@ import "./style.css";
 function Message({ message }) {
   const me = useSelector((state) => state.auth.user);
 
-  const AmITheSender = me.id === message.user._id;
+  const AmITheSender = me.id === message.user.id;
   const sentDate = new Date(message.createdAt);
 
   return (
