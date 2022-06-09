@@ -44,7 +44,7 @@ function Livestream() {
   const [waitTime, setWaitTime] = React.useState(timeUntilCanMarkPresence / 60);
 
   function fetchSavedTimePresent(event) {
-    const storageValue = localStorage.getItem(`${event._id}pre`);
+    const storageValue = localStorage.getItem(`${event.id}pre`);
 
     if (storageValue) {
       const presence = JSON.parse(storageValue);
@@ -89,11 +89,11 @@ function Livestream() {
 
       if (event && timePresent > 0 && timePresent % 60 === 0) {
         const presence = JSON.stringify(
-          localStorage.getItem(`${event._id}pre`)
+          localStorage.getItem(`${event.id}pre`)
         );
 
         if (parseInt(presence.replace(/"/g, "")) !== timePresent) {
-          localStorage.setItem(`${event._id}pre`, JSON.stringify(timePresent));
+          localStorage.setItem(`${event.id}pre`, JSON.stringify(timePresent));
           setWaitTime(waitTime - 1);
         }
       }
@@ -125,10 +125,10 @@ function Livestream() {
 
   async function handlePresenceClick() {
     try {
-      await API.events.markPresence(event._id);
+      await API.events.markPresence(event.id);
       toast.success("Presença confirmada com sucesso!");
       setPresenceClicked(true);
-      localStorage.removeItem(`${event._id}pre`);
+      localStorage.removeItem(`${event.id}pre`);
     } catch (e) {
       console.error(e);
     }

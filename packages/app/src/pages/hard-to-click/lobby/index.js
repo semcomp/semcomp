@@ -173,7 +173,7 @@ function HardToClickLobby() {
 
   function createInviteLink() {
     return (
-      window.location.origin + HardToClickRoutes.link + "?teamid=" + team._id
+      window.location.origin + HardToClickRoutes.link + "?teamid=" + team.id
     );
   }
 
@@ -185,7 +185,7 @@ function HardToClickLobby() {
         </div>
       );
     return team.members.map((mate) => (
-      <Teammate name={mate.name} key={mate._id} thisIsMe={mate._id === me.id} />
+      <Teammate name={mate.name} key={mate.id} thisIsMe={mate.id === me.id} />
     ));
   }
 

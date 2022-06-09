@@ -76,7 +76,7 @@ const EventsCalendar = () => {
 
   function handlePresenceSubmited(eventId) {
     const newEvents = events.map((event) => {
-      if (event._id === eventId) {
+      if (event.id === eventId) {
         return { ...event, wasPresent: true };
       } else {
         return event;
@@ -108,7 +108,7 @@ const EventsCalendar = () => {
 
   const curEventList = splittedEventList[curPage].map((event) => (
     <Event
-      key={event._id}
+      key={event.id}
       event={event}
       onPresenceSubmited={handlePresenceSubmited}
       isUserLoggedIn={isUserLoggedIn}

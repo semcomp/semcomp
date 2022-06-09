@@ -59,9 +59,9 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
 
   async function handlePresenceClick() {
     try {
-      await API.events.markPresence(event._id);
+      await API.events.markPresence(event.id);
       toast.success("Presença confirmada com sucesso!");
-      if (onPresenceSubmited) onPresenceSubmited(event._id);
+      if (onPresenceSubmited) onPresenceSubmited(event.id);
     } catch (e) {
       console.error(e);
     }
