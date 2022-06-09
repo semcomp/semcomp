@@ -9,7 +9,7 @@ import HomeHeader from "./header";
 import Schedule from "./schedule";
 import FAQ from "./faq";
 import LiveNow from "./live-now";
-// import Sponsors from "./sponsors";
+import Sponsors from "./sponsors";
 // import Stats from "./stats";
 
 function Home() {
@@ -23,7 +23,7 @@ function Home() {
         {/* <About /> */}
         <Schedule />
         <AboutBeta />
-        {/* <Sponsors /> */}
+        <Sponsors />
         <FAQ />
         <Footer />
       </div>
