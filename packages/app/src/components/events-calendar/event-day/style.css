@@ -14,9 +14,9 @@
 }
 
 .day-button-pressed {
-  border: 1px solid var(--color-blue-main);
+  border: 1px solid var(--color-green);
   margin: 10px;
-  background-color: var(--color-blue-main);
+  background-color: var(--color-green);
   color: white;
   padding: 5px;
   transition-duration: 0.4s;
