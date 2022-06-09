@@ -1,5 +1,5 @@
 import express from "express";
-import http from "http";
+import { createServer } from "http";
 import { Server } from "socket.io";
 import mongoose from "mongoose";
 import morgan from "morgan";
@@ -47,7 +47,7 @@ const corsConfig = {
   credentials: true,
 };
 
-const httpServer = http.createServer(app);
+const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: corsConfig });
 
 // riddleController(io);
