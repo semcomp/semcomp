@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Button, Dialog } from "@mui/material";
-import { CloseSharp } from "@mui/icons-material";
+import CloseIcon from '@mui/icons-material/Close';
 
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";

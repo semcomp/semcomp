@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Button, Dialog } from "@mui/material";
-import { Close } from "@mui/icons-material";
+import CloseIcon from '@mui/icons-material/Close';
 
 import { useHistory } from "react-router-dom";
 
@@ -173,7 +173,7 @@ function RiddlethonLobby() {
 
   function createInviteLink() {
     return (
-      window.location.origin + RiddlethonRoutes.link + "?teamid=" + team._id
+      window.location.origin + RiddlethonRoutes.link + "?teamid=" + team.id
     );
   }
 
@@ -185,7 +185,7 @@ function RiddlethonLobby() {
         </div>
       );
     return team.members.map((mate) => (
-      <Teammate name={mate.name} key={mate._id} thisIsMe={mate._id === me.id} />
+      <Teammate name={mate.name} key={mate.id} thisIsMe={mate.id === me.id} />
     ));
   }
 

@@ -72,10 +72,14 @@ const Handlers = {
       (teamName) => API.post("/riddlethon/group", { name: teamName }),
       {
         400: "Este nome já existe!",
+        418: `O limite de jogadores já foi atingido`,
       }
     ),
-    joinTeam: (teamId) => API.put("/riddlethon/group/join?id=" + teamId),
-    leaveTeam: () => API.put("/riddlethon/group/leave"),
+    joinTeam: withCustomError(
+      (teamId) => API.put("/riddlethon/group/join?id=" + teamId),
+      {418: `O limite de jogadores já foi atingido`},
+    ),
+    leaveTeam: withCustomError(() => API.put("/riddlethon/group/leave"), ),
 
     getQuestion: (questionIndex) =>
       API.get("riddlethon/question/" + questionIndex),
