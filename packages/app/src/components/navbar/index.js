@@ -48,12 +48,12 @@ const Navbar = () => {
             {/* <Navlink
               href={Routes.riddle}
             >Riddle</Navlink> */}
-            {/* <Navlink
+            <Navlink
               href={Routes.riddlethon}
             >Riddlethon</Navlink>
             <Navlink
               href={Routes.hardToClick}
-            >Duro de Clicar</Navlink> */}
+            >Duro de Clicar</Navlink>
             <Navlink href={Routes.profile}>Perfil</Navlink>
             <Navlink onClick={logUserOut} href={Routes.home}>
               Sair

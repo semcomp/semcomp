@@ -1,9 +1,7 @@
 import React from "react";
-
+import { useTeam, useSocket } from "..";
 import { TextField } from "@mui/material";
 import { useSelector } from "react-redux";
-
-import { useTeam, useSocket } from "..";
 import Spinner from "../../../components/spinner";
 import { EVENTS_PREFIX } from "../../../constants/hard-to-click";
 
@@ -12,7 +10,7 @@ import "./style.css";
 function Message({ message }) {
   const me = useSelector((state) => state.auth.user);
 
-  const AmITheSender = me.id === message.user._id;
+  const AmITheSender = me.id === message.user.id;
   const sentDate = new Date(message.createdAt);
 
   return (

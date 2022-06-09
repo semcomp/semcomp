@@ -191,27 +191,33 @@ function Options({ item, type, fetchEvents }) {
     setFormValue({ ...formValue, ...newValue });
   }
 
+  console.log(item);
+
   return (
     <form onSubmit={handleSubmit}>
-      <Accordion>
-        <AccordionSummary
-          className="item-title"
-          expandIcon={<ExpandMore />}
-          aria-controls="panel1a-content"
-          id="panel1a-header"
-        >
-          <Typography>{formatDate(item.startDate, item.endDate)}</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography component={"span"}>
-            <FormControl component="fieldset">
-              <RadioGroup
-                aria-label="topico"
-                name="topico"
-                value={value}
-                onChange={handleValue}
-              >
-                {item.events.map((occasion, j) => (
+      {item.events.map((occasion, j) => (
+        <Accordion>
+          <AccordionSummary
+            className="item-title"
+            expandIcon={<ExpandMore />}
+            aria-controls="panel1a-content"
+            id="panel1a-header"
+          >
+            <Typography>
+              {/* talvez precise remover o occasion.name se tiver mais de 1 evento no mesmo horario */}
+              {formatDate(item.startDate, item.endDate)} - {occasion.name}
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Typography component={"span"}>
+              <FormControl component="fieldset">
+                <RadioGroup
+                  aria-label="topico"
+                  name="topico"
+                  value={value}
+                  onChange={handleValue}
+                >
+                  {/* {item.events.map((occasion, j) => ( */}
                   <div key={j} className="item-radio">
                     {occasion.isSubscribed ? (
                       <div>
@@ -287,13 +293,12 @@ function Options({ item, type, fetchEvents }) {
                       />
                     )}
                   </div>
-                ))}
-              </RadioGroup>
-            </FormControl>
-          </Typography>
-        </AccordionDetails>
-        {
-          !(item.events.find((event) => event.isSubscribed)) && (
+                  {/* // ))} */}
+                </RadioGroup>
+              </FormControl>
+            </Typography>
+          </AccordionDetails>
+          {!item.events.find((event) => event.isSubscribed) && (
             <AccordionActions>
               <LoadingButton
                 className="item-register"
@@ -303,9 +308,9 @@ function Options({ item, type, fetchEvents }) {
                 Inscrever-se
               </LoadingButton>
             </AccordionActions>
-          )
-        }
-      </Accordion>
+          )}
+        </Accordion>
+      ))}
     </form>
   );
 }

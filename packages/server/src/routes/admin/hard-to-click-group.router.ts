@@ -1,26 +1,25 @@
 import { Router } from "express";
+import { param } from "express-validator";
 
 import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
-import * as AdminHardToClickGroupsController from "../../controllers/admin/hard-to-click-group.controller";
+import adminHardToClickGroupsController from "../../controllers/admin/hard-to-click-group.controller";
 
 const router = Router();
 
 router.get(
   "/",
   [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  AdminHardToClickGroupsController.list
-);
-
-router.get(
-  "/:id",
-  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  AdminHardToClickGroupsController.get
+  adminHardToClickGroupsController.list
 );
 
 router.delete(
   "/:id",
-  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  AdminHardToClickGroupsController.deleteById
+  [
+    param("id", "Invalid field 'id'").not().isEmpty(),
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+  ],
+  adminHardToClickGroupsController.deleteById
 );
 
 export default router;

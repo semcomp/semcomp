@@ -7,4 +7,6 @@ export default {
   GAME_NIGHT: "Game Night",
   CONCURSO: "Concurso",
   CONTEST: "Contest",
+  COFFEE: "Coffee",
+  CULTURAL: "Cultural",
 };
