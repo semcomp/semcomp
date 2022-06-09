@@ -1,6 +1,6 @@
 import express from "express";
-import http from "http";
-// import socketio from 'socket.io';
+import { createServer } from "http";
+import { Server } from "socket.io";
 import mongoose from "mongoose";
 import morgan from "morgan";
 import * as rfs from "rotating-file-stream";
@@ -14,8 +14,8 @@ import cookieParser from "cookie-parser";
 // import cron from "node-cron";
 
 // import {riddleController} from './controllers/riddle/riddle.controller';
-// import {riddlethonController} from './controllers/riddlethon/riddlethon.controller';
-// import {hardToClickController} from './controllers/hard-to-click/hard-to-click.controller';
+import RiddlethonController from './controllers/riddlethon/riddlethon.controller';
+import HardToClickController from './controllers/hard-to-click/hard-to-click.controller';
 import AuthController from "./controllers/auth.controller";
 // import houseService from "./services/house.service";
 // import userService from "./services/user.service";
@@ -47,12 +47,12 @@ const corsConfig = {
   credentials: true,
 };
 
-const httpServer = http.createServer(app);
-// const io = socketio(httpServer, {cors: corsConfig});
+const httpServer = createServer(app);
+const io = new Server(httpServer, { cors: corsConfig });
 
 // riddleController(io);
-// riddlethonController(io);
-// hardToClickController(io);
+new RiddlethonController(io);
+new HardToClickController(io);
 
 app.use(cors(corsConfig));
 

@@ -39,7 +39,7 @@ function AchievementsContainer({ data }) {
         const achievementsImageSrc = AchievementsImages(conquista.image);
         return (
           <Tooltip
-            key={conquista._id}
+            key={conquista.id}
             arrow
             enterTouchDelay={0}
             title={
@@ -55,7 +55,7 @@ function AchievementsContainer({ data }) {
               }
               tabIndex="0"
               onFocus
-              key={conquista._id}
+              key={conquista.id}
               src={achievementsImageSrc}
               alt={conquista.image}
               style={{

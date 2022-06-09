@@ -63,8 +63,8 @@ const FAQ = () => {
           />
           <Question
             question="O evento é gratuito?"
-            answer="Para participar de minicursos e ter acesso ao coffee break, haverá uma taxa de inscrição. Porém, outros eventos como palestras, concursos e game night são de acesso gratuito para todos. Vale lembrar que eventos com premiação exigem inscrição na Semcomp mesmo sem pagamento da taxa de inscrição.
-" />
+            answer="Haverá uma taxa para o acesso ao coffee break, porém outros eventos como palestras, minicursos, concursos e game night são de acesso gratuito para todos. Vale lembrar que eventos com premiação exigem inscrição na Semcomp mesmo sem pagamento da taxa de inscrição."
+          />
           <Question
             question="Onde tenho acesso aos avisos da Semcomp?"
             answer="Para ficar por dentro de tudo que vai rolar na Semcomp, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos). Enviaremos todas as novidades por lá!
@@ -72,8 +72,7 @@ const FAQ = () => {
           />
           <Question
             question="Tem certificado?"
-            answer="Sim! Para garantir seu certificado, é preciso se inscrever na Semcomp e comparecer aos eventos. Após o final da Semcomp, emitiremos um certificado com a quantidade de horas correspondente às presenças que você coletar.
-            "
+            answer="Haverão certificados somente da participação nos minicursos. Assim, é preciso se inscrever neles aqui no site e comparecer na hora do evento. Após o final da Semcomp, emitiremos um certificado com a quantidade de horas correspondente às suas presenças."
           />
           <Question
             question="Tem premiação?"

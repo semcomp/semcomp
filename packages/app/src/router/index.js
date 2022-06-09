@@ -7,12 +7,12 @@ import Home from "../pages/home";
 import Login from "../pages/login";
 import Signup from "../pages/signup";
 // import Riddle from '../pages/riddle';
-// import Riddlethon from '../pages/riddlethon';
+import Riddlethon from '../pages/riddlethon';
 import ResetPassword from "../pages/reset-password";
 import Sponsors from "../pages/sponsors";
 import AuthUSP from "../pages/auth-usp";
 import Profile from "../pages/profile";
-// import HardToClick from '../pages/hard-to-click';
+import HardToClick from '../pages/hard-to-click';
 import Livestream from "../pages/livestream";
 
 export const Routes = {
@@ -21,8 +21,8 @@ export const Routes = {
   signup: "/signup",
   resetPassword: "/reset-password",
   // riddle: '/riddle',
-  // riddlethon: '/riddlethon',
-  // hardToClick: '/duro-de-clicar',
+  riddlethon: '/riddlethon',
+  hardToClick: '/duro-de-clicar',
   sponsors: "/sponsors",
   authUsp: "/auth-usp",
   profile: "/profile",
@@ -45,9 +45,9 @@ function Router() {
       <Route exact path={Routes.authUsp} component={AuthUSP} />
       <Route exact path={Routes.resetPassword} component={ResetPassword} />
       <Route exact path={Routes.sponsors} component={Sponsors} />
-      {/* <Route path={Routes.riddle} component={withAuth(Riddle)} />
+      {/* <Route path={Routes.riddle} component={withAuth(Riddle)} /> */}
 			<Route path={Routes.riddlethon} component={withAuth(Riddlethon)} />
-			<Route path={Routes.hardToClick} component={withAuth(HardToClick)} /> */}
+			<Route path={Routes.hardToClick} component={withAuth(HardToClick)} />
       <Route exact path={Routes.profile} component={withAuth(Profile)} />
       <Route exact path={Routes.live} component={Livestream} />
 

@@ -1,16 +1,16 @@
 import React from "react";
 
 import { Button, Dialog } from "@mui/material";
-import { CloseSharp } from "@mui/icons-material";
+import CloseIcon from '@mui/icons-material/Close';
 
 import { useHistory } from "react-router-dom";
-import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
 
 import API from "../../../api";
 import { useTeam } from "..";
 import Spinner from "../../../components/spinner";
 import { HardToClickRoutes } from "..";
+import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
 import { START_DATE } from "../../../constants/hard-to-click";
 
 import "./style.css";
@@ -173,7 +173,7 @@ function HardToClickLobby() {
 
   function createInviteLink() {
     return (
-      window.location.origin + HardToClickRoutes.link + "?teamid=" + team._id
+      window.location.origin + HardToClickRoutes.link + "?teamid=" + team.id
     );
   }
 
@@ -185,7 +185,7 @@ function HardToClickLobby() {
         </div>
       );
     return team.members.map((mate) => (
-      <Teammate name={mate.name} key={mate._id} thisIsMe={mate._id === me.id} />
+      <Teammate name={mate.name} key={mate.id} thisIsMe={mate.id === me.id} />
     ));
   }
 

@@ -323,7 +323,7 @@ function Profile({ user }) {
                 return (
                   <>
                     <img
-                      key={conquista._id}
+                      key={conquista.id}
                       src={achievementsImageSrc}
                       alt={conquista.title}
                       style={{ padding: ".3rem", maxHeight: "80px" }}
