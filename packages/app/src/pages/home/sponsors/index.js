@@ -4,7 +4,7 @@ import "./style.css";
 
 import IcmcImage from "../../../assets/sponsors/icmc.png";
 import FogImage from "../../../assets/sponsors/fog.png";
-import CodelabImage from "../../../assets/sponsors/codelab.png";
+import CodelabImage from "../../../assets/sponsors/codelab.svg";
 import GaneshImage from "../../../assets/sponsors/ganesh.png";
 import JuniorImage from "../../../assets/sponsors/junior.png";
 import GemaImage from "../../../assets/sponsors/gema.png";
