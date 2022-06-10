@@ -24,7 +24,6 @@ const HardToClickGroupCompletedQuestionSchema = new Mongoose.Schema(
     },
     hardToClickQuestionId: {
       type: String,
-      unique: true,
       required: true,
     },
     createdAt: {

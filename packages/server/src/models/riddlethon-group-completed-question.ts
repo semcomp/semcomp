@@ -24,7 +24,6 @@ const RiddlethonGroupCompletedQuestionSchema = new Mongoose.Schema(
     },
     riddlethonQuestionId: {
       type: String,
-      unique: true,
       required: true,
     },
     createdAt: {
