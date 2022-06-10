@@ -28,7 +28,7 @@ class AttendanceService {
   public async findById(id: string): Promise<Attendance> {
     const entity = await AttendanceModel.findOne({ id });
 
-    return this.mapEntity(entity);
+    return entity && this.mapEntity(entity);
   }
 
   public async findOne(filters?: Partial<Filters>): Promise<Attendance> {
