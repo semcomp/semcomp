@@ -60,4 +60,16 @@ export default {
       return handleError(error, next);
     }
   },
+  markUserAttendance: async (req, res, next) => {
+    try {
+      const { eventId } = req.params;
+      const { userId } = req.body;
+
+      const attendance = await eventService.markAttendance(eventId, userId, null);
+
+      return res.status(200).json(attendance);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  },
 };
