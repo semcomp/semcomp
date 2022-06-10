@@ -5,8 +5,16 @@ import IdServiceImpl from "./id-impl.service";
 
 const idService = new IdServiceImpl();
 
+type Filters = {
+  id: string | string[];
+  riddlethonGroupId: string | string[];
+  userId: string | string[];
+  createdAt: number | number[];
+  updatedAt: number | number[];
+};
+
 class RiddlethonGroupMemberService {
-  public async find(filters?: Partial<RiddlethonGroupMember>): Promise<RiddlethonGroupMember[]> {
+  public async find(filters?: Partial<Filters>): Promise<RiddlethonGroupMember[]> {
     const riddlethonGroupMembers = await RiddlethonGroupMemberModel.find(filters);
 
     const entities: RiddlethonGroupMember[] = [];
@@ -29,7 +37,7 @@ class RiddlethonGroupMemberService {
     return entity && this.mapEntity(entity);
   }
 
-  public async count(filters?: Partial<RiddlethonGroupMember>): Promise<number> {
+  public async count(filters?: Partial<Filters>): Promise<number> {
     const count = await RiddlethonGroupMemberModel.count(filters);
 
     return count;
