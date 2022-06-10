@@ -232,7 +232,7 @@ class EventService {
     return eventsInfo.filter((eventInfo) => eventInfo.items.length > 0);
   }
 
-  public async markPresence(eventId: string, userId: string, userHouse: any) {
+  public async markAttendance(eventId: string, userId: string, userHouse: any) {
     const event = await this.findById(eventId);
     const subscription = await subscriptionService.findOne({ userId, eventId });
 

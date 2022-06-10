@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import API from "../../api";
 import _ from "lodash";
 import Chip from "@mui/material/Chip";
+import {QRCodeSVG} from 'qrcode.react';
 
 import Header from "../../components/header";
 import Footer from "../../components/footer";
@@ -207,6 +208,7 @@ function Profile({ user }) {
       <main className="main-container">
         <div className="left-side">
           <div className="user-house-card">
+          <QRCodeSVG value={user.id} />
             <p className="username">{user.name}</p>
             <p className="course">{user.course}</p>
             {
