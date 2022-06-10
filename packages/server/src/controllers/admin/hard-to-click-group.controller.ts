@@ -10,7 +10,7 @@ const RESOURCE = 'hardToClick-group';
 class HardToClickGroupController {
   public async list(req, res, next) {
     try {
-      const entities = await hardToClickGroupService.find();
+      const entities = await hardToClickGroupService.findWithInfo();
 
       return res.status(200).json(entities);
     } catch (error) {

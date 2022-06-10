@@ -10,7 +10,7 @@ const RESOURCE = 'riddlethon-group';
 class RiddlethonGroupController {
   public async list(req, res, next) {
     try {
-      const entities = await riddlethonGroupService.find();
+      const entities = await riddlethonGroupService.findWithInfo();
 
       return res.status(200).json(entities);
     } catch (error) {
