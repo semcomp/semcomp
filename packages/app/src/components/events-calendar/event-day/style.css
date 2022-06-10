@@ -9,7 +9,7 @@
 }
 
 .day-button:hover {
-  background-color: var(--color-blue-main);
+  background-color: var(--color-green);
   color: white;
 }
 
