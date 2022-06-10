@@ -17,5 +17,8 @@
     "eslint-plugin-react": "^7.26.1",
     "husky": "^7.0.1",
     "prettier": "2.4.1"
+  },
+  "dependencies": {
+    "qrcode.react": "^3.0.2"
   }
 }
