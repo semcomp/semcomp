@@ -92,10 +92,10 @@ export default class HardToClickController {
       });
 
       const isFirstQuestion = index === 0;
-      const currentQuestionIndex = completedQuestions.reduce((a, b) =>
+      const currentQuestionIndex = completedQuestions.length > 0 ? (completedQuestions.reduce((a, b) =>
         a.index > b.index ? a : b
-      ).index;
-      const isQuestionCompleted = currentQuestionIndex >= index;
+      ).index + 1) : 0;
+      const isQuestionCompleted = currentQuestionIndex > index;
       const isQuestionInProgress = currentQuestionIndex === index;
       if (isQuestionCompleted && !isFirstQuestion) {
         throw new SocketError("A pergunta já foi respondida");
