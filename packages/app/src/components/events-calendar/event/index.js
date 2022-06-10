@@ -192,14 +192,14 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
               {/* The above text was not written directly because it would consume de blankspace after the comma */}
               {event.type !== "Palestra" && event.type !== "Contest" && (
                 <>
-                  Para acessar,{" "}
+                  {/* Para acessar,{" "}
                   <a
                     rel="external noopener noreferrer"
                     target="_blank"
                     href={event.link}
                   >
                     clique aqui!
-                  </a>
+                  </a> */}
                 </>
               )}
             </>
