@@ -12,7 +12,7 @@ class RiddlethonQuestionController {
       const { index } = req.params;
       const { user } = req;
 
-      const foundQuestion = await riddlethonQuestionService.getCompletedQuestion(user.id, index);
+      const foundQuestion = await riddlethonQuestionService.getCompletedQuestion(user.id, parseInt(index));
 
       return res.status(200).json(foundQuestion);
     } catch (error) {
