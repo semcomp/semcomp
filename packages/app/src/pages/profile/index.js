@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import API from "../../api";
 import _ from "lodash";
 import Chip from "@mui/material/Chip";
+import {QRCodeSVG} from 'qrcode.react';
 
 import Header from "../../components/header";
 import Footer from "../../components/footer";
@@ -207,6 +208,7 @@ function Profile({ user }) {
       <main className="main-container">
         <div className="left-side">
           <div className="user-house-card">
+          <QRCodeSVG value={user.id} />
             <p className="username">{user.name}</p>
             <p className="course">{user.course}</p>
             {
@@ -220,7 +222,7 @@ function Profile({ user }) {
               </button>
             }
           </div>
-          <div className="user-house-card">
+          {/* <div className="user-house-card">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Coffee</h1>
             <p>Pague com PIX o Coffee da Semcomp 25 Beta</p>
             {userFetched?.paid ? (
@@ -248,7 +250,7 @@ function Profile({ user }) {
                 <Chip label="Não pago" disabled="true" />
               </>
             )}
-          </div>
+          </div> */}
           {/* <div className="user-house-card">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Overflow

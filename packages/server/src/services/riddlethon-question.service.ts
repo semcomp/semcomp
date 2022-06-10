@@ -90,10 +90,10 @@ class RiddlethonQuestionService {
     }
 
     const isFirstQuestion = questionIndex === 0;
-    const currentQuestionIndex = completedQuestions.reduce((a, b) =>
+    const currentQuestionIndex = completedQuestions.length > 0 ? (completedQuestions.reduce((a, b) =>
       a.index > b.index ? a : b
-    ).index;
-    const isQuestionCompleted = currentQuestionIndex >= questionIndex;
+    ).index + 1) : 0;
+    const isQuestionCompleted = currentQuestionIndex > questionIndex;
     const isQuestionInProgress = currentQuestionIndex === questionIndex;
     if (!isQuestionCompleted && !isQuestionInProgress && !isFirstQuestion) {
       throw new HttpError(403, []);

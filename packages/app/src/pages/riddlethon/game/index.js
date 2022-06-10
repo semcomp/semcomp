@@ -140,7 +140,7 @@ function Riddlethon() {
   const history = useHistory();
   const { team, setTeam } = useTeam();
 
-  const completedQuestionsIndexes = team && team.completedQuestionsIndexes;
+  const completedQuestions = team && team.completedQuestions;
 
   function nextQuestion() {
     const nextIndex = Math.min(
@@ -157,7 +157,7 @@ function Riddlethon() {
 
   function canRenderNavicationNextArrow() {
     if (!team) return false;
-    return currentQuestionIndex < completedQuestionsIndexes.length;
+    return currentQuestionIndex < completedQuestions.length;
   }
 
   function canRenderNavicatioPrevArrow() {
@@ -175,8 +175,8 @@ function Riddlethon() {
   function handleCorrectAnswer() {
     setTeam({
       ...team,
-      completedQuestionsIndexes: [
-        ...completedQuestionsIndexes,
+      completedQuestions: [
+        ...completedQuestions,
         currentQuestionIndex,
       ],
     });
@@ -189,11 +189,11 @@ function Riddlethon() {
 
   React.useEffect(() => {
     if (!team) return;
-    if (completedQuestionsIndexes.length >= NUMBER_OF_QUESTIONS) {
+    if (completedQuestions.length >= NUMBER_OF_QUESTIONS) {
       win();
     }
-    setCurrentQuestionIndex(completedQuestionsIndexes.length);
-  }, [team, completedQuestionsIndexes, win]);
+    setCurrentQuestionIndex(completedQuestions.length);
+  }, [team, completedQuestions, win]);
 
   return (
     <div className={styles.root}>

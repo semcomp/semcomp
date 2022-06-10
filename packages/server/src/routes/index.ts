@@ -13,7 +13,7 @@ import userRouter from "./user.router";
 import houseRouter from "./house.router";
 import PaymentRouter from "./payment.router";
 import pushNotificationRouter from "./push-notification.router";
-import authMiddleware from "../middlewares/auth.middleware";
+// import authMiddleware from "../middlewares/auth.middleware";
 import PaymentController from "../controllers/payment.controller";
 import IdSeviceImpl from "../services/id-impl.service";
 import PaymentServiceImpl from "../services/payment-impl.service";
@@ -32,7 +32,7 @@ const paymentServiceImpl = new PaymentServiceImpl(
 );
 const paymentController = new PaymentController(paymentServiceImpl);
 
-const paymentRouter = new PaymentRouter(authMiddleware, paymentController);
+const paymentRouter = new PaymentRouter(/*authMiddleware, */paymentController);
 router.use("/payments", paymentRouter.create());
 
 router.use("/admin", adminRouter);

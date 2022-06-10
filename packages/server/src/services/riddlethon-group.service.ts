@@ -15,7 +15,13 @@ const idService = new IdServiceImpl();
 const MAX_MEMBERS_IN_GROUP = 3;
 const MAX_MEMBERS = 60;
 
-type RiddlethonGroupWithInfo = RiddlethonGroup & { members: Partial<User>[], completedQuestionsIndexes: number[] };
+type RiddlethonGroupWithInfo = RiddlethonGroup & {
+  members: Partial<User>[],
+  completedQuestions: {
+    index: number;
+    createdAt: number;
+  }[],
+};
 
 class RiddlethonGroupService {
   public async find(filters?: Partial<RiddlethonGroup>): Promise<RiddlethonGroup[]> {
@@ -146,16 +152,70 @@ class RiddlethonGroupService {
       id: groupMemberships.map((groupMembership) => groupMembership.userId),
     });
 
+
     const completedQuestions = await riddlethonGroupCompletedQuestionService.find({ riddlethonGroupId: group.id });
-    const completedQuestionss = await riddlethonQuestionService.find({
+    const questions = await riddlethonQuestionService.find({
       id: completedQuestions.map((question) => question.riddlethonQuestionId)
     });
+    const groupCompletedQuestionsInfo = completedQuestions.map((completedQuestion) => {
+      const question = questions.find(
+        (question) => question.id === completedQuestion.riddlethonQuestionId
+      );
+
+      return {
+        index: question.index,
+        createdAt: question.createdAt,
+      };
+    });
+
 
     return {
       ...group,
       members: members.map((member) => userService.minimalMapEntity(member)),
-      completedQuestionsIndexes: completedQuestionss.map((question) => question.index),
+      completedQuestions: groupCompletedQuestionsInfo,
     };
+  }
+
+  public async findWithInfo(): Promise<RiddlethonGroupWithInfo[]> {
+    const groups = await this.find();
+    const groupIds = groups.map((group) => group.id);
+    const completedQuestions = await riddlethonGroupCompletedQuestionService.find({ riddlethonGroupId: groupIds });
+    const questions = await riddlethonQuestionService.find();
+    const memberships = await riddlethonGroupMemberService.find({ riddlethonGroupId: groupIds });
+    const membershipsUserIds = memberships.map((membership) => membership.userId);
+    const users = await userService.minimalFind({ id: membershipsUserIds });
+
+
+    const entities: RiddlethonGroupWithInfo[] = [];
+    for (const group of groups) {
+      const groupMemberships = memberships.filter((membership) => membership.riddlethonGroupId === group.id);
+      const groupMembers = groupMemberships.map(
+        (groupMembership) => users.find((user) => user.id === groupMembership.userId)
+      );
+
+      const groupCompletedQuestions = completedQuestions.filter(
+        (completedQuestion) => completedQuestion.riddlethonGroupId === group.id
+      );
+      const groupCompletedQuestionsInfo = groupCompletedQuestions.map((groupCompletedQuestion) => {
+        const question = questions.find(
+          (question) => question.id === groupCompletedQuestion.riddlethonQuestionId
+        );
+
+        return {
+          index: question.index,
+          createdAt: question.createdAt,
+        };
+      });
+
+
+      entities.push({
+        ...group,
+        members: groupMembers,
+        completedQuestions: groupCompletedQuestionsInfo,
+      });
+    }
+
+    return entities;
   }
 
   private mapEntity(entity: Model<RiddlethonGroup> & RiddlethonGroup): RiddlethonGroup {

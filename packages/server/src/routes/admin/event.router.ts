@@ -47,4 +47,15 @@ router.delete(
   AdminEventController.delete
 );
 
+router.post(
+  "/:eventId/mark-attendance",
+  [
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+    param("eventId", "Invalid field 'eventId'").not().isEmpty(),
+    body("userId", "Invalid field 'userId'").not().isEmpty(),
+  ],
+  AdminEventController.markUserAttendance
+);
+
 export default router;

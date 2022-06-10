@@ -4,12 +4,13 @@ import Event, { EventModel } from "../models/event";
 import subscriptionService from "./subscription.service";
 import Attendance from "../models/attendance";
 import attendanceService from "./attendance.service";
+import userService from "../services/user.service";
 
 import EventTypes from "../lib/constants/event-types-enum";
 import Subscription from "../models/subscription";
 import IdServiceImpl from "./id-impl.service";
-import houseService from "./house.service";
 import HttpError from "../lib/http-error";
+import User from "../models/user";
 
 const idService = new IdServiceImpl();
 
@@ -31,6 +32,8 @@ type Filters = {
   createdAt: number | number[];
   updatedAt: number | number[];
 };
+
+type EventWithInfo = Event & { attendances: Partial<User>[], subscribers: Partial<User>[] };
 
 class EventService {
   public async find(filters?: Partial<Filters>): Promise<Event[]> {
@@ -229,7 +232,7 @@ class EventService {
     return eventsInfo.filter((eventInfo) => eventInfo.items.length > 0);
   }
 
-  public async markPresence(eventId: string, userId: string, userHouse: any) {
+  public async markAttendance(eventId: string, userId: string, userHouse: any) {
     const event = await this.findById(eventId);
     const subscription = await subscriptionService.findOne({ userId, eventId });
 
@@ -301,6 +304,37 @@ class EventService {
     await subscriptionService.delete(subscription);
 
     return { message: "Inscrição removida com sucesso!" };
+  }
+
+  public async findWithInfo(): Promise<EventWithInfo[]> {
+    const events = await this.find();
+    const eventIds = events.map((event) => event.id);
+    const attendances = await attendanceService.find({ eventId: eventIds });
+    const attendancesUserIds = attendances.map((attendance) => attendance.userId);
+    const subscriptions = await subscriptionService.find({ eventId: eventIds });
+    const subscriptionsUserIds = subscriptions.map((subscription) => subscription.userId);
+    const users = await userService.minimalFind({ id: [...attendancesUserIds, ...subscriptionsUserIds] });
+
+
+    const entities: EventWithInfo[] = [];
+    for (const event of events) {
+      const eventAttendances = attendances.filter((attendance) => attendance.eventId === event.id);
+      const eventUserAttendances = eventAttendances.map(
+        (eventAttendance) => users.find((user) => user.id === eventAttendance.userId)
+      );
+      const eventSubscription = subscriptions.filter((subscription) => subscription.eventId === event.id);
+      const eventUserSubscription = eventSubscription.map(
+        (eventSubscription) => users.find((user) => user.id === eventSubscription.userId)
+      );
+
+      entities.push({
+        ...event,
+        attendances: eventUserAttendances,
+        subscribers: eventUserSubscription,
+      });
+    }
+
+    return entities;
   }
 
   private mapEntity(entity: Model<Event> & Event): Event {

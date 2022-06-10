@@ -5,8 +5,16 @@ import IdServiceImpl from "./id-impl.service";
 
 const idService = new IdServiceImpl();
 
+type Filters = {
+  id: string | string[];
+  hardToClickGroupId: string | string[];
+  hardToClickQuestionId: string | string[];
+  createdAt: number | number[];
+  updatedAt: number | number[];
+};
+
 class HardToClickGroupCompletedQuestionService {
-  public async find(filters?: Partial<HardToClickGroupCompletedQuestion>): Promise<HardToClickGroupCompletedQuestion[]> {
+  public async find(filters?: Partial<Filters>): Promise<HardToClickGroupCompletedQuestion[]> {
     const hardToClickGroupCompletedQuestions = await HardToClickGroupCompletedQuestionModel.find(filters);
 
     const entities: HardToClickGroupCompletedQuestion[] = [];
@@ -29,7 +37,7 @@ class HardToClickGroupCompletedQuestionService {
     return entity && this.mapEntity(entity);
   }
 
-  public async count(filters?: Partial<HardToClickGroupCompletedQuestion>): Promise<number> {
+  public async count(filters?: Partial<Filters>): Promise<number> {
     const count = await HardToClickGroupCompletedQuestionModel.count(filters);
 
     return count;
