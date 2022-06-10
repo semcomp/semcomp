@@ -222,35 +222,35 @@ function Profile({ user }) {
               </button>
             }
           </div>
-          {/* <div className="user-house-card">
+          <div className="user-house-card">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Coffee</h1>
-            <p>Pague com PIX o Coffee da Semcomp 25 Beta</p>
+            {/* <p>Pague com PIX o Coffee da Semcomp 25 Beta</p> */}
             {userFetched?.paid ? (
               <>
                 <Chip label="Pago" color="warning" />
-                <button
+                {/* <button
                   onClick={() => {
                     setIsCoffeeModalOpen(true);
                     blockBodyScroll();
                   }}
                 >
                   Ver infos coffee
-                </button>
+                </button> */}
               </>
             ) : (
               <>
-                <button
+                {/* <button
                   onClick={() => {
                     setIsCoffeeModalOpen(true);
                     blockBodyScroll();
                   }}
                 >
                   Comprar coffee
-                </button>
+                </button> */}
                 <Chip label="Não pago" disabled="true" />
               </>
             )}
-          </div> */}
+          </div>
           {/* <div className="user-house-card">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Overflow
