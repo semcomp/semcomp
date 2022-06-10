@@ -348,8 +348,8 @@ function Profile({ user }) {
           {/* <HouseScores /> */}
         </div>
         <div className="profile-info-card">
-          {/* <EventsOverview />
-          <span className="spacing" /> */}
+          <EventsOverview />
+          <span className="spacing" />
           <EventsCalendar />
         </div>
       </main>

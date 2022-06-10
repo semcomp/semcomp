@@ -97,10 +97,10 @@ class EventService {
 
     const eventsInfo = [];
     for (const event of events) {
-      let hasAttend = false;
+      let hasAttended = false;
       let isSubscribed = false;
       if (userId) {
-        hasAttend = !!userAttendances.find((attendance) => attendance.eventId === event.id);
+        hasAttended = !!userAttendances.find((attendance) => attendance.eventId === event.id);
         isSubscribed = !!eventsSubscriptions.find((subscription) => {
           return subscription.eventId === event.id && subscription.userId === userId;
         });
@@ -112,7 +112,7 @@ class EventService {
 
       eventsInfo.push({
         ...event,
-        hasAttend,
+        hasAttended,
         isSubscribed,
         subscriptionsCount: eventSubscriptionsCount,
       });
@@ -136,10 +136,10 @@ class EventService {
       const endDate = event.endDate;
 
       if (now > startedDate && now < endDate) {
-        let hasAttend = false;
+        let hasAttended = false;
         let isSubscribed = false;
         if (userId) {
-          hasAttend = !!userAttendances.find((attendance) => attendance.eventId === event.id);
+          hasAttended = !!userAttendances.find((attendance) => attendance.eventId === event.id);
           isSubscribed = !!eventsSubscriptions.find((subscription) => {
             return subscription.eventId === event.id && subscription.userId === userId;
           });
@@ -151,7 +151,7 @@ class EventService {
 
         currentEvent = {
           ...event,
-          hasAttend,
+          hasAttended,
           isSubscribed,
           subscriptionsCount: eventSubscriptionsCount,
         };
@@ -208,10 +208,10 @@ class EventService {
         eventsInfoOfType.items.push(itemsOnThisHour);
       }
 
-      let hasAttend = false;
+      let hasAttended = false;
       let isSubscribed = false;
       if (userId) {
-        hasAttend = !!userAttendances.find((attendance) => attendance.eventId === event.id);
+        hasAttended = !!userAttendances.find((attendance) => attendance.eventId === event.id);
         isSubscribed = !!eventsSubscriptions.find((subscription) => {
           return subscription.eventId === event.id && subscription.userId === userId;
         });
@@ -223,7 +223,7 @@ class EventService {
 
       itemsOnThisHour.events.push({
         ...event,
-        hasAttend,
+        hasAttended,
         isSubscribed,
         subscriptionsCount: eventSubscriptionsCount,
       });

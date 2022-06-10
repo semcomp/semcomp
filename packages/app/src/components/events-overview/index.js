@@ -19,11 +19,11 @@ function EventsOverview() {
     data.forEach((event) => {
       if (allTypes[event.type]) {
         allTypes[event.type].totalPresences++;
-        allTypes[event.type].presences += event.wasPresent ? 1 : 0;
+        allTypes[event.type].presences += event.hasAttended ? 1 : 0;
       } else {
         allTypes[event.type] = {
           totalPresences: 1,
-          presences: event.wasPresent ? 1 : 0,
+          presences: event.hasAttended ? 1 : 0,
         };
       }
     });
