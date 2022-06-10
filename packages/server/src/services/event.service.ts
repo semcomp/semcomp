@@ -258,7 +258,7 @@ class EventService {
     const newEndDateObj = new Date(event.endDate);
     newEndDateObj.setMinutes(newEndDateObj.getMinutes() + 5);
 
-    if (now > newStartedDateObj.getDate() && now < newEndDateObj.getDate()) {
+    if (now > newStartedDateObj.getTime() && now < newEndDateObj.getTime()) {
       const attendance: Attendance = {
         userId: userId,
         eventId: eventId,
@@ -271,7 +271,7 @@ class EventService {
 
       return { message: "Presença salva com sucesso!" };
     }
-    if (now < newStartedDateObj.getDate()) {
+    if (now < newStartedDateObj.getTime()) {
       throw new HttpError(400, ["O evento ainda não começou!"]);
     }
     throw new HttpError(400, ["O evento já terminou!"]);
