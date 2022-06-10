@@ -253,10 +253,10 @@ class EventService {
     const now = Date.now();
 
     const newStartedDateObj = new Date(event.startDate);
-    newStartedDateObj.setMinutes(newStartedDateObj.getMinutes() - 5);
+    newStartedDateObj.setMinutes(newStartedDateObj.getMinutes() - 10);
 
     const newEndDateObj = new Date(event.endDate);
-    newEndDateObj.setMinutes(newEndDateObj.getMinutes() + 5);
+    newEndDateObj.setMinutes(newEndDateObj.getMinutes() + 10);
 
     if (now > newStartedDateObj.getTime() && now < newEndDateObj.getTime()) {
       const attendance: Attendance = {
