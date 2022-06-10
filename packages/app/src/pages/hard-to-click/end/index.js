@@ -8,8 +8,8 @@ function HardToClickEnd() {
 
   const completedQuestions =
     (team &&
-      team.completedQuestionsIndexes &&
-      team.completedQuestionsIndexes.length) ||
+      team.completedQuestions &&
+      team.completedQuestions.length) ||
     0;
 
   return (

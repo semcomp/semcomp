@@ -15,7 +15,13 @@ const idService = new IdServiceImpl();
 const MAX_MEMBERS_IN_GROUP = 3;
 const MAX_MEMBERS = 60;
 
-type HardToClickGroupWithInfo = HardToClickGroup & { members: Partial<User>[], completedQuestionsIndexes: number[] };
+type HardToClickGroupWithInfo = HardToClickGroup & {
+  members: Partial<User>[],
+  completedQuestions: {
+    index: number;
+    createdAt: number;
+  }[],
+};
 
 class HardToClickGroupService {
   public async find(filters?: Partial<HardToClickGroup>): Promise<HardToClickGroup[]> {
@@ -146,16 +152,70 @@ class HardToClickGroupService {
       id: groupMemberships.map((groupMembership) => groupMembership.userId),
     });
 
+
     const completedQuestions = await hardToClickGroupCompletedQuestionService.find({ hardToClickGroupId: group.id });
-    const completedQuestionss = await hardToClickQuestionService.find({
+    const questions = await hardToClickQuestionService.find({
       id: completedQuestions.map((question) => question.hardToClickQuestionId)
     });
+    const groupCompletedQuestionsInfo = completedQuestions.map((completedQuestion) => {
+      const question = questions.find(
+        (question) => question.id === completedQuestion.hardToClickQuestionId
+      );
+
+      return {
+        index: question.index,
+        createdAt: question.createdAt,
+      };
+    });
+
 
     return {
       ...group,
       members: members.map((member) => userService.minimalMapEntity(member)),
-      completedQuestionsIndexes: completedQuestionss.map((question) => question.index),
+      completedQuestions: groupCompletedQuestionsInfo,
     };
+  }
+
+  public async findWithInfo(): Promise<HardToClickGroupWithInfo[]> {
+    const groups = await this.find();
+    const groupIds = groups.map((group) => group.id);
+    const completedQuestions = await hardToClickGroupCompletedQuestionService.find({ hardToClickGroupId: groupIds });
+    const questions = await hardToClickQuestionService.find();
+    const memberships = await hardToClickGroupMemberService.find({ hardToClickGroupId: groupIds });
+    const membershipsUserIds = memberships.map((membership) => membership.userId);
+    const users = await userService.minimalFind({ id: membershipsUserIds });
+
+
+    const entities: HardToClickGroupWithInfo[] = [];
+    for (const group of groups) {
+      const groupMemberships = memberships.filter((membership) => membership.hardToClickGroupId === group.id);
+      const groupMembers = groupMemberships.map(
+        (groupMembership) => users.find((user) => user.id === groupMembership.userId)
+      );
+
+      const groupCompletedQuestions = completedQuestions.filter(
+        (completedQuestion) => completedQuestion.hardToClickGroupId === group.id
+      );
+      const groupCompletedQuestionsInfo = groupCompletedQuestions.map((groupCompletedQuestion) => {
+        const question = questions.find(
+          (question) => question.id === groupCompletedQuestion.hardToClickQuestionId
+        );
+
+        return {
+          index: question.index,
+          createdAt: question.createdAt,
+        };
+      });
+
+
+      entities.push({
+        ...group,
+        members: groupMembers,
+        completedQuestions: groupCompletedQuestionsInfo,
+      });
+    }
+
+    return entities;
   }
 
   private mapEntity(entity: Model<HardToClickGroup> & HardToClickGroup): HardToClickGroup {

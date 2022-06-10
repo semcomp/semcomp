@@ -89,11 +89,11 @@ function TeamProvider(props) {
 
     function handleNewCorrectAnswer({ index, correct }) {
       if (!correct) return;
-      if (team.completedQuestionsIndexes.length === 19)
+      if (team.completedQuestions.length === 19)
         history.push(HardToClickRoutes.gameover);
       setTeam({
         ...team,
-        completedQuestionsIndexes: [...team.completedQuestionsIndexes, index],
+        completedQuestions: [...team.completedQuestions, index],
       });
     }
 

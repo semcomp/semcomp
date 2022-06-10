@@ -3,32 +3,11 @@ import {
 } from "../../lib/handle-validation-result";
 import { handleError } from "../../lib/handle-error";
 import eventService from "../../services/event.service";
-import subscriptionService from "../../services/subscription.service";
-import attendanceService from "../../services/attendance.service";
-import userService from "../../services/user.service";
 
 export default {
   list: async (req, res, next) => {
     try {
-      const events: any = await eventService.find();
-
-      for (const event of events) {
-        const eventAttendances = await attendanceService.find({ eventId: event.id });
-
-        event.attendances = []
-        for (const eventAttendance of eventAttendances) {
-          const user = await userService.findById(eventAttendance.userId);
-          event.attendances.push(user);
-        }
-
-        const eventSubscriptions = await subscriptionService.find({ eventId: event.id });
-
-        event.subscriptions = []
-        for (const eventSubscription of eventSubscriptions) {
-          const user = await userService.findById(eventSubscription.userId);
-          event.subscriptions.push(user);
-        }
-      }
+      const events: any = await eventService.findWithInfo();
 
       return res.status(200).json(events);
     } catch (error) {
@@ -77,6 +56,18 @@ export default {
       const deletedEvent = await eventService.delete(foundEvent);
 
       return res.status(200).send(deletedEvent);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  },
+  markUserAttendance: async (req, res, next) => {
+    try {
+      const { eventId } = req.params;
+      const { userId } = req.body;
+
+      const attendance = await eventService.markAttendance(eventId, userId, null);
+
+      return res.status(200).json(attendance);
     } catch (error) {
       return handleError(error, next);
     }

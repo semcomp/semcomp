@@ -30,7 +30,7 @@ router.put(
 );
 
 router.get(
-  "/question/:id",
+  "/question/:index",
   [authMiddleware.authenticate, authMiddleware.isAuthenticated],
   RiddlethonQuestionController.getQuestion
 );

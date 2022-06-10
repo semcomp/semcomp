@@ -5,8 +5,16 @@ import IdServiceImpl from "./id-impl.service";
 
 const idService = new IdServiceImpl();
 
+type Filters = {
+  id: string | string[];
+  eventId: string | string[];
+  userId: string | string[];
+  createdAt: number | number[];
+  updatedAt: number | number[];
+};
+
 class AttendanceService {
-  public async find(filters?: Partial<Attendance>): Promise<Attendance[]> {
+  public async find(filters?: Partial<Filters>): Promise<Attendance[]> {
     const attendances = await AttendanceModel.find(filters);
 
     const entities: Attendance[] = [];
@@ -23,7 +31,7 @@ class AttendanceService {
     return this.mapEntity(entity);
   }
 
-  public async findOne(filters?: Partial<Attendance>): Promise<Attendance> {
+  public async findOne(filters?: Partial<Filters>): Promise<Attendance> {
     const entity = await AttendanceModel.findOne(filters);
 
     return entity && this.mapEntity(entity);
