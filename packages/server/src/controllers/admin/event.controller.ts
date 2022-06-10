@@ -3,32 +3,11 @@ import {
 } from "../../lib/handle-validation-result";
 import { handleError } from "../../lib/handle-error";
 import eventService from "../../services/event.service";
-import subscriptionService from "../../services/subscription.service";
-import attendanceService from "../../services/attendance.service";
-import userService from "../../services/user.service";
 
 export default {
   list: async (req, res, next) => {
     try {
-      const events: any = await eventService.find();
-
-      for (const event of events) {
-        const eventAttendances = await attendanceService.find({ eventId: event.id });
-
-        event.attendances = []
-        for (const eventAttendance of eventAttendances) {
-          const user = await userService.findById(eventAttendance.userId);
-          event.attendances.push(user);
-        }
-
-        const eventSubscriptions = await subscriptionService.find({ eventId: event.id });
-
-        event.subscriptions = []
-        for (const eventSubscription of eventSubscriptions) {
-          const user = await userService.findById(eventSubscription.userId);
-          event.subscriptions.push(user);
-        }
-      }
+      const events: any = await eventService.findWithInfo();
 
       return res.status(200).json(events);
     } catch (error) {

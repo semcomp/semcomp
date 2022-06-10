@@ -51,6 +51,17 @@ class UserServiceImpl implements UserService {
     return entities;
   }
 
+  public async minimalFind(filters?: Partial<Filters>): Promise<Partial<User>[]> {
+    const users = await UserModel.find(filters);
+
+    const entities: Partial<User>[] = [];
+    for (const user of users) {
+      entities.push(this.minimalMapEntity(user));
+    }
+
+    return entities;
+  }
+
   public async findById(id: string): Promise<User> {
     const entity = await UserModel.findOne({ id });
 
