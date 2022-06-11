@@ -6,7 +6,7 @@ import SponsorCard from "./sponsor-card";
 
 // import SemcompImage from '../../assets/logo_semcompbeta.jpg';
 
-import IcmcImage from "../../assets/sponsors/icmc.png";
+import IcmcImage from "../../assets/sponsors/icmc50.png";
 import FogImage from "../../assets/sponsors/fog.png";
 import CodelabImage from "../../assets/sponsors/codelab.svg";
 import GaneshImage from "../../assets/sponsors/ganesh.png";
@@ -58,7 +58,11 @@ const SponsorsPage = () => {
         <main className="main-container">
           {/* <h2>Patrocinadores</h2> */}
           <p className="thanks-from-semcomp">
-            Queremos agradecer aos apoiadores, sem os quais seria impossível organizar o nosso retorno à Semcomp presencial. Esperamos que tanto os alunos quanto os apoiadores possam aproveitar ao máximo as palestras, os minicursos e que ano que vem mantenhamos nossa parceria!
+            Queremos agradecer aos apoiadores, sem os quais seria impossível
+            organizar o nosso retorno à Semcomp presencial. Esperamos que tanto
+            os alunos quanto os apoiadores possam aproveitar ao máximo as
+            palestras, os minicursos e que ano que vem mantenhamos nossa
+            parceria!
           </p>
           <div className="sponsor-cards-container">
             {allCompaniesInfo.map((info) => (

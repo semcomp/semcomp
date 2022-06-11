@@ -2,7 +2,7 @@ import React from "react";
 
 import "./style.css";
 
-import IcmcImage from "../../../assets/sponsors/icmc.png";
+import IcmcImage from "../../../assets/sponsors/icmc50.png";
 import FogImage from "../../../assets/sponsors/fog.png";
 import CodelabImage from "../../../assets/sponsors/codelab.svg";
 import GaneshImage from "../../../assets/sponsors/ganesh.png";
@@ -13,15 +13,9 @@ import { Routes } from "../../../router";
 import { Link } from "react-router-dom";
 
 function Sponsors() {
-  const companyLogos = [
-  ];
+  const companyLogos = [];
 
-  const supporterLogos = [
-    IcmcImage,
-    FogImage,
-    CodelabImage,
-    PetImage,
-  ];
+  const supporterLogos = [IcmcImage, FogImage, CodelabImage, PetImage];
 
   return (
     <>
