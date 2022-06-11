@@ -16,10 +16,8 @@ router.post(
   "/",
   [
     body("index", "Invalid field 'index'").not().isEmpty(),
-    body("title", "Invalid field 'title'").not().isEmpty(),
     body("question", "Invalid field 'question'").not().isEmpty(),
     body("answer", "Invalid field 'answer'").not().isEmpty(),
-    body("isLegendary", "Invalid field 'isLegendary'").not().isEmpty(),
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],
@@ -31,10 +29,8 @@ router.put(
   [
     param("id", "Invalid field 'id'").not().isEmpty(),
     body("index", "Invalid field 'index'").not().isEmpty(),
-    body("title", "Invalid field 'title'").not().isEmpty(),
     body("question", "Invalid field 'question'").not().isEmpty(),
     body("answer", "Invalid field 'answer'").not().isEmpty(),
-    body("isLegendary", "Invalid field 'isLegendary'").not().isEmpty(),
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],

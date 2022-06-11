@@ -3,12 +3,9 @@ import Mongoose from "mongoose";
 type HardToClickQuestion = {
   id?: string;
   index: number;
-  title: string;
   question: string;
   imgUrl: string;
-  clue: string;
   answer: string;
-  isLegendary: boolean;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -28,10 +25,6 @@ const HardToClickQuestionSchema = new Mongoose.Schema(
       unique: true,
       required: true,
     },
-    title: {
-      type: String,
-      required: true,
-    },
     question: {
       type: String,
       required: true,
@@ -39,16 +32,9 @@ const HardToClickQuestionSchema = new Mongoose.Schema(
     imgUrl: {
       type: String,
     },
-    clue: {
-      type: String,
-    },
     answer: {
       type: String,
       required: true,
-    },
-    isLegendary: {
-      type: Mongoose.Schema.Types.Boolean,
-      default: false,
     },
     createdAt: {
       type: Number,

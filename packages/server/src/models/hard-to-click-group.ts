@@ -3,8 +3,6 @@ import Mongoose from "mongoose";
 type HardToClickGroup = {
   id?: string;
   name: string;
-  availableClues?: number;
-  availableSkips?: number;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -24,14 +22,6 @@ const HardToClickGroupSchema = new Mongoose.Schema(
       unique: true,
       required: true,
       trim: true,
-    },
-    availableClues: {
-      type: Number,
-      default: 0,
-    },
-    availableSkips: {
-      type: Number,
-      default: 0,
     },
     createdAt: {
       type: Number,

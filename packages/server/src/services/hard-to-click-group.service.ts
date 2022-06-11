@@ -61,8 +61,6 @@ class HardToClickGroupService {
     }
 
     hardToClickGroup.id = await idService.create();
-    hardToClickGroup.availableClues = 0;
-    hardToClickGroup.availableSkips = 0;
     await HardToClickGroupModel.create(hardToClickGroup);
 
     return await this.findGroupWithInfo(hardToClickGroup.id);
@@ -222,8 +220,6 @@ class HardToClickGroupService {
     return {
       id: entity.id,
       name: entity.name,
-      availableClues: entity.availableClues,
-      availableSkips: entity.availableSkips,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };

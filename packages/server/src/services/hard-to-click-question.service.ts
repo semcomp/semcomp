@@ -4,7 +4,6 @@ import HttpError from "../lib/http-error";
 import HardToClickQuestion, { HardToClickQuestionModel } from "../models/hard-to-click-question";
 import IdServiceImpl from "./id-impl.service";
 import hardToClickGroupCompletedQuestionService from "./hard-to-click-group-completed-question.service";
-import hardToClickGroupUsedClueService from "./hard-to-click-group-used-clue.service";
 import hardToClickGroupService from "./hard-to-click-group.service";
 
 const idService = new IdServiceImpl();
@@ -12,12 +11,9 @@ const idService = new IdServiceImpl();
 type Filters = HardToClickQuestion | {
   id: string[];
   index: number[];
-  title: string[];
   question: string[];
   imgUrl: string[];
-  clue: string[];
   answer: string[];
-  isLegendary: boolean[];
   createdAt: number[];
   updatedAt: number[];
 };
@@ -99,18 +95,12 @@ class HardToClickQuestionService {
       throw new HttpError(403, []);
     }
 
-    const isClueUsedInQuestion = await hardToClickGroupUsedClueService.findOne({
-      hardToClickQuestionId: question.id,
-    });
 
     return {
       index: question.index,
-      title: question.title,
       question: question.question,
-      imgUrl: !question.isLegendary ? question.imgUrl : null,
-      isLegendary: question.isLegendary,
+      imgUrl: question.imgUrl,
       answer: isQuestionCompleted ? question.answer : null,
-      clue: isClueUsedInQuestion ? question.clue : null,
     };
   }
 
@@ -118,12 +108,9 @@ class HardToClickQuestionService {
     return {
       id: entity.id,
       index: entity.index,
-      title: entity.title,
       question: entity.question,
       imgUrl: entity.imgUrl,
-      clue: entity.clue,
       answer: entity.answer,
-      isLegendary: entity.isLegendary,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };
