@@ -1,9 +1,7 @@
 import React from "react";
-import { toast } from "react-toastify";
+import Chip from '@mui/material/Chip';
 
 import { useHistory } from "react-router-dom";
-
-import API from "../../../api";
 
 import "./style.css";
 
@@ -57,17 +55,7 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
     else setIsOpen(true);
   }
 
-  async function handlePresenceClick() {
-    try {
-      await API.events.markPresence(event.id);
-      toast.success("Presença confirmada com sucesso!");
-      if (onPresenceSubmited) onPresenceSubmited(event.id);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  function renderButtonIfHappening() {
+  function renderBadge() {
     // Don't render button if event type doesnt need presence
     if (
       event.type === "Concurso" ||
@@ -78,39 +66,9 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
     if (event.type === "Minicurso" && !event.isSubscribed) return;
 
     // If user already marked presence at this event, there's no need to show the button
-    if (event.wasPresent)
+    if (event.hasAttended) {
       return (
-        <button className="disabled" disabled>
-          Sua presença já foi confirmada
-        </button>
-      );
-
-    const now = new Date();
-    const newStartedDateObj = new Date(startDateObj);
-    newStartedDateObj.setMinutes(newStartedDateObj.getMinutes());
-
-    const newEndDateObj = new Date(endDateObj);
-    newEndDateObj.setMinutes(newEndDateObj.getMinutes() + 10);
-
-    // Event is happening now, so show the button to mark presence...
-    if (now > newStartedDateObj && now < newEndDateObj) {
-      // But only if the user is logged in
-      if (!isUserLoggedIn) {
-        return <button disabled>Entre para marcar a presença</button>;
-      }
-
-      return <button onClick={handlePresenceClick}>Marcar presença</button>;
-    } else if (now > newStartedDateObj) {
-      return (
-        <button className="disabled" disabled>
-          O evento já terminou
-        </button>
-      );
-    } else {
-      return (
-        <button className="disabled" disabled>
-          O evento ainda vai começar...
-        </button>
+        <Chip label="Presente" color="primary" size="small"/>
       );
     }
   }
@@ -125,7 +83,9 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
           <div>{endDateStr}</div>
         </div>
         <div className="right-item">
-          {event.type} | {event.name}
+          {event.type} | {event.name} <br/> {
+            renderBadge()
+          }
         </div>
       </button>
       <p ref={descriptionRef} className="description" style={{ height: 0 }}>
@@ -146,7 +106,6 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
           ))}
         </span>
         <span>
-          {renderButtonIfHappening()}
           {/* {event.type === "Minicurso" && event.isSubscribed && (
             <>
               <br />
