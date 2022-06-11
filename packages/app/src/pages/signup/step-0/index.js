@@ -92,11 +92,6 @@ function Step0({ formValue, updateFormValue, onSubmit }) {
       <button type="submit" className="form-button signup">
         Próximo
       </button>
-      {/* <a
-				href={BackendURL + '/auth'}
-				type="submit"
-				className="form-button signup-usp"
-			>Ou entrar com Login USP</a> */}
       <Link to="/login">
         <p>Ja tem uma conta?</p>
       </Link>

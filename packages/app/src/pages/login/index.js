@@ -80,10 +80,6 @@ function Login() {
           >
             Entrar
           </LoadingButton>
-          {/* <a className="form-button login-usp" href={BackendURL + '/auth'}>
-						Ou entrar com Login USP
-					</a> */}
-          {/* Links are used instead of buttons for SPA navigation */}
           <Link className="form-button forgot-password" to="/reset-password">
             Esqueci minha senha
           </Link>

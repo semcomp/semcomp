@@ -20,7 +20,6 @@ const idService = new IdServiceImpl();
 
 type Filters = User | {
   id: string[];
-  nusp: string[];
   email: string[];
   name: string[];
   password: string[];
@@ -197,7 +196,6 @@ class UserServiceImpl implements UserService {
   private mapEntity(entity: Model<User> & User): User {
     return {
       id: entity.id,
-      nusp: entity.nusp,
       email: entity.email,
       name: entity.name,
       password: entity.password,
