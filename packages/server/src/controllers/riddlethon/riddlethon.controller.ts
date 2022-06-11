@@ -119,6 +119,7 @@ export default class RiddlethonController {
         const riddlethonGroupCompletedQuestion: RiddlethonGroupCompletedQuestion = {
           riddlethonGroupId: group.id,
           riddlethonQuestionId: question.id,
+          createdAt: Date.now(),
         };
         await riddlethonGroupCompletedQuestionService.create(riddlethonGroupCompletedQuestion);
         // await addHousePoints(user.house && user.house._id, 5);
