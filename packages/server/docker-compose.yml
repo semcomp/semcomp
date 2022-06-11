@@ -6,16 +6,6 @@ services:
     ports:
       - "8090:8090"
     container_name: server
-    depends_on:
-      - redis
-    links:
-      - redis
-  redis:
-    restart: always
-    image: redis:alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
   mongodb:
     image: mongo:5.0.8
     container_name: mongodb

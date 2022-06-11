@@ -19,9 +19,6 @@
   - bcryptjs
 - Token
   - jsonwebtoken
-- Authenticação
-  - oauth
-  - passport
 - Linter
   - eslint
 - Emails
