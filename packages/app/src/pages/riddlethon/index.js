@@ -43,7 +43,7 @@ function SocketProvider(props) {
   const [socket] = React.useState(() =>
     IOSocket(baseURL, {
       withCredentials: true,
-      transports: ["polling"],
+      transports: ["websocket"],
     })
   );
   const token = useSelector((state) => state.auth.token);

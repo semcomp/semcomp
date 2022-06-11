@@ -43,7 +43,10 @@ const corsConfig = {
 };
 
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: corsConfig });
+const io = new Server(httpServer, {
+  transports: ['websocket'],
+  cors: corsConfig,
+});
 
 // riddleController(io);
 new RiddlethonController(io);
