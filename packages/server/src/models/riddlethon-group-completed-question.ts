@@ -28,7 +28,6 @@ const RiddlethonGroupCompletedQuestionSchema = new Mongoose.Schema(
     },
     createdAt: {
       type: Number,
-      default: Date.now(),
     },
     updatedAt: {
       type: Number,
