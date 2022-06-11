@@ -6,7 +6,6 @@ import API from "../../api";
 import "./style.css";
 import { toast } from "react-toastify";
 import { HashLink } from "react-router-hash-link";
-import { useSelector } from "react-redux";
 
 const zeroPad = (num, places) => String(num).padStart(places, "0");
 
@@ -123,51 +122,6 @@ function Livestream() {
     return videoID;
   }
 
-  async function handlePresenceClick() {
-    try {
-      await API.events.markPresence(event.id);
-      toast.success("Presença confirmada com sucesso!");
-      setPresenceClicked(true);
-      localStorage.removeItem(`${event.id}pre`);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  const isUserLoggedIn = Boolean(useSelector((state) => state.auth.token));
-
-  function renderPresenceButton() {
-    // if no event is happening now, don't render button
-    if (!event) return;
-
-    if (event.type === "Concurso" || event.type === "Game Night") return <></>;
-    if (event.type === "Minicurso" && !event.isSubscribed) return;
-
-    // If user already marked presence at this event, there's no need to enable the button
-    if (event.wasPresent || presenceClicked) {
-      return (
-        <button className="disabled" disabled>
-          Sua presença já foi confirmada
-        </button>
-      );
-    }
-
-    if (!isUserLoggedIn) {
-      return <button disabled>Entre para marcar a presença</button>;
-    }
-
-    if (timePresent < timeUntilCanMarkPresence) {
-      return (
-        <button className="disabled" disabled>
-          Espere {waitTime} {waitTime > 1 ? "minutos" : "minuto"} antes de
-          marcar presença
-        </button>
-      );
-    }
-
-    return <button onClick={handlePresenceClick}>Marcar presença</button>;
-  }
-
   const youtubeVideoId = event && parseVideoID(event.link);
 
   return (
@@ -180,7 +134,6 @@ function Livestream() {
               <div className="livestream-container">
                 {youtubeVideoId ? (
                   <>
-                    {!isBigScreen && renderPresenceButton()}
                     <div className="player">
                       <iframe
                         width="829"
@@ -214,7 +167,6 @@ function Livestream() {
             </main>
             <aside className="aside-container">
               <div className="live-chat-container">
-                {isBigScreen && renderPresenceButton()}
                 {youtubeVideoId && (
                   <div className="chat">
                     <iframe

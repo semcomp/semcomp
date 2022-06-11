@@ -36,12 +36,6 @@ const Handlers = {
     unsubscribe: withNoErrorMessage((eventId) =>
       API.delete(`/events/${eventId}/subscribe`)
     ),
-    markPresence: withCustomError(
-      (eventId) => API.post(`/events/mark-presence/${eventId}`),
-      (res) =>
-        (res && res.data && res.data.message) ||
-        "Houve um erro ao marcar sua presença"
-    ),
     getCurrent: withNoErrorMessage(() => API.get("/events/current")),
   },
   riddle: {
