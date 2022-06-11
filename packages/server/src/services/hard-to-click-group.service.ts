@@ -129,6 +129,11 @@ class HardToClickGroupService {
 
     await hardToClickGroupMemberService.delete(groupMembership);
 
+    const groupMembershipCount = await hardToClickGroupMemberService.count({ hardToClickGroupId: groupMembership.hardToClickGroupId });
+    if (groupMembershipCount === 0) {
+      await this.delete(await this.findById(groupMembership.hardToClickGroupId));
+    }
+
     return groupMembership;
   }
 
