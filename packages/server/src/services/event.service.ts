@@ -246,7 +246,7 @@ class EventService {
       throw new HttpError(400, ["Não inscrito no evento!"]);
     }
 
-    if (await attendanceService.findById(userId)) {
+    if (await attendanceService.findOne({ userId })) {
       throw new HttpError(400, ["Presença já existente!"]);
     }
 
