@@ -19,7 +19,7 @@ import {
 
 const styles = {
   root: "w-full h-full flex justify-center text-center",
-  container: "p-4 max-w-xl",
+  container: "p-4 max-w-4xl",
   title: "text-3xl",
   teamName: "",
   progressTracker: "",
@@ -114,7 +114,7 @@ function Question({ questionIndex, onCorrectAnswer }) {
           <img
             src={question.imgUrl}
             alt=""
-            className="max-w-xs w-full h-full object-contain py-4"
+            className="max-w-full w-full h-full object-contain py-4"
           />
         )}
         <div>{question.question}</div>
