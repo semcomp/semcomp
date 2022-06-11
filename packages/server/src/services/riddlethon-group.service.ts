@@ -131,6 +131,11 @@ class RiddlethonGroupService {
 
     await riddlethonGroupMemberService.delete(groupMembership);
 
+    const groupMembershipCount = await riddlethonGroupMemberService.count({ riddlethonGroupId: groupMembership.riddlethonGroupId });
+    if (groupMembershipCount === 0) {
+      await this.delete(await this.findById(groupMembership.riddlethonGroupId));
+    }
+
     return groupMembership;
   }
 
