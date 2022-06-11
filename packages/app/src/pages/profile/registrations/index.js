@@ -159,9 +159,7 @@ function Options({ item, type, fetchEvents }) {
       toast.success("Inscrição realizada com sucesso!");
     } catch (e) {
       console.error(e);
-      return toast.error(
-        e.data.message || "Não foi possível realizar a inscrição!"
-      );
+      return toast.error("Vagas esgotadas!");
     } finally {
       setIsUpdating(false);
     }
