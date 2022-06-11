@@ -6,17 +6,12 @@ import morgan from "morgan";
 import * as rfs from "rotating-file-stream";
 import cors from "cors";
 import path from "path";
-import passport from "passport";
-import OAuth1Strategy from "passport-oauth1";
-import OAuth from "oauth";
-import session from "express-session";
 import cookieParser from "cookie-parser";
 // import cron from "node-cron";
 
 // import {riddleController} from './controllers/riddle/riddle.controller';
 import RiddlethonController from './controllers/riddlethon/riddlethon.controller';
 import HardToClickController from './controllers/hard-to-click/hard-to-click.controller';
-import AuthController from "./controllers/auth.controller";
 // import houseService from "./services/house.service";
 // import userService from "./services/user.service";
 import Routes from "./routes";
@@ -70,107 +65,14 @@ const accessLogStream = rfs.createStream("access.log", {
 app.use(morgan("dev"));
 app.use(morgan("combined", { stream: accessLogStream }));
 
-app.use(express.static(path.join(__dirname, "./assets")));
-app.use(express.static(path.join(__dirname, env.FRONTEND_PATH)));
-
 app.use(cookieParser());
 app.use(express.json());
-
-const sessionConfig = {
-  saveUninitialized: false,
-  secret: env.SESSION_KEY,
-  resave: false,
-  cookie: { maxAge: 1 * 60 * 1000, httpOnly: true, secure: true }, // One minute in milliseconds
-};
-if (env.NODE_ENV === "production") {
-  const redis = require("redis");
-  const RedisStore = require("connect-redis")(session);
-  const redisConnectionString = process.env.REDIS_URL;
-  const redisClient = redis.createClient({ url: redisConnectionString });
-
-  app.use(
-    session({
-      store: new RedisStore({ client: redisClient }),
-      ...sessionConfig,
-    })
-  );
-} else {
-  app.use(session(sessionConfig));
-}
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.use(
-  "provider",
-  new OAuth1Strategy(
-    {
-      requestTokenURL: env.OAUTH_REQUEST_TOKEN_URL,
-      accessTokenURL: env.OAUTH_ACCESS_TOKEN_URL,
-      userAuthorizationURL: env.OAUTH_USER_AUTHORIZATION_URL,
-      consumerKey: env.OAUTH_CONSUMER_KEY,
-      consumerSecret: env.OAUTH_CONSUMER_SECRET,
-      callbackURL: "/api/auth/redirect",
-    },
-    (token, tokenSecret, profile, done) => {
-      const oauth = new OAuth.OAuth(
-        env.OAUTH_REQUEST_TOKEN_URL,
-        env.OAUTH_ACCESS_TOKEN_URL,
-        env.OAUTH_CONSUMER_KEY,
-        env.OAUTH_CONSUMER_SECRET,
-        "1.0",
-        null,
-        "HMAC-SHA1"
-      );
-
-      oauth.post(
-        env.OAUTH_USER_RESOURCE_URL,
-        token,
-        tokenSecret,
-        null,
-        null,
-        async (err, data) => {
-          if (err) {
-            console.error(err);
-          }
-
-          await AuthController.authenticateUser(data, done);
-        }
-      );
-    }
-  )
-);
-
-passport.serializeUser((user, done) => {
-  done(null, user);
-});
-
-passport.deserializeUser((user, done) => {
-  done(null, user);
-});
-
-app.get("/api/auth/", passport.authenticate("provider"));
-
-app.get(
-  "/api/auth/redirect",
-  passport.authenticate("provider", {
-    successRedirect: `/auth-usp`,
-    failureRedirect: "/api/auth/failure",
-  })
-);
 
 app.use("/api", Routes);
 
 app.use((error, req, res, next) => {
   return res.status(error.statusCode).json({ message: error.errors });
 });
-
-app.get("/semcomp-mente", (req, res) =>
-  res.sendFile(path.join(__dirname, "./assets", "semcomp-mente.html"))
-);
-app.get("*", (req, res) =>
-  res.sendFile(path.join(__dirname, env.FRONTEND_PATH, "index.html"))
-);
 
 // MongoAtlas Url
 const backendUrl = env.MONGO_ATLAS_URL;
