@@ -74,6 +74,7 @@ export default class RiddlethonController {
     answer: string,
   ) {
     try {
+      throw new SocketError("O concurso acabou :(");
       const { group } = await this.getUserAndGroup(socket, token);
       const groupId = group.id;
       socket.join(groupId);
