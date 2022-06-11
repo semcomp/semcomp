@@ -15,14 +15,9 @@ import "./style.css";
 
 function SignupPage() {
   const history = useHistory();
-  // Used to extract the USP signup token, on the history state.
-
-  const hash = history.location.hash;
-
-  const isAuthUSP = hash && hash.length > 1;
 
   // Controls the current step on the form.
-  const [step, setStep] = React.useState(isAuthUSP ? 1 : 0);
+  const [step, setStep] = React.useState(0);
 
   // This state will hold the whole form value. The `setFormValue` function will
   // be passed to all steps components. Whenver an input in any step changes, they
@@ -99,30 +94,19 @@ function SignupPage() {
       // Show spinner
       setIsSigningUp(true);
 
-      const userInfo = isAuthUSP
-        ? {
-          permission: canShareData,
-          telegram,
-          course,
-          discord,
-          disabilities,
-          isStudent,
-        }
-        : {
-          name,
-          email,
-          password,
-          permission: canShareData,
-          telegram,
-          course,
-          discord,
-          disabilities,
-          isStudent,
-        };
+      const userInfo = {
+        name,
+        email,
+        password,
+        permission: canShareData,
+        telegram,
+        course,
+        discord,
+        disabilities,
+        isStudent,
+      };
 
-      /** This is related to USP signup. It should be empty (or false) on normal signup. */
-      let USPToken = hash && hash.substr(1);
-      const action = await signupAction(userInfo, isAuthUSP, USPToken);
+      const action = await signupAction(userInfo);
       dispatch(action);
 
       history.push(Routes.home);

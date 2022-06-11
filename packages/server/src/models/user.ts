@@ -2,7 +2,6 @@ import Mongoose from "mongoose";
 
 type User = {
   id?: string;
-  nusp: string;
   email: string;
   name: string;
   password?: string;
@@ -25,12 +24,10 @@ const UserSchema = new Mongoose.Schema(
       unique: true,
       required: true,
     },
-    nusp: {
-      type: String,
-    },
     email: {
       type: String,
       required: true,
+      unique: true,
       trim: true,
       lowercase: true,
     },
@@ -77,7 +74,5 @@ const UserSchema = new Mongoose.Schema(
   },
   { collection: "user" }
 );
-
-UserSchema.index({ nusp: 1, email: 1 }, { unique: true });
 
 export const UserModel = Mongoose.model("user", UserSchema);

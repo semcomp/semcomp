@@ -2,12 +2,6 @@ import API from "./base-api";
 import { withCustomError, withNoErrorMessage } from "./error-message";
 
 const Handlers = {
-  loginUsp: withNoErrorMessage(() =>
-    API.get("/auth/success", {
-      withCredentials: true,
-      headers: { "Access-Control-Allow-Credentials": true },
-    })
-  ),
   login: withCustomError(
     (email, password) => API.post(`/auth/login`, { email, password }),
     {
@@ -17,13 +11,6 @@ const Handlers = {
   signup: withCustomError((userInfo) => API.post(`/auth/signup`, userInfo), {
     401: "Este e-mail já está cadastrado.",
   }),
-  signupUSP: withCustomError(
-    (userInfo, USPToken) =>
-      API.post(`/auth/signup-usp-second-step`, userInfo, {
-        headers: { authorization: USPToken },
-      }),
-    { 401: "Este e-mail já está cadastrado." }
-  ),
   auth: {
     me: withNoErrorMessage(() => API.get("/auth/me")),
   },

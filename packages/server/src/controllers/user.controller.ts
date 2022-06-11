@@ -10,10 +10,9 @@ class UserController {
     try {
       handleValidationResult(req);
 
-      const { nusp, name, course } = req.user;
+      const { name, course } = req.user;
       const { telegram, permission } = req.body;
 
-      req.user.nusp = nusp;
       req.user.name = name;
       req.user.course = course;
       req.user.telegram = telegram;
@@ -31,7 +30,6 @@ class UserController {
   public static mapUserResponse(user: User, house: House) {
     return {
       email: user.email,
-      nusp: user.nusp,
       name: user.name,
       id: user.id,
       course: user.course,

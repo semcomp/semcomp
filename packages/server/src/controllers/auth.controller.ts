@@ -26,35 +26,6 @@ class AuthController {
     }
   }
 
-  public async signupUspSecondStep(req, res, next) {
-    try {
-      handleValidationResult(req);
-
-      const user = req.user;
-      const { course, discord, telegram, permission, disabilities } =
-        req.body;
-
-      await authService.signupUspSecondStep(
-        user,
-        course,
-        discord,
-        telegram,
-        permission,
-        disabilities
-      );
-
-      const token = await authService.createToken(user);
-
-      res.setHeader("Authorization", `Bearer ${token}`);
-
-      const userHouse = await userService.getUserHouse(user.id);
-
-      return res.status(200).json(AuthController.mapUserResponse(user, userHouse));
-    } catch (error) {
-      return handleError(error, next);
-    }
-  }
-
   public async login(req, res, next) {
     try {
       handleValidationResult(req);
@@ -119,66 +90,9 @@ class AuthController {
     }
   }
 
-  public async authenticateUser(data, cb) {
-    const user = JSON.parse(data);
-
-    const currentUser = await authService.authenticateUser(
-      user.loginUsuario,
-      user.emailUspUsuario,
-      user.nomeUsuario
-    );
-
-    return cb(null, currentUser);
-  }
-
-  public async authenticationSuccess(req, res, next) {
-    try {
-      if (!req.user) {
-        throw new createError.Forbidden("Usuário não encontrado.");
-      }
-
-      const token = await authService.createToken(req.user);
-
-      res.setHeader("Authorization", `Bearer ${token}`);
-
-      const userHouse = await userService.getUserHouse(req.user.id);
-
-      if (req.user && req.user.nusp) {
-        return res.status(200).json({
-          success: true,
-          isSignup: false,
-          ...AuthController.mapUserResponse(req.user, userHouse),
-          token,
-        });
-      }
-      return res.status(200).json({
-        isSignup: true,
-        success: true,
-        token,
-      });
-    } catch (error) {
-      return handleError(error, next);
-    }
-  }
-
-  public async authenticationFailure(req, res, next) {
-    return next(
-      new createError.Forbidden({
-        success: false,
-        message: "Falha ao autenticar usuário.",
-      }.toString())
-    );
-  }
-
-  public async logout(req, res) {
-    req.logout();
-    res.redirect(process.env.FRONTEND_URL);
-  }
-
   public static mapUserResponse(user: User, house: House) {
     return {
       email: user.email,
-      nusp: user.nusp,
       name: user.name,
       id: user.id,
       course: user.course,

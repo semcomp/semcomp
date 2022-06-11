@@ -6,16 +6,9 @@ export async function login(email, password) {
 }
 
 /**
- * @argument { boolean } isUSP
- * @argument { string } USPToken
  */
-export async function signup(userInfo, isUSP, USPToken) {
-  let response;
-  if (isUSP) {
-    response = await API.signupUSP(userInfo, USPToken);
-  } else {
-    response = await API.signup(userInfo);
-  }
+export async function signup(userInfo) {
+  let response = await API.signup(userInfo);
   const { data } = response;
   return { type: "AUTH_SET_USER", user: data };
 }

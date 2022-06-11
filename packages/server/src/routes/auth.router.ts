@@ -18,16 +18,6 @@ router.post(
 );
 
 router.post(
-  "/signup-usp-second-step",
-  [
-    body("permission", "Invalid field 'permission'").isBoolean(),
-    authMiddleware.authenticate,
-    authMiddleware.isAuthenticated,
-  ],
-  AuthController.signupUspSecondStep
-);
-
-router.post(
   "/login",
   [
     body("email", "Invalid field 'email'").isEmail(),
@@ -57,11 +47,5 @@ router.get(
   [authMiddleware.authenticate, authMiddleware.isAuthenticated],
   AuthController.getLoggedUser
 );
-
-router.get("/success", AuthController.authenticationSuccess);
-
-router.get("/failure", AuthController.authenticationFailure);
-
-router.get("/logout", AuthController.logout);
 
 export default router;
