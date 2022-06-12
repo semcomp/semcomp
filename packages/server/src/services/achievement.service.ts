@@ -40,12 +40,15 @@ class AchievementService {
 
   public async create(achievement: Achievement): Promise<Achievement> {
     achievement.id = await idService.create();
+    achievement.createdAt = Date.now();
+    achievement.updatedAt = Date.now();
     const entity = await AchievementModel.create(achievement);
 
     return this.findById(entity.id);
   }
 
   public async update(achievement: Achievement): Promise<Achievement> {
+    achievement.updatedAt = Date.now();
     const entity = await AchievementModel.findOneAndUpdate({ id: achievement.id }, achievement);
 
     return this.findById(entity.id);

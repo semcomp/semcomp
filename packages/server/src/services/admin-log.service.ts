@@ -31,12 +31,15 @@ class AdminLogService {
 
   public async create(houseAchievement: AdminLog): Promise<AdminLog> {
     houseAchievement.id = await idService.create();
+    houseAchievement.createdAt = Date.now();
+    houseAchievement.updatedAt = Date.now();
     const entity = await AdminLogModel.create(houseAchievement);
 
     return this.findById(entity.id);
   }
 
   public async update(houseAchievement: AdminLog): Promise<AdminLog> {
+    houseAchievement.updatedAt = Date.now();
     const entity = await AdminLogModel.findOneAndUpdate({ id: houseAchievement.id }, houseAchievement);
 
     return this.findById(entity.id);

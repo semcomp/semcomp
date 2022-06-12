@@ -45,12 +45,15 @@ class RiddlethonGroupMemberService {
 
   public async create(riddlethonGroupMember: RiddlethonGroupMember): Promise<RiddlethonGroupMember> {
     riddlethonGroupMember.id = await idService.create();
+    riddlethonGroupMember.createdAt = Date.now();
+    riddlethonGroupMember.updatedAt = Date.now();
     const entity = await RiddlethonGroupMemberModel.create(riddlethonGroupMember);
 
     return this.findById(entity.id);
   }
 
   public async update(riddlethonGroupMember: RiddlethonGroupMember): Promise<RiddlethonGroupMember> {
+    riddlethonGroupMember.updatedAt = Date.now();
     const entity = await RiddlethonGroupMemberModel.findOneAndUpdate({ id: riddlethonGroupMember.id }, riddlethonGroupMember);
 
     return this.findById(entity.id);

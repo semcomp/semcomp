@@ -54,12 +54,15 @@ class RiddlethonQuestionService {
 
   public async create(riddlethonQuestion: RiddlethonQuestion): Promise<RiddlethonQuestion> {
     riddlethonQuestion.id = await idService.create();
+    riddlethonQuestion.createdAt = Date.now();
+    riddlethonQuestion.updatedAt = Date.now();
     const entity = await RiddlethonQuestionModel.create(riddlethonQuestion);
 
     return this.findById(entity.id);
   }
 
   public async update(riddlethonQuestion: RiddlethonQuestion): Promise<RiddlethonQuestion> {
+    riddlethonQuestion.updatedAt = Date.now();
     const entity = await RiddlethonQuestionModel.findOneAndUpdate({ id: riddlethonQuestion.id }, riddlethonQuestion);
 
     return this.findById(entity.id);

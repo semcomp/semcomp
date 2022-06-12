@@ -61,12 +61,15 @@ class HardToClickGroupService {
     }
 
     hardToClickGroup.id = await idService.create();
+    hardToClickGroup.createdAt = Date.now();
+    hardToClickGroup.updatedAt = Date.now();
     await HardToClickGroupModel.create(hardToClickGroup);
 
     return await this.findGroupWithInfo(hardToClickGroup.id);
   }
 
   public async update(hardToClickGroup: HardToClickGroup): Promise<HardToClickGroup> {
+    hardToClickGroup.updatedAt = Date.now();
     const entity = await HardToClickGroupModel.findOneAndUpdate({ id: hardToClickGroup.id }, hardToClickGroup);
 
     return this.findById(entity.id);
@@ -188,7 +191,6 @@ class HardToClickGroupService {
     const membershipsUserIds = memberships.map((membership) => membership.userId);
     const users = await userService.minimalFind({ id: membershipsUserIds });
 
-
     const entities: HardToClickGroupWithInfo[] = [];
     for (const group of groups) {
       const groupMemberships = memberships.filter((membership) => membership.hardToClickGroupId === group.id);
@@ -206,7 +208,7 @@ class HardToClickGroupService {
 
         return {
           index: question.index,
-          createdAt: question.createdAt,
+          createdAt: groupCompletedQuestion.createdAt,
         };
       });
 

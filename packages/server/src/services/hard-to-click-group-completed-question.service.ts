@@ -45,12 +45,15 @@ class HardToClickGroupCompletedQuestionService {
 
   public async create(hardToClickGroupCompletedQuestion: HardToClickGroupCompletedQuestion): Promise<HardToClickGroupCompletedQuestion> {
     hardToClickGroupCompletedQuestion.id = await idService.create();
+    hardToClickGroupCompletedQuestion.createdAt = Date.now();
+    hardToClickGroupCompletedQuestion.updatedAt = Date.now();
     const entity = await HardToClickGroupCompletedQuestionModel.create(hardToClickGroupCompletedQuestion);
 
     return this.findById(entity.id);
   }
 
   public async update(hardToClickGroupCompletedQuestion: HardToClickGroupCompletedQuestion): Promise<HardToClickGroupCompletedQuestion> {
+    hardToClickGroupCompletedQuestion.updatedAt = Date.now();
     const entity = await HardToClickGroupCompletedQuestionModel.findOneAndUpdate({ id: hardToClickGroupCompletedQuestion.id }, hardToClickGroupCompletedQuestion);
 
     return this.findById(entity.id);
