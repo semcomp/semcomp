@@ -15,11 +15,9 @@ const DeviceSchema = new Mongoose.Schema(
     },
     createdAt: {
       type: Date,
-      default: Date.now(),
     },
     updatedAt: {
       type: Date,
-      default: Date.now(),
     },
   },
   { collection: "device" }

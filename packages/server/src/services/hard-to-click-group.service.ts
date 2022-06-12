@@ -61,12 +61,15 @@ class HardToClickGroupService {
     }
 
     hardToClickGroup.id = await idService.create();
+    hardToClickGroup.createdAt = Date.now();
+    hardToClickGroup.updatedAt = Date.now();
     await HardToClickGroupModel.create(hardToClickGroup);
 
     return await this.findGroupWithInfo(hardToClickGroup.id);
   }
 
   public async update(hardToClickGroup: HardToClickGroup): Promise<HardToClickGroup> {
+    hardToClickGroup.updatedAt = Date.now();
     const entity = await HardToClickGroupModel.findOneAndUpdate({ id: hardToClickGroup.id }, hardToClickGroup);
 
     return this.findById(entity.id);

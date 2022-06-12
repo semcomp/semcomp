@@ -61,6 +61,8 @@ class RiddlethonGroupService {
     }
 
     riddlethonGroup.id = await idService.create();
+    riddlethonGroup.createdAt = Date.now();
+    riddlethonGroup.updatedAt = Date.now();
     riddlethonGroup.availableClues = 0;
     riddlethonGroup.availableSkips = 0;
     await RiddlethonGroupModel.create(riddlethonGroup);
@@ -69,6 +71,7 @@ class RiddlethonGroupService {
   }
 
   public async update(riddlethonGroup: RiddlethonGroup): Promise<RiddlethonGroup> {
+    riddlethonGroup.updatedAt = Date.now();
     const entity = await RiddlethonGroupModel.findOneAndUpdate({ id: riddlethonGroup.id }, riddlethonGroup);
 
     return this.findById(entity.id);

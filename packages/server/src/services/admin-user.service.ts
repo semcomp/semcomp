@@ -38,6 +38,8 @@ class AdminUserService {
 
   public async create(adminUser: AdminUser): Promise<AdminUser> {
     adminUser.id = await idService.create();
+    adminUser.createdAt = Date.now();
+    adminUser.updatedAt = Date.now();
     adminUser.password = bcrypt.hashSync(adminUser.password, bcrypt.genSaltSync(10));
     const entity = await AdminUserModel.create(adminUser);
 
@@ -45,6 +47,7 @@ class AdminUserService {
   }
 
   public async update(adminUser: AdminUser): Promise<AdminUser> {
+    adminUser.updatedAt = Date.now();
     const entity = await AdminUserModel.findOneAndUpdate({ id: adminUser.id }, adminUser);
 
     return this.findById(entity.id);

@@ -37,12 +37,15 @@ class RiddlethonGroupUsedClueService {
 
   public async create(riddlethonGroupUsedClue: RiddlethonGroupUsedClue): Promise<RiddlethonGroupUsedClue> {
     riddlethonGroupUsedClue.id = await idService.create();
+    riddlethonGroupUsedClue.createdAt = Date.now();
+    riddlethonGroupUsedClue.updatedAt = Date.now();
     const entity = await RiddlethonGroupUsedClueModel.create(riddlethonGroupUsedClue);
 
     return this.findById(entity.id);
   }
 
   public async update(riddlethonGroupUsedClue: RiddlethonGroupUsedClue): Promise<RiddlethonGroupUsedClue> {
+    riddlethonGroupUsedClue.updatedAt = Date.now();
     const entity = await RiddlethonGroupUsedClueModel.findOneAndUpdate({ id: riddlethonGroupUsedClue.id }, riddlethonGroupUsedClue);
 
     return this.findById(entity.id);

@@ -31,7 +31,6 @@ const RiddlethonGroupCompletedQuestionSchema = new Mongoose.Schema(
     },
     updatedAt: {
       type: Number,
-      default: Date.now(),
     },
   },
   { collection: "riddlethon-group-completed-question" }

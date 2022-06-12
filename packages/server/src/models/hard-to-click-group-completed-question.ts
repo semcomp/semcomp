@@ -28,11 +28,9 @@ const HardToClickGroupCompletedQuestionSchema = new Mongoose.Schema(
     },
     createdAt: {
       type: Number,
-      default: Date.now(),
     },
     updatedAt: {
       type: Number,
-      default: Date.now(),
     },
   },
   { collection: "hard-to-click-group-completed-question" }

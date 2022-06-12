@@ -47,12 +47,15 @@ class SubscriptionService {
 
   public async create(subscription: Subscription): Promise<Subscription> {
     subscription.id = await idService.create();
+    subscription.createdAt = Date.now();
+    subscription.updatedAt = Date.now();
     const entity = await SubscriptionModel.create(subscription);
 
     return this.findById(entity.id);
   }
 
   public async update(subscription: Subscription): Promise<Subscription> {
+    subscription.updatedAt = Date.now();
     const entity = await SubscriptionModel.findOneAndUpdate({ id: subscription.id }, subscription);
 
     return this.findById(entity.id);
