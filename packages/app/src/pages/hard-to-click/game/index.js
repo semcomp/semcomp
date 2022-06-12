@@ -1,11 +1,7 @@
 import React from "react";
 
-import TextField from '@mui/material/TextField';
-import {
-  Done,
-  NavigateNext,
-  NavigateBefore,
-} from "@mui/icons-material";
+import TextField from "@mui/material/TextField";
+import { Done, NavigateNext, NavigateBefore } from "@mui/icons-material";
 import { toast } from "react-toastify";
 
 import API from "../../../api";
@@ -16,6 +12,7 @@ import {
   NUMBER_OF_QUESTIONS,
   EVENTS_PREFIX,
 } from "../../../constants/hard-to-click";
+import ReactConfetti from "react-confetti";
 
 const styles = {
   root: "w-full h-full flex justify-center text-center",
@@ -37,6 +34,14 @@ function Question({ questionIndex, onCorrectAnswer }) {
   const [question, setQuestion] = React.useState(null);
   const [inputValue, setInputValue] = React.useState("");
   const socket = useSocket();
+
+  const width = window.innerWidth - 20;
+  const height = document.documentElement.scrollHeight;
+  const [confetti, setConfetti] = React.useState(false);
+
+  function playConfetti() {
+    setConfetti(true);
+  }
 
   const wasCorrectlyAnswered = question && Boolean(question.answer);
 
@@ -72,8 +77,9 @@ function Question({ questionIndex, onCorrectAnswer }) {
       const { correct } = await socket.once(`${EVENTS_PREFIX}correct-answer`);
       if (!correct) toast.error("Resposta incorreta");
       else {
+        playConfetti();
         toast.success("Resposta correta!");
-        onCorrectAnswer();
+        // onCorrectAnswer();
       }
     } catch (e) {
       console.error(e);
@@ -109,6 +115,15 @@ function Question({ questionIndex, onCorrectAnswer }) {
 
     return (
       <>
+        {confetti && (
+          <ReactConfetti
+            width={width}
+            height={height}
+            numberOfPieces={1000}
+            recycle={false}
+            onConfettiComplete={onCorrectAnswer()}
+          />
+        )}
         <h1 className="text-2xl text-center mb-4">{question.title}</h1>
         {question.imgUrl && (
           <img
@@ -175,10 +190,7 @@ function HardToClick() {
   function handleCorrectAnswer() {
     setTeam({
       ...team,
-      completedQuestions: [
-        ...completedQuestions,
-        currentQuestionIndex,
-      ],
+      completedQuestions: [...completedQuestions, currentQuestionIndex],
     });
     if (currentQuestionIndex + 1 === NUMBER_OF_QUESTIONS) {
       win();
