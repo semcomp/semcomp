@@ -170,7 +170,7 @@ class HardToClickGroupService {
 
       return {
         index: question.index,
-        createdAt: question.createdAt,
+        createdAt: completedQuestion.createdAt,
       };
     });
 
@@ -203,7 +203,7 @@ class HardToClickGroupService {
       );
       const groupCompletedQuestionsInfo = groupCompletedQuestions.map((groupCompletedQuestion) => {
         const question = questions.find(
-          (question) => question.id === groupCompletedQuestion.hardToClickQuestionId
+          (item) => item.id === groupCompletedQuestion.hardToClickQuestionId
         );
 
         return {
@@ -211,7 +211,6 @@ class HardToClickGroupService {
           createdAt: groupCompletedQuestion.createdAt,
         };
       });
-
 
       entities.push({
         ...group,
