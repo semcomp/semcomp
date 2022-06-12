@@ -191,7 +191,6 @@ class HardToClickGroupService {
     const membershipsUserIds = memberships.map((membership) => membership.userId);
     const users = await userService.minimalFind({ id: membershipsUserIds });
 
-
     const entities: HardToClickGroupWithInfo[] = [];
     for (const group of groups) {
       const groupMemberships = memberships.filter((membership) => membership.hardToClickGroupId === group.id);
@@ -209,7 +208,7 @@ class HardToClickGroupService {
 
         return {
           index: question.index,
-          createdAt: question.createdAt,
+          createdAt: groupCompletedQuestion.createdAt,
         };
       });
 
