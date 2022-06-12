@@ -172,7 +172,7 @@ class RiddlethonGroupService {
 
       return {
         index: question.index,
-        createdAt: question.createdAt,
+        createdAt: completedQuestion.createdAt,
       };
     });
 
