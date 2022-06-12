@@ -37,12 +37,15 @@ class HouseAchievementService {
 
   public async create(houseAchievement: HouseAchievement): Promise<HouseAchievement> {
     houseAchievement.id = await idService.create();
+    houseAchievement.createdAt = Date.now();
+    houseAchievement.updatedAt = Date.now();
     const entity = await HouseAchievementModel.create(houseAchievement);
 
     return this.findById(entity.id);
   }
 
   public async update(houseAchievement: HouseAchievement): Promise<HouseAchievement> {
+    houseAchievement.updatedAt = Date.now();
     const entity = await HouseAchievementModel.findOneAndUpdate({ id: houseAchievement.id }, houseAchievement);
 
     return this.findById(entity.id);

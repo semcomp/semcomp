@@ -29,11 +29,9 @@ const UserDisabilitySchema = new Mongoose.Schema(
     },
     createdAt: {
       type: Number,
-      default: Date.now(),
     },
     updatedAt: {
       type: Number,
-      default: Date.now(),
     },
   },
   { collection: "user-disability" }

@@ -44,12 +44,15 @@ class HouseService {
 
   public async create(house: House): Promise<House> {
     house.id = await idService.create();
+    house.createdAt = Date.now();
+    house.updatedAt = Date.now();
     const entity = await HouseModel.create(house);
 
     return this.findById(entity.id);
   }
 
   public async update(house: House): Promise<House> {
+    house.updatedAt = Date.now();
     const entity = await HouseModel.findOneAndUpdate({ id: house.id }, house);
 
     return this.findById(entity.id);

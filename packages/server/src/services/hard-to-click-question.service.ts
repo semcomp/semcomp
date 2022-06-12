@@ -50,12 +50,15 @@ class HardToClickQuestionService {
 
   public async create(hardToClickQuestion: HardToClickQuestion): Promise<HardToClickQuestion> {
     hardToClickQuestion.id = await idService.create();
+    hardToClickQuestion.createdAt = Date.now();
+    hardToClickQuestion.updatedAt = Date.now();
     const entity = await HardToClickQuestionModel.create(hardToClickQuestion);
 
     return this.findById(entity.id);
   }
 
   public async update(hardToClickQuestion: HardToClickQuestion): Promise<HardToClickQuestion> {
+    hardToClickQuestion.updatedAt = Date.now();
     const entity = await HardToClickQuestionModel.findOneAndUpdate({ id: hardToClickQuestion.id }, hardToClickQuestion);
 
     return this.findById(entity.id);

@@ -56,12 +56,15 @@ export default class PaymentServiceImpl implements PaymentService {
 
   public async create(payment: Payment): Promise<Payment> {
     payment.id = await this.idService.create();
+    payment.createdAt = Date.now();
+    payment.updatedAt = Date.now();
     const entity = await PaymentModel.create(payment);
 
     return this.findById(entity.id);
   }
 
   public async update(payment: Payment): Promise<Payment> {
+    payment.updatedAt = Date.now();
     const entity = await PaymentModel.findOneAndUpdate({ id: payment.id }, payment);
 
     return this.findById(entity.id);

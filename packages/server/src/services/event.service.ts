@@ -61,12 +61,15 @@ class EventService {
 
   public async create(event: Event): Promise<Event> {
     event.id = await idService.create();
+    event.createdAt = Date.now();
+    event.updatedAt = Date.now();
     const entity = await EventModel.create(event);
 
     return this.findById(entity.id);
   }
 
   public async update(event: Event): Promise<Event> {
+    event.updatedAt = Date.now();
     const entity = await EventModel.findOneAndUpdate({ id: event.id }, event);
 
     return this.findById(entity.id);

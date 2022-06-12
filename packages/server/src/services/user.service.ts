@@ -81,6 +81,8 @@ class UserServiceImpl implements UserService {
 
   public async create(user: User): Promise<User> {
     user.id = await idService.create();
+    user.createdAt = Date.now();
+    user.updatedAt = Date.now();
     user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10));
     const entity = await UserModel.create(user);
 
@@ -88,6 +90,7 @@ class UserServiceImpl implements UserService {
   }
 
   public async update(user: User): Promise<User> {
+    user.updatedAt = Date.now();
     const entity = await UserModel.findOneAndUpdate({ id: user.id }, user);
 
     return this.findById(entity.id);

@@ -37,12 +37,15 @@ class RiddlethonGroupUsedSkipService {
 
   public async create(riddlethonGroupUsedSkip: RiddlethonGroupUsedSkip): Promise<RiddlethonGroupUsedSkip> {
     riddlethonGroupUsedSkip.id = await idService.create();
+    riddlethonGroupUsedSkip.createdAt = Date.now();
+    riddlethonGroupUsedSkip.updatedAt = Date.now();
     const entity = await RiddlethonGroupUsedSkipModel.create(riddlethonGroupUsedSkip);
 
     return this.findById(entity.id);
   }
 
   public async update(riddlethonGroupUsedSkip: RiddlethonGroupUsedSkip): Promise<RiddlethonGroupUsedSkip> {
+    riddlethonGroupUsedSkip.updatedAt = Date.now();
     const entity = await RiddlethonGroupUsedSkipModel.findOneAndUpdate({ id: riddlethonGroupUsedSkip.id }, riddlethonGroupUsedSkip);
 
     return this.findById(entity.id);
