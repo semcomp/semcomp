@@ -12,7 +12,7 @@ import {
   NUMBER_OF_QUESTIONS,
   EVENTS_PREFIX,
 } from "../../../constants/hard-to-click";
-import ReactConfetti from "react-confetti";
+// import ReactConfetti from "react-confetti";
 
 const styles = {
   root: "w-full h-full flex justify-center text-center",
@@ -35,13 +35,13 @@ function Question({ questionIndex, onCorrectAnswer }) {
   const [inputValue, setInputValue] = React.useState("");
   const socket = useSocket();
 
-  const width = window.innerWidth - 20;
-  const height = document.documentElement.scrollHeight;
-  const [confetti, setConfetti] = React.useState(false);
+  // const width = window.innerWidth - 20;
+  // const height = document.documentElement.scrollHeight;
+  // const [confetti, setConfetti] = React.useState(false);
 
-  function playConfetti() {
-    setConfetti(true);
-  }
+  // function playConfetti() {
+  //   setConfetti(true);
+  // }
 
   const wasCorrectlyAnswered = question && Boolean(question.answer);
 
@@ -77,9 +77,8 @@ function Question({ questionIndex, onCorrectAnswer }) {
       const { correct } = await socket.once(`${EVENTS_PREFIX}correct-answer`);
       if (!correct) toast.error("Resposta incorreta");
       else {
-        playConfetti();
         toast.success("Resposta correta!");
-        // onCorrectAnswer();
+        onCorrectAnswer();
       }
     } catch (e) {
       console.error(e);
@@ -115,15 +114,15 @@ function Question({ questionIndex, onCorrectAnswer }) {
 
     return (
       <>
-        {confetti && (
+        {/* {confetti && (
           <ReactConfetti
             width={width}
             height={height}
             numberOfPieces={1000}
             recycle={false}
-            onConfettiComplete={onCorrectAnswer()}
+            onConfettiComplete={onCorrectAnswer}
           />
-        )}
+        )} */}
         <h1 className="text-2xl text-center mb-4">{question.title}</h1>
         {question.imgUrl && (
           <img
