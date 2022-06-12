@@ -31,12 +31,15 @@ class UserDisabilityService {
 
   public async create(userDisability: UserDisability): Promise<UserDisability> {
     userDisability.id = await idService.create();
+    userDisability.createdAt = Date.now();
+    userDisability.updatedAt = Date.now();
     const entity = await UserDisabilityModel.create(userDisability);
 
     return this.findById(entity.id);
   }
 
   public async update(userDisability: UserDisability): Promise<UserDisability> {
+    userDisability.updatedAt = Date.now();
     const entity = await UserDisabilityModel.findOneAndUpdate({ id: userDisability.id }, userDisability);
 
     return this.findById(entity.id);

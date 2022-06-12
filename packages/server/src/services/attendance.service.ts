@@ -45,12 +45,15 @@ class AttendanceService {
 
   public async create(attendance: Attendance): Promise<Attendance> {
     attendance.id = await idService.create();
+    attendance.createdAt = Date.now();
+    attendance.updatedAt = Date.now();
     const entity = await AttendanceModel.create(attendance);
 
     return this.findById(entity.id);
   }
 
   public async update(attendance: Attendance): Promise<Attendance> {
+    attendance.updatedAt = Date.now();
     const entity = await AttendanceModel.findOneAndUpdate({ id: attendance.id }, attendance);
 
     return this.findById(entity.id);

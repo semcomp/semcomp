@@ -61,12 +61,15 @@ class EventService {
 
   public async create(event: Event): Promise<Event> {
     event.id = await idService.create();
+    event.createdAt = Date.now();
+    event.updatedAt = Date.now();
     const entity = await EventModel.create(event);
 
     return this.findById(entity.id);
   }
 
   public async update(event: Event): Promise<Event> {
+    event.updatedAt = Date.now();
     const entity = await EventModel.findOneAndUpdate({ id: event.id }, event);
 
     return this.findById(entity.id);
@@ -246,19 +249,19 @@ class EventService {
       throw new HttpError(400, ["Não inscrito no evento!"]);
     }
 
-    if (await attendanceService.findById(userId)) {
+    if (await attendanceService.findOne({ userId, eventId })) {
       throw new HttpError(400, ["Presença já existente!"]);
     }
 
     const now = Date.now();
 
     const newStartedDateObj = new Date(event.startDate);
-    newStartedDateObj.setMinutes(newStartedDateObj.getMinutes() - 10);
+    newStartedDateObj.setMinutes(newStartedDateObj.getMinutes() - 30);
 
-    const newEndDateObj = new Date(event.endDate);
-    newEndDateObj.setMinutes(newEndDateObj.getMinutes() + 10);
+    // const newEndDateObj = new Date(event.endDate);
+    // newEndDateObj.setMinutes(newEndDateObj.getMinutes() + 30);
 
-    if (now > newStartedDateObj.getTime() && now < newEndDateObj.getTime()) {
+    if (now > newStartedDateObj.getTime()/* && now < newEndDateObj.getTime()*/) {
       const attendance: Attendance = {
         userId: userId,
         eventId: eventId,

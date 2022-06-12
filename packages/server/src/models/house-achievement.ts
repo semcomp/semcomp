@@ -28,11 +28,9 @@ const HouseAchievementSchema = new Mongoose.Schema(
     },
     createdAt: {
       type: Number,
-      default: Date.now(),
     },
     updatedAt: {
       type: Number,
-      default: Date.now(),
     },
   },
   { collection: "house-achievement" }

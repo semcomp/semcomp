@@ -74,6 +74,7 @@ export default class RiddlethonController {
     answer: string,
   ) {
     try {
+      throw new SocketError("O concurso acabou :(");
       const { group } = await this.getUserAndGroup(socket, token);
       const groupId = group.id;
       socket.join(groupId);
@@ -119,6 +120,7 @@ export default class RiddlethonController {
         const riddlethonGroupCompletedQuestion: RiddlethonGroupCompletedQuestion = {
           riddlethonGroupId: group.id,
           riddlethonQuestionId: question.id,
+          createdAt: (new Date()).getTime(),
         };
         await riddlethonGroupCompletedQuestionService.create(riddlethonGroupCompletedQuestion);
         // await addHousePoints(user.house && user.house._id, 5);
