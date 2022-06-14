@@ -63,7 +63,6 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
       event.type === "Contest"
     )
       return <></>;
-    if (event.type === "Minicurso" && !event.isSubscribed) return;
 
     // If user already marked presence at this event, there's no need to show the button
     if (event.hasAttended) {
