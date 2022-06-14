@@ -93,10 +93,8 @@ class EventService {
 
   public async getInfo(userId: string) {
     const events = await this.find({ showOnSchedule: true });
-    const userAttendances = await attendanceService.find({
-      userId,
-    });
-    const eventsSubscriptions = await subscriptionService.find();
+    const userAttendances = await attendanceService.find({ userId });
+    const eventsSubscriptions = await subscriptionService.find({ userId });
 
     const eventsInfo = [];
     for (const event of events) {
@@ -104,9 +102,7 @@ class EventService {
       let isSubscribed = false;
       if (userId) {
         hasAttended = !!userAttendances.find((attendance) => attendance.eventId === event.id);
-        isSubscribed = !!eventsSubscriptions.find((subscription) => {
-          return subscription.eventId === event.id && subscription.userId === userId;
-        });
+        isSubscribed = !!eventsSubscriptions.find((subscription) => subscription.eventId === event.id);
       }
 
       const eventSubscriptionsCount = eventsSubscriptions.filter((subscription) => {
@@ -237,17 +233,17 @@ class EventService {
 
   public async markAttendance(eventId: string, userId: string, userHouse: any) {
     const event = await this.findById(eventId);
-    const subscription = await subscriptionService.findOne({ userId, eventId });
+    // const subscription = await subscriptionService.findOne({ userId, eventId });
 
-    if (
-      (event.type === EventTypes.MINICURSO ||
-        event.type === EventTypes.GAME_NIGHT ||
-        event.type === EventTypes.CONCURSO ||
-        event.type === EventTypes.CONTEST) &&
-      !subscription
-    ) {
-      throw new HttpError(400, ["Não inscrito no evento!"]);
-    }
+    // if (
+    //   (event.type === EventTypes.MINICURSO ||
+    //     event.type === EventTypes.GAME_NIGHT ||
+    //     event.type === EventTypes.CONCURSO ||
+    //     event.type === EventTypes.CONTEST) &&
+    //   !subscription
+    // ) {
+    //   throw new HttpError(400, ["Não inscrito no evento!"]);
+    // }
 
     if (await attendanceService.findOne({ userId, eventId })) {
       throw new HttpError(400, ["Presença já existente!"]);
