@@ -6,7 +6,7 @@ import Insta from "../../assets/round-instagram-white.png";
 import Twt from "../../assets/round-twitter-white.png";
 import Ytube from "../../assets/round-youtube-white.png";
 
-import EmailIcon from '@mui/icons-material/Email';
+import EmailIcon from "@mui/icons-material/Email";
 
 import "./style.css";
 
@@ -26,11 +26,15 @@ const Footer = () => {
           <p>Entre em contato conosco</p>
           <div className="email-field">
             <EmailIcon sx={{ mr: 0.5 }} />
-            <a href="mailto:semcomp@icmc.usp.br">Assuntos gerais: semcomp@icmc.usp.br</a>
+            <a href="mailto:semcomp@icmc.usp.br">
+              Assuntos gerais: semcomp@icmc.usp.br
+            </a>
           </div>
           <div className="email-field">
             <EmailIcon sx={{ mr: 0.5 }} />
-            <a href="mailto:semcomp@icmc.usp.br">Patrocínio: patrocinio_semcomp@icmc.com.br</a>
+            <a href="mailto:patrocinio_semcomp@icmc.usp.br">
+              Patrocínio: patrocinio_semcomp@icmc.usp.br
+            </a>
           </div>
         </div>
         <div className="middle-content">
@@ -60,7 +64,6 @@ const Footer = () => {
               <img alt="Twitter" src={Twt} />
             </a>
           </div>
-
         </div>
       </footer>
     </div>
