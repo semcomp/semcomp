@@ -1,82 +1,47 @@
-.footer-component {
-  color: white;
+.footer-component{
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-content: space-around;
-  align-items: flex-start;
-  background-color: #1d1d1b;
+  justify-content: space-around;
+  align-items: center;
+  color: white;
   padding: 2rem;
   background-color: var(--color-green);
   background-size: cover;
   background-position: center;
 }
 
-.footer-component div.left-content {
-  margin: 1rem 0;
-  display: flex;
-  flex-direction: column;
-  align-items: left;
-  text-align: left;
+.footer-component a:hover{
+  filter: drop-shadow(0 0 0.75rem #51803b);
 }
 
-.footer-component div.left-content div {
-  margin: 0.5rem 0;
-}
-
-.footer-component>div.left-content .email-field {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-}
-
-.footer-component>div.left-content .email-field:hover {
-  filter: drop-shadow(0 0 0.75rem #227aa8);
-}
-
-.footer-component div.middle-content {
-  margin: 1rem 0;
+.footer-section{
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
 }
 
-.footer-component div.right-content {
-  margin: 1rem 0;
+.social-icons{
   display: flex;
-  flex-direction: column;
-  align-items: right;
-  text-align: right;
+  flex-direction: row;
 }
 
-.footer-component div.right-content div {
-  display: flex;
-  margin: 1rem 0;
+.footer-section img {
+  height: 2.5rem;
+  margin: .3rem;
 }
 
-.footer-component div.right-content a {
-  width: 2.7rem;
-  height: 2.7rem;
-  display: block;
-  padding: 0.4rem;
-}
+@media screen and (max-width: 860px) {
+  .footer-component {
+    display: flex;
+    flex-direction: column;
+    color: white;
+    padding: 2rem;
+    background-color: var(--color-green);
+    background-size: cover;
+    background-position: center;
+  }
 
-.footer-component div.right-content a:not(:last-child) {
-  margin: 0 0.4rem;
-  justify-content: space-around;
-}
-
-.footer-component div.right-content a>img {
-  width: 100%;
-  height: 100%;
-}
-
-.footer-component div.right-content a:hover {
-  filter: drop-shadow(0 0 0.75rem #227aa8);
-}
-
-.footer-component p {
-  margin: 0;
-  font-size: 1.2rem;
+  .footer-section{
+    margin-bottom: 2rem;
+  }
 }
