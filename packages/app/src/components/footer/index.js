@@ -7,6 +7,7 @@ import Twt from "../../assets/round-twitter-white.png";
 import Ytube from "../../assets/round-youtube-white.png";
 
 import EmailIcon from "@mui/icons-material/Email";
+import FacebookIcon from "@mui/icons-material/Facebook";
 
 import "./style.css";
 
@@ -22,7 +23,7 @@ const Footer = () => {
     <div className="footer-container">
       <div className="shiny-divider"></div>
       <footer className="footer-component">
-        <div className="left-content">
+        <section className="footer-section">
           <p>Entre em contato conosco</p>
           <div className="email-field">
             <EmailIcon sx={{ mr: 0.5 }} />
@@ -36,15 +37,15 @@ const Footer = () => {
               Patrocínio: patrocinio_semcomp@icmc.usp.br
             </a>
           </div>
-        </div>
-        <div className="middle-content">
+        </section>
+        <section className="footer-section">
           <p className="copyright">
             © Semcomp 2022. Todos os direitos reservados.
           </p>
-        </div>
-        <div className="right-content">
+        </section>
+        <section className="footer-section">
           <p>Nos siga nas redes sociais</p>
-          <div>
+          <div className="social-icons">
             <a href="https://www.facebook.com/Semcomp/" rel="noopener">
               <img alt="Facebook" src={Face} />
             </a>
@@ -64,7 +65,7 @@ const Footer = () => {
               <img alt="Twitter" src={Twt} />
             </a>
           </div>
-        </div>
+        </section>
       </footer>
     </div>
   );
