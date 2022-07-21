@@ -57,6 +57,17 @@ router.get(
 );
 
 router.post(
+  "/:eventId/mark-attendance/bulk",
+  [
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+    param("eventId", "Invalid field 'eventId'").not().isEmpty(),
+    body("emails", "Invalid field 'emails'").not().isEmpty(),
+  ],
+  AdminEventController.markUserAttendanceBulk
+);
+
+router.post(
   "/:eventId/mark-attendance",
   [
     adminAuthMiddleware.authenticate,
