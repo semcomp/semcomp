@@ -3,6 +3,7 @@ import {
 } from "../../lib/handle-validation-result";
 import { handleError } from "../../lib/handle-error";
 import eventService from "../../services/event.service";
+import userService from "../../services/user.service";
 
 export default {
   list: async (req, res, next) => {
@@ -56,6 +57,33 @@ export default {
       const deletedEvent = await eventService.delete(foundEvent);
 
       return res.status(200).send(deletedEvent);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  },
+  markUserAttendanceBulk: async (req, res, next) => {
+    try {
+      const { eventId } = req.params;
+      const { emails } = req.body;
+
+      const users = await userService.find({ email: emails });
+      console.log(users);
+
+      for (const user of users) {
+        console.log(user.id);
+        await eventService.markAttendance(eventId, user.id, null);
+      }
+
+      return res.status(200).json();
+    } catch (error) {
+      return handleError(error, next);
+    }
+  },
+  listUsersAttendancesInfo: async (req, res, next) => {
+    try {
+      const usersAttendancesInfo = await eventService.listUsersAttendancesInfo();
+
+      return res.status(200).json(usersAttendancesInfo);
     } catch (error) {
       return handleError(error, next);
     }

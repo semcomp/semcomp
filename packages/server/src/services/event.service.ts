@@ -35,6 +35,12 @@ type Filters = {
 
 type EventWithInfo = Event & { attendances: Partial<User>[], subscribers: Partial<User>[] };
 
+type UserAttendanceInfo = {
+  email: string;
+  name: string;
+  hours: number;
+}
+
 class EventService {
   public async find(filters?: Partial<Filters>): Promise<Event[]> {
     const events = await EventModel.find(filters);
@@ -334,6 +340,33 @@ class EventService {
     }
 
     return entities;
+  }
+
+  public async listUsersAttendancesInfo(): Promise<UserAttendanceInfo[]> {
+    const users = await userService.find();
+    const attendances = await attendanceService.find();
+    const events = await this.find();
+
+    const usersAttendancesInfo: UserAttendanceInfo[] = [];
+    for (const user of users) {
+      const userAttendances = attendances.filter(attendance => attendance.userId === user.id);
+
+      let hours = 0;
+      for (const userAttendance of userAttendances) {
+        const event = events.find(event => event.id === userAttendance.eventId);
+
+        const startDate = new Date(event.startDate);
+        const endDate = new Date(event.endDate);
+        hours += endDate.getHours() - startDate.getHours();
+      }
+      usersAttendancesInfo.push({
+        email: user.email,
+        name: user.name,
+        hours,
+      });
+    }
+
+    return usersAttendancesInfo;
   }
 
   private mapEntity(entity: Model<Event> & Event): Event {
