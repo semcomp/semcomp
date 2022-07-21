@@ -47,6 +47,15 @@ router.delete(
   AdminEventController.delete
 );
 
+router.get(
+  "/attendances-info",
+  [
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+  ],
+  AdminEventController.listUsersAttendancesInfo
+);
+
 router.post(
   "/:eventId/mark-attendance",
   [
