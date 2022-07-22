@@ -5,8 +5,8 @@ import { handleError } from "../../lib/handle-error";
 import eventService from "../../services/event.service";
 import userService from "../../services/user.service";
 
-export default {
-  list: async (req, res, next) => {
+class EventController {
+  public async list(req, res, next) {
     try {
       const events: any = await eventService.findWithInfo();
 
@@ -14,8 +14,9 @@ export default {
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  create: async (req, res, next) => {
+  }
+
+  public async create(req, res, next) {
     try {
       handleValidationResult(req);
 
@@ -27,8 +28,9 @@ export default {
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  update: async (req, res, next) => {
+  }
+
+  public async update(req, res, next) {
     try {
       handleValidationResult(req);
 
@@ -46,8 +48,9 @@ export default {
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  delete: async (req, res, next) => {
+  }
+
+  public async delete(req, res, next) {
     try {
       handleValidationResult(req);
 
@@ -60,8 +63,9 @@ export default {
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  markUserAttendanceBulk: async (req, res, next) => {
+  }
+
+  public async markUserAttendanceBulk(req, res, next) {
     try {
       const { eventId } = req.params;
       const { emails } = req.body;
@@ -78,8 +82,9 @@ export default {
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  listUsersAttendancesInfo: async (req, res, next) => {
+  }
+
+  public async listUsersAttendancesInfo(req, res, next) {
     try {
       const usersAttendancesInfo = await eventService.listUsersAttendancesInfo();
 
@@ -87,8 +92,9 @@ export default {
     } catch (error) {
       return handleError(error, next);
     }
-  },
-  markUserAttendance: async (req, res, next) => {
+  }
+
+  public async markUserAttendance(req, res, next) {
     try {
       const { eventId } = req.params;
       const { userId } = req.body;
@@ -99,5 +105,7 @@ export default {
     } catch (error) {
       return handleError(error, next);
     }
-  },
-};
+  }
+}
+
+export default new EventController();
