@@ -2,7 +2,7 @@ import { Router } from "express";
 import { body } from "express-validator";
 
 import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
-import * as EmailController from "../../controllers/admin/email.controller";
+import emailController from "../../controllers/admin/email.controller";
 
 const router = Router();
 
@@ -15,7 +15,7 @@ router.post(
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],
-  EmailController.sendEmail
+  emailController.send
 );
 
 export default router;
