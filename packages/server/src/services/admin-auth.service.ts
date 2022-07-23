@@ -3,11 +3,11 @@ import bcrypt from "bcryptjs";
 import { config } from "dotenv";
 config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env` });
 
-import { sendEmail } from "../lib/send-email";
 import JsonWebToken from "./json-web-token.service";
 import HttpError from "../lib/http-error";
 import AdminUser from "../models/admin-user";
 import adminUserService from "./admin-user.service";
+import emailService from "./email.service";
 
 const tokenService = new JsonWebToken(process.env.JWT_PRIVATE_KEY, "30d");
 
@@ -37,7 +37,7 @@ class AdminAuthService {
 
     const createdAdminUser = await adminUserService.create(adminUser);
 
-    await sendEmail(
+    await emailService.send(
       createdAdminUser.email,
       "Bem vindo a Semcomp Beta 2022!",
       `Você se cadastrou no nosso backoffice e já está tudo certo!!!`,
@@ -71,7 +71,7 @@ class AdminAuthService {
     adminUser.resetPasswordCode = code;
     await adminUserService.update(adminUser);
 
-    await sendEmail(
+    await emailService.send(
       adminUser.email,
       "Recuperação de Senha",
       `Seu código para recuperação de senha: ${adminUser.resetPasswordCode}`,

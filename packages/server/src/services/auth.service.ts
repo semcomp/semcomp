@@ -3,8 +3,6 @@ import bcrypt from "bcryptjs";
 import { config } from "dotenv";
 config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env` });
 
-
-import { sendEmail } from "../lib/send-email";
 import JsonWebToken from "./json-web-token.service";
 import userService from "./user.service";
 import User from "../models/user";
@@ -13,6 +11,7 @@ import Disability from "../lib/constants/disability-enum";
 import HttpError from "../lib/http-error";
 import userDisabilityService from "./user-disability.service";
 import UserDisability from "../models/user-disability";
+import emailService from "./email.service";
 
 const tokenService = new JsonWebToken(process.env.JWT_PRIVATE_KEY, "30d");
 
@@ -57,7 +56,7 @@ class AuthService {
       await userDisabilityService.create(userDisability);
     }
 
-    await sendEmail(
+    await emailService.send(
       createdUser.email,
       "Bem vinde à Semcomp 25 Beta!",
       `Você se cadastrou no nosso site e já está tudo certo!
@@ -101,7 +100,7 @@ class AuthService {
     user.resetPasswordCode = code;
     await userService.update(user);
 
-    await sendEmail(
+    await emailService.send(
       user.email,
       "Recuperação de Senha",
       `Seu código para recuperação de senha: ${user.resetPasswordCode}`,

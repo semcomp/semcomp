@@ -1,32 +1,29 @@
-import { validationResult } from "express-validator";
-
-import UserModel from "../../models/user";
-import { sendEmail as sendEmailAdapter } from "../../lib/send-email";
 import userService from "../../services/user.service";
+import { handleError } from "../../lib/handle-error";
+import { handleValidationResult } from "../../lib/handle-validation-result";
+import emailService from "../../services/email.service";
 
-export const sendEmail = async (req, res) => {
-  const validationErrors = validationResult(req);
-  if (!validationErrors.isEmpty()) {
-    return res.status(400).json({ errors: validationErrors.array() });
-  }
+class EmailController {
+  public async send(req, res, next) {
+    handleValidationResult(req);
 
-  try {
-    const { subject, text, html } = req.body;
+    try {
+      const { subject, text, html } = req.body;
 
-    const users = await userService.find();
+      const users = await userService.find();
 
-    const promises = [];
-    for (const user of users) {
-      promises.push(sendEmailAdapter(user.email, subject, text, html));
+      const promises = [];
+      for (const user of users) {
+        promises.push(emailService.send(user.email, subject, text, html));
+      }
+
+      await Promise.all(promises);
+
+      return res.status(200).json();
+    } catch (error) {
+      return handleError(error, next);
     }
+  };
+}
 
-    await Promise.all(promises);
-
-    return res.status(200).json();
-  } catch (e) {
-    if (e.statusCode) {
-      return res.status(e.statusCode).json(e);
-    }
-    return res.status(500).json(e);
-  }
-};
+export default new EmailController();
