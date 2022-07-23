@@ -1,14 +1,16 @@
+import { handleError } from "../../lib/handle-error";
 import adminLogService from "../../services/admin-log.service";
 
-export const list = async (req, res) => {
-  try {
-    const adminLogs = await adminLogService.find();
+class LogController {
+  public async list(req, res, next) {
+    try {
+      const adminLogs = await adminLogService.find();
 
-    return res.status(200).json(adminLogs);
-  } catch (e) {
-    if (e.statusCode) {
-      return res.status(e.statusCode).json(e);
+      return res.status(200).json(adminLogs);
+    } catch (error) {
+      return handleError(error, next);
     }
-    return res.status(500).json(e);
   }
-};
+}
+
+export default new LogController();
