@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/" # root
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "../packages/app" # frontend
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "../packages/server" # backend
+    schedule:
+      interval: "weekly"
