@@ -1,5 +1,5 @@
 import React from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "@mui/material";
 
@@ -8,10 +8,10 @@ import { RiddleRoutes } from "..";
 import RiddleLogo from "../../../assets/riddle_logo.png";
 
 function RiddleStart() {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   function startGame() {
-    history.push(RiddleRoutes.lobby);
+    navigate(RiddleRoutes.lobby);
   }
 
   return (

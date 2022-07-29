@@ -62,7 +62,7 @@ export default function VerticalStepper({ collapseButton }) {
           style={{ marginRight: "2rem", padding: "0" }}
           orientation="vertical"
         >
-          {fases.map((fase, index) => {
+          {fases.map((fase) => {
             return (
               <Step key={fase.id}>
                 <StepLabel>{fase.title}</StepLabel>

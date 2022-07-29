@@ -3,6 +3,7 @@ import API from "../../api";
 import _ from "lodash";
 import Chip from "@mui/material/Chip";
 import {QRCodeSVG} from 'qrcode.react';
+import { useSelector } from "react-redux";
 
 import Header from "../../components/header";
 import Footer from "../../components/footer";
@@ -29,7 +30,8 @@ import AboutOverflow from "./about-overflow";
 import AchievementsImages from "./achievements_images";
 import CoffeePayment from "./coffeePayment";
 
-function Profile({ user }) {
+function Profile() {
+  const user = useSelector((state) => state.auth && state.auth.user);
   const [userFetched, setUserFetched] = React.useState();
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] =
@@ -247,7 +249,7 @@ function Profile({ user }) {
                 >
                   Comprar coffee
                 </button> */}
-                <Chip label="Não pago" disabled="true" />
+                <Chip label="Não pago" disabled={true} />
               </>
             )}
           </div>
@@ -284,21 +286,21 @@ function Profile({ user }) {
             >
               {events.map((event) =>
                 event.items.map((e) =>
-                  e.events.map((item) =>
-                    item.isSubscribed === true ? (
-                      <>
-                        <ListItem>
-                          <ListItemText
-                            primary={`${event.type}:  ${item.name}`}
-                            secondary={displayDate(e.startDate)}
-                          />
-                        </ListItem>
-                        <Divider />
-                      </>
-                    ) : (
-                      <></>
-                    )
-                  )
+                  e.events.map((item) => {
+                    if (item.isSubscribed === true) {
+                      return (
+                        <div key={item.name}>
+                          <ListItem >
+                            <ListItemText
+                              primary={`${event.type}:  ${item.name}`}
+                              secondary={displayDate(e.startDate)}
+                            />
+                          </ListItem>
+                          <Divider />
+                        </div>
+                      )
+                    }
+                  })
                 )
               )}
             </List>

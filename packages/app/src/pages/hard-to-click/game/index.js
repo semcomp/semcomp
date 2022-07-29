@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import API from "../../../api";
 import Spinner from "../../../components/spinner";
 import { useSocket, useTeam, HardToClickRoutes } from "..";
-import { useHistory } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   NUMBER_OF_QUESTIONS,
   EVENTS_PREFIX,
@@ -151,7 +151,8 @@ function Question({ questionIndex, onCorrectAnswer }) {
 
 function HardToClick() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
-  const history = useHistory();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { team, setTeam } = useTeam();
 
   const completedQuestions = team && team.completedQuestions;
@@ -181,9 +182,9 @@ function HardToClick() {
 
   const win = React.useCallback(
     function () {
-      history.push(HardToClickRoutes.end);
+      navigate(HardToClickRoutes.end);
     },
-    [history]
+    [location]
   );
 
   function handleCorrectAnswer() {

@@ -1,7 +1,7 @@
 import React from "react";
 import { TextField } from "@mui/material";
 import { toast } from "react-toastify";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { RiddlethonRoutes, useSocket } from "..";
 import LoadingButton from "../../../components/loading-button";
@@ -14,7 +14,7 @@ function CreateTeam() {
   const [isCreatingTeam, setIsCreatingTeam] = React.useState(false);
   const socket = useSocket();
   const teamNameRef = React.useRef();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   async function submit(event) {
     event.preventDefault();
@@ -29,7 +29,7 @@ function CreateTeam() {
       await API.riddlethon.createTeam(name);
       toast.success(`Equipe '${name}' criada com sucesso`);
       socket.send(`${EVENTS_PREFIX}join-group-room`);
-      history.push(RiddlethonRoutes.lobby);
+      navigate(RiddlethonRoutes.lobby);
     } catch (e) {
       console.error(e);
     } finally {

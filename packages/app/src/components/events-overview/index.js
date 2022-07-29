@@ -42,8 +42,9 @@ function EventsOverview() {
     if (isLoading) return <Spinner color="black" size="large" />;
     if (error) return <>Houve um erro ao buscar as casas</>;
 
-    return transformedData.map((event) => (
+    return transformedData.map((event, index) => (
       <EventType
+        key={index}
         presences={event.presences}
         totalPresences={event.totalPresences}
         type={event.name}

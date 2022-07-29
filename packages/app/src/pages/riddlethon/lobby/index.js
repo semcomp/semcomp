@@ -3,7 +3,7 @@ import React from "react";
 import { Button, Dialog } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import API from "../../../api";
 import { useTeam } from "..";
@@ -160,7 +160,7 @@ function Countdown({ target, onSubmit }) {
 function RiddlethonLobby() {
   const { team, isFetchingTeam } = useTeam();
   const me = useSelector((state) => state.auth.user);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   function canAddTeammates() {
     if (isFetchingTeam || team.members.length >= 3) return false;
@@ -168,7 +168,7 @@ function RiddlethonLobby() {
   }
 
   function goToGame() {
-    history.push(RiddlethonRoutes.game);
+    navigate(RiddlethonRoutes.game);
   }
 
   function createInviteLink() {
@@ -190,11 +190,11 @@ function RiddlethonLobby() {
   }
 
   function goToCreateTeam() {
-    history.push(RiddlethonRoutes.createTeam);
+    navigate(RiddlethonRoutes.createTeam);
   }
 
   function goToJoinTeam() {
-    history.push(RiddlethonRoutes.joinTeam);
+    navigate(RiddlethonRoutes.joinTeam);
   }
 
   if (isFetchingTeam) return <Spinner size="large" />;

@@ -3,7 +3,7 @@ import React from "react";
 import { Button, Dialog } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import API from "../../../api";
 import { useTeam } from "..";
@@ -160,7 +160,7 @@ function Countdown({ target, onSubmit }) {
 function HardToClickLobby() {
   const { team, isFetchingTeam } = useTeam();
   const me = useSelector((state) => state.auth.user);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   function canAddTeammates() {
     if (isFetchingTeam || team.members.length >= 3) return false;
@@ -168,7 +168,7 @@ function HardToClickLobby() {
   }
 
   function goToGame() {
-    history.push(HardToClickRoutes.game);
+    navigate(HardToClickRoutes.game);
   }
 
   function createInviteLink() {
@@ -190,11 +190,11 @@ function HardToClickLobby() {
   }
 
   function goToCreateTeam() {
-    history.push(HardToClickRoutes.createTeam);
+    navigate(HardToClickRoutes.createTeam);
   }
 
   function goToJoinTeam() {
-    history.push(HardToClickRoutes.joinTeam);
+    navigate(HardToClickRoutes.joinTeam);
   }
 
   if (isFetchingTeam) return <Spinner size="large" />;
