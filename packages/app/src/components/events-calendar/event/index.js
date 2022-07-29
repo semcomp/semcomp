@@ -1,7 +1,7 @@
 import React from "react";
 import Chip from '@mui/material/Chip';
 
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import "./style.css";
 
@@ -31,7 +31,7 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
     endDateObj
   );
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   // Calculates the description's height, and stores it in `heightSizeRef`
   React.useEffect(() => {
@@ -91,17 +91,15 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
         {/* The span is used to have a padding and still retract the element into
 				a zero-height state */}
         <span className="desc">
-          <p>
-            <strong>
-              {(event.type === "Palestra" && "Palestrante: ") ||
-                (event.type === "Minicurso" && "Ministrante: ")}
-            </strong>
-            {(event.type === "Minicurso" || event.type === "Palestra") &&
-              event.speaker}
-          </p>
+        <strong>
+          {(event.type === "Palestra" && "Palestrante: ") ||
+            (event.type === "Minicurso" && "Ministrante: ")}
+        </strong>
+        {(event.type === "Minicurso" || event.type === "Palestra") &&
+          event.speaker}
           <br />
           {event.description.split(/\\n|\n/g).map((line, i) => (
-            <p key={i}> {line} </p>
+            <span key={i}> {line} </span>
           ))}
         </span>
         <span>
@@ -136,7 +134,7 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
           {event.type === "Palestra" && (
             <>
               <br />
-              <button onClick={() => history.push("/live")}>
+              <button onClick={() => navigate("/live")}>
                 Acessar transmissão
               </button>
             </>

@@ -1,5 +1,5 @@
 import React from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "@mui/icons-material";
 import { toast } from "react-toastify";
@@ -89,10 +89,10 @@ function Countdown({ target, onSubmit }) {
 
 function RiddleLobby() {
   const { team, setTeam, isFetchingTeam, setIsFetchingTeam } = useTeam();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   function goToGame() {
-    history.push(RiddleRoutes.game);
+    navigate(RiddleRoutes.game);
   }
   async function goToCreateTeam() {
     if (isFetchingTeam) return;

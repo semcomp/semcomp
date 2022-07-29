@@ -1,13 +1,13 @@
 import { Button } from "@mui/material";
 import React from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { RiddlethonRoutes } from "..";
 
 function RiddlethonStart() {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   function startGame() {
-    history.push(RiddlethonRoutes.lobby);
+    navigate(RiddlethonRoutes.lobby);
   }
 
   return (

@@ -2,7 +2,7 @@ import React from "react";
 
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 import { Routes } from "../router";
 
@@ -10,35 +10,23 @@ function isLoggedIn(token) {
   return Boolean(token);
 }
 
-export function withAuth(Component) {
-  return (props) => {
-    const token = useSelector((state) => state.auth && state.auth.token);
-    const user = useSelector((state) => state.auth && state.auth.user);
-    const history = useHistory();
+export function RequireAuth({ children }) {
+  const token = useSelector((state) => state.auth && state.auth.token);
 
-    if (!isLoggedIn(token)) {
-      toast.error("Sua sessão expirou. Por favor, faça login novamente");
-      // setTimeout is here to prevent changing state at a render function
-      setTimeout(() => history.push(Routes.home));
-      return null;
-    }
+  if (!isLoggedIn(token)) {
+    toast.error("Sua sessão expirou. Por favor, faça login novamente");
+    return <Navigate to={Routes.home} replace />;
+  }
 
-    return <Component user={user} {...props} />;
-  };
+  return children;
 }
 
-export function withNoAuth(Component) {
-  return (props) => {
-    const token = useSelector((state) => state.auth && state.auth.token);
-    const user = useSelector((state) => state.auth && state.auth.user);
-    const history = useHistory();
+export function RequireNoAuth({ children }) {
+  const token = useSelector((state) => state.auth && state.auth.token);
 
-    if (isLoggedIn(token)) {
-      // setTimeout is here to prevent changing state at a render function
-      setTimeout(() => history.replace(Routes.profile));
-      return null;
-    }
+  if (isLoggedIn(token)) {
+    return <Navigate to={Routes.profile} replace />;
+  }
 
-    return <Component user={user} {...props} />;
-  };
+  return children;
 }

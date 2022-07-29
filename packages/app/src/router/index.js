@@ -1,7 +1,7 @@
 import React from "react";
-import { Redirect, Switch, Route } from "react-router-dom";
+import { Navigate, Routes as RoutesRRD, Route } from "react-router-dom";
 
-import { withAuth, withNoAuth } from "../libs/auth-checker";
+import { RequireAuth, RequireNoAuth } from "../libs/auth-checker";
 
 import Home from "../pages/home";
 import Login from "../pages/login";
@@ -29,20 +29,58 @@ export const Routes = {
 
 function Router() {
   return (
-    <Switch>
-      <Route exact path={Routes.home} component={Home} />
-      <Route exact path={Routes.login} component={withNoAuth(Login)} />
-      <Route exact path={Routes.signup} component={Signup} />
-      <Route exact path={Routes.resetPassword} component={ResetPassword} />
-      <Route exact path={Routes.sponsors} component={Sponsors} />
-      {/* <Route path={Routes.riddle} component={withAuth(Riddle)} /> */}
-			<Route path={Routes.riddlethon} component={withAuth(Riddlethon)} />
-			<Route path={Routes.hardToClick} component={withAuth(HardToClick)} />
-      <Route exact path={Routes.profile} component={withAuth(Profile)} />
-      <Route exact path={Routes.live} component={Livestream} />
+    <RoutesRRD>
+      <Route path={Routes.home} element={<Home />} />
+      <Route
+          path={Routes.login}
+          element={
+            <RequireNoAuth>
+              <Login />
+            </RequireNoAuth>
+          }
+      />
+      <Route path={Routes.signup} element={<Signup />} />
+      <Route path={Routes.resetPassword} element={<ResetPassword />} />
+      <Route path={Routes.sponsors} element={<Sponsors />} />
+      {/* <Route
+          path={Routes.riddle}
+          element={
+            <RequireAuth>
+              <Riddle />
+            </RequireAuth>
+          }
+      /> */}
+      <Route
+          path={Routes.riddlethon}
+          element={
+            <RequireAuth>
+              <Riddlethon />
+            </RequireAuth>
+          }
+      />
+      <Route
+          path={Routes.hardToClick}
+          element={
+            <RequireAuth>
+              <HardToClick />
+            </RequireAuth>
+          }
+      />
+      <Route
+          path={Routes.profile}
+          element={
+            <RequireAuth>
+              <Profile />
+            </RequireAuth>
+          }
+      />
+      <Route path={Routes.live} element={<Livestream />} />
 
-      <Redirect to={Routes.home} />
-    </Switch>
+      <Route
+        path="*"
+        element={<Navigate to="/" replace />}
+      />
+    </RoutesRRD>
   );
 }
 

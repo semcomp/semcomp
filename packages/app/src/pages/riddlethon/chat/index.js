@@ -66,7 +66,7 @@ function Chat() {
         <div className="w-full pb-2 text-center border-b">{team.name}</div>
         <div className="h-full w-full flex flex-col overflow-y-scroll px-2">
           {messages.map((message, index) => (
-            <Message message={message} key={index} />
+            <Message key={index} message={message} />
           ))}
         </div>
         <form onSubmit={sendMessage} className="w-full px-2">

@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch, Route, Redirect, useHistory } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 import IOSocket from "socket.io-client";
 
@@ -75,7 +75,7 @@ function TeamProvider(props) {
   const socket = useSocket();
   const [isFetchingTeam, setIsFetchingTeam] = React.useState(true);
   const [team, setTeam] = React.useState(null);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     function handleNewGroupInfo(info) {
@@ -93,7 +93,7 @@ function TeamProvider(props) {
           ).index + 1;
       }
       if (teamCurrentQuestionIndex === NUMBER_OF_QUESTIONS)
-        history.push(RiddleRoutes.gameover);
+        navigate(RiddleRoutes.gameover);
       setTeam({
         ...team,
         completedQuestionsIndexes: [...team.completedQuestionsIndexes, index],
@@ -165,7 +165,7 @@ function Riddle() {
                   )}
                 </Button> */}
                 {isHappening ? (
-                  <Switch>
+                  <Routes>
                     <Route
                       exact
                       path={RiddleRoutes.start}
@@ -186,8 +186,8 @@ function Riddle() {
                       path={RiddleRoutes.end}
                       component={RiddleEnd}
                     />
-                    <Redirect to={RiddleRoutes.start} />
-                  </Switch>
+                    <Navigate to={RiddleRoutes.start} />
+                  </Routes>
                 ) : (
                   <RiddleEnd />
                 )}

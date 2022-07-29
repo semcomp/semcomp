@@ -1,6 +1,6 @@
 import React from "react";
 import { useDispatch } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import Footer from "../../components/footer/index";
@@ -14,7 +14,7 @@ import Step1 from "./step-1";
 import "./style.css";
 
 function SignupPage() {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   // Controls the current step on the form.
   const [step, setStep] = React.useState(0);
@@ -109,7 +109,7 @@ function SignupPage() {
       const action = await signupAction(userInfo);
       dispatch(action);
 
-      history.push(Routes.home);
+      navigate(Routes.home);
     } catch (e) {
       // Note: this catch don't really have to treat the errors because the API
       // already has network error treatment.

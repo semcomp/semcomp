@@ -33,8 +33,9 @@ function Sponsors() {
         <h1>Apoio</h1>
         <div className="home-sponsors-card">
           <div className="home-sponsors-card-content">
-            {supporterLogos.map((supporterLogo) => (
+            {supporterLogos.map((supporterLogo, index) => (
               <div
+                key={index}
                 className="company-logo"
                 style={{ backgroundImage: `url('${supporterLogo}')` }}
               />

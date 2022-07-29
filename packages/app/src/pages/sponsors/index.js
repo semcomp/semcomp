@@ -62,15 +62,15 @@ const SponsorsPage = () => {
             parceria!
           </p>
           <div className="sponsor-cards-container">
-            {allCompaniesInfo.map((info) => (
-              <SponsorCard {...info} />
+            {allCompaniesInfo.map((info, index) => (
+              <SponsorCard key={index} {...info} />
             ))}
           </div>
           <hr />
           <h2>Apoiadores</h2>
           <div className="supporters-cards-container">
-            {SuportersInfo.map((info) => (
-              <SponsorCard {...info} />
+            {SuportersInfo.map((info, index) => (
+              <SponsorCard key={index} {...info} />
             ))}
           </div>
         </main>

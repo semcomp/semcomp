@@ -1,5 +1,5 @@
 import React from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import {
   Done,
@@ -232,14 +232,15 @@ function Question({ questionIndex, onCorrectAnswer }) {
 
 function Riddle() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(null);
-  const history = useHistory();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { team, setTeam } = useTeam();
 
   const win = React.useCallback(
     function () {
-      history.push(RiddleRoutes.end);
+      navigate(RiddleRoutes.end);
     },
-    [history]
+    [location]
   );
 
   function handleCorrectAnswer(group) {

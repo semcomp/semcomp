@@ -191,8 +191,8 @@ function Options({ item, type, fetchEvents }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      {item.events.map((occasion, j) => (
-        <Accordion>
+      {item.events.map((occasion, index) => (
+        <Accordion key={index}>
           <AccordionSummary
             className="item-title"
             expandIcon={<ExpandMore />}
@@ -213,12 +213,11 @@ function Options({ item, type, fetchEvents }) {
                   value={value}
                   onChange={handleValue}
                 >
-                  {/* {item.events.map((occasion, j) => ( */}
-                  <div key={j} className="item-radio">
+                  <div className="item-radio">
                     {occasion.isSubscribed ? (
                       <div>
                         <FormControlLabel
-                          value={`${j}`}
+                          value={`${index}`}
                           control={<Radio />}
                           label={occasion.name}
                         />
@@ -248,7 +247,7 @@ function Options({ item, type, fetchEvents }) {
                     ) : (
                       <div>
                         <FormControlLabel
-                          value={`${j}`}
+                          value={`${index}`}
                           control={<Radio />}
                           label={occasion.name}
                         />
@@ -289,7 +288,6 @@ function Options({ item, type, fetchEvents }) {
                       />
                     )}
                   </div>
-                  {/* // ))} */}
                 </RadioGroup>
               </FormControl>
             </Typography>
@@ -339,21 +337,21 @@ function Registrations({ onRequestClose }) {
       <div className="w-full">
         <AppBar style={{ backgroundColor: "transparent" }} position="static">
           <Tabs variant="scrollable" value={tab} onChange={handleChange}>
-            {events.map((event, i) => (
+            {events.map((event, index) => (
               <Tab
-                key={i}
+                key={index}
                 className="event"
                 label={event.type}
-                {...a11yProps(i)}
+                {...a11yProps(index)}
               />
             ))}
           </Tabs>
         </AppBar>
-        {events.map((event, i) => (
-          <TabPanel key={i} className="tab-options" value={tab} index={i}>
-            {event.items.map((item, j) => (
+        {events.map((event, index) => (
+          <TabPanel key={index} className="tab-options" value={tab} index={index}>
+            {event.items.map((item, itemIndex) => (
               <Options
-                key={j}
+                key={itemIndex}
                 item={item}
                 type={event.type}
                 fetchEvents={fetchEvents}

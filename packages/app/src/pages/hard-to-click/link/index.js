@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@mui/material";
-import { useHistory, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import API from "../../../api";
 import { HardToClickRoutes, useSocket, useTeam } from "..";
@@ -19,7 +19,7 @@ function JoinLink() {
   const { team, setTeam } = useTeam();
   const [error, setError] = React.useState();
   const socket = useSocket();
-  const history = useHistory();
+  const navigate = useNavigate();
   const { search } = useLocation();
 
   async function joinTeam() {
@@ -51,7 +51,7 @@ function JoinLink() {
   }
 
   function goToLobby() {
-    history.push(HardToClickRoutes.lobby);
+    navigate(HardToClickRoutes.lobby);
   }
 
   function renderContent() {

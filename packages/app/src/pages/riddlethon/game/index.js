@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 import API from "../../../api";
 import Spinner from "../../../components/spinner";
 import { useSocket, useTeam, RiddlethonRoutes } from "..";
-import { useHistory } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   NUMBER_OF_QUESTIONS,
   EVENTS_PREFIX,
@@ -137,7 +137,8 @@ function Question({ questionIndex, onCorrectAnswer }) {
 
 function Riddlethon() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
-  const history = useHistory();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { team, setTeam } = useTeam();
 
   const completedQuestions = team && team.completedQuestions;
@@ -167,9 +168,9 @@ function Riddlethon() {
 
   const win = React.useCallback(
     function () {
-      history.push(RiddlethonRoutes.end);
+      navigate(RiddlethonRoutes.end);
     },
-    [history]
+    [location]
   );
 
   function handleCorrectAnswer() {

@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch, Route, Redirect, useHistory } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 import IOSocket from "socket.io-client";
 
@@ -79,7 +79,7 @@ function TeamProvider(props) {
   const socket = useSocket();
   const [isFetchingTeam, setIsFetchingTeam] = React.useState(true);
   const [team, setTeam] = React.useState(null);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     function handleNewGroupInfo(info) {
@@ -90,7 +90,7 @@ function TeamProvider(props) {
     function handleNewCorrectAnswer({ index, correct }) {
       if (!correct) return;
       if (team.completedQuestions.length === 19)
-        history.push(HardToClickRoutes.gameover);
+        navigate(HardToClickRoutes.gameover);
       setTeam({
         ...team,
         completedQuestions: [...team.completedQuestions, index],
@@ -162,7 +162,7 @@ function HardToClick() {
                   )}
                 </Button> */}
                 {isHappening ? (
-                  <Switch>
+                  <Routes>
                     <Route
                       exact
                       path={HardToClickRoutes.start}
@@ -198,8 +198,8 @@ function HardToClick() {
                       path={HardToClickRoutes.end}
                       component={HardToClickEnd}
                     />
-                    <Redirect to={HardToClickRoutes.start} />
-                  </Switch>
+                    <Navigate to={HardToClickRoutes.start} />
+                  </Routes>
                 ) : (
                   <HardToClickEnd />
                 )}
