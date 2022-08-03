@@ -8,6 +8,7 @@ import { Routes } from "../../../router";
 import { useSelector } from "react-redux";
 
 import BackgroundImage from "../../../assets/home-background.png";
+import Countdown from "../countdown";
 
 import "./style.css";
 
@@ -23,7 +24,7 @@ const HomeHeader = (props) => {
       </div>
       <div className="main-texts">
         <h1 className="semcomp-edition">SEMCOMP 25</h1>
-        <h1 className="beta-text">BETA</h1>
+        <h1 className="beta-text">Em breve</h1>
       </div>
       <div className="text-container">
         <h1>
@@ -31,11 +32,12 @@ const HomeHeader = (props) => {
           {/* <br />
           De 25 de setembro a 01 de outubro */}
         </h1>
-        {!isUserLoggedIn && (
+        {/* {!isUserLoggedIn && (
           <Link className="home-signup-button" to={Routes.signup}>
             Inscreva-se
           </Link>
-        )}
+        )} */}
+        <Countdown/>
         {/* <button className="home-signup-button home-signup-button-disabled">
 					Inscrições em breve!
 				</button> */}
