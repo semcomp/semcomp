@@ -20,6 +20,7 @@ import {
 } from "../../constants/riddle";
 
 import "./style.css";
+import RequireAuth from "../../libs/RequireAuth";
 
 export const RiddleRoutes = {
   start: "/riddle/inicio",
@@ -155,7 +156,7 @@ function Riddle() {
   }
 
   return (
-    <>
+    <RequireAuth>
       <Header />
       <SocketProvider>
         <TeamProvider>
@@ -178,7 +179,7 @@ function Riddle() {
         </TeamProvider>
       </SocketProvider>
       <Footer />
-    </>
+    </RequireAuth>
   );
 }
 

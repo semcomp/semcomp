@@ -1,16 +1,16 @@
 import { useState } from "react";
+import Link from 'next/link';
 
 import { IconButton, Input, InputAdornment, TextField } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
-import Link from 'next/link';
 
 import { login as loginAction } from "../../redux/actions/auth";
 import LoadingButton from "../../components/loading-button";
 import Header from "../../components/header";
 import Footer from "../../components/footer";
+import RequireNoAuth from "../../libs/RequireNoAuth";
 
 function Login() {
   // This state is used to indicate to the user when the login is happening though a Spinner.
@@ -45,69 +45,71 @@ function Login() {
   }
 
   return (
-    <div className="login-page-container">
-      <Header />
-      <main className="main-container">
-        <form onSubmit={handleSubmit}>
-          <h1>Entrar</h1>
-          <label>
-            <p>E-mail</p>
-            <TextField variant="standard" fullWidth type="email" name="email" />
-          </label>
-          <label>
-            <p>Senha</p>
-            <Input
-              name="password"
-              fullWidth
-              type={showPassword ? "text" : "password"}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              }
-            />
-          </label>
-          <LoadingButton
-            className="form-button login"
-            isLoading={isLoggingIn}
-            type="submit"
-          >
-            Entrar
-          </LoadingButton>
-          <Link href="/reset-password">
-            <span className="form-button forgot-password">
-              Esqueci minha senha
-            </span>
-          </Link>
-          <p>
-            Não tem conta? <Link href="/signup">Crie uma agora!</Link>
-          </p>
-        </form>
-        <aside>
-          Obrigado por se interessar no nosso evento! <br /> <br />A Semcomp é
-          100% construída e pensada por alunos da{" "}
-          <strong>Universidade de São Paulo, do campus São Carlos</strong>, dos
-          cursos de{" "}
-          <strong>Sistemas de informação e Ciências da Computação</strong>. Ela
-          ocorre todo ano no
-          <strong>
-            {" "}
-            ICMC - Instituto de Ciências Matemáticas e Computação
-          </strong>
-          , um evento presencial cheio de palestras, minicursos, aprendizado e
-          muita comida.
-          <br />
-          <br />
-          Esperamos que todos vocês gostem e aguardem para mais informações.{" "}
-          <br />
-          <br />
-          Com carinho, Equipe Semcomp!
-        </aside>
-      </main>
-      <Footer />
-    </div>
+    <RequireNoAuth>
+      <div className="login-page-container">
+        <Header />
+        <main className="main-container">
+          <form onSubmit={handleSubmit}>
+            <h1>Entrar</h1>
+            <label>
+              <p>E-mail</p>
+              <TextField variant="standard" fullWidth type="email" name="email" />
+            </label>
+            <label>
+              <p>Senha</p>
+              <Input
+                name="password"
+                fullWidth
+                type={showPassword ? "text" : "password"}
+                endAdornment={
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                }
+              />
+            </label>
+            <LoadingButton
+              className="form-button login"
+              isLoading={isLoggingIn}
+              type="submit"
+            >
+              Entrar
+            </LoadingButton>
+            <Link href="/reset-password">
+              <span className="form-button forgot-password">
+                Esqueci minha senha
+              </span>
+            </Link>
+            <p>
+              Não tem conta? <Link href="/signup">Crie uma agora!</Link>
+            </p>
+          </form>
+          <aside>
+            Obrigado por se interessar no nosso evento! <br /> <br />A Semcomp é
+            100% construída e pensada por alunos da{" "}
+            <strong>Universidade de São Paulo, do campus São Carlos</strong>, dos
+            cursos de{" "}
+            <strong>Sistemas de informação e Ciências da Computação</strong>. Ela
+            ocorre todo ano no
+            <strong>
+              {" "}
+              ICMC - Instituto de Ciências Matemáticas e Computação
+            </strong>
+            , um evento presencial cheio de palestras, minicursos, aprendizado e
+            muita comida.
+            <br />
+            <br />
+            Esperamos que todos vocês gostem e aguardem para mais informações.{" "}
+            <br />
+            <br />
+            Com carinho, Equipe Semcomp!
+          </aside>
+        </main>
+        <Footer />
+      </div>
+    </RequireNoAuth>
   );
 }
 

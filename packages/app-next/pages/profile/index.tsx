@@ -28,6 +28,7 @@ import { Divider, List, ListItem, ListItemText } from "@mui/material";
 import AboutOverflow from "../../components/profile/about-overflow";
 import AchievementsImages from "../../components/profile/achievements_images";
 import CoffeePayment from "../../components/profile/coffeePayment";
+import RequireAuth from "../../libs/RequireAuth";
 
 function Profile() {
   const user = useSelector((state: any) => state.auth && state.auth.user);
@@ -165,197 +166,199 @@ function Profile() {
   });
 
   return (
-    <div className="profile-page-container">
-      {isEditModalOpen && (
-        <EditProfile
-          onRequestClose={() => {
-            setIsEditModalOpen(false);
-            removeBodyStyle();
-          }}
-        />
-      )}
-      {isRegistrationsModalOpen && (
-        <Registrations
-          onRequestClose={() => {
-            setIsRegistrationsModalOpen(false);
-            removeBodyStyle();
-          }}
-        />
-      )}
-      {isAchievementsModalOpen && (
-        <Achievements
-          onRequestClose={() => {
-            setIsAchievementsModalOpen(false);
-            removeBodyStyle();
-          }}
-          conquistasLista={achievements}
-        />
-      )}
-      {isAboutOverflowModalOpen && (
-        <AboutOverflow
-          onRequestClose={() => setIsAboutOverflowModalOpen(false)}
-        />
-      )}
-      {isCoffeeModalOpen && (
-        <CoffeePayment
-          userHasPaid={userFetched.paid}
-          onRequestClose={() => {
-            setIsCoffeeModalOpen(false);
-            removeBodyStyle();
-          }}
-        />
-      )}
-      <Header />
-      <main className="main-container">
-        <div className="left-side">
-          <div className="user-house-card">
-          <QRCodeSVG value={user.id} />
-            <p className="username">{user.name}</p>
-            <p className="course">{user.course}</p>
-            {
-              <button
-                onClick={() => {
-                  setIsEditModalOpen(true);
-                  blockBodyScroll();
-                }}
-              >
-                Editar
-              </button>
-            }
-          </div>
-          <div className="user-house-card">
-            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Coffee</h1>
-            {/* <p>Pague com PIX o Coffee da Semcomp 25 Beta</p> */}
-            {userFetched?.paid ? (
-              <>
-                <Chip label="Pago" color="warning" />
-                {/* <button
+    <RequireAuth>
+      <div className="profile-page-container">
+        {isEditModalOpen && (
+          <EditProfile
+            onRequestClose={() => {
+              setIsEditModalOpen(false);
+              removeBodyStyle();
+            }}
+          />
+        )}
+        {isRegistrationsModalOpen && (
+          <Registrations
+            onRequestClose={() => {
+              setIsRegistrationsModalOpen(false);
+              removeBodyStyle();
+            }}
+          />
+        )}
+        {isAchievementsModalOpen && (
+          <Achievements
+            onRequestClose={() => {
+              setIsAchievementsModalOpen(false);
+              removeBodyStyle();
+            }}
+            conquistasLista={achievements}
+          />
+        )}
+        {isAboutOverflowModalOpen && (
+          <AboutOverflow
+            onRequestClose={() => setIsAboutOverflowModalOpen(false)}
+          />
+        )}
+        {isCoffeeModalOpen && (
+          <CoffeePayment
+            userHasPaid={userFetched.paid}
+            onRequestClose={() => {
+              setIsCoffeeModalOpen(false);
+              removeBodyStyle();
+            }}
+          />
+        )}
+        <Header />
+        <main className="main-container">
+          <div className="left-side">
+            <div className="user-house-card">
+            <QRCodeSVG value={user && user.id} />
+              <p className="username">{user.name}</p>
+              <p className="course">{user.course}</p>
+              {
+                <button
                   onClick={() => {
-                    setIsCoffeeModalOpen(true);
+                    setIsEditModalOpen(true);
                     blockBodyScroll();
                   }}
                 >
-                  Ver infos coffee
-                </button> */}
-              </>
-            ) : (
-              <>
-                {/* <button
-                  onClick={() => {
-                    setIsCoffeeModalOpen(true);
-                    blockBodyScroll();
-                  }}
-                >
-                  Comprar coffee
-                </button> */}
-                <Chip label="Não pago" disabled={true} />
-              </>
-            )}
-          </div>
-          {/* <div className="user-house-card">
-            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-              Overflow
-            </h1>
-            <strong>Sua casa é...</strong>
-            <img alt="User house" src={houseImageSrc} />
-            <p className="house-name">{userHouseName}</p>
-            <button
-              style={{ backgroundColor: "#0088cc" }}
-              onClick={() =>
-                window.open(userHouseTelegram, "_blank", "noopener noreferrer")
+                  Editar
+                </button>
               }
-            >
-              Entrar no grupo <img src={Telegram} alt="Telegram" />
-            </button>
-            <button onClick={() => setIsAboutOverflowModalOpen(true)}>
-              O que é o Overflow?
-            </button>
-          </div> */}
-          <div className="user-house-card">
-            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-              Eventos
-            </h1>
-            <List
-              className="events-list"
-              // subheader={
-              //   <ListSubheader component="p" id="nested-list-subheader">
-              //     Eventos inscritos
-              //   </ListSubheader>
-              // }
-            >
-              {events.map((event) =>
-                event.items.map((e) =>
-                  e.events.map((item) => {
-                    if (item.isSubscribed === true) {
-                      return (
-                        <div key={item.name}>
-                          <ListItem >
-                            <ListItemText
-                              primary={`${event.type}:  ${item.name}`}
-                              secondary={displayDate(e.startDate)}
-                            />
-                          </ListItem>
-                          <Divider />
-                        </div>
-                      )
-                    }
-                  })
-                )
-              )}
-            </List>
-            {
-              <button
-                onClick={() => {
-                  setIsRegistrationsModalOpen(true);
-                  blockBodyScroll();
-                }}
-              >
-                Inscrever
-              </button>
-            }
-          </div>
-          {/* <div className="user-house-card">
-            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-              Conquistas
-            </h1>
-            <div className="conquistas-grid">
-              {earnedAchievements.slice(0, 6).map((conquista) => {
-                const achievementsImageSrc = AchievementsImages(
-                  conquista.image
-                );
-                return (
-                  <>
-                    <img
-                      key={conquista.id}
-                      src={achievementsImageSrc}
-                      alt={conquista.title}
-                      style={{ padding: ".3rem", maxHeight: "80px" }}
-                    />
-                  </>
-                );
-              })}
             </div>
-            {
+            <div className="user-house-card">
+              <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Coffee</h1>
+              {/* <p>Pague com PIX o Coffee da Semcomp 25 Beta</p> */}
+              {userFetched?.paid ? (
+                <>
+                  <Chip label="Pago" color="warning" />
+                  {/* <button
+                    onClick={() => {
+                      setIsCoffeeModalOpen(true);
+                      blockBodyScroll();
+                    }}
+                  >
+                    Ver infos coffee
+                  </button> */}
+                </>
+              ) : (
+                <>
+                  {/* <button
+                    onClick={() => {
+                      setIsCoffeeModalOpen(true);
+                      blockBodyScroll();
+                    }}
+                  >
+                    Comprar coffee
+                  </button> */}
+                  <Chip label="Não pago" disabled={true} />
+                </>
+              )}
+            </div>
+            {/* <div className="user-house-card">
+              <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+                Overflow
+              </h1>
+              <strong>Sua casa é...</strong>
+              <img alt="User house" src={houseImageSrc} />
+              <p className="house-name">{userHouseName}</p>
               <button
-                onClick={() => {
-                  setIsAchievementsModalOpen(true);
-                  blockBodyScroll();
-                }}
+                style={{ backgroundColor: "#0088cc" }}
+                onClick={() =>
+                  window.open(userHouseTelegram, "_blank", "noopener noreferrer")
+                }
               >
-                Ver mais
+                Entrar no grupo <img src={Telegram} alt="Telegram" />
               </button>
-            }
-          </div> */}
-          {/* <HouseScores /> */}
-        </div>
-        <div className="profile-info-card">
-          <EventsOverview />
-          <span className="spacing" />
-          <EventsCalendar />
-        </div>
-      </main>
-      <Footer />
-    </div>
+              <button onClick={() => setIsAboutOverflowModalOpen(true)}>
+                O que é o Overflow?
+              </button>
+            </div> */}
+            <div className="user-house-card">
+              <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+                Eventos
+              </h1>
+              <List
+                className="events-list"
+                // subheader={
+                //   <ListSubheader component="p" id="nested-list-subheader">
+                //     Eventos inscritos
+                //   </ListSubheader>
+                // }
+              >
+                {events.map((event) =>
+                  event.items.map((e) =>
+                    e.events.map((item) => {
+                      if (item.isSubscribed === true) {
+                        return (
+                          <div key={item.name}>
+                            <ListItem >
+                              <ListItemText
+                                primary={`${event.type}:  ${item.name}`}
+                                secondary={displayDate(e.startDate)}
+                              />
+                            </ListItem>
+                            <Divider />
+                          </div>
+                        )
+                      }
+                    })
+                  )
+                )}
+              </List>
+              {
+                <button
+                  onClick={() => {
+                    setIsRegistrationsModalOpen(true);
+                    blockBodyScroll();
+                  }}
+                >
+                  Inscrever
+                </button>
+              }
+            </div>
+            {/* <div className="user-house-card">
+              <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+                Conquistas
+              </h1>
+              <div className="conquistas-grid">
+                {earnedAchievements.slice(0, 6).map((conquista) => {
+                  const achievementsImageSrc = AchievementsImages(
+                    conquista.image
+                  );
+                  return (
+                    <>
+                      <img
+                        key={conquista.id}
+                        src={achievementsImageSrc}
+                        alt={conquista.title}
+                        style={{ padding: ".3rem", maxHeight: "80px" }}
+                      />
+                    </>
+                  );
+                })}
+              </div>
+              {
+                <button
+                  onClick={() => {
+                    setIsAchievementsModalOpen(true);
+                    blockBodyScroll();
+                  }}
+                >
+                  Ver mais
+                </button>
+              }
+            </div> */}
+            {/* <HouseScores /> */}
+          </div>
+          <div className="profile-info-card">
+            <EventsOverview />
+            <span className="spacing" />
+            <EventsCalendar />
+          </div>
+        </main>
+        <Footer />
+      </div>
+    </RequireAuth>
   );
 }
 

@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import { EVENTS_PREFIX, END_DATE } from "../../constants/hard-to-click";
 
 import "../../../styles/Hard-To-Click.module.css";
+import RequireAuth from "../../libs/RequireAuth";
 
 export const HardToClickRoutes = {
   start: "/duro-de-clicar/inicio",
@@ -144,7 +145,7 @@ function HardToClick() {
   }
 
   return (
-    <>
+    <RequireAuth>
       <Header />
       <SocketProvider>
         <TeamProvider>
@@ -167,7 +168,7 @@ function HardToClick() {
         </TeamProvider>
       </SocketProvider>
       <Footer />
-    </>
+    </RequireAuth>
   );
 }
 

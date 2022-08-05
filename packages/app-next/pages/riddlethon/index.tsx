@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import { EVENTS_PREFIX, END_DATE } from "../../constants/riddlethon";
 
 import "./style.css";
+import RequireAuth from "../../libs/RequireAuth";
 
 export const RiddlethonRoutes = {
   start: "/riddlethon/inicio",
@@ -144,7 +145,7 @@ function Riddlethon() {
   }
 
   return (
-    <>
+    <RequireAuth>
       <Header />
       <SocketProvider>
         <TeamProvider>
@@ -167,7 +168,7 @@ function Riddlethon() {
         </TeamProvider>
       </SocketProvider>
       <Footer />
-    </>
+    </RequireAuth>
   );
 }
 
