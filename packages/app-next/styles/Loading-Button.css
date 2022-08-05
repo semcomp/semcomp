@@ -1,0 +1,10 @@
+.loading-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-button > .spacing {
+  width: 0.5rem;
+  display: block;
+}

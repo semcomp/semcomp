@@ -1,0 +1,40 @@
+.day-button {
+  border: 1px solid var(--color-blue-main);
+  margin: 10px;
+  background-color: var(--color-white);
+  color: black;
+  padding: 5px;
+  transition-duration: 0.4s;
+  border-radius: 12px;
+}
+
+.day-button:hover {
+  background-color: var(--color-green);
+  color: white;
+}
+
+.day-button-pressed {
+  border: 1px solid var(--color-green);
+  margin: 10px;
+  background-color: var(--color-green);
+  color: white;
+  padding: 5px;
+  transition-duration: 0.4s;
+  border-radius: 12px;
+}
+
+.hide-in-mobile {
+  margin: 0;
+}
+
+@media screen and (max-width: 426px) {
+  .day-button,
+  .day-button-pressed {
+    margin: 0 0.4rem 0 0;
+    padding: 1rem 0.6rem;
+  }
+
+  .hide-in-mobile {
+    display: none;
+  }
+}
