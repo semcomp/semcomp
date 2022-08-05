@@ -1,0 +1,32 @@
+.modal-component > .card {
+  padding: 0;
+}
+
+.modal-component > .card > .content {
+  max-height: 60vh;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  padding: 5%;
+}
+
+.title {
+  padding: 15px 0px;
+  background-color: #032b41;
+  color: white;
+  width: 100%;
+  text-align: center;
+  border-radius: 10px 10px 0 0;
+  font-weight: bold;
+}
+
+button.cancel {
+  padding: 0.5rem 2rem;
+  border-radius: 12px;
+  margin: 1rem;
+  color: white;
+  background-color: #f44336;
+}
+
+.document-ordered-list {
+  list-style-type: decimal;
+}

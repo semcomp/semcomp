@@ -1,0 +1,63 @@
+.signup-page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-blue-secondary);
+}
+
+.signup-page-container > .main-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+
+  /* This is to force the page to scroll, since the header has 30vh */
+  min-height: 70vh;
+}
+
+.signup-page-container > .main-container > .card > .stepper-container {
+  width: 100%;
+  max-width: 8rem;
+  margin: 0.5rem 0;
+}
+
+.signup-page-container > .main-container > .card {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem;
+  margin: 3rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  height: 100%;
+  background-color: white;
+}
+
+.signup-page-container > .main-container > .card > h1 {
+  font-size: 2rem;
+}
+
+.signup-page-container > .main-container > aside {
+  width: 100%;
+  max-width: 420px;
+  padding: 3rem;
+  margin: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  background-color: white;
+}
+
+.signup-page-container>.main-container a.social-links {
+  background-color: transparent;
+  color: var(--color-blue-main);
+  text-decoration: underline;
+}
+
+/* Mobile large */
+@media screen and (max-width: 426px) {
+  .signup-page-container > .main-container {
+    flex-direction: column;
+  }
+}

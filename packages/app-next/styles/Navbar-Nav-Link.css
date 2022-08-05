@@ -1,0 +1,37 @@
+.navlink {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.25rem 0.5rem;
+  margin: 0 0.5rem;
+  height: 3vh;
+  font-size: 18px;
+  color: white;
+  border-radius: 8px;
+  transition: 200ms;
+}
+
+.navlink .sign-up {
+  color: black;
+}
+
+.navlink.disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.navlink.disabled:hover {
+  background-color: unset;
+}
+
+.navlink:link,
+.navlink:active,
+.navlink:focus {
+  text-decoration: none;
+  outline: none;
+}
+
+.navlink:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
