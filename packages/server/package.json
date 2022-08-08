@@ -36,7 +36,7 @@
     "node-cron": "^3.0.0",
     "nodemailer": "^6.6.3",
     "remove-accents": "^0.4.2",
-    "rotating-file-stream": "^2.1.5",
+    "rotating-file-stream": "^3.0.4",
     "socket.io": "^4.5.1",
     "string-similarity": "^4.0.4",
     "uuid": "^8.3.2",
