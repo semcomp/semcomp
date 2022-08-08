@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "./Events-Calendar-Event-Day.css";
+@import "./Events-Calendar-Event.css";
+@import "./Events-Calendar.css";
+@import "./Events-Overview-Event-Type.css";
+@import "./Events-Overview.css";
+@import "./Footer.css";
+@import "./Hard-To-Click-Chat.css";
+@import "./Hard-To-Click-Create.css";
+@import "./Hard-To-Click-Join.css";
+@import "./Hard-To-Click-Lobby.css";
+@import "./Hard-To-Click.css";
+@import "./Header.css";
+@import "./Home-About-Beta.css";
+@import "./Home-About.css";
+@import "./Home-Faq.css";
+@import "./Home-Header.css";
+@import "./Home-Live-Now.css";
+@import "./Home-Schedule.css";
+@import "./Home-Sponsors.css";
+@import "./Home-Status.css";
+@import "./Home.css";
+@import "./House-Scores-House-Points.css";
+@import "./House-Scores.css";
+@import "./Loading-Button.css";
+@import "./Login.css";
+@import "./Modal.css";
+@import "./Navbar-Nav-Link.css";
+@import "./Navbar.css";
+@import "./Profile-About-Overflow.css";
+@import "./Profile-Achievements.css";
+@import "./Profile-Coffee-Payment-Step-1.css";
+@import "./Profile-Coffee-Payment-Step-2.css";
+@import "./Profile-Coffee-Payment.css";
+@import "./Profile-Edit-Profile.css";
+@import "./Profile-Registrations-Additional-Values-Accordion.css";
+@import "./Profile-Registrations.css";
+@import "./Profile.css";
+@import "./Signup-Step-0.css";
+@import "./Signup-Step-1-Privacy-Policy-Modal.css";
+@import "./Signup-Step-1.css";
+@import "./Signup.css";
+@import "./Spinner.css";
+@import "./Stepper-Step.css";
+@import "./Stepper.css";
+
+@font-face {
+  font-family: "Staatliches";
+  src: url("../assets/Staatliches-Regular.woff"),
+    url("../assets/Staatliches-Regular.ttf"),
+    url("../assets/Staatliches-Regular.eot");
+}
+
+:root {
+  --color-blue-main: #227aa8;
+  --color-blue-secondary: #f2ece5;
+  --color-pink: #d49aa7;
+  --color-green: #70ba4c;
+  --color-orange: #ed9f3a;
+
+  --color-black-main: #1d1d1b;
+  --color-grey-1: #3d3d3d;
+  --color-grey-2: #c2c2c2;
+  --color-grey-3: #f0f0f0;
+  --color-white: #fafafa;
+}
+
+body,
+html,
+#root {
+  height: 100vh;
+  scroll-behavior: smooth;
+  font-family: Roboto, sans-serif;
+
+  /* The whole page is not a perfect white so it goes a bit easier on the reader's eyes */
+  background-color: #fafafa;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}

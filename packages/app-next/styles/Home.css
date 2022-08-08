@@ -1,0 +1,12 @@
+.shiny-divider {
+  /* Divisor */
+  width: 100%;
+  height: 3px;
+
+  /* Degradê Brilhante */
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(255, 255, 255, 1) 40.1%,
+    var(--color-blue-main) 100%
+  );
+}

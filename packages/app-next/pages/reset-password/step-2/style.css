@@ -1,0 +1,26 @@
+.reset-password-step-2-container {
+  width: 100%;
+}
+
+.reset-password-step-2-container > p {
+  text-align: center;
+}
+
+.reset-password-step-2-container > a {
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  width: 100%;
+  display: block;
+  font-size: 1.1rem;
+  padding: 0.5rem 0;
+  margin: 0.5rem 0;
+  font-weight: bold;
+  background-color: var(--color-blue-main);
+  color: white;
+  text-align: center;
+}
+
+.reset-password-step-2-container > a:hover {
+  text-decoration: none;
+  color: white;
+}
