@@ -1,0 +1,77 @@
+.signup-step-1-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.signup-step-1-container > label {
+  width: 100%;
+  margin: 0.8rem 0;
+  transition: 200ms;
+}
+
+.signup-step-1-container > label.disabled {
+  opacity: 0.5;
+}
+
+.signup-step-1-container > label > input[disabled] {
+  cursor: not-allowed;
+}
+
+.signup-step-1-container label.inline {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  width: 100%;
+  align-self: flex-start;
+  margin: 0;
+}
+
+.signup-step-1-container label.inline > input {
+  width: max-content;
+  margin-right: 0.5rem;
+}
+
+.signup-step-1-container > label > p {
+  margin: 0;
+}
+
+.signup-step-1-container > a > p {
+  margin: 0;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.signup-step-1-container > label > input {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+  width: 100%;
+  padding: 0.5rem 1rem;
+}
+
+.signup-step-1-container > .form-button {
+  border-radius: 4px;
+  width: 100%;
+  font-size: 1.1rem;
+  padding: 0.5rem 0;
+  margin: 0.5rem 0;
+  font-weight: bold;
+  color: black;
+  text-align: center;
+  text-decoration: none;
+}
+
+.signup-step-1-container > .form-button.signup {
+  background-color: var(--color-blue-main);
+  color: white;
+}
+
+.signup-step-1-container > .form-button.signup-usp {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.signup-step-1-container .disabilities-options {
+  display: flex;
+  margin-bottom: 2rem;
+}

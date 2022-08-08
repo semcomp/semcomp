@@ -1,0 +1,52 @@
+.sponsor-card {
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  overflow: auto;
+  height: 100%;
+  width: 100%;
+  margin: 10px 20px;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  background-color: white;
+}
+
+.sponsor-card > .company-logo {
+  display: block;
+  height: 100px;
+  margin: 0.5rem 0.5rem 0.5rem 0.5rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.sponsor-card > .card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0;
+}
+
+.sponsor-card > .card-body > .company-description {
+  margin-bottom: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.sponsor-card > .card-body > .sponsor-social {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sponsor-card > .card-body > .sponsor-social > a {
+  margin: 0 0.2rem;
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+
+.sponsor-card > .card-body > .sponsor-social > a > img {
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+}
