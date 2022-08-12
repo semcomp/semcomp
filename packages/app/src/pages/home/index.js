@@ -21,7 +21,7 @@ function Home() {
         <HomeHeader user={user} />
         {/* <Stats /> */}
         {/* <About /> */}
-        <Schedule />
+        {/* <Schedule /> */}
         <AboutBeta />
         <Sponsors />
         <FAQ />
