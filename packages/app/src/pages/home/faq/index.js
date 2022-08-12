@@ -59,7 +59,7 @@ const FAQ = () => {
         <div className="questions-container">
           <Question
             question="Como faço para participar da Semcomp?"
-            answer="Para participar, basta se inscrever aqui mesmo em nosso site! O evento será presencial, então é preciso comparecer à USP de São Carlos durante o período anunciado. Para mais notícias, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos)"
+            answer="Para participar, basta se inscrever aqui mesmo em nosso site! O evento será híbrido, com transmissão das palestras pelo Youtube, então é preciso comparecer à USP de São Carlos durante o período anunciado para os demais eventos. Para mais notícias, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos)"
           />
           <Question
             question="O evento é gratuito?"
@@ -72,7 +72,7 @@ const FAQ = () => {
           />
           <Question
             question="Tem certificado?"
-            answer="Haverão certificados somente da participação nos minicursos. Assim, é preciso se inscrever neles aqui no site e comparecer na hora do evento. Após o final da Semcomp, emitiremos um certificado com a quantidade de horas correspondente às suas presenças."
+            answer="Haverão certificados de participação nos minicursos. Assim, é preciso se inscrever neles aqui no site e comparecer na hora do evento. Após o final da Semcomp, emitiremos um certificado com a quantidade de horas correspondente às suas presenças."
           />
           <Question
             question="Tem premiação?"
