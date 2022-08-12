@@ -20,9 +20,9 @@ function Home() {
         {/* <LiveNow /> */}
         <HomeHeader user={user} />
         {/* <Stats /> */}
-        {/* <About /> */}
+        <About />
         {/* <Schedule /> */}
-        <AboutBeta />
+        {/* <AboutBeta /> */}
         <Sponsors />
         <FAQ />
         <Footer />
