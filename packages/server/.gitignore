@@ -4,4 +4,3 @@ logs/
 build/
 config/
 mongo-volume/
-env/
