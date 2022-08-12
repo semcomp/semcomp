@@ -31,15 +31,15 @@ function Router() {
   return (
     <RoutesRRD>
       <Route path={Routes.home} element={<Home />} />
-      <Route
-          path={Routes.login}
-          element={
-            <RequireNoAuth>
-              <Login />
-            </RequireNoAuth>
-          }
-      />
-      <Route path={Routes.signup} element={<Signup />} />
+      {/* <Route
+        path={Routes.login}
+        element={
+          <RequireNoAuth>
+            <Login />
+          </RequireNoAuth>
+        }
+      /> */}
+      {/* <Route path={Routes.signup} element={<Signup />} /> */}
       <Route path={Routes.resetPassword} element={<ResetPassword />} />
       <Route path={Routes.sponsors} element={<Sponsors />} />
       {/* <Route
@@ -51,28 +51,28 @@ function Router() {
           }
       /> */}
       <Route
-          path={Routes.riddlethon}
-          element={
-            <RequireAuth>
-              <Riddlethon />
-            </RequireAuth>
-          }
+        path={Routes.riddlethon}
+        element={
+          <RequireAuth>
+            <Riddlethon />
+          </RequireAuth>
+        }
       />
       <Route
-          path={Routes.hardToClick}
-          element={
-            <RequireAuth>
-              <HardToClick />
-            </RequireAuth>
-          }
+        path={Routes.hardToClick}
+        element={
+          <RequireAuth>
+            <HardToClick />
+          </RequireAuth>
+        }
       />
       <Route
-          path={Routes.profile}
-          element={
-            <RequireAuth>
-              <Profile />
-            </RequireAuth>
-          }
+        path={Routes.profile}
+        element={
+          <RequireAuth>
+            <Profile />
+          </RequireAuth>
+        }
       />
       <Route path={Routes.live} element={<Livestream />} />
 
