@@ -1,13 +1,13 @@
 import Link from 'next/link'
 
-import { useSelector } from "react-redux";
-
 import NavBar from "../../navbar";
 import Routes from "../../../routes";
 import BackgroundImage from "../../../assets/home-background.png";
+import { useAppContext } from '../../../libs/contextLib';
 
-const HomeHeader = (props) => {
-  const isUserLoggedIn = Boolean(useSelector((state: any) => state.auth.token));
+const HomeHeader = () => {
+  const { user } = useAppContext();
+  const isUserLoggedIn = Boolean(user);
 
   return (
     <header className="home-header" id="home-header">

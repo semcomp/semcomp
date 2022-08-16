@@ -1,22 +1,25 @@
 import { useRouter } from 'next/router';
 
-import { useSelector } from "react-redux";
-
 import Routes from "../routes";
+import { useAppContext } from './contextLib';
 
-function isLoggedIn(token) {
-  return Boolean(token);
-}
-
-function RequireNoAuth({ children }) {
-  const token = useSelector((state: any) => state.auth && state.auth.token);
-  const router = useRouter();
-
-  if (isLoggedIn(token)) {
-    router.push(Routes.profile);
-  }
-
-  return children;
+const RequireNoAuth = (WrappedComponent) => {
+  // eslint-disable-next-line react/display-name
+  return (props) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const { user } = useAppContext();
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const router = useRouter();
+    if (typeof window !== "undefined") {
+      if (user) {
+        router.push(Routes.profile);
+        return null;
+      }
+      return <WrappedComponent {...props} />;
+    }
+    // If we are on server, return null
+    return null;
+  };
 };
 
 export default RequireNoAuth;

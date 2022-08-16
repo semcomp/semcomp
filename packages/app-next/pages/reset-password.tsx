@@ -1,23 +1,21 @@
 import React from "react";
 
-import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 
 import API from "../api";
-import { resetPassword as resetPasswordAction } from "../redux/actions/auth";
 import Footer from "../components/footer/index";
 import Header from "../components/header/index";
 import Stepper from "../components/stepper";
 import Step0 from "../components/reset-password/step-0";
 import Step1 from "../components/reset-password/step-1";
 import Step2 from "../components/reset-password/step-2";
+import { useAppContext } from "../libs/contextLib";
 
 function ResetPassword() {
   // Controls the current step on the form.
   const [step, setStep] = React.useState(0);
 
-  // To update redux's state
-  const dispatch = useDispatch();
+  const { setUser } = useAppContext();
 
   // This state will hold the whole form value. The `setFormValue` function will
   // be passed to all steps components. Whenver an input in any step changes, they
@@ -88,8 +86,8 @@ function ResetPassword() {
     // TODO - make a request to reset the password
     try {
       setIsResetingPassword(true); // Sets the state to show the spinner
-      const action = await resetPasswordAction(email, code, newPassword);
-      dispatch(action);
+      const { data } = await API.resetPassword(email, code, newPassword);
+      setUser(data);
       setStep(2); // If successful, go to next step
     } catch (e) {
       // Note that any networking errors should have benn handled by the API object,

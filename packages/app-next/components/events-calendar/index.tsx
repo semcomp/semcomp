@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 
-import { useSelector } from "react-redux";
-
 import API from "../../api";
 import EventDay from "./event-day";
 import Event from "./event";
+import { useAppContext } from "../../libs/contextLib";
 
 function sortEvents(e1, e2) {
   if (e1.startDate < e2.startDate) return -1;
@@ -18,7 +17,8 @@ const EventsCalendar = () => {
   const [events, setEvents] = useState([]);
   const [curPage, setCurPage] = useState(0);
 
-  const isUserLoggedIn = Boolean(useSelector((state: any) => state.auth.token));
+  const { user } = useAppContext();
+  const isUserLoggedIn = Boolean(user);
 
   useEffect(() => {
     async function fetchEvents() {

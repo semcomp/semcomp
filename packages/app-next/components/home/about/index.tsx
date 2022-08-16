@@ -1,12 +1,12 @@
 import Link from 'next/link';
 
-import { useSelector } from "react-redux";
-
 import Routes from "../../../routes";
 import BannerSemcomp from "../../../assets/banner.png";
+import { useAppContext } from '../../../libs/contextLib';
 
 const About = () => {
-  const isUserLoggedIn = Boolean(useSelector((state: any) => state.auth.token));
+  const { user } = useAppContext();
+  const isUserLoggedIn = Boolean(user);
 
   return (
     <>

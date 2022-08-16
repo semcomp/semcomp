@@ -39,6 +39,10 @@
 @import "./Profile-Registrations-Additional-Values-Accordion.css";
 @import "./Profile-Registrations.css";
 @import "./Profile.css";
+@import "./ResetPassword-Step0.css";
+@import "./ResetPassword-Step1.css";
+@import "./ResetPassword-Step2.css";
+@import "./ResetPassword.css";
 @import "./Signup-Step-0.css";
 @import "./Signup-Step-1-Privacy-Policy-Modal.css";
 @import "./Signup-Step-1.css";

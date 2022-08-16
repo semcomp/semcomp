@@ -14,7 +14,6 @@
 .schedule-wrapper > .events-container {
   flex-grow: 1;
   flex: 4;
-  border: 1px solid rgba(0, 0, 0, 0.4);
   max-width: 64rem;
   overflow: hidden;
   border-radius: 12px;

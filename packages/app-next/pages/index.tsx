@@ -1,5 +1,3 @@
-import { useSelector } from "react-redux";
-
 // import About from "../components/home/about";
 import AboutBeta from "../components/home/about-beta";
 import Footer from "../components/footer";
@@ -11,12 +9,11 @@ import Sponsors from "../components/home/sponsors";
 // import Stats from "../components/home/stats";
 
 function Home() {
-  const user = useSelector((state: any) => state.auth.user);
   return (
     <main className="home">
       <div>
         <LiveNow />
-        <HomeHeader user={user} />
+        <HomeHeader />
         {/* <Stats /> */}
         {/* <About /> */}
         <Schedule />

@@ -9,11 +9,11 @@ import IOSocket from "socket.io-client";
 import Header from "../../components/header";
 import Footer from "../../components/footer";
 import { baseURL } from "../../constants/api-url";
-import { useSelector } from "react-redux";
 import { EVENTS_PREFIX, END_DATE } from "../../constants/hard-to-click";
 
 import "../../../styles/Hard-To-Click.module.css";
 import RequireAuth from "../../libs/RequireAuth";
+import { useAppContext } from "../../libs/contextLib";
 
 export const HardToClickRoutes = {
   start: "/duro-de-clicar/inicio",
@@ -40,7 +40,7 @@ function SocketProvider(props) {
       transports: ["websocket"],
     })
   );
-  const token = useSelector((state: any) => state.auth.token);
+  const { token } = useAppContext();
 
   function send(eventType, ...args) {
     return socket.emit(eventType, token, ...args);
@@ -145,7 +145,7 @@ function HardToClick() {
   }
 
   return (
-    <RequireAuth>
+    <>
       <Header />
       <SocketProvider>
         <TeamProvider>
@@ -168,8 +168,8 @@ function HardToClick() {
         </TeamProvider>
       </SocketProvider>
       <Footer />
-    </RequireAuth>
+    </>
   );
 }
 
-export default HardToClick;
+export default RequireAuth(HardToClick);

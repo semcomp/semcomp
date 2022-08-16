@@ -1,20 +1,21 @@
 import { useState } from "react";
 import { useRouter } from 'next/router';
 
-import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 
+import API from "../api";
 import Footer from "../components/footer/index";
 import Header from "../components/header/index";
 import Stepper from "../components/stepper";
 import Step0 from "../components/signup/step-0";
 import Step1 from "../components/signup/step-1";
-import { signup as signupAction } from "../redux/actions/auth";
 import Routes from "../routes";
 import RequireNoAuth from "../libs/RequireNoAuth";
+import { useAppContext } from "../libs/contextLib";
 
 function SignupPage() {
   const router = useRouter();
+  const { setUser } = useAppContext();
 
   // Controls the current step on the form.
   const [step, setStep] = useState(0);
@@ -28,8 +29,6 @@ function SignupPage() {
 
   // This is used to display a spinner on step1's submit button
   const [isSigningUp, setIsSigningUp] = useState(false);
-
-  const dispatch = useDispatch();
 
   /**
    * Function called whenever a step ball is clicked by the user
@@ -106,9 +105,8 @@ function SignupPage() {
         isStudent,
       };
 
-      const action = await signupAction(userInfo);
-      dispatch(action);
-
+      const { data } = await API.signup(userInfo);
+      setUser(data);
       router.push(Routes.home);
     } catch (e) {
       // Note: this catch don't really have to treat the errors because the API
@@ -145,37 +143,35 @@ function SignupPage() {
   ][step];
 
   return (
-    <RequireNoAuth>
-      <div className="signup-page-container">
-        <Header />
-        <main className="main-container">
-          <div className="card">
-            <h1>Cadastrar</h1>
-            <div className="stepper-container">
-              <Stepper
-                numberOfSteps={2}
-                activeStep={step}
-                onStepClick={handleStepClick}
-              />
-            </div>
-
-            {/* Renders the correct form according to the current step */}
-            {stepComponent}
+    <div className="signup-page-container">
+      <Header />
+      <main className="main-container">
+        <div className="card">
+          <h1>Cadastrar</h1>
+          <div className="stepper-container">
+            <Stepper
+              numberOfSteps={2}
+              activeStep={step}
+              onStepClick={handleStepClick}
+            />
           </div>
-          <aside>
-            Ficamos muito felizes por se interessar em nosso evento!
-            <br /> <br />A Semcomp é 100% construída e pensada por alunos dos cursos de<strong> Ciências de Computação</strong> e de<strong> Sistemas de Informação</strong> do campus <strong>São Carlos da Universidade de São Paulo</strong>. Todo ano realizamos um evento presencial cheio de palestras, minicursos, concursos, diversão e muita comida!
-            <br />
-            <br />
-            Por conta da pandemia, a Semcomp ocorreu no formato remoto durante os dois últimos anos, porém agora teremos nosso grande retorno presencial! Esperamos que todos se divirtam bastante! Para mais informações, basta seguir a Semcomp no Instagram <a className="social-links" href="https://instagram.com/semcomp" rel="noopnener">(@semcomp)</a> e no <a className="social-links" href="https://t.me/semcomp_avisos" rel="noopnener" >Telegram</a> (https://t.me/semcomp_avisos). <br />
-            <br />
-            Com carinho, Equipe Semcomp!
-          </aside>
-        </main>
-        <Footer />
-      </div>
-    </RequireNoAuth>
+
+          {/* Renders the correct form according to the current step */}
+          {stepComponent}
+        </div>
+        <aside>
+          Ficamos muito felizes por se interessar em nosso evento!
+          <br /> <br />A Semcomp é 100% construída e pensada por alunos dos cursos de<strong> Ciências de Computação</strong> e de<strong> Sistemas de Informação</strong> do campus <strong>São Carlos da Universidade de São Paulo</strong>. Todo ano realizamos um evento presencial cheio de palestras, minicursos, concursos, diversão e muita comida!
+          <br />
+          <br />
+          Por conta da pandemia, a Semcomp ocorreu no formato remoto durante os dois últimos anos, porém agora teremos nosso grande retorno presencial! Esperamos que todos se divirtam bastante! Para mais informações, basta seguir a Semcomp no Instagram <a className="social-links" href="https://instagram.com/semcomp" rel="noopnener">(@semcomp)</a> e no <a className="social-links" href="https://t.me/semcomp_avisos" rel="noopnener" >Telegram</a> (https://t.me/semcomp_avisos). <br />
+          <br />
+          Com carinho, Equipe Semcomp!
+        </aside>
+      </main>
+      <Footer />
+    </div>
   );
 }
 
-export default SignupPage;
+export default RequireNoAuth(SignupPage);

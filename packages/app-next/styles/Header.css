@@ -48,11 +48,5 @@
   height: 3px;
   z-index: 0;
   bottom: 0;
-
-  /* Degradê Brilhante */
-  background: radial-gradient(
-    50% 50% at 50% 50%,
-    rgba(255, 255, 255, 1) 40.1%,
-    var(--color-blue-main) 100%
-  );
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
 }

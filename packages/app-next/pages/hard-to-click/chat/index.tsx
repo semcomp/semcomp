@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { useTeam, useSocket } from "..";
+
 import { TextField } from "@mui/material";
-import { useSelector } from "react-redux";
+
+import { useTeam, useSocket } from "..";
 import Spinner from "../../../components/spinner";
 import { EVENTS_PREFIX } from "../../../constants/hard-to-click";
+import { useAppContext } from "../../../libs/contextLib";
 
 import "../../../styles/Hard-To-Click-Chat.module.css";
 
 function Message({ message }) {
-  const me = useSelector((state: any) => state.auth.user);
+  const { user: me } = useAppContext();
 
   const AmITheSender = me.id === message.user.id;
   const sentDate = new Date(message.createdAt);

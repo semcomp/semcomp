@@ -18,7 +18,7 @@
 
 .home-faq-container > .questions-container {
   border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   max-width: 64rem;
   overflow: hidden;
 }
@@ -32,7 +32,7 @@
   cursor: pointer;
   width: 100%;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .home-faq-container > .questions-container > .question-component > .answer {

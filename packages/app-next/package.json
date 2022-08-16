@@ -16,12 +16,11 @@
     "axios": "^0.27.2",
     "focus-trap-react": "^9.0.2",
     "next": "12.2.3",
+    "qrcode.react": "^3.1.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-linkify": "^1.0.0-alpha",
-    "react-redux": "^8.0.2",
     "react-toastify": "^9.0.7",
-    "redux-persist": "^6.0.0",
     "socket.io-client": "^4.5.1"
   },
   "devDependencies": {

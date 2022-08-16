@@ -1,18 +1,15 @@
 import { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 
 import Modal from "../../../components/modal";
 import LoadingButton from "../../../components/loading-button";
 import API from "../../../api";
-
-import { setUser as setUserAction } from "../../../redux/actions/auth";
+import { useAppContext } from "../../../libs/contextLib";
 
 function EditProfile({ onRequestClose }) {
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const user = useSelector((state: any) => state.auth.user);
-  const dispatch = useDispatch();
+  const { user, setUser } = useAppContext();
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -29,7 +26,7 @@ function EditProfile({ onRequestClose }) {
     try {
       const response = await API.updateUserInfo(newUser);
       toast.success("Cadastro editado com sucesso!");
-      dispatch(setUserAction({ ...user, ...response.data }));
+      setUser({ ...user, ...response.data });
       onRequestClose();
     } catch (e) {
       console.error(e);

@@ -1,4 +1,5 @@
 import axios from "axios";
+
 import { getDefaultMessage } from "./error-message";
 
 let globalAPI;
@@ -6,11 +7,11 @@ let globalAPI;
 function initializeAPI(config) {
   const {
     baseURL,
-    onBadToken = () => {},
-    onError = () => {},
-    tokenDispatcher,
-    tokenSelector,
+    onError = () => { },
     timeout,
+    token,
+    setToken,
+    onBadToken,
   } = config;
 
   const api = axios.create({
@@ -23,15 +24,14 @@ function initializeAPI(config) {
     // If a token is already set, don't override it.
     if (request.headers.authorization) return request;
 
-    const token = tokenSelector();
     if (token) request.headers.authorization = token;
     return request;
   });
 
   // Updates token if 'Authorization' header is filled
   api.interceptors.response.use((response) => {
-    const token = response.headers.authorization;
-    if (token) tokenDispatcher(token);
+    const newToken = response.headers.authorization;
+    if (newToken) setToken(newToken);
     return response;
   });
 

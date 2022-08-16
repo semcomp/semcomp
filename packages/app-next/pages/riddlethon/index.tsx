@@ -9,11 +9,11 @@ import IOSocket from "socket.io-client";
 import Header from "../../components/header";
 import Footer from "../../components/footer";
 import { baseURL } from "../../constants/api-url";
-import { useSelector } from "react-redux";
 import { EVENTS_PREFIX, END_DATE } from "../../constants/riddlethon";
+import RequireAuth from "../../libs/RequireAuth";
+import { useAppContext } from "../../libs/contextLib";
 
 import "./style.css";
-import RequireAuth from "../../libs/RequireAuth";
 
 export const RiddlethonRoutes = {
   start: "/riddlethon/inicio",
@@ -40,7 +40,7 @@ function SocketProvider(props) {
       transports: ["websocket"],
     })
   );
-  const token = useSelector((state: any) => state.auth.token);
+  const { token } = useAppContext();
 
   function send(eventType, ...args) {
     return socket.emit(eventType, token, ...args);
@@ -145,7 +145,7 @@ function Riddlethon() {
   }
 
   return (
-    <RequireAuth>
+    <>
       <Header />
       <SocketProvider>
         <TeamProvider>
@@ -168,8 +168,8 @@ function Riddlethon() {
         </TeamProvider>
       </SocketProvider>
       <Footer />
-    </RequireAuth>
+    </>
   );
 }
 
-export default Riddlethon;
+export default RequireAuth(Riddlethon);

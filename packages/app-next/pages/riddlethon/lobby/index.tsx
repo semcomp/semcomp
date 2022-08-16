@@ -1,18 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
+import { useRouter } from 'next/router';
 
 import { Button, Dialog } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
-
-import { useRouter } from 'next/router';
+import { toast } from "react-toastify";
 
 import API from "../../../api";
 import { useTeam } from "..";
 import Spinner from "../../../components/spinner";
 import { RiddlethonRoutes } from "..";
-import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
 import { START_DATE } from "../../../constants/riddlethon";
+import { useAppContext } from "../../../libs/contextLib";
 
 import "./style.css";
 
@@ -160,7 +159,7 @@ function Countdown({ target, onSubmit }) {
 
 function RiddlethonLobby() {
   const { team, isFetchingTeam } = useTeam();
-  const me = useSelector((state: any) => state.auth.user);
+  const { user: me } = useAppContext();
   const router = useRouter();
 
   function canAddTeammates() {

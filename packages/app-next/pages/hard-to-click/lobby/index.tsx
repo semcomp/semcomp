@@ -1,18 +1,18 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
+import { useRouter } from 'next/router';
 
 import { Button, Dialog } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
+import { toast } from "react-toastify";
 
-import { useRouter } from 'next/router';
 
 import API from "../../../api";
 import { useTeam } from "..";
 import Spinner from "../../../components/spinner";
 import { HardToClickRoutes } from "..";
-import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
 import { START_DATE } from "../../../constants/hard-to-click";
+import { useAppContext } from "../../../libs/contextLib";
 
 import "../../../styles/Hard-To-Click-Lobby.module.css";
 
@@ -160,7 +160,7 @@ function Countdown({ target, onSubmit }) {
 
 function HardToClickLobby() {
   const { team, isFetchingTeam } = useTeam();
-  const me = useSelector((state: any) => state.auth.user);
+  const { user: me } = useAppContext();
   const router = useRouter();
 
   function canAddTeammates() {

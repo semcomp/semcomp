@@ -28,7 +28,7 @@ defaultMessages.INTERNAL_SERVER_ERROR = defaultMessages[500];
 defaultMessages.SERVICE_UNAVAILABLE = defaultMessages[503];
 
 /** @argument { number } statusCode */
-export function getDefaultMessage(response) {
+export function getDefaultMessage(response?: any) {
   if (response && response.data && response.data.message) {
     return response.data.message;
   } else if (response) {

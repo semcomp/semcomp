@@ -1,21 +1,20 @@
 import Link from 'next/link';
 
-import { useDispatch, useSelector } from "react-redux";
-
-import { logout } from "../../redux/actions/auth";
 import Navlink from "./nav-link"; // a link reference 'a' with the appearance of a button
 import Routes from "../../routes";
 import SemcompLogo from "../../assets/logo-semcomp-folclore.png";
+import { useAppContext } from '../../libs/contextLib';
 
 const Navbar = () => {
-  const isUserLoggedIn = Boolean(useSelector((state: any) => state.auth.token));
-  const dispatch = useDispatch();
+  const { user, setUser, setToken } = useAppContext();
+  const isUserLoggedIn = Boolean(user);
 
   const tShirtsFormLink =
     "https://docs.google.com/forms/d/e/1FAIpQLSdBUY4gf8-CKhoXEmZ_bIvovprtGi7KOwNuo2WFcfsejl6a5w/viewform";
 
   function logUserOut() {
-    dispatch(logout());
+    setUser(null);
+    setToken(null);
   }
 
   return (
