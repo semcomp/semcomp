@@ -41,14 +41,11 @@
   margin: 0;
 }
 
-.home-faq-container
-  > .questions-container
-  > .question-component
-  > .answer
-  > span {
+.home-faq-container > .questions-container > .question-component > .answer > span {
   padding: 1rem;
   display: block;
   background-color: white;
+  color: var(--color-black-main);
 }
 
 /* Mobile large */
