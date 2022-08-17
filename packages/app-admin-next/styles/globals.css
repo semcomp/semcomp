@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "./DeleteConfirmationModal.css";
+@import "./Spinner.css";
+
+body,
+html,
+#root {
+  height: 100vh;
+  scroll-behavior: smooth;
+  font-family: Roboto, sans-serif;
+
+  /* The whole page is not a perfect white so it goes a bit easier on the reader's eyes */
+  background-color: #fafafa;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
