@@ -23,11 +23,10 @@ const About = () => {
               <br />
               <br />
               <strong>
-                A sua 24ª edição vai acontecer do dia 25 de setembro até 01 de
-                outubro
+                A sua 25ª edição vai acontecer do dia 24 de setembro até 30 de
+                setembro
               </strong>
-              , e será totalmente online, gratuita e por meio de plataformas
-              como YouTube e Discord.
+              , de forma híbrida, com transmissão parcial no YouTube.
               <br />
               {!isUserLoggedIn && (
                 <>
@@ -39,16 +38,16 @@ const About = () => {
                 </>
               )}
             </p>
-            {!isUserLoggedIn && (
+            {/* {!isUserLoggedIn && (
               <Link href={Routes.signup}>
                 <span className="about-signup-button">
                   Quero participar!
                 </span>
               </Link>
-            )}
-            {/* <button className="about-signup-button about-signup-button-disabled">
-					Inscrições em breve!
-				</button> */}
+            )} */}
+            <button className="about-signup-button about-signup-button-disabled">
+              Inscrições em breve!
+            </button>
           </div>
           <img alt="Banner Semcomp 23" src={BannerSemcomp.src} />
         </div>
