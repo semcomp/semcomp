@@ -1,0 +1,28 @@
+{
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": ["plugin:react/recommended", "google"],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "plugins": ["react"],
+  "rules": {
+    "linebreak-style": "off",
+    "max-len": "off",
+    "new-cap": "off",
+    "react/prop-types": "off",
+    "react/display-name": "off",
+    "object-curly-spacing": "off"
+  }
+}

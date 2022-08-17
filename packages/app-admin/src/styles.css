@@ -1,0 +1,13 @@
+/* This file contains the global styles and CSS variables that will be used throughout the whole project. */
+
+body, html, #root {
+	height: 100%;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+* {
+	/* With this, object sizes will make more sense */
+	box-sizing: border-box;
+}
