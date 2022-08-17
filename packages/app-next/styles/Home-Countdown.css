@@ -1,0 +1,30 @@
+.countdown{
+  display: flex;
+  justify-content: center;
+  width: 1000px;
+  gap: 20px;
+}
+
+.countdown > div{
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 50px;
+  box-shadow: 1px 1px 15px rgba(0,0,0,0.25);
+  width: 80px;
+  height: 80px;
+  border-radius: 5px;
+  padding: 4rem;
+}
+
+.number {
+  font-weight: 500;
+  font-size: 44px;
+  color: white;
+}
+
+div span:last-of-type{
+  color: white;
+}

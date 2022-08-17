@@ -1,13 +1,14 @@
-import Link from 'next/link'
+// import Link from 'next/link'
 
 import NavBar from "../../navbar";
-import Routes from "../../../routes";
-import BackgroundImage from "../../../assets/home-background.png";
-import { useAppContext } from '../../../libs/contextLib';
+// import Routes from "../../../routes";
+// import BackgroundImage from "../../../assets/home-background.png";
+// import { useAppContext } from '../../../libs/contextLib';
+import Countdown from '../Countdown';
 
 const HomeHeader = () => {
-  const { user } = useAppContext();
-  const isUserLoggedIn = Boolean(user);
+  // const { user } = useAppContext();
+  // const isUserLoggedIn = Boolean(user);
 
   return (
     <header className="home-header" id="home-header">
@@ -18,7 +19,7 @@ const HomeHeader = () => {
       </div>
       <div className="main-texts">
         <h1 className="semcomp-edition">SEMCOMP 25</h1>
-        <h1 className="beta-text">BETA</h1>
+        <h1 className="beta-text">Em breve</h1>
       </div>
       <div className="text-container">
         <h1>
@@ -26,13 +27,14 @@ const HomeHeader = () => {
           {/* <br />
           De 25 de setembro a 01 de outubro */}
         </h1>
-        {!isUserLoggedIn && (
+        {/* {!isUserLoggedIn && (
           <Link href={Routes.signup}>
             <span className="home-signup-button">
               Inscreva-se
             </span>
           </Link>
-        )}
+        )} */}
+        <Countdown/>
         {/* <button className="home-signup-button home-signup-button-disabled">
 					Inscrições em breve!
 				</button> */}
