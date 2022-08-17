@@ -11,6 +11,7 @@ import Header from "../components/header";
 import Footer from "../components/footer";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
+import BlockPage from "../libs/BlockPage";
 
 function Login() {
   // This state is used to indicate to the user when the login is happening though a Spinner.
@@ -111,4 +112,4 @@ function Login() {
   );
 }
 
-export default RequireNoAuth(Login);
+export default BlockPage(RequireNoAuth(Login));

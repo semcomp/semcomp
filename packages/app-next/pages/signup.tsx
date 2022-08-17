@@ -12,6 +12,7 @@ import Step1 from "../components/signup/step-1";
 import Routes from "../routes";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
+import BlockPage from "../libs/BlockPage";
 
 function SignupPage() {
   const router = useRouter();
@@ -174,4 +175,4 @@ function SignupPage() {
   );
 }
 
-export default RequireNoAuth(SignupPage);
+export default BlockPage(RequireNoAuth(SignupPage));
