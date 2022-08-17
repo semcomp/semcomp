@@ -61,6 +61,7 @@
 
 :root {
   --color-blue-main: #227aa8;
+  --color-dark-blue: #002776;
   --color-blue-secondary: #f2ece5;
   --color-pink: #d49aa7;
   --color-green: #70ba4c;
@@ -71,6 +72,12 @@
   --color-grey-2: #c2c2c2;
   --color-grey-3: #f0f0f0;
   --color-white: #fafafa;
+
+  --color-semcomp25-green: #009541;
+  --color-semcomp25-yellow: #FFDF00;
+  --color-semcomp25-blue: #002776;
+  --color-semcomp25-white: #ECE5F0;
+  --color-semcomp25-orange: #EC4E20;
 }
 
 body,
