@@ -1,5 +1,5 @@
 .home-about-background {
-  background-color: var(--color-blue-secondary);
+  background-color: var(--color-semcomp25-blue);
 }
 
 .home-about-container {
@@ -13,7 +13,7 @@
   column-gap: 2rem;
   max-width: 80rem;
   margin: 0 auto;
-  color: white;
+  color: var(--color-semcomp25-white);
 }
 
 .home-about-container > .text-container > h1 {
@@ -31,7 +31,7 @@
   justify-content: center;
   align-items: center;
   color: white;
-  background-color: var(--color-blue-main);
+  background-color: var(--color-semcomp25-white);
   border-radius: 8px;
   padding: 1rem 4rem;
   margin: 0 auto; /* Center button horizontaly */
@@ -46,6 +46,7 @@
 
 .home-about-container > .text-container > .about-signup-button-disabled {
   filter: contrast(50%);
+  color: var(--color-semcomp25-blue);
 }
 
 .home-about-container > img {
