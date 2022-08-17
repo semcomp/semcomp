@@ -12,7 +12,7 @@
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
     "@mui/icons-material": "^5.8.4",
-    "@mui/material": "^5.9.2",
+    "@mui/material": "^5.10.1",
     "axios": "^0.27.2",
     "focus-trap-react": "^9.0.2",
     "next": "12.2.3",
