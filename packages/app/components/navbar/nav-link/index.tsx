@@ -1,17 +1,17 @@
 import Link from "next/link";
+import { MouseEvent, MouseEventHandler, ReactNode } from "react";
 
 import styled, { css } from "styled-components";
 
-/**
- * @param { Object } props
- * @param { string } props.href - The href attribute that will be passed down to the router link
- * @param { boolean } props.disabled - Whether the link is disabled or not. If the link is
- * disabled, a title should always be given
- * @param { string } props.title - The text that should be shown when the user hovers their
- * mouse over this element.
- * @param { string } props.className
- * @param { (event: MouseEvent) => void } props.onClick
- */
+type NavLinkProps = {
+  href: string;
+  className?: string;
+  disabled?: boolean;
+  title?: string;
+  children: ReactNode;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
+};
+
 const NavLink = ({
   href,
   className,
@@ -20,8 +20,8 @@ const NavLink = ({
   children,
   onClick,
   ...props
-}: any) => {
-  const NavLink = styled.div`
+}: NavLinkProps) => {
+  const NavLink = styled.a`
     display: flex;
     justify-content: center;
     align-items: center;
@@ -63,9 +63,7 @@ const NavLink = ({
       `When the component NavLink receives a truthy value for it's 'disabled' prop, a 'title' should be given.`
     );
 
-  /** @argument { MouseEvent } event */
-  function handleClick(event) {
-    // Disabled buttons or links shouldn't be clickable
+  function handleClick(event: MouseEvent<HTMLButtonElement>) {
     if (!disabled && onClick) {
       onClick(event);
     }
@@ -74,12 +72,12 @@ const NavLink = ({
   // This is the "content" that will go inside the link.
   const LinkText = (
     <>
-      <a onClick={handleClick}>{children}</a>
+      <section onClick={handleClick}>{children}</section>
     </>
   );
 
   return (
-    <div>
+    <>
       {disabled ? (
         <NavLink disabled title={title} {...props}>
           {LinkText}
@@ -89,7 +87,7 @@ const NavLink = ({
           <NavLink>{LinkText}</NavLink>
         </Link>
       )}
-    </div>
+    </>
   );
 };
 
