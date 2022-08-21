@@ -1,9 +1,10 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 import Navlink from "./nav-link"; // a link reference 'a' with the appearance of a button
 import Routes from "../../routes";
 import SemcompLogo from "../../assets/logo-semcomp-folclore.png";
-import { useAppContext } from '../../libs/contextLib';
+import { useAppContext } from "../../libs/contextLib";
+import Image from "next/image";
 
 const Navbar = () => {
   const { user, setUser, setToken } = useAppContext();
@@ -20,7 +21,14 @@ const Navbar = () => {
   return (
     <nav className="navbar-content">
       <Link href={Routes.home}>
-        <img alt="Semcomp logo" src={SemcompLogo.src} />
+        <a>
+          <Image
+            alt="Semcomp logo"
+            src={SemcompLogo.src}
+            width="75%"
+            height="75%"
+          />
+        </a>
       </Link>
 
       <div className="links-container">
