@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import styled, { css } from "styled-components";
+
 /**
  * @param { Object } props
  * @param { string } props.href - The href attribute that will be passed down to the router link
@@ -19,9 +21,43 @@ const NavLink = ({
   onClick,
   ...props
 }: any) => {
-  // This behavior is related to accessibility concerns. Giving a proper title
-  // will help your users to be aware of the reasons this component might be disabled,
-  // creating a more understandable interface.
+  const NavLink = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.25rem 0.5rem;
+    margin: 0 0.5rem;
+    height: 3vh;
+    font-size: 18px;
+    color: white;
+    border-radius: 8px;
+    transition: 200ms;
+    cursor: pointer;
+
+    :link,
+    :active,
+    :focus {
+      text-decoration: none;
+      outline: none;
+    }
+
+    :hover {
+      background-color: rgba(255, 255, 255, 0.3);
+      color: white;
+    }
+
+    ${(props) =>
+      props.disabled &&
+      css`
+        /* opacity: 0.7; */
+        cursor: not-allowed;
+
+        :hover {
+          background-color: none;
+        }
+      `}
+  `;
+
   if (disabled && !title)
     throw new Error(
       `When the component NavLink receives a truthy value for it's 'disabled' prop, a 'title' should be given.`
@@ -38,23 +74,19 @@ const NavLink = ({
   // This is the "content" that will go inside the link.
   const LinkText = (
     <>
-      <div onClick={handleClick}>{children}</div>
+      <a onClick={handleClick}>{children}</a>
     </>
   );
 
   return (
-    <div className="link-button">
+    <div>
       {disabled ? (
-        <div
-          title={title}
-          className={`navlink disabled ${className || ""}`}
-          {...props}
-        >
+        <NavLink disabled title={title} {...props}>
           {LinkText}
-        </div>
+        </NavLink>
       ) : (
         <Link href={href} title={title} onClick={handleClick} {...props}>
-          <a className={`navlink ${className || ""}`}>{LinkText}</a>
+          <NavLink>{LinkText}</NavLink>
         </Link>
       )}
     </div>
