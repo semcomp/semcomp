@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 /**
  * @param { Object } props
@@ -53,15 +53,8 @@ const NavLink = ({
           {LinkText}
         </div>
       ) : (
-        <Link
-          href={href}
-          title={title}
-          onClick={handleClick}
-          {...props}
-        >
-          <span className={`navlink ${className || ""}`}>
-            {LinkText}
-          </span>
+        <Link href={href} title={title} onClick={handleClick} {...props}>
+          <a className={`navlink ${className || ""}`}>{LinkText}</a>
         </Link>
       )}
     </div>
