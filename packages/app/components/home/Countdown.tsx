@@ -28,7 +28,8 @@ const Countdown = () => {
 
   const dayString = days > 1 ? 'dias' : 'dia';
 
-  if (!days || !minutes || !hours || !seconds) {
+  if (days == null || minutes == null || hours == null || seconds == null) {
+    console.log(days, minutes, hours, seconds)
     return null;
   }
 
@@ -38,19 +39,19 @@ const Countdown = () => {
 
   return (<div className="countdown">
     <div>
-      <span className="number days">{days.toString()}</span>
+      <span className="number days">{days.toString().padStart(2, '0')}</span>
       <span>{dayString}</span>
     </div>
     <div>
-      <span className="number hours">{hours.toString()}</span>
+      <span className="number hours">{hours.toString().padStart(2, '0')}</span>
       <span>horas</span>
     </div>
     <div>
-      <span className="number minutes">{minutes.toString()}</span>
+      <span className="number minutes">{minutes.toString().padStart(2, '0')}</span>
       <span>minutos</span>
     </div>
     <div>
-      <span className="number seconds">{seconds.toString()}</span>
+      <span className="number seconds">{seconds.toString().padStart(2, '0')}</span>
       <span>segundos</span>
     </div>
   </div>);
