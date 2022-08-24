@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && next export",
     "start": "next start",
     "lint": "next lint"
   },
@@ -24,7 +24,7 @@
     "socket.io-client": "^4.5.1"
   },
   "devDependencies": {
-    "@types/node": "18.6.2",
+    "@types/node": "18.7.11",
     "@types/react": "18.0.15",
     "@types/react-dom": "18.0.6",
     "autoprefixer": "^10.4.8",
