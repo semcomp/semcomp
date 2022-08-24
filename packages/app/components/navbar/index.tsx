@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import Navlink from "./nav-link"; // a link reference 'a' with the appearance of a button
 import Routes from "../../routes";
-import SemcompLogo from "../../assets/logo.webp";
+import SemcompLogo from "../../assets/logo.svg";
 import { useAppContext } from '../../libs/contextLib';
 
 const Navbar = () => {

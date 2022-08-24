@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 function CountdownNumber({number, label}: {number: number, label: string}) {
   return (
     <div className="p-2 md:p-4">
-      <div className="flex flex-col items-center justify-center text-white w-20 md:w-28 h-20 md:h-28 backdrop-brightness-95 backdrop-blur shadow-md">
+      <div className="flex flex-col items-center justify-center w-20 md:w-28 h-20 md:h-28 backdrop-brightness-95 backdrop-blur shadow-md">
         <span className="text-2xl md:text-4xl">{number.toString().padStart(2, '0')}</span>
         <span className="text-xs md:text-base">{label}</span>
       </div>
