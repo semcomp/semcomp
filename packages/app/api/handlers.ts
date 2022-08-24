@@ -58,9 +58,9 @@ const Handlers = {
     ),
     joinTeam: withCustomError(
       (teamId) => API.put("/riddlethon/group/join?id=" + teamId),
-      {418: `O limite de jogadores já foi atingido`},
+      { 418: `O limite de jogadores já foi atingido` },
     ),
-    leaveTeam: withCustomError(() => API.put("/riddlethon/group/leave"), ),
+    leaveTeam: () => API.put("/riddlethon/group/leave"),
 
     getQuestion: (questionIndex) =>
       API.get("riddlethon/question/" + questionIndex),
@@ -75,7 +75,7 @@ const Handlers = {
     ),
     joinTeam: withCustomError(
       (teamId) => API.put("/hard-to-click/group/join?id=" + teamId),
-      {418: `O limite de jogadores já foi atingido`},
+      { 418: `O limite de jogadores já foi atingido` },
     ),
     leaveTeam: () => API.put("/hard-to-click/group/leave"),
 

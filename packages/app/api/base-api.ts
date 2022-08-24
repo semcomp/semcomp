@@ -61,7 +61,7 @@ function initializeAPI(config) {
 
 /** This proxy is to make sure the API has been initialized before being accessed
 @type { import('axios').AxiosInstance } */
-const APIProtectorProxy = new Proxy(
+const APIProtectorProxy: any = new Proxy(
   {},
   {
     get(target, prop) {

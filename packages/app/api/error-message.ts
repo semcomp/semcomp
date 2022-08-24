@@ -15,9 +15,16 @@ const defaultMessages = {
   // 500
   500: "Nosso servidor quebrou! Nos perdoe! D:",
   503: "Parece que nosso servidor não está diposnível. Por favor, tente novamente mais tarde.",
+  NETWORK_ERROR: null,
+  BAD_REQUEST: null,
+  UNAUTHORIZED: null,
+  FORBIDDEN: null,
+  NOT_FOUND: null,
+  INTERNAL_SERVER_ERROR: null,
+  SERVICE_UNAVAILABLE: null,
 };
 
-defaultMessages.NETWORK_ERROR = defaultMessages[undefined];
+defaultMessages.NETWORK_ERROR = defaultMessages.undefined;
 
 defaultMessages.BAD_REQUEST = defaultMessages[400];
 defaultMessages.UNAUTHORIZED = defaultMessages[401];
