@@ -16,9 +16,7 @@
 @import "./Header.css";
 @import "./Home-About-Beta.css";
 @import "./Home-About.css";
-@import "./Home-Countdown.css";
 @import "./Home-Faq.css";
-@import "./Home-Header.css";
 @import "./Home-Live-Now.css";
 @import "./Home-Schedule.css";
 @import "./Home-Sponsors.css";
@@ -60,12 +58,12 @@
 }
 
 :root {
-  --color-blue-main: #227aa8;
-  --color-dark-blue: #002776;
+  --color-blue-main: #065B84;
+  --color-dark-blue: #009541;
   --color-blue-secondary: #f2ece5;
-  --color-pink: #d49aa7;
-  --color-green: #70ba4c;
-  --color-orange: #ed9f3a;
+  --color-pink: #ECE5F0;
+  --color-green: #009541;
+  --color-orange: #EC4E20;
 
   --color-black-main: #1d1d1b;
   --color-grey-1: #3d3d3d;

@@ -1,0 +1,9 @@
+.homeHeader {
+  height: 100vh;
+  background-color: var(--color-dark-blue);
+  font-family: "Staatliches", sans-serif;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}

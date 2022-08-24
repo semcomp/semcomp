@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import Navlink from "./nav-link"; // a link reference 'a' with the appearance of a button
 import Routes from "../../routes";
-import SemcompLogo from "../../assets/logo-semcomp-folclore.png";
+import SemcompLogo from "../../assets/logo.webp";
 import { useAppContext } from '../../libs/contextLib';
 
 const Navbar = () => {
@@ -32,8 +32,8 @@ const Navbar = () => {
         >
           Comprar camiseta
         </Navlink> */}
-        <Navlink href={Routes.home}>Início</Navlink>
-        <Navlink href={Routes.home + "#about"}>Sobre nós</Navlink>
+        {/* <Navlink href={Routes.home}>Início</Navlink>
+        <Navlink href={Routes.home + "#about"}>Sobre nós</Navlink> */}
         {/* <Navlink
 					href={Routes.sponsors}
 				>Patrocinadores</Navlink> */}
@@ -51,10 +51,10 @@ const Navbar = () => {
             <Navlink
               href={Routes.hardToClick}
             >Duro de Clicar</Navlink> */}
-            <Navlink href={Routes.profile}>Perfil</Navlink>
+            {/* <Navlink href={Routes.profile}>Perfil</Navlink>
             <Navlink onClick={logUserOut} href={Routes.home}>
               Sair
-            </Navlink>
+            </Navlink> */}
           </>
         ) : (
           <>
