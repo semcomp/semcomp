@@ -4,7 +4,7 @@ import HomeHeader from "../components/home/Header";
 // import Schedule from "../components/home/Schedule";
 // import FAQ from "../components/home/faq";
 // import LiveNow from "../components/home/live-now";
-// import Sponsors from "../components/home/sponsors";
+// import Sponsors from "../components/home/Sponsors";
 // import Stats from "../components/home/stats";
 
 function Home() {
@@ -15,8 +15,8 @@ function Home() {
         <HomeHeader />
         {/* <Stats /> */}
         {/* <About /> */}
-        {/* <Schedule />
-        <Sponsors /> */}
+        {/* <Schedule /> */}
+        {/* <Sponsors /> */}
         {/* <FAQ /> */}
         {/* <Footer /> */}
       </div>
