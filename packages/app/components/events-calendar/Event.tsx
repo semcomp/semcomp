@@ -70,35 +70,33 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
     }
   }
 
-  return (
-    <div className="event-component">
-      <button className="card" onClick={handleEventClick}>
-        <div className="left-item">
-          <div>
-            <strong>{startDateStr}</strong>
-          </div>
-          <div>{endDateStr}</div>
+  return (<>
+    <button className="flex items-center bg-white text-tertiary w-full" onClick={handleEventClick}>
+      <div className="basis-1/6 p-4">
+        <div>
+          <strong>{startDateStr}</strong>
         </div>
-        <div className="right-item">
-          {event.type} | {event.name} <br/> {
-            renderBadge()
-          }
-        </div>
-      </button>
-      <p ref={descriptionRef} className="description" style={{ height: 0 }}>
-        {/* The span is used to have a padding and still retract the element into
-				a zero-height state */}
-        <span className="desc">
-        <strong>
-          {(event.type === "Palestra" && "Palestrante: ") ||
-            (event.type === "Minicurso" && "Ministrante: ")}
-        </strong>
-        {(event.type === "Minicurso" || event.type === "Palestra") &&
-          event.speaker}
+        <div>{endDateStr}</div>
+      </div>
+      <div className="basis-5/6 text-left p-4">
+        {event.type} | {event.name} <br/> {
+          renderBadge()
+        }
+      </div>
+    </button>
+    <div ref={descriptionRef} className="transition-all duration-500 overflow-hidden" style={{ height: 0 }}>
+      <div className="bg-white text-tertiary p-6 text-left w-full">
+        <span className="text-left">
+          <p>
+            <strong>
+              {(event.type === "Palestra" && "Palestrante: ") || (event.type === "Minicurso" && "Ministrante: ")}
+            </strong>
+            {(event.type === "Minicurso" || event.type === "Palestra") && event.speaker}
+          </p>
           <br />
-          {event.description.split(/\\n|\n/g).map((line, i) => (
-            <span key={i}> {line} </span>
-          ))}
+          <p>
+            {event.description.split(/\\n|\n/g).map((line, i) => (<span key={i}> {line} </span>))}
+          </p>
         </span>
         <span>
           {/* {event.type === "Minicurso" && event.isSubscribed && (
@@ -121,6 +119,7 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
             <>
               <br />
               <button
+                className="bg-tertiary text-white transition-all hover:bg-white hover:text-tertiary p-4 shadow-md hover:shadow-none"
                 onClick={() =>
                   window.open(event.link, "_blank", "noopener noreferrer")
                 }
@@ -132,7 +131,10 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
           {event.type === "Palestra" && (
             <>
               <br />
-              <button onClick={() => router.push("/live")}>
+              <button
+                className="bg-tertiary text-white transition-all hover:bg-white hover:text-tertiary p-4 shadow-md hover:shadow-none"
+                onClick={() => router.push("/live")}
+              >
                 Acessar transmissão
               </button>
             </>
@@ -159,9 +161,9 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
             </>
           )}
         </span>
-      </p>
+      </div>
     </div>
-  );
+  </>);
 }
 
 export default Event;

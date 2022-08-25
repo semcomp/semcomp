@@ -15,11 +15,15 @@ function EventDay({ dayDate, myPage, changePage, isCurrentDay }) {
 
   return (
     <button
-      className={isCurrentDay ? "day-button-pressed" : "day-button"}
+      className={"w-full p-4 transition duration-300 " + (
+        isCurrentDay ?
+        "" :
+        "bg-white text-tertiary hover:bg-primary hover:text-secondary"
+      )}
       onClick={handleClick}
     >
       <strong>{dayDateStr}</strong>
-      <p className="hide-in-mobile">{weekDayStr}</p>
+      <p className="hidden md:block">{weekDayStr}</p>
     </button>
   );
 }

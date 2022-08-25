@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 import API from "../../api";
-import EventDay from "./event-day";
-import Event from "./event";
+import EventDay from "./EventDay";
+import Event from "./Event";
 import { useAppContext } from "../../libs/contextLib";
 
 function sortEvents(e1, e2) {
@@ -43,7 +43,7 @@ const EventsCalendar = () => {
   }, []);
 
   if (events.length === 0) {
-    return <p className="text-white">Por enquanto não temos nenhum evento divulgado!</p>;
+    return <p>Por enquanto não temos nenhum evento divulgado!</p>;
   }
 
   let splittedEventList = []; // will be a list of lists
@@ -116,9 +116,13 @@ const EventsCalendar = () => {
   ));
 
   return (
-    <div className="schedule-wrapper">
-      <div className="pages-container">{eventDayList}</div>
-      <div className="events-container">{curEventList}</div>
+    <div className="flex">
+      <div className="basis-1/6">
+        {eventDayList}
+      </div>
+      <div className="basis-5/6">
+        {curEventList}
+      </div>
     </div>
   );
 };

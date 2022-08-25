@@ -7,7 +7,7 @@ import Chip from "@mui/material/Chip";
 import API from "../api";
 import Header from "../components/header";
 import Footer from "../components/footer";
-import EventsCalendar from "../components/events-calendar";
+import EventsCalendar from "../components/events-calendar/EventsCalendar";
 import EditProfile from "../components/profile/edit-profile";
 import Registrations from "../components/profile/registrations";
 import Achievements from "../components/profile/achievements";
