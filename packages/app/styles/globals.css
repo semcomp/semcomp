@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "./Events-Calendar-Event-Day.css";
-@import "./Events-Calendar-Event.css";
-@import "./Events-Calendar.css";
 @import "./Events-Overview-Event-Type.css";
 @import "./Events-Overview.css";
 @import "./Footer.css";
@@ -14,8 +11,6 @@
 @import "./Hard-To-Click-Lobby.css";
 @import "./Hard-To-Click.css";
 @import "./Header.css";
-@import "./Home-About-Beta.css";
-@import "./Home-About.css";
 @import "./Home-Faq.css";
 @import "./Home-Live-Now.css";
 @import "./Home-Schedule.css";
