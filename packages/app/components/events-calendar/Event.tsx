@@ -71,21 +71,26 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
   }
 
   return (<>
-    <button className="flex items-center bg-white text-tertiary w-full" onClick={handleEventClick}>
-      <div className="basis-1/6 p-4">
-        <div>
-          <strong>{startDateStr}</strong>
+    <button
+      className="bg-white text-tertiary w-full shadow"
+      onClick={handleEventClick}
+    >
+      <div className="flex items-center">
+        <div className="basis-1/6 p-4">
+          <div>
+            <strong>{startDateStr}</strong>
+          </div>
+          <div>{endDateStr}</div>
         </div>
-        <div>{endDateStr}</div>
-      </div>
-      <div className="basis-5/6 text-left p-4">
-        {event.type} | {event.name} <br/> {
-          renderBadge()
-        }
+        <div className="basis-5/6 text-left p-4">
+          {event.type} | {event.name} <br/> {
+            renderBadge()
+          }
+        </div>
       </div>
     </button>
     <div ref={descriptionRef} className="transition-all duration-500 overflow-hidden" style={{ height: 0 }}>
-      <div className="bg-white text-tertiary p-6 text-left w-full">
+      <div className="bg-white text-black p-6 text-left w-full">
         <span className="text-left">
           <p>
             <strong>
