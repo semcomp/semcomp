@@ -1,5 +1,5 @@
 import Header from "../../components/header";
-import Footer from "../../components/footer";
+import Footer from "../../components/Footer";
 import SponsorCard from "./sponsor-card";
 
 // import SemcompImage from '../../assets/logo_semcompbeta.jpg';

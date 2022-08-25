@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 import API from "../api";
 import LoadingButton from "../components/loading-button";
 import Header from "../components/header";
-import Footer from "../components/footer";
+import Footer from "../components/Footer";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
 import BlockPage from "../libs/BlockPage";

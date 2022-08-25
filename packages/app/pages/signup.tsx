@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { toast } from "react-toastify";
 
 import API from "../api";
-import Footer from "../components/footer/index";
+import Footer from "../components/Footer";
 import Header from "../components/header/index";
 import Stepper from "../components/stepper";
 import Step0 from "../components/signup/step-0";

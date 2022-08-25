@@ -7,7 +7,7 @@ import IOSocket from "socket.io-client";
 // import ChatApp from './chat';
 
 import Header from "../../components/header";
-import Footer from "../../components/footer";
+import Footer from "../../components/Footer";
 import { baseURL } from "../../constants/api-url";
 import { EVENTS_PREFIX, END_DATE } from "../../constants/riddlethon";
 import RequireAuth from "../../libs/RequireAuth";

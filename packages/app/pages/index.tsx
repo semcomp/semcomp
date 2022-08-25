@@ -1,5 +1,5 @@
 // import About from "../components/home/About";
-// import Footer from "../components/footer";
+// import Footer from "../components/Footer";
 import HomeHeader from "../components/home/Header";
 // import Schedule from "../components/home/Schedule";
 // import FAQ from "../components/home/Faq";

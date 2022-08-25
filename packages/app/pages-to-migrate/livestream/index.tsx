@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
-import Footer from "../../components/footer";
+import Footer from "../../components/Footer";
 import Header from "../../components/header";
 import API from "../../api";
 
