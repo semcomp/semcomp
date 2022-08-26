@@ -47,6 +47,16 @@
     url("../assets/Staatliches-Regular.eot");
 }
 
+@font-face {
+  font-family: "Qatar2022 Bold";
+  src: url("../assets/Qatar2022Arabic-Bold.ttf");
+}
+
+@font-face {
+  font-family: "Qatar2022 Heavy";
+  src: url("../assets/Qatar2022Arabic-Heavy.ttf");
+}
+
 :root {
   --color-blue-main: #065B84;
   --color-dark-blue: #009541;
