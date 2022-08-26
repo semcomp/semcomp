@@ -9,8 +9,8 @@ const HomeHeader = (): ReactElement => {
         <NavBar />
       </div>
       <div className="flex flex-col items-center">
-        <h1 className="text-6xl md:text-9xl">SEMCOMP 25</h1>
-        <h1 className="text-3xl md:text-6xl text-white">Em breve</h1>
+        <h1 id="title" className="text-6xl md:text-9xl">SEMCOMP 25</h1>
+        <h1 id="subtitle" className="text-3xl md:text-6xl text-white">Em breve</h1>
       </div>
       <div className="flex flex-col items-center">
         <h1 className="text-base md:text-xl">
