@@ -12,7 +12,7 @@ function Sponsors() {
 
   return (<>
     <section className="flex flex-col items-center text-primary bg-white text-center p-16">
-      <h1 className="text-4xl font-bold">Apoio</h1>
+      <h1 id="titulo" className="text-4xl font-bold">Apoio</h1>
       <div className="text-base pt-8 max-w-4xl">
         <div className="grid grid-cols-2 gap-8">
           {supporterLogos.map((supporterLogo: StaticImageData, index) => (
