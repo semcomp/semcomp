@@ -13,7 +13,7 @@ function Home() {
       <div>
         {/* <LiveNow /> */}
         <HomeHeader />
-        <Stats />
+        {/* <Stats /> */}
         <About />
         <Schedule />
         <Sponsors />
