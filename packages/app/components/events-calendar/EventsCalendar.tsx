@@ -23,8 +23,8 @@ const EventsCalendar = () => {
   useEffect(() => {
     async function fetchEvents() {
       try {
-        const response = await API.events.getAll();
-        return response.data;
+        // const response = await API.events.getAll();
+        // return response.data;
       } catch (e) {
         console.error(e);
         return [];
@@ -32,11 +32,8 @@ const EventsCalendar = () => {
     }
 
     async function fetchAndSetEvents() {
-      const eventList = await fetchEvents();
-      // Sort event list by date (whas not done in the backend because it would lead
-      // to a great overhead in the case of multiple simultaneous users)
-      // #edgecomputingrocks
-      setEvents(eventList.sort(sortEvents));
+      // const eventList = await fetchEvents();
+      // setEvents(eventList.sort(sortEvents));
     }
 
     fetchAndSetEvents();
@@ -117,12 +114,8 @@ const EventsCalendar = () => {
 
   return (
     <div className="flex">
-      <div className="basis-1/6">
-        {eventDayList}
-      </div>
-      <div className="basis-5/6">
-        {curEventList}
-      </div>
+      <div className="basis-1/6">{eventDayList}</div>
+      <div className="basis-5/6">{curEventList}</div>
     </div>
   );
 };
