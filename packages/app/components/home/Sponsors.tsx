@@ -6,6 +6,7 @@ import CodelabImage from "../../assets/sponsors/logo-codelab-sanca.svg";
 import PetImage from "../../assets/sponsors/pet.png";
 import Routes from "../../routes";
 import Image, { StaticImageData } from "next/image";
+import NavLink from "../navbar/nav-link";
 
 function Sponsors() {
   const supporterLogos = [IcmcImage, FogImage, CodelabImage, PetImage];
@@ -17,10 +18,10 @@ function Sponsors() {
           Apoio
         </h1>
         <div className="text-base pt-8 max-w-4xl">
-          <div className="grid grid-cols-2 gap-8">
+          <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4">
             {supporterLogos.map((supporterLogo: StaticImageData, index) => (
               <div
-                className="flex items-center justify-center relative w-64 h-32"
+                className="flex items-center justify-center relative w-64 h-32 m-4"
                 key={index}
               >
                 <Image
@@ -28,16 +29,14 @@ function Sponsors() {
                   alt=""
                   layout="intrinsic"
                   quality={100}
-                ></Image>
+                />
               </div>
             ))}
           </div>
           <br />
-          <Link href={Routes.sponsors}>
-            <span className="bg-primary text-white transition-all hover:bg-white hover:text-primary p-4 shadow-md hover:shadow-none">
-              Saiba mais
-            </span>
-          </Link>
+          <NavLink href={Routes.sponsors}>
+            <div className="bg-green p-3 rounded">Saiba mais</div>
+          </NavLink>
         </div>
       </section>
     </>
