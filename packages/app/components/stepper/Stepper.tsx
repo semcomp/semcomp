@@ -1,14 +1,13 @@
-import Step from "./step";
+import Step from "./Step";
 
-/**
- * This is a simple stepper without text
- * @param { Object } props
- * @param { number } props.numberOfSteps
- * @param { number } props.activeStep
- * @param { (clickedStep: number) => void } [props.onStepClick] Callback called
- * when the user clicks on a step ball
- */
-const Stepper = ({ numberOfSteps, activeStep, onStepClick }) => {
+function Stepper(
+  { numberOfSteps, activeStep, onStepClick }:
+  {
+    numberOfSteps: number,
+    activeStep: number,
+    onStepClick: Function,
+  }
+) {
   function renderSteps() {
     if (!numberOfSteps) throw new Error("Stepper must have at least one step");
     const stepElements = [];
@@ -26,9 +25,9 @@ const Stepper = ({ numberOfSteps, activeStep, onStepClick }) => {
   }
 
   return (
-    <div className="stepper-component-root">
+    <div className="flex justify-between relative">
       {/* This is the thin line that "connects" the steps */}
-      <div className="straight-line" />
+      <div className="w-full h-px top-1/2 absolute bg-black" />
 
       {renderSteps()}
     </div>

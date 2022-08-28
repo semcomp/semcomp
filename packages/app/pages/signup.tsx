@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import API from "../api";
 import Footer from "../components/Footer";
 import Header from "../components/header/index";
-import Stepper from "../components/stepper";
+import Stepper from "../components/stepper/Stepper";
 import Step0 from "../components/signup/step-0";
 import Step1 from "../components/signup/step-1";
 import Routes from "../routes";

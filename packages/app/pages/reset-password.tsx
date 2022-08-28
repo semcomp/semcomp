@@ -4,11 +4,11 @@ import { toast } from "react-toastify";
 
 import API from "../api";
 import Footer from "../components/Footer";
-import Header from "../components/header/index";
-import Stepper from "../components/stepper";
-import Step0 from "../components/reset-password/step-0";
-import Step1 from "../components/reset-password/step-1";
-import Step2 from "../components/reset-password/step-2";
+import NavBar from "../components/navbar";
+import Stepper from "../components/stepper/Stepper";
+import Step0 from "../components/reset-password/Step-0";
+import Step1 from "../components/reset-password/Step-1";
+import Step2 from "../components/reset-password/Step-2";
 import { useAppContext } from "../libs/contextLib";
 
 function ResetPassword() {
@@ -125,12 +125,12 @@ function ResetPassword() {
   ][step];
 
   return (
-    <div className="reset-password-page-container">
-      <Header />
-      <main className="main-container">
-        <div className="card">
-          <h1>Recuperar senha</h1>
-          <div className="stepper-container">
+    <div className="flex flex-col justify-between min-h-screen">
+      <NavBar />
+      <main className="flex justify-center items-center flex-1">
+        <div className="flex flex-col items-center shadow p-9 w-full max-w-lg">
+          <h1 className="text-xl">Recuperar senha</h1>
+          <div className="w-full max-w-xs">
             <Stepper
               numberOfSteps={3}
               activeStep={step}
