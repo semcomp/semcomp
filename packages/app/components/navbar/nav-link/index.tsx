@@ -1,15 +1,15 @@
-import Link from 'next/link';
+import Link from "next/link";
+import { MouseEvent, MouseEventHandler, ReactNode } from "react";
 
-/**
- * @param { Object } props
- * @param { string } props.href - The href attribute that will be passed down to the router link
- * @param { boolean } props.disabled - Whether the link is disabled or not. If the link is
- * disabled, a title should always be given
- * @param { string } props.title - The text that should be shown when the user hovers their
- * mouse over this element.
- * @param { string } props.className
- * @param { (event: MouseEvent) => void } props.onClick
- */
+type NavLinkProps = {
+  href: string;
+  className?: string;
+  disabled?: boolean;
+  title?: string;
+  children: ReactNode;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
+};
+
 const NavLink = ({
   href,
   className,
@@ -18,53 +18,42 @@ const NavLink = ({
   children,
   onClick,
   ...props
-}: any) => {
-  // This behavior is related to accessibility concerns. Giving a proper title
-  // will help your users to be aware of the reasons this component might be disabled,
-  // creating a more understandable interface.
+}: NavLinkProps) => {
   if (disabled && !title)
     throw new Error(
       `When the component NavLink receives a truthy value for it's 'disabled' prop, a 'title' should be given.`
     );
 
-  /** @argument { MouseEvent } event */
-  function handleClick(event) {
-    // Disabled buttons or links shouldn't be clickable
+  function handleClick(event: MouseEvent<HTMLButtonElement>) {
     if (!disabled && onClick) {
       onClick(event);
     }
   }
 
-  // This is the "content" that will go inside the link.
   const LinkText = (
     <>
-      <div onClick={handleClick}>{children}</div>
+      <section onClick={handleClick}>{children}</section>
     </>
   );
 
   return (
-    <div className="link-button">
+    <>
       {disabled ? (
-        <div
+        <a
           title={title}
-          className={`navlink disabled ${className || ""}`}
           {...props}
+          className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-white rounded-lg cursor-not-allowed opacity-70"
         >
           {LinkText}
-        </div>
+        </a>
       ) : (
-        <Link
-          href={href}
-          title={title}
-          onClick={handleClick}
-          {...props}
-        >
-          <span className={`navlink ${className || ""}`}>
+        <Link href={href} title={title} onClick={handleClick} {...props}>
+          <a className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-white rounded-lg hover:bg-hoverWhite duration-200">
             {LinkText}
-          </span>
+          </a>
         </Link>
       )}
-    </div>
+    </>
   );
 };
 

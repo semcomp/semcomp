@@ -1,9 +1,10 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 import Navlink from "./nav-link"; // a link reference 'a' with the appearance of a button
 import Routes from "../../routes";
 import SemcompLogo from "../../assets/logo.svg";
-import { useAppContext } from '../../libs/contextLib';
+import { useAppContext } from "../../libs/contextLib";
+import NavLink from "./nav-link";
 
 const Navbar = () => {
   const { user, setUser, setToken } = useAppContext();
@@ -19,9 +20,9 @@ const Navbar = () => {
 
   return (
     <nav className="navbar-content">
-      <Link href={Routes.home}>
+      <NavLink href={Routes.home}>
         <img alt="Semcomp logo" src={SemcompLogo.src} />
-      </Link>
+      </NavLink>
 
       <div className="links-container">
         {/* <Navlink
@@ -33,33 +34,23 @@ const Navbar = () => {
           Comprar camiseta
         </Navlink> */}
         {/* <Navlink href={Routes.home}>Início</Navlink>
-        <Navlink href={Routes.home + "#about"}>Sobre nós</Navlink> */}
-        {/* <Navlink
-					href={Routes.sponsors}
-				>Patrocinadores</Navlink> */}
-        {/* <Navlink
-					href={Routes.home + '#schedule'}
-				>Cronograma</Navlink> */}
+        <Navlink href={Routes.home + "#about"}>Sobre nós</Navlink>
+        <Navlink href={Routes.sponsors}>Patrocinadores</Navlink>
+        <Navlink href={Routes.home + "#schedule"}>Cronograma</Navlink> */}
         {isUserLoggedIn ? (
           <>
-            {/* <Navlink
-              href={Routes.riddle}
-            >Riddle</Navlink> */}
-            {/* <Navlink
-              href={Routes.riddlethon}
-            >Riddlethon</Navlink>
-            <Navlink
-              href={Routes.hardToClick}
-            >Duro de Clicar</Navlink> */}
-            {/* <Navlink href={Routes.profile}>Perfil</Navlink>
+            {/* <Navlink href={Routes.riddle}>Riddle</Navlink> */}
+            <Navlink href={Routes.riddlethon}>Riddlethon</Navlink>
+            <Navlink href={Routes.hardToClick}>Duro de Clicar</Navlink>
+            <Navlink href={Routes.profile}>Perfil</Navlink>
             <Navlink onClick={logUserOut} href={Routes.home}>
               Sair
-            </Navlink> */}
+            </Navlink>
           </>
         ) : (
           <>
-            {/* <Navlink href={Routes.signup}>Cadastrar</Navlink>
-            <Navlink href={Routes.login}>Entrar</Navlink> */}
+            <Navlink href={Routes.signup}>Cadastrar</Navlink>
+            <Navlink href={Routes.login}>Entrar</Navlink>
           </>
         )}
       </div>
