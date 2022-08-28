@@ -34,9 +34,11 @@ function Sponsors() {
           </div>
           <br />
           <Link href={Routes.sponsors}>
-            <span className="bg-primary text-white transition-all hover:bg-white hover:text-primary p-4 shadow-md hover:shadow-none">
-              Saiba mais
-            </span>
+            <a>
+              <span className="bg-primary text-white transition-all hover:bg-white hover:text-primary p-4 shadow-md hover:shadow-none">
+                Saiba mais
+              </span>
+            </a>
           </Link>
         </div>
       </section>
