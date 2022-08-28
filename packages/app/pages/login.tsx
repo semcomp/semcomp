@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Link from 'next/link';
+import Link from "next/link";
 
 import { IconButton, Input, InputAdornment, TextField } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
@@ -7,11 +7,11 @@ import { toast } from "react-toastify";
 
 import API from "../api";
 import LoadingButton from "../components/loading-button";
-import Header from "../components/header";
 import Footer from "../components/Footer";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
 import BlockPage from "../libs/BlockPage";
+import HomeHeader from "../components/home/Header";
 
 function Login() {
   // This state is used to indicate to the user when the login is happening though a Spinner.
@@ -47,7 +47,7 @@ function Login() {
 
   return (
     <div className="login-page-container">
-      <Header />
+      <HomeHeader />
       <main className="main-container">
         <form onSubmit={handleSubmit}>
           <h1>Entrar</h1>
