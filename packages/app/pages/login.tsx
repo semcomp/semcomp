@@ -11,7 +11,7 @@ import Footer from "../components/Footer";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
 import BlockPage from "../libs/BlockPage";
-import HomeHeader from "../components/home/Header";
+import Navbar from "../components/navbar";
 
 function Login() {
   // This state is used to indicate to the user when the login is happening though a Spinner.
@@ -47,7 +47,7 @@ function Login() {
 
   return (
     <div className="login-page-container">
-      <HomeHeader />
+      <Navbar />
       <main className="main-container">
         <form onSubmit={handleSubmit}>
           <h1>Entrar</h1>

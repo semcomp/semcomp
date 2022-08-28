@@ -33,10 +33,10 @@ const Navbar = () => {
         >
           Comprar camiseta
         </Navlink> */}
-        {/* <Navlink href={Routes.home}>Início</Navlink>
+        <Navlink href={Routes.home}>Início</Navlink>
         <Navlink href={Routes.home + "#about"}>Sobre nós</Navlink>
         <Navlink href={Routes.sponsors}>Patrocinadores</Navlink>
-        <Navlink href={Routes.home + "#schedule"}>Cronograma</Navlink> */}
+        <Navlink href={Routes.home + "#schedule"}>Cronograma</Navlink>
         {isUserLoggedIn ? (
           <>
             {/* <Navlink href={Routes.riddle}>Riddle</Navlink> */}

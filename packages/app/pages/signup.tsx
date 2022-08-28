@@ -12,7 +12,7 @@ import Routes from "../routes";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
 import BlockPage from "../libs/BlockPage";
-import HomeHeader from "../components/home/Header";
+import Navbar from "../components/navbar";
 
 function SignupPage() {
   const router = useRouter();
@@ -145,7 +145,7 @@ function SignupPage() {
 
   return (
     <div className="signup-page-container">
-      <HomeHeader />
+      <Navbar />
       <main className="main-container">
         <div className="card">
           <h1>Cadastrar</h1>
