@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import Modal from "../../modal";
+import Modal from "../../Modal";
 import Stepper from "../../stepper/Stepper";
 import CoffeeStep1 from "./step1";
 import CoffeeStep2 from "./step2";

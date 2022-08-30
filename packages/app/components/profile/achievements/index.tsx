@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import Modal from "../../modal";
+import Modal from "../../Modal";
 import { AppBar, Box, Tab, Tabs, Tooltip, Typography } from "@mui/material";
 
 import AchievementsImages from "../achievements_images";

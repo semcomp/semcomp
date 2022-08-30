@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-import Modal from "../../modal";
+import Modal from "../../Modal";
 import LoadingButton from "../../loading-button";
 import API from "../../../api";
 import { useAppContext } from "../../../libs/contextLib";

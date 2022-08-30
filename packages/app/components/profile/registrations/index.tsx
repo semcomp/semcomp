@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { toast } from "react-toastify";
 
-import Modal from "../../modal";
+import Modal from "../../Modal";
 import LoadingButton from "../../loading-button";
 import API from "../../../api";
 

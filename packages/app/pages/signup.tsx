@@ -5,14 +5,14 @@ import { toast } from "react-toastify";
 
 import API from "../api";
 import Footer from "../components/Footer";
+import Navbar from "../components/navbar";
 import Stepper from "../components/stepper/Stepper";
-import Step0 from "../components/signup/step-0";
-import Step1 from "../components/signup/step-1";
+import Step0 from "../components/signup/Step0";
+import Step1 from "../components/signup/Step1";
+import Card from "../components/Card";
 import Routes from "../routes";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
-import BlockPage from "../libs/BlockPage";
-import Navbar from "../components/navbar";
 
 function SignupPage() {
   const router = useRouter();
@@ -31,9 +31,6 @@ function SignupPage() {
   // This is used to display a spinner on step1's submit button
   const [isSigningUp, setIsSigningUp] = useState(false);
 
-  /**
-   * Function called whenever a step ball is clicked by the user
-   */
   function handleStepClick(newStep) {
     // Don't let the user do anything if it's sending a request.
     if (isSigningUp) return;
@@ -51,8 +48,6 @@ function SignupPage() {
     const { name, email, password } = formValue;
 
     // Some validation
-    // TODO - move validation to a different file. Validation logic should be
-    // separated from form logic
     if (!name) return toast.error("Você deve fornecer um nome!");
     else if (name.length < 3)
       return toast.error("O seu nome deve ter pelo menos três caracteres!");
@@ -63,7 +58,6 @@ function SignupPage() {
     else if (password.length < 8)
       return toast.error("A sua senha deve ter pelo menos 8 caracteres!");
 
-    // Wooho! next step!
     setStep(1);
   }
 
@@ -144,12 +138,12 @@ function SignupPage() {
   ][step];
 
   return (
-    <div className="signup-page-container">
-      <Navbar />
-      <main className="main-container">
-        <div className="card">
-          <h1>Cadastrar</h1>
-          <div className="stepper-container">
+    <div className="flex flex-col justify-between min-h-screen">
+      <Navbar/>
+      <main className="flex flex-col md:flex-row justify-center items-center flex-1">
+        <Card className="flex flex-col items-center p-9 w-full max-w-lg m-3">
+          <h1 className="text-xl">Cadastrar</h1>
+          <div className="w-full max-w-xs">
             <Stepper
               numberOfSteps={2}
               activeStep={step}
@@ -159,44 +153,24 @@ function SignupPage() {
 
           {/* Renders the correct form according to the current step */}
           {stepComponent}
-        </div>
-        <aside>
-          Ficamos muito felizes por se interessar em nosso evento!
-          <br /> <br />A Semcomp é 100% construída e pensada por alunos dos
-          cursos de<strong> Ciências de Computação</strong> e de
-          <strong> Sistemas de Informação</strong> do campus{" "}
-          <strong>São Carlos da Universidade de São Paulo</strong>. Todo ano
-          realizamos um evento presencial cheio de palestras, minicursos,
-          concursos, diversão e muita comida!
-          <br />
-          <br />
-          Por conta da pandemia, a Semcomp ocorreu no formato remoto durante os
-          dois últimos anos, porém agora teremos nosso grande retorno
-          presencial! Esperamos que todos se divirtam bastante! Para mais
-          informações, basta seguir a Semcomp no Instagram{" "}
-          <a
-            className="social-links"
-            href="https://instagram.com/semcomp"
-            rel="noopnener"
-          >
-            (@semcomp)
-          </a>{" "}
-          e no{" "}
-          <a
-            className="social-links"
-            href="https://t.me/semcomp_avisos"
-            rel="noopnener"
-          >
-            Telegram
-          </a>{" "}
-          (https://t.me/semcomp_avisos). <br />
-          <br />
-          Com carinho, Equipe Semcomp!
-        </aside>
+        </Card>
+        <Card className="w-full max-w-lg m-3 p-9">
+          <aside>
+            Ficamos muito felizes por se interessar em nosso evento!
+            <br/>
+            <br/>
+            A Semcomp é 100% construída e pensada por alunos dos cursos de<strong> Ciências de Computação</strong> e de<strong> Sistemas de Informação</strong> do campus <strong>São Carlos da Universidade de São Paulo</strong>. Todo ano realizamos um evento presencial cheio de palestras, minicursos, concursos, diversão e muita comida!
+            <br/>
+            <br/>
+            Por conta da pandemia, a Semcomp ocorreu no formato remoto durante os dois últimos anos, porém agora teremos nosso grande retorno presencial! Esperamos que todos se divirtam bastante! Para mais informações, basta seguir a Semcomp no Instagram <a className="social-links" href="https://instagram.com/semcomp" rel="noopnener">(@semcomp)</a> e no <a className="social-links" href="https://t.me/semcomp_avisos" rel="noopnener" >Telegram</a> (https://t.me/semcomp_avisos). <br/>
+            <br/>
+            Com carinho, Equipe Semcomp!
+          </aside>
+        </Card>
       </main>
-      <Footer />
+      <Footer/>
     </div>
   );
 }
 
-export default BlockPage(RequireNoAuth(SignupPage));
+export default RequireNoAuth(SignupPage);

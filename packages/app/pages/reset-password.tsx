@@ -9,6 +9,7 @@ import Stepper from "../components/stepper/Stepper";
 import Step0 from "../components/reset-password/Step-0";
 import Step1 from "../components/reset-password/Step-1";
 import Step2 from "../components/reset-password/Step-2";
+import Card from "../components/Card";
 import { useAppContext } from "../libs/contextLib";
 
 function ResetPassword() {
@@ -128,19 +129,21 @@ function ResetPassword() {
     <div className="flex flex-col justify-between min-h-screen">
       <NavBar />
       <main className="flex justify-center items-center flex-1">
-        <div className="flex flex-col items-center shadow p-9 w-full max-w-lg">
-          <h1 className="text-xl">Recuperar senha</h1>
-          <div className="w-full max-w-xs">
-            <Stepper
-              numberOfSteps={3}
-              activeStep={step}
-              onStepClick={handleStepClick}
-            />
-          </div>
+        <Card>
+          <div className="flex flex-col items-center p-9 w-full max-w-lg">
+            <h1 className="text-xl">Recuperar senha</h1>
+            <div className="w-full max-w-xs">
+              <Stepper
+                numberOfSteps={3}
+                activeStep={step}
+                onStepClick={handleStepClick}
+              />
+            </div>
 
-          {/* Renders the correct form according to the current step */}
-          {stepComponent}
-        </div>
+            {/* Renders the correct form according to the current step */}
+            {stepComponent}
+          </div>
+        </Card>
       </main>
       <Footer />
     </div>

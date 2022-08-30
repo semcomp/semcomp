@@ -1,5 +1,6 @@
-import { useRef } from "react";
+import { useState } from "react";
 
+import Input, { InputType } from "../Input";
 import LoadingButton from "../loading-button";
 
 function Step1(
@@ -11,18 +12,19 @@ function Step1(
     isResetingPassword: boolean,
   }
 ) {
-  // These refs will be used later to gather the input's values.
-  const codeRef: any = useRef();
-  const newPasswordRef: any = useRef();
+  const [code, setCode] = useState(formValue.code as string);
+  function handleCodeChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value;
+    setCode(value);
+    updateFormValue({ code: value });
+  };
 
-  function handleFormUpdate() {
-    // Get the input's values from their refs.
-    const code = codeRef.current.value;
-    const newPassword = newPasswordRef.current.value;
-
-    // Updates the `formValue` prop with the newest values given by the user.
-    updateFormValue({ code, newPassword });
-  }
+  const [newPassword, setNewPassword] = useState(formValue.newPassword as string);
+  function handleNewPasswordChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value;
+    setNewPassword(value);
+    updateFormValue({ newPassword: value });
+  };
 
   function handleSubmit(event) {
     event.preventDefault(); // Stops the page from reloading
@@ -38,26 +40,20 @@ function Step1(
         Enviamos para o seu e-mail um código de verificação. Por favor, digite o
         código aqui abaixo, e inclua uma nova senha para a sua conta.
       </p>
-      <label>
-        Código recebido por e-mail
-        <input
-          type="text"
-          ref={codeRef}
-          onChange={handleFormUpdate}
-          defaultValue={formValue.code}
-          className="shadow h-8 px-2 py-3 my-3"
-        />
-      </label>
-      <label>
-        Nova senha
-        <input
-          type="password"
-          ref={newPasswordRef}
-          onChange={handleFormUpdate}
-          defaultValue={formValue.newPassword}
-          className="shadow h-8 px-2 py-3 my-3"
-        />
-      </label>
+      <Input
+        className="my-3"
+        label="Código recebido por e-mail"
+        value={code}
+        onChange={handleCodeChange}
+        type={InputType.Text}
+      />
+      <Input
+        className="my-3"
+        label="Nova senha"
+        value={newPassword}
+        onChange={handleNewPasswordChange}
+        type={InputType.Password}
+      />
       <LoadingButton
         type="submit"
         className="bg-primary text-white font-bold w-full py-3 shadow"
