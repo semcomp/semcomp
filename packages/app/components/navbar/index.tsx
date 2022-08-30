@@ -19,7 +19,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="navbar-content">
+    <nav className="navbar-content bg-primary">
       <NavLink href={Routes.home}>
         <img alt="Semcomp logo" src={SemcompLogo.src} />
       </NavLink>

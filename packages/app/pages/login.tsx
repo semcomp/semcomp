@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
-import { IconButton, Input, InputAdornment, TextField } from "@mui/material";
+import { IconButton, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { toast } from "react-toastify";
 
@@ -10,22 +10,30 @@ import LoadingButton from "../components/loading-button";
 import Footer from "../components/Footer";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
-import BlockPage from "../libs/BlockPage";
 import Navbar from "../components/navbar";
+import Card from "../components/Card";
+import Input, { InputType } from "../components/Input";
 
 function Login() {
+  const [email, setEmail] = useState("");
+  function handleEmailChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value;
+    setEmail(value);
+  };
+  const [password, setPassword] = useState("");
+  function handlePasswordChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value;
+    setPassword(value);
+  };
+  const [showPassword, setShowPassword] = useState(false);
+
   // This state is used to indicate to the user when the login is happening though a Spinner.
   // See the `LoadingButton` component below in the return statement.
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const { setUser } = useAppContext();
 
   async function handleSubmit(event) {
     event.preventDefault();
-
-    // Get the value of both inputs
-    const email = event.target.email.value.trim().toLowerCase();
-    const password = event.target.password.value;
 
     // Validation
     if (!email) return toast.error("Você deve fornecer um e-mail");
@@ -46,70 +54,76 @@ function Login() {
   }
 
   return (
-    <div className="login-page-container">
+    <div className="flex flex-col justify-between min-h-screen">
       <Navbar />
-      <main className="main-container">
-        <form onSubmit={handleSubmit}>
-          <h1>Entrar</h1>
-          <label>
-            <p>E-mail</p>
-            <TextField variant="standard" fullWidth type="email" name="email" />
-          </label>
-          <label>
-            <p>Senha</p>
+      <main className="flex flex-col md:flex-row justify-center items-center flex-1">
+        <Card className="flex flex-col items-center p-9 w-full max-w-lg m-3">
+          <h1 className="text-xl">Entrar</h1>
+          <form className="w-full" onSubmit={handleSubmit}>
             <Input
-              name="password"
-              fullWidth
-              type={showPassword ? "text" : "password"}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              }
+              className="my-3"
+              label="E-mail"
+              value={email}
+              onChange={handleEmailChange}
+              type={InputType.Text}
             />
-          </label>
-          <LoadingButton
-            className="form-button login"
-            isLoading={isLoggingIn}
-            type="submit"
-          >
-            Entrar
-          </LoadingButton>
-          <Link href="/reset-password">
-            <span className="form-button forgot-password">
-              Esqueci minha senha
-            </span>
-          </Link>
-          <p>
-            Não tem conta? <Link href="/signup">Crie uma agora!</Link>
-          </p>
-        </form>
-        <aside>
-          Obrigado por se interessar no nosso evento! <br /> <br />A Semcomp é
-          100% construída e pensada por alunos da{" "}
-          <strong>Universidade de São Paulo, do campus São Carlos</strong>, dos
-          cursos de{" "}
-          <strong>Sistemas de informação e Ciências da Computação</strong>. Ela
-          ocorre todo ano no
-          <strong>
-            {" "}
-            ICMC - Instituto de Ciências Matemáticas e Computação
-          </strong>
-          , um evento presencial cheio de palestras, minicursos, aprendizado e
-          muita comida.
-          <br />
-          <br />
-          Esperamos que todos vocês gostem e aguardem para mais informações.{" "}
-          <br />
-          <br />
-          Com carinho, Equipe Semcomp!
-        </aside>
+            <Input
+              className="my-3"
+              label="Senha"
+              value={password}
+              onChange={handlePasswordChange}
+              type={showPassword ? InputType.Text : InputType.Password}
+              end={
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  }
+            />
+            <LoadingButton
+              className="bg-primary text-white font-bold w-full py-3 shadow"
+              isLoading={isLoggingIn}
+              type="submit"
+            >
+              Entrar
+            </LoadingButton>
+            <Link href="/reset-password">
+              <div className="bg-white text-black text-center font-bold w-full py-3 my-3 shadow">
+                Esqueci minha senha
+              </div>
+            </Link>
+            <p>
+              Não tem conta? <Link href="/signup">Crie uma agora!</Link>
+            </p>
+          </form>
+        </Card>
+        <Card className="w-full max-w-lg m-3 p-9">
+          <aside>
+            Obrigado por se interessar no nosso evento! <br /> <br />A Semcomp é
+            100% construída e pensada por alunos da{" "}
+            <strong>Universidade de São Paulo, do campus São Carlos</strong>, dos
+            cursos de{" "}
+            <strong>Sistemas de informação e Ciências da Computação</strong>. Ela
+            ocorre todo ano no
+            <strong>
+              {" "}
+              ICMC - Instituto de Ciências Matemáticas e Computação
+            </strong>
+            , um evento presencial cheio de palestras, minicursos, aprendizado e
+            muita comida.
+            <br />
+            <br />
+            Esperamos que todos vocês gostem e aguardem para mais informações.{" "}
+            <br />
+            <br />
+            Com carinho, Equipe Semcomp!
+          </aside>
+        </Card>
       </main>
       <Footer />
     </div>
   );
 }
 
-export default BlockPage(RequireNoAuth(Login));
+export default RequireNoAuth(Login);
