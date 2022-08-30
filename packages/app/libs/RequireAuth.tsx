@@ -14,7 +14,9 @@ const RequireAuth = (WrappedComponent) => {
     const router = useRouter();
     if (!user) {
       toast.error("Sua sessão expirou. Por favor, faça login novamente");
-      router.push(Routes.home);
+      if (typeof window !== "undefined") {
+        router.push(Routes.home);
+      }
       return null;
     }
     return <WrappedComponent {...props} />;
