@@ -6,9 +6,9 @@ import API from "../api";
 import Footer from "../components/Footer";
 import NavBar from "../components/navbar";
 import Stepper from "../components/stepper/Stepper";
-import Step0 from "../components/reset-password/Step-0";
-import Step1 from "../components/reset-password/Step-1";
-import Step2 from "../components/reset-password/Step-2";
+import Step0 from "../components/reset-password/Step0";
+import Step1 from "../components/reset-password/Step1";
+import Step2 from "../components/reset-password/Step2";
 import Card from "../components/Card";
 import { useAppContext } from "../libs/contextLib";
 
