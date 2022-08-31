@@ -26,7 +26,16 @@ function SignupPage() {
   // should update the whole state by calling the `setFormValue` function with
   // the input's new value. Therefore, the `formValue` variable will always contain
   // all values given by all steps.
-  const [formValue, setFormValue] = useState({} as any);
+  const [formValue, setFormValue] = useState({
+    name: "",
+    email: "",
+    password: "",
+    telegram: "",
+    isStudent: false,
+    course: "",
+    disabilities: [],
+    permission: false
+  });
 
   // This is used to display a spinner on step1's submit button
   const [isSigningUp, setIsSigningUp] = useState(false);
@@ -65,24 +74,16 @@ function SignupPage() {
     // Don't let the user do anything if it's sending a request.
     if (isSigningUp) return;
 
-    const { telegram, course, discord, isStudent } = formValue;
+    const { telegram, course, isStudent } = formValue;
 
     // Some validation
     // TODO - move validation to a different file. Validation logic should be
     // separated from form logic
     if (isStudent && !course)
       return toast.error("Você deve fornecer um curso se for estudante!");
-    // A Discord tag always appears as username#discriminator, where a discriminator has 4 digits.
-    if (
-      discord &&
-      (discord.indexOf("#") === -1 ||
-        discord.substr(discord.indexOf("#") + 1).length !== 4 ||
-        isNaN(discord.substr(discord.indexOf("#") + 1)))
-    )
-      return toast.error("Você deve fornecer uma tag do Discord válida!");
 
     // Extract values from the formValue state. They should've been set in the steps components.
-    const { name, email, password, canShareData, disabilities } = formValue;
+    const { name, email, password, disabilities, permission } = formValue;
 
     try {
       // Show spinner
@@ -92,10 +93,9 @@ function SignupPage() {
         name,
         email,
         password,
-        permission: canShareData,
+        permission,
         telegram,
         course,
-        discord,
         disabilities,
         isStudent,
       };

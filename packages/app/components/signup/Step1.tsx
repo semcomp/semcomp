@@ -33,31 +33,40 @@ enum Disabilities {
 function Step1(
   { formValue, updateFormValue, onSubmit, isSigningUp }:
   {
-    formValue: any,
+    formValue: {
+      name: string,
+      email: string,
+      password: string,
+      telegram: string,
+      isStudent: boolean,
+      course: string,
+      disabilities: string[],
+      permission: boolean
+    },
     updateFormValue: Function,
     onSubmit: Function,
     isSigningUp: boolean,
   }
 ) {
-  const [telegram, setTelegram] = useState(formValue.telegram as string);
+  const [telegram, setTelegram] = useState(formValue.telegram);
   function handleTelegramChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     setTelegram(value);
     updateFormValue({ telegram: value });
   };
-  const [isStudent, setIsStudent] = useState(formValue.isStudent as boolean);
+  const [isStudent, setIsStudent] = useState(formValue.isStudent);
   function handleIsStudentChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.checked;
     setIsStudent(value);
     updateFormValue({ isStudent: value });
   };
-  const [course, setCourse] = useState(formValue.course as string);
+  const [course, setCourse] = useState(formValue.course);
   function handleCourseChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     setCourse(value);
     updateFormValue({ course: value });
   };
-  const [disabilities, setDisabilities] = useState([]);
+  const [disabilities, setDisabilities] = useState(formValue.disabilities);
   function handleDisabilitiesChange(event: React.ChangeEvent<HTMLInputElement>, disability: Disabilities) {
     const value = event.target.checked;
 
@@ -71,17 +80,16 @@ function Step1(
     setDisabilities(updatedDisabilities);
     updateFormValue({ disabilities: updatedDisabilities });
   };
-  const [canShare, setCanShare] = useState(formValue.canShare as boolean);
-  function handleCanShareChange(event: React.ChangeEvent<HTMLInputElement>) {
+  const [permission, setPermission] = useState(formValue.permission);
+  function handlePermissionChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.checked;
-    setCanShare(value);
-    updateFormValue({ canShare: value });
+    setPermission(value);
+    updateFormValue({ permission: value });
   };
   const [termsOfUse, setTermsOfUse] = useState(false);
   function handleTermsOfUseChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.checked;
     setTermsOfUse(value);
-    updateFormValue({ canShare: value });
   };
   const [isPrivacyPolicyModalOpen, setIsPrivacyPolicyModalOpen] =
     useState(false);
@@ -169,7 +177,7 @@ function Step1(
       <Input
         className="my-3"
         label="Você autoriza a Semcomp a divulgar seus dados para seus parceiros, como empresas patrocinadoras?"
-        onChange={handleCanShareChange}
+        onChange={handlePermissionChange}
         type={InputType.Checkbox}
       />
       <Input
@@ -185,7 +193,8 @@ function Step1(
       />
       <LoadingButton
         type="submit"
-        className="bg-primary text-white font-bold w-full py-3 shadow"
+        className="bg-primary disabled:bg-black disabled:opacity-50 transition-all text-white font-bold w-full py-3 shadow"
+        disabled={!termsOfUse}
         // Show a cool spinner if a request is already being made
         isLoading={isSigningUp}
       >
