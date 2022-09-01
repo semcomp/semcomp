@@ -24,7 +24,7 @@ import EventTypes from "../../../libs/constants/event-types-enum";
 import AdditionalValuesAccordion from "./additional-values-accordion/AdditionalInfoAccordion";
 import ContestRegistration, { ContestRegistrationInfo } from "./additional-values-accordion/ContestRegistration";
 import NickRegistration, { NicksRegistrationInfo } from "./additional-values-accordion/NicksRegistration";
-import { TeamRegistrationInfo } from "./additional-values-accordion/TeamRegistration";
+import TeamRegistration, { TeamRegistrationInfo } from "./additional-values-accordion/TeamRegistration";
 
 const zeroPad = (num, places) => String(num).padStart(places, "0");
 
@@ -184,6 +184,20 @@ function Options({ item, fetchEvents }) {
     setFormValue({ ...formValue, ...newValue });
   }
 
+  function getAdditionalInfoComponent(eventType: EventTypes) {
+    if (eventType === EventTypes.CONTEST) {
+      return ContestRegistration;
+    }
+    if (eventType === EventTypes.GAME_NIGHT) {
+      return NickRegistration;
+    }
+    if (eventType === EventTypes.HACKATHON) {
+      return TeamRegistration;
+    }
+
+    return null;
+  }
+
   return (
     <form onSubmit={handleSubmit}>
       {item.events.map((occasion, index) => (
@@ -266,21 +280,13 @@ function Options({ item, fetchEvents }) {
                       )}
                       <ReactLinkify>{occasion.description}</ReactLinkify>
                     </p>
-                    {occasion.type === "Contest" &&
-                      occasion.needInfoOnSubscription && (
-                        <AdditionalValuesAccordion
-                          additionalInfoComponent={ContestRegistration}
-                          updateFormValue={updateFormValue}
-                          registerTeam={occasion.isInGroup}
-                        />
-                      )}
-                    {occasion.type === "Game Night" && (
-                      <AdditionalValuesAccordion
-                        additionalInfoComponent={NickRegistration}
+                    {
+                      occasion.needInfoOnSubscription && <AdditionalValuesAccordion
+                        additionalInfoComponent={getAdditionalInfoComponent(occasion.type)}
                         updateFormValue={updateFormValue}
                         registerTeam={occasion.isInGroup}
                       />
-                    )}
+                    }
                   </div>
                 </RadioGroup>
               </FormControl>
