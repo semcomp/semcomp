@@ -44,6 +44,7 @@ function Login() {
     try {
       setIsLoggingIn(true); // Activates Spinner
       const { data } = await API.login(email, password);
+      localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
     } catch (e) {
       // `catch` won't do anything because the API should handle network-related errors.
