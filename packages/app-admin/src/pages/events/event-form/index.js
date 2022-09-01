@@ -120,6 +120,7 @@ function EventForm({handleSubmit, onCancel, isLoading, buttonLabel, initialData 
         <MenuItem value='Roda'>Roda</MenuItem>
         <MenuItem value='Feira'>Feira</MenuItem>
         <MenuItem value='Game Night'>Game Night</MenuItem>
+        <MenuItem value='Hackathon'>Hackathon</MenuItem>
         <MenuItem value='Concurso'>Concurso</MenuItem>
         <MenuItem value='Contest'>Contest</MenuItem>
         <MenuItem value='Coffee'>Coffee</MenuItem>
