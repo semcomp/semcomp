@@ -292,7 +292,7 @@ class EventService {
 
     const subscription = await subscriptionService.findOne({ userId, eventId });
 
-    if (event.type !== "Contest" && subscription) {
+    if (subscription) {
       throw new HttpError(400, ["O usuário já esta inscrito em um evento nesse horário!"]);
     }
 

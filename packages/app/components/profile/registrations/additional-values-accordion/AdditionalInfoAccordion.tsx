@@ -6,12 +6,12 @@ import {
   Typography,
 } from "@mui/material";
 
-function AdditionalValuesAccordion({
-  additionalValuesComponent: AdditionalValues,
+function AdditionalInfoAccordion({
+  additionalInfoComponent: AdditionalInfoComponent,
   ...args
 }) {
   return (
-    <Accordion className="contest-registration-accordion">
+    <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMore />}
         aria-controls="panel1a-content"
@@ -22,12 +22,10 @@ function AdditionalValuesAccordion({
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <div className="content">
-          <AdditionalValues {...args} />
-        </div>
+        <AdditionalInfoComponent {...args} />
       </AccordionDetails>
     </Accordion>
   );
 }
 
-export default AdditionalValuesAccordion;
+export default AdditionalInfoAccordion;
