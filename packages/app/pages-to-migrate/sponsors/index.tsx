@@ -1,4 +1,4 @@
-import Header from "../../components/header";
+import Navbar from "../../components/navbar";
 import Footer from "../../components/Footer";
 import SponsorCard from "./sponsor-card";
 
@@ -44,7 +44,7 @@ const SuportersInfo = [
 const SponsorsPage = () => {
   return (
     <div className="sponsors-page">
-      <Header />
+      <Navbar />
 
       {/* This div is here to allow for the aside to be on the right side of the page */}
       <div className="content-container">

@@ -15,7 +15,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
       <div className="coffeepayment-card">
         <h1>Pagamento por PIX do Coffee da Semcomp Beta!</h1>
         <div className="stepper-container">
-          <Stepper numberOfSteps={2} activeStep={coffeeStep} onStepClick={false} />
+          <Stepper numberOfSteps={2} activeStep={coffeeStep} onStepClick={null} />
         </div>
         {stepComponent}
         <div className="buttons-container">

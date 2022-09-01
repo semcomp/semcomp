@@ -9,7 +9,7 @@ import RiddleLobby from "./lobby";
 import RiddleGame from "./game";
 import RiddleEnd from "./end";
 
-import Header from "../../components/header";
+import Navbar from "../../components/navbar";
 import Footer from "../../components/Footer";
 import { baseURL } from "../../constants/api-url";
 import {
@@ -155,7 +155,7 @@ function Riddle() {
 
   return (
     <>
-      <Header />
+      <Navbar />
       <SocketProvider>
         <TeamProvider>
           <div className="Riddle-page__root">
