@@ -170,6 +170,7 @@ class EventService {
     const desiredEventTypesEnum = {
       MINICURSO: EventTypes.MINICURSO,
       GAMENIGHT: EventTypes.GAME_NIGHT,
+      HACKATHON: EventTypes.HACKATHON,
       CONCURSO: EventTypes.CONCURSO,
       CONTEST: EventTypes.CONTEST,
       RODA: EventTypes.RODA,
