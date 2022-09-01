@@ -89,6 +89,7 @@ function ResetPassword() {
       setIsResetingPassword(true); // Sets the state to show the spinner
       const { data } = await API.resetPassword(email, code, newPassword);
       setUser(data);
+      localStorage.setItem("user", JSON.stringify(data));
       setStep(2); // If successful, go to next step
     } catch (e) {
       // Note that any networking errors should have benn handled by the API object,

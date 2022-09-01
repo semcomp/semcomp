@@ -101,6 +101,7 @@ function SignupPage() {
       };
 
       const { data } = await API.signup(userInfo);
+      localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
       router.push(Routes.home);
     } catch (e) {
