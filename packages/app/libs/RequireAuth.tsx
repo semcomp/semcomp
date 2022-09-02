@@ -12,14 +12,14 @@ const RequireAuth = (WrappedComponent) => {
     const { user } = useAppContext();
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const router = useRouter();
-    if (!user) {
-      if (typeof window !== "undefined") {
+    if (typeof window !== "undefined") {
+      if (!user) {
         toast.error("Sua sessão expirou. Por favor, faça login novamente");
         router.push(Routes.home);
       }
-      return null;
+      return <WrappedComponent {...props} />;
     }
-    return <WrappedComponent {...props} />;
+    return null;
   };
 };
 
