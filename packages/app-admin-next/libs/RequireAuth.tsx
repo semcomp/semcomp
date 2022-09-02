@@ -20,7 +20,6 @@ const RequireAuth = (WrappedComponent) => {
       }
       return <WrappedComponent {...props} />;
     }
-    // If we are on server, return null
     return null;
   };
 };
