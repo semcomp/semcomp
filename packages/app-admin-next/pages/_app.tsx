@@ -26,9 +26,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   });
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
+    const user = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
-    if (!user || !token) {
+    if (user && token) {
       setUser(user);
       setToken(token);
     }

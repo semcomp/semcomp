@@ -25,14 +25,12 @@ function Modal({ children, onRequestClose }) {
   return (
     <FocusTrap>
       <div
-        className="modal-component"
+        className="flex items-center justify-center fixed w-full h-full left-0 top-0 bg-black/25 z-50"
         onClick={handleRootClick}
-        tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        // aria-hidden="true"
       >
-        <div className="card" onClick={handleCardClick}>
+        <div className="flex flex-col items-center w-full max-w-lg bg-white" onClick={handleCardClick}>
           {children}
         </div>
       </div>

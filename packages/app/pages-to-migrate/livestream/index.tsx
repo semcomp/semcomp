@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import Footer from "../../components/Footer";
-import Header from "../../components/header";
+import Navbar from "../../components/navbar";
 import API from "../../api";
 
 import { toast } from "react-toastify";
@@ -126,7 +126,7 @@ function Livestream() {
 
   return (
     <div className="livestream-page-container">
-      <Header />
+      <Navbar />
       <div className="livestream-page-content-container">
         {loading || event ? (
           <>

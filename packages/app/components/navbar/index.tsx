@@ -39,13 +39,13 @@ const Navbar = () => {
         </Navlink> */}
         <Navlink href={Routes.home}>Início</Navlink>
         <Navlink href={Routes.home + "#about"}>Sobre nós</Navlink>
-        <Navlink href={Routes.sponsors}>Patrocinadores</Navlink>
+        {/* <Navlink href={Routes.sponsors}>Patrocinadores</Navlink> */}
         <Navlink href={Routes.home + "#schedule"}>Cronograma</Navlink>
         {isUserLoggedIn ? (
           <>
             {/* <Navlink href={Routes.riddle}>Riddle</Navlink> */}
-            <Navlink href={Routes.riddlethon}>Riddlethon</Navlink>
-            <Navlink href={Routes.hardToClick}>Duro de Clicar</Navlink>
+            {/* <Navlink href={Routes.riddlethon}>Riddlethon</Navlink> */}
+            {/* <Navlink href={Routes.hardToClick}>Duro de Clicar</Navlink> */}
             <Navlink href={Routes.profile}>Perfil</Navlink>
             <Navlink onClick={logUserOut} href={Routes.home}>
               Sair

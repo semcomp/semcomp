@@ -5,7 +5,7 @@ import { Divider, List, ListItem, ListItemText } from "@mui/material";
 import Chip from "@mui/material/Chip";
 
 import API from "../api";
-import Header from "../components/header";
+import Header from "../components/navbar/index";
 import Footer from "../components/Footer";
 import EventsCalendar from "../components/events-calendar/EventsCalendar";
 import EditProfile from "../components/profile/edit-profile";

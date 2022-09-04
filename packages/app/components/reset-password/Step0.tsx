@@ -1,6 +1,9 @@
-import { useRef } from "react";
+import { useState } from "react";
+
+import { TextField } from "@mui/material";
 
 import LoadingButton from "../loading-button";
+import Input, { InputType } from "../Input";
 
 function Step0(
   { formValue, updateFormValue, onSubmit, isSendingCode }:
@@ -11,16 +14,12 @@ function Step0(
     isSendingCode: boolean,
   }
 ) {
-  // This ref will be used later to gather the input's values.
-  const emailRef: any = useRef();
-
-  function handleFormUpdate() {
-    // Get the input's values from the ref.
-    const email = emailRef.current.value;
-
-    // Updates the `formValue` prop with the newest values given by the user.
-    updateFormValue({ email });
-  }
+  const [email, setEmail] = useState(formValue.email as string);
+  function handleEmailChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value;
+    setEmail(value);
+    updateFormValue({ email: value });
+  };
 
   function handleSubmit(event) {
     event.preventDefault(); // Stops the page from reloading
@@ -31,16 +30,13 @@ function Step0(
 
   return (
     <form className="w-full" onSubmit={handleSubmit}>
-      <label>
-        E-mail da sua conta
-        <input
-          onChange={handleFormUpdate}
-          ref={emailRef}
-          type="text"
-          defaultValue={formValue.email}
-          className="shadow h-8 px-2 py-3 my-3"
-        />
-      </label>
+      <Input
+        className="my-3"
+        label="E-mail da sua conta"
+        value={email}
+        onChange={handleEmailChange}
+        type={InputType.Text}
+      />
       <LoadingButton
         type="submit"
         className="bg-primary text-white font-bold w-full py-3 shadow"

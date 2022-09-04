@@ -1,16 +1,18 @@
-import Modal from "../../../modal";
+import Modal from "../Modal";
 
 function PrivacyPolicyModal({ onRequestClose }) {
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div className="title">
+      <div
+        className="w-full bg-tertiary text-white text-center text-xl font-bold p-6"
+      >
         Política de Privacidade - Semcomp USP
         <br />
-        <span style={{ fontSize: "0.8rem" }}>
+        <span className="text-lg">
           <em>Esta política é válida a partir de Agosto de 2021.</em>
         </span>
       </div>
-      <div className="content">
+      <div className="max-h-96 overflow-y-scroll p-6">
         <p>
           A Semcomp USP leva a sua privacidade a sério e zela pela segurança e
           proteção de dados de todos os seus parceiros e usuários do site
@@ -71,7 +73,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
           <strong>Seção 1 - Definições</strong>
         </h1>
         <p>Para os fins desta Política de Privacidade:</p>
-        <ol className="document-ordered-list">
+        <ol className="list-decimal list-inside">
           <li>
             &quot;<strong>Dados Pessoais</strong>&quot;: significa qualquer
             informação que, direta ou indiretamente, identifique ou possa
@@ -117,7 +119,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
           site, personalizando e melhorando sua experiência. Exemplos de como
           usamos os dados incluem:
         </p>
-        <ol className="document-ordered-list">
+        <ol className="list-decimal list-inside">
           <li>Gerar certificados de participação;</li>
 
           <li>Enviar informações relevantes acerca do evento;</li>
@@ -179,7 +181,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
           eventos específicos e/ou receber certificado de participação.
         </p>
         <p>No contato, nós podemos coletar:</p>
-        <ol className="document-ordered-list">
+        <ol className="list-decimal list-inside">
           <li>
             <strong>Dados de contato:</strong> nome, sobrenome, endereço de
             e-mail, usuário do Telegram, usuário do Discord, curso e faculdade;
@@ -197,7 +199,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
           </li>
         </ol>
         <p>Na navegação geral no site, nós poderemos coletar:</p>
-        <ol className="document-ordered-list">
+        <ol className="list-decimal list-inside">
           <li>
             <strong>Dados de navegação no site:</strong> informações sobre suas
             visitas e atividades, incluindo o conteúdo (e quaisquer anúncios)
@@ -224,7 +226,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
           </strong>
         </h1>
         <p>Nós poderemos compartilhar seus Dados Pessoais:</p>
-        <ol className="document-ordered-list">
+        <ol className="list-decimal list-inside">
           <li>
             Com a(s) empresa(s) parceira(s) caso você selecione ou opte por
             enviar os seus dados. Essas empresas podem estar localizadas no
@@ -261,7 +263,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
           de serviços terceirizados, mediante seu consentimento, podemos coletar
           seus Dados Pessoais de diversas formas, incluindo, entre outros:
         </p>
-        <ol className="document-ordered-list">
+        <ol className="list-decimal list-inside">
           <li>
             <strong>Por meio do navegador ou do dispositivo:</strong> algumas
             informações são coletadas pela maior parte dos navegadores ou
@@ -324,7 +326,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
           Os cookies utilizados no nosso site estão de acordo com os requisitos
           legais e são enquadrados nas seguintes categorias:
         </p>
-        <ol className="document-ordered-list">
+        <ol className="list-decimal list-inside">
           <li>
             <strong>Estritamente necessários:</strong> estes cookies permitem
             que você navegue pelo site e desfrute de recursos essenciais com
@@ -466,7 +468,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
           .
         </p>
       </div>
-      <button className="cancel" type="button" onClick={onRequestClose}>
+      <button className="bg-orange text-white py-3 px-6 m-4" type="button" onClick={onRequestClose}>
         Fechar
       </button>
     </Modal>

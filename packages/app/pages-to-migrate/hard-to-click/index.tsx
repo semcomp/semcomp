@@ -6,7 +6,7 @@ import IOSocket from "socket.io-client";
 
 // import ChatApp from './chat';
 
-import Header from "../../components/header";
+import Navbar from "../../components/navbar";
 import Footer from "../../components/Footer";
 import { baseURL } from "../../constants/api-url";
 import { EVENTS_PREFIX, END_DATE } from "../../constants/hard-to-click";
@@ -145,7 +145,7 @@ function HardToClick() {
 
   return (
     <>
-      <Header />
+      <Navbar />
       <SocketProvider>
         <TeamProvider>
           <div className="HardToClick-page__root">

@@ -10,15 +10,11 @@ const RequireNoAuth = (WrappedComponent) => {
     const { user } = useAppContext();
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const router = useRouter();
-    if (typeof window !== "undefined") {
-      if (user) {
-        router.push(Routes.profile);
-        return null;
-      }
-      return <WrappedComponent {...props} />;
+    if (user) {
+      router.push(Routes.home);
+      return null;
     }
-    // If we are on server, return null
-    return null;
+    return <WrappedComponent {...props} />;
   };
 };
 

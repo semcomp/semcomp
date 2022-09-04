@@ -6,9 +6,10 @@ import API from "../api";
 import Footer from "../components/Footer";
 import NavBar from "../components/navbar";
 import Stepper from "../components/stepper/Stepper";
-import Step0 from "../components/reset-password/Step-0";
-import Step1 from "../components/reset-password/Step-1";
-import Step2 from "../components/reset-password/Step-2";
+import Step0 from "../components/reset-password/Step0";
+import Step1 from "../components/reset-password/Step1";
+import Step2 from "../components/reset-password/Step2";
+import Card from "../components/Card";
 import { useAppContext } from "../libs/contextLib";
 
 function ResetPassword() {
@@ -88,6 +89,7 @@ function ResetPassword() {
       setIsResetingPassword(true); // Sets the state to show the spinner
       const { data } = await API.resetPassword(email, code, newPassword);
       setUser(data);
+      localStorage.setItem("user", JSON.stringify(data));
       setStep(2); // If successful, go to next step
     } catch (e) {
       // Note that any networking errors should have benn handled by the API object,
@@ -128,19 +130,21 @@ function ResetPassword() {
     <div className="flex flex-col justify-between min-h-screen">
       <NavBar />
       <main className="flex justify-center items-center flex-1">
-        <div className="flex flex-col items-center shadow p-9 w-full max-w-lg">
-          <h1 className="text-xl">Recuperar senha</h1>
-          <div className="w-full max-w-xs">
-            <Stepper
-              numberOfSteps={3}
-              activeStep={step}
-              onStepClick={handleStepClick}
-            />
-          </div>
+        <Card>
+          <div className="flex flex-col items-center p-9 w-full max-w-lg">
+            <h1 className="text-xl">Recuperar senha</h1>
+            <div className="w-full max-w-xs">
+              <Stepper
+                numberOfSteps={3}
+                activeStep={step}
+                onStepClick={handleStepClick}
+              />
+            </div>
 
-          {/* Renders the correct form according to the current step */}
-          {stepComponent}
-        </div>
+            {/* Renders the correct form according to the current step */}
+            {stepComponent}
+          </div>
+        </Card>
       </main>
       <Footer />
     </div>

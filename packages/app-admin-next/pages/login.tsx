@@ -61,6 +61,7 @@ function Login() {
       // Show spinner
       setIsLoggingIn(true);
       const { data } = await API.login(email, password);
+      localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
     } catch (e) {
       console.error(e);

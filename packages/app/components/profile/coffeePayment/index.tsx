@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import Modal from "../../modal";
+import Modal from "../../Modal";
 import Stepper from "../../stepper/Stepper";
 import CoffeeStep1 from "./step1";
 import CoffeeStep2 from "./step2";
@@ -15,7 +15,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
       <div className="coffeepayment-card">
         <h1>Pagamento por PIX do Coffee da Semcomp Beta!</h1>
         <div className="stepper-container">
-          <Stepper numberOfSteps={2} activeStep={coffeeStep} onStepClick={false} />
+          <Stepper numberOfSteps={2} activeStep={coffeeStep} onStepClick={null} />
         </div>
         {stepComponent}
         <div className="buttons-container">
