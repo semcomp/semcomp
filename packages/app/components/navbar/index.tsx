@@ -19,12 +19,16 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="navbar-content">
+    <nav className="flex justify-between items-center py-4 px-16 w-full bg-primary">
       <NavLink href={Routes.home}>
-        <img alt="Semcomp logo" src={SemcompLogo.src} />
+        <img
+          className="w-20 h-auto object-contain"
+          alt="Semcomp logo"
+          src={SemcompLogo.src}
+        />
       </NavLink>
 
-      <div className="links-container">
+      <div className="flex align-middle">
         {/* <Navlink
           style={{ color: "yellow" }}
           onClick={() =>

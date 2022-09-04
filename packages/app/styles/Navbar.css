@@ -1,22 +1,3 @@
-.navbar-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 4rem;
-  width: 100%;
-}
-
-.navbar-content > .links-container {
-  display: flex;
-  align-items: center;
-}
-
-.navbar-content img {
-  width: 80px;
-  height: auto;
-  object-fit: contain;
-}
-
 /* Small notebook */
 @media screen and (max-width: 768px) {
   .navbar-content {
@@ -25,9 +6,6 @@
     margin-top: 1rem;
     padding-bottom: 1rem;
   }
-  /* .navbar-content img {
-    display: none;
-  } */
   .navbar-content > .links-container {
     flex-wrap: wrap;
     justify-content: center;
