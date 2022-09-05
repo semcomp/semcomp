@@ -1,0 +1,9 @@
+name: deploy-backend
+on: push
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the stack
+        run: cd /var/www/html/semcomp/packages/server && git pull && docker-compose up -d --build
