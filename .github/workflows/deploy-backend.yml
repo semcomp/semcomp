@@ -6,4 +6,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build the stack
-        run: cd /var/www/html/semcomp/packages/server && git pull && docker-compose down && sudo docker-compose build && docker-compose up -d
+        run: cd /var/www/html/semcomp/packages/server && git pull && docker-compose up -d --build

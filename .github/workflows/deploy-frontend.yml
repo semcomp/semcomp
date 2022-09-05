@@ -6,4 +6,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build frontend
-        run: cd /var/www/html/semcomp/packages/app && git pull && docker-compose build && docker-compose up && rm -rf /var/www/html/build && cp /var/www/html/semcomp/packages/app/out /var/www/html/build -r
+        run: cd /var/www/html/semcomp/packages/app && git pull && docker-compose up --build && rm -rf /var/www/html/build && cp /var/www/html/semcomp/packages/app/out /var/www/html/build -r
