@@ -6,15 +6,3 @@ services:
     ports:
       - "8090:8090"
     container_name: server
-  mongodb:
-    image: mongo:5.0.8
-    container_name: mongodb
-    ports:
-      - 27017:27017
-    volumes:
-      - ./mongo-volume:/data/db:ro
-      - ./scripts/init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=admin
-      - MONGO_INITDB_DATABASE=semcomp
