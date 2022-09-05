@@ -30,6 +30,7 @@ const corsConfig = {
     env.FRONTEND_NETLIFY_URL,
     env.FRONTEND_LOCAL_URL,
     env.BACKOFFICE_URL,
+    env.BACKOFFICE_LEGACY_URL,
     env.BACKOFFICE_LOCAL_URL,
   ],
   exposedHeaders: [
