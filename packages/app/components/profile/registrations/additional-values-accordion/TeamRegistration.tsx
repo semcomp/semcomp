@@ -17,7 +17,7 @@ function TeamRegistration({ updateFormValue }) {
   return (<>
     <Input
       className="my-3"
-      label="Nomes dos participantes, todos separados por vírgula"
+      label="Nomes dos participantes, todos separados por vírgula (Todos devem se inscrever)"
       value={names}
       onChange={handleNamesChange}
       type={InputType.Text}

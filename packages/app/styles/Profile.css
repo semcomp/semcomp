@@ -3,7 +3,6 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-blue-main);
 }
 
 .profile-page-container > .main-container {
