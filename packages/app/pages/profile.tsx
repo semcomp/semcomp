@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import {QRCodeSVG} from 'qrcode.react';
+import { QRCodeSVG } from "qrcode.react";
 import { Divider, List, ListItem, ListItemText } from "@mui/material";
 import Chip from "@mui/material/Chip";
 
@@ -111,9 +111,11 @@ function Profile() {
   }[userHouseName];
 
   function toPascalCase(str: string) {
-    return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
-      return word.toUpperCase();
-    }).replace(/\s+/g, '');
+    return str
+      .replace(/(?:^\w|[A-Z]|\b\w)/g, function (word, index) {
+        return word.toUpperCase();
+      })
+      .replace(/\s+/g, "");
   }
 
   function stringify(string) {
@@ -167,7 +169,7 @@ function Profile() {
   });
 
   return (
-    <div className="profile-page-container">
+    <div className="min-h-full w-full flex flex-col">
       {isEditModalOpen && (
         <EditProfile
           onRequestClose={() => {
@@ -208,10 +210,10 @@ function Profile() {
         />
       )}
       <Header />
-      <main className="main-container">
-        <div className="left-side">
-          <div className="user-house-card">
-          <QRCodeSVG value={user && user.id} />
+      <main className="p-8 h-full w-full max-w-5xl flex self-center col-gap-4 min-h-[70vh]">
+        <div className="flex flex-col self-start w-64">
+          <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
+            <QRCodeSVG value={user && user.id} />
             <p className="username">{user.name}</p>
             <p className="course">{user.course}</p>
             {
@@ -225,7 +227,7 @@ function Profile() {
               </button>
             }
           </div>
-          <div className="user-house-card">
+          <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Coffee</h1>
             {/* <p>Pague com PIX o Coffee da Semcomp 25 Beta</p> */}
             {userFetched?.paid ? (
@@ -254,7 +256,7 @@ function Profile() {
               </>
             )}
           </div>
-          {/* <div className="user-house-card">
+          {/* <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Overflow
             </h1>
@@ -273,7 +275,7 @@ function Profile() {
               O que é o Overflow?
             </button>
           </div> */}
-          <div className="user-house-card">
+          <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Eventos
             </h1>
@@ -291,7 +293,7 @@ function Profile() {
                     if (item.isSubscribed === true) {
                       return (
                         <div key={item.name}>
-                          <ListItem >
+                          <ListItem>
                             <ListItemText
                               primary={`${event.type}:  ${item.name}`}
                               secondary={displayDate(e.startDate)}
@@ -299,7 +301,7 @@ function Profile() {
                           </ListItem>
                           <Divider />
                         </div>
-                      )
+                      );
                     }
                   })
                 )
@@ -316,7 +318,7 @@ function Profile() {
               </button>
             }
           </div>
-          {/* <div className="user-house-card">
+          {/* <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Conquistas
             </h1>
