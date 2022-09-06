@@ -100,12 +100,22 @@ export default class PaymentServiceImpl implements PaymentService {
 
     const payment = await this.findOne({ userId });
     if (payment) {
+      if (payment.withSocialBenefit !== withSocialBenefit) {
+        throw new HttpError(400, ["Sua compra foi gerada com outras informações!"]);
+      }
       if (
-        payment.withSocialBenefit !== withSocialBenefit ||
         payment.socialBenefitNumber !== socialBenefitNumber ||
         payment.tShirtSize !== tShirtSize
       ) {
-        throw new HttpError(400, ["Sua compra foi gerada com outras informações!"]);
+        payment.socialBenefitNumber = socialBenefitNumber;
+        if (payment.tShirtSize !== tShirtSize) {
+          payment.tShirtSize = tShirtSize;
+          const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
+          if (paymentsWithThisTShirtSize >= tShirtSizesQuantities[tShirtSize]) {
+            throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
+          }
+        }
+        await this.update(payment);
       }
 
       return payment;
