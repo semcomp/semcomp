@@ -31,8 +31,8 @@ rather place this everywhere in case someone adds a target="_blank" later.
 const Footer = () => {
   return (
     <>
-      <footer className="flex items-center justify-around bg-primary text-white p-16">
-        <section className="text-center">
+      <footer className="items-center justify-around bg-primary text-white p-8 lg:flex">
+        <section className="text-center py-4">
           <p>Entre em contato conosco</p>
           <div>
             <EmailIcon sx={{ mr: 0.5 }} />
@@ -47,12 +47,12 @@ const Footer = () => {
             </a>
           </div>
         </section>
-        <section className="text-center">
+        <section className="text-center py-4">
           <p>© Semcomp 2022. Todos os direitos reservados.</p>
         </section>
-        <section className="text-center">
+        <section className="text-center py-4">
           <p>Nos siga nas redes sociais</p>
-          <div className="flex p-2">
+          <div className="flex justify-center p-2">
             <SocialLinkIcon
               link="https://www.facebook.com/Semcomp/"
               icon={<FacebookIcon />}
