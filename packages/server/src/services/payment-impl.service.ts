@@ -8,24 +8,14 @@ import PaymentIntegrationService from "./payment-integration.service";
 import PaymentService from "./payment.service";
 import TShirtSize from "../lib/constants/t-shirt-size-enum";
 
-// const tShirtSizesQuantities = {
-//   [TShirtSize.PP]: 6,
-//   [TShirtSize.P]: 20,
-//   [TShirtSize.M]: 130,
-//   [TShirtSize.G]: 66,
-//   [TShirtSize.GG]: 14,
-//   [TShirtSize.XGG1]: 6,
-//   [TShirtSize.XGG2]: 8,
-// }
-
 const tShirtSizesQuantities = {
-  [TShirtSize.PP]: 1,
-  [TShirtSize.P]: 0,
-  [TShirtSize.M]: 1,
-  [TShirtSize.G]: 1,
-  [TShirtSize.GG]: 1,
-  [TShirtSize.XGG1]: 1,
-  [TShirtSize.XGG2]: 1,
+  [TShirtSize.PP]: 6,
+  [TShirtSize.P]: 20,
+  [TShirtSize.M]: 130,
+  [TShirtSize.G]: 66,
+  [TShirtSize.GG]: 14,
+  [TShirtSize.XGG1]: 6,
+  [TShirtSize.XGG2]: 8,
 }
 
 export default class PaymentServiceImpl implements PaymentService {
@@ -109,6 +99,13 @@ export default class PaymentServiceImpl implements PaymentService {
     }
 
     const payment = await this.findOne({ userId });
+    if (
+      payment.withSocialBenefit !== withSocialBenefit ||
+      payment.socialBenefitNumber !== socialBenefitNumber ||
+      payment.tShirtSize !== tShirtSize
+    ) {
+      throw new HttpError(400, ["Sua compra foi gerada com outras informações!"]);
+    }
     if (payment) {
       return payment;
     }
@@ -126,8 +123,7 @@ export default class PaymentServiceImpl implements PaymentService {
     };
     const newPayment = await this.create(newPaymentData);
 
-    const price = withSocialBenefit ? 0.1 : 0.2;
-    // const price = withSocialBenefit ? 32.5 : 65.00;
+    const price = withSocialBenefit ? 32.5 : 65.00;
 
     const paymentResponse = await this.paymentIntegrationService.create(
       price,
