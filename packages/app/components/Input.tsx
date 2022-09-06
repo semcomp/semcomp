@@ -52,7 +52,6 @@ function SelectInput({
   return (
     <Select
       fullWidth
-      type="text"
       onChange={onChange}
       value={value}
       variant="standard"
@@ -69,12 +68,15 @@ function SelectInput({
 
 function CheckboxInput({
   onChange,
+  value,
 }: {
   onChange: any,
+  value: boolean
 }) {
   return (
     <Checkbox
       onChange={onChange}
+      checked={value}
     />
   );
 }
@@ -91,21 +93,21 @@ function Input({
 }: {
   label: any,
   onChange: (event: ChangeEvent<HTMLInputElement>) => void,
-  value?: string,
+  value?: string | boolean,
   type: InputType,
   choices?: string[],
   start?: any,
   end?: any,
   className?: string,
 }) {
-  let input = <TextInput onChange={onChange} value={value} type={type} start={start} end={end} />
+  let input = <TextInput onChange={onChange} value={value as string} type={type} start={start} end={end} />
 
   if (type === InputType.Checkbox) {
-    input = <CheckboxInput onChange={onChange} />;
+    input = <CheckboxInput onChange={onChange} value={value as boolean} />;
   }
 
   if (type === InputType.Select) {
-    input = <SelectInput onChange={onChange} value={value} choices={choices} />;
+    input = <SelectInput onChange={onChange} value={value as string} choices={choices} />;
   }
 
   return (

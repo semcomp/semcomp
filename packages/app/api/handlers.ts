@@ -86,7 +86,15 @@ const Handlers = {
     getAchievements: withNoErrorMessage(() => API.get("/achievements")),
   },
   coffee: {
-    createPayment: withNoErrorMessage(() => API.post("/payments")),
+    createPayment: (
+      withSocialBenefit: boolean,
+      socialBenefitNumber: string,
+      tShirtSize: string,
+    ) => API.post("/payments", {
+      withSocialBenefit,
+      socialBenefitNumber,
+      tShirtSize,
+    })
   },
 };
 

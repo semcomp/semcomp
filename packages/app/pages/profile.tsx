@@ -15,7 +15,7 @@ import EventsOverview from "../components/events-overview";
 import HouseScores from "../components/house-scores";
 import AboutOverflow from "../components/profile/about-overflow";
 import AchievementsImages from "../components/profile/achievements_images";
-import CoffeePayment from "../components/profile/coffeePayment";
+import CoffeePayment from "../components/profile/coffeePayment/coffee-modal";
 import RequireAuth from "../libs/RequireAuth";
 import Tardis from "../assets/tardis.jpg";
 import Ocarina from "../assets/ocarina.jpg";
@@ -229,30 +229,30 @@ function Profile() {
           </div>
           <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Coffee</h1>
-            {/* <p>Pague com PIX o Coffee da Semcomp 25 Beta</p> */}
+            <p>Pague com PIX o Coffee + Kit da Semcomp 25</p>
             {userFetched?.paid ? (
               <>
                 <Chip label="Pago" color="warning" />
-                {/* <button
+                <button
                   onClick={() => {
                     setIsCoffeeModalOpen(true);
                     blockBodyScroll();
                   }}
                 >
-                  Ver infos coffee
-                </button> */}
+                  Ver infos pacote
+                </button>
               </>
             ) : (
               <>
-                {/* <button
+                <button
                   onClick={() => {
                     setIsCoffeeModalOpen(true);
                     blockBodyScroll();
                   }}
                 >
-                  Comprar coffee
-                </button> */}
-                <Chip label="Não pago" disabled={true} />
+                  Comprar pacote
+                </button>
+                <Chip className="mt-3" label="Não pago" disabled={true} />
               </>
             )}
           </div>
@@ -281,11 +281,6 @@ function Profile() {
             </h1>
             <List
               className="events-list"
-              // subheader={
-              //   <ListSubheader component="p" id="nested-list-subheader">
-              //     Eventos inscritos
-              //   </ListSubheader>
-              // }
             >
               {events.map((event) =>
                 event.items.map((e) =>

@@ -1,11 +1,16 @@
 import Mongoose from "mongoose";
 
+import TShirtSize from "../lib/constants/t-shirt-size-enum";
+
 type Payment = {
   id?: string;
   paymentIntegrationId?: number;
   userId: string;
   qrCode?: string;
   qrCodeBase64?: string;
+  withSocialBenefit: boolean;
+  socialBenefitNumber: string;
+  tShirtSize: TShirtSize;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -32,6 +37,15 @@ const PaymentSchema = new Mongoose.Schema(
     },
     qrCodeBase64: {
       type: String,
+    },
+    withSocialBenefit: {
+      type: Mongoose.Schema.Types.Boolean,
+    },
+    socialBenefitNumber: {
+      type: String,
+    },
+    tShirtSize: {
+      type: TShirtSize,
     },
     createdAt: {
       type: Number,

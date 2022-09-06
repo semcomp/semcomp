@@ -1,43 +1,32 @@
 import { useEffect, useState } from "react";
 
-import API from "../../../../api";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Button, Input, Skeleton } from "@mui/material";
 import { toast } from "react-toastify";
 
-function CoffeeStep2() {
-  // const [userPaid, setUserPaid] = useState(false);
+import API from "../../../api";
+import { CoffeePaymentData } from "./coffee-step-2";
+
+function CoffeeStep3({data}: {data: CoffeePaymentData}) {
   const [qrCodeBase64, setqrCodeBase64] = useState("");
   const [qrCodeCopyPaste, setqrCodeCopyPaste] = useState("");
 
   useEffect(() => {
     async function getPayment() {
       try {
-        const { data } = await API.coffee.createPayment();
-        setqrCodeBase64(data.qrCodeBase64);
-        setqrCodeCopyPaste(data.qrCode);
-      } catch (e) {
-        console.error(e);
+        const { data: responseData } = await API.coffee.createPayment(
+          data.withSocialBenefit, data.socialBenefitNumber, data.tShirtSize
+        );
+        setqrCodeBase64(responseData.qrCodeBase64);
+        setqrCodeCopyPaste(responseData.qrCode);
+      } catch (error) {
+        toast.error(error?.data?.message[0]);
+        console.error(error);
       }
     }
 
     getPayment();
   }, []);
-
-  // useEffect(() => {
-  //   async function getUserData() {
-  //     try {
-  //       const { data } = await API.auth.me();
-  //       console.log(data);
-  //       setUserPaid(data.paid);
-  //       console.log(userPaid);
-  //     } catch (e) {
-  //       console.error(e);
-  //     }
-  //   }
-
-  //   getUserData();
-  // }, [userPaid]);
 
   function copyToClipboard() {
     navigator.clipboard.writeText(qrCodeCopyPaste);
@@ -58,7 +47,7 @@ function CoffeeStep2() {
             style={{ flexDirection: "column" }}
           >
             <p>Escaneie o QR Code abaixo ou copie e cole o código do PIX</p>
-            <b style={{ marginBottom: "1rem" }}>Valor: R$15,00</b>
+            <b className="py-3">Valor: R${data.withSocialBenefit ? "32.50" : "65.00"}</b>
             <p>
               Depois de realizar o pagamento no seu banco, clique em fechar e
               atualize a página.
@@ -95,4 +84,4 @@ function CoffeeStep2() {
   );
 }
 
-export default CoffeeStep2;
+export default CoffeeStep3;

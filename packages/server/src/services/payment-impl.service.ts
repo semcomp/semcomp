@@ -6,6 +6,27 @@ import IdService from "./id.service";
 import { UserService } from "./user.service";
 import PaymentIntegrationService from "./payment-integration.service";
 import PaymentService from "./payment.service";
+import TShirtSize from "../lib/constants/t-shirt-size-enum";
+
+// const tShirtSizesQuantities = {
+//   [TShirtSize.PP]: 6,
+//   [TShirtSize.P]: 20,
+//   [TShirtSize.M]: 130,
+//   [TShirtSize.G]: 66,
+//   [TShirtSize.GG]: 14,
+//   [TShirtSize.XGG1]: 6,
+//   [TShirtSize.XGG2]: 8,
+// }
+
+const tShirtSizesQuantities = {
+  [TShirtSize.PP]: 1,
+  [TShirtSize.P]: 0,
+  [TShirtSize.M]: 1,
+  [TShirtSize.G]: 1,
+  [TShirtSize.GG]: 1,
+  [TShirtSize.XGG1]: 1,
+  [TShirtSize.XGG2]: 1,
+}
 
 export default class PaymentServiceImpl implements PaymentService {
   private idService: IdService;
@@ -76,7 +97,12 @@ export default class PaymentServiceImpl implements PaymentService {
     return entity && this.mapEntity(entity);
   }
 
-  public async createPayment(userId: string): Promise<Payment> {
+  public async createPayment(
+    userId: string,
+    withSocialBenefit: boolean,
+    socialBenefitNumber: string,
+    tShirtSize: TShirtSize,
+  ): Promise<Payment> {
     const user = await this.userService.findById(userId);
     if (!user) {
       throw new HttpError(400, []);
@@ -87,13 +113,24 @@ export default class PaymentServiceImpl implements PaymentService {
       return payment;
     }
 
+    const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
+    if (paymentsWithThisTShirtSize >= tShirtSizesQuantities[tShirtSize]) {
+      throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
+    }
+
     const newPaymentData: Payment = {
       userId: user.id,
+      withSocialBenefit,
+      socialBenefitNumber,
+      tShirtSize,
     };
     const newPayment = await this.create(newPaymentData);
 
+    const price = withSocialBenefit ? 0.1 : 0.2;
+    // const price = withSocialBenefit ? 32.5 : 65.00;
+
     const paymentResponse = await this.paymentIntegrationService.create(
-      15.00,
+      price,
       user.email,
       "Semcomp",
       `${this.notificationUrl}/${newPayment.id}`
@@ -122,6 +159,9 @@ export default class PaymentServiceImpl implements PaymentService {
       userId: entity.userId,
       qrCode: entity.qrCode,
       qrCodeBase64: entity.qrCodeBase64,
+      withSocialBenefit: entity.withSocialBenefit,
+      socialBenefitNumber: entity.socialBenefitNumber,
+      tShirtSize: entity.tShirtSize,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };

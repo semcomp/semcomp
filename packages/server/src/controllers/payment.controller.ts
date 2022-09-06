@@ -10,7 +10,12 @@ export default class PaymentController {
 
   public async create(req, res, next) {
     try {
-      const payment = await this.paymentService.createPayment(req.user.id);
+      const payment = await this.paymentService.createPayment(
+        req.user.id,
+        req.body.withSocialBenefit,
+        req.body.socialBenefitNumber,
+        req.body.tShirtSize,
+      );
 
       return res.status(200).json(payment);
     } catch (error) {
