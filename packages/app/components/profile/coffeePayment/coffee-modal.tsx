@@ -6,17 +6,19 @@ import CoffeeStep1 from "./coffee-step-1";
 import CoffeeStep2, { CoffeePaymentData, TShirtSize } from "./coffee-step-2";
 import CoffeeStep3 from "./coffee-step-3";
 
-function SemcompButton({onClick, children, className, ...props}: any) {
+function SemcompButton({ onClick, children, className, ...props }: any) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={"bg-tertiary text-white shadow-md px-6 py-3 " + className}
+      className={
+        "rounded bg-tertiary text-white shadow-md px-6 py-3 " + className
+      }
       {...props}
     >
       {children}
     </button>
-  )
+  );
 }
 
 function CoffeePayment({ onRequestClose, userHasPaid }) {
@@ -35,19 +37,14 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div
-        className="w-full bg-tertiary text-white text-center text-xl font-bold p-6"
-      >
+      <div className="w-full bg-tertiary text-white text-center text-xl font-bold p-6">
         Pagamento por PIX do pacote da Semcomp!
       </div>
-      <div className="max-h-96 overflow-y-scroll w-full p-6">
+      <div className="max-h-lg overflow-y-scroll w-full p-6">
         <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} />
         {stepComponent}
         <div className="flex justify-between w-full">
-          <SemcompButton
-            className="bg-orange"
-            onClick={onRequestClose}
-          >
+          <SemcompButton className="bg-orange" onClick={onRequestClose}>
             Fechar
           </SemcompButton>
           {(coffeeStep < 2 || userHasPaid) && (

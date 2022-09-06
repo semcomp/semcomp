@@ -249,6 +249,7 @@ function Profile() {
                     setIsCoffeeModalOpen(true);
                     blockBodyScroll();
                   }}
+                  className="bg-tertiary text-white p-2 rounded-lg mt-2"
                 >
                   Comprar pacote
                 </button>
@@ -279,9 +280,7 @@ function Profile() {
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Eventos
             </h1>
-            <List
-              className="events-list"
-            >
+            <List className="events-list">
               {events.map((event) =>
                 event.items.map((e) =>
                   e.events.map((item) => {
@@ -308,6 +307,7 @@ function Profile() {
                   setIsRegistrationsModalOpen(true);
                   blockBodyScroll();
                 }}
+                className="bg-tertiary text-white p-2 rounded-lg mt-2"
               >
                 Inscrever
               </button>
