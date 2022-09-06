@@ -5,6 +5,7 @@ import Routes from "../../routes";
 import SemcompLogo from "../../assets/logo.svg";
 import { useAppContext } from "../../libs/contextLib";
 import NavLink from "./nav-link";
+import Image from "next/image";
 
 const Navbar = () => {
   const { user, setUser, setToken } = useAppContext();
@@ -19,16 +20,18 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="flex justify-between items-center py-4 px-16 w-full bg-primary">
+    <nav className="text-center p-4 w-full bg-primary md:flex md:justify-between md:items-center">
       <NavLink href={Routes.home}>
-        <img
-          className="w-20 h-auto object-contain"
+        <Image
           alt="Semcomp logo"
           src={SemcompLogo.src}
+          layout="intrinsic"
+          height={50}
+          width={50}
         />
       </NavLink>
 
-      <div className="flex align-middle">
+      <div className="text-center md:flex md:flex-row">
         {/* <Navlink
           style={{ color: "yellow" }}
           onClick={() =>
