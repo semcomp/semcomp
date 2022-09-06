@@ -99,14 +99,15 @@ export default class PaymentServiceImpl implements PaymentService {
     }
 
     const payment = await this.findOne({ userId });
-    if (
-      payment.withSocialBenefit !== withSocialBenefit ||
-      payment.socialBenefitNumber !== socialBenefitNumber ||
-      payment.tShirtSize !== tShirtSize
-    ) {
-      throw new HttpError(400, ["Sua compra foi gerada com outras informações!"]);
-    }
     if (payment) {
+      if (
+        payment.withSocialBenefit !== withSocialBenefit ||
+        payment.socialBenefitNumber !== socialBenefitNumber ||
+        payment.tShirtSize !== tShirtSize
+      ) {
+        throw new HttpError(400, ["Sua compra foi gerada com outras informações!"]);
+      }
+
       return payment;
     }
 
