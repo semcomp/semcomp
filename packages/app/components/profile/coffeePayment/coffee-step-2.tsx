@@ -14,7 +14,7 @@ const TShirtSizes = Object.values(TShirtSize);
 
 export type CoffeePaymentData = {
   withSocialBenefit: boolean;
-  socialBenefitNumber: string;
+  socialBenefitFile: File;
   tShirtSize: TShirtSize;
 };
 
@@ -32,11 +32,11 @@ function CoffeeStep2({
     setData({ ...data, withSocialBenefit: value });
   }
 
-  function handleSocialBenefitNumberChange(
+  function handleSocialBenefitFileChange(
     event: React.ChangeEvent<HTMLInputElement>
   ) {
-    const value = event.target.value;
-    setData({ ...data, socialBenefitNumber: value });
+    const value = event.target.files[0];
+    setData({ ...data, socialBenefitFile: value });
   }
 
   function handleTShirtSizeChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -62,8 +62,7 @@ function CoffeeStep2({
         //   type={InputType.Text}
         // />
         <Input
-          value={data.socialBenefitNumber}
-          onChange={handleSocialBenefitNumberChange}
+          onChange={handleSocialBenefitFileChange}
           type={InputType.File}
         />
       )}

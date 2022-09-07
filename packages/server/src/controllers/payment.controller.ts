@@ -13,7 +13,7 @@ export default class PaymentController {
       const payment = await this.paymentService.createPayment(
         req.user.id,
         req.body.withSocialBenefit,
-        req.body.socialBenefitNumber,
+        req.body.socialBenefitFileName,
         req.body.tShirtSize,
       );
 

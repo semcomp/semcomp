@@ -72,7 +72,7 @@ function CheckboxInput({ onChange, value }: { onChange: any; value: boolean }) {
 }
 
 function FileInput({ onChange, value }: { onChange: any; value: string }) {
-  return <input type="file" onChange={onChange} value={value} accept=".pdf" />;
+  return <MaterialInput type="file" onChange={onChange} value={value} inputProps={{accept:".pdf"}} />;
 }
 
 function Input({

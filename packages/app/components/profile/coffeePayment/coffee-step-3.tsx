@@ -11,20 +11,25 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
   const [qrCodeBase64, setqrCodeBase64] = useState("");
   const [qrCodeCopyPaste, setqrCodeCopyPaste] = useState("");
 
-  useEffect(() => {
-    async function getPayment() {
-      try {
-        const { data: responseData } = await API.coffee.createPayment(
-          data.withSocialBenefit, data.socialBenefitNumber, data.tShirtSize
-        );
-        setqrCodeBase64(responseData.qrCodeBase64);
-        setqrCodeCopyPaste(responseData.qrCode);
-      } catch (error) {
-        toast.error(error?.data?.message[0]);
-        console.error(error);
+  async function getPayment() {
+    try {
+      let fileName: string = null;
+      if (data.socialBenefitFile) {
+        const { data: uploadResponse } = await API.upload.single(data.socialBenefitFile);
+        fileName = uploadResponse.fileName;
       }
+      const { data: paymentResponse } = await API.coffee.createPayment(
+        data.withSocialBenefit, fileName, data.tShirtSize
+      );
+      setqrCodeBase64(paymentResponse.qrCodeBase64);
+      setqrCodeCopyPaste(paymentResponse.qrCode);
+    } catch (error) {
+      toast.error(error?.data?.message[0]);
+      console.error(error);
     }
+  }
 
+  useEffect(() => {
     getPayment();
   }, []);
 
