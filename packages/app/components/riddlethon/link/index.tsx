@@ -4,8 +4,8 @@ import { Button } from "@mui/material";
 import { useRouter } from 'next/router';
 
 import API from "../../../api";
-import { RiddlethonRoutes, useSocket, useTeam } from "..";
-import Spinner from "../../../components/spinner";
+import { RiddlethonRoutes, useSocket, useTeam } from "../../../pages/riddlethon";
+import Spinner from "../../spinner";
 import { EVENTS_PREFIX } from "../../../constants/riddlethon";
 
 const styles = {

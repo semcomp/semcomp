@@ -2,7 +2,7 @@ import { useRouter } from 'next/router';
 
 import { Button } from "@mui/material";
 
-import { RiddlethonRoutes } from "..";
+import { RiddlethonRoutes } from "../../pages/riddlethon";
 
 function RiddlethonStart() {
   const router = useRouter();

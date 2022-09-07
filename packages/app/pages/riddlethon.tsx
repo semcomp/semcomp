@@ -6,12 +6,13 @@ import IOSocket from "socket.io-client";
 
 // import ChatApp from './chat';
 
-import Navbar from "../../components/navbar";
-import Footer from "../../components/Footer";
-import { baseURL } from "../../constants/api-url";
-import { EVENTS_PREFIX, END_DATE } from "../../constants/riddlethon";
-import RequireAuth from "../../libs/RequireAuth";
-import { useAppContext } from "../../libs/contextLib";
+import Navbar from "../components/navbar";
+import Footer from "../components/Footer";
+import { baseURL } from "../constants/api-url";
+import { EVENTS_PREFIX, END_DATE } from "../constants/riddlethon";
+import RequireAuth from "../libs/RequireAuth";
+import { useAppContext } from "../libs/contextLib";
+import RiddlethonStart from "../components/riddlethon/RiddlethonStart";
 
 export const RiddlethonRoutes = {
   start: "/riddlethon/inicio",
@@ -136,11 +137,11 @@ function Riddlethon() {
     return () => clearInterval(handler);
   }, []);
 
-  if (isHappening) {
-    router.push(RiddlethonRoutes.start);
-  } else {
-    router.push(RiddlethonRoutes.end);
-  }
+  // if (isHappening) {
+  //   router.push(RiddlethonRoutes.start);
+  // } else {
+  //   router.push(RiddlethonRoutes.end);
+  // }
 
   return (
     <>
@@ -160,6 +161,7 @@ function Riddlethon() {
                     <MenuIcon style={{ fontSize: 40 }} />
                   )}
                 </Button> */}
+                <RiddlethonStart></RiddlethonStart>
               </div>
             </main>
           </div>

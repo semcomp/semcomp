@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { TextField } from "@mui/material";
 
-import { useTeam, useSocket } from "..";
-import Spinner from "../../../components/spinner";
+import { useTeam, useSocket } from "../../../pages/riddlethon";
+import Spinner from "../../spinner";
 import { EVENTS_PREFIX } from "../../../constants/riddlethon";
 import { useAppContext } from "../../../libs/contextLib";
 

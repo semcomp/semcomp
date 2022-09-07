@@ -1,4 +1,4 @@
-import { useTeam } from "..";
+import { useTeam } from "../../../pages/riddlethon";
 import { NUMBER_OF_QUESTIONS } from "../../../constants/riddlethon";
 
 function RiddlethonEnd() {

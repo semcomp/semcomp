@@ -3,8 +3,8 @@ import { TextField } from "@mui/material";
 import { toast } from "react-toastify";
 import { useRouter } from 'next/router';
 
-import { RiddlethonRoutes, useSocket } from "..";
-import LoadingButton from "../../../components/loading-button";
+import { RiddlethonRoutes, useSocket } from "../../../pages/riddlethon";
+import LoadingButton from "../../loading-button";
 import API from "../../../api";
 import { EVENTS_PREFIX } from "../../../constants/riddlethon";
 
