@@ -6,3 +6,5 @@ services:
     ports:
       - "8090:8090"
     container_name: server
+    volumes:
+      - /var/www/html/semcomp-files:/var/www/html/semcomp-files
