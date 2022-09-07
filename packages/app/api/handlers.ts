@@ -88,13 +88,25 @@ const Handlers = {
   coffee: {
     createPayment: (
       withSocialBenefit: boolean,
-      socialBenefitNumber: string,
+      socialBenefitFileName: string,
       tShirtSize: string,
     ) => API.post("/payments", {
       withSocialBenefit,
-      socialBenefitNumber,
+      socialBenefitFileName,
       tShirtSize,
     })
+  },
+  upload: {
+    single: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      return API.post("/upload/single", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+    },
   },
 };
 

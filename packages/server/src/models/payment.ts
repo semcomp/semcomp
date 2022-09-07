@@ -9,7 +9,7 @@ type Payment = {
   qrCode?: string;
   qrCodeBase64?: string;
   withSocialBenefit: boolean;
-  socialBenefitNumber: string;
+  socialBenefitFileName: string;
   tShirtSize: TShirtSize;
   createdAt?: number;
   updatedAt?: number;
@@ -41,7 +41,7 @@ const PaymentSchema = new Mongoose.Schema(
     withSocialBenefit: {
       type: Mongoose.Schema.Types.Boolean,
     },
-    socialBenefitNumber: {
+    socialBenefitFileName: {
       type: String,
     },
     tShirtSize: {

@@ -12,6 +12,7 @@ export enum InputType {
   Checkbox = "checkbox",
   Text = "text",
   Password = "password",
+  File = "file",
 }
 
 function TextInput({
@@ -21,11 +22,11 @@ function TextInput({
   start,
   end,
 }: {
-  onChange: any,
-  value: string,
-  type: InputType,
-  start?: any,
-  end?: any,
+  onChange: any;
+  value: string;
+  type: InputType;
+  start?: any;
+  end?: any;
 }) {
   return (
     <MaterialInput
@@ -45,9 +46,9 @@ function SelectInput({
   value,
   choices,
 }: {
-  onChange: any,
-  value: string,
-  choices: string[],
+  onChange: any;
+  value: string;
+  choices: string[];
 }) {
   return (
     <Select
@@ -66,19 +67,12 @@ function SelectInput({
   );
 }
 
-function CheckboxInput({
-  onChange,
-  value,
-}: {
-  onChange: any,
-  value: boolean
-}) {
-  return (
-    <Checkbox
-      onChange={onChange}
-      checked={value}
-    />
-  );
+function CheckboxInput({ onChange, value }: { onChange: any; value: boolean }) {
+  return <Checkbox onChange={onChange} checked={value} />;
+}
+
+function FileInput({ onChange, value }: { onChange: any; value: string }) {
+  return <MaterialInput type="file" onChange={onChange} value={value} inputProps={{accept:".pdf"}} />;
 }
 
 function Input({
@@ -91,31 +85,49 @@ function Input({
   end,
   className,
 }: {
-  label: any,
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void,
-  value?: string | boolean,
-  type: InputType,
-  choices?: string[],
-  start?: any,
-  end?: any,
-  className?: string,
+  label?: any;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  value?: string | boolean;
+  type: InputType;
+  choices?: string[];
+  start?: any;
+  end?: any;
+  className?: string;
 }) {
-  let input = <TextInput onChange={onChange} value={value as string} type={type} start={start} end={end} />
+  let input = (
+    <TextInput
+      onChange={onChange}
+      value={value as string}
+      type={type}
+      start={start}
+      end={end}
+    />
+  );
 
   if (type === InputType.Checkbox) {
     input = <CheckboxInput onChange={onChange} value={value as boolean} />;
   }
 
   if (type === InputType.Select) {
-    input = <SelectInput onChange={onChange} value={value as string} choices={choices} />;
+    input = (
+      <SelectInput
+        onChange={onChange}
+        value={value as string}
+        choices={choices}
+      />
+    );
+  }
+
+  if (type === InputType.File) {
+    input = <FileInput onChange={onChange} value={value as string} />;
   }
 
   return (
     <div className={className}>
       <label>
-        { type !== InputType.Checkbox && label}
+        {type !== InputType.Checkbox && label}
         {input}
-        { type === InputType.Checkbox && label}
+        {type === InputType.Checkbox && label}
       </label>
     </div>
   );

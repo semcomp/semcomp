@@ -19,6 +19,7 @@ import IdSeviceImpl from "../services/id-impl.service";
 import PaymentServiceImpl from "../services/payment-impl.service";
 import MercadoPagoPaymentService from "../services/mercado-pago-payment.service";
 import userServiceImpl from "../services/user.service";
+import UploadRouter from "./upload.router";
 
 const router = Router();
 
@@ -34,6 +35,9 @@ const paymentController = new PaymentController(paymentServiceImpl);
 
 const paymentRouter = new PaymentRouter(authMiddleware, paymentController);
 router.use("/payments", paymentRouter.create());
+
+const uploadRouter = new UploadRouter(authMiddleware, process.env.FILE_UPLOAD_PATH);
+router.use("/upload", uploadRouter.create());
 
 router.use("/admin", adminRouter);
 router.use("/achievements", achievementsRouter);

@@ -90,7 +90,7 @@ export default class PaymentServiceImpl implements PaymentService {
   public async createPayment(
     userId: string,
     withSocialBenefit: boolean,
-    socialBenefitNumber: string,
+    socialBenefitFileName: string,
     tShirtSize: TShirtSize,
   ): Promise<Payment> {
     const user = await this.userService.findById(userId);
@@ -104,10 +104,10 @@ export default class PaymentServiceImpl implements PaymentService {
         throw new HttpError(400, ["Sua compra foi gerada com outras informações!"]);
       }
       if (
-        payment.socialBenefitNumber !== socialBenefitNumber ||
+        payment.socialBenefitFileName !== socialBenefitFileName ||
         payment.tShirtSize !== tShirtSize
       ) {
-        payment.socialBenefitNumber = socialBenefitNumber;
+        payment.socialBenefitFileName = socialBenefitFileName;
         if (payment.tShirtSize !== tShirtSize) {
           payment.tShirtSize = tShirtSize;
           const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
@@ -129,7 +129,7 @@ export default class PaymentServiceImpl implements PaymentService {
     const newPaymentData: Payment = {
       userId: user.id,
       withSocialBenefit,
-      socialBenefitNumber,
+      socialBenefitFileName,
       tShirtSize,
     };
     const newPayment = await this.create(newPaymentData);
@@ -167,7 +167,7 @@ export default class PaymentServiceImpl implements PaymentService {
       qrCode: entity.qrCode,
       qrCodeBase64: entity.qrCodeBase64,
       withSocialBenefit: entity.withSocialBenefit,
-      socialBenefitNumber: entity.socialBenefitNumber,
+      socialBenefitFileName: entity.socialBenefitFileName,
       tShirtSize: entity.tShirtSize,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
