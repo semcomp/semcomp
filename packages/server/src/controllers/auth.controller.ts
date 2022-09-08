@@ -115,7 +115,7 @@ class AuthController {
         telegramLink: house.telegramLink,
       },
       payment: {
-        tShirtSize: payment?.tShirtSize,
+        tShirtSize: payment?.tShirtSize || null,
       }
     };
   }
