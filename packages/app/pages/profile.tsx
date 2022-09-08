@@ -211,11 +211,11 @@ function Profile() {
       )}
       <Header />
       <main className="p-8 h-full w-full max-w-5xl self-center col-gap-4 min-h-[70vh] md:flex">
-        <div className="flex flex-col self-start md:w-64">
+        <div className="flex flex-col self-start w-full md:w-64">
           <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
             <QRCodeSVG value={user && user.id} />
-            <p className="font-bold text-xl text-center">{user.name}</p>
-            <p className="course">{user.course}</p>
+            <p className="font-bold text-xl text-center my-2">{user.name}</p>
+            <p className="text-center">{user.course}</p>
             {
               <button
                 onClick={() => {
