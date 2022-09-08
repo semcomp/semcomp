@@ -159,6 +159,12 @@ export default class PaymentServiceImpl implements PaymentService {
     }
   }
 
+  public async getUserPayment(userId: string): Promise<Payment> {
+    const entity = await PaymentModel.findOne({ userId });
+
+    return entity && this.mapEntity(entity);
+  }
+
   private mapEntity(entity: Model<Payment> & Payment): Payment {
     return {
       id: entity.id,
