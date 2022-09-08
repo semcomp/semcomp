@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 
 import API from "../../../api";
 import { CoffeePaymentData } from "./coffee-step-2";
+import Image from "next/image";
 
 function CoffeeStep3({data}: {data: CoffeePaymentData}) {
   const [qrCodeBase64, setqrCodeBase64] = useState("");
@@ -39,16 +40,16 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
   }
 
   return (
-    <div className="step2-container">
+    <div className="m-2 flex justify-center items-center flex-col">
       {!qrCodeBase64 || !qrCodeCopyPaste ? (
-        <div className="loading-skeleton">
+        <div className="flex flex-col md:grid md:gap-4 md:grid-cols-2">
           <Skeleton variant="rectangular" width={250} height={250} />
           <Skeleton variant="rectangular" width={250} height={250} />
         </div>
       ) : (
-        <div className="QRCode-payment">
+        <div className="flex flex-col md:grid md:gap-4 md:grid-cols-2">
           <section
-            className="QRCode-instructions"
+            className="m-4 flex justify-center items-center flex-col"
             style={{ flexDirection: "column" }}
           >
             <p>Escaneie o QR Code abaixo ou copie e cole o código do PIX</p>
@@ -60,13 +61,16 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
             <p>Pode ser que demore um tempo para o pagamento ser realizado.</p>
           </section>
           <div>
-            <section className="QRCode-methods">
-              <img
-                style={{ height: "200px", width: "200px" }}
-                src={`data:image/png;base64, ${qrCodeBase64}`}
-                alt="QRcode"
-              />
-              <section className="QRCode-copy-paste">
+            <section className="m-4 flex justify-center items-center flex-col">
+              <div className="hidden md:flex">
+                <Image
+                  height={200}
+                  width={200}
+                  src={`data:image/png;base64, ${qrCodeBase64}`}
+                  alt="QRcode"
+                />
+              </div>
+              <section className="mt-4 flex flex-col content-center">
                 <Input
                   readOnly
                   aria-readonly
