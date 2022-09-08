@@ -18,3 +18,8 @@ export type SemcompApiUser = {
 export type SemcompApiGetUsersResponse = {
   users: SemcompApiUser[]
 };
+
+export type SemcompApiLoginResponse = {
+  email: string,
+  id: string,
+};

@@ -1,4 +1,4 @@
-import { SemcompApiGetUsersResponse } from "../models/SemcompApiModels";
+import { SemcompApiGetUsersResponse, SemcompApiLoginResponse } from "../models/SemcompApiModels";
 import Http from "./http";
 
 class SemcompApi {
@@ -8,7 +8,7 @@ class SemcompApi {
     this.http = http;
   }
 
-  public async login(email: string, password: string): Promise<any> {
+  public async login(email: string, password: string): Promise<SemcompApiLoginResponse> {
     return this.http.post(
       "/admin/auth/login",
       { email, password },
