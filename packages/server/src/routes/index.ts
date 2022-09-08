@@ -4,7 +4,6 @@ config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "producti
 
 import adminRouter from "./admin";
 import achievementsRouter from "./achievement.router";
-import authRouter from "./auth.router";
 import riddleRouter from "./riddle.router";
 import riddlethonRouter from "./riddlethon.router";
 import hardToClickRouter from "./hard-to-click.router";
@@ -20,6 +19,8 @@ import PaymentServiceImpl from "../services/payment-impl.service";
 import MercadoPagoPaymentService from "../services/mercado-pago-payment.service";
 import userServiceImpl from "../services/user.service";
 import UploadRouter from "./upload.router";
+import AuthRouter from "./auth.router";
+import AuthController from "../controllers/auth.controller";
 
 const router = Router();
 
@@ -39,9 +40,12 @@ router.use("/payments", paymentRouter.create());
 const uploadRouter = new UploadRouter(authMiddleware, process.env.FILE_UPLOAD_PATH);
 router.use("/upload", uploadRouter.create());
 
+const authController = new AuthController(paymentServiceImpl);
+const authRouter = new AuthRouter(authController);
+router.use("/auth", authRouter.create());
+
 router.use("/admin", adminRouter);
 router.use("/achievements", achievementsRouter);
-router.use("/auth", authRouter);
 router.use("/riddle", riddleRouter);
 router.use("/riddlethon", riddlethonRouter);
 router.use("/hard-to-click", hardToClickRouter);

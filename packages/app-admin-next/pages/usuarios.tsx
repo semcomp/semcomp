@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react';
 // import TextField from '@material-ui/core/TextField';
 // import MenuItem from '@material-ui/core/MenuItem';
 
-import API from '../api';
 import Sidebar from '../components/layout/Sidebar';
 import Spinner from '../components/reusable/Spinner';
 import RenderDate from '../components/reusable/RenderDate';
@@ -18,6 +17,9 @@ import useFecthData from '../libs/hooks/fetch-data';
 // import useFormDeleteData from '../libs/hooks/delete-confirmation-modal';
 // import UpdateUserModal from '../components/users/UpdateUserModal';
 import RequireAuth from '../libs/RequireAuth';
+import SemcompApi from '../api/semcomp-api';
+import { useAppContext } from '../libs/contextLib';
+import { SemcompApiUser } from '../models/SemcompApiModels';
 
 // const styles = {
 //   title: 'text-4xl pb-4 text-center',
@@ -52,23 +54,6 @@ const columns = (users) => [
   },
 ];
 
-type User = {
-  id: string,
-  email: string,
-  name: string,
-  course: string,
-  discord: string,
-  house: {
-    name: string,
-  },
-  telegram: string,
-  disabilities: string[],
-  paid: boolean,
-  permission: boolean,
-  createdAt: number,
-  updatedAt: number,
-}
-
 type UserData = {
   "ID": string,
   "E-mail": string,
@@ -81,7 +66,7 @@ type UserData = {
   "Criado em": string,
 }
 
-function UsersTable({ users }: { users: User[] }) {
+function UsersTable({ users }: { users: SemcompApiUser[] }) {
   const data: UserData[] = [];
   for (const user of users) {
     data.push({
@@ -160,20 +145,25 @@ function UsersTable({ users }: { users: User[] }) {
 }
 
 function Users() {
-  const [users, setUsers] = useState(null)
+  const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
+
+  const [data, setData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const {
-    isFetching: isFetchingUsers,
-    data: fetchResponse,
-  } = useFecthData(API.getAllUsers);
-
   useEffect(() => {
-    if (!isFetchingUsers) {
-      setUsers(fetchResponse.users);
-      setIsLoading(false);
+    async function fetchData() {
+      try {
+        const response = await semcompApi.getUsers();
+        setData(response.users);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, [isFetchingUsers])
+
+    fetchData();
+  }, [])
 
   // const {
   //   deleteConfirmationModalElement,
@@ -264,7 +254,7 @@ function Users() {
       {/* { displayUpdatingModal() } */}
       <Sidebar />
       <main className="flex justify-center items-center w-full h-full p-4 py-16">
-        {isLoading ? <Spinner /> : <UsersTable users={users} />}
+        {isLoading ? <Spinner /> : <UsersTable users={data} />}
       </main>
     </div>
   );

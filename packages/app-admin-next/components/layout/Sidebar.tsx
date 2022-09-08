@@ -42,7 +42,7 @@ const AppBar = styled(MuiAppBar as any, {
  * @return {object}
  */
 function Sidebar() {
-  const { setUser, setToken } = useAppContext();
+  const { logOut } = useAppContext();
 
   const [open, setOpen] = useState(false);
 
@@ -54,8 +54,7 @@ function Sidebar() {
    * handleLogout
    */
   function handleLogout() {
-    setUser(null);
-    setToken(null);
+    logOut();
   }
 
   return (

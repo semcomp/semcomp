@@ -9,4 +9,5 @@ export default interface PaymentService {
     tShirtSize: TShirtSize,
   ): Promise<Payment>;
   receive(id: number): Promise<void>;
+  getUserPayment(userId: string): Promise<Payment>;
 }

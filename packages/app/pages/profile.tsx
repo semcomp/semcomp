@@ -234,6 +234,7 @@ function Profile() {
             {userFetched?.paid ? (
               <>
                 <Chip label="Pago" color="warning" />
+                <Chip className="mt-3" label={`Camiseta ${user.payment.tShirtSize}`} />
                 <button
                   onClick={() => {
                     setIsCoffeeModalOpen(true);
