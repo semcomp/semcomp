@@ -210,11 +210,11 @@ function Profile() {
         />
       )}
       <Header />
-      <main className="p-8 h-full w-full max-w-5xl flex self-center col-gap-4 min-h-[70vh]">
-        <div className="flex flex-col self-start w-64">
+      <main className="p-8 h-full w-full max-w-5xl self-center col-gap-4 min-h-[70vh] md:flex">
+        <div className="flex flex-col self-start md:w-64">
           <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
             <QRCodeSVG value={user && user.id} />
-            <p className="username">{user.name}</p>
+            <p className="font-bold text-xl text-center">{user.name}</p>
             <p className="course">{user.course}</p>
             {
               <button
@@ -222,6 +222,7 @@ function Profile() {
                   setIsEditModalOpen(true);
                   blockBodyScroll();
                 }}
+                className="bg-tertiary text-white p-2 rounded-lg mt-2"
               >
                 Editar
               </button>
@@ -317,7 +318,7 @@ function Profile() {
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Conquistas
             </h1>
-            <div className="conquistas-grid">
+            <div className="grid auto-cols-auto auto-rows-auto">
               {earnedAchievements.slice(0, 6).map((conquista) => {
                 const achievementsImageSrc = AchievementsImages(
                   conquista.image
@@ -347,9 +348,9 @@ function Profile() {
           </div> */}
           {/* <HouseScores /> */}
         </div>
-        <div className="profile-info-card">
+        <div className="h-full w-full rounded-xl justify-self-end row-span-2">
           <EventsOverview />
-          <span className="spacing" />
+          <span className="h-4 block" />
           <EventsCalendar />
         </div>
       </main>
