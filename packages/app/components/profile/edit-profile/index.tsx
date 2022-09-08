@@ -37,26 +37,27 @@ function EditProfile({ onRequestClose }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <form className="edit-user-data-modal" onSubmit={handleSubmit}>
-        <h1>Editar cadastro</h1>
-        <label>
-          <p>Nome</p>
-          <input name="name" type="text" defaultValue={user.name} />
+      <form className="flex flex-col items-center w-full p-4" onSubmit={handleSubmit}>
+        <h1 className="text-center text-black">Editar cadastro</h1>
+        <label className="w-full my-2 mx-0">
+          <p className="w-100 m-0">Nome</p>
+          <input name="name" type="text" defaultValue={user.name} className="w-full border-solid border rounded-lg text-black border-black py-1 px-2" />
         </label>
-        <label>
-          <p>Usuário do Telegram</p>
+        <label className="w-full my-2 mx-0">
+          <p className="w-100 m-0">Usuário do Telegram</p>
           <input
             name="telegram"
             type="text"
             defaultValue={user.telegram}
+            className="w-full border-solid border rounded-lg text-black border-black py-1 px-2"
           />
         </label>
-        <div className="buttons-container">
-          <button className="cancel" type="button" onClick={onRequestClose}>
+        <div className="flex w-full justify-end items-center mt-4">
+          <button className="py-2 px-8 rounded-xl text-white bg-orange my-0 mx-2" type="button" onClick={onRequestClose}>
             Cancelar
           </button>
           <LoadingButton
-            className="confirm"
+            className="py-2 px-8 rounded-xl text-white bg-green my-0 mx-2"
             type="submit"
             isLoading={isUpdating}
           >
