@@ -47,7 +47,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
           <SemcompButton className="bg-orange" onClick={onRequestClose}>
             Fechar
           </SemcompButton>
-          {(coffeeStep < 2 || userHasPaid) && (
+          {coffeeStep >= 2 || userHasPaid ? <></> : (
             <SemcompButton onClick={() => setCoffeeStep(coffeeStep + 1)}>
               Próximo
             </SemcompButton>
