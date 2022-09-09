@@ -98,16 +98,17 @@ export default class PaymentServiceImpl implements PaymentService {
       throw new HttpError(400, []);
     }
 
+    const price = withSocialBenefit ? 32.5 : 65.00;
+
     const payment = await this.findOne({ userId });
     if (payment) {
-      if (payment.withSocialBenefit !== withSocialBenefit) {
-        throw new HttpError(400, ["Sua compra foi gerada com outras informações!"]);
-      }
       if (
+        payment.withSocialBenefit !== withSocialBenefit ||
         payment.socialBenefitFileName !== socialBenefitFileName ||
         payment.tShirtSize !== tShirtSize
       ) {
         payment.socialBenefitFileName = socialBenefitFileName;
+
         if (payment.tShirtSize !== tShirtSize) {
           payment.tShirtSize = tShirtSize;
           const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
@@ -115,6 +116,20 @@ export default class PaymentServiceImpl implements PaymentService {
             throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
           }
         }
+
+        if (payment.withSocialBenefit !== withSocialBenefit) {
+          const paymentResponse = await this.paymentIntegrationService.create(
+            price,
+            user.email,
+            "Semcomp",
+            `${this.notificationUrl}/${payment.id}`
+          );
+
+          payment.paymentIntegrationId = paymentResponse.id;
+          payment.qrCode = paymentResponse.qrCode;
+          payment.qrCodeBase64 = paymentResponse.qrCodeBase64;
+        }
+
         await this.update(payment);
       }
 
@@ -134,8 +149,6 @@ export default class PaymentServiceImpl implements PaymentService {
     };
     const newPayment = await this.create(newPaymentData);
 
-    const price = withSocialBenefit ? 32.5 : 65.00;
-
     const paymentResponse = await this.paymentIntegrationService.create(
       price,
       user.email,
@@ -152,7 +165,7 @@ export default class PaymentServiceImpl implements PaymentService {
 
   public async receive(id: number): Promise<void> {
     const payment = await PaymentModel.findOne({ id });
-    const paymentResponse = await this.paymentIntegrationService.receive(payment.paymentIntegrationId);
+    const paymentResponse = await this.paymentIntegrationService.find(payment.paymentIntegrationId);
 
     if (paymentResponse.status === 'approved') {
       await this.userService.pay(payment.userId);

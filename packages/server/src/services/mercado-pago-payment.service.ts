@@ -46,7 +46,7 @@ export default class MercadoPagoPaymentService implements PaymentIntegrationServ
     return response;
   }
 
-  public async receive(id: number): Promise<Payment> {
+  public async find(id: number): Promise<Payment> {
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${this.accessToken}`,
