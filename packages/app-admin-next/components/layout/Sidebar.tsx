@@ -83,50 +83,50 @@ function Sidebar() {
               Usuários
             </span>
           </Link>
-          <Link href={Routes.adminUsers}>
+          {/* <Link href={Routes.adminUsers}>
             <span onClick={handleToggleSidebar} className={style.button}>
               Administradores
             </span>
-          </Link>
+          </Link> */}
           {/* <Link className={style.button} onClick={handleToggleSidebar} href={Routes.achievements}>Conquistas</Link> */}
-          <Link href={Routes.events}>
+          {/* <Link href={Routes.events}>
             <span onClick={handleToggleSidebar} className={style.button}>
               Eventos
             </span>
-          </Link>
+          </Link> */}
           {/* <Link className={style.button} onClick={handleToggleSidebar} href={Routes.riddleQuestions}>Riddle - Perguntas</Link> */}
           {/* <Link className={style.button} onClick={handleToggleSidebar} href={Routes.riddleGroups}>Riddle - Grupos</Link> */}
-          <Link href={Routes.riddlethonQuestions}>
+          {/* <Link href={Routes.riddlethonQuestions}>
             <span onClick={handleToggleSidebar} className={style.button}>
               Riddlethon - Perguntas
             </span>
-          </Link>
-          <Link href={Routes.riddlethonGroups}>
+          </Link> */}
+          {/* <Link href={Routes.riddlethonGroups}>
             <span onClick={handleToggleSidebar} className={style.button}>
               Riddlethon - Grupos
             </span>
-          </Link>
-          <Link href={Routes.hardToClickQuestions}>
+          </Link> */}
+          {/* <Link href={Routes.hardToClickQuestions}>
             <span onClick={handleToggleSidebar} className={style.button}>
               Duro de Clicar - Perguntas
             </span>
-          </Link>
-          <Link href={Routes.hardToClickGroups}>
+          </Link> */}
+          {/* <Link href={Routes.hardToClickGroups}>
             <span onClick={handleToggleSidebar} className={style.button}>
               Duro de Clicar - Grupos
             </span>
-          </Link>
-          <Link href={Routes.logs}>
+          </Link> */}
+          {/* <Link href={Routes.logs}>
             <span onClick={handleToggleSidebar} className={style.button}>
               Logs
             </span>
-          </Link>
+          </Link> */}
           {/* <Link className={style.button} onClick={handleToggleSidebar} href={Routes.houses}>Casas</Link> */}
-          <Link href={Routes.broadcastEmail}>
+          {/* <Link href={Routes.broadcastEmail}>
             <span onClick={handleToggleSidebar} className={style.button}>
               Enviar Email
             </span>
-          </Link>
+          </Link> */}
           <button className={style.button} onClick={handleLogout}>
             Sair
           </button>
