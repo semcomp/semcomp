@@ -50,18 +50,16 @@ export default function DataTable({
   title,
   data,
   onRowClick,
-  rowSelectActionName,
-  onRowSelectAction,
+  onRowSelect,
 }: {
   title: string,
   data: object[],
   onRowClick: (index: number) => void,
-  rowSelectActionName: string,
-  onRowSelectAction: (indexes: number[]) => void,
+  onRowSelect: (indexes: number[]) => void,
 }) {
   const [selectedRows, setSelectedRows] = useState([]);
 
-  function onRowSelect(selectChangeIndex: number, isSelected: boolean) {
+  function handleRowSelect(selectChangeIndex: number, isSelected: boolean) {
     let updatedSelectedRows = selectedRows;
 
     if (isSelected) {
@@ -73,6 +71,7 @@ export default function DataTable({
     }
 
     setSelectedRows(updatedSelectedRows);
+    onRowSelect(updatedSelectedRows);
   }
 
   return (<>
@@ -95,7 +94,7 @@ export default function DataTable({
               key={index}
               row={row}
               onClick={() => onRowClick(index)}
-              onSelectChange={(isSelected) => onRowSelect(index, isSelected)}
+              onSelectChange={(isSelected) => handleRowSelect(index, isSelected)}
             />
           ))}
         </TableBody>

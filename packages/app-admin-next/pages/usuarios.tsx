@@ -9,28 +9,6 @@ import SemcompApi from '../api/semcomp-api';
 import { useAppContext } from '../libs/contextLib';
 import { SemcompApiUser } from '../models/SemcompApiModels';
 
-const columns = (users) => [
-  {name: 'name', label: 'Nome', options: {filter: false, sort: true}},
-  {name: 'nusp', label: 'N° USP', options: {filter: false, sort: true, display: false}},
-  {name: 'email', label: 'Email', options: {filter: false, sort: true}},
-  {name: 'discord', label: 'Discord', options: {filter: false, sort: false}},
-  {name: 'permission', label: 'Permissão', options: {filter: true, sort: false, display: false}},
-  {name: 'house', label: 'Casa', options: {filter: true, sort: false}},
-  {name: 'course', label: 'Curso', options: {filter: true, sort: false, display: false}},
-  {name: 'hasPaid', label: 'Pago', options: {filter: true, sort: true, display: true}},
-  {name: 'userTelegram', label: 'Telegram', options: {filter: true, sort: false, display: false}},
-  {name: 'paid', label: 'Pagou Coffee', options: {filter: true, sort: false, display: false}},
-  {
-    name: 'createdAt',
-    label: 'Criação',
-    options: {
-      filter: false,
-      sort: true,
-      customBodyRenderLite: (dataIndex) => <RenderDate date={users[dataIndex].createdAt} />,
-    },
-  },
-];
-
 type UserData = {
   "ID": string,
   "E-mail": string,
@@ -43,7 +21,13 @@ type UserData = {
   "Criado em": string,
 }
 
-function UsersTable({ users }: { users: SemcompApiUser[] }) {
+function UsersTable({
+  users,
+  onRowSelect,
+}: {
+  users: SemcompApiUser[],
+  onRowSelect: (selectedIndexes: number[]) => void,
+}) {
   const data: UserData[] = [];
   for (const user of users) {
     data.push({
@@ -65,8 +49,7 @@ function UsersTable({ users }: { users: SemcompApiUser[] }) {
         title="Usuários"
         data={data}
         onRowClick={(index: number) => console.log(index)}
-        rowSelectActionName="Deletar"
-        onRowSelectAction={() => {}}
+        onRowSelect={onRowSelect}
       ></DataTable>
     </div>
   );
@@ -77,7 +60,7 @@ function Users() {
 
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  // const [clickedData, setClickedData] = useState(null);
+  const [selectedIndexes, setSelectedIndexes] = useState([]);
 
   async function fetchData() {
     try {
@@ -91,6 +74,11 @@ function Users() {
     }
   }
 
+  async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
+    setSelectedIndexes(updatedSelectedIndexes);
+    console.log(updatedSelectedIndexes);
+  }
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -99,7 +87,10 @@ function Users() {
     <div className="min-h-full w-full flex">
       <Sidebar />
       <main className="flex justify-center items-center w-full h-full p-4 py-16">
-        {isLoading ? <Spinner /> : <UsersTable users={data} />}
+        {isLoading ? <Spinner /> : <UsersTable
+          users={data}
+          onRowSelect={handleSelectedIndexesChange}
+        />}
       </main>
     </div>
   );
