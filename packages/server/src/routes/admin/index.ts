@@ -15,8 +15,12 @@ import eventsRouter from "./event.router";
 import housesRouter from "./house.router";
 import emailRouter from "./email.router";
 import pushNotificationRouter from "./push-notification.router";
+import TShirtRouter from "./t-shirt.router";
+import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
 
 const router = Router();
+
+const tShirtRouter = new TShirtRouter(adminAuthMiddleware);
 
 router.use("/auth", authRouter);
 router.use("/hard-to-click/questions", hardToClickQuestionsRouter);
@@ -33,5 +37,6 @@ router.use("/events", eventsRouter);
 router.use("/houses", housesRouter);
 router.use("/email", emailRouter);
 router.use("/push-notification", pushNotificationRouter);
+router.use("/t-shirts", tShirtRouter.create());
 
 export default router;
