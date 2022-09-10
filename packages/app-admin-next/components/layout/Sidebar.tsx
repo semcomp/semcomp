@@ -121,7 +121,7 @@ function Sidebar() {
               Logs
             </span>
           </Link> */}
-          {/* <Link className={style.button} onClick={handleToggleSidebar} href={Routes.houses}>Casas</Link> */}
+          <Link className={style.button} onClick={handleToggleSidebar} href={Routes.houses}>Casas</Link>
           {/* <Link href={Routes.broadcastEmail}>
             <span onClick={handleToggleSidebar} className={style.button}>
               Enviar Email

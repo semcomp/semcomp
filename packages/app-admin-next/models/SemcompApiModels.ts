@@ -23,3 +23,15 @@ export type SemcompApiLoginResponse = {
   email: string,
   id: string,
 };
+
+export type SemcompApiHouse = {
+  id: string,
+  name: string,
+  description: string,
+  telegramLink: string,
+  score: number,
+  createdAt: number,
+  updatedAt: number,
+};
+
+export type SemcompApiGetHousesResponse = SemcompApiHouse[];
