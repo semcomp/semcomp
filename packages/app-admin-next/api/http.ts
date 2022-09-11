@@ -72,13 +72,13 @@ class Http {
     return data;
   }
 
-  public async post(url: string, body: any): Promise<any> {
+  public async post(url: string, body?: any): Promise<any> {
     const { data } = await this.instance.post(url, body);
     return data;
   }
 
-  public async put(url: string): Promise<any> {
-    const { data } = await this.instance.put(url);
+  public async put(url: string, body?: any): Promise<any> {
+    const { data } = await this.instance.put(url, body);
     return data;
   }
 

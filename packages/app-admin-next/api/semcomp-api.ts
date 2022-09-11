@@ -30,6 +30,14 @@ class SemcompApi {
   public async getTShirts(): Promise<any> {
     return this.http.get("/admin/t-shirts");
   }
+
+  public async createTShirt(data: any): Promise<any> {
+    return this.http.post("/admin/t-shirts", data);
+  }
+
+  public async editTShirt(id: string, data: any): Promise<any> {
+    return this.http.put(`/admin/t-shirts/${id}`, data);
+  }
 }
 
 export default SemcompApi;

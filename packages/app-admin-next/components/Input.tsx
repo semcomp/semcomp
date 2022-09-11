@@ -11,6 +11,7 @@ export enum InputType {
   Select = "select",
   Checkbox = "checkbox",
   Text = "text",
+  Number = "number",
   Password = "password",
   File = "file",
 }

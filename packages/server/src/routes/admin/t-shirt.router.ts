@@ -28,7 +28,7 @@ export default class TShirtRouter {
     );
 
     router.put(
-      "/",
+      "/:id",
       [
         this.adminAuthMiddleware.authenticate,
         this.adminAuthMiddleware.isAuthenticated,
