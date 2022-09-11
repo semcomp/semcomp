@@ -83,6 +83,7 @@ function Sidebar() {
               Usuários
             </span>
           </Link>
+          <Link className={style.button} onClick={handleToggleSidebar} href={Routes.tShirts}>Camisetas</Link>
           {/* <Link href={Routes.adminUsers}>
             <span onClick={handleToggleSidebar} className={style.button}>
               Administradores

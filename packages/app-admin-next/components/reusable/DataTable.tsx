@@ -78,27 +78,30 @@ export default function DataTable({
     <Toolbar>
       <h1 className='text-xl'>{title}</h1>
     </Toolbar>
-    <TableContainer component={Paper}>
-      <Table aria-label="collapsible table">
-        <TableHead>
-          <TableRow>
-            <TableCell></TableCell>
-            {Object.keys(data[0]).map((key: any, index: number) => {
-              return (<TableCell key={index}>{key}</TableCell>);
-            })}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((row, index) => (
-            <Row
-              key={index}
-              row={row}
-              onClick={() => onRowClick(index)}
-              onSelectChange={(isSelected) => handleRowSelect(index, isSelected)}
-            />
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    {
+      data[0] &&
+      <TableContainer component={Paper}>
+        <Table aria-label="collapsible table">
+          <TableHead>
+            <TableRow>
+              <TableCell></TableCell>
+              {Object.keys(data[0]).map((key: any, index: number) => {
+                return (<TableCell key={index}>{key}</TableCell>);
+              })}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((row, index) => (
+              <Row
+                key={index}
+                row={row}
+                onClick={() => onRowClick(index)}
+                onSelectChange={(isSelected) => handleRowSelect(index, isSelected)}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    }
   </>);
 }

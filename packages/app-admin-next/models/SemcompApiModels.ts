@@ -35,3 +35,13 @@ export type SemcompApiHouse = {
 };
 
 export type SemcompApiGetHousesResponse = SemcompApiHouse[];
+
+export type SemcompApiTShirt = {
+  id: string,
+  size: string,
+  quantity: number,
+  createdAt: number,
+  updatedAt: number,
+};
+
+export type SemcompApiGetTShirtsResponse = SemcompApiTShirt[];
