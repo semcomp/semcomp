@@ -8,6 +8,7 @@ import RequireAuth from '../libs/RequireAuth';
 import SemcompApi from '../api/semcomp-api';
 import { useAppContext } from '../libs/contextLib';
 import { SemcompApiUser } from '../models/SemcompApiModels';
+import { Toolbar } from '@mui/material';
 
 type UserData = {
   "ID": string,
@@ -46,7 +47,6 @@ function UsersTable({
   return (
     <div>
       <DataTable
-        title="Usuários"
         data={data}
         onRowClick={(index: number) => console.log(index)}
         onRowSelect={onRowSelect}
@@ -87,6 +87,11 @@ function Users() {
     <div className="min-h-full w-full flex">
       <Sidebar />
       <main className="flex justify-center items-center w-full h-full p-4 py-16">
+        <div className='w-full flex justify-between'>
+          <Toolbar>
+            <h1 className='text-xl'>Usuários</h1>
+          </Toolbar>
+        </div>
         {isLoading ? <Spinner /> : <UsersTable
           users={data}
           onRowSelect={handleSelectedIndexesChange}

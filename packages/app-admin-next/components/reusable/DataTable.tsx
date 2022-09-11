@@ -47,12 +47,10 @@ function Row({
 }
 
 export default function DataTable({
-  title,
   data,
   onRowClick,
   onRowSelect,
 }: {
-  title: string,
   data: object[],
   onRowClick: (index: number) => void,
   onRowSelect: (indexes: number[]) => void,
@@ -75,9 +73,6 @@ export default function DataTable({
   }
 
   return (<>
-    <Toolbar>
-      <h1 className='text-xl'>{title}</h1>
-    </Toolbar>
     {
       data[0] &&
       <TableContainer component={Paper}>

@@ -36,6 +36,12 @@ export type SemcompApiHouse = {
 
 export type SemcompApiGetHousesResponse = SemcompApiHouse[];
 
+export type SemcompApiCreateHouseRequest = {
+  name: string;
+  description: string;
+  telegramLink: string;
+};
+
 export type SemcompApiTShirt = {
   id: string,
   size: string,

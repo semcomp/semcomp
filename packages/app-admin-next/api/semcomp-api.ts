@@ -1,4 +1,4 @@
-import { SemcompApiGetHousesResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse } from "../models/SemcompApiModels";
+import { SemcompApiCreateHouseRequest, SemcompApiGetHousesResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse } from "../models/SemcompApiModels";
 import Http from "./http";
 
 class SemcompApi {
@@ -21,6 +21,14 @@ class SemcompApi {
 
   public async getHouses(): Promise<SemcompApiGetHousesResponse> {
     return this.http.get("/admin/houses");
+  }
+
+  public async createHouse(data: SemcompApiCreateHouseRequest): Promise<any> {
+    return this.http.post("/admin/houses", data);
+  }
+
+  public async getTShirts(): Promise<any> {
+    return this.http.get("/admin/t-shirts");
   }
 }
 

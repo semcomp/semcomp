@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "./DeleteConfirmationModal.css";
 @import "./Spinner.css";
 
 body,
