@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react';
 
-import Sidebar from '../components/layout/Sidebar';
-import Spinner from '../components/reusable/Spinner';
 import DataTable from '../components/reusable/DataTable';
 import RequireAuth from '../libs/RequireAuth';
 import SemcompApi from '../api/semcomp-api';
 import { useAppContext } from '../libs/contextLib';
 import { SemcompApiTShirt } from '../models/SemcompApiModels';
-import { Toolbar } from '@mui/material';
 import CreateTShirtModal from '../components/t-shirt/CreateTShirtModal';
 import EditTShirtModal from '../components/t-shirt/EditTShirtModal';
 import { TShirtFormData, TShirtSize } from '../components/t-shirt/TShirtForm';
+import DataPage from '../components/DataPage';
 
 type TShirtData = {
   "ID": string,
@@ -38,15 +36,11 @@ function TShirtsTable({
     })
   }
 
-  return (
-    <div>
-      <DataTable
-        data={data}
-        onRowClick={onRowClick}
-        onRowSelect={onRowSelect}
-      ></DataTable>
-    </div>
-  );
+  return (<DataTable
+    data={data}
+    onRowClick={onRowClick}
+    onRowSelect={onRowSelect}
+  ></DataTable>);
 }
 
 function TShirts() {
@@ -103,40 +97,36 @@ function TShirts() {
     fetchData();
   }, []);
 
-  return (
-    <div className="min-h-full w-full flex">
-      <Sidebar />
-      <main className="flex flex-col justify-center items-center w-full h-full p-4 py-16">
-        {isCreateModalOpen && (
-          <CreateTShirtModal
-            data={formData}
-            setData={setFormData}
-            onRequestClose={handleCloseCreateModal}
-          />
-        )}
-        {isEditModalOpen && (
-          <EditTShirtModal
-            data={formData}
-            setData={setFormData}
-            onRequestClose={handleCloseEditModal}
-          />
-        )}
-        <div className='w-full flex justify-between'>
-          <Toolbar>
-            <h1 className='text-xl'>Camisetas</h1>
-          </Toolbar>
-          <button className="bg-black text-white py-3 px-6" type="button" onClick={() => setIsCreateModalOpen(true)}>
-            Criar
-          </button>
-        </div>
-        {isLoading ? <Spinner /> : <TShirtsTable
-          tShirts={data}
-          onRowClick={handleRowClick}
-          onRowSelect={handleSelectedIndexesChange}
-        />}
-      </main>
-    </div>
-  );
+  return (<>
+    {isCreateModalOpen && (
+      <CreateTShirtModal
+        data={formData}
+        setData={setFormData}
+        onRequestClose={handleCloseCreateModal}
+      />
+    )}
+    {isEditModalOpen && (
+      <EditTShirtModal
+        data={formData}
+        setData={setFormData}
+        onRequestClose={handleCloseEditModal}
+      />
+    )}
+    <DataPage
+      title="Camisetas"
+      isLoading={isLoading}
+      buttons={<button
+        className="bg-black text-white py-3 px-6"
+        type="button"
+        onClick={() => setIsCreateModalOpen(true)}
+      >Criar</button>}
+      table={<TShirtsTable
+        tShirts={data}
+        onRowClick={handleRowClick}
+        onRowSelect={handleSelectedIndexesChange}
+      />}
+    ></DataPage>
+  </>);
 }
 
 export default RequireAuth(TShirts);

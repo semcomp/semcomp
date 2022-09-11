@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react';
 
-import Sidebar from '../components/layout/Sidebar';
-import Spinner from '../components/reusable/Spinner';
-import RenderDate from '../components/reusable/RenderDate';
 import DataTable from '../components/reusable/DataTable';
 import RequireAuth from '../libs/RequireAuth';
 import SemcompApi from '../api/semcomp-api';
 import { useAppContext } from '../libs/contextLib';
 import { SemcompApiUser } from '../models/SemcompApiModels';
-import { Toolbar } from '@mui/material';
+import DataPage from '../components/DataPage';
 
 type UserData = {
   "ID": string,
@@ -44,15 +41,11 @@ function UsersTable({
     })
   }
 
-  return (
-    <div>
-      <DataTable
-        data={data}
-        onRowClick={(index: number) => console.log(index)}
-        onRowSelect={onRowSelect}
-      ></DataTable>
-    </div>
-  );
+  return (<DataTable
+    data={data}
+    onRowClick={(index: number) => console.log(index)}
+    onRowSelect={onRowSelect}
+  ></DataTable>);
 }
 
 function Users() {
@@ -83,22 +76,16 @@ function Users() {
     fetchData();
   }, []);
 
-  return (
-    <div className="min-h-full w-full flex">
-      <Sidebar />
-      <main className="flex justify-center items-center w-full h-full p-4 py-16">
-        <div className='w-full flex justify-between'>
-          <Toolbar>
-            <h1 className='text-xl'>Usuários</h1>
-          </Toolbar>
-        </div>
-        {isLoading ? <Spinner /> : <UsersTable
-          users={data}
-          onRowSelect={handleSelectedIndexesChange}
-        />}
-      </main>
-    </div>
-  );
+  return (<>
+    <DataPage
+      title="Usuários"
+      isLoading={isLoading}
+      table={<UsersTable
+        users={data}
+        onRowSelect={handleSelectedIndexesChange}
+      />}
+    ></DataPage>
+  </>);
 }
 
 export default RequireAuth(Users);

@@ -1,4 +1,4 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, ReactNode } from "react";
 
 import {
   Checkbox,
@@ -26,8 +26,8 @@ function TextInput({
   onChange: any;
   value: string;
   type: InputType;
-  start?: any;
-  end?: any;
+  start?: ReactNode;
+  end?: ReactNode;
 }) {
   return (
     <MaterialInput
@@ -91,8 +91,8 @@ function Input({
   value?: string | boolean;
   type: InputType;
   choices?: string[];
-  start?: any;
-  end?: any;
+  start?: ReactNode;
+  end?: ReactNode;
   className?: string;
 }) {
   let input = (
