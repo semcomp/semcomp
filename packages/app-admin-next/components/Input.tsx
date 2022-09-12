@@ -88,7 +88,7 @@ function Input({
 }: {
   label?: any;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  value?: string | boolean;
+  value?: string | number | boolean;
   type: InputType;
   choices?: string[];
   start?: ReactNode;

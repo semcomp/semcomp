@@ -1,4 +1,4 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, ReactNode } from "react";
 
 import {
   Checkbox,
@@ -11,6 +11,7 @@ export enum InputType {
   Select = "select",
   Checkbox = "checkbox",
   Text = "text",
+  Number = "number",
   Password = "password",
   File = "file",
 }
@@ -25,8 +26,8 @@ function TextInput({
   onChange: any;
   value: string;
   type: InputType;
-  start?: any;
-  end?: any;
+  start?: ReactNode;
+  end?: ReactNode;
 }) {
   return (
     <MaterialInput
@@ -87,11 +88,11 @@ function Input({
 }: {
   label?: any;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  value?: string | boolean;
+  value?: string | number | boolean;
   type: InputType;
   choices?: string[];
-  start?: any;
-  end?: any;
+  start?: ReactNode;
+  end?: ReactNode;
   className?: string;
 }) {
   let input = (
