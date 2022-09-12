@@ -15,7 +15,7 @@ import { useAppContext } from '../../libs/contextLib';
 
 function NavLink({title, href}) {
   return (<Link href={href}>
-    <div className="border-b text-center w-full py-2 border-gray-400">
+    <div className="w-full border-b border-gray-300 text-center py-3">
       {title}
     </div>
   </Link>);
@@ -90,7 +90,7 @@ function Sidebar() {
         {/* <NavLink title="Logs" href={Routes.logs}></NavLink> */}
         <NavLink title="Casas" href={Routes.houses}></NavLink>
         {/* <NavLink title="Enviar Email" href={Routes.broadcastEmail}></NavLink> */}
-        <button className="border-b text-center w-full py-2 border-gray-400 bg-orange text-white" onClick={handleLogout}>
+        <button className="w-full bg-black text-white text-center py-3" onClick={handleLogout}>
           Sair
         </button>
       </Box>

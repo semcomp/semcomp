@@ -59,12 +59,12 @@ function EditTShirtModal({
       <div className="w-full px-6">
         <LoadingButton
           isLoading={isLoading}
-          className="w-full bg-green text-white py-3 px-6"
+          className="w-full text-white py-3 px-6"
           onClick={handleSubmit}
         >
           Enviar
         </LoadingButton>
-        <button className="w-full bg-orange text-white py-3 px-6 my-6" type="button" onClick={onRequestClose}>
+        <button className="w-full bg-red-500 text-white py-3 px-6 my-6" type="button" onClick={onRequestClose}>
           Fechar
         </button>
       </div>
