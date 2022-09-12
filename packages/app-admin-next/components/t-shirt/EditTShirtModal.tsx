@@ -28,7 +28,7 @@ function EditTShirtModal({
     console.log(data);
 
     if (!data.size) return toast.error('Você deve fornecer um tamanho');
-    if (!data.quantity) return toast.error('Você deve fornecer uma quantidade');
+    if (data.quantity < 0) return toast.error('Você deve fornecer uma quantidade');
 
     try {
       setIsLoading(true);

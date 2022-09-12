@@ -14,6 +14,7 @@ type TShirtData = {
   "ID": string,
   "Tamanho": string,
   "Quantidade": number,
+  "Quantidade Utilizada": number,
   "Criado em": string,
 }
 
@@ -32,6 +33,7 @@ function TShirtsTable({
       "ID": tShirt.id,
       "Tamanho": tShirt.size,
       "Quantidade": tShirt.quantity,
+      "Quantidade Utilizada": tShirt.usedQuantity,
       "Criado em": new Date(tShirt.createdAt).toISOString(),
     })
   }

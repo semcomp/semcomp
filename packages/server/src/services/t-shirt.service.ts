@@ -1,9 +1,12 @@
 import { Model } from "mongoose";
 
+import HttpError from "../lib/http-error";
 import TShirt, { TShirtModel } from "../models/t-shirt";
 import IdServiceImpl from "./id-impl.service";
+import PaymentServiceImpl from "./payment-impl.service";
 
 const idService = new IdServiceImpl();
+const paymentService = new PaymentServiceImpl(null, null, null, null);
 
 class TShirtService {
   public async find(filters?: Partial<TShirt>): Promise<TShirt[]> {
@@ -45,6 +48,11 @@ class TShirtService {
   }
 
   public async update(tShirt: TShirt): Promise<TShirt> {
+    const paymentsWithThisTShirtSize = await paymentService.count({ tShirtSize: tShirt.size });
+    if (paymentsWithThisTShirtSize > tShirt.quantity) {
+      throw new HttpError(400, ["O número de camisetas não pode ser menos que o já utilizado!"]);
+    }
+
     tShirt.updatedAt = Date.now();
     const entity = await TShirtModel.findOneAndUpdate({ id: tShirt.id }, tShirt);
 
@@ -55,6 +63,20 @@ class TShirtService {
     const entity = await TShirtModel.findOneAndDelete({ id: tShirt.id });
 
     return entity && this.mapEntity(entity);
+  }
+
+  public async findWithUsedQuantity(): Promise<(TShirt & { usedQuantity: number })[]> {
+    const tShirts = await TShirtModel.find();
+
+    const entities: (TShirt & { usedQuantity: number })[] = [];
+    for (const tShirt of tShirts) {
+      entities.push({
+        ...this.mapEntity(tShirt),
+        usedQuantity: await paymentService.count({ tShirtSize: tShirt.size }),
+      });
+    }
+
+    return entities;
   }
 
   private mapEntity(entity: Model<TShirt> & TShirt): TShirt {

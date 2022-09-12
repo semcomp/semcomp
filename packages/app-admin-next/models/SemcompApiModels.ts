@@ -46,6 +46,7 @@ export type SemcompApiTShirt = {
   id: string,
   size: string,
   quantity: number,
+  usedQuantity: number,
   createdAt: number,
   updatedAt: number,
 };

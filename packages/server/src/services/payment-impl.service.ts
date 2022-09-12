@@ -1,22 +1,13 @@
 import { Model } from "mongoose";
-import HttpError from "../lib/http-error";
 
+import HttpError from "../lib/http-error";
 import Payment, { PaymentModel } from "../models/payment";
 import IdService from "./id.service";
 import { UserService } from "./user.service";
 import PaymentIntegrationService from "./payment-integration.service";
+import tShirtService from "./t-shirt.service";
 import PaymentService from "./payment.service";
 import TShirtSize from "../lib/constants/t-shirt-size-enum";
-
-const tShirtSizesQuantities = {
-  [TShirtSize.PP]: 6,
-  [TShirtSize.P]: 20,
-  [TShirtSize.M]: 130,
-  [TShirtSize.G]: 66,
-  [TShirtSize.GG]: 14,
-  [TShirtSize.XGG1]: 6,
-  [TShirtSize.XGG2]: 8,
-}
 
 export default class PaymentServiceImpl implements PaymentService {
   private idService: IdService;
@@ -98,6 +89,11 @@ export default class PaymentServiceImpl implements PaymentService {
       throw new HttpError(400, []);
     }
 
+    const tShirt = await tShirtService.findOne({ size: tShirtSize });
+    if (!tShirt) {
+      throw new HttpError(400, []);
+    }
+
     const price = withSocialBenefit ? 32.5 : 65.00;
 
     const payment = await this.findOne({ userId });
@@ -112,7 +108,7 @@ export default class PaymentServiceImpl implements PaymentService {
         if (payment.tShirtSize !== tShirtSize) {
           payment.tShirtSize = tShirtSize;
           const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
-          if (paymentsWithThisTShirtSize >= tShirtSizesQuantities[tShirtSize]) {
+          if (paymentsWithThisTShirtSize >= tShirt.quantity) {
             throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
           }
         }
@@ -137,7 +133,7 @@ export default class PaymentServiceImpl implements PaymentService {
     }
 
     const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
-    if (paymentsWithThisTShirtSize >= tShirtSizesQuantities[tShirtSize]) {
+    if (paymentsWithThisTShirtSize >= tShirt.quantity) {
       throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
     }
 

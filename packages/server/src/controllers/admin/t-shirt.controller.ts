@@ -9,7 +9,7 @@ import adminLogService from "../../services/admin-log.service";
 class TShirtController {
   public async list(req, res, next) {
     try {
-      const foundEntities = await tShirtService.find();
+      const foundEntities = await tShirtService.findWithUsedQuantity();
 
       return res.status(200).json(foundEntities);
     } catch (error) {
