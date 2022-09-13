@@ -7,7 +7,7 @@ const HomeHeader = (): ReactElement => {
   return (
     <header id="header" className="h-screen flex flex-col justify-between font-primary text-secondary">
       <div className="w-full">
-        <NavBar />
+        <NavBar bg={" "} />
       </div>
       <div id="header-content" className="flex flex-col items-center px-14 text-center">
         <h1 id="title" className="text-5xl md:text-9xl">
