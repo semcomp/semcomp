@@ -28,6 +28,7 @@ module.exports = {
     },
     fontFamily: {
       primary: ["Staatliches", "sans-serif"],
+      qatar: ["Qatar2022-Bold"],
     },
     extend: {},
   },
