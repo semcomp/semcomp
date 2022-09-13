@@ -21,10 +21,16 @@ const Navbar = (props) => {
     router.push(Routes.home);
   }
 
-  const classnameProperties = props.bg ? "text-center p-4 w-full {bg-primary} md:flex md:justify-between md:items-center " + props.bg : "text-center p-4 w-full {bg-primary} md:flex md:justify-between md:items-center bg-primary";
+  // Se alguma propriedade de estilo para o background (bg) for passada 
+  // via props, vai adicionar nos estilos da navbar. 
+  // Caso contrário, só mantém o bg-primary
+
+  let navStyles = "text-center p-4 w-full {bg-primary} md:flex md:justify-between md:items-center ";
+
+  props.bg ? navStyles += props.pg : navStyles += "bg-primary";
 
   return (
-    <nav className={classnameProperties}>
+    <nav className={navStyles}>
       <NavLink href={Routes.home}>
         <Image
           alt="Semcomp logo"
