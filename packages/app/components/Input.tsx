@@ -2,11 +2,13 @@ import { ChangeEvent, ReactNode } from "react";
 
 import {
   Checkbox,
+  IconButton,
   Input as MaterialInput,
   MenuItem,
   Select,
   Tooltip,
 } from "@mui/material";
+import { Info } from "@mui/icons-material";
 
 export enum InputType {
   Select = "select",
@@ -34,19 +36,34 @@ function TextInput({
   start?: ReactNode;
   end?: ReactNode;
 }) {
-  return (
-    <Tooltip title={tooltip ? tooltip : ""}>
-      <MaterialInput
-        autoFocus={autofocus}
-        fullWidth
-        onChange={onChange}
-        value={value}
-        type={type}
-        className="my-3"
-        startAdornment={start}
-        endAdornment={end}
-      />
+  let returnContent = tooltip ? (<>
+    <Tooltip arrow placement="right-start" title={tooltip ? tooltip : ""}>
+      <Info sx={{ color: "#002776" }}></Info>
     </Tooltip>
+    <MaterialInput
+      autoFocus={autofocus}
+      fullWidth
+      onChange={onChange}
+      value={value}
+      type={type}
+      className="my-3"
+      startAdornment={start}
+      endAdornment={end}
+    />
+  </>) :
+    <MaterialInput
+      autoFocus={autofocus}
+      fullWidth
+      onChange={onChange}
+      value={value}
+      type={type}
+      className="my-3"
+      startAdornment={start}
+      endAdornment={end}
+    />;
+
+  return (
+    returnContent
   );
 }
 
@@ -145,7 +162,7 @@ function Input({
         {input}
         {type === InputType.Checkbox && label}
       </label>
-    </div>
+    </div >
   );
 }
 
