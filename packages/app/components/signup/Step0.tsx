@@ -5,15 +5,15 @@ import { IconButton, InputAdornment } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
-import Input, {InputType} from "../Input";
+import Input, { InputType } from "../Input";
 
 function Step0(
   { formValue, updateFormValue, onSubmit }:
-  {
-    formValue: any,
-    updateFormValue: Function,
-    onSubmit: Function,
-  }
+    {
+      formValue: any,
+      updateFormValue: Function,
+      onSubmit: Function,
+    }
 ) {
   const [name, setName] = useState(formValue.name as string);
   function handleNameChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -45,6 +45,7 @@ function Step0(
   return (
     <form className="w-full" onSubmit={handleSubmit}>
       <Input
+        autofocus={true}
         className="my-3"
         label="Nome"
         value={name}
@@ -65,12 +66,12 @@ function Step0(
         onChange={handlePasswordChange}
         type={showPassword ? InputType.Text : InputType.Password}
         end={
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowPassword(!showPassword)}>
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            }
+          <InputAdornment position="end">
+            <IconButton onClick={() => setShowPassword(!showPassword)}>
+              {showPassword ? <VisibilityOff /> : <Visibility />}
+            </IconButton>
+          </InputAdornment>
+        }
       />
       <button
         type="submit"
