@@ -5,6 +5,7 @@ import {
   Input as MaterialInput,
   MenuItem,
   Select,
+  Tooltip,
 } from "@mui/material";
 
 export enum InputType {
@@ -17,6 +18,7 @@ export enum InputType {
 }
 
 function TextInput({
+  tooltip,
   autofocus,
   onChange,
   value,
@@ -24,6 +26,7 @@ function TextInput({
   start,
   end,
 }: {
+  tooltip: String,
   autofocus: boolean,
   onChange: any;
   value: string;
@@ -32,16 +35,18 @@ function TextInput({
   end?: ReactNode;
 }) {
   return (
-    <MaterialInput
-      autoFocus={autofocus}
-      fullWidth
-      onChange={onChange}
-      value={value}
-      type={type}
-      className="my-3"
-      startAdornment={start}
-      endAdornment={end}
-    />
+    <Tooltip title={tooltip ? tooltip : ""}>
+      <MaterialInput
+        autoFocus={autofocus}
+        fullWidth
+        onChange={onChange}
+        value={value}
+        type={type}
+        className="my-3"
+        startAdornment={start}
+        endAdornment={end}
+      />
+    </Tooltip>
   );
 }
 
@@ -80,6 +85,7 @@ function FileInput({ onChange, value }: { onChange: any; value: string }) {
 }
 
 function Input({
+  tooltip,
   autofocus,
   label,
   onChange,
@@ -90,6 +96,7 @@ function Input({
   end,
   className,
 }: {
+  tooltip?: string,
   autofocus?: boolean,
   label?: any;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -102,6 +109,7 @@ function Input({
 }) {
   let input = (
     <TextInput
+      tooltip={tooltip}
       autofocus={autofocus}
       onChange={onChange}
       value={value as string}
@@ -109,6 +117,7 @@ function Input({
       start={start}
       end={end}
     />
+
   );
 
   if (type === InputType.Checkbox) {
