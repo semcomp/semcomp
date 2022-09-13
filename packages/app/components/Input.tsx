@@ -36,21 +36,23 @@ function TextInput({
   start?: ReactNode;
   end?: ReactNode;
 }) {
-  let returnContent = tooltip ? (<>
-    <Tooltip arrow placement="top-start" title={tooltip ? tooltip : ""}>
-      <Info sx={{ color: "#002776" }}></Info>
-    </Tooltip>
-    <MaterialInput
-      autoFocus={autofocus}
-      fullWidth
-      onChange={onChange}
-      value={value}
-      type={type}
-      className="my-3"
-      startAdornment={start}
-      endAdornment={end}
-    />
-  </>) :
+  let returnContent = tooltip ? (
+    <>
+      <Tooltip arrow placement="top-start" title={tooltip ? tooltip : ""}>
+        <Info sx={{ color: "#002776" }}></Info>
+      </Tooltip>
+      <MaterialInput
+        autoFocus={autofocus}
+        fullWidth
+        onChange={onChange}
+        value={value}
+        type={type}
+        className="my-3"
+        startAdornment={start}
+        endAdornment={end}
+      />
+    </>
+  ) :
     <MaterialInput
       autoFocus={autofocus}
       fullWidth
