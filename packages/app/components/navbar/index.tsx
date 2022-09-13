@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { useRouter } from "next/router";
 
 import Navlink from "./nav-link"; // a link reference 'a' with the appearance of a button
 import Routes from "../../routes";
@@ -8,15 +8,17 @@ import NavLink from "./nav-link";
 import Image from "next/image";
 
 const Navbar = () => {
-  const { user, setUser, setToken } = useAppContext();
+  const { user } = useAppContext();
+  const router = useRouter();
   const isUserLoggedIn = Boolean(user);
 
   const tShirtsFormLink =
     "https://docs.google.com/forms/d/e/1FAIpQLSdBUY4gf8-CKhoXEmZ_bIvovprtGi7KOwNuo2WFcfsejl6a5w/viewform";
 
   function logUserOut() {
-    setUser(null);
-    setToken(null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push(Routes.home);
   }
 
   return (
@@ -50,9 +52,12 @@ const Navbar = () => {
             {/* <Navlink href={Routes.riddlethon}>Riddlethon</Navlink> */}
             {/* <Navlink href={Routes.hardToClick}>Duro de Clicar</Navlink> */}
             <Navlink href={Routes.profile}>Perfil</Navlink>
-            <Navlink onClick={logUserOut} href={Routes.home}>
+            <button
+              onClick={logUserOut}
+              className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-white rounded-lg hover:bg-hoverWhite duration-200"
+            >
               Sair
-            </Navlink>
+            </button>
           </>
         ) : (
           <>
