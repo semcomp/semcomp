@@ -1,3 +1,5 @@
+import { TShirtSize } from "../components/t-shirt/TShirtForm";
+
 export type SemcompApiUser = {
   id: string,
   email: string,
@@ -10,6 +12,7 @@ export type SemcompApiUser = {
   telegram: string,
   disabilities: string[],
   paid: boolean,
+  tShirtSize: TShirtSize,
   permission: boolean,
   createdAt: number,
   updatedAt: number,

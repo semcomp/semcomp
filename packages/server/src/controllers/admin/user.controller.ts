@@ -15,18 +15,28 @@ import { handleError } from "../../lib/handle-error";
 import adminLogService from "../../services/admin-log.service";
 import userDisabilityService from "../../services/user-disability.service";
 import Disability from "../../lib/constants/disability-enum";
+import PaymentServiceImpl from "../../services/payment-impl.service";
+import TShirtSize from "../../lib/constants/t-shirt-size-enum";
 
-class UserController {
+export default class UserController {
+  private paymentService: PaymentServiceImpl;
+
+  constructor(paymentService: PaymentServiceImpl) {
+    this.paymentService = paymentService;
+  }
+
   public async list(req, res, next) {
     const usersFound = await userService.find();
     const housesFound = await houseService.find();
     const houseMembersFound = await houseMemberService.find();
     const userDisabilities = await userDisabilityService.find();
+    const payments = await this.paymentService.find();
 
     const users: (User & {
       house: {
         name: string,
       },
+      tShirtSize: TShirtSize,
       disabilities: Disability[]
     })[] = [];
     for (const user of usersFound) {
@@ -39,11 +49,16 @@ class UserController {
         return house.id === userHouseMember.houseId;
       }).name;
 
+      const userPayment = payments.find((payment) => {
+        return payment.userId === user.id;
+      });
+
       users.push({
         ...user,
         house: {
           name: userHouse,
         },
+        tShirtSize: userPayment ? userPayment.tShirtSize : null,
         disabilities: userDisabilities
           .filter((userDisability) => userDisability.userId === user.id)
           .map((userDisability) => userDisability.disability),
@@ -190,5 +205,3 @@ class UserController {
     }
   };
 }
-
-export default new UserController();

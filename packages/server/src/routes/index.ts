@@ -2,7 +2,7 @@ import { Router } from "express";
 import { config } from "dotenv";
 config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env` });
 
-import adminRouter from "./admin";
+import AdminRouter from "./admin";
 import achievementsRouter from "./achievement.router";
 import riddleRouter from "./riddle.router";
 import riddlethonRouter from "./riddlethon.router";
@@ -44,7 +44,9 @@ const authController = new AuthController(paymentServiceImpl);
 const authRouter = new AuthRouter(authController);
 router.use("/auth", authRouter.create());
 
-router.use("/admin", adminRouter);
+const adminRouter = new AdminRouter(paymentServiceImpl);
+router.use("/admin", adminRouter.create());
+
 router.use("/achievements", achievementsRouter);
 router.use("/riddle", riddleRouter);
 router.use("/riddlethon", riddlethonRouter);

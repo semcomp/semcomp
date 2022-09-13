@@ -6,6 +6,7 @@ import SemcompApi from '../api/semcomp-api';
 import { useAppContext } from '../libs/contextLib';
 import { SemcompApiUser } from '../models/SemcompApiModels';
 import DataPage from '../components/DataPage';
+import { TShirtSize } from '../components/t-shirt/TShirtForm';
 
 type UserData = {
   "ID": string,
@@ -15,6 +16,7 @@ type UserData = {
   "Telegram": string,
   "Casa": string,
   "Pagou?": string,
+  "Tamanho da camiseta?": TShirtSize,
   "Permite divulgação?": string,
   "Criado em": string,
 }
@@ -36,6 +38,7 @@ function UsersTable({
       "Telegram": user.telegram,
       "Casa": user.house.name,
       "Pagou?": user.paid ? "Sim" : "Não",
+      "Tamanho da camiseta?": user.tShirtSize,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
       "Criado em": new Date(user.createdAt).toISOString(),
     })

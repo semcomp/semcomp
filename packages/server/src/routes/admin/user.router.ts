@@ -1,50 +1,63 @@
 import { Router } from "express";
 
 import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
-import adminUserController from "../../controllers/admin/user.controller";
+import UserAdminController from "../../controllers/admin/user.controller";
+import PaymentServiceImpl from "../../services/payment-impl.service";
 
-const router = Router();
+export default class UserAdminRouter {
+  private paymentService: PaymentServiceImpl;
+  private userAdminController: UserAdminController;
 
-router.get(
-  "/",
-  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  adminUserController.list
-);
+  constructor(paymentService: PaymentServiceImpl) {
+    this.paymentService = paymentService;
+    this.userAdminController = new UserAdminController(this.paymentService);
+  }
 
-router.get(
-  "/for-enterprise",
-  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  adminUserController.listForEnterprise
-);
+  public create(): Router {
+    const router = Router();
 
-router.get(
-  "/attendance/:id",
-  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  adminUserController.getAttendance
-);
+    router.get(
+      "/",
+      [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+      (req, res, next) => this.userAdminController.list(req, res, next),
+    );
 
-router.post(
-  "/:userId/achievements/:achievementId",
-  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  adminUserController.addUserAchievement
-);
+    router.get(
+      "/for-enterprise",
+      [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+      (req, res, next) => this.userAdminController.listForEnterprise(req, res, next),
+    );
 
-router.get(
-  "/:id",
-  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  adminUserController.get
-);
+    router.get(
+      "/attendance/:id",
+      [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+      (req, res, next) => this.userAdminController.getAttendance(req, res, next),
+    );
 
-router.put(
-  "/:id",
-  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  adminUserController.update
-);
+    router.post(
+      "/:userId/achievements/:achievementId",
+      [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+      (req, res, next) => this.userAdminController.addUserAchievement(req, res, next),
+    );
 
-router.delete(
-  "/:id",
-  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-  adminUserController.deleteById
-);
+    router.get(
+      "/:id",
+      [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+      (req, res, next) => this.userAdminController.get(req, res, next),
+    );
 
-export default router;
+    router.put(
+      "/:id",
+      [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+      (req, res, next) => this.userAdminController.update(req, res, next),
+    );
+
+    router.delete(
+      "/:id",
+      [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+      (req, res, next) => this.userAdminController.deleteById(req, res, next),
+    );
+
+    return router;
+  }
+}
