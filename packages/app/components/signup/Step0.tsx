@@ -45,7 +45,7 @@ function Step0(
   return (
     <form className="w-full" onSubmit={handleSubmit}>
       <Input
-        tooltip={<div>Esse nome será usado em:<br />1. Seu(s) certificado(s);<br />2. Seu crachá.<br /><strong>Você poderá alterá-lo posteriormente na sua página de perfil.</strong></div>}
+        tooltip={<div style={{ fontSize: "13px" }}>Esse nome será usado em:<br />1. Seu(s) certificado(s);<br />2. Seu crachá.<br /><strong>Você poderá alterá-lo posteriormente na sua página de perfil.</strong></div>}
         autofocus={true}
         className="my-3"
         label="Nome "
