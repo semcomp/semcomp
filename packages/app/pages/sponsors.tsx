@@ -68,7 +68,7 @@ const SponsorsPage = () => {
       {/* This div is here to allow for the aside to be on the right side of the page */}
       <div className="m-8 flex flex-col items-center md:w-full md:justify-between md:px-16 md:py-8 md:m-0">
         <main className="flex flex-col px-0 py-8">
-          <h2 className="text-3xl py-6">Patrocinadores</h2>
+          <h2 className="text-3xl py-6 font-qatar">Patrocinadores</h2>
           {/* <p className="thanks-from-semcomp">
             Queremos agradecer aos apoiadores, sem os quais seria impossível
             organizar o nosso retorno à Semcomp presencial. Esperamos que tanto
@@ -87,7 +87,7 @@ const SponsorsPage = () => {
             ))}
           </div>
           <hr />
-          <h2 className="text-3xl py-6">Apoiadores</h2>
+          <h2 className="text-3xl py-6 font-qatar">Apoiadores</h2>
           <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4">
             {supportersInfo.map((supporter, index) => (
               <SponsorCard
