@@ -38,7 +38,7 @@ function TextInput({
 }) {
   let returnContent = tooltip ? (<>
     <Tooltip arrow placement="top-start" title={tooltip ? tooltip : ""}>
-      <>{" "}<Info sx={{ color: "#002776" }}></Info></>
+      <Info sx={{ color: "#002776" }}></Info>
     </Tooltip>
     <MaterialInput
       autoFocus={autofocus}
