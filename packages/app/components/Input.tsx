@@ -38,7 +38,7 @@ function TextInput({
 }) {
   let returnContent = tooltip ? (
     <>
-      <Tooltip arrow placement="top-start" title={tooltip ? tooltip : ""}>
+      <Tooltip arrow placement="top-start" title={tooltip ? tooltip : ""} enterTouchDelay={1}>
         <Info sx={{ color: "#002776" }} />
       </Tooltip>
       <MaterialInput
