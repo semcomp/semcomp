@@ -7,7 +7,7 @@ import { useAppContext } from "../../libs/contextLib";
 import NavLink from "./nav-link";
 import Image from "next/image";
 
-const Navbar = () => {
+const Navbar = (props) => {
   const { user } = useAppContext();
   const router = useRouter();
   const isUserLoggedIn = Boolean(user);
@@ -21,8 +21,10 @@ const Navbar = () => {
     router.push(Routes.home);
   }
 
+  const classnameProperties = props.bg ? "text-center p-4 w-full {bg-primary} md:flex md:justify-between md:items-center " + props.bg : "text-center p-4 w-full {bg-primary} md:flex md:justify-between md:items-center bg-primary";
+
   return (
-    <nav className="text-center p-4 w-full bg-primary md:flex md:justify-between md:items-center">
+    <nav className={classnameProperties}>
       <NavLink href={Routes.home}>
         <Image
           alt="Semcomp logo"
