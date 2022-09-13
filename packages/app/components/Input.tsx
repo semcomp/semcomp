@@ -17,12 +17,14 @@ export enum InputType {
 }
 
 function TextInput({
+  autofocus,
   onChange,
   value,
   type,
   start,
   end,
 }: {
+  autofocus: boolean,
   onChange: any;
   value: string;
   type: InputType;
@@ -31,6 +33,7 @@ function TextInput({
 }) {
   return (
     <MaterialInput
+      autoFocus={autofocus}
       fullWidth
       onChange={onChange}
       value={value}
@@ -73,10 +76,11 @@ function CheckboxInput({ onChange, value }: { onChange: any; value: boolean }) {
 }
 
 function FileInput({ onChange, value }: { onChange: any; value: string }) {
-  return <MaterialInput type="file" onChange={onChange} value={value} inputProps={{accept:".pdf"}} />;
+  return <MaterialInput type="file" onChange={onChange} value={value} inputProps={{ accept: ".pdf" }} />;
 }
 
 function Input({
+  autofocus,
   label,
   onChange,
   value,
@@ -86,6 +90,7 @@ function Input({
   end,
   className,
 }: {
+  autofocus?: boolean,
   label?: any;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   value?: string | number | boolean;
@@ -97,6 +102,7 @@ function Input({
 }) {
   let input = (
     <TextInput
+      autofocus={autofocus}
       onChange={onChange}
       value={value as string}
       type={type}
