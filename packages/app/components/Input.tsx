@@ -28,7 +28,7 @@ function TextInput({
   start,
   end,
 }: {
-  tooltip: String,
+  tooltip: any,
   autofocus: boolean,
   onChange: any;
   value: string;
@@ -37,8 +37,8 @@ function TextInput({
   end?: ReactNode;
 }) {
   let returnContent = tooltip ? (<>
-    <Tooltip arrow placement="right-start" title={tooltip ? tooltip : ""}>
-      <Info sx={{ color: "#002776" }}></Info>
+    <Tooltip arrow placement="top-start" title={tooltip ? tooltip : ""}>
+      <>{" "}<Info sx={{ color: "#002776" }}></Info></>
     </Tooltip>
     <MaterialInput
       autoFocus={autofocus}
@@ -113,7 +113,7 @@ function Input({
   end,
   className,
 }: {
-  tooltip?: string,
+  tooltip?: any,
   autofocus?: boolean,
   label?: any;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
