@@ -48,7 +48,7 @@ function Step0(
         tooltip={<div>Esse nome será usado em:<br />1. Seu(s) certificado(s);<br />2. Seu crachá.<br /><strong>Você poderá alterá-lo posteriormente na sua página de perfil.</strong></div>}
         autofocus={true}
         className="my-3"
-        label="Nome"
+        label="Nome "
         value={name}
         onChange={handleNameChange}
         type={InputType.Text}
