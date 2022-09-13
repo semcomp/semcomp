@@ -33,9 +33,6 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (user && token) {
       setUser(user);
       setToken(token);
-    } else {
-      setUser(null);
-      setToken(null);
     }
     setIsLoading(false);
   }, []);

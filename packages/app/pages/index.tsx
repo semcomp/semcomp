@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 import About from "../components/home/About";
 import Footer from "../components/Footer";
 import HomeHeader from "../components/home/Header";
@@ -6,8 +8,20 @@ import FAQ from "../components/home/Faq";
 // import LiveNow from "../components/home/live-now";
 import Sponsors from "../components/home/Sponsors";
 import Stats from "../components/home/Stats";
+import { useAppContext } from "../libs/contextLib";
 
 function Home() {
+  const { setUser, setToken } = useAppContext();
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = localStorage.getItem("token");
+    if (!user || !token) {
+      setUser(null);
+      setToken(null);
+    }
+  }, []);
+
   return (
     <main className="home">
       <div>
