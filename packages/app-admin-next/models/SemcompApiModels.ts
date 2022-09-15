@@ -1,5 +1,10 @@
 import { TShirtSize } from "../components/t-shirt/TShirtForm";
 
+export enum PaymentStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+};
+
 export type SemcompApiUser = {
   id: string,
   email: string,
@@ -9,10 +14,12 @@ export type SemcompApiUser = {
   house: {
     name: string,
   },
+  payment: {
+    status: PaymentStatus,
+    tShirtSize: TShirtSize,
+  },
   telegram: string,
   disabilities: string[],
-  paid: boolean,
-  tShirtSize: TShirtSize,
   permission: boolean,
   createdAt: number,
   updatedAt: number,

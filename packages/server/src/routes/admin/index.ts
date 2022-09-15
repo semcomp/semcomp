@@ -18,16 +18,19 @@ import pushNotificationRouter from "./push-notification.router";
 import TShirtRouter from "./t-shirt.router";
 import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
 import PaymentServiceImpl from "../../services/payment-impl.service";
+import PaymentRouter from "./payment.router";
 
 const tShirtRouter = new TShirtRouter(adminAuthMiddleware);
 
 export default class AdminRouter {
   private paymentService: PaymentServiceImpl;
   private usersRouter: UsersRouter;
+  private paymentRouter: PaymentRouter;
 
   constructor(paymentService: PaymentServiceImpl) {
     this.paymentService = paymentService;
     this.usersRouter = new UsersRouter(this.paymentService);
+    this.paymentRouter = new PaymentRouter(adminAuthMiddleware, this.paymentService);
   }
 
   public create(): Router {
@@ -43,6 +46,7 @@ export default class AdminRouter {
     router.use("/admin-users", adminUsersRouter);
     router.use("/users", this.usersRouter.create());
     router.use("/logs", logsRouter);
+    router.use("/payments", this.paymentRouter.create());
     router.use("/achievements", achievementsRouter);
     router.use("/events", eventsRouter);
     router.use("/houses", housesRouter);

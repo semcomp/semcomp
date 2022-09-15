@@ -8,6 +8,7 @@ import PaymentIntegrationService from "./payment-integration.service";
 import tShirtService from "./t-shirt.service";
 import PaymentService from "./payment.service";
 import TShirtSize from "../lib/constants/t-shirt-size-enum";
+import PaymentStatus from "../lib/constants/payment-status-enum";
 
 export default class PaymentServiceImpl implements PaymentService {
   private idService: IdService;
@@ -139,6 +140,7 @@ export default class PaymentServiceImpl implements PaymentService {
 
     const newPaymentData: Payment = {
       userId: user.id,
+      status: PaymentStatus.PENDING,
       withSocialBenefit,
       socialBenefitFileName,
       tShirtSize,
@@ -164,7 +166,9 @@ export default class PaymentServiceImpl implements PaymentService {
     const paymentResponse = await this.paymentIntegrationService.find(payment.paymentIntegrationId);
 
     if (paymentResponse.status === 'approved') {
-      await this.userService.pay(payment.userId);
+      payment.status = PaymentStatus.APPROVED;
+
+      await this.update(payment);
     }
   }
 
@@ -172,6 +176,23 @@ export default class PaymentServiceImpl implements PaymentService {
     const entity = await PaymentModel.findOne({ userId });
 
     return entity && this.mapEntity(entity);
+  }
+
+  public async syncUsersPayment(): Promise<void> {
+    const users = await this.userService.find();
+
+    for (const user of users) {
+      const payment = await PaymentModel.findOne({ userId: user.id });
+      if (payment) {
+        if (user.paid) {
+          payment.status = PaymentStatus.APPROVED;
+        } else {
+          payment.status = PaymentStatus.PENDING;
+        }
+
+        await this.update(payment);
+      }
+    }
   }
 
   private mapEntity(entity: Model<Payment> & Payment): Payment {
@@ -184,6 +205,7 @@ export default class PaymentServiceImpl implements PaymentService {
       withSocialBenefit: entity.withSocialBenefit,
       socialBenefitFileName: entity.socialBenefitFileName,
       tShirtSize: entity.tShirtSize,
+      status: entity.status,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };

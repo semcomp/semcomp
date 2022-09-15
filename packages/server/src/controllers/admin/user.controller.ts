@@ -1,5 +1,4 @@
 import AdminLog from "../../models/admin-log";
-
 import HttpError from "../../lib/http-error";
 import eventService from "../../services/event.service";
 import attendanceService from "../../services/attendance.service";
@@ -17,6 +16,7 @@ import userDisabilityService from "../../services/user-disability.service";
 import Disability from "../../lib/constants/disability-enum";
 import PaymentServiceImpl from "../../services/payment-impl.service";
 import TShirtSize from "../../lib/constants/t-shirt-size-enum";
+import PaymentStatus from "../../lib/constants/payment-status-enum";
 
 export default class UserController {
   private paymentService: PaymentServiceImpl;
@@ -36,7 +36,10 @@ export default class UserController {
       house: {
         name: string,
       },
-      tShirtSize: TShirtSize,
+      payment: {
+        status: PaymentStatus,
+        tShirtSize: TShirtSize,
+      },
       disabilities: Disability[]
     })[] = [];
     for (const user of usersFound) {
@@ -58,7 +61,10 @@ export default class UserController {
         house: {
           name: userHouse,
         },
-        tShirtSize: userPayment ? userPayment.tShirtSize : null,
+        payment: {
+          status: userPayment ? userPayment.status : null,
+          tShirtSize: userPayment ? userPayment.tShirtSize : null,
+        },
         disabilities: userDisabilities
           .filter((userDisability) => userDisability.userId === user.id)
           .map((userDisability) => userDisability.disability),

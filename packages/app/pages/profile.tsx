@@ -231,7 +231,7 @@ function Profile() {
           <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Coffee</h1>
             <p>Pague com PIX o Coffee + Kit da Semcomp 25</p>
-            {userFetched?.paid ? (
+            {user.payment.status === "approved" ? (
               <>
                 <Chip label="Pago" color="warning" />
                 <Chip className="mt-3" label={`Camiseta ${user.payment.tShirtSize}`} />

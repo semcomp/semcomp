@@ -4,7 +4,7 @@ import DataTable from '../components/reusable/DataTable';
 import RequireAuth from '../libs/RequireAuth';
 import SemcompApi from '../api/semcomp-api';
 import { useAppContext } from '../libs/contextLib';
-import { SemcompApiUser } from '../models/SemcompApiModels';
+import { PaymentStatus, SemcompApiUser } from '../models/SemcompApiModels';
 import DataPage from '../components/DataPage';
 import { TShirtSize } from '../components/t-shirt/TShirtForm';
 
@@ -15,7 +15,7 @@ type UserData = {
   "Curso": string,
   "Telegram": string,
   "Casa": string,
-  "Pagou?": string,
+  "Status do pagamento": string,
   "Tamanho da camiseta": TShirtSize,
   "Permite divulgação?": string,
   "Criado em": string,
@@ -30,6 +30,11 @@ function UsersTable({
 }) {
   const data: UserData[] = [];
   for (const user of users) {
+    let paymentStatus = "";
+    if (user.payment.status) {
+      paymentStatus = user.payment.status === PaymentStatus.APPROVED ? "Aprovado" : "Pendente";
+    }
+
     data.push({
       "ID": user.id,
       "E-mail": user.email,
@@ -37,8 +42,8 @@ function UsersTable({
       "Curso": user.course,
       "Telegram": user.telegram,
       "Casa": user.house.name,
-      "Pagou?": user.paid ? "Sim" : "Não",
-      "Tamanho da camiseta": user.tShirtSize,
+      "Status do pagamento": paymentStatus,
+      "Tamanho da camiseta": user.payment.tShirtSize,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
       "Criado em": new Date(user.createdAt).toISOString(),
     })
