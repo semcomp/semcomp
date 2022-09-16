@@ -7,18 +7,19 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
+import { Box } from '@mui/material';
 
 import Routes from '../../routes';
 import SemcompLogo from '../../assets/semcomp-logo-textless.png';
 import { useAppContext } from '../../libs/contextLib';
 
-/** Tailwind styles. */
-const style = {
-  main: 'flex flex-col items-center shadow-lg',
-  logo: 'w-8 mx-4 my-auto',
-  nav: 'flex flex-col w-full border-t border-gray-400',
-  button: 'border-b text-center w-full py-2 border-gray-400',
-};
+function NavLink({title, href}) {
+  return (<Link href={href}>
+    <div className="w-full border-b border-gray-300 text-center py-3">
+      {title}
+    </div>
+  </Link>);
+}
 
 const drawerWidth = 192;
 
@@ -38,103 +39,63 @@ const AppBar = styled(MuiAppBar as any, {
   }),
 }));
 
-/**
- * @return {object}
- */
 function Sidebar() {
-  const { setUser, setToken } = useAppContext();
+  const { logOut } = useAppContext();
 
-  const [open, setOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const handleToggleSidebar = () => {
-    setOpen(!open);
-  };
-
-  /**
-   * handleLogout
-   */
   function handleLogout() {
-    setUser(null);
-    setToken(null);
+    logOut();
   }
 
-  return (
-    <>
-      <header>
-        <AppBar position="fixed" open={open} color="default">
-          <Toolbar>
-            <IconButton
-              color="inherit"
-              onClick={handleToggleSidebar}
-              edge="start"
-              sx={{ ...(open && { display: 'none' }) }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Link href={Routes.home}>
-              <img className={style.logo} src={SemcompLogo.src} alt="semcomp logo" />
-            </Link>
-          </Toolbar>
-        </AppBar>
-      </header>
-      <Drawer variant="persistent" anchor="left" open={open}>
-        <nav className={style.nav}>
-          <Link href={Routes.users}>
-            <span onClick={handleToggleSidebar} className={style.button}>
-              Usuários
-            </span>
+  return (<>
+    <header>
+      <AppBar position="fixed" open={isOpen} color="default">
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            onClick={() => setIsOpen(true)}
+            edge="start"
+            sx={{ ...(isOpen && { display: 'none' }) }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Link href={Routes.home}>
+            <img className="w-8 mx-4 my-auto" src={SemcompLogo.src} alt="semcomp logo" />
           </Link>
-          <Link href={Routes.adminUsers}>
-            <span onClick={handleToggleSidebar} className={style.button}>
-              Administradores
-            </span>
-          </Link>
-          {/* <Link className={style.button} onClick={handleToggleSidebar} href={Routes.achievements}>Conquistas</Link> */}
-          <Link href={Routes.events}>
-            <span onClick={handleToggleSidebar} className={style.button}>
-              Eventos
-            </span>
-          </Link>
-          {/* <Link className={style.button} onClick={handleToggleSidebar} href={Routes.riddleQuestions}>Riddle - Perguntas</Link> */}
-          {/* <Link className={style.button} onClick={handleToggleSidebar} href={Routes.riddleGroups}>Riddle - Grupos</Link> */}
-          <Link href={Routes.riddlethonQuestions}>
-            <span onClick={handleToggleSidebar} className={style.button}>
-              Riddlethon - Perguntas
-            </span>
-          </Link>
-          <Link href={Routes.riddlethonGroups}>
-            <span onClick={handleToggleSidebar} className={style.button}>
-              Riddlethon - Grupos
-            </span>
-          </Link>
-          <Link href={Routes.hardToClickQuestions}>
-            <span onClick={handleToggleSidebar} className={style.button}>
-              Duro de Clicar - Perguntas
-            </span>
-          </Link>
-          <Link href={Routes.hardToClickGroups}>
-            <span onClick={handleToggleSidebar} className={style.button}>
-              Duro de Clicar - Grupos
-            </span>
-          </Link>
-          <Link href={Routes.logs}>
-            <span onClick={handleToggleSidebar} className={style.button}>
-              Logs
-            </span>
-          </Link>
-          {/* <Link className={style.button} onClick={handleToggleSidebar} href={Routes.houses}>Casas</Link> */}
-          <Link href={Routes.broadcastEmail}>
-            <span onClick={handleToggleSidebar} className={style.button}>
-              Enviar Email
-            </span>
-          </Link>
-          <button className={style.button} onClick={handleLogout}>
-            Sair
-          </button>
-        </nav>
-      </Drawer>
-    </>
-  );
+        </Toolbar>
+      </AppBar>
+    </header>
+    <Drawer
+      anchor="left"
+      open={isOpen}
+      onClose={() => setIsOpen(false)}
+    >
+      <Box
+        sx={{ width: drawerWidth }}
+        onClick={() => setIsOpen(false)}
+        onKeyDown={() => setIsOpen(false)}
+      >
+        <NavLink title="Usuários" href={Routes.users}></NavLink>
+        <NavLink title="Camisetas" href={Routes.tShirts}></NavLink>
+        {/* <NavLink title="Administradores" href={Routes.adminUsers}></NavLink> */}
+        {/* <NavLink title="Conquistas" href={Routes.achievements}></NavLink> */}
+        {/* <NavLink title="Eventos" href={Routes.events}></NavLink> */}
+        {/* <NavLink title="Riddle - Perguntas" href={Routes.riddleQuestions}></NavLink> */}
+        {/* <NavLink title="Riddle - Grupos" href={Routes.riddleGroups}></NavLink> */}
+        {/* <NavLink title="Riddlethon - Perguntas" href={Routes.riddlethonQuestions}></NavLink> */}
+        {/* <NavLink title="Riddlethon - Grupos" href={Routes.riddlethonGroups}></NavLink> */}
+        {/* <NavLink title="Duro de Clicar - Perguntas" href={Routes.hardToClickQuestions}></NavLink> */}
+        {/* <NavLink title="Duro de Clicar - Grupos" href={Routes.hardToClickGroups}></NavLink> */}
+        {/* <NavLink title="Logs" href={Routes.logs}></NavLink> */}
+        <NavLink title="Casas" href={Routes.houses}></NavLink>
+        {/* <NavLink title="Enviar Email" href={Routes.broadcastEmail}></NavLink> */}
+        <button className="w-full bg-black text-white text-center py-3" onClick={handleLogout}>
+          Sair
+        </button>
+      </Box>
+    </Drawer>
+  </>);
 }
 
 export default Sidebar;

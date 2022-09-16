@@ -2,12 +2,12 @@ import Link from 'next/link';
 
 import {toast} from 'react-toastify';
 
-import API from "../api";
 import Routes from '../routes';
 import LoadingButton from '../components/reusable/LoadingButton';
 import { useRef, useState } from 'react';
 import { useAppContext } from '../libs/contextLib';
 import RequireNoAuth from '../libs/RequireNoAuth';
+import SemcompApi from '../api/semcomp-api';
 
 /** Tailwind styles. */
 const style = {
@@ -22,51 +22,35 @@ const style = {
   link: 'text-blue-500',
 };
 
-/**
- * @return {object}
- */
 function Login() {
-  /**
-   * This state is updated when the user submits the login for. The statee is used
-   * to display a spinner on the button while the request is happening
-   */
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const { setUser } = useAppContext();
+  const {
+    setUser, semcompApi
+  }: {
+    setUser: any, semcompApi: SemcompApi
+  } = useAppContext();
 
-  // React refs used to read the inputs's values.
   const emailRef: any = useRef();
   const passwordRef: any = useRef();
 
-
-  /**
-   * Function called when the user submits the form
-   *
-   * @param {object} event
-   *
-   * @return {object}
-   */
   async function submit(event) {
-    // Prevents the page from reloading.
     event.preventDefault();
 
     const email = emailRef.current.value.trim().toLowerCase();
     const password = passwordRef.current.value;
 
-    // Error treatment.
     if (!email) return toast.error('Você deve fornecer um e-mail');
     if (!password) return toast.error('Você deve fornecer uma senha');
     if (password.length < 6) return toast.error('Sua senha deve ter no mínimo 6 caracteres');
 
     try {
-      // Show spinner
       setIsLoggingIn(true);
-      const { data } = await API.login(email, password);
-      localStorage.setItem("user", JSON.stringify(data));
-      setUser(data);
+      const response = await semcompApi.login(email, password);
+      localStorage.setItem("user", JSON.stringify(response));
+      setUser(response);
     } catch (e) {
       console.error(e);
     } finally {
-      // Hide spinner
       setIsLoggingIn(false);
     }
   }

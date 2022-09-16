@@ -11,6 +11,7 @@
 @import "./Hard-To-Click-Join.css";
 @import "./Hard-To-Click-Lobby.css";
 @import "./Hard-To-Click.css";
+@import "./Header.css";
 @import "./Home-Live-Now.css";
 @import "./Home.css";
 @import "./House-Scores-House-Points.css";
@@ -19,12 +20,9 @@
 @import "./Navbar.css";
 @import "./Profile-About-Overflow.css";
 @import "./Profile-Achievements.css";
-@import "./Profile-Coffee-Payment-Step-2.css";
-@import "./Profile-Edit-Profile.css";
-@import "./Profile.css";
+@import "./Riddlethon.css";
 @import "./Schedule.css";
 @import "./Spinner.css";
-@import "./Sponsors.css";
 
 @font-face {
   font-family: "Staatliches";

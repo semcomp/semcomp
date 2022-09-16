@@ -1,13 +1,19 @@
-import createError from "http-errors";
-
 import authService from "../services/auth.service";
 import userService from "../services/user.service";
+import PaymentService from "../services/payment.service";
 import { handleValidationResult } from "../lib/handle-validation-result";
 import { handleError } from "../lib/handle-error";
 import User from "../models/user";
 import House from "../models/house";
+import Payment from "../models/payment";
 
 class AuthController {
+  private paymentService: PaymentService;
+
+  constructor(paymentService: PaymentService) {
+    this.paymentService = paymentService;
+  }
+
   public async signup(req, res, next) {
     try {
       handleValidationResult(req);
@@ -20,7 +26,7 @@ class AuthController {
 
       const userHouse = await userService.getUserHouse(createdUser.id);
 
-      return res.status(200).json(AuthController.mapUserResponse(createdUser, userHouse));
+      return res.status(200).json(this.mapUserResponse(createdUser, userHouse));
     } catch (error) {
       return handleError(error, next);
     }
@@ -39,8 +45,9 @@ class AuthController {
       res.setHeader("Authorization", `Bearer ${token}`);
 
       const userHouse = await userService.getUserHouse(foundUser.id);
+      const userPayment = await this.paymentService.getUserPayment(foundUser.id);
 
-      return res.status(200).json(AuthController.mapUserResponse(foundUser, userHouse));
+      return res.status(200).json(this.mapUserResponse(foundUser, userHouse, userPayment));
     } catch (error) {
       return handleError(error, next);
     }
@@ -73,8 +80,9 @@ class AuthController {
       res.setHeader("Authorization", `Bearer ${token}`);
 
       const userHouse = await userService.getUserHouse(foundUser.id);
+      const userPayment = await this.paymentService.getUserPayment(foundUser.id);
 
-      return res.status(200).json(AuthController.mapUserResponse(foundUser, userHouse));
+      return res.status(200).json(this.mapUserResponse(foundUser, userHouse, userPayment));
     } catch (error) {
       return handleError(error, next);
     }
@@ -83,20 +91,20 @@ class AuthController {
   public async getLoggedUser(req, res, next) {
     try {
       const userHouse = await userService.getUserHouse(req.user.id);
+      const userPayment = await this.paymentService.getUserPayment(req.user.id);
 
-      return res.status(200).json(AuthController.mapUserResponse(req.user, userHouse));
+      return res.status(200).json(this.mapUserResponse(req.user, userHouse, userPayment));
     } catch (error) {
       return handleError(error, next);
     }
   }
 
-  public static mapUserResponse(user: User, house: House) {
+  private mapUserResponse(user: User, house: House, payment?: Payment) {
     return {
       email: user.email,
       name: user.name,
       id: user.id,
       course: user.course,
-      paid: user.paid,
       permission: user.permission,
       discord: user.discord,
       telegram: user.telegram,
@@ -105,8 +113,12 @@ class AuthController {
         description: house.description,
         telegramLink: house.telegramLink,
       },
+      payment: {
+        status: payment?.status || null,
+        tShirtSize: payment?.tShirtSize || null,
+      }
     };
   }
 }
 
-export default new AuthController();
+export default AuthController;

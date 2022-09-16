@@ -21,5 +21,5 @@ export default interface PaymentIntegrationService {
     notificationUrl: string
   ): Promise<CreatedPayment>;
 
-  receive(id: number): Promise<Payment>;
+  find(id: number): Promise<Payment>;
 }

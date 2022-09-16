@@ -3,43 +3,60 @@ import type { AppProps } from 'next/app'
 import Head from 'next/head';
 
 import { ToastContainer, toast } from "react-toastify";
-import { initializeAPI } from "../api/base-api";
+
+import Http from "../api/http";
 import baseURL from "../constants/api-url";
 import { AppContext } from "../libs/contextLib";
+import SemcompApi from '../api/semcomp-api';
 
 import 'react-toastify/dist/ReactToastify.css';
 import '../styles/globals.css'
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+  const [semcompApi, setSemcompApi] = useState(null);
 
-  initializeAPI({
-    baseURL,
-    onError: toast.error,
-    token,
-    setToken,
-    onBadToken: () => {
-      setToken(null);
-      setUser(null);
-    },
-  });
+  function logOut(): void {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+  }
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const token = localStorage.getItem("token");
-    if (user && token) {
-      setUser(user);
-      setToken(token);
+    const user_string = localStorage.getItem("user");
+    if (user_string) {
+      setUser(JSON.parse(user_string));
     }
+
+    function callbackOnTokenRefresh(): void {
+      localStorage.setItem("token", http.getToken());
+    }
+
+    function callbackOnBadToken(): void {
+      logOut();
+      toast.error("Token expirado!");
+    }
+
+    const token = localStorage.getItem("token");
+    const http = new Http(
+      baseURL,
+      token,
+      callbackOnTokenRefresh,
+      callbackOnBadToken,
+    );
+
+    setSemcompApi(new SemcompApi(http));
+
+    setIsLoading(false);
   }, []);
 
   return (
     <AppContext.Provider value={{
       user,
       setUser,
-      token,
-      setToken
+      logOut,
+      semcompApi,
     }}>
       <Head>
         <link
@@ -51,7 +68,9 @@ function MyApp({ Component, pageProps }: AppProps) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <ToastContainer hideProgressBar />
-      <Component {...pageProps} />
+      {
+        !isLoading && <Component {...pageProps} />
+      }
     </AppContext.Provider>
   );
 }

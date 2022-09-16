@@ -5,8 +5,9 @@ export default interface PaymentService {
   createPayment(
     userId: string,
     withSocialBenefit: boolean,
-    socialBenefitNumber: string,
+    socialBenefitFileName: string,
     tShirtSize: TShirtSize,
   ): Promise<Payment>;
   receive(id: number): Promise<void>;
+  getUserPayment(userId: string): Promise<Payment>;
 }

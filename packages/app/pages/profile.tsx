@@ -202,7 +202,7 @@ function Profile() {
       )}
       {isCoffeeModalOpen && (
         <CoffeePayment
-          userHasPaid={userFetched.paid}
+          userHasPaid={userFetched?.payment?.status === "approved"}
           onRequestClose={() => {
             setIsCoffeeModalOpen(false);
             removeBodyStyle();
@@ -210,54 +210,66 @@ function Profile() {
         />
       )}
       <Header />
-      <main className="p-8 flex h-full w-full max-w-5xl self-center col-gap-4 min-h-[70vh] md:flex">
-        <div className="flex flex-col self-start w-64">
-          <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
-            <QRCodeSVG value={user && user.id} />
-            <p className="font-bold text-xl text-center">{user.name}</p>
-            <p className="course">{user.course}</p>
-            {
-              <button
-                onClick={() => {
-                  setIsEditModalOpen(true);
-                  blockBodyScroll();
-                }}
-                className="bg-tertiary text-white p-2 rounded-lg mt-2"
-              >
-                Editar
-              </button>
-            }
-          </div>
-          <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
-            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Coffee</h1>
-            <p>Pague com PIX o Coffee + Kit da Semcomp 25</p>
-            {userFetched?.paid ? (
-              <>
-                <Chip label="Pago" color="warning" />
-                <button
-                  onClick={() => {
-                    setIsCoffeeModalOpen(true);
-                    blockBodyScroll();
-                  }}
-                >
-                  Ver infos pacote
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => {
-                    setIsCoffeeModalOpen(true);
-                    blockBodyScroll();
-                  }}
-                  className="bg-tertiary text-white p-2 rounded-lg mt-2"
-                >
-                  Comprar pacote
-                </button>
-                <Chip className="mt-3" label="Não pago" disabled={true} />
-              </>
-            )}
-          </div>
+      <main className="p-8 h-full w-full max-w-5xl self-center col-gap-4 min-h-[70vh] md:flex">
+        <div className="flex flex-col self-start w-full md:w-64">
+          {userFetched && (
+            <>
+              <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
+                <QRCodeSVG value={userFetched && userFetched.id} />
+                <p className="font-bold text-xl text-center my-2">
+                  {userFetched.name}
+                </p>
+                <p className="text-center">{userFetched.course}</p>
+                {
+                  <button
+                    onClick={() => {
+                      setIsEditModalOpen(true);
+                      blockBodyScroll();
+                    }}
+                    className="bg-tertiary text-white p-2 rounded-lg mt-2"
+                  >
+                    Editar
+                  </button>
+                }
+              </div>
+              <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
+                <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+                  Coffee
+                </h1>
+                <p>Pague com PIX o Coffee + Kit da Semcomp 25</p>
+                {userFetched.payment.status === "approved" ? (
+                  <>
+                    <Chip label="Pago" color="warning" />
+                    <Chip
+                      className="mt-3"
+                      label={`Camiseta ${userFetched.payment.tShirtSize}`}
+                    />
+                    <button
+                      onClick={() => {
+                        setIsCoffeeModalOpen(true);
+                        blockBodyScroll();
+                      }}
+                    >
+                      Ver infos pacote
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        setIsCoffeeModalOpen(true);
+                        blockBodyScroll();
+                      }}
+                      className="bg-tertiary text-white p-2 rounded-lg mt-2"
+                    >
+                      Comprar pacote
+                    </button>
+                    <Chip className="mt-3" label="Não pago" disabled={true} />
+                  </>
+                )}
+              </div>
+            </>
+          )}
           {/* <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Overflow
@@ -318,7 +330,7 @@ function Profile() {
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Conquistas
             </h1>
-            <div className="conquistas-grid">
+            <div className="grid auto-cols-auto auto-rows-auto">
               {earnedAchievements.slice(0, 6).map((conquista) => {
                 const achievementsImageSrc = AchievementsImages(
                   conquista.image
@@ -348,9 +360,9 @@ function Profile() {
           </div> */}
           {/* <HouseScores /> */}
         </div>
-        <div className="profile-info-card">
+        <div className="h-full w-full rounded-xl justify-self-end row-span-2">
           <EventsOverview />
-          <span className="spacing" />
+          <span className="h-4 block" />
           <EventsCalendar />
         </div>
       </main>

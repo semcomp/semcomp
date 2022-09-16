@@ -62,6 +62,7 @@ function Login() {
           <h1 className="text-xl">Entrar</h1>
           <form className="w-full" onSubmit={handleSubmit}>
             <Input
+              autofocus={true}
               className="my-3"
               label="E-mail"
               value={email}
@@ -75,12 +76,12 @@ function Login() {
               onChange={handlePasswordChange}
               type={showPassword ? InputType.Text : InputType.Password}
               end={
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowPassword(!showPassword)}>
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  }
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              }
             />
             <LoadingButton
               className="bg-primary text-white font-bold w-full py-3 shadow"

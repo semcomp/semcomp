@@ -34,8 +34,8 @@ type Filters = User | {
 };
 
 export interface UserService {
+  find(filters?: Partial<Filters>): Promise<User[]>;
   findById(id: string): Promise<User>;
-  pay(id: string): Promise<void>;
 }
 
 class UserServiceImpl implements UserService {
@@ -186,14 +186,6 @@ class UserServiceImpl implements UserService {
         }
       }
     }
-  }
-
-  async pay(id: string): Promise<void> {
-    const user = await this.findById(id);
-
-    user.paid = true;
-
-    await this.update(user);
   }
 
   private mapEntity(entity: Model<User> & User): User {

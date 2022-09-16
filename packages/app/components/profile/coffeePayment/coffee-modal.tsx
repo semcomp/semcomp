@@ -25,8 +25,8 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
   const [coffeeStep, setCoffeeStep] = useState(0);
   const [data, setData] = useState({
     withSocialBenefit: false,
-    socialBenefitNumber: "",
-    tShirtSize: TShirtSize.P,
+    socialBenefitFile: null,
+    tShirtSize: TShirtSize.M,
   } as CoffeePaymentData);
 
   const stepComponent = [
@@ -47,7 +47,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
           <SemcompButton className="bg-orange" onClick={onRequestClose}>
             Fechar
           </SemcompButton>
-          {(coffeeStep < 2 || userHasPaid) && (
+          {coffeeStep >= 2 || userHasPaid ? <></> : (
             <SemcompButton onClick={() => setCoffeeStep(coffeeStep + 1)}>
               Próximo
             </SemcompButton>

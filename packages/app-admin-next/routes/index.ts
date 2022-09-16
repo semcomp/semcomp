@@ -2,6 +2,7 @@ const Routes = {
   home: '/',
   login: '/login',
   users: '/usuarios',
+  tShirts: '/camisetas',
   adminUsers: '/administradores',
   achievements: '/conquistas',
   events: '/eventos',

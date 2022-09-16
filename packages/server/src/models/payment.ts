@@ -1,15 +1,17 @@
 import Mongoose from "mongoose";
 
+import PaymentStatus from "../lib/constants/payment-status-enum";
 import TShirtSize from "../lib/constants/t-shirt-size-enum";
 
 type Payment = {
   id?: string;
   paymentIntegrationId?: number;
   userId: string;
+  status?: PaymentStatus;
   qrCode?: string;
   qrCodeBase64?: string;
   withSocialBenefit: boolean;
-  socialBenefitNumber: string;
+  socialBenefitFileName: string;
   tShirtSize: TShirtSize;
   createdAt?: number;
   updatedAt?: number;
@@ -32,6 +34,10 @@ const PaymentSchema = new Mongoose.Schema(
       type: String,
       required: true,
     },
+    status: {
+      type: PaymentStatus,
+      default: PaymentStatus.PENDING,
+    },
     qrCode: {
       type: String,
     },
@@ -41,7 +47,7 @@ const PaymentSchema = new Mongoose.Schema(
     withSocialBenefit: {
       type: Mongoose.Schema.Types.Boolean,
     },
-    socialBenefitNumber: {
+    socialBenefitFileName: {
       type: String,
     },
     tShirtSize: {

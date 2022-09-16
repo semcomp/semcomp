@@ -12,6 +12,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "../styles/globals.css";
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
 
@@ -33,6 +34,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       setUser(user);
       setToken(token);
     }
+    setIsLoading(false);
   }, []);
 
   return (
@@ -74,7 +76,9 @@ function MyApp({ Component, pageProps }: AppProps) {
         <title>Semcomp</title>
       </Head>
       <ToastContainer hideProgressBar />
-      <Component {...pageProps} />
+      {
+        !isLoading && <Component {...pageProps} />
+      }
     </AppContext.Provider>
   );
 }

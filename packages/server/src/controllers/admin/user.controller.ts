@@ -1,5 +1,4 @@
 import AdminLog from "../../models/admin-log";
-
 import HttpError from "../../lib/http-error";
 import eventService from "../../services/event.service";
 import attendanceService from "../../services/attendance.service";
@@ -15,17 +14,31 @@ import { handleError } from "../../lib/handle-error";
 import adminLogService from "../../services/admin-log.service";
 import userDisabilityService from "../../services/user-disability.service";
 import Disability from "../../lib/constants/disability-enum";
+import PaymentServiceImpl from "../../services/payment-impl.service";
+import TShirtSize from "../../lib/constants/t-shirt-size-enum";
+import PaymentStatus from "../../lib/constants/payment-status-enum";
 
-class UserController {
+export default class UserController {
+  private paymentService: PaymentServiceImpl;
+
+  constructor(paymentService: PaymentServiceImpl) {
+    this.paymentService = paymentService;
+  }
+
   public async list(req, res, next) {
     const usersFound = await userService.find();
     const housesFound = await houseService.find();
     const houseMembersFound = await houseMemberService.find();
     const userDisabilities = await userDisabilityService.find();
+    const payments = await this.paymentService.find();
 
     const users: (User & {
       house: {
         name: string,
+      },
+      payment: {
+        status: PaymentStatus,
+        tShirtSize: TShirtSize,
       },
       disabilities: Disability[]
     })[] = [];
@@ -39,10 +52,23 @@ class UserController {
         return house.id === userHouseMember.houseId;
       }).name;
 
+      let userPayment = payments.find((payment) => {
+        return payment.userId === user.id && payment.status === PaymentStatus.APPROVED;
+      });
+      if (!userPayment) {
+        userPayment = payments.find((payment) => {
+          return payment.userId === user.id && payment.status === PaymentStatus.PENDING;
+        });
+      }
+
       users.push({
         ...user,
         house: {
           name: userHouse,
+        },
+        payment: {
+          status: userPayment ? userPayment.status : null,
+          tShirtSize: userPayment ? userPayment.tShirtSize : null,
         },
         disabilities: userDisabilities
           .filter((userDisability) => userDisability.userId === user.id)
@@ -190,5 +216,3 @@ class UserController {
     }
   };
 }
-
-export default new UserController();
