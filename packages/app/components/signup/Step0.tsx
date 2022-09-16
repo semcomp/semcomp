@@ -1,38 +1,39 @@
 import { useState } from "react";
-import Link from 'next/link';
+import Link from "next/link";
 
 import { IconButton, InputAdornment } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
-import Input, {InputType} from "../Input";
+import Input, { InputType } from "../Input";
 
-function Step0(
-  { formValue, updateFormValue, onSubmit }:
-  {
-    formValue: any,
-    updateFormValue: Function,
-    onSubmit: Function,
-  }
-) {
+function Step0({
+  formValue,
+  updateFormValue,
+  onSubmit,
+}: {
+  formValue: any;
+  updateFormValue: Function;
+  onSubmit: Function;
+}) {
   const [name, setName] = useState(formValue.name as string);
   function handleNameChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     setName(value);
     updateFormValue({ name: value });
-  };
+  }
   const [email, setEmail] = useState(formValue.email as string);
   function handleEmailChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     setEmail(value);
     updateFormValue({ email: value });
-  };
+  }
   const [password, setPassword] = useState(formValue.password as string);
   function handlePasswordChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     setPassword(value);
     updateFormValue({ password: value });
-  };
+  }
   const [showPassword, setShowPassword] = useState(false);
 
   function handleSubmit(event) {
@@ -46,7 +47,7 @@ function Step0(
     <form className="w-full" onSubmit={handleSubmit}>
       <Input
         className="my-3"
-        label="Nome"
+        label="Nome (Esse nome aparecerá no seu certificado)"
         value={name}
         onChange={handleNameChange}
         type={InputType.Text}
@@ -65,12 +66,12 @@ function Step0(
         onChange={handlePasswordChange}
         type={showPassword ? InputType.Text : InputType.Password}
         end={
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowPassword(!showPassword)}>
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            }
+          <InputAdornment position="end">
+            <IconButton onClick={() => setShowPassword(!showPassword)}>
+              {showPassword ? <VisibilityOff /> : <Visibility />}
+            </IconButton>
+          </InputAdornment>
+        }
       />
       <button
         type="submit"
