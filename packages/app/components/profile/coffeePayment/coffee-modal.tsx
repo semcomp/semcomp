@@ -26,7 +26,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
   const [data, setData] = useState({
     withSocialBenefit: false,
     socialBenefitFile: null,
-    tShirtSize: TShirtSize.P,
+    tShirtSize: TShirtSize.M,
   } as CoffeePaymentData);
 
   const stepComponent = [

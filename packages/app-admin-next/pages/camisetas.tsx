@@ -51,7 +51,7 @@ function TShirts() {
   const [data, setData] = useState(null);
   const [formData, setFormData] = useState({
     id: null,
-    size: TShirtSize.PP,
+    size: TShirtSize.M,
     quantity: 0,
   } as TShirtFormData);
   const [isLoading, setIsLoading] = useState(true);
