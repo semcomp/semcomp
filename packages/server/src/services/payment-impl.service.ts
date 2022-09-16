@@ -192,7 +192,7 @@ export default class PaymentServiceImpl implements PaymentService {
   public async cancelOldPendingPayments(): Promise<void> {
     const maxDate = new Date();
     maxDate.setDate(maxDate.getDate() - 1);
-    maxDate.setHours(0);
+    maxDate.setHours(0, 0, 0, 0);
 
     const pendingPayments = await PaymentModel.find({ status: PaymentStatus.PENDING });
 
