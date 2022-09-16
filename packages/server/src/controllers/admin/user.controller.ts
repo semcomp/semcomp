@@ -52,9 +52,14 @@ export default class UserController {
         return house.id === userHouseMember.houseId;
       }).name;
 
-      const userPayment = payments.find((payment) => {
-        return payment.userId === user.id;
+      let userPayment = payments.find((payment) => {
+        return payment.userId === user.id && payment.status === PaymentStatus.APPROVED;
       });
+      if (!userPayment) {
+        userPayment = payments.find((payment) => {
+          return payment.userId === user.id && payment.status === PaymentStatus.PENDING;
+        });
+      }
 
       users.push({
         ...user,
