@@ -19,7 +19,7 @@ export default class PaymentRouter {
   public create(): Router {
     const router = Router();
 
-    cron.schedule("* * * * *", async () => {
+    cron.schedule("5 * * * *", async () => {
       await this.paymentService.cancelOldPendingPayments()
     });
 
