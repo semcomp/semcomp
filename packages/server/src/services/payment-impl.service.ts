@@ -97,40 +97,46 @@ export default class PaymentServiceImpl implements PaymentService {
 
     const price = withSocialBenefit ? 32.5 : 65.00;
 
-    const payment = await this.findOne({ userId });
-    if (payment) {
-      if (
-        payment.withSocialBenefit !== withSocialBenefit ||
-        payment.socialBenefitFileName !== socialBenefitFileName ||
-        payment.tShirtSize !== tShirtSize
-      ) {
-        payment.socialBenefitFileName = socialBenefitFileName;
+    const userPayments = await this.find({ userId });
+    const approvedPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.APPROVED);
+    if (approvedPayment) {
+      throw new HttpError(400, ["Camiseta já comprada!"]);
+    }
 
-        if (payment.tShirtSize !== tShirtSize) {
-          payment.tShirtSize = tShirtSize;
+    const pendingPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.PENDING);
+    if (pendingPayment) {
+      if (
+        pendingPayment.withSocialBenefit !== withSocialBenefit ||
+        pendingPayment.socialBenefitFileName !== socialBenefitFileName ||
+        pendingPayment.tShirtSize !== tShirtSize
+      ) {
+        pendingPayment.socialBenefitFileName = socialBenefitFileName;
+
+        if (pendingPayment.tShirtSize !== tShirtSize) {
+          pendingPayment.tShirtSize = tShirtSize;
           const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
           if (paymentsWithThisTShirtSize >= tShirt.quantity) {
             throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
           }
         }
 
-        if (payment.withSocialBenefit !== withSocialBenefit) {
+        if (pendingPayment.withSocialBenefit !== withSocialBenefit) {
           const paymentResponse = await this.paymentIntegrationService.create(
             price,
             user.email,
             "Semcomp",
-            `${this.notificationUrl}/${payment.id}`
+            `${this.notificationUrl}/${pendingPayment.id}`
           );
 
-          payment.paymentIntegrationId = paymentResponse.id;
-          payment.qrCode = paymentResponse.qrCode;
-          payment.qrCodeBase64 = paymentResponse.qrCodeBase64;
+          pendingPayment.paymentIntegrationId = paymentResponse.id;
+          pendingPayment.qrCode = paymentResponse.qrCode;
+          pendingPayment.qrCodeBase64 = paymentResponse.qrCodeBase64;
         }
 
-        await this.update(payment);
+        await this.update(pendingPayment);
       }
 
-      return payment;
+      return pendingPayment;
     }
 
     const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
@@ -173,23 +179,27 @@ export default class PaymentServiceImpl implements PaymentService {
   }
 
   public async getUserPayment(userId: string): Promise<Payment> {
-    const entity = await PaymentModel.findOne({ userId });
+    const userPayments = await PaymentModel.find({ userId });
+    const approvedPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.APPROVED);
+    if (approvedPayment) {
+      return this.mapEntity(approvedPayment);
+    }
+    const pendingPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.PENDING);
 
-    return entity && this.mapEntity(entity);
+    return pendingPayment && this.mapEntity(pendingPayment);
   }
 
-  public async syncUsersPayment(): Promise<void> {
-    const users = await this.userService.find();
+  public async cancelOldPendingPayments(): Promise<void> {
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() - 1);
+    maxDate.setHours(0);
 
-    for (const user of users) {
-      const payment = await PaymentModel.findOne({ userId: user.id });
-      if (payment) {
-        if (user.paid) {
-          payment.status = PaymentStatus.APPROVED;
-        } else {
-          payment.status = PaymentStatus.PENDING;
-        }
+    const pendingPayments = await PaymentModel.find({ status: PaymentStatus.PENDING });
 
+    for (const payment of pendingPayments) {
+      if (payment.updatedAt < new Date(maxDate).getTime()) {
+        payment.status = PaymentStatus.CANCELED;
+        payment.tShirtSize = null;
         await this.update(payment);
       }
     }

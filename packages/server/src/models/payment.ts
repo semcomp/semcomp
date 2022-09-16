@@ -33,7 +33,6 @@ const PaymentSchema = new Mongoose.Schema(
     userId: {
       type: String,
       required: true,
-      unique: true,
     },
     status: {
       type: PaymentStatus,
