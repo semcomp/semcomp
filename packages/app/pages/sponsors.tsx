@@ -6,6 +6,7 @@ import CodelabImage from "../assets/sponsors/logo-codelab-sanca.svg";
 import PetImage from "../assets/sponsors/pet.png";
 import AmdocsLogo from "../assets/sponsors/amazon.png";
 import HomeHeader from "../components/home/Header";
+import GaneshImage from "../assets/sponsors/ganesh.png";
 import Footer from "../components/Footer";
 import Navbar from "../components/navbar";
 import SponsorCard from "../components/sponsor-card";
@@ -56,6 +57,12 @@ const supportersInfo = [
     name: "Fog",
     link: "https://semcomp.icmc.usp.br",
     logo: FogImage,
+    description: "",
+  },
+  {
+    name: "Ganesh",
+    link: "https://ganesh.icmc.usp.br/",
+    logo: GaneshImage,
     description: "",
   },
 ];
