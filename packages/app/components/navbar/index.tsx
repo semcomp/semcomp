@@ -32,13 +32,15 @@ const Navbar = (props) => {
   return (
     <nav className={navStyles}>
       <NavLink href={Routes.home}>
-        <Image
-          alt="Semcomp logo"
-          src={SemcompLogo.src}
-          layout="intrinsic"
-          height={50}
-          width={50}
-        />
+        <div id="logo-img">
+          <Image
+            alt="Semcomp logo"
+            src={SemcompLogo.src}
+            layout="intrinsic"
+            height={50}
+            width={50}
+          />
+        </div>
       </NavLink>
 
       <div className="text-center md:flex md:flex-row">

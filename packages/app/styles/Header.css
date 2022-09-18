@@ -9,7 +9,20 @@
   display: none;
 }
 
-@media (max-width: 1700px) {
+@media (max-width: 768px) {
+  #header {
+    background-image: url("../assets/soccer-mobile.svg");
+    background-position: center;
+    background-size: contain;
+    background-color: #009541;
+  }
+
+  #header-content {
+    display: flex;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1700px) {
   #header {
     background-image: url("../assets/soccer-no-texts.png");
   }

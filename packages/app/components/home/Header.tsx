@@ -9,7 +9,7 @@ const HomeHeader = (): ReactElement => {
       <div className="w-full">
         <NavBar bg={" "} />
       </div>
-      <div id="header-content" className="flex flex-col items-center px-14 text-center">
+      <div id="header-content" className="flex flex-col items-center px-14 text-center justify-between h-72">
         <h1 id="title" className="text-5xl md:text-9xl">
           SEMCOMP 25
         </h1>
