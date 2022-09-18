@@ -2,7 +2,7 @@ import FacebookLogo from "../../assets/facebook-logo.svg";
 import InstagramLogo from "../../assets/instagram-logo.svg";
 import LinkedinLogo from "../../assets/linkedin-logo.svg";
 import GlobeIcon from "../../assets/globe-icon.svg";
-import CareersLogo from "../../assets/lupa.svg";
+import CareersLogo from "../../assets/lupa.png";
 import Image, { StaticImageData } from "next/image";
 import LogoLink from "./logo-link";
 
