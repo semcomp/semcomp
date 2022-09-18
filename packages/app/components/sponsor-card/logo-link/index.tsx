@@ -3,7 +3,7 @@ import NavLink from "../../navbar/nav-link";
 
 type logoLinkProps = {
   link: string;
-  icon: string;
+  icon: any;
 };
 
 function LogoLink({ link, icon }: logoLinkProps) {
