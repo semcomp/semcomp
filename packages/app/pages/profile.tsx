@@ -17,10 +17,10 @@ import AboutOverflow from "../components/profile/about-overflow";
 import AchievementsImages from "../components/profile/achievements_images";
 import CoffeePayment from "../components/profile/coffeePayment/coffee-modal";
 import RequireAuth from "../libs/RequireAuth";
-import Tardis from "../assets/tardis.jpg";
-import Ocarina from "../assets/ocarina.jpg";
-import DeLorean from "../assets/delorean.jpg";
-import Agamotto from "../assets/agamotto.jpg";
+// import Tardis from "../assets/tardis.jpg";
+// import Ocarina from "../assets/ocarina.jpg";
+// import DeLorean from "../assets/delorean.jpg";
+// import Agamotto from "../assets/agamotto.jpg";
 import Telegram from "../assets/telegram-logo.png";
 import ImgLogo from "../assets/logo-24.png";
 import { useAppContext } from "../libs/contextLib";
@@ -103,12 +103,12 @@ function Profile() {
   const userHouseName = user?.house?.name;
   const userHouseTelegram = user?.house?.telegramLink;
 
-  const houseImageSrc = {
-    Tardis,
-    Ocarina,
-    DeLorean,
-    Agamotto,
-  }[userHouseName];
+  // const houseImageSrc = {
+  //   Tardis,
+  //   Ocarina,
+  //   DeLorean,
+  //   Agamotto,
+  // }[userHouseName];
 
   function toPascalCase(str: string) {
     return str
