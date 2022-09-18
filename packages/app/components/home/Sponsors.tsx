@@ -4,12 +4,13 @@ import IcmcImage from "../../assets/sponsors/icmc50.png";
 import FogImage from "../../assets/sponsors/fog.png";
 import CodelabImage from "../../assets/sponsors/logo-codelab-sanca.svg";
 import PetImage from "../../assets/sponsors/pet.png";
+import Ganesh from "../../assets/sponsors/ganesh.png";
 import Routes from "../../routes";
 import Image, { StaticImageData } from "next/image";
 import NavLink from "../navbar/nav-link";
 
 function Sponsors() {
-  const supporterLogos = [IcmcImage, FogImage, CodelabImage, PetImage];
+  const supporterLogos = [IcmcImage, FogImage, CodelabImage, PetImage, Ganesh];
 
   return (
     <>
@@ -34,7 +35,7 @@ function Sponsors() {
             ))}
           </div>
           <br />
-          
+
           <NavLink href={Routes.sponsors}>
             <div className="bg-green p-3 rounded hover:bg-secondary hover:text-black">Saiba mais</div>
           </NavLink>
