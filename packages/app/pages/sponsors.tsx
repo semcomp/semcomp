@@ -104,15 +104,15 @@ const SponsorsPage = () => {
             ))}
           </div>
         </main>
-        <aside className="w-full max-w-lg md:px-0 md:py-8">
-          {/* TODO - add real link */}
-          {/* <a
+        {/* <aside className="w-full max-w-lg md:px-0 md:py-8"> */}
+        {/* TODO - add real link */}
+        {/* <a
             href="https://docs.google.com/forms/d/e/1FAIpQLScZB4600MMbYsggMlggQ9Zry_ANWMXJ9OyF1I2il6QwZsdBZQ/viewform"
             className="text-2xl flex items-center justify-center p-4 rounded-lg font-bold mb-12 bg-blue text-white"
           >
             Patrocinar
           </a> */}
-          {/* <div className="card">
+        {/* <div className="card">
 						<h1>Acontecendo hoje</h1>
 						<div>
 							<EventRow startTime="10h" endTime="11h" title="Abertura" />
@@ -121,7 +121,7 @@ const SponsorsPage = () => {
 							<EventRow startTime="19h" endTime="20h" title="Palestras" />
 						</div>
 					</div> */}
-        </aside>
+        {/* </aside> */}
       </div>
       <Footer />
     </div>
