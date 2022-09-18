@@ -25,7 +25,7 @@ const Navbar = (props) => {
   // via props, vai adicionar nos estilos da navbar. 
   // Caso contrário, só mantém o bg-primary
 
-  let navStyles = "text-center p-4 w-full {bg-primary} md:flex md:justify-between md:items-center ";
+  let navStyles = "text-center p-4 w-full {bg-primary} font-primary md:flex md:justify-between md:items-center ";
 
   props.bg ? navStyles += props.pg : navStyles += "bg-primary";
 

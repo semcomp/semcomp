@@ -95,7 +95,7 @@ function Step0({
       </button>
       <div className="mt-3">
         <Link href="/login">
-          <p>Ja tem uma conta?</p>
+        <a className="text-blue-700 hover:text-blue-500 visited:bg-none">Ja tem uma conta?</a>
         </Link>
       </div>
     </form>

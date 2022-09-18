@@ -96,7 +96,9 @@ function Login() {
               </div>
             </Link>
             <p>
-              Não tem conta? <Link href="/signup">Crie uma agora!</Link>
+              Não tem conta? <Link href="/signup">
+              <a className="text-blue-700 hover:text-blue-500 visited:bg-none"> Crie uma agora!</a>
+              </Link>
             </p>
           </form>
         </Card>
@@ -120,6 +122,9 @@ function Login() {
             <br />
             <br />
             Com carinho, Equipe Semcomp!
+            <br />
+            <br />
+            <strong>Atenção: Se você já realizou o cadastro na Semcomp Beta, por favor, cadastre-se novamente.</strong>
           </aside>
         </Card>
       </main>
