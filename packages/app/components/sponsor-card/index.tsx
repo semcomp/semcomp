@@ -2,6 +2,7 @@ import FacebookLogo from "../../assets/facebook-logo.svg";
 import InstagramLogo from "../../assets/instagram-logo.svg";
 import LinkedinLogo from "../../assets/linkedin-logo.svg";
 import GlobeIcon from "../../assets/globe-icon.svg";
+import CareersLogo from "../../assets/lupa.svg";
 import Image, { StaticImageData } from "next/image";
 import LogoLink from "./logo-link";
 
@@ -22,8 +23,9 @@ function SponsorCard({
     <div className="rounded-lg border-solid border border-white overflow-auto h-full w-full flex flex-col p-4 bg-white my-2.5 mx-5">
       {companyLinks && (
         <div className="flex flex-col justify-between h-full p-0">
-          <Image src={companyLogo} layout="intrinsic" />
-          <p className="my-2">{companyDescription}</p>
+          <Image src={companyLogo} />
+          {/* <p className="my-2">{companyName}</p>
+          <p className="my-2">{companyDescription}</p> */}
           <div className="flex justify-center">
             {companyLinks.homepage && (
               <LogoLink icon={GlobeIcon} link={companyLinks.homepage} />
@@ -36,6 +38,9 @@ function SponsorCard({
             )}
             {companyLinks.instagram && (
               <LogoLink icon={InstagramLogo} link={companyLinks.instagram} />
+            )}
+            {companyLinks.careers && (
+              <LogoLink icon={CareersLogo} link={companyLinks.careers} />
             )}
           </div>
         </div>
