@@ -40,7 +40,7 @@ const supportersInfo = [
   },
   {
     name: "Pet",
-    link: "https://semcomp.icmc.usp.br",
+    link: "http://pet.icmc.usp.br/",
     logo: PetImage,
     description: "",
   },
@@ -52,7 +52,7 @@ const supportersInfo = [
   },
   {
     name: "Fog",
-    link: "https://semcomp.icmc.usp.br",
+    link: "https://www.fog.icmc.usp.br/",
     logo: FogImage,
     description: "",
   },
