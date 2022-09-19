@@ -270,25 +270,29 @@ function Profile() {
               </div>
             </>
           )}
-          {/* <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
-            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-              Overflow
-            </h1>
-            <strong>Sua casa é...</strong>
-            <img alt="User house" src={houseImageSrc} />
-            <p className="house-name">{userHouseName}</p>
-            <button
-              style={{ backgroundColor: "#0088cc" }}
-              onClick={() =>
-                window.open(userHouseTelegram, "_blank", "noopener noreferrer")
-              }
-            >
-              Entrar no grupo <img src={Telegram} alt="Telegram" />
-            </button>
-            <button onClick={() => setIsAboutOverflowModalOpen(true)}>
-              O que é o Overflow?
-            </button>
-          </div> */}
+          {
+            userFetched && (
+              <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
+                <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+                  Overflow
+                </h1>
+                <strong>Sua casa é {userFetched.house.name}</strong>
+                {/* <img alt="User house" src={houseImageSrc} />
+                <p className="house-name">{userHouseName}</p>
+                <button
+                  style={{ backgroundColor: "#0088cc" }}
+                  onClick={() =>
+                    window.open(userHouseTelegram, "_blank", "noopener noreferrer")
+                  }
+                >
+                  Entrar no grupo <img src={Telegram} alt="Telegram" />
+                </button> */}
+                {/* <button onClick={() => setIsAboutOverflowModalOpen(true)}>
+                  O que é o Overflow?
+                </button> */}
+              </div>
+            )
+          }
           <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Eventos
