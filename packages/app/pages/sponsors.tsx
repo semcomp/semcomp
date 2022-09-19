@@ -141,7 +141,7 @@ const SponsorsPage = () => {
         <main className="flex flex-col px-0 py-8">
           <h2 className="text-3xl py-6 font-qatar">Patrocinadores</h2>
           <p className="thanks-from-semcomp">
-            Queremos agradecer aos patrocinadores e apoiadores, sem os quais seria impossível organizar o nosso retorno à Semcomp presencial. Esperamos que tanto os alunos, quanto os nossos patrocinadores e apoiadores possam aproveitar ao máximo as palestras, os minicursos e que ano que vem mantenhamos nossa parceria!
+            Queremos agradecer aos patrocinadores e apoiadores, sem os quais seria impossível organizar o nosso retorno à Semcomp presencial. Esperamos que tanto os alunos quanto os nossos patrocinadores e apoiadores possam aproveitar ao máximo as palestras, os minicursos e que ano que vem mantenhamos nossa parceria!
           </p>
           <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4">
             {companiesInfo.map((company, index) => (
