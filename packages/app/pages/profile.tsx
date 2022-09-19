@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 import { QRCodeSVG } from "qrcode.react";
 import { Divider, List, ListItem, ListItemText } from "@mui/material";
@@ -17,10 +18,10 @@ import AboutOverflow from "../components/profile/about-overflow";
 import AchievementsImages from "../components/profile/achievements_images";
 import CoffeePayment from "../components/profile/coffeePayment/coffee-modal";
 import RequireAuth from "../libs/RequireAuth";
-// import Tardis from "../assets/tardis.jpg";
-// import Ocarina from "../assets/ocarina.jpg";
-// import DeLorean from "../assets/delorean.jpg";
-// import Agamotto from "../assets/agamotto.jpg";
+import PicaPau from "../assets/pica-pau.png";
+import OncaPintada from "../assets/onca-pintada.png";
+import TatuBola from "../assets/tatu-bola.png";
+import LoboGuara from "../assets/lobo-guara.png";
 import Telegram from "../assets/telegram-logo.png";
 import ImgLogo from "../assets/logo-24.png";
 import { useAppContext } from "../libs/contextLib";
@@ -101,15 +102,15 @@ function Profile() {
   //     element.children[0].innerHTML = 'Voce está inscrito nesses eventos:';
   //   }
   // }
-  const userHouseName = user?.house?.name;
-  const userHouseTelegram = user?.house?.telegramLink;
+  const userHouseName = userFetched?.house?.name;
+  // const userHouseTelegram = user?.house?.telegramLink;
 
-  // const houseImageSrc = {
-  //   Tardis,
-  //   Ocarina,
-  //   DeLorean,
-  //   Agamotto,
-  // }[userHouseName];
+  const houseImageSrc = {
+    "Pica-pau": PicaPau,
+    "Onça-pintada": OncaPintada,
+    "Tatu-bola": TatuBola,
+    "Lobo-guara": LoboGuara,
+  }[userHouseName];
 
   function toPascalCase(str: string) {
     return str
@@ -277,10 +278,13 @@ function Profile() {
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Overflow
                 </h1>
-                <strong>Sua casa é {userFetched.house.name}</strong>
-                {/* <img alt="User house" src={houseImageSrc} />
-                <p className="house-name">{userHouseName}</p>
-                <button
+                <strong>Sua casa é...</strong>
+                <Image
+                  alt="User house"
+                  src={houseImageSrc}
+                />
+                <p className="house-name">{userFetched.house.name}</p>
+                {/* <button
                   style={{ backgroundColor: "#0088cc" }}
                   onClick={() =>
                     window.open(userHouseTelegram, "_blank", "noopener noreferrer")
