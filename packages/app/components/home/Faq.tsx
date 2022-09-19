@@ -39,7 +39,7 @@ function Question({ question, answer }) {
       <button className="text-left w-full p-4 shadow" onClick={handleQuestionClick}>
         {question}
       </button>
-      <div ref={answerRef} className="transition-all overflow-auto text-left ">
+      <div ref={answerRef} className="text-black transition-all overflow-auto text-left ">
         <div className="p-4">
           <p>
             <Linkify>{answer}</Linkify>
