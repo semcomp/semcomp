@@ -1,6 +1,6 @@
 // import SemcompImage from '../../assets/logo_semcompbeta.jpg';
 
-import AmdocsLogo from "../assets/sponsors/AmdocsLogo.png";
+import AmdocsLogo from "../assets/sponsors/svg/amdocs.svg";
 import EyLogo from "../assets/sponsors/EYLogo.jpg";
 import GaneshImage from "../assets/sponsors/ganesh.png";
 import GriauleLogo from "../assets/sponsors/GriauleLogo.svg";
