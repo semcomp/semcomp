@@ -1,35 +1,94 @@
 // import SemcompImage from '../../assets/logo_semcompbeta.jpg';
 
+import AmdocsLogo from "../assets/sponsors/AmdocsLogo.png";
+import EyLogo from "../assets/sponsors/EYLogo.jpg";
+import GaneshImage from "../assets/sponsors/ganesh.png";
+import GriauleLogo from "../assets/sponsors/GriauleLogo.svg";
+import LuizalabsLogo from "../assets/sponsors/LuizalabsLogo.png";
+import RaizenLogo from "../assets/sponsors/RaizenLogo.png";
+import SerasaLogo from "../assets/sponsors/SerasaLogo.png";
+import TokenlabLogo from "../assets/sponsors/TokenlabLogo.png";
+import TractianLogo from "../assets/sponsors/TractianLogo.png";
 import IcmcImage from "../assets/sponsors/icmc50.png";
 import FogImage from "../assets/sponsors/fog.png";
 import CodelabImage from "../assets/sponsors/logo-codelab-sanca.svg";
 import PetImage from "../assets/sponsors/pet.png";
-import GaneshImage from "../assets/sponsors/ganesh.png";
 import Footer from "../components/Footer";
 import Navbar from "../components/navbar";
 import SponsorCard from "../components/sponsor-card";
 
 const companiesInfo = [
-  // {
-  //   name: "Amdocs",
-  //   links: {
-  //     homepage: "https://www.amdocs.com/",
-  //     linkedin: "https://www.linkedin.com/company/amdocs/",
-  //     instagram: "https://www.instagram.com/amdocs_saocarlos/",
-  //     facebook: "https://www.facebook.com/amdocs",
-  //   },
-  //   logo: AmdocsLogo,
-  // },
-  // {
-  //   name: "Amdocs",
-  //   links: {
-  //     homepage: "https://www.amdocs.com/",
-  //     linkedin: "https://www.linkedin.com/company/amdocs/",
-  //     instagram: "https://www.instagram.com/amdocs_saocarlos/",
-  //     facebook: "https://www.facebook.com/amdocs",
-  //   },
-  //   logo: AmdocsLogo,
-  // },
+  {
+    name: "Amdocs",
+    links: {
+      homepage: "https://www.amdocs.com/",
+      careers: "https://www.amdocs.com/careers/home",
+    },
+    logo: AmdocsLogo,
+  },
+  {
+    name: "EY",
+    description: "",
+    links: {
+      homepage: "https://www.ey.com/pt_br",
+      careers: " https://www.ey.com/pt_br/careers",
+    },
+    logo: EyLogo,
+  },
+  {
+    name: "Griaule",
+    description: "",
+    links: {
+      homepage: "https://griaule.com/",
+      careers: "https://griaule.com/careers/",
+    },
+    logo: GriauleLogo,
+  },
+  {
+    name: "Luizalabs",
+    description: "",
+    links: {
+      homepage: "https://medium.com/luizalabs",
+      careers: "https://carreiras.magazineluiza.com.br/times/Luizalabs",
+    },
+    logo: LuizalabsLogo,
+  },
+  {
+    name: "Raizen",
+    description: "",
+    links: {
+      homepage: "https://www.raizen.com.br",
+      careers: "https://carreiras.raizen.com.br/",
+    },
+    logo: RaizenLogo,
+  },
+  {
+    name: "Serasa",
+    description: "",
+    links: {
+      homepage: "https://www.serasaexperian.com.br/",
+      careers: "https://www.serasaexperian.com.br/carreiras-tech/",
+    },
+    logo: SerasaLogo,
+  },
+  {
+    name: "Tokenlab",
+    description: "",
+    links: {
+      homepage: "https://www.tokenlab.com.br/pt/home",
+      careers: "https://tokenlab.gupy.io/",
+    },
+    logo: TokenlabLogo,
+  },
+  {
+    name: "Tractian",
+    description: "",
+    links: {
+      homepage: "https://tractian.com/",
+      careers: "https://tractian.com/carreiras",
+    },
+    logo: TractianLogo,
+  },
 ];
 
 const supportersInfo = [
@@ -74,13 +133,9 @@ const SponsorsPage = () => {
       <div className="m-8 flex flex-col items-center md:w-full md:justify-between md:px-16 md:py-8 md:m-0">
         <main className="flex flex-col px-0 py-8">
           <h2 className="text-3xl py-6 font-qatar">Patrocinadores</h2>
-          {/* <p className="thanks-from-semcomp">
-            Queremos agradecer aos apoiadores, sem os quais seria impossível
-            organizar o nosso retorno à Semcomp presencial. Esperamos que tanto
-            os alunos quanto os apoiadores possam aproveitar ao máximo as
-            palestras, os minicursos e que ano que vem mantenhamos nossa
-            parceria!
-          </p> */}
+          <p className="thanks-from-semcomp">
+            Queremos agradecer aos patrocinadores e apoiadores, sem os quais seria impossível organizar o nosso retorno à Semcomp presencial. Esperamos que tanto os alunos, quanto os nossos patrocinadores e apoiadores possam aproveitar ao máximo as palestras, os minicursos e que ano que vem mantenhamos nossa parceria!
+          </p>
           <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4">
             {companiesInfo.map((company, index) => (
               <SponsorCard
