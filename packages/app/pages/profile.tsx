@@ -24,6 +24,7 @@ import RequireAuth from "../libs/RequireAuth";
 import Telegram from "../assets/telegram-logo.png";
 import ImgLogo from "../assets/logo-24.png";
 import { useAppContext } from "../libs/contextLib";
+import Card from "../components/Card";
 
 function Profile() {
   const { user } = useAppContext();
@@ -214,7 +215,7 @@ function Profile() {
         <div className="flex flex-col self-start w-full md:w-64">
           {userFetched && (
             <>
-              <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
+              <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
                 <QRCodeSVG value={userFetched && userFetched.id} />
                 <p className="font-bold text-xl text-center my-2">
                   {userFetched.name}
@@ -231,8 +232,8 @@ function Profile() {
                     Editar
                   </button>
                 }
-              </div>
-              <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
+              </Card>
+              <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Coffee
                 </h1>
@@ -267,12 +268,12 @@ function Profile() {
                     <Chip className="mt-3" label="Não pago" disabled={true} />
                   </>
                 )}
-              </div>
+              </Card>
             </>
           )}
           {
             userFetched && (
-              <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
+              <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Overflow
                 </h1>
@@ -290,10 +291,10 @@ function Profile() {
                 {/* <button onClick={() => setIsAboutOverflowModalOpen(true)}>
                   O que é o Overflow?
                 </button> */}
-              </div>
+              </Card>
             )
           }
-          <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
+          <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Eventos
             </h1>
@@ -329,7 +330,7 @@ function Profile() {
                 Inscrever
               </button>
             }
-          </div>
+          </Card>
           {/* <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Conquistas
@@ -364,10 +365,13 @@ function Profile() {
           </div> */}
           {/* <HouseScores /> */}
         </div>
-        <div className="h-full w-full rounded-xl justify-self-end row-span-2">
-          <EventsOverview />
-          <span className="h-4 block" />
-          <EventsCalendar />
+        <div>
+          <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
+            <EventsOverview />
+          </Card>
+          <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
+            <EventsCalendar />
+          </Card>
         </div>
       </main>
       <Footer />

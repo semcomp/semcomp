@@ -1,11 +1,8 @@
 .events-overview-component__root {
-  border: 1px solid rgba(0, 0, 0, 0.4);
-  border-radius: 12px;
   padding: 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: white;
 }
 
 .events-overview-component__title {
