@@ -22,7 +22,7 @@ import PicaPau from "../assets/pica-pau.png";
 import OncaPintada from "../assets/onca-pintada.png";
 import TatuBola from "../assets/tatu-bola.png";
 import LoboGuara from "../assets/lobo-guara.png";
-import Telegram from "../assets/telegram-logo.png";
+import TelegramIcon from '@mui/icons-material/Telegram';
 import ImgLogo from "../assets/logo-24.png";
 import { useAppContext } from "../libs/contextLib";
 import Card from "../components/Card";
@@ -103,7 +103,7 @@ function Profile() {
   //   }
   // }
   const userHouseName = userFetched?.house?.name;
-  // const userHouseTelegram = user?.house?.telegramLink;
+  const userHouseTelegram = userFetched?.house?.telegramLink;
 
   const houseImageSrc = {
     "Pica-pau": PicaPau,
@@ -284,14 +284,14 @@ function Profile() {
                   src={houseImageSrc}
                 />
                 <p className="house-name">{userFetched.house.name}</p>
-                {/* <button
-                  style={{ backgroundColor: "#0088cc" }}
-                  onClick={() =>
-                    window.open(userHouseTelegram, "_blank", "noopener noreferrer")
-                  }
+                <a
+                  className="bg-tertiary text-white p-2 rounded-lg mt-2"
+                  href={userHouseTelegram}
+                  target="_blank" rel="noopener noreferrer"
                 >
-                  Entrar no grupo <img src={Telegram} alt="Telegram" />
-                </button> */}
+                  Entrar no grupo
+                  <TelegramIcon />
+                </a>
                 {/* <button onClick={() => setIsAboutOverflowModalOpen(true)}>
                   O que é o Overflow?
                 </button> */}
