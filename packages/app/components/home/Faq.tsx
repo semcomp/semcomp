@@ -42,7 +42,12 @@ function Question({ question, answer }) {
       <div ref={answerRef} className="text-black transition-all overflow-auto text-left ">
         <div className="p-4">
           <p>
-            <Linkify>{answer}</Linkify>
+            {/* Veja https://pastebin.com/XN5HjgBC */}
+            <Linkify componentDecorator={(decoratedHref, decoratedText, key) => (
+              <a target="blank" style={{ color: "#002776", fontWeight: 'bold' }} href={decoratedHref} key={key}>
+                {decoratedText}
+              </a>
+            )}>{answer}</Linkify>
           </p>
         </div>
       </div>
