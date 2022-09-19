@@ -10,7 +10,7 @@ import Image, { StaticImageData } from "next/image";
 import NavLink from "../navbar/nav-link";
 
 function Sponsors() {
-  const supporterLogos = [IcmcImage, FogImage, CodelabImage, PetImage, Ganesh];
+  const supporterLogos = [IcmcImage, PetImage, CodelabImage, FogImage, Ganesh];
 
   return (
     <>
@@ -21,15 +21,12 @@ function Sponsors() {
         <div className="text-base pt-8 max-w-4xl">
           <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4">
             {supporterLogos.map((supporterLogo: StaticImageData, index) => (
-              <div
-                className="flex items-center justify-center relative w-64 h-32 m-4"
-                key={index}
-              >
+              <div className="relative h-32 w-48">
                 <Image
+                  alt={"Logo " + supporterLogos.toString()}
                   src={supporterLogo}
-                  alt=""
-                  layout="intrinsic"
-                  quality={100}
+                  layout="fill"
+                  objectFit="contain"
                 />
               </div>
             ))}
@@ -37,7 +34,9 @@ function Sponsors() {
           <br />
 
           <NavLink href={Routes.sponsors}>
-            <div className="bg-green p-3 rounded hover:bg-secondary hover:text-black">Saiba mais</div>
+            <div className="bg-green p-3 rounded hover:bg-secondary hover:text-black">
+              Saiba mais
+            </div>
           </NavLink>
         </div>
       </section>

@@ -20,10 +20,17 @@ function SponsorCard({
   companyLogo,
 }: sponsorProps) {
   return (
-    <div className="rounded-lg border-solid border border-white overflow-auto h-full w-full flex flex-col p-4 bg-white my-2.5 mx-5">
+    <div className="overflow-auto flex flex-col items-center">
       {companyLinks && (
         <div className="flex flex-col justify-between h-full p-0">
-          <Image src={companyLogo} />
+          <div className="relative h-32 w-48">
+            <Image
+              alt={"Logo " + companyName}
+              src={companyLogo}
+              layout="fill"
+              objectFit="contain"
+            />
+          </div>
           {/* <p className="my-2">{companyName}</p>
           <p className="my-2">{companyDescription}</p> */}
           <div className="flex justify-center">
