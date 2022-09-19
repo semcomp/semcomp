@@ -13,18 +13,19 @@ import { useAppContext } from "../libs/contextLib";
 import Navbar from "../components/navbar";
 import Card from "../components/Card";
 import Input, { InputType } from "../components/Input";
+import NavLink from "../components/navbar/nav-link";
 
 function Login() {
   const [email, setEmail] = useState("");
   function handleEmailChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     setEmail(value);
-  };
+  }
   const [password, setPassword] = useState("");
   function handlePasswordChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     setPassword(value);
-  };
+  }
   const [showPassword, setShowPassword] = useState(false);
 
   // This state is used to indicate to the user when the login is happening though a Spinner.
@@ -62,9 +63,17 @@ function Login() {
           <h1 className="text-xl">Entrar</h1>
           <form className="w-full" onSubmit={handleSubmit}>
             <Input
+              tooltip={
+                <div style={{ fontSize: "14px" }}>
+                  <p>
+                    Atenção: Se você já realizou o cadastro na Semcomp Beta, por
+                    favor, cadastre-se novamente.
+                  </p>
+                </div>
+              }
               autofocus={true}
               className="my-3"
-              label="E-mail"
+              label="E-mail "
               value={email}
               onChange={handleEmailChange}
               type={InputType.Text}
@@ -91,13 +100,17 @@ function Login() {
               Entrar
             </LoadingButton>
             <Link href="/reset-password">
-              <div className="bg-white text-black text-center font-bold w-full py-3 my-3 shadow">
+              <div className="bg-white text-black text-center font-bold w-full py-3 my-3 shadow cursor-pointer">
                 Esqueci minha senha
               </div>
             </Link>
             <p>
-              Não tem conta? <Link href="/signup">
-              <a className="text-blue-700 hover:text-blue-500 visited:bg-none"> Crie uma agora!</a>
+              Não tem conta?{" "}
+              <Link href="/signup">
+                <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
+                  {" "}
+                  Crie uma agora!
+                </a>
               </Link>
             </p>
           </form>
@@ -106,10 +119,10 @@ function Login() {
           <aside>
             Obrigado por se interessar no nosso evento! <br /> <br />A Semcomp é
             100% construída e pensada por alunos da{" "}
-            <strong>Universidade de São Paulo, do campus São Carlos</strong>, dos
-            cursos de{" "}
-            <strong>Sistemas de informação e Ciências da Computação</strong>. Ela
-            ocorre todo ano no
+            <strong>Universidade de São Paulo, do campus São Carlos</strong>,
+            dos cursos de{" "}
+            <strong>Sistemas de informação e Ciências da Computação</strong>.
+            Ela ocorre todo ano no
             <strong>
               {" "}
               ICMC - Instituto de Ciências Matemáticas e Computação
@@ -122,9 +135,6 @@ function Login() {
             <br />
             <br />
             Com carinho, Equipe Semcomp!
-            <br />
-            <br />
-            <strong>Atenção: Se você já realizou o cadastro na Semcomp Beta, por favor, cadastre-se novamente.</strong>
           </aside>
         </Card>
       </main>

@@ -47,7 +47,7 @@ function Step0({
     <form className="w-full" onSubmit={handleSubmit}>
       <Input
         tooltip={
-          <div style={{ fontSize: "13px" }}>
+          <div style={{ fontSize: "14px" }}>
             Esse nome será usado em:
             <br />
             1. Seu(s) certificado(s);
@@ -95,7 +95,9 @@ function Step0({
       </button>
       <div className="mt-3">
         <Link href="/login">
-        <a className="text-blue-700 hover:text-blue-500 visited:bg-none">Ja tem uma conta?</a>
+          <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
+            Ja tem uma conta?
+          </a>
         </Link>
       </div>
     </form>
