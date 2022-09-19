@@ -115,28 +115,30 @@ function Login() {
             </p>
           </form>
         </Card>
-        <Card className="w-full max-w-lg m-3 p-9">
-          <aside>
-            Obrigado por se interessar no nosso evento! <br /> <br />A Semcomp é
-            100% construída e pensada por alunos da{" "}
-            <strong>Universidade de São Paulo, do campus São Carlos</strong>,
-            dos cursos de{" "}
-            <strong>Sistemas de informação e Ciências da Computação</strong>.
-            Ela ocorre todo ano no
-            <strong>
-              {" "}
-              ICMC - Instituto de Ciências Matemáticas e Computação
-            </strong>
-            , um evento presencial cheio de palestras, minicursos, aprendizado e
-            muita comida.
-            <br />
-            <br />
-            Esperamos que todos vocês gostem e aguardem para mais informações.{" "}
-            <br />
-            <br />
-            Com carinho, Equipe Semcomp!
-          </aside>
-        </Card>
+        <div id="info-semcomp">
+          <Card className="w-full max-w-lg m-3 p-9">
+            <aside>
+              Obrigado por se interessar no nosso evento! <br /> <br />A Semcomp é
+              100% construída e pensada por alunos da{" "}
+              <strong>Universidade de São Paulo, do campus São Carlos</strong>,
+              dos cursos de{" "}
+              <strong>Sistemas de informação e Ciências da Computação</strong>.
+              Ela ocorre todo ano no
+              <strong>
+                {" "}
+                ICMC - Instituto de Ciências Matemáticas e Computação
+              </strong>
+              , um evento presencial cheio de palestras, minicursos, aprendizado e
+              muita comida.
+              <br />
+              <br />
+              Esperamos que todos vocês gostem e aguardem para mais informações.{" "}
+              <br />
+              <br />
+              Com carinho, Equipe Semcomp!
+            </aside>
+          </Card>
+        </div>
       </main>
       <Footer />
     </div>
