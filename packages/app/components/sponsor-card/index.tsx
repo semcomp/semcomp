@@ -1,10 +1,12 @@
 import FacebookLogo from "../../assets/facebook-logo.svg";
 import InstagramLogo from "../../assets/instagram-logo.svg";
 import LinkedinLogo from "../../assets/linkedin-logo.svg";
-import GlobeIcon from "../../assets/globe-icon.svg";
-import CareersLogo from "../../assets/lupa.png";
 import Image, { StaticImageData } from "next/image";
 import LogoLink from "./logo-link";
+import WorkRoundedIcon from '@mui/icons-material/WorkRounded';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
+import NavLink from "../navbar/nav-link";
+import Tooltip from '@mui/material/Tooltip';
 
 type sponsorProps = {
   companyName: string;
@@ -35,9 +37,13 @@ function SponsorCard({
           <p className="my-2">{companyDescription}</p> */}
           <div className="flex justify-center">
             {companyLinks.homepage && (
-              <LogoLink icon={GlobeIcon} link={companyLinks.homepage} />
+              <NavLink href={companyLinks.homepage}>
+                <Tooltip title="Site">
+                  <PublicRoundedIcon sx={{ color: "#002776" }} />
+                </Tooltip>
+              </NavLink>
             )}
-            {companyLinks.facebook && (
+            {/* {companyLinks.facebook && (
               <LogoLink icon={FacebookLogo} link={companyLinks.facebook} />
             )}
             {companyLinks.linkedin && (
@@ -45,9 +51,13 @@ function SponsorCard({
             )}
             {companyLinks.instagram && (
               <LogoLink icon={InstagramLogo} link={companyLinks.instagram} />
-            )}
+            )} */}
             {companyLinks.careers && (
-              <LogoLink icon={CareersLogo} link={companyLinks.careers} />
+              <NavLink href={companyLinks.careers}>
+                <Tooltip title="Carreiras">
+                  <WorkRoundedIcon sx={{ color: "#002776" }} />
+                </Tooltip>
+              </NavLink>
             )}
           </div>
         </div>
