@@ -5,12 +5,13 @@ import FogImage from "../../assets/sponsors/fog.png";
 import CodelabImage from "../../assets/sponsors/logo-codelab-sanca.svg";
 import PetImage from "../../assets/sponsors/pet.png";
 import Ganesh from "../../assets/sponsors/ganesh.png";
+import Gema from "../../assets/sponsors/gema.png";
 import Routes from "../../routes";
 import Image, { StaticImageData } from "next/image";
 import NavLink from "../navbar/nav-link";
 
 function Sponsors() {
-  const supporterLogos = [IcmcImage, PetImage, CodelabImage, FogImage, Ganesh];
+  const supporterLogos = [IcmcImage, PetImage, CodelabImage, FogImage, Ganesh, Gema];
 
   return (
     <>
