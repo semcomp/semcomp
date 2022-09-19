@@ -13,7 +13,7 @@ import IcmcImage from "../assets/sponsors/icmc50.png";
 import FogImage from "../assets/sponsors/fog.png";
 import CodelabImage from "../assets/sponsors/logo-codelab-sanca.svg";
 import PetImage from "../assets/sponsors/pet.png";
-import GemaImage from "../assets/sponsors/gema.png";
+import GemaImage from "../assets/sponsors/gema2.png";
 import Footer from "../components/Footer";
 import Navbar from "../components/navbar";
 import SponsorCard from "../components/sponsor-card";
