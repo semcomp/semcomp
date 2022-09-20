@@ -39,10 +39,15 @@ function Question({ question, answer }) {
       <button className="text-left w-full p-4 shadow" onClick={handleQuestionClick}>
         {question}
       </button>
-      <div ref={answerRef} className="transition-all overflow-auto text-left ">
+      <div ref={answerRef} className="text-black transition-all overflow-auto text-left ">
         <div className="p-4">
           <p>
-            <Linkify>{answer}</Linkify>
+            {/* Veja https://pastebin.com/XN5HjgBC */}
+            <Linkify componentDecorator={(decoratedHref, decoratedText, key) => (
+              <a target="blank" style={{ color: "#002776", fontWeight: 'bold' }} href={decoratedHref} key={key}>
+                {decoratedText}
+              </a>
+            )}>{answer}</Linkify>
           </p>
         </div>
       </div>
@@ -53,11 +58,11 @@ function Question({ question, answer }) {
 const FAQ = () => {
   return (<>
     <section className="flex flex-col items-center text-secondary bg-primary text-center p-16">
-      <h1 id="titulo" className="text-4xl font-bold">FAQ</h1>
+      <h1 id="titulo" className="text-4xl font-bold font-qatar text-secondary">FAQ</h1>
       <div className="text-base pt-8 max-w-4xl">
         <Question
           question="Como faço para participar da Semcomp?"
-          answer="Para participar, basta se inscrever aqui mesmo em nosso site! O evento será híbrido, com transmissão das palestras pelo Youtube, então é preciso comparecer à USP de São Carlos durante o período anunciado para os demais eventos. Para mais notícias, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos)"          />
+          answer="Para participar, basta se inscrever aqui mesmo em nosso site! O evento será híbrido, com transmissão das palestras pelo Youtube, então é preciso comparecer à USP de São Carlos durante o período anunciado para os demais eventos. Para mais notícias, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos)" />
         <Question
           question="O evento é gratuito?"
           answer="Haverá uma taxa para o acesso ao coffee break, porém outros eventos como palestras, minicursos, concursos e game night são de acesso gratuito para todos. Vale lembrar que eventos com premiação exigem inscrição na Semcomp mesmo sem pagamento da taxa de inscrição."
@@ -69,7 +74,7 @@ const FAQ = () => {
         />
         <Question
           question="Tem certificado?"
-          answer="Haverão certificados de participação nos minicursos. Assim, é preciso se inscrever neles aqui no site e comparecer na hora do evento. Após o final da Semcomp, emitiremos um certificado com a quantidade de horas correspondente às suas presenças."          />
+          answer="Haverão certificados de participação nos minicursos. Assim, é preciso se inscrever neles aqui no site e comparecer na hora do evento. Após o final da Semcomp, emitiremos um certificado com a quantidade de horas correspondente às suas presenças." />
         <Question
           question="Tem premiação?"
           answer="Sim! Campeonatos da game night e concursos terão premiações, mas não esqueça que, para poder participar, é preciso estar inscrito na Semcomp."
