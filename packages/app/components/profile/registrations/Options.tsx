@@ -22,9 +22,15 @@ import LoadingButton from "../../loading-button";
 import API from "../../../api";
 import EventTypes from "../../../libs/constants/event-types-enum";
 import AdditionalValuesAccordion from "./additional-values-accordion/AdditionalInfoAccordion";
-import ContestRegistration, { ContestRegistrationInfo } from "./additional-values-accordion/ContestRegistration";
-import NickRegistration, { NicksRegistrationInfo } from "./additional-values-accordion/NicksRegistration";
-import TeamRegistration, { TeamRegistrationInfo } from "./additional-values-accordion/TeamRegistration";
+import ContestRegistration, {
+  ContestRegistrationInfo,
+} from "./additional-values-accordion/ContestRegistration";
+import NickRegistration, {
+  NicksRegistrationInfo,
+} from "./additional-values-accordion/NicksRegistration";
+import TeamRegistration, {
+  TeamRegistrationInfo,
+} from "./additional-values-accordion/TeamRegistration";
 
 const zeroPad = (num, places) => String(num).padStart(places, "0");
 
@@ -105,9 +111,7 @@ function Options({ item, fetchEvents }) {
       if (!scholarship || scholarship === "") {
         return toast.error("Informe sua escolaridade!");
       }
-      if (
-        !technicalExperience || !resolutionExperience || !contestExperience
-      ) {
+      if (!technicalExperience || !resolutionExperience || !contestExperience) {
         return toast.error(
           "Responda às perguntas de nivelamento para selecionar uma categoria!"
         );
@@ -200,19 +204,18 @@ function Options({ item, fetchEvents }) {
 
   return (
     <form onSubmit={handleSubmit}>
-        <Accordion>
-          <AccordionSummary
-            expandIcon={<ExpandMore />}
-            aria-controls="panel1a-content"
-            id="panel1a-header"
-          >
-            <Typography>
-              {formatDate(item.startDate, item.endDate)}
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Typography component={"span"}>
-              {item.events.map((occasion, index) => (<FormControl component="fieldset">
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMore />}
+          aria-controls="panel1a-content"
+          id="panel1a-header"
+        >
+          <Typography>{formatDate(item.startDate, item.endDate)}</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Typography component={"span"}>
+            {item.events.map((occasion, index) => (
+              <FormControl component="fieldset">
                 <RadioGroup
                   aria-label="topico"
                   name="topico"
@@ -256,6 +259,7 @@ function Options({ item, fetchEvents }) {
                           value={`${index}`}
                           control={<Radio />}
                           label={occasion.name}
+                          className="mt-8"
                         />
                         {occasion.type === "Game Night" && (
                           <Chip
@@ -267,7 +271,7 @@ function Options({ item, fetchEvents }) {
                         )}
                       </div>
                     )}
-                    <p className="item-description">
+                    <p>
                       {occasion.type === "Minicurso" && (
                         <>
                           <strong>Ministrante: </strong>
@@ -278,30 +282,33 @@ function Options({ item, fetchEvents }) {
                       )}
                       <ReactLinkify>{occasion.description}</ReactLinkify>
                     </p>
-                    {
-                      occasion.needInfoOnSubscription && <AdditionalValuesAccordion
-                        additionalInfoComponent={getAdditionalInfoComponent(occasion.type)}
+                    {occasion.needInfoOnSubscription && (
+                      <AdditionalValuesAccordion
+                        additionalInfoComponent={getAdditionalInfoComponent(
+                          occasion.type
+                        )}
                         updateFormValue={updateFormValue}
                         registerTeam={occasion.isInGroup}
                       />
-                    }
+                    )}
                   </div>
                 </RadioGroup>
-              </FormControl>))}
-            </Typography>
-          </AccordionDetails>
-          {!item.events.find((event) => event.isSubscribed) && (
-            <AccordionActions>
-              <LoadingButton
-                className="bg-tertiary text-white font-bold w-full py-3 shadow"
-                type="submit"
-                isLoading={isUpdating}
-              >
-                Inscrever-se
-              </LoadingButton>
-            </AccordionActions>
-          )}
-        </Accordion>
+              </FormControl>
+            ))}
+          </Typography>
+        </AccordionDetails>
+        {!item.events.find((event) => event.isSubscribed) && (
+          <AccordionActions>
+            <LoadingButton
+              className="bg-tertiary text-white font-bold w-full py-3 shadow"
+              type="submit"
+              isLoading={isUpdating}
+            >
+              Inscrever-se
+            </LoadingButton>
+          </AccordionActions>
+        )}
+      </Accordion>
     </form>
   );
 }
