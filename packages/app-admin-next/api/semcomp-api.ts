@@ -1,4 +1,4 @@
-import { SemcompApiCreateHouseRequest, SemcompApiGetHousesResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse } from "../models/SemcompApiModels";
+import { SemcompApiCreateEventRequest, SemcompApiCreateHouseRequest, SemcompApiEditEventRequest, SemcompApiGetEventsResponse, SemcompApiGetHousesResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse } from "../models/SemcompApiModels";
 import Http from "./http";
 
 class SemcompApi {
@@ -37,6 +37,18 @@ class SemcompApi {
 
   public async editTShirt(id: string, data: any): Promise<any> {
     return this.http.put(`/admin/t-shirts/${id}`, data);
+  }
+
+  public async getEvents(): Promise<SemcompApiGetEventsResponse> {
+    return this.http.get("/admin/events");
+  }
+
+  public async createEvent(data: SemcompApiCreateEventRequest): Promise<any> {
+    return this.http.post("/admin/events", data);
+  }
+
+  public async editEvent(id: string, data: SemcompApiEditEventRequest): Promise<any> {
+    return this.http.put(`/admin/events/${id}`, data);
   }
 }
 

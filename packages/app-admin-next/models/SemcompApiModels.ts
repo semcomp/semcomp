@@ -1,4 +1,5 @@
 import { TShirtSize } from "../components/t-shirt/TShirtForm";
+import EventType from "../libs/constants/event-types-enum";
 
 export enum PaymentStatus {
   PENDING = "pending",
@@ -62,3 +63,44 @@ export type SemcompApiTShirt = {
 };
 
 export type SemcompApiGetTShirtsResponse = SemcompApiTShirt[];
+
+export type SemcompApiEvent = {
+  id: string,
+  name: string;
+  speaker: string;
+  description: string;
+  maxOfSubscriptions: number;
+  startDate: number;
+  endDate: number;
+  type: EventType;
+  link: string;
+  isInGroup: boolean;
+  showOnSchedule: boolean;
+  showStream: boolean;
+  showOnSubscribables: boolean;
+  needInfoOnSubscription: boolean;
+  attendances: any[],
+  subscribers: any[],
+  createdAt: number,
+  updatedAt: number,
+};
+
+export type SemcompApiGetEventsResponse = SemcompApiEvent[];
+
+export type SemcompApiCreateEventRequest = {
+  name: string;
+  speaker: string;
+  description: string;
+  maxOfSubscriptions: number;
+  startDate: number;
+  endDate: number;
+  type: EventType;
+  link: string;
+  isInGroup: boolean;
+  showOnSchedule: boolean;
+  showStream: boolean;
+  showOnSubscribables: boolean;
+  needInfoOnSubscription: boolean;
+};
+
+export type SemcompApiEditEventRequest = SemcompApiCreateEventRequest;

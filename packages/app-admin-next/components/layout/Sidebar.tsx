@@ -80,7 +80,7 @@ function Sidebar() {
         <NavLink title="Camisetas" href={Routes.tShirts}></NavLink>
         {/* <NavLink title="Administradores" href={Routes.adminUsers}></NavLink> */}
         {/* <NavLink title="Conquistas" href={Routes.achievements}></NavLink> */}
-        {/* <NavLink title="Eventos" href={Routes.events}></NavLink> */}
+        <NavLink title="Eventos" href={Routes.events}></NavLink>
         {/* <NavLink title="Riddle - Perguntas" href={Routes.riddleQuestions}></NavLink> */}
         {/* <NavLink title="Riddle - Grupos" href={Routes.riddleGroups}></NavLink> */}
         {/* <NavLink title="Riddlethon - Perguntas" href={Routes.riddlethonQuestions}></NavLink> */}
