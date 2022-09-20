@@ -3,9 +3,13 @@ import { ReactNode } from "react";
 import {
   Checkbox,
   FormControl,
+  FormControlLabel,
+  FormLabel,
   Input as MaterialInput,
   InputLabel,
   MenuItem,
+  Radio,
+  RadioGroup,
   Select,
   TextField,
   Tooltip,
@@ -95,6 +99,29 @@ function SelectInput({
         </MenuItem>
       ))}
     </Select>
+  </FormControl>);
+}
+
+function RadioInput({
+  label,
+  onChange,
+  value,
+  choices,
+}: {
+  label: string;
+  onChange: any;
+  value: string;
+  choices: string[];
+}) {
+  return (<FormControl>
+    <FormLabel id="label">{label}</FormLabel>
+    <RadioGroup
+      aria-labelledby="label"
+      value={value}
+      onChange={onChange}
+    >
+      {choices.map((choice) => <FormControlLabel key={choice} value={choice} control={<Radio />} label={choice} />)}
+    </RadioGroup>
   </FormControl>);
 }
 

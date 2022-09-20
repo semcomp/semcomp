@@ -78,7 +78,7 @@ function Options({ item, fetchEvents }) {
 
   const [selectedEventIndex, setSelectedEventIndex] = useState(0);
   const handleSelectEvent = (event) => {
-    setSelectedEventIndex(event.target.selectedEventIndex);
+    setSelectedEventIndex(+event.target.value);
   };
 
   const [formValue, setFormValue] = useState(null);
@@ -200,21 +200,19 @@ function Options({ item, fetchEvents }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      {item.events.map((occasion, index) => (
-        <Accordion key={index}>
+        <Accordion>
           <AccordionSummary
             expandIcon={<ExpandMore />}
             aria-controls="panel1a-content"
             id="panel1a-header"
           >
             <Typography>
-              {/* talvez precise remover o occasion.name se tiver mais de 1 evento no mesmo horario */}
-              {formatDate(item.startDate, item.endDate)} - {occasion.name}
+              {formatDate(item.startDate, item.endDate)}
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Typography component={"span"}>
-              <FormControl component="fieldset">
+              {item.events.map((occasion, index) => (<FormControl component="fieldset">
                 <RadioGroup
                   aria-label="topico"
                   name="topico"
@@ -289,7 +287,7 @@ function Options({ item, fetchEvents }) {
                     }
                   </div>
                 </RadioGroup>
-              </FormControl>
+              </FormControl>))}
             </Typography>
           </AccordionDetails>
           {!item.events.find((event) => event.isSubscribed) && (
@@ -304,7 +302,6 @@ function Options({ item, fetchEvents }) {
             </AccordionActions>
           )}
         </Accordion>
-      ))}
     </form>
   );
 }
