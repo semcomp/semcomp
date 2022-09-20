@@ -37,6 +37,17 @@ const zeroPad = (num, places) => String(num).padStart(places, "0");
 function formatDate(startDate, endDate) {
   const start = new Date(startDate);
   const end = new Date(endDate);
+  const week = [
+    "Domingo",
+    "Segunda-Feira",
+    "Terça-Feira",
+    "Quarta-Feira",
+    "Quinta-Feira",
+    "Sexta-Feira",
+    "Sábado",
+  ];
+
+  const DayOfTheWeek = `${start.getDay()}`;
 
   const startTime = `${zeroPad(start.getHours(), 2)}:${zeroPad(
     start.getMinutes(),
@@ -47,7 +58,7 @@ function formatDate(startDate, endDate) {
     2
   )}`;
 
-  return `${zeroPad(start.getDate(), 2)}/${zeroPad(
+  return `${week[DayOfTheWeek]}, ${zeroPad(start.getDate(), 2)}/${zeroPad(
     start.getMonth() + 1,
     2
   )} | ${startTime} às ${endTime}`;
