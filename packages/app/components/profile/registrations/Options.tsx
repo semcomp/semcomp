@@ -222,6 +222,7 @@ function Options({ item, fetchEvents }) {
           id="panel1a-header"
         >
           <Typography>{formatDate(item.startDate, item.endDate)}</Typography>
+          <p className="ml-2">({item.events.length})</p>
         </AccordionSummary>
         <AccordionDetails>
           <Typography component={"span"}>
@@ -240,6 +241,7 @@ function Options({ item, fetchEvents }) {
                           value={`${index}`}
                           control={<Radio />}
                           label={occasion.name}
+                          className={index == 1 ? "mt-8" : ""}
                         />
                         {occasion.type === "Game Night" && (
                           <Chip
@@ -270,7 +272,7 @@ function Options({ item, fetchEvents }) {
                           value={`${index}`}
                           control={<Radio />}
                           label={occasion.name}
-                          className="mt-8"
+                          className={index == 1 ? "mt-8" : ""}
                         />
                         {occasion.type === "Game Night" && (
                           <Chip
@@ -282,7 +284,7 @@ function Options({ item, fetchEvents }) {
                         )}
                       </div>
                     )}
-                    <p>
+                    <div>
                       {occasion.type === "Minicurso" && (
                         <>
                           <strong>Ministrante: </strong>
@@ -291,8 +293,10 @@ function Options({ item, fetchEvents }) {
                           <br />
                         </>
                       )}
-                      <ReactLinkify>{occasion.description}</ReactLinkify>
-                    </p>
+                      <ReactLinkify className="mb-4">
+                        {occasion.description}
+                      </ReactLinkify>
+                    </div>
                     {occasion.needInfoOnSubscription && (
                       <AdditionalValuesAccordion
                         additionalInfoComponent={getAdditionalInfoComponent(
