@@ -8,11 +8,13 @@ import {
   MenuItem,
   Select,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs, { Dayjs } from 'dayjs';
+import { Info } from "@mui/icons-material";
 
 export enum InputType {
   Select = "select",
@@ -29,6 +31,8 @@ function TextInput({
   onChange,
   value,
   type,
+  tooltip,
+  autofocus,
   start,
   end,
 }: {
@@ -36,12 +40,22 @@ function TextInput({
   onChange: any;
   value: string;
   type: InputType;
+  tooltip: any,
+  autofocus: boolean,
   start?: ReactNode;
   end?: ReactNode;
 }) {
-  return (
+  return (<>
+    {
+      tooltip && (
+        <Tooltip arrow placement="top-start" title={tooltip ? tooltip : ""} enterTouchDelay={1}>
+          <Info sx={{ color: "#002776" }} />
+        </Tooltip>
+      )
+    }
     <TextField
       fullWidth
+      autoFocus={autofocus}
       onChange={onChange}
       value={value}
       type={type}
@@ -53,7 +67,7 @@ function TextInput({
         endAdornment: end,
       }}
     />
-  );
+  </>);
 }
 
 function SelectInput({
@@ -134,6 +148,8 @@ function Input({
   value,
   type,
   choices,
+  tooltip,
+  autofocus,
   start,
   end,
   className,
@@ -143,6 +159,8 @@ function Input({
   value?: string | number | boolean;
   type: InputType;
   choices?: string[];
+  tooltip?: any,
+  autofocus?: boolean,
   start?: ReactNode;
   end?: ReactNode;
   className?: string;
@@ -153,6 +171,8 @@ function Input({
       onChange={onChange}
       value={value as string}
       type={type}
+      tooltip={tooltip}
+      autofocus={autofocus}
       start={start}
       end={end}
     />
