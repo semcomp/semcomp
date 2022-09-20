@@ -95,6 +95,7 @@ function EventForm({
   ) {
     const value = event.target.checked;
     setData({ ...data, isInGroup: value });
+    onDataChange({...data, isInGroup: value});
   }
 
   function handleShowOnScheduleChange(
@@ -102,6 +103,7 @@ function EventForm({
   ) {
     const value = event.target.checked;
     setData({ ...data, showOnSchedule: value });
+    onDataChange({...data, showOnSchedule: value});
   }
 
   function handleShowStreamChange(
@@ -109,6 +111,7 @@ function EventForm({
   ) {
     const value = event.target.checked;
     setData({ ...data, showStream: value });
+    onDataChange({...data, showStream: value});
   }
 
   function handleShowOnSubscribablesChange(
@@ -116,6 +119,7 @@ function EventForm({
   ) {
     const value = event.target.checked;
     setData({ ...data, showOnSubscribables: value });
+    onDataChange({...data, showOnSubscribables: value});
   }
 
   function handleNeedInfoOnSubscriptionChange(
@@ -123,6 +127,7 @@ function EventForm({
   ) {
     const value = event.target.checked;
     setData({ ...data, needInfoOnSubscription: value });
+    onDataChange({...data, needInfoOnSubscription: value});
   }
 
   return (

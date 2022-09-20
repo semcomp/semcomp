@@ -18,14 +18,11 @@ function CreateEventModal({ onRequestClose }) {
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit() {
-    console.log(data);
-
-    if (!data.link) return toast.error('Você deve fornecer um link');
-
     try {
       setIsLoading(true);
-      const response = await semcompApi.createEvent(data);
-      console.log(response);
+      await semcompApi.createEvent(data);
+      toast.success('Evento criado com sucesso');
+      onRequestClose()
     } catch (error) {
       console.error(error);
     } finally {

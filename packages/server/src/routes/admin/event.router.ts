@@ -17,7 +17,6 @@ router.post(
   [
     body("name", "Invalid field 'name'").not().isEmpty(),
     body("description", "Invalid field 'description'").not().isEmpty(),
-    body("link", "Invalid field 'link'").not().isEmpty(),
     body("startDate", "Invalid field 'dateStart'").not().isEmpty(),
     body("endDate", "Invalid field 'dateEnd'").not().isEmpty(),
     body("type", "Invalid field 'dateEnd'").not().isEmpty(),

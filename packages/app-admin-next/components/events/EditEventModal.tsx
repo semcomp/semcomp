@@ -18,14 +18,11 @@ function EditEventModal({ initialValue, onRequestClose }) {
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit() {
-    console.log(data);
-
-    if (!data.link) return toast.error('Você deve fornecer um link');
-
     try {
       setIsLoading(true);
-      const response = await semcompApi.editEvent(data.id, data);
-      console.log(response);
+      await semcompApi.editEvent(data.id, data);
+      toast.success('Evento editado com sucesso');
+      onRequestClose()
     } catch (error) {
       console.error(error);
     } finally {

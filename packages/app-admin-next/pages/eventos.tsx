@@ -64,8 +64,8 @@ function Events() {
 
   async function fetchData() {
     try {
+      setIsLoading(true);
       const response = await semcompApi.getEvents();
-      console.log(response);
       setData(response);
     } catch (error) {
       console.error(error);
@@ -75,8 +75,7 @@ function Events() {
   }
 
   async function handleRowClick(index: number) {
-    console.log(index);
-    setSelectedData(data[0]);
+    setSelectedData(data[index]);
     setIsEditModalOpen(true);
   }
 
@@ -98,7 +97,10 @@ function Events() {
     {isEditModalOpen && (
       <EditEventModal
         initialValue={selectedData}
-        onRequestClose={() => setIsEditModalOpen(false)}
+        onRequestClose={() => {
+          fetchData();
+          setIsEditModalOpen(false);
+        }}
       />
     )}
     <DataPage
