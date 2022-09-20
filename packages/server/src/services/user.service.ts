@@ -1,6 +1,7 @@
 
 import bcrypt from "bcryptjs";
 import { Model } from "mongoose";
+import QRCode from 'qrcode';
 
 import User, { UserModel } from "../models/user";
 import eventService from "./event.service";
@@ -185,6 +186,21 @@ class UserServiceImpl implements UserService {
           }
         }
       }
+    }
+  }
+
+  async generateQrCodes(): Promise<void> {
+    const users = await this.find();
+
+    for (const user of users) {
+      await QRCode.toFile(`./qr-codes/${user.name}.png`, user.id, {
+        color: {
+          dark: '#000000',
+          light: '#0000',
+        },
+        errorCorrectionLevel: 'H',
+        type: "png",
+      })
     }
   }
 

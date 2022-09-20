@@ -215,4 +215,14 @@ export default class UserController {
       return handleError(error, next);
     }
   };
+
+  public async generateQrCodes(req, res, next) {
+    try {
+      await userService.generateQrCodes();
+
+      return res.status(200).json();
+    } catch (error) {
+      return handleError(error, next);
+    }
+  };
 }

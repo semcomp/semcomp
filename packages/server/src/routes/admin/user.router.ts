@@ -35,6 +35,12 @@ export default class UserAdminRouter {
     );
 
     router.post(
+      "/generate-qr-codes",
+      [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+      (req, res, next) => this.userAdminController.generateQrCodes(req, res, next),
+    );
+
+    router.post(
       "/:userId/achievements/:achievementId",
       [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
       (req, res, next) => this.userAdminController.addUserAchievement(req, res, next),
