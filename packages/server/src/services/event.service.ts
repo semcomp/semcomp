@@ -248,7 +248,9 @@ class EventService {
     }
 
     for (const type of Object.keys(eventsByTypeAndTime)) {
+      eventsByTypeAndTime[type] = eventsByTypeAndTime[type].sort((a, b) => a.startDate - b.startDate);
       for (const eventsByTime of eventsByTypeAndTime[type]) {
+        eventsByTime.events = eventsByTime.events.sort((a, b) => a.startDate - b.startDate);
         for (const event of eventsByTime.events) {
           let hasAttended = false;
           let isSubscribed = false;
