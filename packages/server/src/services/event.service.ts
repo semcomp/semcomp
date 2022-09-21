@@ -291,10 +291,16 @@ class EventService {
       throw new HttpError(400, ["O evento está cheio!"]);
     }
 
-    const subscription = await subscriptionService.findOne({ userId, eventId });
-
-    if (subscription) {
-      throw new HttpError(400, ["O usuário já esta inscrito em um evento nesse horário!"]);
+    const subscriptions = await subscriptionService.find({ userId });
+    for (const subscription of subscriptions) {
+      const subscribedEvent = await this.findById(subscription.eventId);
+      if (
+        (subscribedEvent.startDate > event.startDate && subscribedEvent.startDate < event.endDate) ||
+        (subscribedEvent.endDate > event.startDate && subscribedEvent.endDate < event.endDate) ||
+        (event.startDate > subscribedEvent.startDate && event.startDate < subscribedEvent.endDate)
+      ) {
+        throw new HttpError(400, ["O usuário já esta inscrito em um evento nesse horário!"]);
+      }
     }
 
     const newSubscription: Subscription = {
