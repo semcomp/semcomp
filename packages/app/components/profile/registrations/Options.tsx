@@ -332,7 +332,7 @@ function Options({ item, fetchEvents }) {
             ))}
           </Typography>
         </AccordionDetails>
-        {!item.events.find((event) => event.isSubscribed) && (
+        {item.events.find((event) => !(event.isSubscribed)) && (
           <AccordionActions>
             <LoadingButton
               className="bg-tertiary text-white font-bold w-full py-3 shadow"
