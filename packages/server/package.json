@@ -36,7 +36,7 @@
     "mongoose": "^5.13.7",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
-    "node-cron": "^3.0.0",
+    "node-cron": "^3.0.2",
     "nodemailer": "^6.6.3",
     "qrcode": "^1.5.1",
     "remove-accents": "^0.4.2",
