@@ -222,7 +222,15 @@ function Options({ item, fetchEvents }) {
           id="panel1a-header"
         >
           <Typography>{formatDate(item.startDate, item.endDate)}</Typography>
-          <p className="ml-2">({item.events.length})</p>
+          {item.events.length > 1 ? (
+            <Chip
+              label={`${item.events.length} minicursos`}
+              variant="outlined"
+              className="ml-2 cursor-pointer"
+            />
+          ) : (
+            <></>
+          )}
         </AccordionSummary>
         <AccordionDetails>
           <Typography component={"span"}>
