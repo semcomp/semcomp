@@ -303,15 +303,15 @@ function Profile() {
               Eventos
             </h1>
             <List className="events-list">
-              {events.map((event) =>
-                event.items.map((e) =>
+              {Object.keys(events).map((type) =>
+                events[type].map((e) =>
                   e.events.map((item) => {
                     if (item.isSubscribed === true) {
                       return (
                         <div key={item.name}>
                           <ListItem>
                             <ListItemText
-                              primary={`${event.type}:  ${item.name}`}
+                              primary={`${type}:  ${item.name}`}
                               secondary={displayDate(e.startDate)}
                             />
                           </ListItem>
