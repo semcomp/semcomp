@@ -49,6 +49,16 @@ function formatDate(startDate, endDate) {
 
   const DayOfTheWeek = `${start.getDay()}`;
 
+  return `${week[DayOfTheWeek]}, ${zeroPad(start.getDate(), 2)}/${zeroPad(
+    start.getMonth() + 1,
+    2
+  )}`;
+}
+
+function formatTime(startDate, endDate) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
   const startTime = `${zeroPad(start.getHours(), 2)}:${zeroPad(
     start.getMinutes(),
     2
@@ -58,10 +68,7 @@ function formatDate(startDate, endDate) {
     2
   )}`;
 
-  return `${week[DayOfTheWeek]}, ${zeroPad(start.getDate(), 2)}/${zeroPad(
-    start.getMonth() + 1,
-    2
-  )} | ${startTime} às ${endTime}`;
+  return `${startTime} às ${endTime}`;
 }
 
 function TabPanel(props) {
@@ -248,7 +255,7 @@ function Options({ item, fetchEvents }) {
                         <FormControlLabel
                           value={`${index}`}
                           control={<Radio />}
-                          label={occasion.name}
+                          label={`${occasion.name} ${formatTime(occasion.startDate, occasion.endDate)}`}
                           className={index == 1 ? "mt-8" : ""}
                         />
                         {occasion.type === "Game Night" && (
@@ -279,7 +286,7 @@ function Options({ item, fetchEvents }) {
                         <FormControlLabel
                           value={`${index}`}
                           control={<Radio />}
-                          label={occasion.name}
+                          label={`${occasion.name} ${formatTime(occasion.startDate, occasion.endDate)}`}
                           className={index == 1 ? "mt-8" : ""}
                         />
                         {occasion.type === "Game Night" && (
@@ -295,6 +302,11 @@ function Options({ item, fetchEvents }) {
                     <div>
                       {occasion.type === "Minicurso" && (
                         <>
+                          <br />
+                          <strong>Horário: </strong>
+                          {formatTime(occasion.startDate, occasion.endDate)}
+                          <br />
+                          <br />
                           <strong>Ministrante: </strong>
                           {occasion.speaker}
                           <br />

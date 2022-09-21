@@ -211,7 +211,8 @@ class EventService {
     }
 
     const eventsByTypeAndTime: EventsByTypeAndTime = {};
-    for (const [key, events] of Object.entries(eventsByType) as [string, Event[]][]) {
+    for (let [key, events] of Object.entries(eventsByType) as [string, Event[]][]) {
+      events = events.sort((a, b) => (b.endDate - b.startDate) - (a.endDate - a.startDate))
       for (const event of events) {
         if (!eventsByTypeAndTime[key]) {
           eventsByTypeAndTime[key] = [{
@@ -222,17 +223,19 @@ class EventService {
           continue;
         }
 
+        console.log(event)
         let eventsOfThisTypeAndTime = eventsByTypeAndTime[key].find((eventOfThisType) => {
-          return (eventOfThisType.startDate > event.startDate && eventOfThisType.startDate < event.endDate) ||
-            (eventOfThisType.endDate > event.startDate && eventOfThisType.endDate < event.endDate) ||
-            (event.startDate > eventOfThisType.startDate && event.startDate < eventOfThisType.endDate);
+          console.log((event.startDate >= eventOfThisType.startDate && event.startDate <= eventOfThisType.endDate))
+          return ((eventOfThisType.startDate >= event.startDate && eventOfThisType.startDate <= event.endDate) ||
+            (eventOfThisType.endDate >= event.startDate && eventOfThisType.endDate <= event.endDate) ||
+            (event.startDate >= eventOfThisType.startDate && event.startDate <= eventOfThisType.endDate));
         });
 
         if (eventsOfThisTypeAndTime) {
           if (event.startDate < eventsOfThisTypeAndTime.startDate) {
             eventsOfThisTypeAndTime.startDate = event.startDate;
           }
-          if (event.endDate < eventsOfThisTypeAndTime.endDate) {
+          if (event.endDate > eventsOfThisTypeAndTime.endDate) {
             eventsOfThisTypeAndTime.endDate = event.endDate;
           }
           eventsOfThisTypeAndTime.events.push(event);
@@ -329,9 +332,9 @@ class EventService {
     for (const subscription of subscriptions) {
       const subscribedEvent = await this.findById(subscription.eventId);
       if (
-        (subscribedEvent.startDate > event.startDate && subscribedEvent.startDate < event.endDate) ||
-        (subscribedEvent.endDate > event.startDate && subscribedEvent.endDate < event.endDate) ||
-        (event.startDate > subscribedEvent.startDate && event.startDate < subscribedEvent.endDate)
+        (subscribedEvent.startDate >= event.startDate && subscribedEvent.startDate <= event.endDate) ||
+        (subscribedEvent.endDate >= event.startDate && subscribedEvent.endDate <= event.endDate) ||
+        (event.startDate >= subscribedEvent.startDate && event.startDate <= subscribedEvent.endDate)
       ) {
         throw new HttpError(400, ["O usuário já esta inscrito em um evento nesse horário!"]);
       }
