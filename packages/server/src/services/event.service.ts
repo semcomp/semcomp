@@ -223,9 +223,7 @@ class EventService {
           continue;
         }
 
-        console.log(event)
         let eventsOfThisTypeAndTime = eventsByTypeAndTime[key].find((eventOfThisType) => {
-          console.log((event.startDate >= eventOfThisType.startDate && event.startDate <= eventOfThisType.endDate))
           return ((eventOfThisType.startDate >= event.startDate && eventOfThisType.startDate <= event.endDate) ||
             (eventOfThisType.endDate >= event.startDate && eventOfThisType.endDate <= event.endDate) ||
             (event.startDate >= eventOfThisType.startDate && event.startDate <= eventOfThisType.endDate));
