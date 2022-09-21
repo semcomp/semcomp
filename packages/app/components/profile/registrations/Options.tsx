@@ -255,8 +255,11 @@ function Options({ item, fetchEvents }) {
                         <FormControlLabel
                           value={`${index}`}
                           control={<Radio />}
-                          label={`${occasion.name} ${formatTime(occasion.startDate, occasion.endDate)}`}
-                          className={index == 1 ? "mt-8" : ""}
+                          label={`${occasion.name} ${formatTime(
+                            occasion.startDate,
+                            occasion.endDate
+                          )}`}
+                          className={index >= 1 ? "mt-8" : ""}
                         />
                         {occasion.type === "Game Night" && (
                           <Chip
@@ -286,8 +289,11 @@ function Options({ item, fetchEvents }) {
                         <FormControlLabel
                           value={`${index}`}
                           control={<Radio />}
-                          label={`${occasion.name} ${formatTime(occasion.startDate, occasion.endDate)}`}
-                          className={index == 1 ? "mt-8" : ""}
+                          label={`${occasion.name} ${formatTime(
+                            occasion.startDate,
+                            occasion.endDate
+                          )}`}
+                          className={index >= 1 ? "mt-8" : ""}
                         />
                         {occasion.type === "Game Night" && (
                           <Chip

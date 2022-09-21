@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 
-import {
-  AppBar,
-  Tabs,
-  Tab,
-  Typography,
-} from "@mui/material";
+import { AppBar, Tabs, Tab, Typography } from "@mui/material";
 
 import Modal from "../../Modal";
 import API from "../../../api";
@@ -23,7 +18,9 @@ function TabPanel(props) {
       aria-labelledby={`simple-tab-${index}`}
       {...other}
     >
-      {value === index && (<Typography component={"span"}>{children}</Typography> )}
+      {value === index && (
+        <Typography component={"span"}>{children}</Typography>
+      )}
     </div>
   );
 }
@@ -65,13 +62,11 @@ function Registrations({ onRequestClose }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div
-        className="w-full bg-tertiary text-white text-center text-xl font-bold p-6"
-      >
+      <div className="w-full bg-tertiary text-white text-center text-xl font-bold p-6">
         Inscrições
       </div>
       <div className="max-h-96 overflow-y-scroll p-6">
-      <AppBar style={{ backgroundColor: "transparent" }} position="static">
+        <AppBar style={{ backgroundColor: "transparent" }} position="static">
           <Tabs variant="scrollable" value={tab} onChange={handleChange}>
             {Object.keys(events).map((type, index) => (
               <Tab
@@ -95,7 +90,11 @@ function Registrations({ onRequestClose }) {
           </TabPanel>
         ))}
       </div>
-      <button className="bg-orange text-white py-3 px-6 m-4" type="button" onClick={onRequestClose}>
+      <button
+        className="bg-orange text-white py-3 px-6 m-4 rounded-xl"
+        type="button"
+        onClick={onRequestClose}
+      >
         Fechar
       </button>
     </Modal>
