@@ -167,6 +167,22 @@ class EventService {
   }
 
   public async getSubscribables(userId: string) {
+    type EventsByType = {
+      [key: string]: Event[];
+    };
+
+    type EventsByTypeAndTime = {
+      [key: string]: [{
+        startDate: number,
+        endDate: number,
+        events: (Event & {
+          hasAttended?: boolean;
+          isSubscribed?: boolean;
+          subscriptionsCount?: number;
+        })[],
+      }],
+    };
+
     const desiredEventTypesEnum = {
       MINICURSO: EventTypes.MINICURSO,
       GAMENIGHT: EventTypes.GAME_NIGHT,
@@ -184,58 +200,79 @@ class EventService {
     });
     const eventsSubscriptions = await subscriptionService.find();
 
-    const eventsInfo = [];
-    for (const eventType of Object.values(desiredEventTypesEnum)) {
-      eventsInfo.push({
-        type: eventType,
-        items: [],
-      });
-    }
-
+    const eventsByType: EventsByType = {};
     for (const event of events) {
-      const eventsInfoOfType = eventsInfo.find(
-        (eventInfo) => eventInfo.type === event.type
-      );
-
-      let itemsOnThisHour = eventsInfoOfType.items.find((eventInfoOfType) => {
-        return (
-          eventInfoOfType.startDate === event.startDate &&
-          eventInfoOfType.endDate === event.endDate
-        );
-      });
-
-      if (!itemsOnThisHour) {
-        itemsOnThisHour = {
-          startDate: event.startDate,
-          endDate: event.endDate,
-          events: [],
-        };
-
-        eventsInfoOfType.items.push(itemsOnThisHour);
+      if (!eventsByType[event.type]) {
+        eventsByType[event.type] = [event];
+        continue;
       }
 
-      let hasAttended = false;
-      let isSubscribed = false;
-      if (userId) {
-        hasAttended = !!userAttendances.find((attendance) => attendance.eventId === event.id);
-        isSubscribed = !!eventsSubscriptions.find((subscription) => {
-          return subscription.eventId === event.id && subscription.userId === userId;
-        });
-      }
-
-      const eventSubscriptionsCount = eventsSubscriptions.filter((subscription) => {
-        return subscription.eventId === event.id;
-      }).length;
-
-      itemsOnThisHour.events.push({
-        ...event,
-        hasAttended,
-        isSubscribed,
-        subscriptionsCount: eventSubscriptionsCount,
-      });
+      eventsByType[event.type].push(event);
     }
 
-    return eventsInfo.filter((eventInfo) => eventInfo.items.length > 0);
+    const eventsByTypeAndTime: EventsByTypeAndTime = {};
+    for (let [key, events] of Object.entries(eventsByType) as [string, Event[]][]) {
+      events = events.sort((a, b) => (b.endDate - b.startDate) - (a.endDate - a.startDate))
+      for (const event of events) {
+        if (!eventsByTypeAndTime[key]) {
+          eventsByTypeAndTime[key] = [{
+            startDate: event.startDate,
+            endDate: event.endDate,
+            events: [event],
+          }];
+          continue;
+        }
+
+        let eventsOfThisTypeAndTime = eventsByTypeAndTime[key].find((eventOfThisType) => {
+          return ((eventOfThisType.startDate >= event.startDate && eventOfThisType.startDate <= event.endDate) ||
+            (eventOfThisType.endDate >= event.startDate && eventOfThisType.endDate <= event.endDate) ||
+            (event.startDate >= eventOfThisType.startDate && event.startDate <= eventOfThisType.endDate));
+        });
+
+        if (eventsOfThisTypeAndTime) {
+          if (event.startDate < eventsOfThisTypeAndTime.startDate) {
+            eventsOfThisTypeAndTime.startDate = event.startDate;
+          }
+          if (event.endDate > eventsOfThisTypeAndTime.endDate) {
+            eventsOfThisTypeAndTime.endDate = event.endDate;
+          }
+          eventsOfThisTypeAndTime.events.push(event);
+        } else {
+          eventsByTypeAndTime[key].push({
+            startDate: event.startDate,
+            endDate: event.endDate,
+            events: [event],
+          });
+        }
+      }
+    }
+
+    for (const type of Object.keys(eventsByTypeAndTime)) {
+      eventsByTypeAndTime[type] = eventsByTypeAndTime[type].sort((a, b) => a.startDate - b.startDate);
+      for (const eventsByTime of eventsByTypeAndTime[type]) {
+        eventsByTime.events = eventsByTime.events.sort((a, b) => a.startDate - b.startDate);
+        for (const event of eventsByTime.events) {
+          let hasAttended = false;
+          let isSubscribed = false;
+          if (userId) {
+            hasAttended = !!userAttendances.find((attendance) => attendance.eventId === event.id);
+            isSubscribed = !!eventsSubscriptions.find((subscription) => {
+              return subscription.eventId === event.id && subscription.userId === userId;
+            });
+          }
+
+          const eventSubscriptionsCount = eventsSubscriptions.filter((subscription) => {
+            return subscription.eventId === event.id;
+          }).length;
+
+          event.hasAttended = hasAttended;
+          event.isSubscribed = isSubscribed;
+          event.subscriptionsCount = eventSubscriptionsCount;
+        }
+      }
+    }
+
+    return eventsByTypeAndTime;
   }
 
   public async markAttendance(eventId: string, userId: string, userHouse: any) {
@@ -295,9 +332,9 @@ class EventService {
     for (const subscription of subscriptions) {
       const subscribedEvent = await this.findById(subscription.eventId);
       if (
-        (subscribedEvent.startDate > event.startDate && subscribedEvent.startDate < event.endDate) ||
-        (subscribedEvent.endDate > event.startDate && subscribedEvent.endDate < event.endDate) ||
-        (event.startDate > subscribedEvent.startDate && event.startDate < subscribedEvent.endDate)
+        (subscribedEvent.startDate >= event.startDate && subscribedEvent.startDate <= event.endDate) ||
+        (subscribedEvent.endDate >= event.startDate && subscribedEvent.endDate <= event.endDate) ||
+        (event.startDate >= subscribedEvent.startDate && event.startDate <= subscribedEvent.endDate)
       ) {
         throw new HttpError(400, ["O usuário já esta inscrito em um evento nesse horário!"]);
       }

@@ -73,19 +73,19 @@ function Registrations({ onRequestClose }) {
       <div className="max-h-96 overflow-y-scroll p-6">
       <AppBar style={{ backgroundColor: "transparent" }} position="static">
           <Tabs variant="scrollable" value={tab} onChange={handleChange}>
-            {events.map((event, index) => (
+            {Object.keys(events).map((type, index) => (
               <Tab
                 key={index}
                 className="event"
-                label={event.type}
+                label={type}
                 {...a11yProps(index)}
               />
             ))}
           </Tabs>
         </AppBar>
-        {events.map((event, index) => (
+        {Object.keys(events).map((type, index) => (
           <TabPanel key={index} value={tab} index={index}>
-            {event.items.map((item, itemIndex) => (
+            {events[type].map((item, itemIndex) => (
               <Options
                 key={itemIndex}
                 item={item}
