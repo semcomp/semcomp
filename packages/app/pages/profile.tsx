@@ -22,7 +22,7 @@ import PicaPau from "../assets/pica-pau.png";
 import OncaPintada from "../assets/onca-pintada.png";
 import TatuBola from "../assets/tatu-bola.png";
 import LoboGuara from "../assets/lobo-guara.png";
-import TelegramIcon from '@mui/icons-material/Telegram';
+import TelegramIcon from "@mui/icons-material/Telegram";
 import ImgLogo from "../assets/logo-24.png";
 import { useAppContext } from "../libs/contextLib";
 import Card from "../components/Card";
@@ -143,24 +143,41 @@ function Profile() {
     );
   }
 
-  function displayDate(date) {
-    const options: any = { hour: "numeric", minute: "numeric" };
+  const zeroPad = (num, places) => String(num).padStart(places, "0");
 
-    const formatDate = new Date(date);
+  function formatTime(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
 
-    const dayDateStr = new Intl.DateTimeFormat("pt-BR", {
-      day: "numeric",
-      month: "numeric",
-    }).format(formatDate);
-    const weekDayStr = new Intl.DateTimeFormat("pt-BR", {
-      weekday: "long",
-    }).format(formatDate);
-    const startHourStr = new Intl.DateTimeFormat("pt-BR", options).format(
-      formatDate
-    );
+    const week = [
+      "Domingo",
+      "Segunda-Feira",
+      "Terça-Feira",
+      "Quarta-Feira",
+      "Quinta-Feira",
+      "Sexta-Feira",
+      "Sábado",
+    ];
 
-    const returnDate = `${dayDateStr} (${weekDayStr}) às ${startHourStr}`;
-    return returnDate;
+    const DayOfTheWeek = `${start.getDay()}`;
+
+    const day = `${week[DayOfTheWeek]}`;
+
+    const dayInNumbers = `${zeroPad(start.getDate(), 2)}/${zeroPad(
+      start.getMonth() + 1,
+      2
+    )}`;
+
+    const startTime = `${zeroPad(start.getHours(), 2)}:${zeroPad(
+      start.getMinutes(),
+      2
+    )}`;
+    const endTime = `${zeroPad(end.getHours(), 2)}:${zeroPad(
+      end.getMinutes(),
+      2
+    )}`;
+
+    return `${day} (${dayInNumbers}), ${startTime} às ${endTime}`;
   }
 
   const earnedAchievements = [];
@@ -272,32 +289,28 @@ function Profile() {
               </Card>
             </>
           )}
-          {
-            userFetched && (
-              <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
-                <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-                  Overflow
-                </h1>
-                <strong>Sua casa é...</strong>
-                <Image
-                  alt="User house"
-                  src={houseImageSrc}
-                />
-                <p className="house-name">{userFetched.house.name}</p>
-                <a
-                  className="bg-tertiary text-white p-2 rounded-lg mt-2"
-                  href={userHouseTelegram}
-                  target="_blank" rel="noopener noreferrer"
-                >
-                  Entrar no grupo
-                  <TelegramIcon />
-                </a>
-                {/* <button onClick={() => setIsAboutOverflowModalOpen(true)}>
+          {userFetched && (
+            <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
+              <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+                Overflow
+              </h1>
+              <strong>Sua casa é...</strong>
+              <Image alt="User house" src={houseImageSrc} />
+              <p className="house-name">{userFetched.house.name}</p>
+              <a
+                className="bg-tertiary text-white p-2 rounded-lg mt-2"
+                href={userHouseTelegram}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Entrar no grupo
+                <TelegramIcon />
+              </a>
+              {/* <button onClick={() => setIsAboutOverflowModalOpen(true)}>
                   O que é o Overflow?
                 </button> */}
-              </Card>
-            )
-          }
+            </Card>
+          )}
           <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Eventos
@@ -307,12 +320,17 @@ function Profile() {
                 events[type].map((e) =>
                   e.events.map((item) => {
                     if (item.isSubscribed === true) {
+                      console.log("e: " + e.startDate + e.name);
+                      console.log("item: ", item.startDate + item.name);
                       return (
                         <div key={item.name}>
                           <ListItem>
                             <ListItemText
                               primary={`${type}:  ${item.name}`}
-                              secondary={displayDate(e.startDate)}
+                              secondary={formatTime(
+                                item.startDate,
+                                item.endDate
+                              )}
                             />
                           </ListItem>
                           <Divider />
