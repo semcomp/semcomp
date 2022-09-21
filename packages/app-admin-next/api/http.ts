@@ -29,7 +29,6 @@ class Http {
   }
 
   private onRequest(config: AxiosRequestConfig): AxiosRequestConfig {
-    console.log(this)
     if (this.token) {
       config.headers.authorization = this.token;
     }

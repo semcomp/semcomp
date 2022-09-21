@@ -25,16 +25,12 @@ function CreateTShirtModal({
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit() {
-    console.log(data);
-
     if (!data.size) return toast.error('Você deve fornecer um tamanho');
     if (data.quantity < 0) return toast.error('Você deve fornecer uma quantidade');
 
     try {
       setIsLoading(true);
-      console.log(data);
       const response = await semcompApi.createTShirt(data);
-      console.log(response);
       toast.success('Tamanho de camiseta criado com sucesso!');
     } catch (error) {
       console.error(error);

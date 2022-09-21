@@ -25,15 +25,12 @@ function EditTShirtModal({
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit() {
-    console.log(data);
-
     if (!data.size) return toast.error('Você deve fornecer um tamanho');
     if (data.quantity < 0) return toast.error('Você deve fornecer uma quantidade');
 
     try {
       setIsLoading(true);
       const response = await semcompApi.editTShirt(data.id, data);
-      console.log(response);
     } catch (error) {
       console.error(error);
       toast.error('Erro no servidor');

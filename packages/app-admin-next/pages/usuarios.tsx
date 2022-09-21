@@ -67,7 +67,6 @@ function Users() {
     try {
       const response = await semcompApi.getUsers();
       setData(response.users);
-      console.log(response.users);
     } catch (error) {
       console.error(error);
     } finally {
@@ -77,7 +76,6 @@ function Users() {
 
   async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
     setSelectedIndexes(updatedSelectedIndexes);
-    console.log(updatedSelectedIndexes);
   }
 
   useEffect(() => {

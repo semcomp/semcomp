@@ -18,8 +18,6 @@ function CreateHouseModal({ onRequestClose }) {
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit() {
-    console.log(data);
-
     if (!data.name) return toast.error('Você deve fornecer um nome');
     if (!data.description) return toast.error('Você deve fornecer uma descrição');
     if (!data.telegramLink) return toast.error('Você deve fornecer um link do telegram');
@@ -27,7 +25,6 @@ function CreateHouseModal({ onRequestClose }) {
     try {
       setIsLoading(true);
       const response = await semcompApi.createHouse(data);
-      console.log(response);
     } catch (error) {
       console.error(error);
     } finally {

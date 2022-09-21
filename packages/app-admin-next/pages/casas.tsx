@@ -70,7 +70,6 @@ function Houses() {
   }
 
   async function handleRowClick(index: number) {
-    console.log(index);
     setSelectedData({
       name: data[0].name,
       description: data[0].description,
@@ -81,7 +80,6 @@ function Houses() {
 
   async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
     setSelectedIndexes(updatedSelectedIndexes);
-    console.log(updatedSelectedIndexes);
   }
 
   useEffect(() => {

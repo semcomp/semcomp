@@ -81,7 +81,6 @@ function Events() {
 
   async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
     setSelectedIndexes(updatedSelectedIndexes);
-    console.log(updatedSelectedIndexes);
   }
 
   useEffect(() => {
