@@ -1,7 +1,7 @@
 // import SemcompImage from '../../assets/logo_semcompbeta.jpg';
 
 import AmdocsLogo from "../assets/sponsors/svg/amdocs.svg";
-import EyLogo from "../assets/sponsors/EYLogo.jpg";
+import EyLogo from "../assets/sponsors/EYlogoVertical.jpeg";
 import GaneshImage from "../assets/sponsors/ganesh.png";
 import GriauleLogo from "../assets/sponsors/GriauleLogo.svg";
 import LuizalabsLogo from "../assets/sponsors/LuizalabsLogo.png";
@@ -139,7 +139,9 @@ const SponsorsPage = () => {
       {/* This div is here to allow for the aside to be on the right side of the page */}
       <div className=" m-8 flex flex-col items-center md:w-full md:justify-between md:px-16 md:py-8 md:m-0">
         <main className=" flex flex-col px-0 py-4 lg:w-full">
-          <h2 className="text-3xl py-6 font-qatar text-center lg:text-left">Patrocinadores</h2>
+          <h2 className="text-3xl py-6 font-qatar text-center lg:text-left">
+            Patrocinadores
+          </h2>
           {/* <p className="thanks-from-semcomp">
             Queremos agradecer aos patrocinadores e apoiadores, sem os quais seria impossível organizar o nosso retorno à Semcomp presencial. Esperamos que tanto os alunos quanto os nossos patrocinadores e apoiadores possam aproveitar ao máximo as palestras, os minicursos e que ano que vem mantenhamos nossa parceria!
           </p> */}
@@ -154,7 +156,9 @@ const SponsorsPage = () => {
             ))}
           </div>
           <hr />
-          <h2 className="text-3xl py-14 pb-3 font-qatar text-center lg:text-left">Apoiadores</h2>
+          <h2 className="text-3xl py-14 pb-3 font-qatar text-center lg:text-left">
+            Apoiadores
+          </h2>
           <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4">
             {supportersInfo.map((supporter, index) => (
               <SponsorCard
