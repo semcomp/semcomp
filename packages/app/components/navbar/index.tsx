@@ -63,7 +63,7 @@ const Navbar = (props) => {
             {/* <Navlink href={Routes.hardToClick}>Duro de Clicar</Navlink> */}
             <Navlink href={Routes.profile}>Perfil</Navlink>
             <button onClick={logUserOut}>
-              <Navlink href="">Sair</Navlink>
+              <a className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-white rounded-lg hover:bg-hoverWhite duration-200" href="">Sair</a>
             </button>
           </>
         ) : (
