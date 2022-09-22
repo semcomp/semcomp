@@ -38,7 +38,7 @@ function Profile() {
   const [achievements, setAchievements] = useState([]);
   const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] =
     useState(false);
-  // const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
+  const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
 
   async function fetchAchievements() {
     try {
@@ -221,7 +221,7 @@ function Profile() {
           onRequestClose={() => setIsAboutOverflowModalOpen(false)}
         />
       )}
-      {/* {isCoffeeModalOpen && (
+      {isCoffeeModalOpen && (
         <CoffeePayment
           userHasPaid={userFetched?.payment?.status === "approved"}
           onRequestClose={() => {
@@ -229,7 +229,7 @@ function Profile() {
             removeBodyStyle();
           }}
         />
-      )} */}
+      )}
       <Header />
       <main className="p-8 h-full w-full max-w-5xl self-center col-gap-4 min-h-[70vh] md:flex">
         <div className="flex flex-col self-start w-full md:w-64">
@@ -257,7 +257,7 @@ function Profile() {
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Coffee
                 </h1>
-                {/* <p>Pague com PIX o Coffee + Kit da Semcomp 25</p> */}
+                <p>Pague com PIX o Coffee + Kit da Semcomp 25</p>
                 {userFetched.payment.status === "approved" ? (
                   <>
                     <Chip label="Pago" color="warning" />
@@ -265,18 +265,18 @@ function Profile() {
                       className="mt-3"
                       label={`Camiseta ${userFetched.payment.tShirtSize}`}
                     />
-                    {/* <button
+                    <button
                       onClick={() => {
                         setIsCoffeeModalOpen(true);
                         blockBodyScroll();
                       }}
                     >
                       Ver infos pacote
-                    </button> */}
+                    </button>
                   </>
                 ) : (
                   <>
-                    {/* <button
+                    <button
                       onClick={() => {
                         setIsCoffeeModalOpen(true);
                         blockBodyScroll();
@@ -284,7 +284,7 @@ function Profile() {
                       className="bg-tertiary text-white p-2 rounded-lg mt-2"
                     >
                       Comprar pacote
-                    </button> */}
+                    </button>
                     <Chip className="mt-3" label="Não pago" disabled={true} />
                   </>
                 )}
