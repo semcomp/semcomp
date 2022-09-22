@@ -10,13 +10,21 @@ class UserController {
     try {
       handleValidationResult(req);
 
-      const { name, course } = req.user;
-      const { telegram, permission } = req.body;
+      const { course } = req.user;
+      const { name, telegram, permission } = req.body;
 
-      req.user.name = name;
-      req.user.course = course;
-      req.user.telegram = telegram;
-      req.user.permission = permission;
+      if (name) {
+        req.user.name = name;
+      }
+      if (course) {
+        req.user.course = course;
+      }
+      if (telegram) {
+        req.user.telegram = telegram;
+      }
+      if (permission) {
+        req.user.permission = permission;
+      }
 
       const editedUser = await userService.update(req.user);
       const userHouse = await userService.getUserHouse(req.user.id);

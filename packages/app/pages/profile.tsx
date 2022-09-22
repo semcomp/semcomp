@@ -65,12 +65,13 @@ function Profile() {
     fetchAchievements();
   }, []);
 
+  async function fetchUserData() {
+    const { data } = await API.auth.me();
+    setUserFetched(data);
+  }
+
   useEffect(() => {
-    async function fetchData() {
-      const { data } = await API.auth.me();
-      setUserFetched(data);
-    }
-    fetchData();
+    fetchUserData();
   }, []);
 
   // useEffect(() => {
@@ -194,6 +195,7 @@ function Profile() {
           onRequestClose={() => {
             setIsEditModalOpen(false);
             removeBodyStyle();
+            fetchUserData();
           }}
         />
       )}
