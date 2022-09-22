@@ -86,6 +86,7 @@ export default class PaymentServiceImpl implements PaymentService {
     socialBenefitFileName: string,
     tShirtSize: TShirtSize,
   ): Promise<Payment> {
+    throw new HttpError(400, ["Vendas encerradas!"]);
     const user = await this.userService.findById(userId);
     if (!user) {
       throw new HttpError(400, []);
