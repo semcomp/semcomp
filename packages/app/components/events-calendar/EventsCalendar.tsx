@@ -23,8 +23,8 @@ const EventsCalendar = () => {
   useEffect(() => {
     async function fetchEvents() {
       try {
-        // const response = await API.events.getAll();
-        // return response.data;
+        const response = await API.events.getAll();
+        return response.data;
       } catch (e) {
         console.error(e);
         return [];
@@ -32,8 +32,8 @@ const EventsCalendar = () => {
     }
 
     async function fetchAndSetEvents() {
-      // const eventList = await fetchEvents();
-      // setEvents(eventList.sort(sortEvents));
+      const eventList = await fetchEvents();
+      setEvents(eventList.sort(sortEvents));
     }
 
     fetchAndSetEvents();
