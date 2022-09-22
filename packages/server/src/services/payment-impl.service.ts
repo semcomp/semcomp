@@ -1,4 +1,5 @@
 import { Model } from "mongoose";
+import QRCode from 'qrcode';
 
 import HttpError from "../lib/http-error";
 import Payment, { PaymentModel } from "../models/payment";
@@ -201,6 +202,33 @@ export default class PaymentServiceImpl implements PaymentService {
         payment.status = PaymentStatus.CANCELED;
         payment.tShirtSize = null;
         await this.update(payment);
+      }
+    }
+  }
+
+  async generateQrCodes(): Promise<void> {
+    const users = await this.userService.find();
+    const payments = await this.find({ status: PaymentStatus.APPROVED });
+
+    for (const user of users) {
+      if (payments.find((payment) => user.id === payment.userId)) {
+        await QRCode.toFile(`./qr-codes/com-pagamento/${user.name}.png`, user.id, {
+          color: {
+            dark: '#009541',
+            light: '#0000',
+          },
+          errorCorrectionLevel: 'H',
+          type: "png",
+        });
+      } else {
+        await QRCode.toFile(`./qr-codes/sem-pagamento/${user.name}.png`, user.id, {
+          color: {
+            dark: '#FFDF00',
+            light: '#0000',
+          },
+          errorCorrectionLevel: 'H',
+          type: "png",
+        });
       }
     }
   }

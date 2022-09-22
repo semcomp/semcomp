@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { body } from "express-validator";
 
 import cron from "node-cron";
 
@@ -22,6 +23,25 @@ export default class PaymentRouter {
     cron.schedule("0 3 * * *", async () => {
       await this.paymentService.cancelOldPendingPayments()
     });
+
+    router.post(
+      "/generate-qr-codes",
+      [this.adminAuthMiddleware.authenticate, this.adminAuthMiddleware.isAuthenticated],
+      (req, res, next) => this.paymentController.generateQrCodes(req, res, next),
+    );
+
+    router.post(
+      "/",
+      [
+        body("userId", "Invalid field 'userId'").not().isEmpty(),
+        body("status", "Invalid field 'status'").not().isEmpty(),
+        body("withSocialBenefit", "Invalid field 'withSocialBenefit'").not().isEmpty(),
+        body("tShirtSize", "Invalid field 'tShirtSize'").not().isEmpty(),
+        this.adminAuthMiddleware.authenticate,
+        this.adminAuthMiddleware.isAuthenticated,
+      ],
+      (req, res, next) => this.paymentController.create(req, res, next),
+    );
 
     return router;
   }

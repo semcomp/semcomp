@@ -7,7 +7,7 @@ type Payment = {
   id?: string;
   paymentIntegrationId?: number;
   userId: string;
-  status?: PaymentStatus;
+  status: PaymentStatus;
   qrCode?: string;
   qrCodeBase64?: string;
   withSocialBenefit: boolean;
@@ -37,6 +37,7 @@ const PaymentSchema = new Mongoose.Schema(
     status: {
       type: PaymentStatus,
       default: PaymentStatus.PENDING,
+      required: true,
     },
     qrCode: {
       type: String,
