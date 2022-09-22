@@ -36,7 +36,6 @@ export default class PaymentRouter {
         body("userId", "Invalid field 'userId'").not().isEmpty(),
         body("status", "Invalid field 'status'").not().isEmpty(),
         body("withSocialBenefit", "Invalid field 'withSocialBenefit'").not().isEmpty(),
-        body("tShirtSize", "Invalid field 'tShirtSize'").not().isEmpty(),
         this.adminAuthMiddleware.authenticate,
         this.adminAuthMiddleware.isAuthenticated,
       ],
