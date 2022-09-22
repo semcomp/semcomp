@@ -15,16 +15,16 @@ export default class AuthRouter {
   public create(): Router {
     const router = Router();
 
-    router.post(
-      "/signup",
-      [
-        body("name", "Invalid field 'name'").not().isEmpty(),
-        body("email", "Invalid field 'email'").isEmail(),
-        body("password", "Invalid field 'password'").isLength({ min: 8 }),
-        body("permission", "Invalid field 'permission'").isBoolean(),
-      ],
-      (req, res, next) => this.authController.signup(req, res, next),
-    );
+    // router.post(
+    //   "/signup",
+    //   [
+    //     body("name", "Invalid field 'name'").not().isEmpty(),
+    //     body("email", "Invalid field 'email'").isEmail(),
+    //     body("password", "Invalid field 'password'").isLength({ min: 8 }),
+    //     body("permission", "Invalid field 'permission'").isBoolean(),
+    //   ],
+    //   (req, res, next) => this.authController.signup(req, res, next),
+    // );
 
     router.post(
       "/login",
