@@ -104,7 +104,7 @@ function Login() {
                 Esqueci minha senha
               </div>
             </Link>
-            <p>
+            {/* <p>
               Não tem conta?{" "}
               <Link href="/signup">
                 <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
@@ -112,7 +112,7 @@ function Login() {
                   Crie uma agora!
                 </a>
               </Link>
-            </p>
+            </p> */}
           </form>
         </Card>
         <div id="info-semcomp">
