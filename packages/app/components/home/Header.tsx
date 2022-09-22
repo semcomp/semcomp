@@ -18,9 +18,9 @@ const HomeHeader = (): ReactElement => {
         </h1>
       </div>
       <div className="flex flex-col items-center">
-        {/* <button className="bg-tertiary text-white text-lg md:text-2xl m-2 p-2 md:p-5 rounded-2xl hover:bg-secondary hover:text-black">
+        <button className="bg-tertiary text-white text-lg md:text-2xl m-2 p-2 md:p-5 rounded-2xl hover:bg-secondary hover:text-black">
           <Link href="/signup">Inscreva-se</Link>
-        </button> */}
+        </button>
         <div className="p-2 md:p-4">
           <Countdown />
         </div>
