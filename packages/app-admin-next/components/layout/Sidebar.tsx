@@ -81,12 +81,8 @@ function Sidebar() {
         {/* <NavLink title="Administradores" href={Routes.adminUsers}></NavLink> */}
         {/* <NavLink title="Conquistas" href={Routes.achievements}></NavLink> */}
         <NavLink title="Eventos" href={Routes.events}></NavLink>
-        {/* <NavLink title="Riddle - Perguntas" href={Routes.riddleQuestions}></NavLink> */}
-        {/* <NavLink title="Riddle - Grupos" href={Routes.riddleGroups}></NavLink> */}
-        {/* <NavLink title="Riddlethon - Perguntas" href={Routes.riddlethonQuestions}></NavLink> */}
-        {/* <NavLink title="Riddlethon - Grupos" href={Routes.riddlethonGroups}></NavLink> */}
-        {/* <NavLink title="Duro de Clicar - Perguntas" href={Routes.hardToClickQuestions}></NavLink> */}
-        {/* <NavLink title="Duro de Clicar - Grupos" href={Routes.hardToClickGroups}></NavLink> */}
+        <NavLink title="Jogo - Perguntas" href={Routes.gameQuestions}></NavLink>
+        {/* <NavLink title="Jogo - Grupos" href={Routes.gameGroups}></NavLink> */}
         {/* <NavLink title="Logs" href={Routes.logs}></NavLink> */}
         <NavLink title="Casas" href={Routes.houses}></NavLink>
         {/* <NavLink title="Enviar Email" href={Routes.broadcastEmail}></NavLink> */}

@@ -9,9 +9,7 @@ import path from "path";
 import cookieParser from "cookie-parser";
 // import cron from "node-cron";
 
-// import {riddleController} from './controllers/riddle/riddle.controller';
-import RiddlethonController from './controllers/riddlethon/riddlethon.controller';
-import HardToClickController from './controllers/hard-to-click/hard-to-click.controller';
+import GameController from './controllers/game/game.controller';
 // import houseService from "./services/house.service";
 // import userService from "./services/user.service";
 import Routes from "./routes";
@@ -49,9 +47,7 @@ const io = new Server(httpServer, {
   cors: corsConfig,
 });
 
-// riddleController(io);
-new RiddlethonController(io);
-new HardToClickController(io);
+new GameController(io);
 
 app.use(cors(corsConfig));
 
