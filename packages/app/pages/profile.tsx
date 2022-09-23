@@ -300,7 +300,7 @@ function Profile() {
               <Image alt="User house" src={houseImageSrc} />
               <p className="house-name">{userFetched.house.name}</p>
               <a
-                className="bg-tertiary text-white p-2 rounded-lg mt-2"
+                className="bg-[#0088cc] text-white p-2 rounded-lg mt-2 text-center"
                 href={userHouseTelegram}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -390,10 +390,10 @@ function Profile() {
           {/* <HouseScores /> */}
         </div>
         <div>
-          <Card className="flex flex-col items-center p-9 mb-6">
+          <Card className="flex flex-col items-center p-9 mb-6 max-w-4xl">
             <EventsOverview />
           </Card>
-          <Card className="flex flex-col items-center p-9 mb-6">
+          <Card className="flex flex-col items-center p-9 mb-6 max-w-4xl">
             <EventsCalendar />
           </Card>
         </div>
