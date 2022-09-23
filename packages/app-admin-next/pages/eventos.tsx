@@ -80,7 +80,7 @@ function Events() {
   }
 
   async function handleRowClick(index: number) {
-    setSelectedData(data[index]);
+    setSelectedData(data.getEntities()[index]);
     setIsEditModalOpen(true);
   }
 
