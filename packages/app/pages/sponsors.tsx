@@ -1,7 +1,8 @@
 // import SemcompImage from '../../assets/logo_semcompbeta.jpg';
 
 import AmdocsLogo from "../assets/sponsors/svg/amdocs.svg";
-import EyLogo from "../assets/sponsors/EYlogoVertical.jpeg";
+import FEstudar from "../assets/sponsors/FundacaoEstudar.png";
+import EyLogoSF from "../assets/sponsors/EYLogoSemFundo.png";
 import GaneshImage from "../assets/sponsors/ganesh.png";
 import GriauleLogo from "../assets/sponsors/GriauleLogo.svg";
 import LuizalabsLogo from "../assets/sponsors/LuizalabsLogo.png";
@@ -34,7 +35,7 @@ const companiesInfo = [
       homepage: "https://www.ey.com/pt_br",
       careers: " https://www.ey.com/pt_br/careers",
     },
-    logo: EyLogo,
+    logo: EyLogoSF,
   },
   {
     name: "Griaule",
@@ -129,6 +130,13 @@ const supportersInfo = [
     logo: GemaImage,
     description: "",
   },
+  {
+    name: "FundacaoEstudar",
+    link: "https://www.estudar.org.br/",
+    logo: FEstudar,
+    description: "",
+  },
+  
 ];
 
 const SponsorsPage = () => {
@@ -150,6 +158,7 @@ const SponsorsPage = () => {
               <SponsorCard
                 key={index}
                 companyName={company.name}
+                companyType={'Sponsor'}
                 companyLogo={company.logo}
                 companyLinks={company.links}
               />
@@ -159,12 +168,13 @@ const SponsorsPage = () => {
           <h2 className="text-3xl py-14 pb-3 font-qatar text-center lg:text-left">
             Apoiadores
           </h2>
-          <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4">
+          <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4 ">
             {supportersInfo.map((supporter, index) => (
               <SponsorCard
                 key={index}
                 companyDescription={supporter.description}
                 companyName={supporter.name}
+                companyType={'Supporter'}
                 companyLogo={supporter.logo}
                 companyLinks={supporter.link}
               />
