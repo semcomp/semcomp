@@ -232,10 +232,10 @@ function Profile() {
       )} */}
       <Header />
       <main className="p-8 h-full w-full self-center justify-center col-gap-4 min-h-[70vh] md:flex">
-        <div className="flex flex-col self-start w-full md:w-64">
+        <div className="flex flex-col self-start w-full md:w-60">
           {userFetched && (
             <>
-              <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
+              <Card className="flex flex-col items-center p-9 w-full mb-6">
                 <QRCodeSVG value={userFetched && userFetched.id} />
                 <p className="font-bold text-xl text-center my-2">
                   {userFetched.name}
@@ -253,7 +253,7 @@ function Profile() {
                   </button>
                 }
               </Card>
-              <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
+              <Card className="flex flex-col items-center p-9 w-full mb-6">
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Coffee
                 </h1>
@@ -292,7 +292,7 @@ function Profile() {
             </>
           )}
           {userFetched && (
-            <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
+            <Card className="flex flex-col items-center p-9 w-full mb-6">
               <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                 Overflow
               </h1>
@@ -313,7 +313,7 @@ function Profile() {
                 </button> */}
             </Card>
           )}
-          <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
+          <Card className="flex flex-col items-center p-9 w-full mb-6">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Eventos
             </h1>
