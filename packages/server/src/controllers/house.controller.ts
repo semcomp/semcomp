@@ -2,6 +2,7 @@ import houseService from "../services/house.service";
 
 import { formatHouse } from "../lib/format-house";
 import { handleError } from "../lib/handle-error";
+import { PaginationRequest } from "../lib/pagination";
 
 /**
  * formatHouseResponse
@@ -17,9 +18,9 @@ function formatHouseResponse(house) {
 const houseController = {
   getScores: async (req, res, next) => {
     try {
-      const houses = await houseService.find();
+      const houses = await houseService.find({ pagination: new PaginationRequest(1, 9999) });
 
-      const formatedHouses = houses.map((house) => {
+      const formatedHouses = houses.getEntities().map((house) => {
         return {
           ...formatHouseResponse(house),
           achievements: [],
