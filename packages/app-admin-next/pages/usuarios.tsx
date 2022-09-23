@@ -8,6 +8,7 @@ import { PaymentStatus, SemcompApiUser } from '../models/SemcompApiModels';
 import DataPage from '../components/DataPage';
 import { TShirtSize } from '../components/t-shirt/TShirtForm';
 import { PaginationRequest, PaginationResponse } from '../models/Pagination';
+import exportToCsv from '../libs/DownloadCsv';
 
 type UserData = {
   "ID": string,
@@ -22,17 +23,9 @@ type UserData = {
   "Criado em": string,
 }
 
-function UsersTable({
-  data,
-  pagination,
-  onRowSelect,
-}: {
-  data: PaginationResponse<SemcompApiUser>,
-  pagination: PaginationRequest,
-  onRowSelect: (selectedIndexes: number[]) => void,
-}) {
+function mapData(data: SemcompApiUser[]): UserData[] {
   const newData: UserData[] = [];
-  for (const user of data.getEntities()) {
+  for (const user of data) {
     let paymentStatus = "";
     if (user.payment.status) {
       paymentStatus = user.payment.status === PaymentStatus.APPROVED ? "Aprovado" : "Pendente";
@@ -52,26 +45,44 @@ function UsersTable({
     })
   }
 
-  return (<DataTable
-    data={new PaginationResponse<UserData>(newData, data.getTotalNumberOfItems())}
-    pagination={pagination}
-    onRowClick={(index: number) => console.log(index)}
-    onRowSelect={onRowSelect}
-  ></DataTable>);
+  return newData;
+}
+
+function UsersTable({
+  data,
+  pagination,
+  onRowSelect,
+}: {
+  data: PaginationResponse<SemcompApiUser>,
+  pagination: PaginationRequest,
+  onRowSelect: (selectedIndexes: number[]) => void,
+}) {
+  return (<>
+    <DataTable
+      data={new PaginationResponse<UserData>(mapData(data.getEntities()), data.getTotalNumberOfItems())}
+      pagination={pagination}
+      onRowClick={(index: number) => console.log(index)}
+      onRowSelect={onRowSelect}
+    ></DataTable>
+  </>);
 }
 
 function Users() {
   const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
 
   const [data, setData] = useState(null as PaginationResponse<SemcompApiUser>);
-  const [pagination, setPagination] = useState(new PaginationRequest(() => fetchData()));
+  const [pagination, setPagination] = useState(new PaginationRequest(() => fetchTableData()));
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
 
-  async function fetchData() {
+  async function fetchData(pagination: PaginationRequest) {
+    return await semcompApi.getUsers(pagination);
+  }
+
+  async function fetchTableData() {
     try {
       setIsLoading(true);
-      const response = await semcompApi.getUsers(pagination);
+      const response = await fetchData(pagination);
       setData(response);
     } catch (error) {
       console.error(error);
@@ -80,8 +91,20 @@ function Users() {
     }
   }
 
+  async function fetchDownloadData() {
+    try {
+      setIsLoading(true);
+      const response = await semcompApi.getUsers(new PaginationRequest(null, 1, 9999));
+      exportToCsv(mapData(response.getEntities()));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   useEffect(() => {
-    fetchData();
+    fetchTableData();
   }, []);
 
   async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
@@ -90,7 +113,7 @@ function Users() {
 
   return (<>
     {
-      !isLoading && (
+      !isLoading && (<>
         <DataPage
           title="Usuários"
           isLoading={isLoading}
@@ -100,7 +123,14 @@ function Users() {
             onRowSelect={handleSelectedIndexesChange}
           />}
         ></DataPage>
-      )
+        <button
+          className="w-full bg-black text-white py-3 px-6"
+          type='button'
+          onClick={fetchDownloadData}
+        >
+          Baixar Planilha
+        </button>
+      </>)
     }
   </>);
 }
