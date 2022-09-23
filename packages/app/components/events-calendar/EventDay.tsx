@@ -17,8 +17,8 @@ function EventDay({ dayDate, myPage, changePage, isCurrentDay }) {
     <button
       className={"w-full p-4 transition duration-300 " + (
         isCurrentDay ?
-        "" :
-        "bg-white text-tertiary hover:bg-primary hover:text-secondary"
+          "bg-blue" :
+          "bg-white text-tertiary hover:bg-blue hover:text-secondary"
       )}
       onClick={handleClick}
     >

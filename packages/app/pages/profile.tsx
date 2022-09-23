@@ -231,7 +231,7 @@ function Profile() {
         />
       )} */}
       <Header />
-      <main className="p-8 h-full w-full max-w-5xl self-center col-gap-4 min-h-[70vh] md:flex">
+      <main className="p-8 h-full w-full self-center justify-center col-gap-4 min-h-[70vh] md:flex">
         <div className="flex flex-col self-start w-full md:w-64">
           {userFetched && (
             <>
@@ -260,7 +260,7 @@ function Profile() {
                 {/* <p>Pague com PIX o Coffee + Kit da Semcomp 25</p> */}
                 {userFetched.payment.status === "approved" ? (
                   <>
-                    <Chip label="Pago" color="warning" />
+                    <Chip label="Pago" color="success" />
                     <Chip
                       className="mt-3"
                       label={`Camiseta ${userFetched.payment.tShirtSize}`}
@@ -390,10 +390,10 @@ function Profile() {
           {/* <HouseScores /> */}
         </div>
         <div>
-          <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
+          <Card className="flex flex-col items-center p-9 mb-6">
             <EventsOverview />
           </Card>
-          <Card className="flex flex-col items-center p-9 w-full max-w-lg mb-6">
+          <Card className="flex flex-col items-center p-9 mb-6">
             <EventsCalendar />
           </Card>
         </div>
