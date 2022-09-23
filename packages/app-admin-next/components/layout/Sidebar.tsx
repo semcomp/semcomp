@@ -82,7 +82,7 @@ function Sidebar() {
         {/* <NavLink title="Conquistas" href={Routes.achievements}></NavLink> */}
         <NavLink title="Eventos" href={Routes.events}></NavLink>
         <NavLink title="Jogo - Perguntas" href={Routes.gameQuestions}></NavLink>
-        {/* <NavLink title="Jogo - Grupos" href={Routes.gameGroups}></NavLink> */}
+        <NavLink title="Jogo - Grupos" href={Routes.gameGroups}></NavLink>
         {/* <NavLink title="Logs" href={Routes.logs}></NavLink> */}
         <NavLink title="Casas" href={Routes.houses}></NavLink>
         {/* <NavLink title="Enviar Email" href={Routes.broadcastEmail}></NavLink> */}

@@ -21,6 +21,24 @@ type GameQuestionData = {
   "Dica": string,
   "Resposta": string,
   "Criado em": string,
+};
+
+function mapData(data: SemcompApiGameQuestion[]): GameQuestionData[] {
+  const newData: GameQuestionData[] = [];
+  for (const gameQuestion of data) {
+    newData.push({
+      "ID": gameQuestion.id,
+      "Jogo": gameQuestion.game,
+      "Indice": gameQuestion.index,
+      "Título": gameQuestion.title,
+      "Pergunta": gameQuestion.question,
+      "Dica": gameQuestion.clue,
+      "Resposta": gameQuestion.answer,
+      "Criado em": new Date(gameQuestion.createdAt).toISOString(),
+    })
+  }
+
+  return newData;
 }
 
 function GameQuestionsTable({
@@ -34,22 +52,8 @@ function GameQuestionsTable({
   onRowClick: (selectedIndex: number) => void,
   onRowSelect: (selectedIndexes: number[]) => void,
 }) {
-  const newData: GameQuestionData[] = [];
-  for (const gameQuestion of data.getEntities()) {
-    newData.push({
-      "ID": gameQuestion.id,
-      "Jogo": gameQuestion.game,
-      "Indice": gameQuestion.index,
-      "Título": gameQuestion.title,
-      "Pergunta": gameQuestion.question,
-      "Dica": gameQuestion.clue,
-      "Resposta": gameQuestion.answer,
-      "Criado em": new Date(gameQuestion.createdAt).toISOString(),
-    })
-  }
-
   return (<DataTable
-    data={new PaginationResponse<GameQuestionData>(newData, data.getTotalNumberOfItems())}
+    data={new PaginationResponse<GameQuestionData>(mapData(data.getEntities()), data.getTotalNumberOfItems())}
     pagination={pagination}
     onRowClick={onRowClick}
     onRowSelect={onRowSelect}

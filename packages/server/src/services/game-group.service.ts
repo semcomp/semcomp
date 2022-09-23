@@ -1,6 +1,6 @@
 import { Model } from "mongoose";
 import HttpError from "../lib/http-error";
-import { PaginationRequest } from "../lib/pagination";
+import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 
 import GameGroup, { GameGroupModel } from "../models/game-group";
 import GameGroupMember from "../models/game-group-member";
@@ -25,15 +25,27 @@ type GameGroupWithInfo = GameGroup & {
 };
 
 class GameGroupService {
-  public async find(filters?: Partial<GameGroup>): Promise<GameGroup[]> {
-    const gameGroups = await GameGroupModel.find(filters);
+  public async find({
+    filters,
+    pagination,
+  }: {
+    filters?: Partial<GameGroup>;
+    pagination: PaginationRequest;
+  }): Promise<PaginationResponse<GameGroup>> {
+    const users = await GameGroupModel
+      .find(filters)
+      .skip(pagination.getSkip())
+      .limit(pagination.getItems());
+    const count = await this.count(filters);
 
     const entities: GameGroup[] = [];
-    for (const gameGroup of gameGroups) {
-      entities.push(this.mapEntity(gameGroup));
+    for (const user of users) {
+      entities.push(this.mapEntity(user));
     }
 
-    return entities;
+    const paginatedResponse = new PaginationResponse(entities, count)
+
+    return paginatedResponse;
   }
 
   public async findById(id: string): Promise<GameGroup> {
@@ -191,9 +203,13 @@ class GameGroupService {
     };
   }
 
-  public async findWithInfo(): Promise<GameGroupWithInfo[]> {
-    const groups = await this.find();
-    const groupIds = groups.map((group) => group.id);
+  public async findWithInfo({
+    pagination,
+  }: {
+    pagination: PaginationRequest;
+  }): Promise<PaginationResponse<GameGroupWithInfo>> {
+    const groups = await this.find({ pagination });
+    const groupIds = groups.getEntities().map((group) => group.id);
     const completedQuestions = await gameGroupCompletedQuestionService.find({ gameGroupId: groupIds });
     const questions = await gameQuestionService.find({ pagination: new PaginationRequest(1, 9999) });
     const memberships = await gameGroupMemberService.find({ gameGroupId: groupIds });
@@ -202,7 +218,7 @@ class GameGroupService {
 
 
     const entities: GameGroupWithInfo[] = [];
-    for (const group of groups) {
+    for (const group of groups.getEntities()) {
       const groupMemberships = memberships.filter((membership) => membership.gameGroupId === group.id);
       const groupMembers = groupMemberships.map(
         (groupMembership) => users.find((user) => user.id === groupMembership.userId)
@@ -230,7 +246,9 @@ class GameGroupService {
       });
     }
 
-    return entities;
+    const paginatedResponse = new PaginationResponse(entities, groups.getTotalNumberOfItems())
+
+    return paginatedResponse;
   }
 
   private mapEntity(entity: Model<GameGroup> & GameGroup): GameGroup {

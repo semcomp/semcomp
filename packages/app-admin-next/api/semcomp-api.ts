@@ -1,5 +1,5 @@
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
-import { SemcompApiCreateEventRequest, SemcompApiCreateHouseRequest, SemcompApiCreateGameQuestionRequest, SemcompApiEditEventRequest, SemcompApiEditGameQuestionRequest, SemcompApiGetEventsResponse, SemcompApiGetHousesResponse, SemcompApiGetGameQuestionsResponse, SemcompApiGetTShirtsResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse, SemcompApiPaginationRequest } from "../models/SemcompApiModels";
+import { SemcompApiCreateEventRequest, SemcompApiCreateHouseRequest, SemcompApiCreateGameQuestionRequest, SemcompApiEditEventRequest, SemcompApiEditGameQuestionRequest, SemcompApiGetEventsResponse, SemcompApiGetHousesResponse, SemcompApiGetGameQuestionsResponse, SemcompApiGetTShirtsResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse, SemcompApiPaginationRequest, SemcompApiGetGameGroupsResponse } from "../models/SemcompApiModels";
 import Http from "./http";
 
 class SemcompApi {
@@ -97,6 +97,17 @@ class SemcompApi {
 
   public async editGameQuestion(id: string, data: SemcompApiEditGameQuestionRequest): Promise<any> {
     return this.http.put(`/admin/game/questions/${id}`, data);
+  }
+
+  public async getGameGroups(pagination: PaginationRequest): Promise<SemcompApiGetGameGroupsResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/game/groups", semcompApiPagination);
+
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 }
 

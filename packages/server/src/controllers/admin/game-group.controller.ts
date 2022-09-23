@@ -4,13 +4,19 @@ import { handleError } from "../../lib/handle-error";
 import HttpError from "../../lib/http-error";
 import adminLogService from "../../services/admin-log.service";
 import gameGroupService from "../../services/game-group.service";
+import { PaginationRequest } from "../../lib/pagination";
 
 const RESOURCE = 'game-group';
 
 class GameGroupController {
   public async list(req, res, next) {
     try {
-      const entities = await gameGroupService.findWithInfo();
+      const pagination = new PaginationRequest(
+        +req.query.page,
+        +req.query.items,
+      );
+
+      const entities = await gameGroupService.findWithInfo({ pagination });
 
       return res.status(200).json(entities);
     } catch (error) {

@@ -158,3 +158,15 @@ export type SemcompApiCreateGameQuestionRequest = {
 };
 
 export type SemcompApiEditGameQuestionRequest = SemcompApiCreateGameQuestionRequest;
+
+export type SemcompApiGameGroup = {
+  id: string;
+  game: Game;
+  name: string;
+  availableClues: number;
+  availableSkips: number;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type SemcompApiGetGameGroupsResponse = PaginationResponse<SemcompApiGameGroup>;
