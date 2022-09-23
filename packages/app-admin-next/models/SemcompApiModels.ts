@@ -1,5 +1,6 @@
 import { TShirtSize } from "../components/t-shirt/TShirtForm";
 import EventType from "../libs/constants/event-types-enum";
+import Game from "../libs/constants/game-enum";
 import { PaginationResponse } from "./Pagination";
 
 export class SemcompApiPaginationRequest {
@@ -128,3 +129,32 @@ export type SemcompApiCreateEventRequest = {
 };
 
 export type SemcompApiEditEventRequest = SemcompApiCreateEventRequest;
+
+export type SemcompApiGameQuestion = {
+  id: string;
+  game: Game;
+  index: number;
+  title: string;
+  question: string;
+  imgUrl: string;
+  clue: string;
+  answer: string;
+  isLegendary: boolean;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type SemcompApiGetGameQuestionsResponse = PaginationResponse<SemcompApiGameQuestion>;
+
+export type SemcompApiCreateGameQuestionRequest = {
+  game: Game;
+  index: number;
+  title: string;
+  question: string;
+  imgUrl: string;
+  clue: string;
+  answer: string;
+  isLegendary: boolean;
+};
+
+export type SemcompApiEditGameQuestionRequest = SemcompApiCreateGameQuestionRequest;

@@ -4,9 +4,7 @@ config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "producti
 
 import AdminRouter from "./admin";
 import achievementsRouter from "./achievement.router";
-import riddleRouter from "./riddle.router";
-import riddlethonRouter from "./riddlethon.router";
-import hardToClickRouter from "./hard-to-click.router";
+import gameRouter from "./game.router";
 import eventsRouter from "./event.router";
 import userRouter from "./user.router";
 import houseRouter from "./house.router";
@@ -48,9 +46,7 @@ const adminRouter = new AdminRouter(paymentServiceImpl);
 router.use("/admin", adminRouter.create());
 
 router.use("/achievements", achievementsRouter);
-router.use("/riddle", riddleRouter);
-router.use("/riddlethon", riddlethonRouter);
-router.use("/hard-to-click", hardToClickRouter);
+router.use("/game", gameRouter);
 router.use("/events", eventsRouter);
 router.use("/users", userRouter);
 router.use("/houses", houseRouter);
