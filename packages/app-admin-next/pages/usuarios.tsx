@@ -7,6 +7,7 @@ import { useAppContext } from '../libs/contextLib';
 import { PaymentStatus, SemcompApiUser } from '../models/SemcompApiModels';
 import DataPage from '../components/DataPage';
 import { TShirtSize } from '../components/t-shirt/TShirtForm';
+import { PaginationRequest, PaginationResponse } from '../models/Pagination';
 
 type UserData = {
   "ID": string,
@@ -22,20 +23,22 @@ type UserData = {
 }
 
 function UsersTable({
-  users,
+  data,
+  pagination,
   onRowSelect,
 }: {
-  users: SemcompApiUser[],
+  data: PaginationResponse<SemcompApiUser>,
+  pagination: PaginationRequest,
   onRowSelect: (selectedIndexes: number[]) => void,
 }) {
-  const data: UserData[] = [];
-  for (const user of users) {
+  const newData: UserData[] = [];
+  for (const user of data.getEntities()) {
     let paymentStatus = "";
     if (user.payment.status) {
       paymentStatus = user.payment.status === PaymentStatus.APPROVED ? "Aprovado" : "Pendente";
     }
 
-    data.push({
+    newData.push({
       "ID": user.id,
       "E-mail": user.email,
       "Nome": user.name,
@@ -50,7 +53,8 @@ function UsersTable({
   }
 
   return (<DataTable
-    data={data}
+    data={new PaginationResponse<UserData>(newData, data.getTotalNumberOfItems())}
+    pagination={pagination}
     onRowClick={(index: number) => console.log(index)}
     onRowSelect={onRowSelect}
   ></DataTable>);
@@ -59,14 +63,16 @@ function UsersTable({
 function Users() {
   const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
 
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(null as PaginationResponse<SemcompApiUser>);
+  const [pagination, setPagination] = useState(new PaginationRequest(() => fetchData()));
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
 
   async function fetchData() {
     try {
-      const response = await semcompApi.getUsers();
-      setData(response.users);
+      setIsLoading(true);
+      const response = await semcompApi.getUsers(pagination);
+      setData(response);
     } catch (error) {
       console.error(error);
     } finally {
@@ -74,23 +80,28 @@ function Users() {
     }
   }
 
-  async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
-    setSelectedIndexes(updatedSelectedIndexes);
-  }
-
   useEffect(() => {
     fetchData();
   }, []);
 
+  async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
+    setSelectedIndexes(updatedSelectedIndexes);
+  }
+
   return (<>
-    <DataPage
-      title="Usuários"
-      isLoading={isLoading}
-      table={<UsersTable
-        users={data}
-        onRowSelect={handleSelectedIndexesChange}
-      />}
-    ></DataPage>
+    {
+      !isLoading && (
+        <DataPage
+          title="Usuários"
+          isLoading={isLoading}
+          table={<UsersTable
+            data={data}
+            pagination={pagination}
+            onRowSelect={handleSelectedIndexesChange}
+          />}
+        ></DataPage>
+      )
+    }
   </>);
 }
 

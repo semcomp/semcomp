@@ -11,6 +11,7 @@ import Subscription from "../models/subscription";
 import IdServiceImpl from "./id-impl.service";
 import HttpError from "../lib/http-error";
 import User from "../models/user";
+import { PaginationRequest } from "../lib/pagination";
 
 const idService = new IdServiceImpl();
 
@@ -387,12 +388,14 @@ class EventService {
   }
 
   public async listUsersAttendancesInfo(): Promise<UserAttendanceInfo[]> {
-    const users = await userService.find();
+    const users = await userService.find({
+      pagination: new PaginationRequest(1, 9999),
+    });
     const attendances = await attendanceService.find();
     const events = await this.find();
 
     const usersAttendancesInfo: UserAttendanceInfo[] = [];
-    for (const user of users) {
+    for (const user of users.getEntities()) {
       const userAttendances = attendances.filter(attendance => attendance.userId === user.id);
 
       let hours = 0;

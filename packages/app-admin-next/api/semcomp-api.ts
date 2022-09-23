@@ -1,4 +1,5 @@
-import { SemcompApiCreateEventRequest, SemcompApiCreateHouseRequest, SemcompApiEditEventRequest, SemcompApiGetEventsResponse, SemcompApiGetHousesResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse } from "../models/SemcompApiModels";
+import { PaginationRequest, PaginationResponse } from "../models/Pagination";
+import { SemcompApiCreateEventRequest, SemcompApiCreateHouseRequest, SemcompApiEditEventRequest, SemcompApiGetEventsResponse, SemcompApiGetHousesResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse, SemcompApiPaginationRequest } from "../models/SemcompApiModels";
 import Http from "./http";
 
 class SemcompApi {
@@ -15,8 +16,15 @@ class SemcompApi {
     );
   }
 
-  public async getUsers(): Promise<SemcompApiGetUsersResponse> {
-    return this.http.get("/admin/users");
+  public async getUsers(pagination: PaginationRequest): Promise<SemcompApiGetUsersResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/users", semcompApiPagination)
+
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
   public async getHouses(): Promise<SemcompApiGetHousesResponse> {

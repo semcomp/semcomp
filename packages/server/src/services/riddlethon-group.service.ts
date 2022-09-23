@@ -1,5 +1,6 @@
 import { Model } from "mongoose";
 import HttpError from "../lib/http-error";
+import { PaginationRequest } from "../lib/pagination";
 
 import RiddlethonGroup, { RiddlethonGroupModel } from "../models/riddlethon-group";
 import RiddlethonGroupMember from "../models/riddlethon-group-member";
@@ -157,7 +158,10 @@ class RiddlethonGroupService {
 
     const groupMemberships = await riddlethonGroupMemberService.find({ riddlethonGroupId: group.id });
     const members = await userService.find({
-      id: groupMemberships.map((groupMembership) => groupMembership.userId),
+      filters: {
+        id: groupMemberships.map((groupMembership) => groupMembership.userId),
+      },
+      pagination: new PaginationRequest(),
     });
 
 
@@ -179,7 +183,7 @@ class RiddlethonGroupService {
 
     return {
       ...group,
-      members: members.map((member) => userService.minimalMapEntity(member)),
+      members: members.getEntities().map((member) => userService.minimalMapEntity(member)),
       completedQuestions: groupCompletedQuestionsInfo,
     };
   }

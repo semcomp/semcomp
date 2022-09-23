@@ -14,6 +14,7 @@ import AchievementTypes from "../../lib/constants/achievement-types-enum";
 import houseAchievementService from "../../services/house-achievement.service";
 import HouseAchievement from "../../models/house-achievement";
 import adminLogService from "../../services/admin-log.service";
+import { PaginationRequest } from "../../lib/pagination";
 
 class HouseController {
   public async list(req, res, next) {
@@ -79,10 +80,10 @@ class HouseController {
 
   public async assignHouses(req, res, next) {
     try {
-      const users = await userService.find();
+      const users = await userService.find({ pagination: new PaginationRequest(1, 9999) });
       const houseMembers = await houseMemberService.find();
 
-      for (const user of users) {
+      for (const user of users.getEntities()) {
         if (houseMembers.find((member) => {
           return member.userId === user.id;
         })) {

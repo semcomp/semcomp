@@ -2,6 +2,7 @@ import userService from "../../services/user.service";
 import { handleError } from "../../lib/handle-error";
 import { handleValidationResult } from "../../lib/handle-validation-result";
 import emailService from "../../services/email.service";
+import { PaginationRequest } from "../../lib/pagination";
 
 class EmailController {
   public async send(req, res, next) {
@@ -10,10 +11,10 @@ class EmailController {
     try {
       const { subject, text, html } = req.body;
 
-      const users = await userService.find();
+      const users = await userService.find({ pagination: new PaginationRequest(1, 9999) });
 
       const promises = [];
-      for (const user of users) {
+      for (const user of users.getEntities()) {
         promises.push(emailService.send(user.email, subject, text, html));
       }
 

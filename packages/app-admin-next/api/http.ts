@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { SemcompApiPaginationRequest } from "../models/SemcompApiModels";
 
 class Http {
   private instance: AxiosInstance;
@@ -66,8 +67,17 @@ class Http {
     return this.token;
   }
 
-  public async get(url: string): Promise<any> {
-    const { data } = await this.instance.get(url);
+  public async get(
+    url: string,
+    pagination?: SemcompApiPaginationRequest,
+  ): Promise<any> {
+    const defaultPagination = new SemcompApiPaginationRequest();
+    const config = { params: { page: defaultPagination.getPage(), items: defaultPagination.getItems() } };
+    if (pagination) {
+      config.params = { page: pagination.getPage(), items: pagination.getItems() };
+    }
+
+    const { data } = await this.instance.get(url, config);
     return data;
   }
 

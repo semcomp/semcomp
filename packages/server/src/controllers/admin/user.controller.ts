@@ -17,6 +17,7 @@ import Disability from "../../lib/constants/disability-enum";
 import PaymentServiceImpl from "../../services/payment-impl.service";
 import TShirtSize from "../../lib/constants/t-shirt-size-enum";
 import PaymentStatus from "../../lib/constants/payment-status-enum";
+import { PaginationRequest, PaginationResponse } from "../../lib/pagination";
 
 export default class UserController {
   private paymentService: PaymentServiceImpl;
@@ -26,13 +27,18 @@ export default class UserController {
   }
 
   public async list(req, res, next) {
-    const usersFound = await userService.find();
+    const pagination = new PaginationRequest(
+      +req.query.page,
+      +req.query.items,
+    );
+
+    const usersFound = await userService.find({ pagination });
     const housesFound = await houseService.find();
     const houseMembersFound = await houseMemberService.find();
     const userDisabilities = await userDisabilityService.find();
     const payments = await this.paymentService.find();
 
-    const users: (User & {
+    type ListUser = (User & {
       house: {
         name: string,
       },
@@ -41,8 +47,10 @@ export default class UserController {
         tShirtSize: TShirtSize,
       },
       disabilities: Disability[]
-    })[] = [];
-    for (const user of usersFound) {
+    })
+
+    const users: ListUser[] = [];
+    for (const user of usersFound.getEntities()) {
       let userHouse = "Não possui";
       const userHouseMember = houseMembersFound.find((houseMember) => {
         return houseMember.userId === user.id;
@@ -76,16 +84,23 @@ export default class UserController {
       });
     }
 
-    return res.status(200).json({
-      users,
-    });
-  };
+    return res.status(200).json(
+      new PaginationResponse<ListUser>(users, usersFound.getTotalNumberOfItems())
+    );
+  }
 
   public async listForEnterprise(req, res, next) {
-    const usersFound = await userService.find({ permission: true });
+    const pagination = new PaginationRequest(
+      +req.query.page,
+      +req.query.items,
+    );
+    const usersFound = await userService.find({
+      filters: { permission: true },
+      pagination,
+    });
 
     return res.status(200).json(usersFound);
-  };
+  }
 
   public async get(req, res, next) {
     try {
@@ -100,7 +115,7 @@ export default class UserController {
     } catch (error) {
       return handleError(error, next);
     }
-  };
+  }
 
   public async getAttendance(req, res, next) {
     try {
@@ -125,7 +140,7 @@ export default class UserController {
     } catch (error) {
       return handleError(error, next);
     }
-  };
+  }
 
   public async addUserAchievement(req, res, next) {
     try {
@@ -161,7 +176,7 @@ export default class UserController {
     } catch (error) {
       return handleError(error, next);
     }
-  };
+  }
 
   public async update(req, res, next) {
     try {
@@ -189,7 +204,7 @@ export default class UserController {
     } catch (error) {
       return handleError(error, next);
     }
-  };
+  }
 
   public async deleteById(req, res, next) {
     try {
@@ -214,5 +229,5 @@ export default class UserController {
     } catch (error) {
       return handleError(error, next);
     }
-  };
+  }
 }

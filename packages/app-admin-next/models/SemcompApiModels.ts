@@ -1,5 +1,31 @@
 import { TShirtSize } from "../components/t-shirt/TShirtForm";
 import EventType from "../libs/constants/event-types-enum";
+import { PaginationResponse } from "./Pagination";
+
+export class SemcompApiPaginationRequest {
+  private page: number;
+  private items: number;
+
+  constructor(page?: number, items?: number) {
+    this.page = 1;
+    if (page) {
+      this.page = page
+    }
+
+    this.items = 25;
+    if (items) {
+      this.items = items
+    }
+  }
+
+  public getPage(): number {
+    return this.page;
+  }
+
+  public getItems(): number {
+    return this.items;
+  }
+};
 
 export enum PaymentStatus {
   PENDING = "pending",
@@ -26,9 +52,7 @@ export type SemcompApiUser = {
   updatedAt: number,
 };
 
-export type SemcompApiGetUsersResponse = {
-  users: SemcompApiUser[]
-};
+export type SemcompApiGetUsersResponse = PaginationResponse<SemcompApiUser>;
 
 export type SemcompApiLoginResponse = {
   email: string,

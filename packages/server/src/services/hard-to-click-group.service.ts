@@ -9,6 +9,7 @@ import hardToClickGroupCompletedQuestionService from "./hard-to-click-group-comp
 import hardToClickGroupMemberService from "./hard-to-click-group-member.service";
 import hardToClickQuestionService from "./hard-to-click-question.service";
 import userService from "./user.service";
+import { PaginationRequest } from "../lib/pagination";
 
 const idService = new IdServiceImpl();
 
@@ -155,7 +156,10 @@ class HardToClickGroupService {
 
     const groupMemberships = await hardToClickGroupMemberService.find({ hardToClickGroupId: group.id });
     const members = await userService.find({
-      id: groupMemberships.map((groupMembership) => groupMembership.userId),
+      filters: {
+        id: groupMemberships.map((groupMembership) => groupMembership.userId),
+      },
+      pagination: new PaginationRequest(),
     });
 
 
@@ -177,7 +181,7 @@ class HardToClickGroupService {
 
     return {
       ...group,
-      members: members.map((member) => userService.minimalMapEntity(member)),
+      members: members.getEntities().map((member) => userService.minimalMapEntity(member)),
       completedQuestions: groupCompletedQuestionsInfo,
     };
   }

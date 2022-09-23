@@ -10,6 +10,7 @@ import tShirtService from "./t-shirt.service";
 import PaymentService from "./payment.service";
 import TShirtSize from "../lib/constants/t-shirt-size-enum";
 import PaymentStatus from "../lib/constants/payment-status-enum";
+import { PaginationRequest } from "../lib/pagination";
 
 export default class PaymentServiceImpl implements PaymentService {
   private idService: IdService;
@@ -208,12 +209,12 @@ export default class PaymentServiceImpl implements PaymentService {
   }
 
   async generateQrCodes(): Promise<void> {
-    const users = await this.userService.find();
+    const users = await this.userService.find({ pagination: new PaginationRequest(1, 9999) });
     const payments = await this.find({ status: PaymentStatus.APPROVED });
 
-    for (const user of users) {
+    for (const user of users.getEntities()) {
       if (payments.find((payment) => user.id === payment.userId)) {
-        await QRCode.toFile(`./qr-codes/com-pagamento/${user.name}.png`, user.id, {
+        await QRCode.toFile(`./qr-codes/com-pagamento/${user.email} - ${user.name}.png`, user.id, {
           color: {
             dark: '#009541',
             light: '#0000',
@@ -222,7 +223,7 @@ export default class PaymentServiceImpl implements PaymentService {
           type: "png",
         });
       } else {
-        await QRCode.toFile(`./qr-codes/sem-pagamento/${user.name}.png`, user.id, {
+        await QRCode.toFile(`./qr-codes/sem-pagamento/${user.email} - ${user.name}.png`, user.id, {
           color: {
             dark: '#FFDF00',
             light: '#0000',

@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -5,9 +7,10 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import { Toolbar } from '@mui/material';
-import { useState } from 'react';
+import { TablePagination } from '@mui/material';
+
 import Input, { InputType } from '../Input';
+import { PaginationRequest, PaginationResponse } from '../../models/Pagination';
 
 function Row({
   row,
@@ -48,10 +51,12 @@ function Row({
 
 export default function DataTable({
   data,
+  pagination,
   onRowClick,
   onRowSelect,
 }: {
-  data: object[],
+  data: PaginationResponse<any>,
+  pagination: PaginationRequest,
   onRowClick: (index: number) => void,
   onRowSelect: (indexes: number[]) => void,
 }) {
@@ -72,21 +77,34 @@ export default function DataTable({
     onRowSelect(updatedSelectedRows);
   }
 
+  function handleChangePage(
+    _event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number,
+  ) {
+    pagination.setPage(newPage + 1);
+  };
+
+  function handleChangeRowsPerPage(
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) {
+    pagination.setItems(parseInt(event.target.value, 10));
+  };
+
   return (<>
     {
-      data[0] &&
+      data.getEntities()[0] &&
       <TableContainer component={Paper}>
         <Table aria-label="collapsible table">
           <TableHead>
             <TableRow>
               <TableCell></TableCell>
-              {Object.keys(data[0]).map((key: any, index: number) => {
+              {Object.keys(data.getEntities()[0]).map((key: any, index: number) => {
                 return (<TableCell key={index}>{key}</TableCell>);
               })}
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((row, index) => (
+            {data.getEntities().map((row, index) => (
               <Row
                 key={index}
                 row={row}
@@ -96,6 +114,14 @@ export default function DataTable({
             ))}
           </TableBody>
         </Table>
+        <TablePagination
+          component="div"
+          count={data.getTotalNumberOfItems()}
+          page={pagination.getPage() - 1}
+          onPageChange={handleChangePage}
+          rowsPerPage={pagination.getItems()}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
       </TableContainer>
     }
   </>);

@@ -15,6 +15,7 @@ import userAchievementService from "./user-achievement.service";
 import AchievementCategories from "../lib/constants/achievement-categories-enum";
 import UserAchievement from "../models/user-achievement";
 import userDisabilityService from "./user-disability.service";
+import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 
 const idService = new IdServiceImpl();
 
@@ -34,20 +35,38 @@ type Filters = User | {
 };
 
 export interface UserService {
-  find(filters?: Partial<Filters>): Promise<User[]>;
+  find({
+    filters,
+    pagination,
+  }: {
+    filters?: Partial<Filters>;
+    pagination: PaginationRequest;
+  }): Promise<PaginationResponse<User>>;
   findById(id: string): Promise<User>;
 }
 
 class UserServiceImpl implements UserService {
-  public async find(filters?: Partial<Filters>): Promise<User[]> {
-    const users = await UserModel.find(filters);
+  public async find({
+    filters,
+    pagination,
+  }: {
+    filters?: Partial<Filters>;
+    pagination: PaginationRequest;
+  }): Promise<PaginationResponse<User>> {
+    const users = await UserModel
+      .find(filters)
+      .skip(pagination.getSkip())
+      .limit(pagination.getItems());
+    const count = await this.count(filters);
 
     const entities: User[] = [];
     for (const user of users) {
       entities.push(this.mapEntity(user));
     }
 
-    return entities;
+    const paginatedResponse = new PaginationResponse(entities, count)
+
+    return paginatedResponse;
   }
 
   public async minimalFind(filters?: Partial<Filters>): Promise<Partial<User>[]> {
@@ -125,13 +144,13 @@ class UserServiceImpl implements UserService {
   }
 
   async checkAchievements(): Promise<void> {
-    const users = await this.find();
+    const users = await this.find({ pagination: new PaginationRequest(1, 9999) });
     const events = await eventService.find();
     const individualAchievements = await achievementService.find({
       type: AchievementTypes.INDIVIDUAL,
     });
 
-    for (const user of users) {
+    for (const user of users.getEntities()) {
       const userAchievementCount = await userAchievementService.count({ userId: user.id });
       for (const achievement of individualAchievements) {
         const userAchievement = await userAchievementService.findOne({ userId: user.id, achievementId: achievement.id });

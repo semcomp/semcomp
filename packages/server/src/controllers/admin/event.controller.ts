@@ -4,6 +4,7 @@ import {
 import { handleError } from "../../lib/handle-error";
 import eventService from "../../services/event.service";
 import userService from "../../services/user.service";
+import { PaginationRequest } from "../../lib/pagination";
 
 class EventController {
   public async list(req, res, next) {
@@ -70,10 +71,13 @@ class EventController {
       const { eventId } = req.params;
       const { emails } = req.body;
 
-      const users = await userService.find({ email: emails });
+      const users = await userService.find({
+        filters: { email: emails },
+        pagination: new PaginationRequest(1, 9999),
+      });
       console.log(users);
 
-      for (const user of users) {
+      for (const user of users.getEntities()) {
         console.log(user.id);
         await eventService.markAttendance(eventId, user.id, null);
       }
