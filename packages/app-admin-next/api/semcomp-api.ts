@@ -1,5 +1,5 @@
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
-import { SemcompApiCreateEventRequest, SemcompApiCreateHouseRequest, SemcompApiEditEventRequest, SemcompApiGetEventsResponse, SemcompApiGetHousesResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse, SemcompApiPaginationRequest } from "../models/SemcompApiModels";
+import { SemcompApiCreateEventRequest, SemcompApiCreateHouseRequest, SemcompApiEditEventRequest, SemcompApiGetEventsResponse, SemcompApiGetHousesResponse, SemcompApiGetTShirtsResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse, SemcompApiPaginationRequest } from "../models/SemcompApiModels";
 import Http from "./http";
 
 class SemcompApi {
@@ -22,21 +22,35 @@ class SemcompApi {
       pagination.getItems(),
     );
 
-    const response = await this.http.get("/admin/users", semcompApiPagination)
+    const response = await this.http.get("/admin/users", semcompApiPagination);
 
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
-  public async getHouses(): Promise<SemcompApiGetHousesResponse> {
-    return this.http.get("/admin/houses");
+  public async getHouses(pagination: PaginationRequest): Promise<SemcompApiGetHousesResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/houses", semcompApiPagination);
+
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
   public async createHouse(data: SemcompApiCreateHouseRequest): Promise<any> {
     return this.http.post("/admin/houses", data);
   }
 
-  public async getTShirts(): Promise<any> {
-    return this.http.get("/admin/t-shirts");
+  public async getTShirts(pagination: PaginationRequest): Promise<SemcompApiGetTShirtsResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/t-shirts", semcompApiPagination);
+
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
   public async createTShirt(data: any): Promise<any> {
@@ -47,8 +61,15 @@ class SemcompApi {
     return this.http.put(`/admin/t-shirts/${id}`, data);
   }
 
-  public async getEvents(): Promise<SemcompApiGetEventsResponse> {
-    return this.http.get("/admin/events");
+  public async getEvents(pagination: PaginationRequest): Promise<SemcompApiGetEventsResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/events", semcompApiPagination);
+
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
   public async createEvent(data: SemcompApiCreateEventRequest): Promise<any> {

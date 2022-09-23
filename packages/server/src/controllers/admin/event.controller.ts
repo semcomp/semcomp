@@ -9,7 +9,12 @@ import { PaginationRequest } from "../../lib/pagination";
 class EventController {
   public async list(req, res, next) {
     try {
-      const events: any = await eventService.findWithInfo();
+      const pagination = new PaginationRequest(
+        +req.query.page,
+        +req.query.items,
+      );
+
+      const events = await eventService.findWithInfo({ pagination });
 
       return res.status(200).json(events);
     } catch (error) {

@@ -11,7 +11,7 @@ import Subscription from "../models/subscription";
 import IdServiceImpl from "./id-impl.service";
 import HttpError from "../lib/http-error";
 import User from "../models/user";
-import { PaginationRequest } from "../lib/pagination";
+import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 
 const idService = new IdServiceImpl();
 
@@ -43,15 +43,27 @@ type UserAttendanceInfo = {
 }
 
 class EventService {
-  public async find(filters?: Partial<Filters>): Promise<Event[]> {
-    const events = await EventModel.find(filters);
+  public async find({
+    filters,
+    pagination,
+  }: {
+    filters?: Partial<Filters>;
+    pagination: PaginationRequest;
+  }): Promise<PaginationResponse<Event>> {
+    const events = await EventModel
+      .find(filters)
+      .skip(pagination.getSkip())
+      .limit(pagination.getItems());
+    const count = await this.count(filters);
 
     const entities: Event[] = [];
     for (const event of events) {
       entities.push(this.mapEntity(event));
     }
 
-    return entities;
+    const paginatedResponse = new PaginationResponse(entities, count)
+
+    return paginatedResponse;
   }
 
   public async findById(id: string): Promise<Event> {
@@ -99,12 +111,15 @@ class EventService {
   }
 
   public async getInfo(userId: string) {
-    const events = await this.find({ showOnSchedule: true });
+    const events = await this.find({
+      filters: { showOnSchedule: true },
+      pagination: new PaginationRequest(1, 9999),
+    });
     const userAttendances = await attendanceService.find({ userId });
     const eventsSubscriptions = await subscriptionService.find({ userId });
 
     const eventsInfo = [];
-    for (const event of events) {
+    for (const event of events.getEntities()) {
       let hasAttended = false;
       let isSubscribed = false;
       if (userId) {
@@ -128,14 +143,17 @@ class EventService {
   }
 
   public async getCurrent(userId: string) {
-    const events = await this.find({ showStream: true });
+    const events = await this.find({
+      filters: { showStream: true },
+      pagination: new PaginationRequest(1, 9999),
+    });
     const userAttendances = await attendanceService.find({
       userId,
     });
     const eventsSubscriptions = await subscriptionService.find();
 
     let currentEvent;
-    for (const event of events) {
+    for (const event of events.getEntities()) {
       const now = Date.now();
 
       const startedDate = event.startDate;
@@ -193,8 +211,11 @@ class EventService {
       RODA: EventTypes.RODA,
     };
     const events = await this.find({
-      type: Object.values(desiredEventTypesEnum),
-      showOnSubscribables: true,
+      filters: {
+        type: Object.values(desiredEventTypesEnum),
+        showOnSubscribables: true,
+      },
+      pagination: new PaginationRequest(1, 9999),
     });
     const userAttendances = await attendanceService.find({
       userId,
@@ -202,7 +223,7 @@ class EventService {
     const eventsSubscriptions = await subscriptionService.find();
 
     const eventsByType: EventsByType = {};
-    for (const event of events) {
+    for (const event of events.getEntities()) {
       if (!eventsByType[event.type]) {
         eventsByType[event.type] = [event];
         continue;
@@ -356,9 +377,13 @@ class EventService {
     return { message: "Inscrição removida com sucesso!" };
   }
 
-  public async findWithInfo(): Promise<EventWithInfo[]> {
-    const events = await this.find();
-    const eventIds = events.map((event) => event.id);
+  public async findWithInfo({
+    pagination,
+  }: {
+    pagination: PaginationRequest;
+  }): Promise<PaginationResponse<EventWithInfo>> {
+    const events = await this.find({ pagination });
+    const eventIds = events.getEntities().map((event) => event.id);
     const attendances = await attendanceService.find({ eventId: eventIds });
     const attendancesUserIds = attendances.map((attendance) => attendance.userId);
     const subscriptions = await subscriptionService.find({ eventId: eventIds });
@@ -367,7 +392,7 @@ class EventService {
 
 
     const entities: EventWithInfo[] = [];
-    for (const event of events) {
+    for (const event of events.getEntities()) {
       const eventAttendances = attendances.filter((attendance) => attendance.eventId === event.id);
       const eventUserAttendances = eventAttendances.map(
         (eventAttendance) => users.find((user) => user.id === eventAttendance.userId)
@@ -384,7 +409,7 @@ class EventService {
       });
     }
 
-    return entities;
+    return new PaginationResponse<EventWithInfo>(entities, events.getTotalNumberOfItems());
   }
 
   public async listUsersAttendancesInfo(): Promise<UserAttendanceInfo[]> {
@@ -392,7 +417,9 @@ class EventService {
       pagination: new PaginationRequest(1, 9999),
     });
     const attendances = await attendanceService.find();
-    const events = await this.find();
+    const events = await this.find({
+      pagination: new PaginationRequest(1, 9999),
+    });
 
     const usersAttendancesInfo: UserAttendanceInfo[] = [];
     for (const user of users.getEntities()) {
@@ -400,7 +427,7 @@ class EventService {
 
       let hours = 0;
       for (const userAttendance of userAttendances) {
-        const event = events.find(event => event.id === userAttendance.eventId);
+        const event = events.getEntities().find(event => event.id === userAttendance.eventId);
 
         const startDate = new Date(event.startDate);
         const endDate = new Date(event.endDate);

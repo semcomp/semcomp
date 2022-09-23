@@ -1,4 +1,5 @@
 import { Model } from "mongoose";
+import { PaginationRequest } from "../lib/pagination";
 import House from "../models/house";
 
 import HouseMember, { HouseMemberModel } from "../models/house-member";
@@ -71,13 +72,15 @@ class HouseMemberService {
   };
 
   private async getHouseWithLessMembers(): Promise<House> {
-    const houses = await houseService.find();
+    const houses = await houseService.find({
+      pagination: new PaginationRequest(1, 9999),
+    });
 
     let houseWithMemberCount: {
       house: House,
       memberCount: number,
     }[] = []
-    for (const house of houses) {
+    for (const house of houses.getEntities()) {
       const memberCount = await this.count({ houseId: house.id });
       houseWithMemberCount.push({
         house,

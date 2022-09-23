@@ -9,6 +9,7 @@ import CreateHouseModal from '../components/houses/CreateHouseModal';
 import EditHouseModal from '../components/houses/EditHouseModal';
 import { HouseFormData } from '../components/houses/HouseForm';
 import DataPage from '../components/DataPage';
+import { PaginationRequest, PaginationResponse } from '../models/Pagination';
 
 type HouseData = {
   "ID": string,
@@ -20,17 +21,19 @@ type HouseData = {
 }
 
 function HousesTable({
-  houses,
+  data,
+  pagination,
   onRowClick,
   onRowSelect,
 }: {
-  houses: SemcompApiHouse[],
+  data: PaginationResponse<SemcompApiHouse>,
+  pagination: PaginationRequest,
   onRowClick: (selectedIndex: number) => void,
   onRowSelect: (selectedIndexes: number[]) => void,
 }) {
-  const data: HouseData[] = [];
-  for (const house of houses) {
-    data.push({
+  const newData: HouseData[] = [];
+  for (const house of data.getEntities()) {
+    newData.push({
       "ID": house.id,
       "Nome": house.name,
       "Descrição": house.description,
@@ -41,7 +44,8 @@ function HousesTable({
   }
 
   return (<DataTable
-    data={data}
+    data={new PaginationResponse<HouseData>(newData, data.getTotalNumberOfItems())}
+    pagination={pagination}
     onRowClick={onRowClick}
     onRowSelect={onRowSelect}
   ></DataTable>);
@@ -51,6 +55,7 @@ function Houses() {
   const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
 
   const [data, setData] = useState(null as SemcompApiGetHousesResponse);
+  const [pagination, setPagination] = useState(new PaginationRequest(() => fetchData()));
   const [selectedData, setSelectedData] = useState(null as HouseFormData);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
@@ -60,7 +65,8 @@ function Houses() {
 
   async function fetchData() {
     try {
-      const response = await semcompApi.getHouses();
+      setIsLoading(true);
+      const response = await semcompApi.getHouses(pagination);
       setData(response);
     } catch (error) {
       console.error(error);
@@ -98,22 +104,27 @@ function Houses() {
         onRequestClose={() => setIsEditModalOpen(false)}
       />
     )}
-    <DataPage
-      title="Casas"
-      isLoading={isLoading}
-      buttons={<button
-        className="bg-black text-white py-3 px-6"
-        type="button"
-        onClick={() => setIsCreateModalOpen(true)}
-      >
-        Criar
-      </button>}
-      table={<HousesTable
-        houses={data}
-        onRowClick={handleRowClick}
-        onRowSelect={handleSelectedIndexesChange}
-      />}
-    ></DataPage>
+    {
+      !isLoading && (
+        <DataPage
+          title="Casas"
+          isLoading={isLoading}
+          buttons={<button
+            className="bg-black text-white py-3 px-6"
+            type="button"
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            Criar
+          </button>}
+          table={<HousesTable
+            data={data}
+            pagination={pagination}
+            onRowClick={handleRowClick}
+            onRowSelect={handleSelectedIndexesChange}
+          />}
+        ></DataPage>
+      )
+    }
   </>);
 }
 

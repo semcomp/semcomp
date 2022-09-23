@@ -5,11 +5,17 @@ import {
 import { handleError } from "../../lib/handle-error";
 import tShirtService from "../../services/t-shirt.service";
 import adminLogService from "../../services/admin-log.service";
+import { PaginationRequest } from "../../lib/pagination";
 
 class TShirtController {
   public async list(req, res, next) {
     try {
-      const foundEntities = await tShirtService.findWithUsedQuantity();
+      const pagination = new PaginationRequest(
+        +req.query.page,
+        +req.query.items,
+      );
+
+      const foundEntities = await tShirtService.findWithUsedQuantity({ pagination });
 
       return res.status(200).json(foundEntities);
     } catch (error) {

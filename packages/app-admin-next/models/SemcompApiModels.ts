@@ -69,7 +69,7 @@ export type SemcompApiHouse = {
   updatedAt: number,
 };
 
-export type SemcompApiGetHousesResponse = SemcompApiHouse[];
+export type SemcompApiGetHousesResponse = PaginationResponse<SemcompApiHouse>;
 
 export type SemcompApiCreateHouseRequest = {
   name: string;
@@ -86,7 +86,7 @@ export type SemcompApiTShirt = {
   updatedAt: number,
 };
 
-export type SemcompApiGetTShirtsResponse = SemcompApiTShirt[];
+export type SemcompApiGetTShirtsResponse = PaginationResponse<SemcompApiTShirt>;
 
 export type SemcompApiEvent = {
   id: string,
@@ -109,7 +109,7 @@ export type SemcompApiEvent = {
   updatedAt: number,
 };
 
-export type SemcompApiGetEventsResponse = SemcompApiEvent[];
+export type SemcompApiGetEventsResponse = PaginationResponse<SemcompApiEvent>;
 
 export type SemcompApiCreateEventRequest = {
   name: string;

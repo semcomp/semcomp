@@ -145,7 +145,7 @@ class UserServiceImpl implements UserService {
 
   async checkAchievements(): Promise<void> {
     const users = await this.find({ pagination: new PaginationRequest(1, 9999) });
-    const events = await eventService.find();
+    const events = await eventService.find({ pagination: new PaginationRequest(1, 9999) });
     const individualAchievements = await achievementService.find({
       type: AchievementTypes.INDIVIDUAL,
     });
@@ -172,7 +172,7 @@ class UserServiceImpl implements UserService {
         // Presença em Tipo de Evento
         if (achievement.category === AchievementCategories.PRESENCA_EM_TIPO_DE_EVENTO) {
           let i = 0;
-          for (const event of events) {
+          for (const event of events.getEntities()) {
             if (
               event.type === achievement.eventType &&
               await attendanceService.findOne({

@@ -9,6 +9,7 @@ import CreateTShirtModal from '../components/t-shirt/CreateTShirtModal';
 import EditTShirtModal from '../components/t-shirt/EditTShirtModal';
 import { TShirtFormData, TShirtSize } from '../components/t-shirt/TShirtForm';
 import DataPage from '../components/DataPage';
+import { PaginationRequest, PaginationResponse } from '../models/Pagination';
 
 type TShirtData = {
   "ID": string,
@@ -19,17 +20,19 @@ type TShirtData = {
 }
 
 function TShirtsTable({
-  tShirts,
+  data,
+  pagination,
   onRowClick,
   onRowSelect,
 }: {
-  tShirts: SemcompApiTShirt[],
+  data: PaginationResponse<SemcompApiTShirt>,
+  pagination: PaginationRequest,
   onRowClick: (selectedIndex: number) => void,
   onRowSelect: (selectedIndexes: number[]) => void,
 }) {
-  const data: TShirtData[] = [];
-  for (const tShirt of tShirts) {
-    data.push({
+  const newData: TShirtData[] = [];
+  for (const tShirt of data.getEntities()) {
+    newData.push({
       "ID": tShirt.id,
       "Tamanho": tShirt.size,
       "Quantidade": tShirt.quantity,
@@ -39,7 +42,8 @@ function TShirtsTable({
   }
 
   return (<DataTable
-    data={data}
+    data={new PaginationResponse<TShirtData>(newData, data.getTotalNumberOfItems())}
+    pagination={pagination}
     onRowClick={onRowClick}
     onRowSelect={onRowSelect}
   ></DataTable>);
@@ -49,6 +53,7 @@ function TShirts() {
   const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
 
   const [data, setData] = useState(null);
+  const [pagination, setPagination] = useState(new PaginationRequest(() => fetchData()));
   const [formData, setFormData] = useState({
     id: null,
     size: TShirtSize.M,
@@ -62,7 +67,8 @@ function TShirts() {
 
   async function fetchData() {
     try {
-      const response = await semcompApi.getTShirts();
+      setIsLoading(true);
+      const response = await semcompApi.getTShirts(pagination);
       setData(response);
     } catch (error) {
       console.error(error);
@@ -113,20 +119,25 @@ function TShirts() {
         onRequestClose={handleCloseEditModal}
       />
     )}
-    <DataPage
-      title="Camisetas"
-      isLoading={isLoading}
-      buttons={<button
-        className="bg-black text-white py-3 px-6"
-        type="button"
-        onClick={() => setIsCreateModalOpen(true)}
-      >Criar</button>}
-      table={<TShirtsTable
-        tShirts={data}
-        onRowClick={handleRowClick}
-        onRowSelect={handleSelectedIndexesChange}
-      />}
-    ></DataPage>
+    {
+      !isLoading && (
+        <DataPage
+          title="Camisetas"
+          isLoading={isLoading}
+          buttons={<button
+            className="bg-black text-white py-3 px-6"
+            type="button"
+            onClick={() => setIsCreateModalOpen(true)}
+          >Criar</button>}
+          table={<TShirtsTable
+            data={data}
+            pagination={pagination}
+            onRowClick={handleRowClick}
+            onRowSelect={handleSelectedIndexesChange}
+          />}
+        ></DataPage>
+      )
+    }
   </>);
 }
 

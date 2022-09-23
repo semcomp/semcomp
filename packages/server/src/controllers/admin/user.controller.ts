@@ -33,7 +33,9 @@ export default class UserController {
     );
 
     const usersFound = await userService.find({ pagination });
-    const housesFound = await houseService.find();
+    const housesFound = await houseService.find({
+      pagination: new PaginationRequest(1, 9999),
+    });
     const houseMembersFound = await houseMemberService.find();
     const userDisabilities = await userDisabilityService.find();
     const payments = await this.paymentService.find();
@@ -56,7 +58,7 @@ export default class UserController {
         return houseMember.userId === user.id;
       });
 
-      userHouse = housesFound.find((house) => {
+      userHouse = housesFound.getEntities().find((house) => {
         return house.id === userHouseMember.houseId;
       }).name;
 

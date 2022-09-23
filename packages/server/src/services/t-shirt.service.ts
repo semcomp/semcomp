@@ -1,6 +1,7 @@
 import { Model } from "mongoose";
 
 import HttpError from "../lib/http-error";
+import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 import TShirt, { TShirtModel } from "../models/t-shirt";
 import IdServiceImpl from "./id-impl.service";
 import PaymentServiceImpl from "./payment-impl.service";
@@ -9,15 +10,27 @@ const idService = new IdServiceImpl();
 const paymentService = new PaymentServiceImpl(null, null, null, null);
 
 class TShirtService {
-  public async find(filters?: Partial<TShirt>): Promise<TShirt[]> {
-    const tShirts = await TShirtModel.find(filters);
+  public async find({
+    filters,
+    pagination,
+  }: {
+    filters?: Partial<TShirt>;
+    pagination: PaginationRequest;
+  }): Promise<PaginationResponse<TShirt>> {
+    const tShirts = await TShirtModel
+      .find(filters)
+      .skip(pagination.getSkip())
+      .limit(pagination.getItems());
+    const count = await this.count(filters);
 
     const entities: TShirt[] = [];
     for (const tShirt of tShirts) {
       entities.push(this.mapEntity(tShirt));
     }
 
-    return entities;
+    const paginatedResponse = new PaginationResponse(entities, count)
+
+    return paginatedResponse;
   }
 
   public async findById(id: string): Promise<TShirt> {
@@ -65,18 +78,22 @@ class TShirtService {
     return entity && this.mapEntity(entity);
   }
 
-  public async findWithUsedQuantity(): Promise<(TShirt & { usedQuantity: number })[]> {
-    const tShirts = await TShirtModel.find();
+  public async findWithUsedQuantity({
+    pagination,
+  }: {
+    pagination: PaginationRequest;
+  }): Promise<PaginationResponse<(TShirt & { usedQuantity: number })>> {
+    const tShirts = await this.find({ pagination });
 
     const entities: (TShirt & { usedQuantity: number })[] = [];
-    for (const tShirt of tShirts) {
+    for (const tShirt of tShirts.getEntities()) {
       entities.push({
-        ...this.mapEntity(tShirt),
+        ...tShirt,
         usedQuantity: await paymentService.count({ tShirtSize: tShirt.size }),
       });
     }
 
-    return entities;
+    return new PaginationResponse<(TShirt & { usedQuantity: number })>(entities, tShirts.getTotalNumberOfItems());
   }
 
   private mapEntity(entity: Model<TShirt> & TShirt): TShirt {

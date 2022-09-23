@@ -19,7 +19,12 @@ import { PaginationRequest } from "../../lib/pagination";
 class HouseController {
   public async list(req, res, next) {
     try {
-      const foundHouses = await houseService.find();
+      const pagination = new PaginationRequest(
+        +req.query.page,
+        +req.query.items,
+      );
+
+      const foundHouses = await houseService.find({ pagination });
 
       return res.status(200).json(foundHouses);
     } catch (error) {

@@ -9,19 +9,32 @@ import AchievementTypes from "../lib/constants/achievement-types-enum";
 import attendanceService from "./attendance.service";
 import HouseAchievement from "../models/house-achievement";
 import AchievementCategories from "../lib/constants/achievement-categories-enum";
+import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 
 const idService = new IdServiceImpl();
 
 class HouseService {
-  public async find(filters?: Partial<House>): Promise<House[]> {
-    const houses = await HouseModel.find(filters);
+  public async find({
+    filters,
+    pagination,
+  }: {
+    filters?: Partial<House>;
+    pagination: PaginationRequest;
+  }): Promise<PaginationResponse<House>> {
+    const houses = await HouseModel
+      .find(filters)
+      .skip(pagination.getSkip())
+      .limit(pagination.getItems());
+    const count = await this.count(filters);
 
     const entities: House[] = [];
     for (const house of houses) {
       entities.push(this.mapEntity(house));
     }
 
-    return entities;
+    const paginatedResponse = new PaginationResponse(entities, count)
+
+    return paginatedResponse;
   }
 
   public async findById(id: string): Promise<House> {
@@ -75,12 +88,12 @@ class HouseService {
   }
 
   public async checkAchievements() {
-    const houses = await this.find();
+    const houses = await this.find({ pagination: new PaginationRequest(1, 9999) });
     const achievements = await achievementService.find({
       type: AchievementTypes.CASA,
     });
 
-    for (const house of houses) {
+    for (const house of houses.getEntities()) {
       const houseMemberCount = await houseMemberService.count({ houseId: house.id });
       const houseMembers = await houseMemberService.find({ houseId: house.id });
       const houseAchievementCount = await houseAchievementService.count({ houseId: house.id });
