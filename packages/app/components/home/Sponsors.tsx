@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import AmdocsLogo from "../../assets/sponsors/svg/amdocs.svg";
+import FEstudar from "../../assets/sponsors/FundacaoEstudar.png";
 import EyLogo from "../../assets/sponsors/EYlogoVertical.jpeg";
 import EyLogoSF from "../../assets/sponsors/EYLogoSemFundo.png";
 import GaneshImage from "../../assets/sponsors/ganesh.png";
@@ -21,7 +22,7 @@ import Image, { StaticImageData } from "next/image";
 import NavLink from "../navbar/nav-link";
 
 function Sponsors() {
-  const supporterLogos = [IcmcImage, PetImage, CodelabImage, FogImage, Ganesh, Gema];
+  const supporterLogos = [IcmcImage, PetImage, CodelabImage, FogImage, Ganesh, Gema, FEstudar];
   const sponsorsLogos = [AmdocsLogo, EyLogoSF, GriauleLogo, LuizalabsLogo, RaizenLogo, SerasaLogo, TokenlabLogo, TractianLogo];
 
   return (
@@ -48,10 +49,10 @@ function Sponsors() {
         <h1 id="titulo" className="text-4xl font-bold">
           Apoio
         </h1>
-        <div className="text-base pt-8 max-w-4xl">
-          <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4">
+        <div className="text-base pt-8 max-w-6xl">
+          <div className="grid gap-8 grid-cols-1 md:grid-cols-2 place-items-center lg:flex lg:m-4">
             {supporterLogos.map((supporterLogo: StaticImageData, index) => (
-              <div className="relative h-32 w-48">
+                <div className={"relative h-32 w-48 lg:w-58 " + (index == 6 ? "md:col-span-2" : "")}>
                 <Image
                   alt={"Logo " + supporterLogos.toString()}
                   src={supporterLogo}
