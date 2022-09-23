@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 
 import API from "../../../api";
 import Spinner from "../../spinner";
-import { useSocket, useTeam, RiddlethonRoutes } from "../../../pages/riddlethon";
+import { useSocket, useTeam, RiddlethonRoutes } from "../../../pages/game";
 import { useRouter } from 'next/router';
 import {
   NUMBER_OF_QUESTIONS,

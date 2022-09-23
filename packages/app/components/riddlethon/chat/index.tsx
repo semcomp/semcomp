@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { TextField } from "@mui/material";
 
-import { useTeam, useSocket } from "../../../pages/riddlethon";
+import { useTeam, useSocket } from "../../../pages/game";
 import Spinner from "../../spinner";
 import { EVENTS_PREFIX } from "../../../constants/riddlethon";
 import { useAppContext } from "../../../libs/contextLib";

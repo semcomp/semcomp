@@ -3,7 +3,7 @@ import { TextField } from "@mui/material";
 import { toast } from "react-toastify";
 import { useRouter } from 'next/router';
 
-import { RiddlethonRoutes, useSocket } from "../../../pages/riddlethon";
+import { RiddlethonRoutes, useSocket } from "../../../pages/game";
 import LoadingButton from "../../loading-button";
 import API from "../../../api";
 import { EVENTS_PREFIX } from "../../../constants/riddlethon";

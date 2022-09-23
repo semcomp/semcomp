@@ -7,9 +7,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import { toast } from "react-toastify";
 
 import API from "../../../api";
-import { useTeam } from "../../../pages/riddlethon";
+import { useTeam } from "../../../pages/game";
 import Spinner from "../../spinner";
-import { RiddlethonRoutes } from "../../../pages/riddlethon";
+import { RiddlethonRoutes } from "../../../pages/game";
 import { START_DATE } from "../../../constants/riddlethon";
 import { useAppContext } from "../../../libs/contextLib";
 

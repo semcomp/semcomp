@@ -4,7 +4,7 @@ import { Button } from "@mui/material";
 import { useRouter } from 'next/router';
 
 import API from "../../../api";
-import { RiddlethonRoutes, useSocket, useTeam } from "../../../pages/riddlethon";
+import { RiddlethonRoutes, useSocket, useTeam } from "../../../pages/game";
 import Spinner from "../../spinner";
 import { EVENTS_PREFIX } from "../../../constants/riddlethon";
 
