@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Chip from '@mui/material/Chip';
 import { useRouter } from 'next/router';
+import Linkify from "react-linkify";
 
 /*
   For the sake of simplicity, we will assume that all events start and end in the same day.
@@ -102,7 +103,11 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
           </p>
           <br />
           <p>
-            {event.description.split(/\\n|\n/g).map((line, i) => (<span key={i}> {line} </span>))}
+            <Linkify componentDecorator={(decoratedHref, decoratedText, key) => (
+              <a target="blank" style={{ color: "#002776", fontWeight: 'bold' }} href={decoratedHref} key={key}>
+                {decoratedText}
+              </a>
+            )}>{event.description.split(/\\n|\n/g).map((line, i) => (<span key={i}> {line} </span>))}</Linkify>
           </p>
         </span>
         <span>
