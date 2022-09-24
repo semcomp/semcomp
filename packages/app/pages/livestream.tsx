@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
-import Footer from "../../components/Footer";
-import Navbar from "../../components/navbar";
-import API from "../../api";
+import Footer from "../components/Footer";
+import Navbar from "../components/navbar";
+import API from "../api";
 
 import { toast } from "react-toastify";
 import Link from 'next/link'
