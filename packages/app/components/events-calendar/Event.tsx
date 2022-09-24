@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from "react";
 
 import Chip from '@mui/material/Chip';
 import { useRouter } from 'next/router';
+import Linkify from "react-linkify";
 
 /*
-	For the sake of simplicity, we will assume that all events start and end in the same day.
-	This might change in the future, so refactoring this component could be a thing.
+  For the sake of simplicity, we will assume that all events start and end in the same day.
+  This might change in the future, so refactoring this component could be a thing.
 */
 function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
   // State that controls whether the event has been clicked or not
@@ -65,14 +66,14 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
     // If user already marked presence at this event, there's no need to show the button
     if (event.hasAttended) {
       return (
-        <Chip label="Presente" color="primary" size="small"/>
+        <Chip label="Presente" color="primary" size="small" />
       );
     }
   }
 
   return (<>
     <button
-      className="bg-white text-tertiary w-full shadow"
+      className="focus:outline-none bg-white text-tertiary w-full shadow"
       onClick={handleEventClick}
     >
       <div className="flex items-center">
@@ -83,7 +84,7 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
           <div>{endDateStr}</div>
         </div>
         <div className="basis-5/6 text-left p-4">
-          {event.type} | {event.name} <br/> {
+          {event.type} | {event.name} <br /> {
             renderBadge()
           }
         </div>
@@ -97,10 +98,16 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
               {(event.type === "Palestra" && "Palestrante: ") || (event.type === "Minicurso" && "Ministrante: ")}
             </strong>
             {(event.type === "Minicurso" || event.type === "Palestra") && event.speaker}
+            <br />
+            {event.location ? <><strong>Local: </strong>{event.location}</> : ""}
           </p>
           <br />
           <p>
-            {event.description.split(/\\n|\n/g).map((line, i) => (<span key={i}> {line} </span>))}
+            <Linkify componentDecorator={(decoratedHref, decoratedText, key) => (
+              <a target="blank" style={{ color: "#002776", fontWeight: 'bold' }} href={decoratedHref} key={key}>
+                {decoratedText}
+              </a>
+            )}>{event.description.split(/\\n|\n/g).map((line, i) => (<span key={i}> {line} </span>))}</Linkify>
           </p>
         </span>
         <span>
