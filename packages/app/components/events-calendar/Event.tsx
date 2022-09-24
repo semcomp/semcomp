@@ -97,6 +97,8 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
               {(event.type === "Palestra" && "Palestrante: ") || (event.type === "Minicurso" && "Ministrante: ")}
             </strong>
             {(event.type === "Minicurso" || event.type === "Palestra") && event.speaker}
+            <br />
+            {event.location ? <><strong>Local: </strong>{event.location}</> : ""}
           </p>
           <br />
           <p>
