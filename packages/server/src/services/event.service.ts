@@ -12,6 +12,7 @@ import IdServiceImpl from "./id-impl.service";
 import HttpError from "../lib/http-error";
 import User from "../models/user";
 import { PaginationRequest, PaginationResponse } from "../lib/pagination";
+import houseService from "./house.service";
 
 const idService = new IdServiceImpl();
 
@@ -331,7 +332,14 @@ class EventService {
       }
       await attendanceService.create(attendance);
 
-      // await houseService.addHousePoints(userHouse, event.type === EventTypes.MINICURSO ? 30 : 10);
+      let pointsForAttendance = 0;
+
+      if (event.type === EventTypes.MINICURSO) {
+        pointsForAttendance = 50;
+      } else if (event.type === EventTypes.PALESTRA) {
+        pointsForAttendance = 10;
+      }
+      await houseService.addHousePoints(userHouse, pointsForAttendance);
 
       // await userHouse.save();
 
