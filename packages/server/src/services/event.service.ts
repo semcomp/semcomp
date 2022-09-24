@@ -20,6 +20,7 @@ type Filters = {
   name: string | string[];
   description: string | string[];
   speaker: string | string[];
+  location: string | string[];
   link: string | string[];
   maxOfSubscriptions: number | number[];
   startDate: number | number[];
@@ -449,6 +450,7 @@ class EventService {
       name: entity.name,
       description: entity.description,
       speaker: entity.speaker,
+      location: entity.location,
       link: entity.link,
       maxOfSubscriptions: entity.maxOfSubscriptions,
       startDate: entity.startDate,
