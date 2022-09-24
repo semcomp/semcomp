@@ -4,8 +4,8 @@ import Chip from '@mui/material/Chip';
 import { useRouter } from 'next/router';
 
 /*
-	For the sake of simplicity, we will assume that all events start and end in the same day.
-	This might change in the future, so refactoring this component could be a thing.
+  For the sake of simplicity, we will assume that all events start and end in the same day.
+  This might change in the future, so refactoring this component could be a thing.
 */
 function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
   // State that controls whether the event has been clicked or not
@@ -65,7 +65,7 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
     // If user already marked presence at this event, there's no need to show the button
     if (event.hasAttended) {
       return (
-        <Chip label="Presente" color="primary" size="small"/>
+        <Chip label="Presente" color="primary" size="small" />
       );
     }
   }
@@ -83,7 +83,7 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
           <div>{endDateStr}</div>
         </div>
         <div className="basis-5/6 text-left p-4">
-          {event.type} | {event.name} <br/> {
+          {event.type} | {event.name} <br /> {
             renderBadge()
           }
         </div>
