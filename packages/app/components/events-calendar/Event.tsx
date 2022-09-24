@@ -72,7 +72,7 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
 
   return (<>
     <button
-      className="bg-white text-tertiary w-full shadow"
+      className="focus:outline-none bg-white text-tertiary w-full shadow"
       onClick={handleEventClick}
     >
       <div className="flex items-center">
