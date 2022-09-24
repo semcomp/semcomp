@@ -11,6 +11,7 @@ export type EventFormData = {
   startDate: number;
   endDate: number;
   type: EventType;
+  location: string;
   link: string;
   isInGroup: boolean;
   showOnSchedule: boolean;
@@ -31,6 +32,7 @@ function EventForm({
     startDate: Date.now(),
     endDate: Date.now(),
     type: EventType.PALESTRA,
+    location: "",
     link: "",
     isInGroup: false,
     showOnSchedule: false,
@@ -82,6 +84,12 @@ function EventForm({
     const value = event.target.value;
     setData({...data, type: value as EventType});
     onDataChange({...data, type: value as EventType});
+  }
+
+  function handleLocationChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value;
+    setData({...data, location: value});
+    onDataChange({...data, location: value});
   }
 
   function handleLinkChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -181,6 +189,13 @@ function EventForm({
         onChange={handleTypeChange}
         choices={EVENT_TYPES}
         type={InputType.Select}
+      />
+      <Input
+        className="my-3"
+        label="Lugar"
+        value={data.location}
+        onChange={handleLocationChange}
+        type={InputType.Text}
       />
       <Input
         className="my-3"

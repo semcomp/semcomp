@@ -7,6 +7,7 @@ type Event = {
   name: string;
   description: string;
   speaker: string;
+  location: string;
   link: string;
   maxOfSubscriptions: number;
   startDate: number;
@@ -42,9 +43,11 @@ const EventSchema = new Mongoose.Schema(
     speaker: {
       type: String,
     },
+    location: {
+      type: String,
+    },
     link: {
       type: String,
-      required: true,
     },
     maxOfSubscriptions: {
       type: Number,

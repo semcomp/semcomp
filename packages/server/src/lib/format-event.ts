@@ -6,6 +6,7 @@ export const formatEvent = function (event, fields) {
     description: event.description,
     speaker: event.speaker,
     maxOfSubscriptions: event.maxOfSubscriptions,
+    location: event.location,
     link: event.link,
     startDate: event.startDate,
     endDate: event.endDate,

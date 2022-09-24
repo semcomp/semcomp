@@ -98,6 +98,7 @@ export type SemcompApiEvent = {
   startDate: number;
   endDate: number;
   type: EventType;
+  location: string;
   link: string;
   isInGroup: boolean;
   showOnSchedule: boolean;
@@ -120,6 +121,7 @@ export type SemcompApiCreateEventRequest = {
   startDate: number;
   endDate: number;
   type: EventType;
+  location: string;
   link: string;
   isInGroup: boolean;
   showOnSchedule: boolean;
