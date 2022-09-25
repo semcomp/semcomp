@@ -14,10 +14,10 @@ import {
   TextField,
   Tooltip,
 } from "@mui/material";
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import dayjs, { Dayjs } from 'dayjs';
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import dayjs, { Dayjs } from "dayjs";
 import { Info } from "@mui/icons-material";
 
 export enum InputType {
@@ -44,34 +44,60 @@ function TextInput({
   onChange: any;
   value: string;
   type: InputType;
-  tooltip: any,
-  autofocus: boolean,
+  tooltip: any;
+  autofocus: boolean;
   start?: ReactNode;
   end?: ReactNode;
 }) {
-  return (<>
-    {
-      tooltip && (
-        <Tooltip arrow placement="top-start" title={tooltip ? tooltip : ""} enterTouchDelay={1}>
-          <Info sx={{ color: "#002776" }} />
-        </Tooltip>
-      )
-    }
-    <TextField
-      fullWidth
-      autoFocus={autofocus}
-      onChange={onChange}
-      value={value}
-      type={type}
-      label={label}
-      variant="outlined"
-      className="my-3 bg-white"
-      InputProps={{
-        startAdornment: start,
-        endAdornment: end,
-      }}
-    />
-  </>);
+  return (
+    <>
+      {tooltip ? (
+        <>
+          <div className="flex">
+            <p className="pb-4">{label}</p>
+            <Tooltip
+              arrow
+              placement="top-start"
+              title={tooltip ? tooltip : ""}
+              enterTouchDelay={1}
+            >
+              <Info sx={{ color: "#002776" }} />
+            </Tooltip>
+          </div>
+          <TextField
+            fullWidth
+            autoFocus={autofocus}
+            onChange={onChange}
+            value={value}
+            type={type}
+            variant="outlined"
+            className="my-3 bg-white"
+            InputProps={{
+              startAdornment: start,
+              endAdornment: end,
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <p className="pb-4">{label}</p>
+          <TextField
+            fullWidth
+            autoFocus={autofocus}
+            onChange={onChange}
+            value={value}
+            type={type}
+            variant="outlined"
+            className="my-3 bg-white"
+            InputProps={{
+              startAdornment: start,
+              endAdornment: end,
+            }}
+          />
+        </>
+      )}
+    </>
+  );
 }
 
 function SelectInput({
@@ -85,21 +111,24 @@ function SelectInput({
   value: string;
   choices: string[];
 }) {
-  return (<FormControl className="my-3 bg-white" fullWidth>
-    <InputLabel id="label">{label}</InputLabel>
-    <Select
-      onChange={onChange}
-      value={value}
-      label={label}
-      labelId="label"
-    >
-      {choices.map((choice) => (
-        <MenuItem key={choice} value={choice}>
-          {choice}
-        </MenuItem>
-      ))}
-    </Select>
-  </FormControl>);
+  return (
+    <FormControl className="my-3 bg-white" fullWidth>
+      {/* <InputLabel id="label">{label}</InputLabel> */}
+      <p className="pb-4">{label}</p>
+      <Select
+        onChange={onChange}
+        value={value}
+        labelId="label"
+        placeholder="placeholder"
+      >
+        {choices.map((choice) => (
+          <MenuItem key={choice} value={choice}>
+            {choice}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
 }
 
 function RadioInput({
@@ -113,60 +142,63 @@ function RadioInput({
   value: string;
   choices: string[];
 }) {
-  return (<FormControl>
-    <FormLabel id="label">{label}</FormLabel>
-    <RadioGroup
-      aria-labelledby="label"
-      value={value}
-      onChange={onChange}
-    >
-      {choices.map((choice) => <FormControlLabel key={choice} value={choice} control={<Radio />} label={choice} />)}
-    </RadioGroup>
-  </FormControl>);
+  return (
+    <FormControl>
+      <FormLabel id="label">{label}</FormLabel>
+      <RadioGroup aria-labelledby="label" value={value} onChange={onChange}>
+        {choices.map((choice) => (
+          <FormControlLabel
+            key={choice}
+            value={choice}
+            control={<Radio />}
+            label={choice}
+          />
+        ))}
+      </RadioGroup>
+    </FormControl>
+  );
 }
 
-function CheckboxInput({
-  onChange,
-  value,
-}: {
-  onChange: any;
-  value: boolean
-}) {
-  return <Checkbox
-    onChange={onChange}
-    checked={value}
-    className="my-3 bg-white"
-  />;
+function CheckboxInput({ onChange, value }: { onChange: any; value: boolean }) {
+  return (
+    <Checkbox onChange={onChange} checked={value} className="my-3 bg-white" />
+  );
 }
 
-function FileInput({
-  onChange,
-  value,
-}: {
-  onChange: any;
-  value: string
-}) {
-  return <FormControl className="my-3 bg-white" fullWidth>
-    <MaterialInput
-      type="file"
-      onChange={onChange}
-      value={value}
-      inputProps={{accept:".pdf"}}
-    />
-  </FormControl>;
-}
-
-function DateInput({ label, onChange, value }: { label: string, onChange: any; value: number }) {
-  return <LocalizationProvider dateAdapter={AdapterDayjs}>
+function FileInput({ onChange, value }: { onChange: any; value: string }) {
+  return (
     <FormControl className="my-3 bg-white" fullWidth>
-      <DateTimePicker
-        label={label}
-        value={dayjs(value)}
-        onChange={(day: Dayjs) => onChange(day.valueOf())}
-        renderInput={(params) => <TextField {...params} />}
+      <MaterialInput
+        type="file"
+        onChange={onChange}
+        value={value}
+        inputProps={{ accept: ".pdf" }}
       />
     </FormControl>
-  </LocalizationProvider>;
+  );
+}
+
+function DateInput({
+  label,
+  onChange,
+  value,
+}: {
+  label: string;
+  onChange: any;
+  value: number;
+}) {
+  return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <FormControl className="my-3 bg-white" fullWidth>
+        <DateTimePicker
+          label={label}
+          value={dayjs(value)}
+          onChange={(day: Dayjs) => onChange(day.valueOf())}
+          renderInput={(params) => <TextField {...params} />}
+        />
+      </FormControl>
+    </LocalizationProvider>
+  );
 }
 
 function Input({
@@ -186,8 +218,8 @@ function Input({
   value?: string | number | boolean;
   type: InputType;
   choices?: string[];
-  tooltip?: any,
-  autofocus?: boolean,
+  tooltip?: any;
+  autofocus?: boolean;
   start?: ReactNode;
   end?: ReactNode;
   className?: string;
@@ -225,7 +257,9 @@ function Input({
   }
 
   if (type === InputType.Date) {
-    input = <DateInput label={label} onChange={onChange} value={value as number} />;
+    input = (
+      <DateInput label={label} onChange={onChange} value={value as number} />
+    );
   }
 
   return (
