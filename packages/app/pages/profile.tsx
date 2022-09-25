@@ -26,6 +26,7 @@ import TelegramIcon from "@mui/icons-material/Telegram";
 import ImgLogo from "../assets/logo-24.png";
 import { useAppContext } from "../libs/contextLib";
 import Card from "../components/Card";
+import FundEstudarForm from "../components/profile/fundEstudar";
 
 function Profile() {
   const { user } = useAppContext();
@@ -39,6 +40,8 @@ function Profile() {
   const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] =
     useState(false);
   // const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
+  const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
+    useState(true);
 
   async function fetchAchievements() {
     try {
@@ -221,6 +224,11 @@ function Profile() {
           onRequestClose={() => setIsAboutOverflowModalOpen(false)}
         />
       )}
+      {isFundacaoEstudarFormModalOpen && (
+        <FundEstudarForm
+          onRequestClose={() => setIsFundacaoEstudarFormModalOpen(false)}
+        />
+      )}
       {/* {isCoffeeModalOpen && (
         <CoffeePayment
           userHasPaid={userFetched?.payment?.status === "approved"}
@@ -322,8 +330,6 @@ function Profile() {
                 events[type].map((e) =>
                   e.events.map((item) => {
                     if (item.isSubscribed === true) {
-                      console.log("e: " + e.startDate + e.name);
-                      console.log("item: ", item.startDate + item.name);
                       return (
                         <div key={item.name}>
                           <ListItem>
