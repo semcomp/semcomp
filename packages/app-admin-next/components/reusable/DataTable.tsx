@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -7,21 +7,30 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import { TablePagination } from '@mui/material';
+import { Box, Collapse, IconButton, TablePagination, Typography } from '@mui/material';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 import Input, { InputType } from '../Input';
 import { PaginationRequest, PaginationResponse } from '../../models/Pagination';
 
 function Row({
+  index,
   row,
   onClick,
   onSelectChange,
+  moreInfoContainer,
+  onMoreInfoClick,
 }: {
+  index: number,
   row: any,
-  onClick: () => void,
+  onClick: (index: number) => void,
   onSelectChange: (isSelected: boolean) => void,
+  moreInfoContainer: ReactNode,
+  onMoreInfoClick: (index: number) => void,
 }) {
   const [isSelected, setIsSelected] = useState(false);
+  const [open, setOpen] = useState(false);
 
   function handleOnSelect() {
     onSelectChange(!isSelected);
@@ -31,9 +40,20 @@ function Row({
   return (<>
     <TableRow
       hover={true}
-      onClick={() => onClick()}
+      sx={{ '& > *': { borderBottom: 'unset' } }}
       className="hover:cursor-pointer"
     >
+      {
+        moreInfoContainer && (<TableCell>
+          <IconButton
+            aria-label="expand row"
+            size="small"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>)
+      }
       <TableCell>
         <Input
           className="my-3"
@@ -43,9 +63,24 @@ function Row({
         />
       </TableCell>
       {Object.values(row).map((value: any, index: number) => {
-        return (<TableCell key={index}>{value}</TableCell>);
+        return (<TableCell key={index} onClick={() => onClick(index)}>{value}</TableCell>);
       })}
     </TableRow>
+    {
+      moreInfoContainer && (<TableRow
+        hover={true}
+        onClick={() => onMoreInfoClick(index)}
+        className="hover:cursor-pointer"
+      >
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ margin: 1 }}>
+              {moreInfoContainer}
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>)
+    }
   </>);
 }
 
@@ -54,11 +89,15 @@ export default function DataTable({
   pagination,
   onRowClick,
   onRowSelect,
+  moreInfoContainer,
+  onMoreInfoClick,
 }: {
   data: PaginationResponse<any>,
   pagination: PaginationRequest,
   onRowClick: (index: number) => void,
   onRowSelect: (indexes: number[]) => void,
+  moreInfoContainer?: ReactNode,
+  onMoreInfoClick?: (index: number) => void,
 }) {
   const [selectedRows, setSelectedRows] = useState([]);
 
@@ -97,6 +136,7 @@ export default function DataTable({
         <Table aria-label="collapsible table">
           <TableHead>
             <TableRow>
+              { moreInfoContainer && <TableCell></TableCell>}
               <TableCell></TableCell>
               {Object.keys(data.getEntities()[0]).map((key: any, index: number) => {
                 return (<TableCell key={index}>{key}</TableCell>);
@@ -107,9 +147,12 @@ export default function DataTable({
             {data.getEntities().map((row, index) => (
               <Row
                 key={index}
+                index={index}
                 row={row}
                 onClick={() => onRowClick(index)}
                 onSelectChange={(isSelected) => handleRowSelect(index, isSelected)}
+                moreInfoContainer={moreInfoContainer}
+                onMoreInfoClick={onMoreInfoClick}
               />
             ))}
           </TableBody>

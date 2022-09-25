@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
 import DataTable from '../components/reusable/DataTable';
 import RequireAuth from '../libs/RequireAuth';
@@ -8,8 +8,8 @@ import { SemcompApiEvent, SemcompApiGetEventsResponse } from '../models/SemcompA
 import CreateEventModal from '../components/events/CreateEventModal';
 import EditEventModal from '../components/events/EditEventModal';
 import DataPage from '../components/DataPage';
-import { EventFormData } from '../components/events/EventForm';
 import { PaginationRequest, PaginationResponse } from '../models/Pagination';
+import MarkAttendanceModal from '../components/events/MarkAttendanceModal';
 
 type EventData = {
   "ID": string,
@@ -27,11 +27,15 @@ function EventsTable({
   pagination,
   onRowClick,
   onRowSelect,
+  moreInfoContainer,
+  onMoreInfoClick,
 }: {
   data: PaginationResponse<SemcompApiEvent>,
   pagination: PaginationRequest,
   onRowClick: (selectedIndex: number) => void,
   onRowSelect: (selectedIndexes: number[]) => void,
+  moreInfoContainer: ReactNode,
+  onMoreInfoClick: (selectedIndex: number) => void,
 }) {
   const newData: EventData[] = [];
   for (const event of data.getEntities()) {
@@ -52,6 +56,8 @@ function EventsTable({
     pagination={pagination}
     onRowClick={onRowClick}
     onRowSelect={onRowSelect}
+    moreInfoContainer={moreInfoContainer}
+    onMoreInfoClick={onMoreInfoClick}
   ></DataTable>);
 }
 
@@ -60,12 +66,13 @@ function Events() {
 
   const [data, setData] = useState(null as SemcompApiGetEventsResponse);
   const [pagination, setPagination] = useState(new PaginationRequest(() => fetchData()));
-  const [selectedData, setSelectedData] = useState(null as EventFormData);
+  const [selectedData, setSelectedData] = useState(null as SemcompApiEvent);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] = useState(false);
 
   async function fetchData() {
     try {
@@ -84,6 +91,10 @@ function Events() {
     setIsEditModalOpen(true);
   }
 
+  async function handleMoreInfoClick(index: number) {
+    setSelectedData(data.getEntities()[index]);
+  }
+
   async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
     setSelectedIndexes(updatedSelectedIndexes);
   }
@@ -91,6 +102,18 @@ function Events() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  function MarkAttendance() {
+    return <>
+      <button
+        className="w-full bg-black text-white py-3 px-6"
+        type="button"
+        onClick={() => setIsMarkAttendanceModalOpen(true)}
+      >
+        Marcar presença
+      </button>
+    </>;
+  }
 
   return (<>
     {isCreateModalOpen && (
@@ -104,6 +127,14 @@ function Events() {
         onRequestClose={() => {
           fetchData();
           setIsEditModalOpen(false);
+        }}
+      />
+    )}
+    {isMarkAttendanceModalOpen && (
+      <MarkAttendanceModal
+        data={selectedData}
+        onRequestClose={() => {
+          setIsMarkAttendanceModalOpen(false);
         }}
       />
     )}
@@ -124,6 +155,8 @@ function Events() {
             pagination={pagination}
             onRowClick={handleRowClick}
             onRowSelect={handleSelectedIndexesChange}
+            moreInfoContainer={<MarkAttendance></MarkAttendance>}
+            onMoreInfoClick={handleMoreInfoClick}
           />}
         ></DataPage>
       )

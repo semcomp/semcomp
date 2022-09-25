@@ -325,30 +325,31 @@ class EventService {
     // const newEndDateObj = new Date(event.endDate);
     // newEndDateObj.setMinutes(newEndDateObj.getMinutes() + 30);
 
-    if (now > newStartedDateObj.getTime()/* && now < newEndDateObj.getTime()*/) {
-      const attendance: Attendance = {
-        userId: userId,
-        eventId: eventId,
-      }
-      await attendanceService.create(attendance);
-
-      let pointsForAttendance = 0;
-
-      if (event.type === EventTypes.MINICURSO) {
-        pointsForAttendance = 50;
-      } else if (event.type === EventTypes.PALESTRA) {
-        pointsForAttendance = 10;
-      }
-      await houseService.addHousePoints(userHouse, pointsForAttendance);
-
-      // await userHouse.save();
-
-      return { message: "Presença salva com sucesso!" };
-    }
     if (now < newStartedDateObj.getTime()) {
       throw new HttpError(400, ["O evento ainda não começou!"]);
     }
-    throw new HttpError(400, ["O evento já terminou!"]);
+    // if (now < newEndDateObj.getTime()) {
+    //   throw new HttpError(400, ["O evento já terminou!"]);
+    // }
+
+    const attendance: Attendance = {
+      userId: userId,
+      eventId: eventId,
+    }
+    await attendanceService.create(attendance);
+
+    let pointsForAttendance = 0;
+
+    if (event.type === EventTypes.MINICURSO) {
+      pointsForAttendance = 50;
+    } else if (event.type === EventTypes.PALESTRA) {
+      pointsForAttendance = 10;
+    }
+    await houseService.addHousePoints(userHouse, pointsForAttendance);
+
+    await userHouse.save();
+
+    return { message: "Presença salva com sucesso!" };
   }
 
   public async subscribe(eventId: string, userId: string, info: object) {
