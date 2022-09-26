@@ -262,7 +262,7 @@ function Profile() {
                     </button>
                     <a
                       target="_blank"
-                      className="underline text-blue"
+                      className="underline text-blue text-center"
                       href="https://perfil.napratica.org.br/e/pt-BR/processos/semana-de-computacao-do-icmc-usp-2dd6366b-14e8-4732-8ea6-7180f64e47ed/inscricao/nova"
                     >
                       Acesse aqui a pesquisa da Fundacao Estudar
@@ -334,6 +334,16 @@ function Profile() {
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Eventos
             </h1>
+            <div className="text-center">
+              <h3 className="text-md text-center">CTS (CTF da Semcomp)</h3>
+              <a
+                target="_blank"
+                className="underline text-tertiary text-center pb-4"
+                href="https://bit.ly/cts_nivel0"
+              >
+                Se inscreva aqui!
+              </a>
+            </div>
             <List className="events-list">
               {Object.keys(events).map((type) =>
                 events[type].map((e) =>
