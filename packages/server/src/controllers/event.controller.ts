@@ -48,11 +48,7 @@ const eventController = {
     try {
       const { eventId } = req.params;
 
-      const presence = await eventService.markAttendance(
-        eventId,
-        req.user.id,
-        req.userHouse
-      );
+      const presence = await eventService.markAttendance(eventId, req.user.id);
 
       return res.status(200).json(presence);
     } catch (error) {

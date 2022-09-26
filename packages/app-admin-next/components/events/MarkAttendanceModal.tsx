@@ -5,6 +5,7 @@ import { useAppContext } from "../../libs/contextLib";
 import Modal from "../Modal";
 import SemcompApi from "../../api/semcomp-api";
 import { SemcompApiEvent } from "../../models/SemcompApiModels";
+import { useCallback, useState } from "react";
 
 function MarkAttendanceModal({
   data,
@@ -18,6 +19,9 @@ function MarkAttendanceModal({
   }: {
     semcompApi: SemcompApi
   } = useAppContext();
+
+  const [, updateState] = useState();
+  const forceUpdate = useCallback(() => updateState({} as any), []);
 
   let lastScannedUserId = '';
   async function handleSubmit(userId) {
@@ -42,19 +46,22 @@ function MarkAttendanceModal({
       </div>
       <div className="max-h-96 overflow-y-scroll p-6 w-full">
         <QrReader
-          constraints={{facingMode: 'environment'}}
-          scanDelay={1000}
+          videoId='video'
+          scanDelay={500}
           onResult={(result: any, error) => {
             console.log(result);
             console.log(error);
-            if (!!result) {
+            if (result) {
               handleSubmit(result?.text);
             }
 
-            if (!!error) {
+            if (error) {
               console.info(error);
             }
+
+            setTimeout(forceUpdate, 500);
           }}
+          constraints={{facingMode: 'environment'}}
         />
       </div>
       <div className="w-full px-6">

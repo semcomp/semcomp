@@ -13,6 +13,7 @@ import HttpError from "../lib/http-error";
 import User from "../models/user";
 import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 import houseService from "./house.service";
+import houseMemberService from "./house-member.service";
 
 const idService = new IdServiceImpl();
 
@@ -299,7 +300,7 @@ class EventService {
     return eventsByTypeAndTime;
   }
 
-  public async markAttendance(eventId: string, userId: string, userHouse: any) {
+  public async markAttendance(eventId: string, userId: string) {
     const event = await this.findById(eventId);
     // const subscription = await subscriptionService.findOne({ userId, eventId });
 
@@ -345,9 +346,11 @@ class EventService {
     } else if (event.type === EventTypes.PALESTRA) {
       pointsForAttendance = 10;
     }
-    await houseService.addHousePoints(userHouse, pointsForAttendance);
 
-    await userHouse.save();
+    const userHouseMembership = await houseMemberService.findOne({ userId });
+    const userHouse = await houseService.findOne({ id: userHouseMembership.houseId });
+    userHouse.score = userHouse.score + pointsForAttendance;
+    await houseService.update(userHouse);
 
     return { message: "Presença salva com sucesso!" };
   }

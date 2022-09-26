@@ -84,7 +84,7 @@ class EventController {
 
       for (const user of users.getEntities()) {
         console.log(user.id);
-        await eventService.markAttendance(eventId, user.id, null);
+        await eventService.markAttendance(eventId, user.id);
       }
 
       return res.status(200).json();
@@ -108,7 +108,7 @@ class EventController {
       const { eventId } = req.params;
       const { userId } = req.body;
 
-      const attendance = await eventService.markAttendance(eventId, userId, null);
+      const attendance = await eventService.markAttendance(eventId, userId);
 
       return res.status(200).json(attendance);
     } catch (error) {
