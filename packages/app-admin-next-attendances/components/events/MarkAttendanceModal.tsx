@@ -61,8 +61,12 @@ function MarkAttendanceModal({
 
             setTimeout(forceUpdate, 500);
           }}
-          constraints={{facingMode: 'environment', width: 3840, height: 3840}}
-        />
+          constraints={{
+            aspectRatio: 3840,
+            facingMode: 'environment',
+            width: 3840,
+            height: 3840
+          }}        />
       </div>
       <div className="w-full px-6">
         <button className="w-full bg-red-500 text-white py-3 px-6 my-6" type="button" onClick={onRequestClose}>

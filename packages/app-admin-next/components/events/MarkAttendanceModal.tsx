@@ -1,4 +1,5 @@
 import { toast } from "react-toastify";
+import ReactQrReader from 'react-qr-scanner'
 import {QrReader} from 'react-qr-reader';
 
 import { useAppContext } from "../../libs/contextLib";
@@ -45,6 +46,20 @@ function MarkAttendanceModal({
         {data.name}
       </div>
       <div className="max-h-96 overflow-y-scroll p-6 w-full">
+        {/* <ReactQrReader
+          videoId='video'
+          scanDelay={500}
+          onScan={(data) => {
+            if (data) {
+              handleSubmit(data);
+            }
+          }}
+          onError={(error) => console.log(error)}
+          maxImageSize={3840}
+          // style={{width: "3840px", height: "3840px"}}
+          // constraints={{facingMode: 'environment', width: 3840, height: 3840}}
+          facingMode={"rear"}
+        /> */}
         <QrReader
           videoId='video'
           scanDelay={500}
@@ -61,7 +76,12 @@ function MarkAttendanceModal({
 
             setTimeout(forceUpdate, 500);
           }}
-          constraints={{facingMode: 'environment', width: 3840, height: 3840}}
+          constraints={{
+            aspectRatio: 3840,
+            facingMode: 'environment',
+            width: 3840,
+            height: 3840
+          }}
         />
       </div>
       <div className="w-full px-6">
