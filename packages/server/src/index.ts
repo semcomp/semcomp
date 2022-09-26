@@ -15,6 +15,7 @@ import GameController from './controllers/game/game.controller';
 import Routes from "./routes";
 
 import { config } from "dotenv";
+import Game from "./lib/constants/game-enum";
 config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env` });
 
 const { env } = process;
@@ -47,7 +48,7 @@ const io = new Server(httpServer, {
   cors: corsConfig,
 });
 
-new GameController(io);
+new GameController(io, Game.RIDDLE);
 
 app.use(cors(corsConfig));
 

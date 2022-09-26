@@ -38,49 +38,19 @@ const Handlers = {
     ),
     getCurrent: withNoErrorMessage(() => API.get("/events/current")),
   },
-  riddle: {
-    createTeam: withCustomError(() => API.post("/riddle/group"), {
+  game: {
+    createTeam: withCustomError((data) => API.post("/game/group", data), {
       400: "Este nome já existe!",
     }),
-    leaveTeam: () => API.put("/riddle/group/leave"),
-    useClue: () => API.post("riddle/group/use-clue"),
-    useSkip: () => API.post("riddle/group/use-skip"),
-
-    getQuestion: (questionIndex) => API.get("riddle/question/" + questionIndex),
-  },
-  riddlethon: {
-    createTeam: withCustomError(
-      (teamName) => API.post("/riddlethon/group", { name: teamName }),
-      {
-        400: "Este nome já existe!",
-        418: `O limite de jogadores já foi atingido`,
-      }
-    ),
     joinTeam: withCustomError(
-      (teamId) => API.put("/riddlethon/group/join?id=" + teamId),
+      (teamId) => API.put("/game/group/join?id=" + teamId),
       { 418: `O limite de jogadores já foi atingido` },
     ),
-    leaveTeam: () => API.put("/riddlethon/group/leave"),
+    leaveTeam: () => API.put("/game/group/leave"),
+    useClue: () => API.post("/game/group/use-clue"),
+    useSkip: () => API.post("/game/group/use-skip"),
 
-    getQuestion: (questionIndex) =>
-      API.get("riddlethon/question/" + questionIndex),
-  },
-  hardToClick: {
-    createTeam: withCustomError(
-      (teamName) => API.post("/hard-to-click/group", { name: teamName }),
-      {
-        400: "Este nome já existe!",
-        418: `O limite de jogadores já foi atingido`,
-      }
-    ),
-    joinTeam: withCustomError(
-      (teamId) => API.put("/hard-to-click/group/join?id=" + teamId),
-      { 418: `O limite de jogadores já foi atingido` },
-    ),
-    leaveTeam: () => API.put("/hard-to-click/group/leave"),
-
-    getQuestion: (questionIndex) =>
-      API.get("hard-to-click/question/" + questionIndex),
+    getQuestion: (questionIndex) => API.get("/game/question/" + questionIndex),
   },
   achievements: {
     getAchievements: withNoErrorMessage(() => API.get("/achievements")),

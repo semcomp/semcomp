@@ -6,12 +6,10 @@ import { Button, Dialog } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import { toast } from "react-toastify";
 
-import API from "../../../api";
-import { useTeam } from "../../../pages/game";
-import Spinner from "../../spinner";
-import { RiddlethonRoutes } from "../../../pages/game";
-import { START_DATE } from "../../../constants/riddlethon";
-import { useAppContext } from "../../../libs/contextLib";
+import API from "../../api";
+import Spinner from "../spinner";
+import { useAppContext } from "../../libs/contextLib";
+import GameConfig, { GameRoutes } from "../../libs/game-config";
 
 const styles = {
   teammatesContainer: "mb-8 border rounded-lg p-2 overflow-y-auto",
@@ -20,7 +18,6 @@ const styles = {
 function Teammate({ name, thisIsMe }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
-  const { setTeam } = useTeam();
 
   function close() {
     setIsModalOpen(false);
@@ -35,8 +32,7 @@ function Teammate({ name, thisIsMe }) {
 
     setIsRemoving(true);
     try {
-      await API.riddlethon.leaveTeam();
-      setTeam(null);
+      await API.game.leaveTeam();
     } catch (e) {
       console.error(e);
     } finally {
@@ -107,11 +103,10 @@ function CopyableLink({ text }) {
   );
 }
 
-function Countdown({ target, onSubmit }) {
+function Countdown({ team, target, onSubmit }) {
   const targetMilisseconds = target.getTime();
 
   const [diff, setDiff] = useState(calculateDiff());
-  const { team } = useTeam();
 
   const days = diff.getUTCDate() - 1;
   const hours = diff.getUTCHours();
@@ -155,47 +150,27 @@ function Countdown({ target, onSubmit }) {
   );
 }
 
-function RiddlethonLobby() {
-  const { team, isFetchingTeam } = useTeam();
+function Lobby({team, gameConfig, goToGame, goToCreateTeam, goToJoinTeam}: {gameConfig: GameConfig} & any) {
   const { user: me } = useAppContext();
   const router = useRouter();
+  console.log(team)
 
   function canAddTeammates() {
-    if (isFetchingTeam || team.members.length >= 3) return false;
+    if (team.members.length >= 3) return false;
     return true;
-  }
-
-  function goToGame() {
-    router.push(RiddlethonRoutes.game);
   }
 
   function createInviteLink() {
     return (
-      window.location.origin + RiddlethonRoutes.link + "?teamid=" + team.id
+      window.location.origin + gameConfig.getRoutes()[GameRoutes.LINK] + "?teamid=" + team.id
     );
   }
 
   function renderTeammates() {
-    if (isFetchingTeam)
-      return (
-        <div>
-          <Spinner strokeWidth={2} className="mt-4" />
-        </div>
-      );
     return team.members.map((mate) => (
       <Teammate name={mate.name} key={mate.id} thisIsMe={mate.id === me.id} />
     ));
   }
-
-  function goToCreateTeam() {
-    router.push(RiddlethonRoutes.createTeam);
-  }
-
-  function goToJoinTeam() {
-    router.push(RiddlethonRoutes.joinTeam);
-  }
-
-  if (isFetchingTeam) return <Spinner size="large" />;
 
   if (!team)
     return (
@@ -213,7 +188,7 @@ function RiddlethonLobby() {
           >
             Criar
           </Button>
-          <Button
+          {/* <Button
             onClick={goToJoinTeam}
             style={{
               backgroundColor: "#045079",
@@ -223,7 +198,7 @@ function RiddlethonLobby() {
             variant="contained"
           >
             Entrar
-          </Button>
+          </Button> */}
         </div>
       </div>
     );
@@ -234,7 +209,7 @@ function RiddlethonLobby() {
       <div style={{ height: 144 }} className={styles.teammatesContainer}>
         {renderTeammates()}
       </div>
-      <div>
+      {/* <div>
         {canAddTeammates() ? (
           <div className="mb-8">
             Envie este link para adicionar mais pessoas à sua equipe. (máximo de
@@ -246,10 +221,10 @@ function RiddlethonLobby() {
             Sua equipe já atingiu o máximo de 3 membros
           </div>
         )}
-      </div>
-      <Countdown onSubmit={goToGame} target={START_DATE} />
+      </div> */}
+      <Countdown team={team} onSubmit={goToGame} target={gameConfig.getStartDate()} />
     </div>
   );
 }
 
-export default RiddlethonLobby;
+export default Lobby;

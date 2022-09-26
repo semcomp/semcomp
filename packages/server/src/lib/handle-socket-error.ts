@@ -1,16 +1,11 @@
-/**
- * handleSocketError
- *
- * @param {object} error
- * @param {object} socket
- * @param {string} eventsPrefix
- *
- * @return {object}
- */
-export function handleSocketError(error, socket, eventsPrefix) {
+import { Socket } from "socket.io";
+
+import Game from "./constants/game-enum";
+
+export function handleSocketError(error: any, socket: Socket, game: Game): any {
   console.log(error);
   if (error.message) {
-    return socket.emit(`${eventsPrefix}error-message`, error.message);
+    return socket.emit(`${game}-error-message`, error.message);
   }
-  return socket.emit(`${eventsPrefix}error-message`, "Erro de conexão");
+  return socket.emit(`${game}-error-message`, "Erro de conexão");
 }

@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import stringSimilarity from "string-similarity";
 
+import { Server, Socket } from "socket.io";
+
 import { SocketError } from "../../lib/socket-error";
 import { normalizeString } from "../../lib/normalize-string";
 // import {addHousePoints} from '../../lib/add-house-points';
@@ -10,33 +12,39 @@ import gameQuestionService from "../../services/game-question.service";
 import gameGroupCompletedQuestionService from "../../services/game-group-completed-question.service";
 import GameGroupCompletedQuestion from "../../models/game-group-completed-question";
 import { PaginationRequest } from "../../lib/pagination";
-
-const EVENTS_PREFIX = "game-";
+import Game from "../../lib/constants/game-enum";
 
 export default class GameController {
-  constructor(ioServer: any) {
+  private game;
+
+  constructor(ioServer: Server, game: Game) {
+    this.game = game;
+
     ioServer.on("connection", (socket) => {
       console.log(`${socket.id} connected`);
       socket.on("disconnect", () => {
         console.log(`${socket.id} disconnected`);
       });
 
-      socket.on(`${EVENTS_PREFIX}join-group-room`, async (token) => {
+      socket.on(`${this.game}-join-group-room`, async ({ token }) => {
         await this.broadcastUserInfo(ioServer, socket, token);
       });
 
-      socket.on(`${EVENTS_PREFIX}broadcast-user-info`, async (token) => {
+      socket.on(`${this.game}-create-group`, async ({ token, name }) => {
+        await this.createGroup(ioServer, socket, token, name);
+      });
+
+      socket.on(`${this.game}-broadcast-user-info`, async (token) => {
         await this.broadcastUserInfo(ioServer, socket, token);
       });
 
-      socket.on(`${EVENTS_PREFIX}try-answer`, async (token, index, answer) => {
+      socket.on(`${this.game}-try-answer`, async ({ token, index, answer }) => {
         await this.tryAnswer(ioServer, socket, token, index, answer);
       });
     });
-    return ioServer;
   }
 
-  private async getUserAndGroup(socket: any, token: string) {
+  private async getUserAndGroup(socket: Socket, token: string) {
     const decoded = jwt.verify(
       token.replace("Bearer ", ""),
       process.env.JWT_PRIVATE_KEY
@@ -44,7 +52,7 @@ export default class GameController {
 
     const group = await gameGroupService.findUserGroupWithMembers(decoded.id);
     if (!group) {
-      socket.emit(`${EVENTS_PREFIX}group-info`, null);
+      socket.emit(`${this.game}-group-info`, null);
       throw new SocketError("Você não tem um grupo");
     }
 
@@ -55,27 +63,52 @@ export default class GameController {
     return { user, group };
   };
 
-  private async broadcastUserInfo(ioServer: any, socket: any, token: string) {
+  private async broadcastUserInfo(ioServer: Server, socket: Socket, token: string) {
     try {
       const { group } = await this.getUserAndGroup(socket, token);
       const groupId = group.id;
       socket.join(groupId);
 
-      ioServer.to(groupId).emit(`${EVENTS_PREFIX}group-info`, group);
+      ioServer.to(groupId).emit(`${this.game}-group-info`, group);
     } catch (error) {
-      return handleSocketError(error, socket, EVENTS_PREFIX);
+      return handleSocketError(error, socket, this.game);
+    }
+  }
+
+  private async createGroup(ioServer: Server, socket: Socket, token: string, name: string) {
+    try {
+      const decoded = jwt.verify(
+        token.replace("Bearer ", ""),
+        process.env.JWT_PRIVATE_KEY
+      ).data;
+
+      const group = await gameGroupService.findUserGroupWithMembers(decoded.id);
+      if (group) {
+        socket.emit(`${this.game}-group-info`, null);
+        throw new SocketError("Você já tem um grupo");
+      }
+      const createdGroup = await gameGroupService.create({
+        name, game: this.game
+      });
+      await gameGroupService.join(
+        decoded.id,
+        createdGroup.id,
+      );
+      await this.broadcastUserInfo(ioServer, socket, token);
+    } catch (error) {
+      return handleSocketError(error, socket, this.game);
     }
   }
 
   private async tryAnswer(
-    ioServer: any,
-    socket: any,
+    ioServer: Server,
+    socket: Socket,
     token: string,
     index: number,
     answer: string,
   ) {
     try {
-      throw new SocketError("O concurso acabou :(");
+      // throw new SocketError("O concurso acabou :(");
       const { group } = await this.getUserAndGroup(socket, token);
       const groupId = group.id;
       socket.join(groupId);
@@ -115,24 +148,20 @@ export default class GameController {
           normalizeString(question.answer)
         ) > 0.5
       ) {
-        ioServer.to(groupId).emit(`${EVENTS_PREFIX}correct-answer`, {
-          index,
-          correct: true,
-          group,
-        });
-
         const gameGroupCompletedQuestion: GameGroupCompletedQuestion = {
           gameGroupId: group.id,
           gameQuestionId: question.id,
           createdAt: (new Date()).getTime(),
         };
         await gameGroupCompletedQuestionService.create(gameGroupCompletedQuestion);
+        await this.broadcastUserInfo(ioServer, socket, token);
         // await addHousePoints(user.house && user.house._id, 5);
+        socket.emit(`${this.game}-try-answer-result`, { index, isCorrect: true });
       } else {
-        socket.emit(`${EVENTS_PREFIX}correct-answer`, { index, correct: false });
+        socket.emit(`${this.game}-try-answer-result`, { index, isCorrect: false });
       }
     } catch (error) {
-      return handleSocketError(error, socket, EVENTS_PREFIX);
+      return handleSocketError(error, socket, this.game);
     }
   }
 }

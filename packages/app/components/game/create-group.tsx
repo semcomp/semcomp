@@ -3,14 +3,17 @@ import { TextField } from "@mui/material";
 import { toast } from "react-toastify";
 import { useRouter } from 'next/router';
 
-import { RiddlethonRoutes, useSocket } from "../../../pages/game";
-import LoadingButton from "../../loading-button";
-import API from "../../../api";
-import { EVENTS_PREFIX } from "../../../constants/riddlethon";
+import LoadingButton from "../loading-button";
+import API from "../../api";
+import { EVENTS_PREFIX } from "../../constants/riddlethon";
+import GameConfig, { GameRoutes } from "../../libs/game-config";
 
-function CreateTeam() {
+export default function CreateGroup({
+  socket, gameConfig, handleCreateGroup,
+}: {
+  socket: any, gameConfig: GameConfig, handleCreateGroup: (name: string) => void,
+}) {
   const [isCreatingTeam, setIsCreatingTeam] = useState(false);
-  const socket = useSocket();
   const teamNameRef: any = useRef();
   const router = useRouter();
 
@@ -22,17 +25,7 @@ function CreateTeam() {
 
     if (!name) return toast.error("Você deve fornecer um nome não vazio");
 
-    setIsCreatingTeam(true);
-    try {
-      await API.riddlethon.createTeam(name);
-      toast.success(`Equipe '${name}' criada com sucesso`);
-      socket.send(`${EVENTS_PREFIX}join-group-room`);
-      router.push(RiddlethonRoutes.lobby);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsCreatingTeam(false);
-    }
+    handleCreateGroup(name);
   }
 
   return (
@@ -51,5 +44,3 @@ function CreateTeam() {
     </div>
   );
 }
-
-export default CreateTeam;

@@ -1,21 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import TextField from '@mui/material/TextField';
 import {
   Done,
-  NavigateNext,
-  NavigateBefore,
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
 
-import API from "../../../api";
-import Spinner from "../../spinner";
-import { useSocket, useTeam, RiddlethonRoutes } from "../../../pages/game";
-import { useRouter } from 'next/router';
-import {
-  NUMBER_OF_QUESTIONS,
-  EVENTS_PREFIX,
-} from "../../../constants/riddlethon";
+import API from "../../api";
+import Spinner from "../spinner";
+import GameConfig from "../../libs/game-config";
 
 const styles = {
   root: "w-full h-full flex justify-center text-center",
@@ -31,12 +24,22 @@ const styles = {
   questionButton: "",
 };
 
-function Question({ questionIndex, onCorrectAnswer }) {
+function Question({
+  socket,
+  gameConfig,
+  token,
+  questionIndex,
+}: {
+  socket: any,
+  gameConfig: GameConfig,
+  token: string,
+  questionIndex: any,
+}
+) {
   const [isFetchingQuestion, setIsFetchingQuestion] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [question, setQuestion] = useState(null);
   const [inputValue, setInputValue] = useState("");
-  const socket = useSocket();
 
   const wasCorrectlyAnswered = question && Boolean(question.answer);
 
@@ -45,7 +48,7 @@ function Question({ questionIndex, onCorrectAnswer }) {
       setIsFetchingQuestion(true);
       setInputValue("");
       try {
-        const { data: question } = await API.riddlethon.getQuestion(
+        const { data: question } = await API.game.getQuestion(
           questionIndex
         );
         setQuestion(question);
@@ -68,13 +71,13 @@ function Question({ questionIndex, onCorrectAnswer }) {
 
     setIsSubmitting(true);
     try {
-      socket.send(`${EVENTS_PREFIX}try-answer`, question.index, value);
-      const { correct } = await socket.once(`${EVENTS_PREFIX}correct-answer`);
-      if (!correct) toast.error("Resposta incorreta");
-      else {
-        toast.success("Resposta correta!");
-        onCorrectAnswer();
-      }
+      socket.emit(`${gameConfig.getGame()}-try-answer` , {token: token, index: question.index, answer: value});
+      await socket.once(`${gameConfig.getGame()}-try-answer-result`, ({ index, isCorrect }) => {
+        if (!isCorrect) toast.error("Resposta incorreta");
+        else {
+          toast.success("Resposta correta!");
+        }
+      });
     } catch (e) {
       console.error(e);
     } finally {
@@ -135,97 +138,23 @@ function Question({ questionIndex, onCorrectAnswer }) {
   return <div className={styles.questionRoot}>{renderQuestion()}</div>;
 }
 
-function Riddlethon() {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const router = useRouter();
-  const { team, setTeam } = useTeam();
-
-  const completedQuestions = team && team.completedQuestions;
-
-  function nextQuestion() {
-    const nextIndex = Math.min(
-      currentQuestionIndex + 1,
-      NUMBER_OF_QUESTIONS - 1
-    );
-    setCurrentQuestionIndex(nextIndex);
+export default function Game({team, socket, token, gameConfig}: {team: any, socket: any, token: string, gameConfig: GameConfig}) {
+  if (!team) {
+    return <></>;
   }
 
-  function prevQuestion() {
-    const prevIndex = Math.max(currentQuestionIndex - 1, 0);
-    setCurrentQuestionIndex(prevIndex);
-  }
-
-  function canRenderNavicationNextArrow() {
-    if (!team) return false;
-    return currentQuestionIndex < completedQuestions.length;
-  }
-
-  function canRenderNavicatioPrevArrow() {
-    if (!team) return false;
-    return currentQuestionIndex > 0;
-  }
-
-  const win = useCallback(
-    function () {
-      router.push(RiddlethonRoutes.end);
-    },
-    [router]
-  );
-
-  function handleCorrectAnswer() {
-    setTeam({
-      ...team,
-      completedQuestions: [
-        ...completedQuestions,
-        currentQuestionIndex,
-      ],
-    });
-    if (currentQuestionIndex + 1 === NUMBER_OF_QUESTIONS) {
-      win();
-      return;
-    }
-    setCurrentQuestionIndex(currentQuestionIndex + 1);
-  }
-
-  useEffect(() => {
-    if (!team) return;
-    if (completedQuestions.length >= NUMBER_OF_QUESTIONS) {
-      win();
-    }
-    setCurrentQuestionIndex(completedQuestions.length);
-  }, [team, completedQuestions, win]);
+  const completedQuestions = team.completedQuestions;
 
   return (
     <div className={styles.root}>
       <div className={styles.container}>
-        <div className={styles.toolbar}>
-          {canRenderNavicatioPrevArrow() ? (
-            <NavigateBefore
-              onClick={prevQuestion}
-              className="cursor-pointer mr-4"
-            />
-          ) : (
-            <span style={{ width: 24, height: 24 }} className="ml-4" />
-          )}
-          <p className={styles.progressTracker}>
-            {currentQuestionIndex + 1}/{NUMBER_OF_QUESTIONS}
-          </p>
-          {canRenderNavicationNextArrow() ? (
-            <NavigateNext
-              onClick={nextQuestion}
-              className="cursor-pointer ml-4"
-            />
-          ) : (
-            <span style={{ width: 24, height: 24 }} className="mr-4" />
-          )}
-        </div>
         <Question
-          questionIndex={currentQuestionIndex}
-          onCorrectAnswer={handleCorrectAnswer}
+          socket={socket}
+          gameConfig={gameConfig}
+          token={token}
+          questionIndex={completedQuestions.length}
         />
       </div>
     </div>
   );
 }
-
-export default Riddlethon;

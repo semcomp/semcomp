@@ -1,4 +1,4 @@
-function CreateTeam() {
+function JoinTeam() {
   return (
     <div className="riddlethon-join-page">
       Para entrar em uma equipe, peça que um dos integrantes da equipe
@@ -7,4 +7,4 @@ function CreateTeam() {
   );
 }
 
-export default CreateTeam;
+export default JoinTeam;
