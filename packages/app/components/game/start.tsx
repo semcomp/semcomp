@@ -5,8 +5,8 @@ import GameConfig, { GameRoutes } from "../../libs/game-config";
 function GameStart({ gameConfig }: { gameConfig: GameConfig }) {
   return (
     <>
-      <h1>Riddle</h1>
-      <div>
+      <div className="flex flex-col">
+        <h1 className="text-4xl text-center pb-4">Riddle</h1>
         <p>
           Os Riddles da SEMCOMP marcam presença, mais uma vez, como um dos
           concursos clássicos do nosso evento. São enigmas compostos por uma (ou
@@ -22,6 +22,7 @@ function GameStart({ gameConfig }: { gameConfig: GameConfig }) {
           Sherlock Holmes tomar conta de você e desvende nossos desafios!
         </p>
         <br />
+        <div className="text-left"></div>
         <p>O jogo começa dia 26/09 às 12h! Divirta-se =)</p>
         <br />
         <p>
@@ -52,10 +53,12 @@ function GameStart({ gameConfig }: { gameConfig: GameConfig }) {
           Subversivos. Salvadores da Semcomp. Sempre Solícitos.
           <br /> - S.
         </p>
+        <div className="flex justify-center">
+          <button className="bg-tertiary text-white text-lg md:text-2xl m-2 p-2 md:p-4 rounded-2xl hover:bg-secondary hover:text-black w-fit">
+            <Link href={gameConfig.getRoutes()[GameRoutes.BASE]}>Jogar</Link>
+          </button>
+        </div>
       </div>
-      <button className="bg-tertiary text-white text-lg md:text-2xl m-2 p-2 md:p-5 rounded-2xl hover:bg-secondary hover:text-black">
-        <Link href={gameConfig.getRoutes()[GameRoutes.BASE]}>Jogar</Link>
-      </button>
     </>
   );
 }
