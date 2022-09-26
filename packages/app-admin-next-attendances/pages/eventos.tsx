@@ -5,8 +5,6 @@ import RequireAuth from '../libs/RequireAuth';
 import SemcompApi from '../api/semcomp-api';
 import { useAppContext } from '../libs/contextLib';
 import { SemcompApiEvent, SemcompApiGetEventsResponse } from '../models/SemcompApiModels';
-import CreateEventModal from '../components/events/CreateEventModal';
-import EditEventModal from '../components/events/EditEventModal';
 import DataPage from '../components/DataPage';
 import { PaginationRequest, PaginationResponse } from '../models/Pagination';
 import MarkAttendanceModal from '../components/events/MarkAttendanceModal';
@@ -70,8 +68,6 @@ function Events() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] = useState(false);
 
   async function fetchData() {
@@ -88,7 +84,7 @@ function Events() {
 
   async function handleRowClick(index: number) {
     setSelectedData(data.getEntities()[index]);
-    setIsEditModalOpen(true);
+    // setIsEditModalOpen(true);
   }
 
   async function handleMoreInfoClick(index: number) {
@@ -116,20 +112,6 @@ function Events() {
   }
 
   return (<>
-    {isCreateModalOpen && (
-      <CreateEventModal
-        onRequestClose={() => setIsCreateModalOpen(false)}
-      />
-    )}
-    {isEditModalOpen && (
-      <EditEventModal
-        initialValue={selectedData}
-        onRequestClose={() => {
-          fetchData();
-          setIsEditModalOpen(false);
-        }}
-      />
-    )}
     {isMarkAttendanceModalOpen && (
       <MarkAttendanceModal
         data={selectedData}
@@ -143,13 +125,7 @@ function Events() {
         <DataPage
           title="Eventos"
           isLoading={isLoading}
-          buttons={<button
-            className="bg-black text-white py-3 px-6"
-            type="button"
-            onClick={() => setIsCreateModalOpen(true)}
-          >
-            Criar
-          </button>}
+          buttons={<></>}
           table={<EventsTable
             data={data}
             pagination={pagination}
