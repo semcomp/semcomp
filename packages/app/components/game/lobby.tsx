@@ -122,7 +122,7 @@ function Countdown({ team, target, onSubmit }) {
     return () => clearInterval(handler);
   }, [targetMilisseconds]);
 
-  if (team && team.completedQuestions.length === 20) {
+  if (team && team.completedQuestions.length === 80) {
     return <div>Riddlethon já completo</div>;
   }
 
