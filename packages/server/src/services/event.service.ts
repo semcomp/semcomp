@@ -317,17 +317,17 @@ class EventService {
       throw new HttpError(400, ["Presença já existente!"]);
     }
 
-    const now = Date.now();
+    // const now = Date.now();
 
-    const newStartedDateObj = new Date(event.startDate);
-    newStartedDateObj.setMinutes(newStartedDateObj.getMinutes() - 30);
+    // const newStartedDateObj = new Date(event.startDate);
+    // newStartedDateObj.setMinutes(newStartedDateObj.getMinutes() - 30);
 
     // const newEndDateObj = new Date(event.endDate);
     // newEndDateObj.setMinutes(newEndDateObj.getMinutes() + 30);
 
-    if (now < newStartedDateObj.getTime()) {
-      throw new HttpError(400, ["O evento ainda não começou!"]);
-    }
+    // if (now < newStartedDateObj.getTime()) {
+    //   throw new HttpError(400, ["O evento ainda não começou!"]);
+    // }
     // if (now < newEndDateObj.getTime()) {
     //   throw new HttpError(400, ["O evento já terminou!"]);
     // }
