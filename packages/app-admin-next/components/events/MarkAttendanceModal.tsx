@@ -61,7 +61,7 @@ function MarkAttendanceModal({
 
             setTimeout(forceUpdate, 500);
           }}
-          constraints={{facingMode: 'environment'}}
+          constraints={{facingMode: 'environment', width: 3840, height: 3840}}
         />
       </div>
       <div className="w-full px-6">
