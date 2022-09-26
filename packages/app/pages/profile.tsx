@@ -26,6 +26,7 @@ import TelegramIcon from "@mui/icons-material/Telegram";
 import ImgLogo from "../assets/logo-24.png";
 import { useAppContext } from "../libs/contextLib";
 import Card from "../components/Card";
+import FundEstudarForm from "../components/profile/fundEstudar";
 
 function Profile() {
   const { user } = useAppContext();
@@ -39,6 +40,8 @@ function Profile() {
   const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] =
     useState(false);
   // const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
+  const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
+    useState(true);
 
   async function fetchAchievements() {
     try {
@@ -221,6 +224,11 @@ function Profile() {
           onRequestClose={() => setIsAboutOverflowModalOpen(false)}
         />
       )}
+      {isFundacaoEstudarFormModalOpen && (
+        <FundEstudarForm
+          onRequestClose={() => setIsFundacaoEstudarFormModalOpen(false)}
+        />
+      )}
       {/* {isCoffeeModalOpen && (
         <CoffeePayment
           userHasPaid={userFetched?.payment?.status === "approved"}
@@ -242,15 +250,24 @@ function Profile() {
                 </p>
                 <p className="text-center">{userFetched.course}</p>
                 {
-                  <button
-                    onClick={() => {
-                      setIsEditModalOpen(true);
-                      blockBodyScroll();
-                    }}
-                    className="bg-tertiary text-white p-2 rounded-lg mt-2"
-                  >
-                    Editar
-                  </button>
+                  <div className="flex flex-col pt-4">
+                    <button
+                      onClick={() => {
+                        setIsEditModalOpen(true);
+                        blockBodyScroll();
+                      }}
+                      className="bg-tertiary text-white p-2 rounded-lg mt-2"
+                    >
+                      Editar
+                    </button>
+                    <a
+                      target="_blank"
+                      className="underline text-blue"
+                      href="https://perfil.napratica.org.br/e/pt-BR/processos/semana-de-computacao-do-icmc-usp-2dd6366b-14e8-4732-8ea6-7180f64e47ed/inscricao/nova"
+                    >
+                      Acesse aqui a pesquisa da Fundacao Estudar
+                    </a>
+                  </div>
                 }
               </Card>
               <Card className="flex flex-col items-center p-9 w-full mb-6">
@@ -322,8 +339,6 @@ function Profile() {
                 events[type].map((e) =>
                   e.events.map((item) => {
                     if (item.isSubscribed === true) {
-                      console.log("e: " + e.startDate + e.name);
-                      console.log("item: ", item.startDate + item.name);
                       return (
                         <div key={item.name}>
                           <ListItem>
