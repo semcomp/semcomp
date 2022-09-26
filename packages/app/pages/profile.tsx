@@ -250,15 +250,24 @@ function Profile() {
                 </p>
                 <p className="text-center">{userFetched.course}</p>
                 {
-                  <button
-                    onClick={() => {
-                      setIsEditModalOpen(true);
-                      blockBodyScroll();
-                    }}
-                    className="bg-tertiary text-white p-2 rounded-lg mt-2"
-                  >
-                    Editar
-                  </button>
+                  <div className="flex flex-col pt-4">
+                    <button
+                      onClick={() => {
+                        setIsEditModalOpen(true);
+                        blockBodyScroll();
+                      }}
+                      className="bg-tertiary text-white p-2 rounded-lg mt-2"
+                    >
+                      Editar
+                    </button>
+                    <a
+                      target="_blank"
+                      className="underline text-blue"
+                      href="https://perfil.napratica.org.br/e/pt-BR/processos/semana-de-computacao-do-icmc-usp-2dd6366b-14e8-4732-8ea6-7180f64e47ed/inscricao/nova"
+                    >
+                      Acesse aqui a pesquisa da Fundacao Estudar
+                    </a>
+                  </div>
                 }
               </Card>
               <Card className="flex flex-col items-center p-9 w-full mb-6">
