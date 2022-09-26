@@ -21,7 +21,7 @@ function FundEstudarForm({ onRequestClose }) {
   return (
     <Modal onRequestClose={onRequestClose}>
       <div className="flex flex-col items-center p-4">
-        <div className="relative h-32 w-48">
+        <div className="relative h-16 w-24">
           <Image
             alt="Logo Fundacao Estudar"
             src={FundacaoEstudarLogo}
@@ -30,7 +30,7 @@ function FundEstudarForm({ onRequestClose }) {
           />
         </div>
         <h1 className="text-center pb-2">Pesquisa Fundação Estudar</h1>
-        <p>
+        <p className="text-sm xxs:text-base">
           Quer se destacar em processos seletivos dos nossos patrocinadores e
           apoiadores? Realize o teste exclusivo da Semcomp em parceria com a
           Fundação Estudar. Esse processo contém testes de personalidade, estilo
@@ -69,7 +69,7 @@ function FundEstudarForm({ onRequestClose }) {
           <p>Nao quero mais ver isso</p>
         </div>
         <button
-          className="bg-orange text-white py-3 px-6 m-4 rounded-xl"
+          className="bg-orange text-white p-4 m-2 rounded-xl"
           type="button"
           onClick={onRequestClose}
         >
