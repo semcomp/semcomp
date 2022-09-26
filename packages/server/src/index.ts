@@ -31,6 +31,7 @@ const corsConfig = {
     env.BACKOFFICE_URL,
     env.BACKOFFICE_LEGACY_URL,
     env.BACKOFFICE_LOCAL_URL,
+    "https://semcomp-presencas.netlify.app",
   ],
   exposedHeaders: [
     "authorization",
