@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { TextField } from "@mui/material";
 import { toast } from "react-toastify";
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 
 import LoadingButton from "../loading-button";
 import API from "../../api";
@@ -9,9 +9,13 @@ import { EVENTS_PREFIX } from "../../constants/riddlethon";
 import GameConfig, { GameRoutes } from "../../libs/game-config";
 
 export default function CreateGroup({
-  socket, gameConfig, handleCreateGroup,
+  socket,
+  gameConfig,
+  handleCreateGroup,
 }: {
-  socket: any, gameConfig: GameConfig, handleCreateGroup: (name: string) => void,
+  socket: any;
+  gameConfig: GameConfig;
+  handleCreateGroup: (name: string) => void;
 }) {
   const [isCreatingTeam, setIsCreatingTeam] = useState(false);
   const teamNameRef: any = useRef();
@@ -29,16 +33,23 @@ export default function CreateGroup({
   }
 
   return (
-    <div className="riddlethon-create-page">
-      <h1>Criar Equipe</h1>
-      <form onSubmit={submit}>
+    <div className="flex items-center flex-col text-center">
+      <h1>Insira seu nome</h1>
+      <form
+        className="flex items-center flex-col text-center"
+        onSubmit={submit}
+      >
         <TextField
           inputRef={teamNameRef}
-          label="Nome da equipe"
+          label="Seu nome"
           style={{ marginBottom: 16 }}
         />
-        <LoadingButton isLoading={isCreatingTeam} type="submit">
-          Criar
+        <LoadingButton
+          className="bg-tertiary text-white p-4 rounded-xl m-0"
+          isLoading={isCreatingTeam}
+          type="submit"
+        >
+          Acessar
         </LoadingButton>
       </form>
     </div>
