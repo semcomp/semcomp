@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 
 import { Button, Dialog } from "@mui/material";
-import CloseIcon from '@mui/icons-material/Close';
+import CloseIcon from "@mui/icons-material/Close";
 import { toast } from "react-toastify";
 
 import API from "../../api";
@@ -122,7 +122,7 @@ function Countdown({ team, target, onSubmit }) {
     return () => clearInterval(handler);
   }, [targetMilisseconds]);
 
-  if (team && team.completedQuestions.length === 20) {
+  if (team && team.completedQuestions.length === 80) {
     return <div>Riddlethon já completo</div>;
   }
 
@@ -136,7 +136,8 @@ function Countdown({ team, target, onSubmit }) {
         </>
       ) : (
         <>
-          <div>Riddlethon já disponível!</div>
+          {/* <div>Riddlethon já disponível!</div> */}
+          <div>Riddle já disponível!</div>
           <Button
             variant="contained"
             onClick={onSubmit}
@@ -150,10 +151,16 @@ function Countdown({ team, target, onSubmit }) {
   );
 }
 
-function Lobby({team, gameConfig, goToGame, goToCreateTeam, goToJoinTeam}: {gameConfig: GameConfig} & any) {
+function Lobby({
+  team,
+  gameConfig,
+  goToGame,
+  goToCreateTeam,
+  goToJoinTeam,
+}: { gameConfig: GameConfig } & any) {
   const { user: me } = useAppContext();
   const router = useRouter();
-  console.log(team)
+  console.log(team);
 
   function canAddTeammates() {
     if (team.members.length >= 3) return false;
@@ -162,7 +169,10 @@ function Lobby({team, gameConfig, goToGame, goToCreateTeam, goToJoinTeam}: {game
 
   function createInviteLink() {
     return (
-      window.location.origin + gameConfig.getRoutes()[GameRoutes.LINK] + "?teamid=" + team.id
+      window.location.origin +
+      gameConfig.getRoutes()[GameRoutes.LINK] +
+      "?teamid=" +
+      team.id
     );
   }
 
@@ -222,7 +232,11 @@ function Lobby({team, gameConfig, goToGame, goToCreateTeam, goToJoinTeam}: {game
           </div>
         )}
       </div> */}
-      <Countdown team={team} onSubmit={goToGame} target={gameConfig.getStartDate()} />
+      <Countdown
+        team={team}
+        onSubmit={goToGame}
+        target={gameConfig.getStartDate()}
+      />
     </div>
   );
 }

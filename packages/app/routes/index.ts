@@ -3,7 +3,7 @@ const Routes = {
   login: "/login",
   signup: "/signup",
   resetPassword: "/reset-password",
-  // riddle: '/riddle',
+  riddle: '/game/riddle/start',
   riddlethon: '/riddlethon',
   hardToClick: '/duro-de-clicar',
   sponsors: "/sponsors",
