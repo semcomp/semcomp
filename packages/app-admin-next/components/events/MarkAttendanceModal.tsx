@@ -1,6 +1,6 @@
 import { toast } from "react-toastify";
-import ReactQrReader from 'react-qr-scanner'
-import {QrReader} from 'react-qr-reader';
+// import ReactQrReader from 'react-qr-scanner'
+import { QrReader } from "react-qr-reader";
 
 import { useAppContext } from "../../libs/contextLib";
 import Modal from "../Modal";
@@ -12,26 +12,26 @@ function MarkAttendanceModal({
   data,
   onRequestClose,
 }: {
-  data: SemcompApiEvent,
-  onRequestClose: () => void,
+  data: SemcompApiEvent;
+  onRequestClose: () => void;
 }) {
   const {
-    semcompApi
+    semcompApi,
   }: {
-    semcompApi: SemcompApi
+    semcompApi: SemcompApi;
   } = useAppContext();
 
   const [, updateState] = useState();
   const forceUpdate = useCallback(() => updateState({} as any), []);
 
-  let lastScannedUserId = '';
+  let lastScannedUserId = "";
   async function handleSubmit(userId) {
     if (lastScannedUserId !== userId) {
       try {
         await semcompApi.markAttendance(data.id, userId);
-        toast.success('Presença cadastrada');
+        toast.success("Presença cadastrada");
       } catch (e) {
-        toast.error('Erro ao cadastrar presença');
+        toast.error("Erro ao cadastrar presença");
         console.error(e);
       }
     }
@@ -40,9 +40,7 @@ function MarkAttendanceModal({
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div
-        className="w-full bg-black text-white text-center text-xl font-bold p-6"
-      >
+      <div className="w-full bg-black text-white text-center text-xl font-bold p-6">
         {data.name}
       </div>
       <div className="max-h-96 overflow-y-scroll p-6 w-full">
@@ -61,7 +59,7 @@ function MarkAttendanceModal({
           facingMode={"rear"}
         /> */}
         <QrReader
-          videoId='video'
+          videoId="video"
           scanDelay={500}
           onResult={(result: any, error) => {
             console.log(result);
@@ -78,14 +76,18 @@ function MarkAttendanceModal({
           }}
           constraints={{
             aspectRatio: 3840,
-            facingMode: 'environment',
+            facingMode: "environment",
             width: 3840,
-            height: 3840
+            height: 3840,
           }}
         />
       </div>
       <div className="w-full px-6">
-        <button className="w-full bg-red-500 text-white py-3 px-6 my-6" type="button" onClick={onRequestClose}>
+        <button
+          className="w-full bg-red-500 text-white py-3 px-6 my-6"
+          type="button"
+          onClick={onRequestClose}
+        >
           Fechar
         </button>
       </div>
