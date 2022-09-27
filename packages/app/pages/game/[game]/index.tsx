@@ -102,6 +102,7 @@ export default function GamePage({children}) {
 
   function handleGoToGame() {
     setComponent(<Game1
+      setTeam={setTeam}
       team={team}
       socket={socket}
       gameConfig={gameConfig}
