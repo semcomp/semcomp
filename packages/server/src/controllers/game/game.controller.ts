@@ -154,9 +154,11 @@ export default class GameController {
           createdAt: (new Date()).getTime(),
         };
         await gameGroupCompletedQuestionService.create(gameGroupCompletedQuestion);
-        await this.broadcastUserInfo(ioServer, socket, token);
+
         // await addHousePoints(user.house && user.house._id, 5);
-        socket.emit(`${this.game}-try-answer-result`, { index, isCorrect: true });
+
+        const { group: updatedGroup } = await this.getUserAndGroup(socket, token);
+        socket.emit(`${this.game}-try-answer-result`, { index, isCorrect: true, group: updatedGroup });
       } else {
         socket.emit(`${this.game}-try-answer-result`, { index, isCorrect: false });
       }

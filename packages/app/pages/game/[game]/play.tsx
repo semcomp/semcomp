@@ -52,6 +52,7 @@ export default function GamePage({children}) {
     if (team) {
       setComponent(<Game1
         team={team}
+        setTeam={setTeam}
         socket={socket}
         gameConfig={gameConfig}
         token={token}
@@ -80,13 +81,13 @@ export default function GamePage({children}) {
 
   return (<>
     <Navbar />
-      {/* <div className='p-6'>
+      <div className='p-6'>
         <Card className='p-6'>
           {
             !isFetchingTeam && component
           }
         </Card>
-      </div> */}
+      </div>
     <Footer />
   </>);
 }

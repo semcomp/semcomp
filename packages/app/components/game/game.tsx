@@ -25,11 +25,13 @@ const styles = {
 };
 
 function Question({
+  setTeam,
   socket,
   gameConfig,
   token,
   questionIndex,
 }: {
+  setTeam: any,
   socket: any,
   gameConfig: GameConfig,
   token: string,
@@ -72,9 +74,11 @@ function Question({
     setIsSubmitting(true);
     try {
       socket.emit(`${gameConfig.getGame()}-try-answer` , {token: token, index: question.index, answer: value});
-      await socket.once(`${gameConfig.getGame()}-try-answer-result`, ({ index, isCorrect }) => {
-        if (!isCorrect) toast.error("Resposta incorreta");
-        else {
+      await socket.once(`${gameConfig.getGame()}-try-answer-result`, ({ index, isCorrect, group }) => {
+        if (!isCorrect) {
+          toast.error("Resposta incorreta");
+        } else {
+          setTeam(group);
           toast.success("Resposta correta!");
         }
       });
@@ -138,7 +142,11 @@ function Question({
   return <div className={styles.questionRoot}>{renderQuestion()}</div>;
 }
 
-export default function Game({team, socket, token, gameConfig}: {team: any, socket: any, token: string, gameConfig: GameConfig}) {
+export default function Game({
+  team, setTeam, socket, token, gameConfig
+}: {
+  team: any, setTeam: any, socket: any, token: string, gameConfig: GameConfig
+}) {
   if (!team) {
     return <></>;
   }
@@ -149,6 +157,7 @@ export default function Game({team, socket, token, gameConfig}: {team: any, sock
     <div className={styles.root}>
       <div className={styles.container}>
         <Question
+          setTeam={setTeam}
           socket={socket}
           gameConfig={gameConfig}
           token={token}
