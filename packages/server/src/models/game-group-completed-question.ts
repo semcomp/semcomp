@@ -36,6 +36,8 @@ const GameGroupCompletedQuestionSchema = new Mongoose.Schema(
   { collection: "game-group-completed-question" }
 );
 
+GameGroupCompletedQuestionSchema.index({ gameGroupId: 1, gameQuestionId: 1 }, { unique: true });
+
 export const GameGroupCompletedQuestionModel = Mongoose.model(
   "game-group-completed-question",
   GameGroupCompletedQuestionSchema,

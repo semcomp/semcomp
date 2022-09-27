@@ -4,9 +4,7 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/router";
 
 import LoadingButton from "../loading-button";
-import API from "../../api";
-import { EVENTS_PREFIX } from "../../constants/riddlethon";
-import GameConfig, { GameRoutes } from "../../libs/game-config";
+import GameConfig from "../../libs/game-config";
 
 export default function CreateGroup({
   socket,
