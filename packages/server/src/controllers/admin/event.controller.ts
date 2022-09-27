@@ -84,7 +84,11 @@ class EventController {
 
       for (const user of users.getEntities()) {
         console.log(user.id);
-        await eventService.markAttendance(eventId, user.id);
+        try {
+          await eventService.markAttendance(eventId, user.id);
+        } catch (markAttendanceError) {
+          console.log(markAttendanceError);
+        }
       }
 
       return res.status(200).json();
