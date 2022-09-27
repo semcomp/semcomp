@@ -165,6 +165,7 @@ export type SemcompApiGameGroup = {
   id: string;
   game: Game;
   name: string;
+  completedQuestions: any[];
   availableClues: number;
   availableSkips: number;
   createdAt: number;
