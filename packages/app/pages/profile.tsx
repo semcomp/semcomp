@@ -344,7 +344,7 @@ function Profile() {
                 Se inscreva aqui!
               </a>
             </div>
-            <List className="events-list">
+            <List className="events-list text-center">
               {Object.keys(events).map((type) =>
                 events[type].map((e) =>
                   e.events.map((item) => {
@@ -354,10 +354,19 @@ function Profile() {
                           <ListItem>
                             <ListItemText
                               primary={`${type}:  ${item.name}`}
-                              secondary={formatTime(
-                                item.startDate,
-                                item.endDate
-                              )}
+                              secondary={
+                                item.link ? (
+                                  <a
+                                    target="_blank"
+                                    className="underline text-tertiary text-center pb-4 text-base"
+                                    href={item.link}
+                                  >
+                                    Acesse aqui
+                                  </a>
+                                ) : (
+                                  formatTime(item.startDate, item.endDate)
+                                )
+                              }
                             />
                           </ListItem>
                           <Divider />

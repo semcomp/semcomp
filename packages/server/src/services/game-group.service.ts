@@ -14,7 +14,7 @@ import userService from "./user.service";
 const idService = new IdServiceImpl();
 
 const MAX_MEMBERS_IN_GROUP = 3;
-const MAX_MEMBERS = 60;
+const MAX_MEMBERS = 700;
 
 type GameGroupWithInfo = GameGroup & {
   members: Partial<User>[],
