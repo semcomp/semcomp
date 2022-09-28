@@ -25,10 +25,10 @@ function HousePoints({ name, score, largestScore }) {
       <div className="house-points-component__text-container">
         <p className="house-points-component__name">{name}</p>
         <p className="house-points-component__score">{score} pontos</p>
-        <div className="house-points-component__progress-bar-container">
+        <div className="w-full h-1.5 bg-gray">
           <div
             style={{ width: `${percentage}%` }}
-            className="house-points-component__progress-bar"
+            className="bg-tertiary h-full"
           />
         </div>
       </div>

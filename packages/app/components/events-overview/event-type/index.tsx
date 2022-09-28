@@ -8,10 +8,10 @@ function EventType({ type, presences, totalPresences }) {
         <p className="event-type-component__presences">
           {presences} / {totalPresences}
         </p>
-        <div className="event-type-component__progress-bar-container">
+        <div className="w-full h-1.5 bg-gray">
           <div
             style={{ width: `${percentage}%` }}
-            className="event-type-component__progress-bar"
+            className="bg-tertiary h-full"
           />
         </div>
       </div>
