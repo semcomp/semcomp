@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
-import Chip from '@mui/material/Chip';
-import { useRouter } from 'next/router';
+import Chip from "@mui/material/Chip";
+import { useRouter } from "next/router";
 import Linkify from "react-linkify";
 
 /*
@@ -65,53 +65,74 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
 
     // If user already marked presence at this event, there's no need to show the button
     if (event.hasAttended) {
-      return (
-        <Chip label="Presente" color="primary" size="small" />
-      );
+      return <Chip label="Presente" color="primary" size="small" />;
     }
   }
 
-  return (<>
-    <button
-      className="focus:outline-none bg-white text-tertiary w-full shadow"
-      onClick={handleEventClick}
-    >
-      <div className="flex items-center">
-        <div className="basis-1/6 p-4">
-          <div>
-            <strong>{startDateStr}</strong>
+  return (
+    <>
+      <button
+        className="focus:outline-none bg-white text-tertiary w-full shadow"
+        onClick={handleEventClick}
+      >
+        <div className="flex items-center">
+          <div className="basis-1/6 p-4">
+            <div>
+              <strong>{startDateStr}</strong>
+            </div>
+            <div>{endDateStr}</div>
           </div>
-          <div>{endDateStr}</div>
+          <div className="basis-5/6 text-left p-4">
+            {event.type} | {event.name} <br /> {renderBadge()}
+          </div>
         </div>
-        <div className="basis-5/6 text-left p-4">
-          {event.type} | {event.name} <br /> {
-            renderBadge()
-          }
-        </div>
-      </div>
-    </button>
-    <div ref={descriptionRef} className="transition-all duration-500 overflow-hidden" style={{ height: 0 }}>
-      <div className="bg-white text-black p-6 text-left w-full">
-        <span className="text-left">
-          <p>
-            <strong>
-              {(event.type === "Palestra" && "Palestrante: ") || (event.type === "Minicurso" && "Ministrante: ")}
-            </strong>
-            {(event.type === "Minicurso" || event.type === "Palestra") && event.speaker}
+      </button>
+      <div
+        ref={descriptionRef}
+        className="transition-all duration-500 overflow-hidden"
+        style={{ height: 0 }}
+      >
+        <div className="bg-white text-black p-6 text-left w-full">
+          <span className="text-left">
+            <p>
+              <strong>
+                {(event.type === "Palestra" && "Palestrante: ") ||
+                  (event.type === "Minicurso" && "Ministrante: ")}
+              </strong>
+              {(event.type === "Minicurso" || event.type === "Palestra") &&
+                event.speaker}
+              <br />
+              {event.location ? (
+                <>
+                  <strong>Local: </strong>
+                  {event.location}
+                </>
+              ) : (
+                ""
+              )}
+            </p>
             <br />
-            {event.location ? <><strong>Local: </strong>{event.location}</> : ""}
-          </p>
-          <br />
-          <p>
-            <Linkify componentDecorator={(decoratedHref, decoratedText, key) => (
-              <a target="blank" style={{ color: "#002776", fontWeight: 'bold' }} href={decoratedHref} key={key}>
-                {decoratedText}
-              </a>
-            )}>{event.description.split(/\\n|\n/g).map((line, i) => (<span key={i}> {line} </span>))}</Linkify>
-          </p>
-        </span>
-        <span>
-          {/* {event.type === "Minicurso" && event.isSubscribed && (
+            <p>
+              <Linkify
+                componentDecorator={(decoratedHref, decoratedText, key) => (
+                  <a
+                    target="blank"
+                    style={{ color: "#002776", fontWeight: "bold" }}
+                    href={decoratedHref}
+                    key={key}
+                  >
+                    {decoratedText}
+                  </a>
+                )}
+              >
+                {event.description.split(/\\n|\n/g).map((line, i) => (
+                  <span key={i}> {line} </span>
+                ))}
+              </Linkify>
+            </p>
+          </span>
+          <span>
+            {/* {event.type === "Minicurso" && event.isSubscribed && (
             <>
               <br />
               <button
@@ -127,40 +148,40 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
               </button>
             </>
           )} */}
-          {event.type === "Contest" && event.isSubscribed && (
-            <>
-              <br />
-              <button
-                className="bg-tertiary text-white transition-all hover:bg-white hover:text-tertiary p-4 shadow-md hover:shadow-none"
-                onClick={() =>
-                  window.open(event.link, "_blank", "noopener noreferrer")
-                }
-              >
-                Entrar no contest
-              </button>
-            </>
-          )}
-          {event.type === "Palestra" && (
-            <>
-              <br />
-              <button
-                className="bg-tertiary text-white transition-all hover:bg-white hover:text-tertiary p-4 shadow-md hover:shadow-none"
-                onClick={() => router.push("/live")}
-              >
-                Acessar transmissão
-              </button>
-            </>
-          )}
-          {/* CUIDADO: Gambiarra abaixo */}
-          {event.type !== "Minicurso" && (
-            <>
-              <span>
+            {event.type === "Contest" && event.isSubscribed && (
+              <>
                 <br />
-              </span>
-              {/* The above text was not written directly because it would consume de blankspace after the comma */}
-              {event.type !== "Palestra" && event.type !== "Contest" && (
-                <>
-                  {/* Para acessar,{" "}
+                <button
+                  className="bg-tertiary text-white transition-all hover:bg-white hover:text-tertiary p-4 shadow-md hover:shadow-none"
+                  onClick={() =>
+                    window.open(event.link, "_blank", "noopener noreferrer")
+                  }
+                >
+                  Entrar no contest
+                </button>
+              </>
+            )}
+            {(event.type === "Palestra" || event.type === "Roda") && (
+              <>
+                <br />
+                <button
+                  className="bg-tertiary text-white transition-all hover:bg-white hover:text-tertiary p-4 shadow-md hover:shadow-none"
+                  onClick={() => router.push("/live")}
+                >
+                  Acessar transmissão
+                </button>
+              </>
+            )}
+            {/* CUIDADO: Gambiarra abaixo */}
+            {event.type !== "Minicurso" && (
+              <>
+                <span>
+                  <br />
+                </span>
+                {/* The above text was not written directly because it would consume de blankspace after the comma */}
+                {event.type !== "Palestra" && event.type !== "Contest" && (
+                  <>
+                    {/* Para acessar,{" "}
                   <a
                     rel="external noopener noreferrer"
                     target="_blank"
@@ -168,14 +189,15 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
                   >
                     clique aqui!
                   </a> */}
-                </>
-              )}
-            </>
-          )}
-        </span>
+                  </>
+                )}
+              </>
+            )}
+          </span>
+        </div>
       </div>
-    </div>
-  </>);
+    </>
+  );
 }
 
 export default Event;
