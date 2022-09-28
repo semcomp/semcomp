@@ -1,24 +1,24 @@
-import Tardis from "../../../assets/tardis.jpg";
-import Ocarina from "../../../assets/ocarina.jpg";
-import DeLorean from "../../../assets/delorean.jpg";
-import Agamotto from "../../../assets/agamotto.jpg";
+import Image from "next/image";
 
-import "../../../styles/House-Scores-House-Points.module.css";
+import PicaPau from "../../../assets/pica-pau.png";
+import OncaPintada from "../../../assets/onca-pintada.png";
+import TatuBola from "../../../assets/tatu-bola.png";
+import LoboGuara from "../../../assets/lobo-guara.png";
 
 function HousePoints({ name, score, largestScore }) {
   const percentage = (100 * score) / largestScore;
 
-  const image = {
-    Tardis,
-    Ocarina,
-    DeLorean,
-    Agamotto,
+  const houseImageSrc = {
+    "Pica-pau": PicaPau,
+    "Onça-pintada": OncaPintada,
+    "Tatu-bola": TatuBola,
+    "Lobo-guara": LoboGuara,
   }[name];
 
   return (
     <div className="house-points-component__root">
-      <img
-        src={image.src}
+      <Image
+        src={houseImageSrc}
         alt="House logo"
         className="house-points-component__logo"
       />

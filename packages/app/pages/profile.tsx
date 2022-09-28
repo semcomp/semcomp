@@ -421,7 +421,12 @@ function Profile() {
               </button>
             }
           </div> */}
-          {/* <HouseScores /> */}
+          <Card className="flex flex-col items-center p-9 w-full mb-6">
+            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+              Pontuações
+            </h1>
+            <HouseScores />
+          </Card>
         </div>
         <div>
           <Card className="flex flex-col items-center p-9 mb-6 max-w-4xl">
