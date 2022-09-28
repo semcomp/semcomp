@@ -7,7 +7,7 @@ import Schedule from "../components/home/Schedule";
 import FAQ from "../components/home/Faq";
 // import LiveNow from "../components/home/live-now";
 import Sponsors from "../components/home/Sponsors";
-// import Stats from "../components/home/Stats";
+import Stats from "../components/home/Stats";
 import { useAppContext } from "../libs/contextLib";
 
 function Home() {
@@ -27,7 +27,7 @@ function Home() {
       <div>
         {/* <LiveNow /> */}
         <HomeHeader />
-        {/* <Stats /> */}
+        <Stats />
         <About />
         <Schedule />
         <Sponsors />
