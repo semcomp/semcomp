@@ -277,7 +277,7 @@ function Profile() {
                 {/* <p>Pague com PIX o Coffee + Kit da Semcomp 25</p> */}
                 {userFetched.payment.status === "approved" ? (
                   <>
-                    <Chip label="Pago" color="success" />
+                    <Chip label="OK" color="success" />
                     <Chip
                       className="mt-3"
                       label={`Camiseta ${userFetched.payment.tShirtSize}`}
@@ -302,7 +302,7 @@ function Profile() {
                     >
                       Comprar pacote
                     </button> */}
-                    <Chip className="mt-3" label="Não pago" disabled={true} />
+                    <Chip className="mt-3" label="---" disabled={true} />
                   </>
                 )}
               </Card>

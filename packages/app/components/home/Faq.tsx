@@ -85,10 +85,10 @@ const FAQ = () => {
             question="Como faço para participar da Semcomp?"
             answer="Para participar, basta se inscrever aqui mesmo em nosso site! O evento será híbrido, com transmissão das palestras pelo Youtube, então é preciso comparecer à USP de São Carlos durante o período anunciado para os demais eventos. Para mais notícias, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos)"
           />
-          <Question
+          {/* <Question
             question="O evento é gratuito?"
             answer="Haverá uma taxa para o acesso ao coffee break, porém outros eventos como palestras, minicursos, concursos e game night são de acesso gratuito para todos. Vale lembrar que eventos com premiação exigem inscrição na Semcomp mesmo sem pagamento da taxa de inscrição."
-          />
+          /> */}
           <Question
             question="Onde tenho acesso aos avisos da Semcomp?"
             answer="Para ficar por dentro de tudo que vai rolar na Semcomp, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos). Enviaremos todas as novidades por lá!
