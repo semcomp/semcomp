@@ -178,7 +178,7 @@ export default function DataTable({
             onPageChange={handleChangePage}
             rowsPerPage={pagination.getItems()}
             onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[5, 10, 25, 50, 100]}
+            rowsPerPageOptions={[2, 5, 10, 25, 50, 100]}
           />
         </TableContainer>
       )}
