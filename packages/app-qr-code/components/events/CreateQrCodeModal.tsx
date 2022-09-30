@@ -23,14 +23,20 @@ function CreateQrCodeModal({
 
   const [qrCode, setQrCode] = useState();
 
+  async function update(){
+    try {
+      setQrCode(await semcompApi.generateQrCode(data.id));
+    } catch (e) {
+      toast.error('Erro ao cadastrar presença');
+      console.error(e);
+    }
+  }
+
   useEffect(() => {
+    update();
+
     const interval = setInterval(async () => {
-      try {
-        setQrCode(await semcompApi.generateQrCode(data.id));
-      } catch (e) {
-        toast.error('Erro ao cadastrar presença');
-        console.error(e);
-      }
+      update();
     }, 5000);
   }, []);
 

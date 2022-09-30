@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { param } from "express-validator";
+import { body, param } from "express-validator";
 
 import EventController from "../controllers/event.controller";
 import authMiddleware from "../middlewares/auth.middleware";
@@ -48,11 +48,11 @@ router.post(
 );
 
 router.post(
-  "/:eventId/mark-attendance",
+  "/mark-attendance",
   [
     authMiddleware.authenticate,
     authMiddleware.isAuthenticated,
-    param("eventId", "Invalid field 'eventId'").not().isEmpty(),
+    body("token", "Invalid field 'token'").not().isEmpty(),
   ],
   EventController.markAttendanceByQrCode
 );
