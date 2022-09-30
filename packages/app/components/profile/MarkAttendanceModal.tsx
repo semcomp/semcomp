@@ -50,9 +50,7 @@ function MarkAttendanceModal({
             setTimeout(forceUpdate, 500);
           }}
           constraints={{
-            aspectRatio: 3840,
             facingMode: 'environment',
-            width: 3840,
           }}/>
       </div>
       <div className="w-full px-6">
