@@ -17,7 +17,7 @@
     "axios": "^0.27.2",
     "dayjs": "^1.11.5",
     "focus-trap-react": "^9.0.2",
-    "next": "12.2.3",
+    "next": "12.3.1",
     "qrcode.react": "^3.1.0",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
