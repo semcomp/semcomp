@@ -57,7 +57,7 @@ const eventController = {
   },
   markAttendanceByQrCode: async (req, res, next) => {
     try {
-      const { token } = req.params;
+      const { token } = req.body;
 
       const presence = await eventService.markAttendanceByQrCode(token, req.user.id);
 

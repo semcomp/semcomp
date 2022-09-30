@@ -38,16 +38,6 @@ router.get(
 // );
 
 router.post(
-  "/:eventId/subscribe",
-  [
-    authMiddleware.authenticate,
-    authMiddleware.isAuthenticated,
-    param("eventId", "Invalid field 'eventId'").not().isEmpty(),
-  ],
-  EventController.subscribe
-);
-
-router.post(
   "/mark-attendance",
   [
     authMiddleware.authenticate,
@@ -55,6 +45,16 @@ router.post(
     body("token", "Invalid field 'token'").not().isEmpty(),
   ],
   EventController.markAttendanceByQrCode
+);
+
+router.post(
+  "/:eventId/subscribe",
+  [
+    authMiddleware.authenticate,
+    authMiddleware.isAuthenticated,
+    param("eventId", "Invalid field 'eventId'").not().isEmpty(),
+  ],
+  EventController.subscribe
 );
 
 router.post(

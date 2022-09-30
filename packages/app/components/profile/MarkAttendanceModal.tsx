@@ -52,6 +52,7 @@ function MarkAttendanceModal({
           constraints={{
             aspectRatio: 3840,
             facingMode: 'environment',
+            width: 3840,
             height: 3840,
           }}/>
       </div>

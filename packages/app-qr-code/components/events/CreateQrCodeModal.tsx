@@ -37,7 +37,7 @@ function CreateQrCodeModal({
 
     const interval = setInterval(async () => {
       update();
-    }, 5000);
+    }, 60 * 60);
   }, []);
 
   return (
@@ -47,8 +47,8 @@ function CreateQrCodeModal({
       >
         {data.name}
       </div>
-      <div className="max-h-96 overflow-y-scroll p-6 w-full">
-        <QRCodeSVG value={qrCode} />
+      <div className="flex justify-center max-h-96 overflow-y-scroll p-6 w-full">
+        {qrCode && <QRCodeSVG value={qrCode} />}
       </div>
       <div className="w-full px-6">
         <button className="w-full bg-red-500 text-white py-3 px-6 my-6" type="button" onClick={onRequestClose}>
