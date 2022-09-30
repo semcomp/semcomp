@@ -324,7 +324,7 @@ class EventService {
     const event = await this.findById(eventId);
 
     if (await attendanceService.findOne({ userId, eventId })) {
-      throw new HttpError(400, ["Presença já existente!"]);
+      return { message: "Presença salva com sucesso!" };
     }
 
     const attendance: Attendance = {
