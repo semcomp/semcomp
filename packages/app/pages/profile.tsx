@@ -27,11 +27,13 @@ import ImgLogo from "../assets/logo-24.png";
 import { useAppContext } from "../libs/contextLib";
 import Card from "../components/Card";
 import FundEstudarForm from "../components/profile/fundEstudar";
+import MarkAttendanceModal from "../components/profile/MarkAttendanceModal";
 
 function Profile() {
   const { user } = useAppContext();
   const [userFetched, setUserFetched] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] = useState(false);
   const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] =
     useState(false);
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
@@ -202,6 +204,15 @@ function Profile() {
           }}
         />
       )}
+      {isMarkAttendanceModalOpen && (
+        <MarkAttendanceModal
+          onRequestClose={() => {
+            setIsMarkAttendanceModalOpen(false);
+            removeBodyStyle();
+            fetchUserData();
+          }}
+        />
+      )}
       {isRegistrationsModalOpen && (
         <Registrations
           onRequestClose={() => {
@@ -245,20 +256,29 @@ function Profile() {
             <>
               <Card className="flex flex-col items-center p-9 w-full mb-6">
                 <QRCodeSVG value={userFetched && userFetched.id} />
-                <p className="font-bold text-xl text-center my-2">
+                <p className="font-bold text-xl text-center my-3">
                   {userFetched.name}
                 </p>
                 <p className="text-center">{userFetched.course}</p>
                 {
-                  <div className="flex flex-col pt-4">
+                  <div className="flex flex-col pt-3">
                     <button
                       onClick={() => {
                         setIsEditModalOpen(true);
                         blockBodyScroll();
                       }}
-                      className="bg-tertiary text-white p-2 rounded-lg mt-2"
+                      className="bg-tertiary text-white p-2 rounded-lg"
                     >
                       Editar
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsMarkAttendanceModalOpen(true);
+                        blockBodyScroll();
+                      }}
+                      className="bg-primary text-white p-2 rounded-lg my-3"
+                    >
+                      Scanear Presença
                     </button>
                     <a
                       target="_blank"

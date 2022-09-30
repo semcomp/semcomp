@@ -44,11 +44,22 @@ const eventController = {
       return handleError(error, next);
     }
   },
-  markPresence: async (req, res, next) => {
+  markAttendance: async (req, res, next) => {
     try {
       const { eventId } = req.params;
 
       const presence = await eventService.markAttendance(eventId, req.user.id);
+
+      return res.status(200).json(presence);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  },
+  markAttendanceByQrCode: async (req, res, next) => {
+    try {
+      const { token } = req.params;
+
+      const presence = await eventService.markAttendanceByQrCode(token, req.user.id);
 
       return res.status(200).json(presence);
     } catch (error) {

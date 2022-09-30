@@ -5,6 +5,8 @@ import subscriptionService from "./subscription.service";
 import Attendance from "../models/attendance";
 import attendanceService from "./attendance.service";
 import userService from "../services/user.service";
+import { config } from "dotenv";
+config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env` });
 
 import EventTypes from "../lib/constants/event-types-enum";
 import Subscription from "../models/subscription";
@@ -14,8 +16,8 @@ import User from "../models/user";
 import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 import houseService from "./house.service";
 import houseMemberService from "./house-member.service";
-
-const idService = new IdServiceImpl();
+import JsonWebToken from "./json-web-token.service";
+import EventPoints from "../lib/constants/event-points-enum";
 
 type Filters = {
   id: string | string[];
@@ -46,6 +48,14 @@ type UserAttendanceInfo = {
 }
 
 class EventService {
+  private idService;
+  private tokenService;
+
+  constructor() {
+    this.idService = new IdServiceImpl();
+    this.tokenService = new JsonWebToken(process.env.JWT_PRIVATE_KEY, "1m");
+  }
+
   public async find({
     filters,
     pagination,
@@ -82,7 +92,7 @@ class EventService {
   }
 
   public async create(event: Event): Promise<Event> {
-    event.id = await idService.create();
+    event.id = await this.idService.create();
     event.createdAt = Date.now();
     event.updatedAt = Date.now();
     const entity = await EventModel.create(event);
@@ -300,38 +310,22 @@ class EventService {
     return eventsByTypeAndTime;
   }
 
+  public async createAttendanceQrCode(eventId: string): Promise<string> {
+    return this.tokenService.create({ data: { eventId } });
+  }
+
+  public async markAttendanceByQrCode(token: string, userId: string) {
+    const { eventId } = this.tokenService.decode(token);
+
+    return await this.markAttendance(eventId, userId);
+  }
+
   public async markAttendance(eventId: string, userId: string) {
     const event = await this.findById(eventId);
-    // const subscription = await subscriptionService.findOne({ userId, eventId });
-
-    // if (
-    //   (event.type === EventTypes.MINICURSO ||
-    //     event.type === EventTypes.GAME_NIGHT ||
-    //     event.type === EventTypes.CONCURSO ||
-    //     event.type === EventTypes.CONTEST) &&
-    //   !subscription
-    // ) {
-    //   throw new HttpError(400, ["Não inscrito no evento!"]);
-    // }
 
     if (await attendanceService.findOne({ userId, eventId })) {
       throw new HttpError(400, ["Presença já existente!"]);
     }
-
-    // const now = Date.now();
-
-    // const newStartedDateObj = new Date(event.startDate);
-    // newStartedDateObj.setMinutes(newStartedDateObj.getMinutes() - 30);
-
-    // const newEndDateObj = new Date(event.endDate);
-    // newEndDateObj.setMinutes(newEndDateObj.getMinutes() + 30);
-
-    // if (now < newStartedDateObj.getTime()) {
-    //   throw new HttpError(400, ["O evento ainda não começou!"]);
-    // }
-    // if (now < newEndDateObj.getTime()) {
-    //   throw new HttpError(400, ["O evento já terminou!"]);
-    // }
 
     const attendance: Attendance = {
       userId: userId,
@@ -341,10 +335,11 @@ class EventService {
 
     let pointsForAttendance = 0;
 
-    if (event.type === EventTypes.MINICURSO) {
-      pointsForAttendance = 50;
-    } else if (event.type === EventTypes.PALESTRA) {
-      pointsForAttendance = 10;
+    if (
+      event.type === EventTypes.MINICURSO ||
+      event.type === EventTypes.PALESTRA
+    ) {
+      pointsForAttendance = EventPoints[event.type];
     }
 
     const userHouseMembership = await houseMemberService.findOne({ userId });

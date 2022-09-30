@@ -27,14 +27,14 @@ router.get(
 );
 
 // router.post(
-//   "/mark-presence/:eventId",
+//   "/mark-attendance/:eventId",
 //   [
 //     authMiddleware.authenticate,
 //     authMiddleware.authenticateUserHouse,
 //     authMiddleware.isAuthenticated,
 //     param("eventId", "Invalid field 'eventId'").not().isEmpty(),
 //   ],
-//   EventController.markPresence
+//   EventController.markAttendance
 // );
 
 router.post(
@@ -47,7 +47,17 @@ router.post(
   EventController.subscribe
 );
 
-router.delete(
+router.post(
+  "/:eventId/mark-attendance",
+  [
+    authMiddleware.authenticate,
+    authMiddleware.isAuthenticated,
+    param("eventId", "Invalid field 'eventId'").not().isEmpty(),
+  ],
+  EventController.markAttendanceByQrCode
+);
+
+router.post(
   "/:eventId/subscribe",
   [
     authMiddleware.authenticate,

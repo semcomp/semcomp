@@ -37,6 +37,8 @@ const Handlers = {
       API.delete(`/events/${eventId}/subscribe`)
     ),
     getCurrent: withNoErrorMessage(() => API.get("/events/current")),
+    markAttendance: withNoErrorMessage((eventId: string) => API.get(`/events/${eventId}`)),
+    markAttendanceByQrCode: withNoErrorMessage((eventId: string) => API.post(`/events/${eventId}/mark-attendance`)),
   },
   game: {
     createTeam: withCustomError((data) => API.post("/game/group", data), {

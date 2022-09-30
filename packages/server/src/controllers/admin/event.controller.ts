@@ -119,6 +119,18 @@ class EventController {
       return handleError(error, next);
     }
   }
+
+  public async createAttendanceQrCode(req, res, next) {
+    try {
+      const { eventId } = req.params;
+
+      const qrCode = await eventService.createAttendanceQrCode(eventId);
+
+      return res.status(200).json(qrCode);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
 }
 
 export default new EventController();

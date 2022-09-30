@@ -77,4 +77,14 @@ router.post(
   AdminEventController.markUserAttendance
 );
 
+router.post(
+  "/:eventId/qr-code",
+  [
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+    param("eventId", "Invalid field 'eventId'").not().isEmpty(),
+  ],
+  AdminEventController.createAttendanceQrCode
+);
+
 export default router;
