@@ -104,6 +104,12 @@ export default class UserController {
     return res.status(200).json(usersFound);
   }
 
+  public async stats(req, res, next) {
+    const usersStats = await userService.stats();
+
+    return res.status(200).json(usersStats);
+  }
+
   public async get(req, res, next) {
     try {
       const { id } = req.params;

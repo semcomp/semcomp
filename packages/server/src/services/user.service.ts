@@ -16,6 +16,7 @@ import AchievementCategories from "../lib/constants/achievement-categories-enum"
 import UserAchievement from "../models/user-achievement";
 import userDisabilityService from "./user-disability.service";
 import { PaginationRequest, PaginationResponse } from "../lib/pagination";
+import EventTypes from "../lib/constants/event-types-enum";
 
 const idService = new IdServiceImpl();
 
@@ -44,6 +45,13 @@ export interface UserService {
   }): Promise<PaginationResponse<User>>;
   findById(id: string): Promise<User>;
 }
+
+type UserStats = {
+  name: string;
+  email: string;
+  hours: number;
+  percentage: string;
+};
 
 class UserServiceImpl implements UserService {
   public async find({
@@ -205,6 +213,60 @@ class UserServiceImpl implements UserService {
         }
       }
     }
+  }
+
+  public async stats(): Promise<UserStats[]> {
+    const users = await this.find({ pagination: new PaginationRequest(1, 9999) });
+    const events = await eventService.find({
+      filters: { type: EventTypes.PALESTRA },
+      pagination: new PaginationRequest(1, 9999),
+    });
+
+    let allEventsDurationInMilliseconds = events.getEntities().reduce(
+      (previousDuration, event) => {
+        const eventDuration = event.endDate - event.startDate;
+
+        return previousDuration + eventDuration;
+      },
+      0,
+    );
+
+    const entities: UserStats[] = [];
+    for (const user of users.getEntities()) {
+      const userStats = {
+        name: user.name,
+        email: user.email,
+        hours: 0,
+        percentage: "0%"
+      };
+
+      const attendedEvents = await attendanceService.find(
+        {
+          userId: user.id,
+        }
+      );
+
+      let attendedEventsDurationInMilliseconds = 0;
+      for (const attendedEvent of attendedEvents) {
+        const event = events.getEntities().find((event) => event.id === attendedEvent.eventId);
+        if (!event) {
+          continue;
+        }
+
+        const eventDuration = event.endDate - event.startDate;
+
+        attendedEventsDurationInMilliseconds += eventDuration;
+      }
+
+      userStats.hours = attendedEventsDurationInMilliseconds / (60 * 60 * 1000);
+      userStats.percentage = `${(
+        attendedEventsDurationInMilliseconds / allEventsDurationInMilliseconds * 100
+      ).toFixed(2)}%`;
+
+      entities.push(userStats);
+    }
+
+    return entities;
   }
 
   private mapEntity(entity: Model<User> & User): User {
