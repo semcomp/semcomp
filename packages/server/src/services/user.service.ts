@@ -236,6 +236,7 @@ class UserServiceImpl implements UserService {
       const userStats = {
         name: user.name,
         email: user.email,
+        course: user.course,
         hours: 0,
         percentage: "0%"
       };
