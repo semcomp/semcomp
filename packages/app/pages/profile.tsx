@@ -235,11 +235,11 @@ function Profile() {
           onRequestClose={() => setIsAboutOverflowModalOpen(false)}
         />
       )}
-      {isFundacaoEstudarFormModalOpen && (
+      {/* {isFundacaoEstudarFormModalOpen && (
         <FundEstudarForm
           onRequestClose={() => setIsFundacaoEstudarFormModalOpen(false)}
         />
-      )}
+      )} */}
       {/* {isCoffeeModalOpen && (
         <CoffeePayment
           userHasPaid={userFetched?.payment?.status === "approved"}
@@ -280,13 +280,13 @@ function Profile() {
                     >
                       Scanear Presença
                     </button>
-                    <a
+                    {/*<a
                       target="_blank"
                       className="underline text-blue text-center"
                       href="https://perfil.napratica.org.br/e/pt-BR/processos/semana-de-computacao-do-icmc-usp-2dd6366b-14e8-4732-8ea6-7180f64e47ed/inscricao/nova"
                     >
                       Acesse aqui a pesquisa da Fundacao Estudar
-                    </a>
+                    </a>*/}
                   </div>
                 }
               </Card>

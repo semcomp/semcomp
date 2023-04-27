@@ -18,10 +18,15 @@ function AboutBeta() {
             Matemáticas e de Computação (ICMC) da USP de São Carlos.
           </p>
           <br />
-          <p>
-            A sua 25ª edição{" "}
-            <strong>ocorrerá entre os dias 24 e 30 de Setembro de 2022</strong>{" "}
+          <p> 
+            A sua 26ª edição{" "}
+            <strong>ocorrerá entre os dias 21 e 27 de Outubro de 2023</strong>{" "}
             de forma híbrida, com transmissões parciais pelo Youtube.
+          </p>
+          <br />
+          <p>
+            Já a Semcomp Beta{" "}
+            <strong>ocorrerá nos dias 02 e 03 de junho, também de 2023.</strong> 
           </p>
           <br />
           <p>Não deixe de participar, basta criar sua conta!</p>
