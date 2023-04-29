@@ -2,11 +2,13 @@ function Stats() {
   return (
     <>
       <section className="flex flex-col items-center text-white bg-primary text-center p-16">
+        
         <h1 className="text-4xl font-bold font-qatar text-secondary">
           Jogue o jogo da Semcomp 25!
         </h1>
         <div className="flex justify-around w-full text-2xl font-bold max-w-4xl">
-          {/* <p>
+        {/*
+          <p>
           +2000
           <br />
           Participantes
@@ -15,7 +17,8 @@ function Stats() {
           24
           <br />
           Edições
-        </p> */}
+        </p> 
+        */}
           <div className="flex flex-col items-center md:flex-row mt-4">
             <div className="p-4">
               <a

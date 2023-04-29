@@ -65,7 +65,7 @@ function Sponsors() {
           <br />
 
           <NavLink href={Routes.sponsors}>
-            <div className="bg-green p-3 rounded hover:bg-secondary hover:text-black">
+            <div className="bg-tertiary p-3 rounded hover:bg-secondary hover:text-black">
               Saiba mais
             </div>
           </NavLink>
