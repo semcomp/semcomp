@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import Image from "next/image";
+// import Image from "next/image";
 
-import { QRCodeSVG } from "qrcode.react";
+// import { QRCodeSVG } from "qrcode.react";
 import { Divider, List, ListItem, ListItemText } from "@mui/material";
 import Chip from "@mui/material/Chip";
 
@@ -13,17 +13,17 @@ import EditProfile from "../components/profile/edit-profile";
 import Registrations from "../components/profile/registrations";
 import Achievements from "../components/profile/achievements";
 import EventsOverview from "../components/events-overview";
-import HouseScores from "../components/house-scores";
-import AboutOverflow from "../components/profile/about-overflow";
-import AchievementsImages from "../components/profile/achievements_images";
-import CoffeePayment from "../components/profile/coffeePayment/coffee-modal";
+// import HouseScores from "../components/house-scores";
+// import AboutOverflow from "../components/profile/about-overflow";
+// import AchievementsImages from "../components/profile/achievements_images";
+// import CoffeePayment from "../components/profile/coffeePayment/coffee-modal";
 import RequireAuth from "../libs/RequireAuth";
-import PicaPau from "../assets/pica-pau.png";
-import OncaPintada from "../assets/onca-pintada.png";
-import TatuBola from "../assets/tatu-bola.png";
-import LoboGuara from "../assets/lobo-guara.png";
-import TelegramIcon from "@mui/icons-material/Telegram";
-import ImgLogo from "../assets/logo-24.png";
+// import PicaPau from "../assets/pica-pau.png";
+// import OncaPintada from "../assets/onca-pintada.png";
+// import TatuBola from "../assets/tatu-bola.png";
+// import LoboGuara from "../assets/lobo-guara.png";
+// import TelegramIcon from "@mui/icons-material/Telegram";
+// import ImgLogo from "../assets/logo-24.png";
 import { useAppContext } from "../libs/contextLib";
 import Card from "../components/Card";
 import FundEstudarForm from "../components/profile/fundEstudar";
@@ -39,8 +39,7 @@ function Profile() {
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
   const [events, setEvents] = useState([]);
   const [achievements, setAchievements] = useState([]);
-  const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] =
-    useState(false);
+  // const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] = useState(false);  // OBSERVAÇÃO: comentei pq está relacionado a casa do stack overflow
   // const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
   const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
     useState(true);
@@ -108,15 +107,17 @@ function Profile() {
   //     element.children[0].innerHTML = 'Voce está inscrito nesses eventos:';
   //   }
   // }
-  const userHouseName = userFetched?.house?.name;
-  const userHouseTelegram = userFetched?.house?.telegramLink;
 
-  const houseImageSrc = {
-    "Pica-pau": PicaPau,
-    "Onça-pintada": OncaPintada,
-    "Tatu-bola": TatuBola,
-    "Lobo-guara": LoboGuara,
-  }[userHouseName];
+  // OBERSERVAÇÃO; relacionado as casas do stackoverflow
+  // const userHouseName = userFetched?.house?.name;
+  // const userHouseTelegram = userFetched?.house?.telegramLink;
+
+  // const houseImageSrc = {
+  //   "Pica-pau": PicaPau,
+  //   "Onça-pintada": OncaPintada,
+  //   "Tatu-bola": TatuBola,
+  //   "Lobo-guara": LoboGuara,
+  // }[userHouseName];
 
   function toPascalCase(str: string) {
     return str
@@ -212,7 +213,7 @@ function Profile() {
             fetchUserData();
           }}
         />
-      )}
+        )}
       {isRegistrationsModalOpen && (
         <Registrations
           onRequestClose={() => {
@@ -230,16 +231,17 @@ function Profile() {
           conquistasLista={achievements}
         />
       )}
-      {isAboutOverflowModalOpen && (
+      {/** Relacionado as casa do stackoverflow */}
+      {/*{isAboutOverflowModalOpen && (
         <AboutOverflow
           onRequestClose={() => setIsAboutOverflowModalOpen(false)}
         />
-      )}
-      {/* {isFundacaoEstudarFormModalOpen && (
+      )}*/}
+      {isFundacaoEstudarFormModalOpen && (
         <FundEstudarForm
           onRequestClose={() => setIsFundacaoEstudarFormModalOpen(false)}
         />
-      )} */}
+      )}
       {/* {isCoffeeModalOpen && (
         <CoffeePayment
           userHasPaid={userFetched?.payment?.status === "approved"}
@@ -255,7 +257,7 @@ function Profile() {
           {userFetched && (
             <>
               <Card className="flex flex-col items-center p-9 w-full mb-6">
-                <QRCodeSVG value={userFetched && userFetched.id} />
+                {/* <QRCodeSVG value={userFetched && userFetched.id} /> */}
                 <p className="font-bold text-xl text-center my-3">
                   {userFetched.name}
                 </p>
@@ -271,22 +273,22 @@ function Profile() {
                     >
                       Editar
                     </button>
-                    <button
+                    {/* <button
                       onClick={() => {
                         setIsMarkAttendanceModalOpen(true);
                         blockBodyScroll();
                       }}
                       className="bg-primary text-white p-2 rounded-lg my-3"
                     >
-                      Scanear Presença
-                    </button>
-                    {/*<a
+                      Scanear Presença 
+                    </button> */}
+                    <a
                       target="_blank"
                       className="underline text-blue text-center"
                       href="https://perfil.napratica.org.br/e/pt-BR/processos/semana-de-computacao-do-icmc-usp-2dd6366b-14e8-4732-8ea6-7180f64e47ed/inscricao/nova"
                     >
                       Acesse aqui a pesquisa da Fundacao Estudar
-                    </a>*/}
+                    </a>
                   </div>
                 }
               </Card>
@@ -328,7 +330,8 @@ function Profile() {
               </Card>
             </>
           )}
-          {userFetched && (
+          {/** OBSERVAÇÃO: Não precisamos de informações relacionadas a casa, já que a beta não tem */}
+          {/* {userFetched && (
             <Card className="flex flex-col items-center p-9 w-full mb-6">
               <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                 Overflow
@@ -344,12 +347,12 @@ function Profile() {
               >
                 Entrar no grupo
                 <TelegramIcon />
-              </a>
-              {/* <button onClick={() => setIsAboutOverflowModalOpen(true)}>
+              </a> 
+              <button onClick={() => setIsAboutOverflowModalOpen(true)}>
                   O que é o Overflow?
-                </button> */}
+                </button>
             </Card>
-          )}
+          )} */}
           <Card className="flex flex-col items-center p-9 w-full mb-6">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Eventos
@@ -441,12 +444,12 @@ function Profile() {
               </button>
             }
           </div> */}
-          <Card className="flex flex-col items-center p-9 w-full mb-6">
+          {/* <Card className="flex flex-col items-center p-9 w-full mb-6">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Pontuações
             </h1>
             <HouseScores />
-          </Card>
+          </Card> */}
         </div>
         <div>
           <Card className="flex flex-col items-center p-9 mb-6 max-w-4xl">
