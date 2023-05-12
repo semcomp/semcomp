@@ -48,7 +48,7 @@ const Footer = () => {
           </div>
         </section>
         <section className="text-center py-4">
-          <p>© Semcomp 2022. Todos os direitos reservados.</p>
+          <p>© Semcomp 2023. Todos os direitos reservados.</p>
         </section>
         <section className="text-center py-4">
           <p>Nos siga nas redes sociais</p>
