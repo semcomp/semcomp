@@ -63,17 +63,18 @@ function Login() {
           <h1 className="text-xl">Entrar</h1>
           <form className="w-full" onSubmit={handleSubmit}>
             <Input
-              tooltip={
-                <div style={{ fontSize: "14px" }}>
-                  <p>
-                    Atenção: Se você já realizou o cadastro na Semcomp Beta, por
-                    favor, cadastre-se novamente.
-                  </p>
-                </div>
-              }
+              // Esse texto só existe durante a semcompona
+              // tooltip={
+              //   <div style={{ fontSize: "14px" }}>
+              //     <p>
+              //       Atenção: Se você já realizou o cadastro na Semcomp Beta, por
+              //       favor, cadastre-se novamente.
+              //     </p>
+              //   </div>
+              // }
               autofocus={true}
               className="my-3"
-              label="E-mail "
+              label="E-mail"
               value={email}
               onChange={handleEmailChange}
               type={InputType.Text}
