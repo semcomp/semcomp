@@ -1,20 +1,20 @@
 #header {
-  background-image: url("../assets/26-imgs/festa-junina2.jpg");
+  background-image: url("../assets/26-imgs/festa-junina.jpg");
   background-repeat: no-repeat;
   background-position: top;
   box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, .3);
-
 }
 
 #header-content {
-  display: none;
+  /* Estava None, deixei flex para manter o texto mesmo na tela fullscreen. */
+  /* O Ideal é ter 3 tipos de imagens -> Mobile, Normal Size e Grande: Onde a grande deve conter o texto Semcomp */
+  display: flex;
 }
 
 @media (max-width: 768px) {
   #header {
-    background-image: url("../assets/26-imgs/festa-junina2.jpg");
-    background-position: top;
-    background-size: contain;
+    background: url("../assets/26-imgs/festa-junina.jpg") top;
+    background-size: cover;
     background-color: #193D6F;
   }
 
@@ -25,7 +25,7 @@
 
 @media (min-width: 769px) and (max-width: 1700px) {
   #header {
-    background-image: url("../assets/26-imgs/festa-junina2.jpg");
+    background-image: url("../assets/26-imgs/festa-junina.jpg");
   }
 
   #header-content {
@@ -40,6 +40,6 @@
 
 @media (min-width: 1920px) {
   #header {
-    background: #193D6F url("../assets/26-imgs/festa-junina2.jpg") center repeat-x;
+    background: #193D6F url("../assets/26-imgs/festa-junina.jpg") top repeat-x;
   }
 }
