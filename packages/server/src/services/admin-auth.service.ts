@@ -39,7 +39,7 @@ class AdminAuthService {
 
     await emailService.send(
       createdAdminUser.email,
-      "Bem vindo a Semcomp 2022!",
+      "Bem vindo a Semcomp 2023!",
       `Você se cadastrou no nosso backoffice e já está tudo certo!!!`,
       `<div><h1>Voc&ecirc;&nbsp;se&nbsp;cadastrou&nbsp;no&nbsp;nosso&nbsp;app&nbsp;e&nbsp;j&aacute;&nbsp;est&aacute;&nbsp;tudo&nbsp;certo!!!</h1></div>`
     );

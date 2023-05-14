@@ -14,7 +14,8 @@ export default class PaymentController {
         req.user.id,
         req.body.withSocialBenefit,
         req.body.socialBenefitFileName,
-        req.body.tShirtSize,
+        // req.body.tShirtSize,
+        req.body.foodOption,
       );
 
       return res.status(200).json(payment);

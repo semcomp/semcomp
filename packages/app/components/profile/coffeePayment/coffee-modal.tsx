@@ -3,7 +3,7 @@ import { useState } from "react";
 import Modal from "../../Modal";
 import Stepper from "../../stepper/Stepper";
 import CoffeeStep1 from "./coffee-step-1";
-import CoffeeStep2, { CoffeePaymentData, TShirtSize } from "./coffee-step-2";
+import CoffeeStep2, { CoffeePaymentData, TShirtSize, FoodOption } from "./coffee-step-2";
 import CoffeeStep3 from "./coffee-step-3";
 
 function SemcompButton({ onClick, children, className, ...props }: any) {
@@ -26,7 +26,8 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
   const [data, setData] = useState({
     withSocialBenefit: false,
     socialBenefitFile: null,
-    tShirtSize: TShirtSize.M,
+    // tShirtSize: TShirtSize.M,
+    foodOption: FoodOption.NONE,
   } as CoffeePaymentData);
 
   const stepComponent = [
@@ -38,7 +39,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
   return (
     <Modal onRequestClose={onRequestClose}>
       <div className="w-full bg-tertiary text-white text-center text-xl font-bold p-6">
-        Pagamento por PIX do pacote da Semcomp!
+        Pagamento por PIX do Coffee da Semcomp!
       </div>
       <div className="max-h-lg overflow-y-scroll w-full p-6">
         <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} />

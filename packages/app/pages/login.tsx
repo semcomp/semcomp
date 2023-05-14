@@ -63,17 +63,18 @@ function Login() {
           <h1 className="text-xl">Entrar</h1>
           <form className="w-full" onSubmit={handleSubmit}>
             <Input
-              tooltip={
-                <div style={{ fontSize: "14px" }}>
-                  <p>
-                    Atenção: Se você já realizou o cadastro na Semcomp Beta, por
-                    favor, cadastre-se novamente.
-                  </p>
-                </div>
-              }
+              // Esse texto só existe durante a semcompona
+              // tooltip={
+              //   <div style={{ fontSize: "14px" }}>
+              //     <p>
+              //       Atenção: Se você já realizou o cadastro na Semcomp Beta, por
+              //       favor, cadastre-se novamente.
+              //     </p>
+              //   </div>
+              // }
               autofocus={true}
               className="my-3"
-              label="E-mail "
+              label="E-mail"
               value={email}
               onChange={handleEmailChange}
               type={InputType.Text}
@@ -104,7 +105,7 @@ function Login() {
                 Esqueci minha senha
               </div>
             </Link>
-            {/* <p>
+            <p>
               Não tem conta?{" "}
               <Link href="/signup">
                 <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
@@ -112,7 +113,7 @@ function Login() {
                   Crie uma agora!
                 </a>
               </Link>
-            </p> */}
+            </p>
           </form>
         </Card>
         <div id="info-semcomp">

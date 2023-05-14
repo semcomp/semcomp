@@ -61,11 +61,13 @@ const Handlers = {
     createPayment: (
       withSocialBenefit: boolean,
       socialBenefitFileName: string,
-      tShirtSize: string,
+      // tShirtSize: string,
+      foodOption: string,
     ) => API.post("/payments", {
       withSocialBenefit,
       socialBenefitFileName,
-      tShirtSize,
+      // tShirtSize,
+      foodOption,
     })
   },
   upload: {

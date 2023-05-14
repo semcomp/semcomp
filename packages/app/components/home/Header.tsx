@@ -17,7 +17,7 @@ const HomeHeader = (): ReactElement => {
         className="flex flex-col items-center px-14 text-center justify-between h-72"
       >
         <h1 id="title" className="text-5xl md:text-9xl">
-          SEMCOMP 25
+          SEMCOMP 26
         </h1>
         <h1 id="subtitle" className="text-sm md:text-3xl text-white">
           A maior semana acadêmica de computação do Brasil!

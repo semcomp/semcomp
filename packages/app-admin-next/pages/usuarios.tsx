@@ -6,7 +6,7 @@ import SemcompApi from '../api/semcomp-api';
 import { useAppContext } from '../libs/contextLib';
 import { PaymentStatus, SemcompApiUser } from '../models/SemcompApiModels';
 import DataPage from '../components/DataPage';
-import { TShirtSize } from '../components/t-shirt/TShirtForm';
+// import { TShirtSize } from '../components/t-shirt/TShirtForm';
 import { PaginationRequest, PaginationResponse } from '../models/Pagination';
 import exportToCsv from '../libs/DownloadCsv';
 
@@ -18,7 +18,7 @@ type UserData = {
   "Telegram": string,
   "Casa": string,
   "Status do pagamento": string,
-  "Tamanho da camiseta": TShirtSize,
+  // "Tamanho da camiseta": TShirtSize,
   "Permite divulgação?": string,
   "Criado em": string,
 }
@@ -28,6 +28,7 @@ function mapData(data: SemcompApiUser[]): UserData[] {
   for (const user of data) {
     let paymentStatus = "";
     if (user.payment.status) {
+      console.log(user.payment.status);
       paymentStatus = user.payment.status === PaymentStatus.APPROVED ? "Aprovado" : "Pendente";
     }
 
@@ -39,7 +40,7 @@ function mapData(data: SemcompApiUser[]): UserData[] {
       "Telegram": user.telegram,
       "Casa": user.house.name,
       "Status do pagamento": paymentStatus,
-      "Tamanho da camiseta": user.payment.tShirtSize,
+      // "Tamanho da camiseta": user.payment.tShirtSize,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
       "Criado em": new Date(user.createdAt).toISOString(),
     })

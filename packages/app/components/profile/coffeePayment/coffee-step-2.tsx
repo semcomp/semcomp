@@ -1,4 +1,6 @@
+import { ReactHTMLElement } from "react";
 import Input, { InputType } from "../../Input";
+import CoffeePayment from "./coffee-modal";
 
 export enum TShirtSize {
   PP = "PP",
@@ -10,12 +12,21 @@ export enum TShirtSize {
   XGG2 = "XGG2",
 }
 
-const TShirtSizes = Object.values(TShirtSize);
+
+export enum FoodOption {
+  NONE = "Nenhuma", 
+  VEGAN = "Vegano",
+  VEGETARIAN = "Vegetariano",
+}
+
+// const TShirtSizes = Object.values(TShirtSize);
+const foodOptions = Object.values(FoodOption);
 
 export type CoffeePaymentData = {
   withSocialBenefit: boolean;
   socialBenefitFile: File;
-  tShirtSize: TShirtSize;
+  // tShirtSize: TShirtSize;
+  foodOption: FoodOption;
 };
 
 function CoffeeStep2({
@@ -39,9 +50,14 @@ function CoffeeStep2({
     setData({ ...data, socialBenefitFile: value });
   }
 
-  function handleTShirtSizeChange(event: React.ChangeEvent<HTMLInputElement>) {
+  // function handleTShirtSizeChange(event: React.ChangeEvent<HTMLInputElement>) {
+  //   const value = event.target.value;
+  //   setData({ ...data, tShirtSize: value });
+  // }
+
+  function handlefoodOptionChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
-    setData({ ...data, tShirtSize: value });
+    setData({...data, foodOption: value});
   }
 
   return (
@@ -66,12 +82,20 @@ function CoffeeStep2({
           type={InputType.File}
         />
       )}
-      <Input
+      {/* <Input
         className="my-3"
         label="Tamanho da camiseta"
         value={data.tShirtSize}
         onChange={handleTShirtSizeChange}
         choices={TShirtSizes}
+        type={InputType.Select}
+      /> */}
+      <Input
+        className="my-3"
+        label="Possui alguma restrição alimentar?"
+        value={data.foodOption}
+        onChange={handlefoodOptionChange}
+        choices={foodOptions}
         type={InputType.Select}
       />
     </div>
