@@ -26,7 +26,7 @@ function AboutBeta() {
           <br />
           <p>
             Já a Semcomp Beta{" "}
-            <strong>ocorrerá nos dias 02 e 03 de junho, também de 2023.</strong> 
+            <strong>ocorrerá nos dias 03 e 04 de junho, também de 2023.</strong> 
           </p>
           <br />
           <p>Não deixe de participar, basta criar sua conta!</p>
