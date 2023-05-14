@@ -11,7 +11,7 @@ import Image from "next/image";
 function CoffeeStep3({data}: {data: CoffeePaymentData}) {
   const [qrCodeBase64, setqrCodeBase64] = useState("");
   const [qrCodeCopyPaste, setqrCodeCopyPaste] = useState("");
-
+  
   async function getPayment() {
     try {
       let fileName: string = null;
@@ -20,14 +20,14 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
         fileName = uploadResponse.fileName;
       }
       const { data: paymentResponse } = await API.coffee.createPayment(
-        data.withSocialBenefit, fileName, data.tShirtSize
-      );
-      setqrCodeBase64(paymentResponse.qrCodeBase64);
-      setqrCodeCopyPaste(paymentResponse.qrCode);
-    } catch (error) {
-      toast.error(error?.data?.message[0]);
-      console.error(error);
-    }
+        data.withSocialBenefit, fileName, data.foodOption,
+        );
+        setqrCodeBase64(paymentResponse.qrCodeBase64);
+        setqrCodeCopyPaste(paymentResponse.qrCode);
+      } catch (error) {
+        toast.error(error?.data?.message[0]);
+        console.error(error);
+      }
   }
 
   useEffect(() => {
@@ -53,7 +53,7 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
             style={{ flexDirection: "column" }}
           >
             <p>Escaneie o QR Code abaixo ou copie e cole o código do PIX</p>
-            <b className="py-3">Valor: R${data.withSocialBenefit ? "32.50" : "65.00"}</b>
+            <b className="py-3">Valor: R${data.withSocialBenefit ? "7.00" : "14.00"}</b>
             <p>
               Depois de realizar o pagamento no seu banco, clique em fechar e
               atualize a página.

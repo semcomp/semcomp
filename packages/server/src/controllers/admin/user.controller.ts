@@ -15,9 +15,10 @@ import adminLogService from "../../services/admin-log.service";
 import userDisabilityService from "../../services/user-disability.service";
 import Disability from "../../lib/constants/disability-enum";
 import PaymentServiceImpl from "../../services/payment-impl.service";
-import TShirtSize from "../../lib/constants/t-shirt-size-enum";
+// import TShirtSize from "../../lib/constants/t-shirt-size-enum";
 import PaymentStatus from "../../lib/constants/payment-status-enum";
 import { PaginationRequest, PaginationResponse } from "../../lib/pagination";
+import FoodOption from "../../lib/constants/food-option-enum";
 
 export default class UserController {
   private paymentService: PaymentServiceImpl;
@@ -46,7 +47,8 @@ export default class UserController {
       },
       payment: {
         status: PaymentStatus,
-        tShirtSize: TShirtSize,
+        // tShirtSize: TShirtSize,
+        foodOption: FoodOption,
       },
       disabilities: Disability[]
     })
@@ -78,7 +80,8 @@ export default class UserController {
         },
         payment: {
           status: userPayment ? userPayment.status : null,
-          tShirtSize: userPayment ? userPayment.tShirtSize : null,
+          // tShirtSize: userPayment ? userPayment.tShirtSize : null,
+          foodOption: userPayment ? userPayment.foodOption : null,
         },
         disabilities: userDisabilities
           .filter((userDisability) => userDisability.userId === user.id)

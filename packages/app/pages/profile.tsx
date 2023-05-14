@@ -16,7 +16,7 @@ import EventsOverview from "../components/events-overview";
 // import HouseScores from "../components/house-scores";
 // import AboutOverflow from "../components/profile/about-overflow";
 // import AchievementsImages from "../components/profile/achievements_images";
-// import CoffeePayment from "../components/profile/coffeePayment/coffee-modal";
+import CoffeePayment from "../components/profile/coffeePayment/coffee-modal";
 import RequireAuth from "../libs/RequireAuth";
 // import PicaPau from "../assets/pica-pau.png";
 // import OncaPintada from "../assets/onca-pintada.png";
@@ -40,9 +40,9 @@ function Profile() {
   const [events, setEvents] = useState([]);
   const [achievements, setAchievements] = useState([]);
   // const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] = useState(false);  // OBSERVAÇÃO: comentei pq está relacionado a casa do stack overflow
-  // const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
-  const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
-    useState(true);
+  const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
+  // const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
+  //   useState(true);
 
   async function fetchAchievements() {
     try {
@@ -237,12 +237,8 @@ function Profile() {
           onRequestClose={() => setIsAboutOverflowModalOpen(false)}
         />
       )}*/}
-      {isFundacaoEstudarFormModalOpen && (
-        <FundEstudarForm
-          onRequestClose={() => setIsFundacaoEstudarFormModalOpen(false)}
-        />
-      )}
-      {/* {isCoffeeModalOpen && (
+
+      {isCoffeeModalOpen && (
         <CoffeePayment
           userHasPaid={userFetched?.payment?.status === "approved"}
           onRequestClose={() => {
@@ -250,7 +246,7 @@ function Profile() {
             removeBodyStyle();
           }}
         />
-      )} */}
+      )}
       <Header />
       <main className="p-8 h-full w-full self-center justify-center col-gap-4 min-h-[70vh] md:flex">
         <div className="flex flex-col self-start w-full md:w-60">
@@ -273,7 +269,7 @@ function Profile() {
                     >
                       Editar
                     </button>
-                    {/* <button
+                    {/* <button BETA NAO TEM PRESENCA
                       onClick={() => {
                         setIsMarkAttendanceModalOpen(true);
                         blockBodyScroll();
@@ -282,13 +278,6 @@ function Profile() {
                     >
                       Scanear Presença 
                     </button> */}
-                    <a
-                      target="_blank"
-                      className="underline text-blue text-center"
-                      href="https://perfil.napratica.org.br/e/pt-BR/processos/semana-de-computacao-do-icmc-usp-2dd6366b-14e8-4732-8ea6-7180f64e47ed/inscricao/nova"
-                    >
-                      Acesse aqui a pesquisa da Fundacao Estudar
-                    </a>
                   </div>
                 }
               </Card>
@@ -296,15 +285,15 @@ function Profile() {
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Coffee
                 </h1>
-                {/* <p>Pague com PIX o Coffee + Kit da Semcomp 25</p> */}
+                <p style={{ fontSize: "1rem" }}>Pague com PIX o Coffee</p>
                 {userFetched.payment.status === "approved" ? (
                   <>
                     <Chip label="OK" color="success" />
-                    <Chip
+                    {/* <Chip
                       className="mt-3"
-                      label={`Camiseta ${userFetched.payment.tShirtSize}`}
+                      // label={`Camiseta ${userFetched.payment.tShirtSize}`}
                     />
-                    {/* <button
+                    <button
                       onClick={() => {
                         setIsCoffeeModalOpen(true);
                         blockBodyScroll();
@@ -315,15 +304,15 @@ function Profile() {
                   </>
                 ) : (
                   <>
-                    {/* <button
+                    <button
                       onClick={() => {
                         setIsCoffeeModalOpen(true);
                         blockBodyScroll();
                       }}
                       className="bg-tertiary text-white p-2 rounded-lg mt-2"
                     >
-                      Comprar pacote
-                    </button> */}
+                      Comprar Coffee
+                    </button>
                     <Chip className="mt-3" label="---" disabled={true} />
                   </>
                 )}
@@ -354,19 +343,9 @@ function Profile() {
             </Card>
           )} */}
           <Card className="flex flex-col items-center p-9 w-full mb-6">
-            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-              Eventos
+            <h1 style={{ fontSize: "1rem", marginBottom: "1rem" }}>
+              Inscrições em Eventos
             </h1>
-            <div className="text-center">
-              <h3 className="text-md text-center">CTS (CTF da Semcomp)</h3>
-              <a
-                target="_blank"
-                className="underline text-tertiary text-center pb-4"
-                href="https://bit.ly/cts_nivel0"
-              >
-                Se inscreva aqui!
-              </a>
-            </div>
             <List className="events-list text-center">
               {Object.keys(events).map((type) =>
                 events[type].map((e) =>

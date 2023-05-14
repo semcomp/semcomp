@@ -61,10 +61,10 @@ class TShirtService {
   }
 
   public async update(tShirt: TShirt): Promise<TShirt> {
-    const paymentsWithThisTShirtSize = await paymentService.count({ tShirtSize: tShirt.size });
-    if (paymentsWithThisTShirtSize > tShirt.quantity) {
-      throw new HttpError(400, ["O número de camisetas não pode ser menos que o já utilizado!"]);
-    }
+    // const paymentsWithThisTShirtSize = await paymentService.count({ tShirtSize: tShirt.size });
+    // if (paymentsWithThisTShirtSize > tShirt.quantity) {
+    //   throw new HttpError(400, ["O número de camisetas não pode ser menos que o já utilizado!"]);
+    // }
 
     tShirt.updatedAt = Date.now();
     const entity = await TShirtModel.findOneAndUpdate({ id: tShirt.id }, tShirt);
@@ -89,7 +89,8 @@ class TShirtService {
     for (const tShirt of tShirts.getEntities()) {
       entities.push({
         ...tShirt,
-        usedQuantity: await paymentService.count({ tShirtSize: tShirt.size }),
+        usedQuantity: 0,
+        // await paymentService.count({ tShirtSize: tShirt.size }),
       });
     }
 

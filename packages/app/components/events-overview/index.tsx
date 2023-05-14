@@ -50,10 +50,10 @@ function EventsOverview() {
 
   return (
     <div className="events-overview-component__root">
-      <p className="events-overview-component__title">Presenças</p>
-      <div className="events-overview-component__types-container">
+      <p className="events-overview-component__title">Eventos</p>
+      {/* <div className="events-overview-component__types-container">
         {renderEvents()}
-      </div>
+      </div> */}
     </div>
   );
 }
