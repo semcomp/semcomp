@@ -1,7 +1,7 @@
 // import SemcompImage from '../../assets/logo_semcompbeta.jpg';
 
 // import AmdocsLogo from "../assets/sponsors/svg/amdocs.svg";
-import FEstudar from "../assets/sponsors/FundacaoEstudar.png";
+// import FEstudar from "../assets/sponsors/FundacaoEstudar.png";
 // import EyLogoSF from "../assets/sponsors/EYLogoSemFundo.png";
 import GaneshImage from "../assets/sponsors/ganesh.png";
 // import GriauleLogo from "../assets/sponsors/GriauleLogo.svg";
@@ -130,12 +130,12 @@ const supportersInfo = [
     logo: GemaImage,
     description: "",
   },
-  {
-    name: "FundacaoEstudar",
-    link: "https://www.estudar.org.br/",
-    logo: FEstudar,
-    description: "",
-  },
+  // {
+  //   name: "FundacaoEstudar",
+  //   link: "https://www.estudar.org.br/",
+  //   logo: FEstudar,
+  //   description: "",
+  // },
   
 ];
 
