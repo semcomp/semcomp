@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import AmdocsLogo from "../../assets/sponsors/svg/amdocs.svg";
-import FEstudar from "../../assets/sponsors/FundacaoEstudar.png";
+// import FEstudar from "../../assets/sponsors/FundacaoEstudar.png";
 import EyLogo from "../../assets/sponsors/EYlogoVertical.jpeg";
 import EyLogoSF from "../../assets/sponsors/EYLogoSemFundo.png";
 import GaneshImage from "../../assets/sponsors/ganesh.png";
@@ -22,7 +22,7 @@ import Image, { StaticImageData } from "next/image";
 import NavLink from "../navbar/nav-link";
 
 function Sponsors() {
-  const supporterLogos = [IcmcImage, PetImage, CodelabImage, FogImage, Ganesh, Gema, FEstudar];
+  const supporterLogos = [IcmcImage, PetImage, CodelabImage, FogImage, Ganesh, Gema];
   const sponsorsLogos = [AmdocsLogo, EyLogoSF, GriauleLogo, LuizalabsLogo, RaizenLogo, SerasaLogo, TokenlabLogo, TractianLogo];
 
   return (

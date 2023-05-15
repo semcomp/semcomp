@@ -100,7 +100,7 @@ export default class PaymentServiceImpl implements PaymentService {
     //   throw new HttpError(400, []);
     // }
 
-    const price = withSocialBenefit ? 0.1 : 0.1;
+    const price = withSocialBenefit ? 7.0 : 14.0;
 
     const userPayments = await this.find({ userId });
     const approvedPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.APPROVED);
