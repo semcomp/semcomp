@@ -67,6 +67,11 @@ function Step0({
         type={InputType.Text}
       />
       <Input
+          tooltip={
+          <div style={{ fontSize: "14px" }}>
+            Por favor, cadastre um e-mail válido.
+          </div>
+        }
         className="my-3"
         label="E-mail"
         value={email}
