@@ -27,11 +27,20 @@
 @import "./Spinner.css";
 
 @font-face {
+  font-family: "SomeTimeLater";
+  src: url("../assets/SomeTimeLater.otf");
+}
+@font-face {
+  font-family: "HeyGotcha";
+  src: url("../assets/HeyGotcha.otf");
+}
+@font-face {
   font-family: "Staatliches";
   src: url("../assets/Staatliches-Regular.woff"),
     url("../assets/Staatliches-Regular.ttf"),
     url("../assets/Staatliches-Regular.eot");
 }
+
 
 @font-face {
   font-family: "Qatar2022-Bold";
@@ -42,13 +51,12 @@
   font-family: "Qatar2022-Heavy";
   src: url("../assets/Qatar2022Arabic-Heavy.ttf");
 }
-
 :root {
-  --color-blue-main: #065B84;
+  --color-blue-main:#173A72;
   --color-dark-blue: #009541;
   --color-blue-secondary: #f2ece5;
-  --color-pink: #ECE5F0;
-  --color-green: #009541;
+  --color-pink:#E83C50;
+  --color-green: #7EBE51;
   --color-orange: #EC4E20;
 
   --color-black-main: #1d1d1b;
@@ -63,6 +71,12 @@
   --color-semcomp25-white: #ECE5F0;
   --color-semcomp25-orange: #EC4E20;
   
+
+  --color-semcomp26-green: #ffffff;
+  --color-semcomp26-yellow: #FFDF00;
+  --color-semcomp26-blue: #002776;
+  --color-semcomp26-white: #ECE5F0;
+  --color-semcomp26-orange: #EC4E20;
 }
 
 body,
@@ -89,4 +103,8 @@ a {
 
 * {
   box-sizing: border-box;
+}
+
+button{
+  font-family: HeyGotcha;
 }

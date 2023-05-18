@@ -2,9 +2,16 @@
   background-image: url("../assets/26-imgs/festa-junina.jpg");
   background-repeat: no-repeat;
   background-position: top;
-  box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, .3);
+  box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.35);
 }
-
+#title{
+  
+  text-shadow: -0.06em 0.08em 0 #3d200fcc;
+}
+#subtitle{
+  font-family: HeyGotcha;
+  text-shadow: -0.1em 0.1em 0 #3d200fcc;
+}
 #header-content {
   /* Estava None, deixei flex para manter o texto mesmo na tela fullscreen. */
   /* O Ideal é ter 3 tipos de imagens -> Mobile, Normal Size e Grande: Onde a grande deve conter o texto Semcomp */
