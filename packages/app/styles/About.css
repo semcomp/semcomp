@@ -1,5 +1,7 @@
 #titulo {
     font-family: SomeTimeLater;
+    
+    letter-spacing: 0.1em;
     color:#ffffff;
     text-shadow: -0.06em 0.08em 0 #000000cc;
     background-color: var(--color-blue-main);
