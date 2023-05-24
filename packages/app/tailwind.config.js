@@ -13,9 +13,9 @@ module.exports = {
       xl: "1440px",
     },
     colors: {
-      primary: "#16264C",
-      secondary: "#FCE46D",
-      tertiary: "#EC4E20",
+      primary: "#173A72",
+      secondary: "#EAD859",
+      tertiary: "#E83C50",
       blue: "#002776",
       orange: "#EC4E20",
       green: "#009541",
@@ -28,7 +28,7 @@ module.exports = {
       hoverWhite: "rgba(255, 255, 255, 0.3)",
     },
     fontFamily: {
-      primary: ["Staatliches", "sans-serif"],
+      primary: ["SomeTimeLater"],
       qatar: ["Qatar2022-Bold"],
     },
     extend: {},
