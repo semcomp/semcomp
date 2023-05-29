@@ -102,10 +102,11 @@ const FAQ = () => {
             question="Tem premiação?"
             answer="Sim! Campeonatos da game night e concursos terão premiações, mas não esqueça que, para poder participar, é preciso estar inscrito na Semcomp."
           />
+          {/*
           <Question
             question="Qual o percentual de presença é preciso alcançar durante a SEMCOMP?"
             answer="É necessário ter 70% de presença, que pode ser obtida através da participação nas palestras. Mas é importante participar dos outros eventos que além de muito interessantes, vão contar pontos para o Overflow! Se você trabalha e não consegue atingir esse percentual, basta justificar com diretamente com seus professores."
-          />
+        />*/}
         </div>
       </section>
     </>
