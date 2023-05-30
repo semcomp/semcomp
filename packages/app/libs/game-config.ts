@@ -19,8 +19,12 @@ export default class GameConfig {
     this.game = game;
   }
 
-  public getGame(): Game {
-    return this.game;
+  public getGame(): string {
+    if (this.game === Game.HARD_TO_CLICK) {
+      return 'hard-to-click';
+    } else {
+      return this.game;
+    }
   }
 
   public getRoutes(): { [key: string]: string } {
@@ -38,11 +42,11 @@ export default class GameConfig {
   }
 
   public getStartDate(): Date {
-    return new Date("2022-09-23 17:30");
+    return new Date("2022-01-23 17:30");
   }
 
   public getEndDate(): Date {
-    return new Date("2022-09-28 17:30");
+    return new Date("2023-09-28 17:30");
   }
 
   public getNumberOfQuestions(): number {

@@ -41,18 +41,18 @@ const Handlers = {
     markAttendanceByQrCode: withNoErrorMessage((token: string) => API.post(`/events/mark-attendance`, { token })),
   },
   game: {
-    createTeam: withCustomError((data) => API.post("/game/group", data), {
+    createTeam: withCustomError((data) => API.post("/game/hard-to-click/group", data), {
       400: "Este nome já existe!",
     }),
     joinTeam: withCustomError(
-      (teamId) => API.put("/game/group/join?id=" + teamId),
+      (teamId) => API.put("/game/hard-to-click/group/join?id=" + teamId),
       { 418: `O limite de jogadores já foi atingido` },
     ),
-    leaveTeam: () => API.put("/game/group/leave"),
-    useClue: () => API.post("/game/group/use-clue"),
-    useSkip: () => API.post("/game/group/use-skip"),
+    leaveTeam: () => API.put("/game/hard-to-click/group/leave"),
+    useClue: () => API.post("/game/hard-to-click/group/use-clue"),
+    useSkip: () => API.post("/game/hard-to-click/group/use-skip"),
 
-    getQuestion: (questionIndex) => API.get("/game/question/" + questionIndex),
+    getQuestion: (questionIndex) => API.get("/game/hard-to-click/question/" + questionIndex),
   },
   achievements: {
     getAchievements: withNoErrorMessage(() => API.get("/achievements")),

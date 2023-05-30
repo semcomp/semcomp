@@ -50,7 +50,7 @@ const io = new Server(httpServer, {
   cors: corsConfig,
 });
 
-new GameController(io, Game.RIDDLE);
+new GameController(io, Game.HARD_TO_CLICK);
 
 app.use(cors(corsConfig));
 

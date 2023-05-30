@@ -137,7 +137,7 @@ function Countdown({ team, target, onSubmit }) {
       ) : (
         <>
           {/* <div>Riddlethon já disponível!</div> */}
-          <div>Riddle já disponível!</div>
+          <div>Duro de Clicar já disponível!</div>
           <Button
             variant="contained"
             onClick={onSubmit}
@@ -160,7 +160,6 @@ function Lobby({
 }: { gameConfig: GameConfig } & any) {
   const { user: me } = useAppContext();
   const router = useRouter();
-  console.log(team);
 
   function canAddTeammates() {
     if (team.members.length >= 3) return false;

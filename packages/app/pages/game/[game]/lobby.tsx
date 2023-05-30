@@ -33,26 +33,61 @@ export default function GamePage({children}) {
   );
   const { token } = useAppContext();
 
-  const [component, setComponent] = useState(null);
-
-  function send(eventType, ...args) {
-    return socket.emit(eventType, token, ...args);
-  }
-
-  async function once(eventName) {
-    return new Promise((resolve) => {
-      socket.once(eventName, resolve);
-    });
-  }
-
-  const on = socket.on.bind(socket);
-  const off = socket.off.bind(socket);
-
   const [isHappening, setIsHappening] = useState(verifyIfIsHappening());
 
+  // if (isHappening && router.asPath !== gameConfig.getRoutes()[GameRoutes.LOBBY]) {
+  //   router.push(gameConfig.getRoutes()[GameRoutes.LOBBY]);
+  // } else if (router.asPath !== gameConfig.getRoutes()[GameRoutes.GAME_OVER]) {
+  //   router.push(gameConfig.getRoutes()[GameRoutes.GAME_OVER]);
+  // }
+
+  function handleGoToGame() {
+    router.push(gameConfig.getRoutes()[GameRoutes.PLAY]);
+  }
+
+  function handleCreateGroup(name: string) {
+    setIsFetchingTeam(true);
+    socket.emit(`${gameConfig.getGame()}-create-group`, {token, name});
+  }
+
+  function handleGoToCreateTeam() {
+    router.push(gameConfig.getRoutes()[GameRoutes.CREATE_TEAM]);
+  }
+
+  function handleGoToJoinTeam() {
+    // setComponent(<JoinTeam></JoinTeam>);
+  }
+
+  function handleNewGroupInfo(info) {
+    if (info) {
+      setTeam(info);
+      setTimeout(() => console.log(team), 1000)
+    }
+    setIsFetchingTeam(false);
+  }
+
+  useEffect(() => {
+    if (!gameConfig.getGame()) {
+      return;
+    }
+
+    socket.on(`${gameConfig.getGame()}-group-info`, handleNewGroupInfo);
+
+    return () => {
+      socket.off(`${gameConfig.getGame()}-group-info`, handleNewGroupInfo);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!gameConfig.getGame() || !token) {
+      return;
+    }
+
+    socket.emit(`${gameConfig.getGame()}-join-group-room`, {token});
+  }, []);
+
   function verifyIfIsHappening() {
-    console.log(new Date(Math.max(Date.now() - gameConfig.getStartDate().getTime(), 0)).getTime() > 0)
-    if (new Date(Math.max(Date.now() - gameConfig.getStartDate().getTime(), 0)).getTime() > 0) {
+    if (Date.now() - gameConfig.getStartDate().getTime() < 0) {
       return false;
     }
     return true;
@@ -68,94 +103,18 @@ export default function GamePage({children}) {
     return () => clearInterval(handler);
   }, []);
 
-  // if (isHappening && router.asPath !== gameConfig.getRoutes()[GameRoutes.LOBBY]) {
-  //   router.push(gameConfig.getRoutes()[GameRoutes.LOBBY]);
-  // } else if (router.asPath !== gameConfig.getRoutes()[GameRoutes.GAME_OVER]) {
-  //   router.push(gameConfig.getRoutes()[GameRoutes.GAME_OVER]);
-  // }
-
-  function handleNewCorrectAnswer({ index, correct }) {
-    if (!correct) return;
-    if (team.completedQuestions.length === gameConfig.getNumberOfQuestions()) {
-      // router.push(gameConfig.getRoutes()[GameRoutes.GAME_OVER]);
-    }
-    setTeam({
-      ...team,
-      completedQuestions: [...team.completedQuestions, index],
-    });
-  }
-
-  function handleGoToGame() {
-    setComponent(<Game1
-      setTeam={setTeam}
-      team={team}
-      socket={socket}
-      gameConfig={gameConfig}
-      token={token}
-    ></Game1>)
-    router.push(gameConfig.getRoutes()[GameRoutes.PLAY]);
-  }
-
-  function handleCreateGroup(name: string) {
-    setIsFetchingTeam(true);
-    socket.emit(`${gameConfig.getGame()}-create-group`, {token, name});
-  }
-
-  function handleGoToCreateTeam() {
-    setComponent(<CreateGroup gameConfig={gameConfig} socket={socket} handleCreateGroup={handleCreateGroup}></CreateGroup>);
-  }
-
-  function handleGoToJoinTeam() {
-    setComponent(<JoinTeam></JoinTeam>);
-  }
-
-  function handleNewGroupInfo(info) {
-    if (info) {
-      setTeam(info);
-      setTimeout(() => console.log(team), 1000)
-    }
-    setComponent(<Lobby
-      gameConfig={gameConfig}
-      team={info}
-      goToGame={handleGoToGame}
-      goToCreateTeam={handleGoToCreateTeam}
-      goToJoinTeam={handleGoToJoinTeam}
-    ></Lobby>)
-    setIsFetchingTeam(false);
-  }
-
-  useEffect(() => {
-    if (!gameConfig.getGame()) {
-      return;
-    }
-
-    socket.on(`${gameConfig.getGame()}-group-info`, handleNewGroupInfo);
-
-    return () => {
-      socket.off(`${gameConfig.getGame()}-group-info`, handleNewGroupInfo);
-    };
-  }, [team, gameConfig]);
-
-  useEffect(() => {
-    if (!gameConfig.getGame() || component || !token) {
-      return;
-    }
-    socket.emit(`${gameConfig.getGame()}-join-group-room`, {token});
-    setComponent(<Lobby
-      gameConfig={gameConfig}
-      team={team}
-      goToGame={handleGoToGame}
-      goToCreateTeam={handleGoToCreateTeam}
-      goToJoinTeam={handleGoToJoinTeam}
-    ></Lobby>);
-  }, [gameConfig]);
-
   return (<>
     <Navbar />
       <div className='p-6'>
         <Card className='p-6'>
           {
-            !isFetchingTeam && component
+            (!isFetchingTeam && isHappening) && <Lobby
+              gameConfig={gameConfig}
+              team={team}
+              goToGame={handleGoToGame}
+              goToCreateTeam={handleGoToCreateTeam}
+              goToJoinTeam={handleGoToJoinTeam}
+            ></Lobby>
           }
         </Card>
       </div>

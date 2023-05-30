@@ -55,7 +55,7 @@ function GameStart({ gameConfig }: { gameConfig: GameConfig }) {
         </p>
         <div className="flex justify-center">
           <button className="bg-tertiary text-white text-lg md:text-2xl m-2 p-2 md:p-4 rounded-2xl hover:bg-secondary hover:text-black w-fit">
-            <Link href={gameConfig.getRoutes()[GameRoutes.BASE]}>Jogar</Link>
+            <Link href={gameConfig.getRoutes()[GameRoutes.LOBBY]}>Jogar</Link>
           </button>
         </div>
       </div>
