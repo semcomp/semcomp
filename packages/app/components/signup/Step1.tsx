@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import { toast } from "react-toastify";
 import {
   Divider,
@@ -93,20 +92,26 @@ function Step1(
   };
   const [isPrivacyPolicyModalOpen, setIsPrivacyPolicyModalOpen] =
     useState(false);
-
-  function handleSubmit(event) {
+  
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    console.log("handleSubmit")
     event.preventDefault(); // Stops the page from reloading
-
+    
     if (!termsOfUse) {
       return toast.error(
         "Você deve aceitar os termos de uso para realizar o cadastro!"
-      );
-    }
-
+        );
+      }
+    setIsButtonDisabled(true);
+    setTimeout(()=> {
+      setIsButtonDisabled(false);
+    }, 2000);
+    
     // Alerts the parent component that the user want to move to the next step.
     // (which in this case, since it's the last step, a request to the server will be made).
     if (onSubmit) onSubmit(event);
-  }
+  };
 
   return (
     <form className="w-full" onSubmit={handleSubmit}>
@@ -194,7 +199,7 @@ function Step1(
       <LoadingButton
         type="submit"
         className="bg-primary disabled:bg-black disabled:opacity-50 transition-all text-white font-bold w-full py-3 shadow"
-        disabled={!termsOfUse}
+        disabled={!termsOfUse || isButtonDisabled}
         // Show a cool spinner if a request is already being made
         isLoading={isSigningUp}
       >
