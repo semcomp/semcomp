@@ -110,6 +110,7 @@ export default function GamePage({children}) {
           {
             (!isFetchingTeam && isHappening) && <Lobby
               gameConfig={gameConfig}
+              setTeam={setTeam}
               team={team}
               goToGame={handleGoToGame}
               goToCreateTeam={handleGoToCreateTeam}

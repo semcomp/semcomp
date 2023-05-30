@@ -25,7 +25,7 @@ export default function GamePage({children}) {
   const [socket] = useState(() =>
     IOSocket(baseURL, {
       withCredentials: true,
-      transports: ["polling"],
+      transports: ["websocket"],
     })
   );
   const { token } = useAppContext();
@@ -37,8 +37,7 @@ export default function GamePage({children}) {
 
   function handleNewGroupInfo(info) {
     if (info) {
-      setTeam(info);
-      setTimeout(() => console.log(team), 1000)
+      router.push(gameConfig.getRoutes()[GameRoutes.LOBBY]);
     }
     setIsFetchingTeam(false);
   }

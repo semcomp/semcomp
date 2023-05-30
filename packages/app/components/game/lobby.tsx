@@ -15,7 +15,7 @@ const styles = {
   teammatesContainer: "mb-8 border rounded-lg p-2 overflow-y-auto",
 };
 
-function Teammate({ name, thisIsMe }) {
+function Teammate({ setTeam, name, thisIsMe }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
@@ -33,6 +33,7 @@ function Teammate({ name, thisIsMe }) {
     setIsRemoving(true);
     try {
       await API.game.leaveTeam();
+      setTeam(null);
     } catch (e) {
       console.error(e);
     } finally {
@@ -152,6 +153,7 @@ function Countdown({ team, target, onSubmit }) {
 }
 
 function Lobby({
+  setTeam,
   team,
   gameConfig,
   goToGame,
@@ -177,7 +179,7 @@ function Lobby({
 
   function renderTeammates() {
     return team.members.map((mate) => (
-      <Teammate name={mate.name} key={mate.id} thisIsMe={mate.id === me.id} />
+      <Teammate setTeam={setTeam} name={mate.name} key={mate.id} thisIsMe={mate.id === me.id} />
     ));
   }
 
