@@ -10,11 +10,20 @@ import gameGroupCompletedQuestionService from "./game-group-completed-question.s
 import gameGroupMemberService from "./game-group-member.service";
 import gameQuestionService from "./game-question.service";
 import userService from "./user.service";
+import Game from "../lib/constants/game-enum";
 
 const idService = new IdServiceImpl();
 
-const MAX_MEMBERS_IN_GROUP = 3;
-const MAX_MEMBERS = 700;
+const MAX_MEMBERS_IN_GROUP = {
+  [Game.HARD_TO_CLICK]: 3,
+  [Game.RIDDLE]: 3,
+  [Game.RIDDLETHON]: 3,
+};
+const MAX_MEMBERS = {
+  [Game.HARD_TO_CLICK]: 30,
+  [Game.RIDDLE]: 30,
+  [Game.RIDDLETHON]: 30,
+};
 
 type GameGroupWithInfo = GameGroup & {
   members: Partial<User>[],
@@ -67,7 +76,7 @@ class GameGroupService {
   }
 
   public async create(gameGroup: GameGroup): Promise<GameGroup> {
-    await this.verifyMaxMembers();
+    await this.verifyMaxMembers(gameGroup.game);
     const groupFound = await GameGroupModel.findOne({ name: gameGroup.id });
     if (groupFound) {
       throw new HttpError(400, []);
@@ -120,12 +129,13 @@ class GameGroupService {
   }
 
   public async join(userId: string, gameGroupId: string): Promise<GameGroupWithInfo> {
-    await this.verifyMaxMembers();
+    const group = await this.findOne({ id: gameGroupId });
+    await this.verifyMaxMembers(group.game);
 
     const groupMembers = await gameGroupMemberService.find({ gameGroupId });
     if (
       groupMembers.find((groupMember) => groupMember.id === userId) ||
-      groupMembers.length >= MAX_MEMBERS_IN_GROUP
+      groupMembers.length >= MAX_MEMBERS_IN_GROUP[group.game]
     ) {
       throw new HttpError(400, []);
     }
@@ -155,9 +165,10 @@ class GameGroupService {
     return groupMembership;
   }
 
-  private async verifyMaxMembers(): Promise<void> {
-    const membershipCount = await gameGroupMemberService.count();
-    if (membershipCount >= MAX_MEMBERS) {
+  private async verifyMaxMembers(game: Game): Promise<void> {
+    const thisGameGroups = await this.find({ filters: { game }, pagination: new PaginationRequest(1, 9999) });
+    const membershipCount = await gameGroupMemberService.count({ gameGroupId: thisGameGroups.getEntities().map(group => group.id) });
+    if (membershipCount >= MAX_MEMBERS[game]) {
       throw new HttpError(418, []);
     }
   }
