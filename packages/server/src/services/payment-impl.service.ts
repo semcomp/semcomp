@@ -89,7 +89,7 @@ export default class PaymentServiceImpl implements PaymentService {
     // tShirtSize: TShirtSize,
     foodOption: FoodOption,
   ): Promise<Payment> {
-    // throw new HttpError(400, ["Vendas encerradas!"]);
+    throw new HttpError(400, ["Vendas encerradas!"]);
     const user = await this.userService.findById(userId);
     if (!user) {
       throw new HttpError(400, []);
