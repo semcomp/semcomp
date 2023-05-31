@@ -73,8 +73,8 @@ function Question({
 
     setIsSubmitting(true);
     try {
-      socket.emit(`${gameConfig.getGame()}-try-answer` , {token: token, index: question.index, answer: value});
-      await socket.once(`${gameConfig.getGame()}-try-answer-result`, ({ index, isCorrect, group }) => {
+      socket.emit(`${gameConfig.getEventPrefix()}-try-answer` , {token: token, index: question.index, answer: value});
+      await socket.once(`${gameConfig.getEventPrefix()}-try-answer-result`, ({ index, isCorrect, group }) => {
         if (!isCorrect) {
           toast.error("Resposta incorreta");
         } else {

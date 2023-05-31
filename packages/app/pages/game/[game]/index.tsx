@@ -5,7 +5,6 @@ import IOSocket from "socket.io-client";
 import { Card } from '@mui/material';
 
 import GameConfig, { GameRoutes } from "../../../libs/game-config";
-import Game from "../../../libs/constants/game-enum";
 import Navbar from '../../../components/navbar';
 import Footer from '../../../components/Footer';
 import { baseURL } from "../../../constants/api-url";
@@ -20,7 +19,7 @@ export default function GamePage({children}) {
 
   const { game } = router.query;
 
-  const gameConfig = new GameConfig(game as Game);
+  const gameConfig = new GameConfig(game as string);
 
   const [isFetchingTeam, setIsFetchingTeam] = useState(true);
   const [team, setTeam] = useState(null);
@@ -98,7 +97,7 @@ export default function GamePage({children}) {
 
   function handleCreateGroup(name: string) {
     setIsFetchingTeam(true);
-    socket.emit(`${gameConfig.getGame()}-create-group`, {token, name});
+    socket.emit(`${gameConfig}-create-group`, {token, name});
   }
 
   function handleGoToCreateTeam() {
@@ -125,22 +124,22 @@ export default function GamePage({children}) {
   }
 
   useEffect(() => {
-    if (!gameConfig.getGame()) {
+    if (!gameConfig) {
       return;
     }
 
-    socket.on(`${gameConfig.getGame()}-group-info`, handleNewGroupInfo);
+    socket.on(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
 
     return () => {
-      socket.off(`${gameConfig.getGame()}-group-info`, handleNewGroupInfo);
+      socket.off(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
     };
   }, [team, gameConfig]);
 
   useEffect(() => {
-    if (!gameConfig.getGame() || component || !token) {
+    if (!gameConfig || component || !token) {
       return;
     }
-    socket.emit(`${gameConfig.getGame()}-join-group-room`, {token});
+    socket.emit(`${gameConfig.getEventPrefix()}-join-group-room`, {token});
     setComponent(<Lobby
       gameConfig={gameConfig}
       team={team}
