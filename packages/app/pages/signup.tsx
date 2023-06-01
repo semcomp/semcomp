@@ -13,6 +13,7 @@ import Card from "../components/Card";
 import Routes from "../routes";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
+import Link from "next/link";
 
 function SignupPage() {
   const router = useRouter();
