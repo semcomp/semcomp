@@ -57,7 +57,7 @@ router.post(
   EventController.subscribe
 );
 
-router.post(
+router.delete(
   "/:eventId/subscribe",
   [
     authMiddleware.authenticate,
