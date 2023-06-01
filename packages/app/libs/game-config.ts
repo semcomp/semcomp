@@ -60,6 +60,10 @@ export default class GameConfig {
     return this.game.numberOfQuestions;
   }
 
+  public getMaximumNumberOfMembersInGroup(): number {
+    return this.game.maximumNumberOfMembersInGroup;
+  }
+
   public getRoutes(): { [key: string]: string } {
     return {
       [GameRoutes.BASE]: `/game/${this.game.slug}`,

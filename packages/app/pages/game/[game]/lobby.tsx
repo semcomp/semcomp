@@ -5,15 +5,11 @@ import IOSocket from "socket.io-client";
 import { Card } from '@mui/material';
 
 import GameConfig, { GameRoutes } from "../../../libs/game-config";
-import Game from "../../../libs/constants/games";
 import Navbar from '../../../components/navbar';
 import Footer from '../../../components/Footer';
 import { baseURL } from "../../../constants/api-url";
 import { useAppContext } from "../../../libs/contextLib";
-import CreateGroup from '../../../components/game/create-group';
-import Game1 from '../../../components/game/game';
 import Lobby from '../../../components/game/lobby';
-import JoinTeam from '../../../components/game/join-team';
 
 export default function GamePage({children}) {
   const router = useRouter();
@@ -35,19 +31,8 @@ export default function GamePage({children}) {
 
   const [isHappening, setIsHappening] = useState(verifyIfIsHappening());
 
-  // if (isHappening && router.asPath !== gameConfig.getRoutes()[GameRoutes.LOBBY]) {
-  //   router.push(gameConfig.getRoutes()[GameRoutes.LOBBY]);
-  // } else if (router.asPath !== gameConfig.getRoutes()[GameRoutes.GAME_OVER]) {
-  //   router.push(gameConfig.getRoutes()[GameRoutes.GAME_OVER]);
-  // }
-
   function handleGoToGame() {
     router.push(gameConfig.getRoutes()[GameRoutes.PLAY]);
-  }
-
-  function handleCreateGroup(name: string) {
-    setIsFetchingTeam(true);
-    socket.emit(`${gameConfig.getEventPrefix()}-create-group`, {token, name});
   }
 
   function handleGoToCreateTeam() {

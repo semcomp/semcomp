@@ -6,6 +6,7 @@ type Game = {
   startDate: Date;
   endDate: Date;
   numberOfQuestions: number;
+  maximumNumberOfMembersInGroup: number;
 }
 
 const HARD_TO_CLICK_DESCRIPTION = <>
@@ -64,6 +65,7 @@ export const HARD_TO_CLICK: Game = {
   startDate: new Date("2022-05-04 15:00"),
   endDate: new Date("2023-05-04 16:00"),
   numberOfQuestions: 10,
+  maximumNumberOfMembersInGroup: 3,
 }
 
 export const RIDDLETHON: Game = {
@@ -74,6 +76,7 @@ export const RIDDLETHON: Game = {
   startDate: new Date("2022-01-23 17:30"),
   endDate: new Date("2023-09-28 17:30"),
   numberOfQuestions: 58,
+  maximumNumberOfMembersInGroup: 3,
 }
 
 export const RIDDLE: Game = {
@@ -84,6 +87,7 @@ export const RIDDLE: Game = {
   startDate: new Date("2022-01-23 17:30"),
   endDate: new Date("2023-09-28 17:30"),
   numberOfQuestions: 58,
+  maximumNumberOfMembersInGroup: 3,
 }
 
 export default Game;

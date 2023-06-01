@@ -51,6 +51,7 @@ function Question({
       setInputValue("");
       try {
         const { data: question } = await API.game.getQuestion(
+          gameConfig.getEventPrefix(),
           questionIndex + 1
         );
         setQuestion(question);
