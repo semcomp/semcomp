@@ -285,7 +285,7 @@ function Profile() {
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Coffee
                 </h1>
-                <p style={{ fontSize: "1rem" }}>Pague com PIX o Coffee</p>
+                {/*  <p style={{ fontSize: "1rem" }}>Pague com PIX o Coffee</p> */}
                 {userFetched.payment.status === "approved" ? (
                   <>
                     <Chip label="OK" color="success" />
@@ -304,7 +304,7 @@ function Profile() {
                   </>
                 ) : (
                   <>
-                    <button
+                    {/*  <button
                       onClick={() => {
                         setIsCoffeeModalOpen(true);
                         blockBodyScroll();
@@ -312,8 +312,8 @@ function Profile() {
                       className="bg-tertiary text-white p-2 rounded-lg mt-2"
                     >
                       Comprar Coffee
-                    </button>
-                    <Chip className="mt-3" label="---" disabled={true} />
+                    </button> */}
+                    <Chip className="mt-3" label="Sem Coffee" disabled={true} />
                   </>
                 )}
               </Card>
