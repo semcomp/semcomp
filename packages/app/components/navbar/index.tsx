@@ -74,7 +74,7 @@ const Navbar = (props) => {
           </>
         ) : (
           <>
-            <Navlink href={Routes.signup}>Cadastrar</Navlink>
+            {/*<Navlink href={Routes.signup}>Cadastrar</Navlink>*/}
             <Navlink href={Routes.login}>Entrar</Navlink>
           </>
         )}
