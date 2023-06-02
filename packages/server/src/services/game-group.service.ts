@@ -20,7 +20,7 @@ const MAX_MEMBERS_IN_GROUP = {
   [Game.RIDDLETHON]: 3,
 };
 const MAX_MEMBERS = {
-  [Game.HARD_TO_CLICK]: 30,
+  [Game.HARD_TO_CLICK]: 60,
   [Game.RIDDLE]: 30,
   [Game.RIDDLETHON]: 30,
 };
@@ -133,12 +133,15 @@ class GameGroupService {
     await this.verifyMaxMembers(group.game);
 
     const groupMembers = await gameGroupMemberService.find({ gameGroupId });
-    if (
-      groupMembers.find((groupMember) => groupMember.id === userId) ||
-      groupMembers.length >= MAX_MEMBERS_IN_GROUP[group.game]
-    ) {
+    
+    if(groupMembers.length >= MAX_MEMBERS_IN_GROUP[group.game]){
+      throw new HttpError(418, []);
+    }
+
+    if (groupMembers.find((groupMember) => groupMember.id === userId)) {
       throw new HttpError(400, []);
     }
+    
 
     const gameGroupMember: GameGroupMember = {
       gameGroupId,
@@ -265,6 +268,7 @@ class GameGroupService {
   private mapEntity(entity: Model<GameGroup> & GameGroup): GameGroup {
     return {
       id: entity.id,
+      game: entity.game,
       name: entity.name,
       availableClues: entity.availableClues,
       availableSkips: entity.availableSkips,

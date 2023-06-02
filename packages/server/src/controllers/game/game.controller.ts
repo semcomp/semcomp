@@ -146,7 +146,7 @@ export default class GameController {
         stringSimilarity.compareTwoStrings(
           normalizeString(answer),
           normalizeString(question.answer)
-        ) > 0.5
+        ) > 0.7
       ) {
         const gameGroupCompletedQuestion: GameGroupCompletedQuestion = {
           gameGroupId: group.id,

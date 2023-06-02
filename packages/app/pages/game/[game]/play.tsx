@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 
 import IOSocket from "socket.io-client";
@@ -16,7 +16,7 @@ export default function GamePage({children}) {
 
   const { game } = router.query;
 
-  const gameConfig = new GameConfig(game as string);
+  const gameConfig = useRef(new GameConfig(game as string));
 
   const [isFetchingTeam, setIsFetchingTeam] = useState(true);
   const [team, setTeam] = useState(null);
@@ -33,14 +33,14 @@ export default function GamePage({children}) {
   }
 
   useEffect(() => {
-    if (!gameConfig) {
+    if (!gameConfig.current) {
       return;
     }
 
-    socket.on(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
+    socket.on(`${gameConfig.current.getEventPrefix()}-group-info`, handleNewGroupInfo);
 
     return () => {
-      socket.off(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
+      socket.off(`${gameConfig.current.getEventPrefix()}-group-info`, handleNewGroupInfo);
     };
   }, [gameConfig]);
 
@@ -48,7 +48,7 @@ export default function GamePage({children}) {
     if (!gameConfig || !token) {
       return;
     }
-    socket.emit(`${gameConfig.getEventPrefix()}-join-group-room`, {token});
+    socket.emit(`${gameConfig.current.getEventPrefix()}-join-group-room`, {token});
   }, [gameConfig]);
 
   return (<>
@@ -60,7 +60,7 @@ export default function GamePage({children}) {
               team={team}
               setTeam={setTeam}
               socket={socket}
-              gameConfig={gameConfig}
+              gameConfig={gameConfig.current}
               token={token}
             ></Game1>
           }

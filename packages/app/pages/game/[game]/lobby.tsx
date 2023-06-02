@@ -38,15 +38,15 @@ export default function GamePage({children}) {
   function handleGoToCreateTeam() {
     router.push(gameConfig.getRoutes()[GameRoutes.CREATE_TEAM]);
   }
-
+  
   function handleGoToJoinTeam() {
-    // setComponent(<JoinTeam></JoinTeam>);
+    router.push(gameConfig.getRoutes()[GameRoutes.JOIN_TEAM]);
   }
 
   function handleNewGroupInfo(info) {
     if (info) {
       setTeam(info);
-      setTimeout(() => console.log(team), 1000)
+      setTimeout(() => console.log(team), 1000);
     }
     setIsFetchingTeam(false);
   }
@@ -72,6 +72,8 @@ export default function GamePage({children}) {
   }, []);
 
   function verifyIfIsHappening() {
+    // console.log(gameConfig);
+    console.log(gameConfig.getStartDate());
     if (Date.now() - gameConfig.getStartDate().getTime() < 0) {
       return false;
     }
@@ -87,13 +89,14 @@ export default function GamePage({children}) {
     }, 1000);
     return () => clearInterval(handler);
   }, []);
-
+  
   return (<>
     <Navbar />
       <div className='p-6'>
         <Card className='p-6'>
           {
-            (!isFetchingTeam && isHappening) && <Lobby
+
+            !isFetchingTeam ? <Lobby
               gameConfig={gameConfig}
               setTeam={setTeam}
               team={team}
@@ -101,6 +104,11 @@ export default function GamePage({children}) {
               goToCreateTeam={handleGoToCreateTeam}
               goToJoinTeam={handleGoToJoinTeam}
             ></Lobby>
+            :
+            <div className='flex content-center'>
+            
+              <p>Tentando encontrar grupo</p>
+            </div>
           }
         </Card>
       </div>
