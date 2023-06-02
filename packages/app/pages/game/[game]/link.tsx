@@ -94,7 +94,7 @@ function JoinLink() {
 
   useEffect(() => {
     joinTeam();
-  }, []);
+  }, [router.query]);
 
   return (
     <div className={styles.root}>
