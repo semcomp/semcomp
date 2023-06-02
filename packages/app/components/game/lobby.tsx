@@ -184,7 +184,7 @@ function Lobby({
   if (!team)
     return (
       <div>
-        Você ainda não está numa equipe. Crie uma equipe para jogar.
+        Você ainda não está numa equipe. Crie uma equipe para jogar. Caso você queira entrar em um grupo já existente peça para o criador do grupo enviar o link do grupo para você.
         <div className="flex w-full justify-center mt-4">
           <Button
             onClick={goToCreateTeam}
@@ -197,7 +197,7 @@ function Lobby({
           >
             Criar
           </Button>
-          <Button
+          {/* <Button
             onClick={goToJoinTeam}
             style={{
               backgroundColor: "#045079",
@@ -207,7 +207,7 @@ function Lobby({
             variant="contained"
           >
             Entrar
-          </Button>
+          </Button> */}
         </div>
       </div>
     );

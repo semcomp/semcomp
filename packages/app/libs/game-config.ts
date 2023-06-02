@@ -16,20 +16,20 @@ export default class GameConfig {
   private game: Game;
 
   constructor(gameSlug: string) {
-    if (gameSlug === HARD_TO_CLICK.slug) {
+    // if (gameSlug === HARD_TO_CLICK.slug) {
       this.game = HARD_TO_CLICK;
       return;
-    }
-    if (gameSlug === RIDDLETHON.slug) {
-      this.game = RIDDLETHON;
-      return;
-    }
-    if (gameSlug === RIDDLE.slug) {
-      this.game = RIDDLE;
-      return;
-    }
+    // }
+    // if (gameSlug === RIDDLETHON.slug) {
+    //   this.game = RIDDLETHON;
+    //   return;
+    // }
+    // if (gameSlug === RIDDLE.slug) {
+    //   this.game = RIDDLE;
+    //   return;
+    // }
 
-    throw Error('Jogo não existente');
+    // throw Error('Jogo não existente');
   }
 
   public getName(): string {
