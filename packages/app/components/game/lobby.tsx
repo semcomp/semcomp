@@ -126,7 +126,6 @@ function Countdown({ team, gameConfig, onSubmit }: {gameConfig: GameConfig, team
   if (team && team.completedQuestions.length === 80) {
     return <div>Riddlethon já completo</div>;
   }
-  console.log(diff.getTime());
   
   return (
     <div className="countdown-component">
@@ -177,9 +176,9 @@ function Lobby({
 
   function createInviteLink() {
     return (
-      window.location.origin +
-      gameConfig.getRoutes()[GameRoutes.LINK] +
-      "?teamid=" +
+      // window.location.origin +
+      // gameConfig.getRoutes()[GameRoutes.LINK] +
+      // "?teamid=" +
       team.id
     );
   }
@@ -206,7 +205,7 @@ function Lobby({
           >
             Criar
           </Button>
-          {/* <Button
+          <Button
             onClick={goToJoinTeam}
             style={{
               backgroundColor: "#045079",
@@ -216,7 +215,7 @@ function Lobby({
             variant="contained"
           >
             Entrar
-          </Button> */}
+          </Button>
         </div>
       </div>
     );
@@ -230,7 +229,7 @@ function Lobby({
       <div>
         {canAddTeammates() ? (
           <div className="mb-8">
-            Envie este link para adicionar mais pessoas à sua equipe. (máximo de
+            Envie este id para adicionar mais pessoas à sua equipe. (máximo de
             até {gameConfig.getMaximumNumberOfMembersInGroup()} membros)
             <CopyableLink text={createInviteLink()} />
           </div>
