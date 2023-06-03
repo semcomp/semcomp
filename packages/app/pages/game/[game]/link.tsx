@@ -49,16 +49,21 @@ function JoinLink() {
       const { data: team } = await API.game.joinTeam(gameConfig.getEventPrefix(), teamId);
       setTeam(team);
       socket.emit(`${gameConfig.getEventPrefix()}-broadcast-user-info`);
+      goToLobby();
     } catch (e) {
       console.error(e);
+      goToJoinTeam();
     } finally {
-      goToLobby();
       setIsFetchingTeam(false);
     }
   }
 
   function goToLobby() {
     router.push(gameConfig.getRoutes()[GameRoutes.LOBBY]);
+  }
+  
+  function goToJoinTeam() {
+    router.push(gameConfig.getRoutes()[GameRoutes.JOIN_TEAM]);
   }
 
   function renderContent() {
@@ -80,7 +85,7 @@ function JoinLink() {
     return (
       <div>
         <p>Parabens! Você entrou em uma equipe!</p>
-        <div className="border px-4 py-2 rounded-lg my-4">{team.name}</div>
+        <div className="border px-4 py-2 rounded-lg my-4">{team && team.name}</div>
         <Button
           style={{ color: "white", backgroundColor: "#045079" }}
           variant="contained"

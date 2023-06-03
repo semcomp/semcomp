@@ -23,22 +23,26 @@ function JoinTeam() {
   }
 
   return (
-    <div className="riddlethon-join-page">
+    <div className="flex items-center flex-col text-center">
+      <h1 className="text-lg mb-5">Insira o ID do grupo para entrar</h1>
       <form
         className="flex items-center flex-col text-center"
         onSubmit={submit}
       >
         <TextField
           inputRef={teamIdRef}
-          label="Seu nome"
+          label="ID do Grupo"
           style={{ marginBottom: 16 }}
         />
         <Button
-          className="bg-tertiary text-white p-4 rounded-xl m-0"
-
+          style={{
+            backgroundColor: "#045079",
+            color: "white",
+            margin: "0 8px",
+          }}
           type="submit"
         >
-          Acessar
+          Entrar
         </Button>
       </form>
     </div>
