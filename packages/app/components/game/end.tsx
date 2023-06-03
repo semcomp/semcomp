@@ -8,7 +8,7 @@ function End({gameConfig}) {
         <h1>Fim de Jogo!</h1>
           <>
             <br />
-            <p>Parabéns, você finalizou o {gameConfig.game.name}!</p>
+            <p>Parabéns, você finalizou o {gameConfig.getName()}!</p>
           </>
         <br />
         <br />
