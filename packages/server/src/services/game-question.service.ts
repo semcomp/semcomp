@@ -1,6 +1,7 @@
 import { Model } from "mongoose";
 import HttpError from "../lib/http-error";
 
+import Game from "../lib/constants/game-enum";
 import GameQuestion, { GameQuestionModel } from "../models/game-question";
 import IdServiceImpl from "./id-impl.service";
 import gameGroupCompletedQuestionService from "./game-group-completed-question.service";
@@ -12,6 +13,7 @@ const idService = new IdServiceImpl();
 
 type Filters = GameQuestion | {
   id: string[];
+  game: Game[];
   index: number[];
   title: string[];
   question: string[];
@@ -87,7 +89,7 @@ class GameQuestionService {
     return entity && this.mapEntity(entity);
   }
 
-  public async getCompletedQuestion(userId: string, questionIndex: number) {
+  public async getCompletedQuestion(game: string, userId: string, questionIndex: number) {
     const group = await gameGroupService.findUserGroup(userId);
     if (!group) {
       throw new HttpError(400, []);
@@ -103,7 +105,7 @@ class GameQuestionService {
       }
     });
 
-    const question = await this.findOne({ index: questionIndex });
+    const question = await this.findOne({ index: questionIndex, game: game as Game });
     if (!question) {
       throw new HttpError(404, []);
     }
@@ -111,7 +113,7 @@ class GameQuestionService {
     const isFirstQuestion = questionIndex === 0;
     const currentQuestionIndex = completedQuestions.getEntities().length > 0 ? (completedQuestions.getEntities().reduce((a, b) =>
       a.index > b.index ? a : b
-    ).index + 1) : 0;
+    ).index + 1) : 1;
     const isQuestionCompleted = currentQuestionIndex > questionIndex;
     const isQuestionInProgress = currentQuestionIndex === questionIndex;
     if (!isQuestionCompleted && !isQuestionInProgress && !isFirstQuestion) {

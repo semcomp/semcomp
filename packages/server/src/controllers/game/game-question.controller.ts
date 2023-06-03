@@ -9,10 +9,10 @@ class GameQuestionController {
     try {
       handleValidationResult(req);
 
-      const { index } = req.params;
+      const { game, index } = req.params;
       const { user } = req;
 
-      const foundQuestion = await gameQuestionService.getCompletedQuestion(user.id, parseInt(index));
+      const foundQuestion = await gameQuestionService.getCompletedQuestion(game, user.id, parseInt(index));
 
       return res.status(200).json(foundQuestion);
     } catch (error) {

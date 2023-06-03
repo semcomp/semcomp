@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
@@ -15,7 +14,7 @@ const styles = {
   teammatesContainer: "mb-8 border rounded-lg p-2 overflow-y-auto",
 };
 
-function Teammate({ name, thisIsMe }) {
+function Teammate({ gameConfig, setTeam, name, thisIsMe }: {gameConfig: GameConfig, setTeam: any, name: any, thisIsMe: any}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
@@ -32,7 +31,8 @@ function Teammate({ name, thisIsMe }) {
 
     setIsRemoving(true);
     try {
-      await API.game.leaveTeam();
+      await API.game.leaveTeam(gameConfig.getEventPrefix);
+      setTeam(null);
     } catch (e) {
       console.error(e);
     } finally {
@@ -103,8 +103,8 @@ function CopyableLink({ text }) {
   );
 }
 
-function Countdown({ team, target, onSubmit }) {
-  const targetMilisseconds = target.getTime();
+function Countdown({ team, gameConfig, onSubmit }: {gameConfig: GameConfig, team: any, onSubmit: any}) {
+  const targetMilliseconds = gameConfig.getStartDate().getTime();
 
   const [diff, setDiff] = useState(calculateDiff());
 
@@ -114,30 +114,38 @@ function Countdown({ team, target, onSubmit }) {
   const seconds = diff.getUTCSeconds();
 
   function calculateDiff() {
-    return new Date(Math.max(target - Date.now(), 0));
+    // console.log( );
+    return new Date(Math.max(gameConfig.getStartDate().getTime() - Date.now(), 0));
   }
 
   useEffect(() => {
     const handler = setInterval(() => setDiff(calculateDiff()), 1000);
     return () => clearInterval(handler);
-  }, [targetMilisseconds]);
+  }, [targetMilliseconds]);
 
   if (team && team.completedQuestions.length === 80) {
     return <div>Riddlethon já completo</div>;
   }
-
+  console.log(diff.getTime());
+  
   return (
     <div className="countdown-component">
-      {diff.getTime() > 0 ? (
+      {   
+        diff.getTime() > 0 ? (
         <>
           Disponível em
           <br />
           {days} dias, {hours} horas, {minutes} minutos e {seconds} segundos
         </>
-      ) : (
+      ) : gameConfig.getEndDate() < new Date( Date.now()) ? 
+      (
         <>
-          {/* <div>Riddlethon já disponível!</div> */}
-          <div>Riddle já disponível!</div>
+          <p>O evento encerrou!</p>
+        </>
+      )
+      : (
+        <>
+          <div>{gameConfig.getName()} já disponível!</div>
           <Button
             variant="contained"
             onClick={onSubmit}
@@ -152,6 +160,7 @@ function Countdown({ team, target, onSubmit }) {
 }
 
 function Lobby({
+  setTeam,
   team,
   gameConfig,
   goToGame,
@@ -160,10 +169,9 @@ function Lobby({
 }: { gameConfig: GameConfig } & any) {
   const { user: me } = useAppContext();
   const router = useRouter();
-  console.log(team);
 
   function canAddTeammates() {
-    if (team.members.length >= 3) return false;
+    if (team.members.length >= gameConfig.getMaximumNumberOfMembersInGroup()) return false;
     return true;
   }
 
@@ -178,14 +186,14 @@ function Lobby({
 
   function renderTeammates() {
     return team.members.map((mate) => (
-      <Teammate name={mate.name} key={mate.id} thisIsMe={mate.id === me.id} />
+      <Teammate gameConfig={gameConfig} setTeam={setTeam} name={mate.name} key={mate.id} thisIsMe={mate.id === me.id} />
     ));
   }
 
   if (!team)
     return (
       <div>
-        Você ainda não está numa equipe. Crie uma equipe para jogar.
+        Você ainda não está numa equipe. Crie uma equipe para jogar. Caso você queira entrar em um grupo já existente peça para o criador do grupo enviar o link do grupo para você.
         <div className="flex w-full justify-center mt-4">
           <Button
             onClick={goToCreateTeam}
@@ -219,23 +227,23 @@ function Lobby({
       <div style={{ height: 144 }} className={styles.teammatesContainer}>
         {renderTeammates()}
       </div>
-      {/* <div>
+      <div>
         {canAddTeammates() ? (
           <div className="mb-8">
             Envie este link para adicionar mais pessoas à sua equipe. (máximo de
-            até 3 membros)
+            até {gameConfig.getMaximumNumberOfMembersInGroup()} membros)
             <CopyableLink text={createInviteLink()} />
           </div>
         ) : (
           <div className="mb-8">
-            Sua equipe já atingiu o máximo de 3 membros
+            Sua equipe já atingiu o máximo de {gameConfig.getMaximumNumberOfMembersInGroup()} membros
           </div>
         )}
-      </div> */}
+      </div>
       <Countdown
+        gameConfig={gameConfig}
         team={team}
         onSubmit={goToGame}
-        target={gameConfig.getStartDate()}
       />
     </div>
   );

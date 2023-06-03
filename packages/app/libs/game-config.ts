@@ -1,4 +1,4 @@
-import Game from "./constants/game-enum";
+import Game, { HARD_TO_CLICK, RIDDLE, RIDDLETHON } from "./constants/games";
 
 export enum GameRoutes {
   BASE = "base",
@@ -15,37 +15,72 @@ export enum GameRoutes {
 export default class GameConfig {
   private game: Game;
 
-  constructor(game: Game) {
-    this.game = game;
+  constructor(gameSlug: string) {
+    // if (gameSlug === HARD_TO_CLICK.slug) {
+      this.game = HARD_TO_CLICK;
+      return;
+    // }
+    // if (gameSlug === RIDDLETHON.slug) {
+    //   this.game = RIDDLETHON;
+    //   return;
+    // }
+    // if (gameSlug === RIDDLE.slug) {
+    //   this.game = RIDDLE;
+    //   return;
+    // }
+
+    // throw Error('Jogo não existente');
   }
 
-  public getGame(): Game {
-    return this.game;
+  public getName(): string {
+    return this.game.name;
+  }
+
+  public getDescription(): JSX.Element {
+    return this.game.description;
+  }
+
+  public getSlug(): string {
+    return this.game.slug;
+  }
+
+  public getEventPrefix(): string {
+    return this.game.eventPrefix;
+  }
+
+  public getStartDate(): Date {
+    return this.game.startDate;
+  }
+
+  public getEndDate(): Date {
+    return this.game.endDate;
+  }
+
+  public getNumberOfQuestions(): number {
+    return this.game.numberOfQuestions;
+  }
+
+  public getMaximumNumberOfMembersInGroup(): number {
+    return this.game.maximumNumberOfMembersInGroup;
+  }
+
+  public verifyIfIsHappening() {
+    console.log(new Date(Math.max(Date.now() - this.getStartDate().getTime(), 0)).getTime() > 0 && (this.getEndDate().getTime() - Date.now() > 0))
+
+    return (new Date(Math.max(Date.now() - this.getStartDate().getTime(), 0)).getTime() > 0) && (this.getEndDate().getTime() - Date.now() > 0)
   }
 
   public getRoutes(): { [key: string]: string } {
     return {
-      [GameRoutes.BASE]: `/game/${this.game}`,
-      [GameRoutes.PLAY]: `/game/${this.game}/play`,
-      [GameRoutes.LOBBY]: `/game/${this.game}/lobby`,
-      [GameRoutes.START]: `/game/${this.game}/start`,
-      [GameRoutes.JOIN_TEAM]: `/game/${this.game}/join-team`,
-      [GameRoutes.CREATE_TEAM]: `/game/${this.game}/create-team`,
-      [GameRoutes.LINK]: `/game/${this.game}/link`,
-      [GameRoutes.GAME]: `/game/${this.game}/game`,
-      [GameRoutes.GAME_OVER]: `/game/${this.game}/game-over`,
+      [GameRoutes.BASE]: `/game/${this.game.slug}`,
+      [GameRoutes.PLAY]: `/game/${this.game.slug}/play`,
+      [GameRoutes.LOBBY]: `/game/${this.game.slug}/lobby`,
+      [GameRoutes.START]: `/game/${this.game.slug}/start`,
+      [GameRoutes.JOIN_TEAM]: `/game/${this.game.slug}/join-team`,
+      [GameRoutes.CREATE_TEAM]: `/game/${this.game.slug}/create-team`,
+      [GameRoutes.LINK]: `/game/${this.game.slug}/link`,
+      [GameRoutes.GAME]: `/game/${this.game.slug}/game`,
+      [GameRoutes.GAME_OVER]: `/game/${this.game.slug}/game-over`,
     };
-  }
-
-  public getStartDate(): Date {
-    return new Date("2022-09-23 17:30");
-  }
-
-  public getEndDate(): Date {
-    return new Date("2022-09-28 17:30");
-  }
-
-  public getNumberOfQuestions(): number {
-    return 58;
   }
 }

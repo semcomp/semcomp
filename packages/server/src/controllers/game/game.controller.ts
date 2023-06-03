@@ -132,7 +132,7 @@ export default class GameController {
       const isFirstQuestion = index === 0;
       const currentQuestionIndex = completedQuestions.getEntities().length > 0 ? (completedQuestions.getEntities().reduce((a, b) =>
         a.index > b.index ? a : b
-      ).index + 1) : 0;
+      ).index + 1) : 1;
       const isQuestionCompleted = currentQuestionIndex > index;
       const isQuestionInProgress = currentQuestionIndex === index;
       if (isQuestionCompleted && !isFirstQuestion) {
@@ -146,7 +146,7 @@ export default class GameController {
         stringSimilarity.compareTwoStrings(
           normalizeString(answer),
           normalizeString(question.answer)
-        ) > 0.5
+        ) > 0.7
       ) {
         const gameGroupCompletedQuestion: GameGroupCompletedQuestion = {
           gameGroupId: group.id,
