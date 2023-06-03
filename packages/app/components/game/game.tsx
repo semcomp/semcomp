@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import API from "../../api";
 import Spinner from "../spinner";
 import GameConfig from "../../libs/game-config";
+import End from "./end";
 
 const styles = {
   root: "w-full h-full flex justify-center text-center",
@@ -157,13 +158,20 @@ export default function Game({
   return (
     <div className={styles.root}>
       <div className={styles.container}>
-        <Question
-          setTeam={setTeam}
-          socket={socket}
-          gameConfig={gameConfig}
-          token={token}
-          questionIndex={completedQuestions.length}
-        />
+        <>
+        {
+            completedQuestions.length < gameConfig.getNumberOfQuestions ?
+            <Question
+              setTeam={setTeam}
+              socket={socket}
+              gameConfig={gameConfig}
+              token={token}
+              questionIndex={completedQuestions.length}
+            />
+            :
+            <End gameConfig={gameConfig}/>
+          }
+        </>
       </div>
     </div>
   );
