@@ -61,7 +61,7 @@ const HARD_TO_CLICK_DESCRIPTION = <>
   <br />
   <p>
     Subversivos. Salvadores da Semcomp. Sempre Solícitos.
-    <br /> - S.
+    <br /> ~~S.
   </p>
 </>
 

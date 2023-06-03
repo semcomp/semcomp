@@ -29,7 +29,7 @@ export default function GamePage({children}) {
   );
   const { token } = useAppContext();
 
-  const [isHappening, setIsHappening] = useState(verifyIfIsHappening());
+  const [isHappening, setIsHappening] = useState(gameConfig.verifyIfIsHappening());
 
   function handleGoToGame() {
     router.push(gameConfig.getRoutes()[GameRoutes.PLAY]);
@@ -71,18 +71,18 @@ export default function GamePage({children}) {
     socket.emit(`${gameConfig.getEventPrefix()}-join-group-room`, {token});
   }, []);
 
-  function verifyIfIsHappening() {
-    // console.log(gameConfig);
-    console.log(gameConfig.getStartDate());
-    if (Date.now() - gameConfig.getStartDate().getTime() < 0) {
-      return false;
-    }
-    return true;
-  }
+  // function verifyIfIsHappening() {
+  //   // console.log(gameConfig);
+  //   console.log(gameConfig.getStartDate());
+  //   if (Date.now() - gameConfig.getStartDate().getTime() < 0) {
+  //     return false;
+  //   }
+  //   return true;
+  // }
 
   useEffect(() => {
     const handler = setInterval(() => {
-      if (!verifyIfIsHappening) {
+      if (!gameConfig.verifyIfIsHappening()) {
         setIsHappening(false);
         clearInterval(handler);
       }

@@ -64,6 +64,12 @@ export default class GameConfig {
     return this.game.maximumNumberOfMembersInGroup;
   }
 
+  public verifyIfIsHappening() {
+    console.log(new Date(Math.max(Date.now() - this.getStartDate().getTime(), 0)).getTime() > 0 && (this.getEndDate().getTime() - Date.now() > 0))
+
+    return (new Date(Math.max(Date.now() - this.getStartDate().getTime(), 0)).getTime() > 0) && (this.getEndDate().getTime() - Date.now() > 0)
+  }
+
   public getRoutes(): { [key: string]: string } {
     return {
       [GameRoutes.BASE]: `/game/${this.game.slug}`,

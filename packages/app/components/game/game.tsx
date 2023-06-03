@@ -159,8 +159,10 @@ export default function Game({
     <div className={styles.root}>
       <div className={styles.container}>
         <>
-        {
-            completedQuestions.length < gameConfig.getNumberOfQuestions ?
+        {   
+            completedQuestions.length >= gameConfig.getNumberOfQuestions() ?
+              <End gameConfig={gameConfig}/>
+            : gameConfig.verifyIfIsHappening()  ?
             <Question
               setTeam={setTeam}
               socket={socket}
@@ -168,8 +170,7 @@ export default function Game({
               token={token}
               questionIndex={completedQuestions.length}
             />
-            :
-            <End gameConfig={gameConfig}/>
+            : <p>Tempo Encerrado!</p>
           }
         </>
       </div>

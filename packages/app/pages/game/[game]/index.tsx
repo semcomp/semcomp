@@ -47,19 +47,19 @@ export default function GamePage({children}) {
   const on = socket.on.bind(socket);
   const off = socket.off.bind(socket);
 
-  const [isHappening, setIsHappening] = useState(verifyIfIsHappening());
+  const [isHappening, setIsHappening] = useState(gameConfig.verifyIfIsHappening());
 
-  function verifyIfIsHappening() {
-    console.log(new Date(Math.max(Date.now() - gameConfig.getStartDate().getTime(), 0)).getTime() > 0)
-    if (new Date(Math.max(Date.now() - gameConfig.getStartDate().getTime(), 0)).getTime() > 0) {
-      return false;
-    }
-    return true;
-  }
+  // function verifyIfIsHappening() {
+  //   console.log(new Date(Math.max(Date.now() - gameConfig.getStartDate().getTime(), 0)).getTime() > 0)
+  //   if (new Date(Math.max(Date.now() - gameConfig.getStartDate().getTime(), 0)).getTime() > 0) {
+  //     return false;
+  //   }
+  //   return true;
+  // }
 
   useEffect(() => {
     const handler = setInterval(() => {
-      if (!verifyIfIsHappening) {
+      if (!gameConfig.verifyIfIsHappening) {
         setIsHappening(false);
         clearInterval(handler);
       }

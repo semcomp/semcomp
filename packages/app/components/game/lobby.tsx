@@ -114,6 +114,7 @@ function Countdown({ team, gameConfig, onSubmit }: {gameConfig: GameConfig, team
   const seconds = diff.getUTCSeconds();
 
   function calculateDiff() {
+    // console.log( );
     return new Date(Math.max(gameConfig.getStartDate().getTime() - Date.now(), 0));
   }
 
@@ -125,16 +126,24 @@ function Countdown({ team, gameConfig, onSubmit }: {gameConfig: GameConfig, team
   if (team && team.completedQuestions.length === 80) {
     return <div>Riddlethon já completo</div>;
   }
-
+  console.log(diff.getTime());
+  
   return (
     <div className="countdown-component">
-      {diff.getTime() > 0 ? (
+      {   
+        diff.getTime() > 0 ? (
         <>
           Disponível em
           <br />
           {days} dias, {hours} horas, {minutes} minutos e {seconds} segundos
         </>
-      ) : (
+      ) : gameConfig.getEndDate() < new Date( Date.now()) ? 
+      (
+        <>
+          <p>O evento encerrou!</p>
+        </>
+      )
+      : (
         <>
           <div>{gameConfig.getName()} já disponível!</div>
           <Button
