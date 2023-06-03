@@ -82,7 +82,7 @@ export default function GamePage({children}) {
 
   useEffect(() => {
     const handler = setInterval(() => {
-      if (!gameConfig.verifyIfIsHappening()) {
+      if (!gameConfig.verifyIfIsHappening) {
         setIsHappening(false);
         clearInterval(handler);
       }
