@@ -49,7 +49,7 @@ export default function GamePage({children}) {
       return;
     }
     socket.emit(`${gameConfig.current.getEventPrefix()}-join-group-room`, {token});
-  }, [gameConfig]);
+  }, [gameConfig.current]);
 
   return (<>
     <Navbar />

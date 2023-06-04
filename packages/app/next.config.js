@@ -4,6 +4,7 @@
 
 const nextConfig = {
   reactStrictMode: true,
+  trailingSlash: true,
   swcMinify: true,
   images: {
     loader: 'akamai',
