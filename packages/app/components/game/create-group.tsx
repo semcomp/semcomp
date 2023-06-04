@@ -32,14 +32,15 @@ export default function CreateGroup({
 
   return (
     <div className="flex items-center flex-col text-center">
-      <h1>Insira seu nome</h1>
+      <h1 className="text-lg mb-5">Insira o nome do Grupo</h1>
+      <br />
       <form
         className="flex items-center flex-col text-center"
         onSubmit={submit}
       >
         <TextField
           inputRef={teamNameRef}
-          label="Seu nome"
+          label="Nome do Grupo"
           style={{ marginBottom: 16 }}
         />
         <LoadingButton
