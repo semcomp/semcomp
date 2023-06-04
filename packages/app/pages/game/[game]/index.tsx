@@ -17,13 +17,6 @@ import JoinTeam from '../../../components/game/join-team';
 export default function GamePage({children}) {
   const router = useRouter();
 
-  useEffect(() => {
-    console.log(window.location.pathname);
-    if (window.location.pathname != router.pathname) {
-      router.push(`/${window.location.pathname}`)
-    }
-  }, [])
-
   const { game } = router.query;
 
   const gameConfig = new GameConfig(game as string);
