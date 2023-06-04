@@ -70,7 +70,7 @@ export const HARD_TO_CLICK: Game = {
   description: HARD_TO_CLICK_DESCRIPTION,
   slug: 'duro-de-clicar',
   eventPrefix: 'hard-to-click',
-  startDate: new Date("2023-06-03 15:00"),
+  startDate: new Date("2023-06-04 15:00"),
   endDate: new Date("2023-06-04 16:00"),
   numberOfQuestions: 10,
   maximumNumberOfMembersInGroup: 3,
