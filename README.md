@@ -10,3 +10,5 @@
 - Entre na pasta do app (/packages/app)
 - Instale as dependências com `npm install`.
 - Inicie o projeto com `npm run start`, o app estará rodando na porta na porta 3000.
+
+teste
