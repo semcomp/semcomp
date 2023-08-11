@@ -28,7 +28,7 @@ module.exports = {
       hoverWhite: "rgba(255, 255, 255, 0.3)",
     },
     fontFamily: {
-      primary: ["SomeTimeLater"],
+      primary: ["Staatliches"],
       qatar: ["Qatar2022-Bold"],
     },
     extend: {},

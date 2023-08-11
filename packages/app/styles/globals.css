@@ -35,6 +35,10 @@
   src: url("../assets/HeyGotcha.otf");
 }
 @font-face {
+  font-family: "Poppins";
+  src: url("../assets/Poppins-Regular.ttf");
+}
+@font-face {
   font-family: "Staatliches";
   src: url("../assets/Staatliches-Regular.woff"),
     url("../assets/Staatliches-Regular.ttf"),
@@ -106,5 +110,5 @@ a {
 }
 
 button{
-  font-family: HeyGotcha;
+  font-family: Poppins;
 }

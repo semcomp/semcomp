@@ -1,15 +1,16 @@
 #header {
-  background-image: url("../assets/26-imgs/festa-junina.jpg");
-  background-repeat: no-repeat;
+  /* background-image: url("../assets/26-imgs/festa-junina.jpg"); */
+  /* background-repeat: no-repeat;
   background-position: top;
-  box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.35); */
+  background-color: #193D6F;
 }
 #title{
-  text-shadow: -0.06em 0.08em 0 #3d200fcc;
+  /* text-shadow: -0.06em 0.08em 0 #3d200fcc; */
 }
 #subtitle{
-  font-family: HeyGotcha;
-  text-shadow: -0.1em 0.1em 0 #3d200fcc;
+  font-family: Poppins;
+  /* text-shadow: -0.1em 0.1em 0 #3d200fcc; */
 }
 #header-content {
   /* Estava None, deixei flex para manter o texto mesmo na tela fullscreen. */
@@ -18,9 +19,13 @@
 }
 
 @media (max-width: 768px) {
+  #title{
+    font-size: 60px;
+    /* text-shadow: -0.06em 0.08em 0 #3d200fcc; */
+  }
   #header {
-    background: url("../assets/26-imgs/festa-junina.jpg") top;
-    background-size: cover;
+    /* background: url("../assets/26-imgs/festa-junina.jpg") top; */
+    /* background-size: cover; */
     background-color: #193D6F;
   }
 
@@ -30,8 +35,11 @@
 }
 
 @media (min-width: 769px) and (max-width: 1700px) {
+  #title{
+    font-size: 180px;
+  }
   #header {
-    background-image: url("../assets/26-imgs/festa-junina.jpg");
+    /* background-image: url("../assets/26-imgs/festa-junina.jpg"); */
   }
 
   #header-content {
@@ -45,7 +53,11 @@
 }
 
 @media (min-width: 1920px) {
+  #title{
+    font-size: 190px;
+  }
   #header {
-    background: #193D6F url("../assets/26-imgs/festa-junina.jpg") top repeat-x;
+    background: #193D6F;
+    /* url("../assets/26-imgs/festa-junina.jpg") top repeat-x; */
   }
 }

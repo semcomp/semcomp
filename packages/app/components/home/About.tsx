@@ -8,7 +8,7 @@ function AboutBeta() {
         <h1 id="titulo" className="text-4xl font-bold">
           Sobre a Semcomp
         </h1>
-        <div className="text-base pt-8 max-w-4xl">
+        <div className="text-xl pt-8 max-w-4xl">
           <p>
             A <strong>Semcomp</strong> é a{" "}
             <strong>Semana Acadêmica de Computação</strong>, realizada pelos
@@ -17,7 +17,7 @@ function AboutBeta() {
             <strong>Ciência de Dados</strong> do Instituto de Ciências
             Matemáticas e de Computação (ICMC) da USP de São Carlos.
           </p>
-          <br />
+          {/* <br />
           <p> 
             A sua 26ª edição{" "}
             <strong>ocorrerá entre os dias 21 e 27 de Outubro de 2023</strong>{" "}
@@ -29,7 +29,7 @@ function AboutBeta() {
             <strong>ocorrerá nos dias 03 e 04 de junho, também de 2023.</strong> 
           </p>
           <br />
-          <p>Não deixe de participar, basta criar sua conta!</p>
+          <p>Não deixe de participar, basta criar sua conta!</p> */}
         </div>
       </section>
     </>

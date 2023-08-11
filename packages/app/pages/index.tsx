@@ -35,7 +35,7 @@ function Home() {
         <HomeHeader />
         {/*<Stats />*/}
         <About />
-        <Schedule />
+        {/* <Schedule /> */}
         <Sponsors />
         <FAQ />
         <Footer />

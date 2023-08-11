@@ -11,6 +11,8 @@ import RaizenLogo from "../../assets/sponsors/RaizenLogo.png";
 import SerasaLogo from "../../assets/sponsors/SerasaLogo.png";
 import TokenlabLogo from "../../assets/sponsors/TokenlabLogo.png";
 import TractianLogo from "../../assets/sponsors/TractianLogo.png";
+import LugoBots from "../../assets/sponsors/lugoBots.png";
+import IcaroTech from "../../assets/sponsors/icaro.png";
 import IcmcImage from "../../assets/sponsors/icmc.png";
 import FogImage from "../../assets/sponsors/fog.png";
 import CodelabImage from "../../assets/sponsors/logo-codelab-sanca.svg";
@@ -21,15 +23,16 @@ import Routes from "../../routes";
 import Image, { StaticImageData } from "next/image";
 import NavLink from "../navbar/nav-link";
 
+
 function Sponsors() {
   const supporterLogos = [IcmcImage, PetImage, CodelabImage, FogImage, Ganesh, Gema];
-  const sponsorsLogos = [AmdocsLogo, EyLogoSF, GriauleLogo, LuizalabsLogo, RaizenLogo, SerasaLogo, TokenlabLogo, TractianLogo];
+  const sponsorsLogos = [LugoBots, IcaroTech];
 
   return (
     <>
       <section className="flex flex-col items-center text-primary bg-white text-center p-16">
-      {/* <h1 id="titulo" className="text-4xl font-bold">
-          Patrocinadores
+      <h1 id="titulo" className="text-4xl font-bold">
+          Patrocinadores confirmados
         </h1>
         <div className="text-base pt-8 max-w-6xl">
           <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4 lg:gap-4">
@@ -45,7 +48,7 @@ function Sponsors() {
             ))}
           </div>
           <br />
-        </div> */}
+        </div>
         <h1 id="titulo" className="text-4xl font-bold">
           Apoio
         </h1>
@@ -65,7 +68,7 @@ function Sponsors() {
           <br />
 
           <NavLink href={Routes.sponsors}>
-            <div className="bg-tertiary p-3 rounded hover:bg-secondary hover:text-black">
+            <div className="bg-grayDark p-3 rounded hover:bg-secondary hover:text-black">
               Saiba mais
             </div>
           </NavLink>

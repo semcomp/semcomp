@@ -10,6 +10,8 @@ import GaneshImage from "../assets/sponsors/ganesh.png";
 // import SerasaLogo from "../assets/sponsors/SerasaLogo.png";
 // import TokenlabLogo from "../assets/sponsors/TokenlabLogo.png";
 // import TractianLogo from "../assets/sponsors/TractianLogo.png";
+import LugoBots from "../assets/sponsors/lugoBots.png";
+import IcaroTech from "../assets/sponsors/icaro.png";
 import IcmcImage from "../assets/sponsors/icmc.png";
 import FogImage from "../assets/sponsors/fog.png";
 import CodelabImage from "../assets/sponsors/logo-codelab-sanca.svg";
@@ -19,7 +21,23 @@ import Footer from "../components/Footer";
 import Navbar from "../components/navbar";
 import SponsorCard from "../components/sponsor-card";
 
-// const companiesInfo = [
+const companiesInfo = [
+  {
+    name: "LugoBots",
+    links: {
+      homepage: "https://lugobots.dev/"
+    },
+    logo: LugoBots,
+  },
+  {
+    name: "IcaroTech",
+    links: {
+      homepage: "https://icarotech.com/"
+    },
+    logo: IcaroTech,
+  },
+    
+]
 //   {
 //     name: "Amdocs",
 //     links: {
@@ -147,14 +165,14 @@ const SponsorsPage = () => {
       {/* This div is here to allow for the aside to be on the right side of the page */}
       <div className=" m-8 flex flex-col items-center md:w-full md:justify-between md:px-16 md:py-8 md:m-0">
         <main className=" flex flex-col px-0 py-4 lg:w-full">
-          {/* <h2 className="text-3xl py-6 font-qatar text-center lg:text-left">
+          <h2 className="text-3xl py-6 font-primary text-center lg:text-left">
             Patrocinadores
-          </h2> */}
+          </h2>
           {/* <p className="thanks-from-semcomp">
             Queremos agradecer aos patrocinadores e apoiadores, sem os quais seria impossível organizar o nosso retorno à Semcomp presencial. Esperamos que tanto os alunos quanto os nossos patrocinadores e apoiadores possam aproveitar ao máximo as palestras, os minicursos e que ano que vem mantenhamos nossa parceria!
           </p> */}
-          {/* <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-6 lg:m-4 lg:gap-4">
-            {/* {companiesInfo.map((company, index) => (
+          <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-6 lg:m-4 lg:gap-4">
+            {companiesInfo.map((company, index) => (
               <SponsorCard
                 key={index}
                 companyName={company.name}
@@ -162,10 +180,10 @@ const SponsorsPage = () => {
                 companyLogo={company.logo}
                 companyLinks={company.links}
               />
-            ))} }
-          </div> */}
+            ))} 
+          </div>
           <hr />
-          <h2 className="text-3xl py-14 pb-3 font-qatar text-center lg:text-left">
+          <h2 className="text-3xl py-14 pb-3 font-primary text-center lg:text-left">
             Apoiadores
           </h2>
           <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4 ">

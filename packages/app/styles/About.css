@@ -1,12 +1,29 @@
-#titulo {
-    font-family: SomeTimeLater;
+
+
+@media (min-width: 769px) and (max-width: 1700px) {
+  #titulo {
+    font-family: Staatliches;
     
-    letter-spacing: 0.1em;
+    /* letter-spacing: 0.1em; */
     color:#ffffff;
-    text-shadow: -0.06em 0.08em 0 #000000cc;
+    /* text-shadow: -0.06em 0.08em 0 #000000cc; */
     background-color: var(--color-blue-main);
     width: 80%;
     border-radius: 200px;
     padding-top: 0.5%;
+    padding-bottom: 0.5%; 
+  }
+}
+
+@media (max-width: 768px) {
+  #titulo{
+    /* letter-spacing: 0.1em; */
+    color:#ffffff;
+    /* text-shadow: -0.06em 0.08em 0 #000000cc; */
+    background-color: var(--color-blue-main);
+    width: 100%;
+    border-radius: 200px;
+    padding-top: 0.5%;
     padding-bottom: 0.5%;
   }
+}

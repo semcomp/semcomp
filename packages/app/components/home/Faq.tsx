@@ -35,7 +35,7 @@ function Question({ question, answer }) {
   }
 
   return (
-    <div className="bg-white text-tertiary">
+    <div className="bg-white text-grayDark">
       <button
         className="text-left w-full p-4 shadow"
         onClick={handleQuestionClick}
