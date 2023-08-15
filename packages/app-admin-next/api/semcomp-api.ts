@@ -1,5 +1,5 @@
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
-import { SemcompApiCreateEventRequest, SemcompApiCreateHouseRequest, SemcompApiCreateGameQuestionRequest, SemcompApiEditEventRequest, SemcompApiEditGameQuestionRequest, SemcompApiGetEventsResponse, SemcompApiGetHousesResponse, SemcompApiGetGameQuestionsResponse, SemcompApiGetTShirtsResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse, SemcompApiPaginationRequest, SemcompApiGetGameGroupsResponse } from "../models/SemcompApiModels";
+import { SemcompApiCreateEventRequest, SemcompApiCreateHouseRequest, SemcompApiCreateGameQuestionRequest, SemcompApiEditEventRequest, SemcompApiEditGameQuestionRequest, SemcompApiGetEventsResponse, SemcompApiGetHousesResponse, SemcompApiGetGameQuestionsResponse, SemcompApiGetTShirtsResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse, SemcompApiPaginationRequest, SemcompApiGetGameGroupsResponse, SemcompApiUser } from "../models/SemcompApiModels";
 import Http from "./http";
 
 class SemcompApi {
@@ -26,7 +26,7 @@ class SemcompApi {
 
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
-
+ 
   public async getHouses(pagination: PaginationRequest): Promise<SemcompApiGetHousesResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
       pagination.getPage(),
