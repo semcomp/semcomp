@@ -301,7 +301,6 @@ function Profile() {
                     >
                       Ver infos pacote
                     </button> */}
-                    <p style={{ fontSize: "0.7rem" }}>Caso seu QR code não carregou, verifique se seu e-mail está correto</p>
                   </>
                 ) : (
                   <>

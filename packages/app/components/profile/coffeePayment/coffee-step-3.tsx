@@ -54,6 +54,7 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
           >
             <p>Escaneie o QR Code abaixo ou copie e cole o código do PIX</p>
             <b className="py-3">Valor: R${data.withSocialBenefit ? "7.00" : "14.00"}</b>
+            <p>Caso seu QR code não carregou, verifique se seu e-mail está correto!</p>
             <p>
               Depois de realizar o pagamento no seu banco, clique em fechar e
               atualize a página.
