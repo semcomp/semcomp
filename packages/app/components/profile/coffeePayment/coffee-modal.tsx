@@ -2,9 +2,17 @@ import { useState } from "react";
 
 import Modal from "../../Modal";
 import Stepper from "../../stepper/Stepper";
-import CoffeeStep1 from "./coffee-step-1";
-import CoffeeStep2, { CoffeePaymentData, TShirtSize, FoodOption } from "./coffee-step-2";
+import CoffeeStep1, { KitOption } from "./coffee-step-1";
+import CoffeeStep2, { TShirtSize, FoodOption } from "./coffee-step-2";
 import CoffeeStep3 from "./coffee-step-3";
+
+export type CoffeePaymentData = {
+  withSocialBenefit: boolean;
+  socialBenefitFile: File;
+  tShirtSize: TShirtSize;
+  foodOption: FoodOption;
+  kitOption: KitOption;
+};
 
 function SemcompButton({ onClick, children, className, ...props }: any) {
   return (
@@ -26,12 +34,13 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
   const [data, setData] = useState({
     withSocialBenefit: false,
     socialBenefitFile: null,
-    // tShirtSize: TShirtSize.M,
+    tShirtSize: TShirtSize.M,
+    kitOption: KitOption.COMPLETE,
     foodOption: FoodOption.NONE,
   } as CoffeePaymentData);
 
   const stepComponent = [
-    <CoffeeStep1 key={0} />,
+    <CoffeeStep1 key={0} data={data} setData={setData}/>,
     <CoffeeStep2 key={1} data={data} setData={setData} />,
     <CoffeeStep3 key={2} data={data} />,
   ][coffeeStep];
