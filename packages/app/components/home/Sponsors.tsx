@@ -30,8 +30,8 @@ function Sponsors() {
 
   return (
     <>
-      <section className="flex flex-col items-center text-primary bg-white text-center p-16">
-      <h1 id="titulo" className="text-4xl font-bold">
+      <section id="sponsorsBackground" className="flex flex-col items-center text-primary bg-green1_26 text-center p-16">
+      <h1 id="sponsors" className="text-4xl font-bold">
           Patrocinadores confirmados
         </h1>
         <div className="text-base pt-8 max-w-6xl">
@@ -49,7 +49,7 @@ function Sponsors() {
           </div>
           <br />
         </div>
-        <h1 id="titulo" className="text-4xl font-bold">
+        <h1 id="sponsors" className="text-4xl font-bold">
           Apoio
         </h1>
         <div className="text-base pt-8 max-w-6xl">
@@ -68,7 +68,7 @@ function Sponsors() {
           <br />
 
           <NavLink href={Routes.sponsors}>
-            <div className="bg-grayDark p-3 rounded hover:bg-secondary hover:text-black">
+            <div className="bg-green2_26 p-3 rounded hover:bg-green3-26 hover:text-black">
               Saiba mais
             </div>
           </NavLink>

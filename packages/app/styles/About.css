@@ -5,22 +5,45 @@
     font-family: Staatliches;
     
     /* letter-spacing: 0.1em; */
-    color:#ffffff;
+    /* color:#ffffff; */
+    color:#CCE89D;
     /* text-shadow: -0.06em 0.08em 0 #000000cc; */
-    background-color: var(--color-blue-main);
+    /* background-color: var(--color-blue-main); */
+    background-color: #ED8EF6;
     width: 80%;
     border-radius: 200px;
     padding-top: 0.5%;
     padding-bottom: 0.5%; 
+  }
+
+  #sponsors {
+    font-family: Staatliches;
+    
+    /* letter-spacing: 0.1em; */
+    /* color:#ffffff; */
+    color:#CCE89D;
+    /* text-shadow: -0.06em 0.08em 0 #000000cc; */
+    /* background-color: var(--color-blue-main); */
+    background-color: #EF99CD;
+    width: 80%;
+    border-radius: 200px;
+    padding-top: 0.5%;
+    padding-bottom: 0.5%; 
+  }
+
+  #aboutText {
+    color: #3DD2FC;
   }
 }
 
 @media (max-width: 768px) {
   #titulo{
     /* letter-spacing: 0.1em; */
-    color:#ffffff;
+    /* color:#ffffff; */
+    color:#CCE89D;
     /* text-shadow: -0.06em 0.08em 0 #000000cc; */
-    background-color: var(--color-blue-main);
+    /* background-color: var(--color-blue-main); */
+    background-color: #ED8EF6;
     width: 100%;
     border-radius: 200px;
     padding-top: 0.5%;

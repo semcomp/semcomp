@@ -3,7 +3,8 @@
   /* background-repeat: no-repeat;
   background-position: top;
   box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.35); */
-  background-color: #193D6F;
+  /* background-color: #193D6F; */
+  background-color: #4AD2F8;
 }
 #title{
   /* text-shadow: -0.06em 0.08em 0 #3d200fcc; */
@@ -26,7 +27,8 @@
   #header {
     /* background: url("../assets/26-imgs/festa-junina.jpg") top; */
     /* background-size: cover; */
-    background-color: #193D6F;
+    /* background-color: #193D6F; */
+    background-color: #4AD2F8;
   }
 
   #header-content {
@@ -57,7 +59,8 @@
     font-size: 190px;
   }
   #header {
-    background: #193D6F;
+    background-color: #4AD2F8;
+    /* background: #193D6F; */
     /* url("../assets/26-imgs/festa-junina.jpg") top repeat-x; */
   }
 }
