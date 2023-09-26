@@ -11,7 +11,7 @@ class UserController {
       handleValidationResult(req);
 
       const { course } = req.user;
-      const { name, telegram, permission } = req.body;
+      const { name, email, telegram, permission } = req.body;
 
       if (name) {
         req.user.name = name;
@@ -24,6 +24,9 @@ class UserController {
       }
       if (permission) {
         req.user.permission = permission;
+      }
+      if (email) {
+        req.user.email = email;
       }
 
       const editedUser = await userService.update(req.user);

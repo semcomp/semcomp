@@ -69,7 +69,7 @@ function Step0({
       <Input
           tooltip={
           <div style={{ fontSize: "14px" }}>
-            Por favor, cadastre um e-mail que você tem acesso.
+            Por favor, cadastre um e-mail que você tem acesso e que seja válido.
           </div>
         }
         className="my-3"

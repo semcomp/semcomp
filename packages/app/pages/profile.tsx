@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
-// import { QRCodeSVG } from "qrcode.react";
+import { QRCodeSVG } from "qrcode.react";
 import { Divider, List, ListItem, ListItemText } from "@mui/material";
 import Chip from "@mui/material/Chip";
 
@@ -18,12 +18,15 @@ import AboutOverflow from "../components/profile/about-overflow";
 import AchievementsImages from "../components/profile/achievements_images";
 import CoffeePayment from "../components/profile/coffeePayment/coffee-modal";
 import RequireAuth from "../libs/RequireAuth";
-import PicaPau from "../assets/pica-pau.png";
-import OncaPintada from "../assets/onca-pintada.png";
-import TatuBola from "../assets/tatu-bola.png";
-import LoboGuara from "../assets/lobo-guara.png";
+
+// Casas
+import Indie from "../assets/brasao-indie.png";
+import Rock from "../assets/brasao-rock.png";
+import Funk from "../assets/brasao-funk.png";
+import Pop from "../assets/brasao-pop.png";
 import TelegramIcon from "@mui/icons-material/Telegram";
 import ImgLogo from "../assets/logo-24.png";
+
 import { useAppContext } from "../libs/contextLib";
 import Card from "../components/Card";
 import FundEstudarForm from "../components/profile/fundEstudar";
@@ -78,45 +81,48 @@ function Profile() {
     fetchUserData();
   }, []);
 
-  // useEffect(() => {
-  //   printFunction();
-  // });
+  useEffect(() => {
+    printFunction();
+  });
 
-  // useEffect(() => {
-  //   removeEventsWarning();
-  // }, [events]);
+  useEffect(() => {
+    removeEventsWarning();
+  }, [events]);
 
-  // function printFunction() {
-  //   let element = document.getElementsByClassName('events-list')[0];
-  //   let children = element.hasChildNodes();
-  //   // console.log(element.children);
-  //   // console.log(children);
-  //   if (!children) {
-  //     let warning = document.createElement('p');
-  //     warning.classList.add('no-event-warning');
-  //     warning.innerHTML = 'Voce nao se inscreveu em nenhum evento';
-  //     element.appendChild(warning);
-  //   }
-  // }
+  function printFunction() {
+    let element = document.getElementsByClassName('events-list')[0];
+    
+    if(element){
+      let children = element.hasChildNodes();
+      if (!children) {
+        let warning = document.createElement('p');
+        warning.classList.add('no-event-warning');
+        warning.innerHTML = 'Voce não se inscreveu em nenhum evento.';
+        element.appendChild(warning);
+      }
 
-  // function removeEventsWarning() {
-  //   let element = document.getElementsByClassName('events-list')[0];
-  //   let children = element.hasChildNodes();
-  //   if (element.children[0]) {
-  //     console.log(element.children[0]);
-  //     element.children[0].innerHTML = 'Voce está inscrito nesses eventos:';
-  //   }
-  // }
+    }
+  }
 
-// OBERSERVAÇÃO; relacionado as casas do stackoverflow
+  function removeEventsWarning() {
+    let element = document.getElementsByClassName('events-list')[0];
+    if(element){
+      let children = element.childElementCount;
+      if (children > 1) {
+        element.children[0].innerHTML = 'Voce está inscrito nesses eventos:';
+      }
+    }
+  }
+
+// OBERSERVAÇÃO; relacionado as casas do stack overflow
   const userHouseName = userFetched?.house?.name;
   const userHouseTelegram = userFetched?.house?.telegramLink;
 
   const houseImageSrc = {
-    "Pica-pau": PicaPau,
-    "Onça-pintada": OncaPintada,
-    "Tatu-bola": TatuBola,
-    "Lobo-guara": LoboGuara,
+    "Indie": Indie,
+    "Pop": Pop,
+    "Funk": Funk,
+    "Rock": Rock,
   }[userHouseName];
 
   function toPascalCase(str: string) {
@@ -269,7 +275,7 @@ function Profile() {
                     >
                       Editar
                     </button>
-                    {/* <button BETA NAO TEM PRESENCA
+                    {/* <button 
                       onClick={() => {
                         setIsMarkAttendanceModalOpen(true);
                         blockBodyScroll();
@@ -285,13 +291,12 @@ function Profile() {
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Coffee
                 </h1>
-                {/*  <p style={{ fontSize: "1rem" }}>Pague com PIX o Coffee</p> */}
                 {userFetched.payment.status === "approved" ? (
                   <>
                     <Chip label="OK" color="success" />
-                    {/* <Chip
+                    <Chip
                       className="mt-3"
-                      // label={`Camiseta ${userFetched.payment.tShirtSize}`}
+                      label={`Camiseta ${userFetched.payment.tShirtSize}`}
                     />
                     <button
                       onClick={() => {
@@ -300,33 +305,34 @@ function Profile() {
                       }}
                     >
                       Ver infos pacote
-                    </button> */}
+                    </button>
                   </>
                 ) : (
                   <>
-                    {/*  <button
+                      <Chip className="mb-4" label="Sem Coffee" disabled={true} />
+                      <p style={{ fontSize: "0.9rem" }}>Pague com PIX o Coffee</p>
+                      <button
                       onClick={() => {
                         setIsCoffeeModalOpen(true);
                         blockBodyScroll();
                       }}
-                      className="bg-tertiary text-white p-2 rounded-lg mt-2"
-                    >
+                      className="bg-tertiary text-white p-2 rounded-lg mt-2">
                       Comprar Coffee
-                    </button> */}
-                    <Chip className="mt-3" label="Sem Coffee" disabled={true} />
+                    </button>
                   </>
                 )}
               </Card>
             </>
           )}
-          {userFetched && (
+          {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
+          {/* {userFetched && (
             <Card className="flex flex-col items-center p-9 w-full mb-6">
               <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                 Overflow
               </h1>
               <strong>Sua casa é...</strong>
-              <Image alt="User house" src={houseImageSrc} />
-              <p className="house-name">{userFetched.house.name}</p>
+              <Image className="w-full" alt="User house" src={houseImageSrc} />
+              <p className="house-name text-lg">{userFetched.house.name}</p>
               <a
                 className="bg-[#0088cc] text-white p-2 rounded-lg mt-2 text-center"
                 href={userHouseTelegram}
@@ -336,13 +342,15 @@ function Profile() {
                 Entrar no grupo
                 <TelegramIcon />
               </a> 
-              <button onClick={() => setIsAboutOverflowModalOpen(true)}>
+              <button className="text-sm mt-5 text-tertiary" onClick={() => setIsAboutOverflowModalOpen(true)}>
                   O que é o Overflow?
                 </button>
             </Card>
-          )}
-          <Card className="flex flex-col items-center p-9 w-full mb-6">
-            <h1 style={{ fontSize: "1rem", marginBottom: "1rem" }}>
+          )} */}
+
+          {/* ABRIR AQUI PARA MOSTRAR INSCRIÇÕES */}
+          {/* <Card className="flex flex-col items-center p-9 w-full mb-6 text-center">
+            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Inscrições em Eventos
             </h1>
             <List className="events-list text-center">
@@ -389,7 +397,10 @@ function Profile() {
                 Inscrever
               </button>
             }
-          </Card>
+          </Card> */}
+
+          
+          {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR CONQUISTAS () */}
           {/* <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Conquistas
@@ -422,6 +433,9 @@ function Profile() {
               </button>
             }
           </div> */}
+
+          
+          {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
           {/* <Card className="flex flex-col items-center p-9 w-full mb-6">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Pontuações
