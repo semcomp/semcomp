@@ -1,18 +1,12 @@
 // import SemcompImage from '../../assets/logo_semcompbeta.jpg';
 
-// import AmdocsLogo from "../assets/sponsors/svg/amdocs.svg";
 // import FEstudar from "../assets/sponsors/FundacaoEstudar.png";
-// import EyLogoSF from "../assets/sponsors/EYLogoSemFundo.png";
 import GaneshImage from "../assets/sponsors/ganesh.png";
-// import GriauleLogo from "../assets/sponsors/GriauleLogo.svg";
-// import LuizalabsLogo from "../assets/sponsors/LuizalabsLogo.png";
-// import RaizenLogo from "../assets/sponsors/RaizenLogo.png";
-// import SerasaLogo from "../assets/sponsors/SerasaLogo.png";
-// import TokenlabLogo from "../assets/sponsors/TokenlabLogo.png";
-// import TractianLogo from "../assets/sponsors/TractianLogo.png";
 import LugoBots from "../assets/sponsors/lugoBots.png";
 import IcaroTech from "../assets/sponsors/icaro.png";
 import IcmcImage from "../assets/sponsors/icmc.png";
+import Yara from "../assets/sponsors/YaraLogo.png";
+import SMT from "../assets/sponsors/SMTLogo.png";
 import FogImage from "../assets/sponsors/fog.png";
 import CodelabImage from "../assets/sponsors/logo-codelab-sanca.svg";
 import PetImage from "../assets/sponsors/pet.png";
@@ -36,80 +30,22 @@ const companiesInfo = [
     },
     logo: IcaroTech,
   },
-    
+  {
+    name: "Yara",
+    links: {
+      homepage: "https://www.yarabrasil.com.br/"
+    },
+    logo: Yara,
+  },
+  {
+    name: "SMT Soluções",
+    links: {
+      homepage: "https://smtsolucoes.com.br/"
+    },
+    logo: SMT,
+  },
 ]
-//   {
-//     name: "Amdocs",
-//     links: {
-//       homepage: "https://www.amdocs.com/",
-//       careers: "https://www.amdocs.com/careers/home",
-//     },
-//     logo: AmdocsLogo,
-//   },
-//   {
-//     name: "EY",
-//     description: "",
-//     links: {
-//       homepage: "https://www.ey.com/pt_br",
-//       careers: " https://www.ey.com/pt_br/careers",
-//     },
-//     logo: EyLogoSF,
-//   },
-//   {
-//     name: "Griaule",
-//     description: "",
-//     links: {
-//       homepage: "https://griaule.com/",
-//       careers: "https://griaule.com/careers/",
-//     },
-//     logo: GriauleLogo,
-//   },
-//   {
-//     name: "Luizalabs",
-//     description: "",
-//     links: {
-//       homepage: "https://medium.com/luizalabs",
-//       careers: "https://carreiras.magazineluiza.com.br/times/Luizalabs",
-//     },
-//     logo: LuizalabsLogo,
-//   },
-//   {
-//     name: "Raizen",
-//     description: "",
-//     links: {
-//       homepage: "https://www.raizen.com.br",
-//       careers: "https://carreiras.raizen.com.br/",
-//     },
-//     logo: RaizenLogo,
-//   },
-//   {
-//     name: "Serasa",
-//     description: "",
-//     links: {
-//       homepage: "https://www.serasaexperian.com.br/",
-//       careers: "https://www.serasaexperian.com.br/carreiras-tech/",
-//     },
-//     logo: SerasaLogo,
-//   },
-//   {
-//     name: "Tokenlab",
-//     description: "",
-//     links: {
-//       homepage: "https://www.tokenlab.com.br/pt/home",
-//       careers: "https://tokenlab.gupy.io/",
-//     },
-//     logo: TokenlabLogo,
-//   },
-//   {
-//     name: "Tractian",
-//     description: "",
-//     links: {
-//       homepage: "https://tractian.com/",
-//       careers: "https://tractian.com/carreiras",
-//     },
-//     logo: TractianLogo,
-//   },
-// ];
+
 
 const supportersInfo = [
   {
@@ -148,6 +84,7 @@ const supportersInfo = [
     logo: GemaImage,
     description: "",
   },
+  
   // {
   //   name: "FundacaoEstudar",
   //   link: "https://www.estudar.org.br/",
@@ -165,12 +102,12 @@ const SponsorsPage = () => {
       {/* This div is here to allow for the aside to be on the right side of the page */}
       <div className=" m-8 flex flex-col items-center md:w-full md:justify-between md:px-16 md:py-8 md:m-0">
         <main className=" flex flex-col px-0 py-4 lg:w-full">
-          <h2 className="text-3xl py-6 font-primary text-center lg:text-left">
+          <h2 className="text-4xl py-6 font-secondary text-center lg:text-left">
             Patrocinadores
           </h2>
-          {/* <p className="thanks-from-semcomp">
+          <p className="thanks-from-semcomp mb-10">
             Queremos agradecer aos patrocinadores e apoiadores, sem os quais seria impossível organizar o nosso retorno à Semcomp presencial. Esperamos que tanto os alunos quanto os nossos patrocinadores e apoiadores possam aproveitar ao máximo as palestras, os minicursos e que ano que vem mantenhamos nossa parceria!
-          </p> */}
+          </p>
           <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-6 lg:m-4 lg:gap-4">
             {companiesInfo.map((company, index) => (
               <SponsorCard
@@ -183,7 +120,7 @@ const SponsorsPage = () => {
             ))} 
           </div>
           <hr />
-          <h2 className="text-3xl py-14 pb-3 font-primary text-center lg:text-left">
+          <h2 className="text-4xl py-14 pb-3 font-secondary text-center lg:text-left">
             Apoiadores
           </h2>
           <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4 ">

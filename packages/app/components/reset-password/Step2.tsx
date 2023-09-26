@@ -1,18 +1,23 @@
-import Link from 'next/link'
-
 import Routes from "../../routes";
+import { useRouter } from 'next/router';
 
 function Step2() {
+
+  const router = useRouter();
+
   return (
     <div className="w-full">
       <p>
         Sua senha foi mudada com sucesso! Da próxima vez que você for entrar,
         você já terá que usar a nova senha.
       </p>
-      <Link
-        href={Routes.home}
-        className="bg-primary text-white font-bold w-full py-3 shadow"
-      >Ok</Link>
+      <button
+        className="bg-primary text-white py-3 px-6 w-full hover:bg-secondary mt-10 mb-6 rounded-xl"
+        type="button"
+        onClick={() => {router.push(Routes.profile)}}
+      >
+        Ok!
+      </button>
     </div>
   );
 }

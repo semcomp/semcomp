@@ -1,18 +1,10 @@
 import Link from "next/link";
 
-import AmdocsLogo from "../../assets/sponsors/svg/amdocs.svg";
 // import FEstudar from "../../assets/sponsors/FundacaoEstudar.png";
-import EyLogo from "../../assets/sponsors/EYlogoVertical.jpeg";
-import EyLogoSF from "../../assets/sponsors/EYLogoSemFundo.png";
-import GaneshImage from "../../assets/sponsors/ganesh.png";
-import GriauleLogo from "../../assets/sponsors/GriauleLogo.svg";
-import LuizalabsLogo from "../../assets/sponsors/LuizalabsLogo.png";
-import RaizenLogo from "../../assets/sponsors/RaizenLogo.png";
-import SerasaLogo from "../../assets/sponsors/SerasaLogo.png";
-import TokenlabLogo from "../../assets/sponsors/TokenlabLogo.png";
-import TractianLogo from "../../assets/sponsors/TractianLogo.png";
 import LugoBots from "../../assets/sponsors/lugoBots.png";
 import IcaroTech from "../../assets/sponsors/icaro.png";
+import Yara from "../../assets/sponsors/YaraLogo.png";
+import SMT from "../../assets/sponsors/SMTLogo.png";
 import IcmcImage from "../../assets/sponsors/icmc.png";
 import FogImage from "../../assets/sponsors/fog.png";
 import CodelabImage from "../../assets/sponsors/logo-codelab-sanca.svg";
@@ -26,13 +18,13 @@ import NavLink from "../navbar/nav-link";
 
 function Sponsors() {
   const supporterLogos = [IcmcImage, PetImage, CodelabImage, FogImage, Ganesh, Gema];
-  const sponsorsLogos = [LugoBots, IcaroTech];
+  const sponsorsLogos = [LugoBots, IcaroTech, Yara, SMT];
 
   return (
     <>
-      <section id="sponsorsBackground" className="flex flex-col items-center text-primary bg-green1_26 text-center p-16">
+      <section id="sponsorsBackground" className="flex flex-col items-center text-primary bg-white text-center p-16">
       <h1 id="sponsors" className="text-4xl font-bold">
-          Patrocinadores confirmados
+          Patrocinadores
         </h1>
         <div className="text-base pt-8 max-w-6xl">
           <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4 lg:gap-4">
@@ -68,7 +60,7 @@ function Sponsors() {
           <br />
 
           <NavLink href={Routes.sponsors}>
-            <div className="bg-green2_26 p-3 rounded hover:bg-green3-26 hover:text-black">
+            <div className="button bg-primary p-3 rounded hover:bg-green3-26 hover:text-black text-white hover:bg-secondary">
               Saiba mais
             </div>
           </NavLink>

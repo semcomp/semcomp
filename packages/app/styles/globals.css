@@ -44,6 +44,14 @@
     url("../assets/Staatliches-Regular.ttf"),
     url("../assets/Staatliches-Regular.eot");
 }
+@font-face {
+  font-family: "Belerofonte";
+  src: url("../assets/26-fonts/Belerofonte.ttf");
+}
+@font-face {
+  font-family: "ZingRust";
+  src: url("../assets/26-fonts/zing.rust-demo-base.otf");
+}
 
 
 @font-face {
@@ -86,12 +94,26 @@
 body,
 html,
 #root {
+  overflow-x: hidden;
   height: 100vh;
   scroll-behavior: smooth;
   font-family: Roboto, sans-serif;
 
   /* The whole page is not a perfect white so it goes a bit easier on the reader's eyes */
   background-color: #fafafa;
+}
+
+body::-webkit-scrollbar {
+  width: 0.7em;
+}
+ 
+body::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+ 
+body::-webkit-scrollbar-thumb {
+  background-image: url("../assets/26-imgs/img_geradora_fundo.PNG");
+  border-radius: 10px;
 }
 
 html,
@@ -110,5 +132,9 @@ a {
 }
 
 button{
+  font-family: ZingRust;
+}
+
+button.nav{
   font-family: Poppins;
 }
