@@ -41,6 +41,9 @@ function EventsTable({
   onMoreInfoClick: (selectedIndex: number) => void;
 }) {
   const newData: EventData[] = [];
+  if(!data) return (
+    <h1></h1>
+  );
   for (const event of data.getEntities()) {
     newData.push({
       // ID: event.id,
@@ -92,7 +95,6 @@ function Events() {
     } catch (error) {
       console.error(error);
     } finally {
-      setIsLoading(false);
     }
   }
 
@@ -112,6 +114,12 @@ function Events() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if(data != null){
+      setIsLoading(false);
+    }
+  }, [data]);
 
   function MarkAttendance() {
     return (

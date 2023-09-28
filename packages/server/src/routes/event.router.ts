@@ -26,16 +26,16 @@ router.get(
   EventController.getOne
 );
 
-// router.post(
-//   "/mark-attendance/:eventId",
-//   [
-//     authMiddleware.authenticate,
-//     authMiddleware.authenticateUserHouse,
-//     authMiddleware.isAuthenticated,
-//     param("eventId", "Invalid field 'eventId'").not().isEmpty(),
-//   ],
-//   EventController.markAttendance
-// );
+router.post(
+  "/mark-attendance/:eventId",
+  [
+    authMiddleware.authenticate,
+    authMiddleware.authenticateUserHouse,
+    authMiddleware.isAuthenticated,
+    param("eventId", "Invalid field 'eventId'").not().isEmpty(),
+  ],
+  EventController.markAttendance
+);
 
 router.post(
   "/mark-attendance",

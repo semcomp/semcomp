@@ -1,18 +1,18 @@
 import Image from "next/image";
 
-import PicaPau from "../../../assets/pica-pau.png";
-import OncaPintada from "../../../assets/onca-pintada.png";
-import TatuBola from "../../../assets/tatu-bola.png";
-import LoboGuara from "../../../assets/lobo-guara.png";
+import Indie from "../../../assets/26-imgs/brasao-indie.png";
+import Rock from "../../../assets/26-imgs/brasao-rock.png";
+import Funk from "../../../assets/26-imgs/brasao-funk.png";
+import Pop from "../../../assets/26-imgs/brasao-pop.png";
 
 function HousePoints({ name, score, largestScore }) {
   const percentage = (100 * score) / largestScore;
 
   const houseImageSrc = {
-    "Pica-pau": PicaPau,
-    "Onça-pintada": OncaPintada,
-    "Tatu-bola": TatuBola,
-    "Lobo-guara": LoboGuara,
+    "Pop": Pop,
+    "Rock":Rock,
+    "Indie": Indie,
+    "Funk": Funk,
   }[name];
 
   return (

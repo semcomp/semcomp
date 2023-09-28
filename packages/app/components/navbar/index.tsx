@@ -26,9 +26,9 @@ const Navbar = (props) => {
   // Caso contrário, só mantém o bg-primary
 
   let navStyles =
-    "text-center p-4 w-full font-primary md:flex md:justify-between md:items-center ";
+    "text-center px-4 py-2 w-full font-primary md:flex md:justify-between md:items-center ";
 
-  props.bg ? (navStyles += props.pg) : (navStyles += "bg-secondary");
+  props.bg ? (navStyles += props.pg) : (navStyles += "bg-no-repeat bg-cover bg-left bg-[url('../assets/26-imgs/img_geradora_fundo2.PNG')]");
 
   return (
     <nav className={navStyles}>
