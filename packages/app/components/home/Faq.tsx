@@ -73,10 +73,10 @@ function Question({ question, answer }) {
 const FAQ = () => {
   return (
     <>
-      <section className="flex flex-col items-center text-secondary bg-primary text-center p-16">
+      <section className="flex flex-col items-center text-secondary bg-secondary text-center p-16">
         <h1
           id="titulo"
-          className="text-4xl font-bold font-qatar text-secondary"
+          className="text-4xl font-bold font-qatar text-primary"
         >
           FAQ
         </h1>

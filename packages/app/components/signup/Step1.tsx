@@ -106,7 +106,7 @@ function Step1(
     setIsButtonDisabled(true);
     setTimeout(()=> {
       setIsButtonDisabled(false);
-    }, 2000);
+    }, 10000);
     
     // Alerts the parent component that the user want to move to the next step.
     // (which in this case, since it's the last step, a request to the server will be made).

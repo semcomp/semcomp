@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
 import DataTable from '../components/reusable/DataTable';
 import RequireAuth from '../libs/RequireAuth';
@@ -7,6 +7,7 @@ import { useAppContext } from '../libs/contextLib';
 import { SemcompApiGetHousesResponse, SemcompApiHouse } from '../models/SemcompApiModels';
 import CreateHouseModal from '../components/houses/CreateHouseModal';
 import EditHouseModal from '../components/houses/EditHouseModal';
+import EditScore from '../components/houses/EditScore';
 import { HouseFormData } from '../components/houses/HouseForm';
 import DataPage from '../components/DataPage';
 import { PaginationRequest, PaginationResponse } from '../models/Pagination';
@@ -25,11 +26,15 @@ function HousesTable({
   pagination,
   onRowClick,
   onRowSelect,
+  moreInfoContainer,
+  onMoreInfoClick
 }: {
   data: PaginationResponse<SemcompApiHouse>,
   pagination: PaginationRequest,
   onRowClick: (selectedIndex: number) => void,
   onRowSelect: (selectedIndexes: number[]) => void,
+  moreInfoContainer: ReactNode;
+  onMoreInfoClick: (selectedIndex: number) => void;
 }) {
   const newData: HouseData[] = [];
   for (const house of data.getEntities()) {
@@ -48,6 +53,8 @@ function HousesTable({
     pagination={pagination}
     onRowClick={onRowClick}
     onRowSelect={onRowSelect}
+    moreInfoContainer={moreInfoContainer}
+    onMoreInfoClick={onMoreInfoClick}
   ></DataTable>);
 }
 
@@ -62,6 +69,7 @@ function Houses() {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditScoreModalOpen, setIsEditScoreModalOpen] = useState(false);
 
   async function fetchData() {
     try {
@@ -76,12 +84,20 @@ function Houses() {
   }
 
   async function handleRowClick(index: number) {
+    
+    const houses = data.getEntities()
+    
     setSelectedData({
-      name: data[0].name,
-      description: data[0].description,
-      telegramLink: data[0].telegramLink,
+      id: houses[0].id,
+      name: houses[0].name,
+      description: houses[0].description,
+      telegramLink: houses[0].telegramLink,
     });
     setIsEditModalOpen(true);
+  }
+
+  async function handleMoreInfoClick(index: number) {
+    setSelectedData(data.getEntities()[index]);
   }
 
   async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
@@ -91,6 +107,8 @@ function Houses() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  
 
   return (<>
     {isCreateModalOpen && (
@@ -109,7 +127,8 @@ function Houses() {
         <DataPage
           title="Casas"
           isLoading={isLoading}
-          buttons={<button
+          buttons={
+          <button
             className="bg-black text-white py-3 px-6"
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
@@ -121,7 +140,10 @@ function Houses() {
             pagination={pagination}
             onRowClick={handleRowClick}
             onRowSelect={handleSelectedIndexesChange}
+            moreInfoContainer={<EditScore eventId={selectedData?.id}/>}
+            onMoreInfoClick={handleMoreInfoClick}
           />}
+          
         ></DataPage>
       )
     }

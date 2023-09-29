@@ -58,9 +58,9 @@ class AuthService {
 
     await emailService.send(
       createdUser.email,
-      "Bem vinde à Semcomp Beta 26!",
+      "Bem vinde à Semcomp 26!",
       `Você se cadastrou no nosso site e já está tudo certo!
-      Se prepare para a 26° edição Beta da maior Semana de Computação do Brasil! Aproveite o gostinho do que está por vir ao participar das nossas palestras, minicursos, concursos e eventos culturais!
+      Se prepare para a 26° edição da maior Semana de Computação do Brasil! Aproveite o gostinho do que está por vir ao participar das nossas palestras, minicursos, concursos e eventos culturais!
       Fique de olho no nosso site (https://semcomp.icmc.usp.br/), Facebook (https://www.facebook.com/Semcomp), Twitter (https://twitter.com/semcomp), e Instagram (https://www.instagram.com/semcomp/) para não perder nenhum detalhe da programação incrível que preparamos especialmente para VOCÊ!`,
       `<div>
       <h1>Voc&ecirc; se cadastrou no nosso site e j&aacute; est&aacute; tudo certo!</h1>

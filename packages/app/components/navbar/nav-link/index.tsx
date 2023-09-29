@@ -42,14 +42,14 @@ const NavLink = ({
         <a
           title={title}
           {...props}
-          className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-white rounded-lg cursor-not-allowed opacity-70"
+          className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-black rounded-lg cursor-not-allowed opacity-70 nav"
         >
           {LinkText}
         </a>
       ) : (
         <Link href={href} title={title} {...props}>
-          <button onClick={handleClick} style={{ outline: "none" }}>
-            <a className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-white rounded-lg hover:bg-hoverWhite duration-200">
+          <button onClick={handleClick} style={{ outline: "none" }} className="nav">
+            <a className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-black rounded-lg hover:bg-hoverWhite duration-200 nav">
               {LinkText}
             </a>
           </button>

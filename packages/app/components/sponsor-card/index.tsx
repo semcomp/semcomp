@@ -24,10 +24,10 @@ function SponsorCard({
   companyLogo,
 }: sponsorProps) {
   return (
-    <div className={"overflow-auto flex flex-col items-center "}>
+    <div className={"overflow-auto justify-center flex flex-col items-center "}>
       {companyLinks && (
         <div className="flex flex-col justify-between h-full p-0 m-0">
-          <div className={"relative h-32 w-48  " + (companyType == 'Supporter' ? "lg:w-[140px] " : "lg:w-40 ")}>
+          <div className={"relative h-32 w-48 mx-10 " + (companyType == 'Supporter' ? "lg:w-[140px] " : "lg:w-40 ")}>
             <Image
               alt={"Logo " + companyName}
               src={companyLogo}

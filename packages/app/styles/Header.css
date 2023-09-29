@@ -1,15 +1,19 @@
 #header {
-  /* background-image: url("../assets/26-imgs/festa-junina.jpg"); */
-  /* background-repeat: no-repeat;
-  background-position: top;
-  box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.35); */
-  background-color: #193D6F;
+  background-image: url("../assets/26-imgs/img_geradora_fundo2.PNG");
+  background-repeat: no-repeat;
+  background-position:bottom;
+  background-size: cover;
+  /* box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.35); */
+  /* background-color: #193D6F; */
+  /* background-color: #4AD2F8; */
 }
 #title{
+  user-select: none;
   /* text-shadow: -0.06em 0.08em 0 #3d200fcc; */
 }
 #subtitle{
-  font-family: Poppins;
+  user-select: none;
+  font-family: ZingRust;
   /* text-shadow: -0.1em 0.1em 0 #3d200fcc; */
 }
 #header-content {
@@ -18,46 +22,200 @@
   display: flex;
 }
 
-@media (max-width: 768px) {
+/* Mobiles */
+@media (max-width: 748px) {
   #title{
-    font-size: 60px;
-    /* text-shadow: -0.06em 0.08em 0 #3d200fcc; */
+    font-size: 50px;
+    width: 100%;
   }
-  #header {
-    /* background: url("../assets/26-imgs/festa-junina.jpg") top; */
-    /* background-size: cover; */
-    background-color: #193D6F;
-  }
-
-  #header-content {
-    display: flex;
-  }
-}
-
-@media (min-width: 769px) and (max-width: 1700px) {
-  #title{
-    font-size: 180px;
-  }
-  #header {
-    /* background-image: url("../assets/26-imgs/festa-junina.jpg"); */
-  }
-
-  #header-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-left: 3.5rem;
-    padding-right: 3.5rem;
+  #subtitle{
+    font-size: 15px;
+    font-family: ZingRust;
     text-align: center;
   }
+
+}
+
+/* Ipads */
+@media (min-width: 748px) and (max-width: 1100px) {
+  #title{
+    font-size: 90px;
+    width: 100%;
+  }
+  #subtitle{
+    font-size: 25px;
+    font-family: ZingRust;
+    text-align: center;
+  }
+
+}
+
+@media (min-width: 1100px) and (max-width: 1920px) {
+  #title{
+    font-size: 120px;
+    text-align: left;
+    width: 100%;
+    margin-left: 30%;
+    height: 150px;
+  }
+  #subtitle{
+    font-size: 30px;
+    font-family: ZingRust;
+    margin-left: 40%;
+  }
+
+  #header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
 }
 
 @media (min-width: 1920px) {
   #title{
-    font-size: 190px;
+    font-size: 160px;
+    text-align: right;
+    width: 100%;
+    margin-left: 500px;
+    height: 210px;
+  }
+  #subtitle{
+    font-size: 40px;
+    margin-left: 40%;
   }
   #header {
-    background: #193D6F;
+    background-color: #4AD2F8;
+    /* background: #193D6F; */
     /* url("../assets/26-imgs/festa-junina.jpg") top repeat-x; */
+  }
+}
+
+
+/* BUTTON */
+
+
+@media (max-width: 748px) {
+  .button a{
+    background-color:#AC85F4;
+    display:block;
+    position:relative;
+    padding:12px 12px;
+  
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    text-shadow: 0px 1px 0px #000;
+    filter: dropshadow(color=#000, offx=0px, offy=1px);
+    
+    -webkit-box-shadow:inset 0 1px 0 #FFE5C4, 0 7px 0 #454545;
+    -moz-box-shadow:inset 0 1px 0 #FFE5C4, 0 7px 0 #454545;
+    box-shadow:inset 0 1px 0 #FFE5C4, 0 7px 0 #454545;
+    
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+  }
+
+  .button.round a {
+    background-color:#48E1F1;
+    display:block;
+    position:relative;
+    padding:9px 9px;
+  
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    text-shadow: 0px 1px 0px #000;
+    filter: dropshadow(color=#000, offx=0px, offy=1px);
+    
+    -webkit-box-shadow:inset 0 1px 0 #FFE5C4, 0 5px 0 #454545;
+    -moz-box-shadow:inset 0 1px 0 #FFE5C4, 0 5px 0 #454545;
+    box-shadow:inset 0 1px 0 #FFE5C4, 0 5px 0 #454545;
+    
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 50%;
+  }
+  
+}
+
+@media (min-width: 749px) {
+    .button a{
+      background-color:#AC85F4;
+      display:block;
+      position:relative;
+      padding:15px 15px;
+    
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      text-shadow: 0px 1px 0px #000;
+      filter: dropshadow(color=#000, offx=0px, offy=1px);
+      
+      -webkit-box-shadow:inset 0 1px 0 #FFE5C4, 0 10px 0 #353535;
+      -moz-box-shadow:inset 0 1px 0 #FFE5C4, 0 10px 0 #353535;
+      box-shadow:inset 0 1px 0 #FFE5C4, 0 10px 0 #353535;
+      
+      -webkit-border-radius: 5px;
+      -moz-border-radius: 5px;
+      border-radius: 5px;
+    }
+
+    .button.round a {
+      background-color:#48E1F1;
+      display:block;
+      position:relative;
+      padding:12px 12px;
+    
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      text-shadow: 0px 1px 0px #000;
+      filter: dropshadow(color=#000, offx=0px, offy=1px);
+      
+      -webkit-box-shadow:inset 0 1px 0 #FFE5C4, 0 7px 0 #454545;
+      -moz-box-shadow:inset 0 1px 0 #FFE5C4, 0 7px 0 #454545;
+      box-shadow:inset 0 1px 0 #FFE5C4, 0 7px 0 #454545;
+      
+      -webkit-border-radius: 5px;
+      -moz-border-radius: 5px;
+      border-radius: 50%;
+    }
+    
+}
+
+.button.round a:active{
+  top:10px;
+  background-color:#48E1F1;
+  
+  -webkit-box-shadow:inset 0 1px 0 #d5d5d5, inset 0 -3px 0 #353535;
+  -moz-box-shadow:inset 0 1px 0 #d5d5d5, inset 0 -3pxpx 0 #353535;
+  box-shadow:inset 0 1px 0 #d5d5d5, inset 0 -3px 0 #353535;
+}
+
+.button a:active{
+  top:10px;
+  background-color:#AC85F4;
+  
+  -webkit-box-shadow:inset 0 1px 0 #d5d5d5, inset 0 -3px 0 #353535;
+  -moz-box-shadow:inset 0 1px 0 #d5d5d5, inset 0 -3pxpx 0 #353535;
+  box-shadow:inset 0 1px 0 #d5d5d5, inset 0 -3px 0 #353535;
+}
+
+.button:after{
+  height:100%;
+  width:100%;
+  padding:4px;
+  position: absolute;
+  bottom:-15px;
+  left:-4px;
+  z-index:-1;
+  background-color:#AC85F4;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
+
+
+.play{
+  animation: spin 2s 1s linear infinite;
+}
+
+@keyframes spin{
+  100%{
+    transform: rotate(360deg);
   }
 }
