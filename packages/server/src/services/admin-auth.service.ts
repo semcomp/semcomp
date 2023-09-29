@@ -32,11 +32,11 @@ class AdminAuthService {
   public async signup(adminUser: AdminUser): Promise<AdminUser> {
     const foundAdminAdminUser = await adminUserService.findOne({ email: adminUser.email });
     if (foundAdminAdminUser) {
-      throw new HttpError(401, []);
+      throw new HttpError(401, ['Usuário existente.']);
     }
 
     const createdAdminUser = await adminUserService.create(adminUser);
-
+    
     await emailService.send(
       createdAdminUser.email,
       "Bem vindo a Semcomp 2023!",

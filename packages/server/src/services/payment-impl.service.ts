@@ -216,25 +216,34 @@ export default class PaymentServiceImpl implements PaymentService {
     const payments = await this.find({ status: PaymentStatus.APPROVED });
 
     for (const user of users.getEntities()) {
-      if (payments.find((payment) => user.id === payment.userId)) {
-        await QRCode.toFile(`./qr-codes/com-pagamento/${user.email} - ${user.name}.png`, user.id, {
-          color: {
-            dark: '#009541',
-            light: '#0000',
-          },
-          errorCorrectionLevel: 'H',
-          type: "png",
-        });
-      } else {
-        await QRCode.toFile(`./qr-codes/sem-pagamento/${user.email} - ${user.name}.png`, user.id, {
-          color: {
-            dark: '#FFDF00',
-            light: '#0000',
-          },
-          errorCorrectionLevel: 'H',
-          type: "png",
-        });
-      }
+    //   if (payments.find((payment) => user.id === payment.userId)) {
+    //     await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
+    //       color: {
+    //         dark: '#000000',
+    //         light: '#0000',
+    //       },
+    //       errorCorrectionLevel: 'H',
+    //       type: "png",
+    //     });
+    //   } else {
+    //     await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
+    //       color: {
+    //         dark: '#000000',
+    //         light: '#0000',
+    //       },
+    //       errorCorrectionLevel: 'H',
+    //       type: "png",
+    //     });
+    //   }
+    // }
+    await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
+      color: {
+        dark: '#000000',
+        light: '#0000',
+      },
+      errorCorrectionLevel: 'H',
+      type: "png",
+    });
     }
   }
 
