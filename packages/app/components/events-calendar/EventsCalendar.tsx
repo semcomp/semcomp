@@ -113,7 +113,7 @@ const EventsCalendar = () => {
   ));
 
   return (
-    <div className="md:flex">
+    <div className="md:flex lg:w-[650px]">
       <div className="grid grid-cols-3 sm:flex sm:flex-row md:flex-col">
         {eventDayList}
       </div>

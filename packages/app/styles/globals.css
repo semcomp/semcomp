@@ -133,6 +133,7 @@ a {
 
 button{
   font-family: ZingRust;
+  font-weight: 300;
 }
 
 button.nav{

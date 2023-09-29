@@ -63,15 +63,14 @@ function Login() {
           <h1 className="text-xl">Entrar</h1>
           <form className="w-full" onSubmit={handleSubmit}>
             <Input
-              // Esse texto só existe durante a semcompona
-              // tooltip={
-              //   <div style={{ fontSize: "14px" }}>
-              //     <p>
-              //       Atenção: Se você já realizou o cadastro na Semcomp Beta, por
-              //       favor, cadastre-se novamente.
-              //     </p>
-              //   </div>
-              // }
+              tooltip={
+                <div style={{ fontSize: "14px" }}>
+                  <p>
+                    Atenção: Se você já realizou o cadastro na Semcomp Beta, por
+                    favor, cadastre-se novamente.
+                  </p>
+                </div>
+              }
               autofocus={true}
               className="my-3"
               label="E-mail"
@@ -94,7 +93,7 @@ function Login() {
               }
             />
             <LoadingButton
-              className="bg-primary text-white font-bold w-full py-3 shadow"
+              className="bg-primary text-white w-full py-3 shadow"
               isLoading={isLoggingIn}
               type="submit"
             >

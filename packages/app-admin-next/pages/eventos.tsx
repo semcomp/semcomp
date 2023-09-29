@@ -4,7 +4,6 @@ import DataTable from "../components/reusable/DataTable";
 import RequireAuth from "../libs/RequireAuth";
 import SemcompApi from "../api/semcomp-api";
 import { useAppContext } from "../libs/contextLib";
-import subscriptionService from "../../server/src/services/subscription.service";
 import {
   SemcompApiEvent,
   SemcompApiGetEventsResponse,
@@ -27,13 +26,6 @@ type EventData = {
   "Criado em": string;
 };
 
-
-async function getSubscriptions(eventId: string){
-    const subs = await subscriptionService.count({ eventId });
-    console.log(subs);
-    return 0;
-}
-
 function EventsTable({
   data,
   pagination,
@@ -50,9 +42,6 @@ function EventsTable({
   onMoreInfoClick: (selectedIndex: number) => void;
 }) {
   const newData: EventData[] = [];
-  if(!data) return (
-    <h1></h1>
-  );
   for (const event of data.getEntities()) {
     newData.push({
       // ID: event.id,
@@ -61,7 +50,7 @@ function EventsTable({
       Facilitador: event.speaker,
       // Link: event.link,
       "Max Inscritos": event.maxOfSubscriptions,
-      "Inscritos": 0,
+      "Inscritos": event.numOfSubscriptions,
       Tipo: event.type,
       "Criado em": new Date(event.createdAt).toISOString(),
     });
@@ -104,17 +93,22 @@ function Events() {
       setData(response);
     } catch (error) {
       console.error(error);
-    } finally {
     }
   }
 
   async function getSubs() {
     if(data != null){
       for (const event of data.getEntities()) {
-        console.log(event.id); 
-        const nsubs = await semcompApi.getSubscriptions(event.id);
-        console.log(nsubs);
+        if(event.showOnSubscribables){
+          console.log(event.id); 
+          const nsubs = await semcompApi.getSubscriptions(event.id);
+          console.log(nsubs);
+          event.numOfSubscriptions = nsubs;
+        }
       }
+
+      setIsLoading(false);
+      console.log(data);
     }
   }
 

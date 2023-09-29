@@ -3,18 +3,13 @@
   background-repeat: no-repeat;
   background-position:bottom;
   background-size: cover;
-  /* box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.35); */
-  /* background-color: #193D6F; */
-  /* background-color: #4AD2F8; */
 }
 #title{
   user-select: none;
-  /* text-shadow: -0.06em 0.08em 0 #3d200fcc; */
 }
 #subtitle{
   user-select: none;
   font-family: ZingRust;
-  /* text-shadow: -0.1em 0.1em 0 #3d200fcc; */
 }
 #header-content {
   /* Estava None, deixei flex para manter o texto mesmo na tela fullscreen. */
@@ -37,7 +32,7 @@
 }
 
 /* Ipads */
-@media (min-width: 748px) and (max-width: 1100px) {
+@media (min-width: 748px) and (max-width: 1350px) {
   #title{
     font-size: 90px;
     width: 100%;
@@ -50,18 +45,13 @@
 
 }
 
-@media (min-width: 1100px) and (max-width: 1920px) {
+@media (min-width: 1350px) and (max-width: 1920px) {
   #title{
     font-size: 120px;
-    text-align: left;
-    width: 100%;
-    margin-left: 30%;
-    height: 150px;
   }
   #subtitle{
     font-size: 30px;
     font-family: ZingRust;
-    margin-left: 40%;
   }
 
   #header-content {
@@ -75,19 +65,13 @@
 @media (min-width: 1920px) {
   #title{
     font-size: 160px;
-    text-align: right;
-    width: 100%;
-    margin-left: 500px;
     height: 210px;
   }
   #subtitle{
     font-size: 40px;
-    margin-left: 40%;
   }
   #header {
     background-color: #4AD2F8;
-    /* background: #193D6F; */
-    /* url("../assets/26-imgs/festa-junina.jpg") top repeat-x; */
   }
 }
 

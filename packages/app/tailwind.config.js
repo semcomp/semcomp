@@ -15,7 +15,7 @@ module.exports = {
     colors: {
       primary: "#171214", 
       secondary: "#AC85F4",
-      tertiary: "#492B80",
+      tertiary: "#623da6",
       blue: "#002776",
       orange: "#EC4E20",
       green: "#009541",
@@ -40,7 +40,8 @@ module.exports = {
     },
     fontFamily: {
       primary: ["Belerofonte"],
-      secondary: ["ZingRust"]
+      secondary: ["ZingRust"],
+      tertiary: ["Poppins"]
     },
     extend: {},
   },

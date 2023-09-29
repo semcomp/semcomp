@@ -113,18 +113,20 @@ const SponsorsPage = () => {
           <h2 className="text-4xl py-6 font-secondary text-center ">
             Patrocinadores
           </h2>
-          <p className="thanks-from-semcomp mb-10 text-center">
+          <p className="thanks-from-semcomp mb-10 lg:mx-60 text-center">
             Queremos agradecer aos patrocinadores e apoiadores, sem os quais seria impossível organizar o nosso retorno à Semcomp presencial. Esperamos que tanto os alunos quanto os nossos patrocinadores e apoiadores possam aproveitar ao máximo as palestras, os minicursos e que ano que vem mantenhamos nossa parceria!
           </p>
             <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-6 lg:flex lg:justify-center lg:m-4 lg:gap-4">
               {companiesInfo.map((company, index) => (
-                <SponsorCard
-                  key={index}
-                  companyName={company.name}
-                  companyType={'Sponsor'}
-                  companyLogo={company.logo}
-                  companyLinks={company.links}
-                />
+                <a href={company.links.homepage} className="hover:bg-[#dcdcde] rounded-lg py-2">
+                  <SponsorCard
+                    key={index}
+                    companyName={company.name}
+                    companyType={'Sponsor'}
+                    companyLogo={company.logo}
+                    companyLinks={company.links}
+                  />
+                </a>
               ))} 
             </div>
           <hr />

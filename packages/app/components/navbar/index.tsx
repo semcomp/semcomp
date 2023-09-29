@@ -6,6 +6,7 @@ import SemcompLogo from "../../assets/logo.svg";
 import { useAppContext } from "../../libs/contextLib";
 import NavLink from "./nav-link";
 import Image from "next/image";
+import { useRef } from "react";
 
 const Navbar = (props) => {
   const { user } = useAppContext();
@@ -20,6 +21,12 @@ const Navbar = (props) => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
   }
+  
+  const audioRef = useRef<HTMLAudioElement>();
+
+    const playSound = (e) => {
+        // audioRef.current.play();
+    }
 
   // Se alguma propriedade de estilo para o background (bg) for passada
   // via props, vai adicionar nos estilos da navbar.
@@ -44,6 +51,7 @@ const Navbar = (props) => {
         </div>
       </NavLink>
 
+      <audio ref={audioRef} src="/oi.mp3"></audio>
       <div className="text-center md:flex md:flex-row">
         {/* <Navlink
           style={{ color: "yellow" }}
@@ -53,16 +61,16 @@ const Navbar = (props) => {
         >
           Comprar camiseta
         </Navlink> */}
-        <Navlink href={Routes.home}>Início</Navlink>
-        <Navlink href={Routes.home + "#about"}>Sobre nós</Navlink>
-        <Navlink href={Routes.sponsors}>Patrocinadores</Navlink>
-        <Navlink href={Routes.home + "#schedule"}>Cronograma</Navlink>
+        <Navlink onClick={playSound} href={Routes.home}>Início</Navlink>
+        <Navlink onClick={playSound} href={Routes.home + "#about"}>Sobre nós</Navlink>
+        <Navlink onClick={playSound} href={Routes.sponsors}>Patrocinadores</Navlink>
+        <Navlink onClick={playSound} href={Routes.home + "#schedule"}>Cronograma</Navlink>
         {isUserLoggedIn ? (
           <>
             {/* <Navlink href={Routes.riddle}>Riddle</Navlink> */}
             {/* <Navlink href={Routes.riddlethon}>Riddlethon</Navlink> */}
             {/* <Navlink href={Routes.hardToClick}>Duro de Clicar</Navlink> */}
-            <Navlink href={Routes.profile}>Perfil</Navlink>
+            <Navlink onClick={playSound} href={Routes.profile}>Perfil</Navlink>
             <button onClick={logUserOut} className="nav">
               <a
                 className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-black rounded-lg hover:bg-hoverWhite duration-200"
@@ -74,8 +82,8 @@ const Navbar = (props) => {
           </>
         ) : (
           <>
-            <Navlink href={Routes.signup}>Cadastrar</Navlink>
-            <Navlink href={Routes.login}>Entrar</Navlink>
+            <Navlink onClick={playSound} href={Routes.signup}>Cadastrar</Navlink>
+            <Navlink onClick={playSound} href={Routes.login}>Entrar</Navlink>
           </>
         )}
       </div>

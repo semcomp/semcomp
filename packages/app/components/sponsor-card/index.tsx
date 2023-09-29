@@ -38,13 +38,13 @@ function SponsorCard({
           {/* <p className="my-2">{companyName}</p>
           <p className="my-2">{companyDescription}</p> */}
           <div className="flex justify-center">
-            {companyLinks.homepage && (
+            {/* {companyLinks.homepage && (
               <NavLink href={companyLinks.homepage}>
                 <Tooltip title="Site">
                   <PublicRoundedIcon sx={{ color: "#002776" }} />
                 </Tooltip>
               </NavLink>
-            )}
+            )} */}
             {/* {companyLinks.facebook && (
               <LogoLink icon={FacebookLogo} link={companyLinks.facebook} />
             )}
