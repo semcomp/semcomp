@@ -38,6 +38,10 @@ class SemcompApi {
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
+  public async addPoints(houseId, points){
+    return this.http.post('/admin/houses/' + houseId + '/add-points', {points});
+  }
+
   public async createHouse(data: SemcompApiCreateHouseRequest): Promise<any> {
     return this.http.post("/admin/houses", data);
   }

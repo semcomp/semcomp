@@ -2,6 +2,7 @@ import { useState } from "react";
 import Input, { InputType } from "../Input";
 
 export type HouseFormData = {
+  id: string,
   name: string;
   description: string;
   telegramLink: string;
@@ -10,6 +11,7 @@ export type HouseFormData = {
 function HouseForm({
   onDataChange,
   initialData = {
+    id: "",
     name: "",
     description: "",
     telegramLink: "",
