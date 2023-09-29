@@ -4,6 +4,7 @@ import DataTable from "../components/reusable/DataTable";
 import RequireAuth from "../libs/RequireAuth";
 import SemcompApi from "../api/semcomp-api";
 import { useAppContext } from "../libs/contextLib";
+import subscriptionService from "../../server/src/services/subscription.service";
 import {
   SemcompApiEvent,
   SemcompApiGetEventsResponse,
@@ -19,11 +20,19 @@ type EventData = {
   Nome: string;
   // "Descrição": string,
   Facilitador: string;
-  Link: string;
-  "Máximo de Inscritos": number;
+  // Link: string;
+  "Max Inscritos": number;
+  "Inscritos": number;
   Tipo: string;
   "Criado em": string;
 };
+
+
+async function getSubscriptions(eventId: string){
+    const subs = await subscriptionService.count({ eventId });
+    console.log(subs);
+    return 0;
+}
 
 function EventsTable({
   data,
@@ -47,8 +56,9 @@ function EventsTable({
       Nome: event.name,
       // "Descrição": event.description,
       Facilitador: event.speaker,
-      Link: event.link,
-      "Máximo de Inscritos": event.maxOfSubscriptions,
+      // Link: event.link,
+      "Max Inscritos": event.maxOfSubscriptions,
+      "Inscritos": 0,
       Tipo: event.type,
       "Criado em": new Date(event.createdAt).toISOString(),
     });
@@ -96,6 +106,16 @@ function Events() {
     }
   }
 
+  async function getSubs() {
+    if(data != null){
+      for (const event of data.getEntities()) {
+        console.log(event.id); 
+        const nsubs = await semcompApi.getSubscriptions(event.id);
+        console.log(nsubs);
+      }
+    }
+  }
+
   async function handleRowClick(index: number) {
     setSelectedData(data.getEntities()[index]);
     setIsEditModalOpen(true);
@@ -112,6 +132,10 @@ function Events() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    getSubs();
+  }, [data]);
 
   function MarkAttendance() {
     return (
@@ -168,7 +192,12 @@ function Events() {
               pagination={pagination}
               onRowClick={handleRowClick}
               onRowSelect={handleSelectedIndexesChange}
-              moreInfoContainer={<MarkAttendance></MarkAttendance>}
+              moreInfoContainer={
+              <>
+                
+                <MarkAttendance></MarkAttendance>
+              </>
+              }
               onMoreInfoClick={handleMoreInfoClick}
             />
           }

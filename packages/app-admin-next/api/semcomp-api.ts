@@ -61,6 +61,10 @@ class SemcompApi {
     return this.http.put(`/admin/t-shirts/${id}`, data);
   }
 
+  public async getSubscriptions(eventId: string) : Promise<any> {
+    return this.http.get(`/admin/subscription/event/${eventId}`);
+  }
+
   public async getEvents(pagination: PaginationRequest): Promise<SemcompApiGetEventsResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
       pagination.getPage(),
