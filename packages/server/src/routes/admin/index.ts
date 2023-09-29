@@ -10,6 +10,7 @@ import achievementsRouter from "./achievement.router";
 import eventsRouter from "./event.router";
 import housesRouter from "./house.router";
 import emailRouter from "./email.router";
+import subscriptionRouter from "./subscription.router";
 import pushNotificationRouter from "./push-notification.router";
 import TShirtRouter from "./t-shirt.router";
 import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
@@ -45,6 +46,7 @@ export default class AdminRouter {
     router.use("/email", emailRouter);
     router.use("/push-notification", pushNotificationRouter);
     router.use("/t-shirts", tShirtRouter.create());
+    router.use("/subscription", subscriptionRouter);
 
     return router;
   }

@@ -11,6 +11,7 @@ import {
 import DataPage from "../components/DataPage";
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
 import Game from "../libs/constants/game-enum";
+import VerticalTableRow from "../components/layout/VerticalTableRow";
 
 type GameGroupData = {
   ID: string;
@@ -19,11 +20,18 @@ type GameGroupData = {
   "Questao atual": any;
   // "Dicas disponíveis": number;
   // "Pulos disponíveis": number;
-  "Criado em": string;
+  "Data e hora da última questão": string;
 };
+
 
 function mapData(data: SemcompApiGameGroup[]): GameGroupData[] {
   const newData: GameGroupData[] = [];
+  const options = {
+    day: 'numeric',
+    month: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+  }
   for (const gameQuestion of data) {
     newData.push({
       ID: gameQuestion.id,
@@ -32,7 +40,15 @@ function mapData(data: SemcompApiGameGroup[]): GameGroupData[] {
       "Questao atual": gameQuestion.completedQuestions.length,
       // "Dicas disponíveis": gameQuestion.availableClues,
       // "Pulos disponíveis": gameQuestion.availableSkips,
-      "Criado em": new Date(gameQuestion.createdAt).toISOString(),
+      "Data e hora da última questão": 
+        new Date(gameQuestion.createdAt)
+        .toLocaleString("pt-br", 
+        {
+          day: 'numeric',
+          month: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+        }),
     });
   }
 
@@ -102,18 +118,20 @@ function GameGroups() {
   return (
     <>
       {!isLoading && (
-        <DataPage
-          title="Jogo - Grupos"
-          isLoading={isLoading}
-          table={
-            <GameGroupsTable
-              data={data}
-              pagination={pagination}
-              onRowClick={handleRowClick}
-              onRowSelect={handleSelectedIndexesChange}
-            />
-          }
-        ></DataPage>
+        <> 
+          <DataPage
+            title="Jogo - Grupos"
+            isLoading={isLoading}
+            table={
+              <GameGroupsTable
+                data={data}
+                pagination={pagination}
+                onRowClick={handleRowClick}
+                onRowSelect={handleSelectedIndexesChange}
+              />
+            }
+          ></DataPage>
+        </>
       )}
     </>
   );
