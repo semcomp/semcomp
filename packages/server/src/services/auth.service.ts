@@ -64,7 +64,7 @@ class AuthService {
         Fique de olho no nosso site (https://semcomp.icmc.usp.br/), Facebook (https://www.facebook.com/Semcomp), Twitter (https://twitter.com/semcomp), e Instagram (https://www.instagram.com/semcomp/) para não perder nenhum detalhe da programação incrível que preparamos especialmente para VOCÊ!`,
         `<div>
         <h1>Voc&ecirc; se cadastrou no nosso site e j&aacute; est&aacute; tudo certo!</h1>
-        <p>Se prepare para a 25&deg; edi&ccedil;&atilde;o da maior Semana de Computa&ccedil;&atilde;o do Brasil! Aproveite o melhor das nossas palestras, minicursos, concursos e eventos culturais!</p>
+        <p>Se prepare para a 26&deg; edi&ccedil;&atilde;o da maior Semana de Computa&ccedil;&atilde;o do Brasil! Aproveite o melhor das nossas palestras, minicursos, concursos e eventos culturais!</p>
         <p>Fique de olho no nosso <a href="https://semcomp.icmc.usp.br/">site</a>, <a href="https://www.facebook.com/Semcomp">Facebook</a>, <a href="https://twitter.com/semcomp">Twitter</a>, e <a href="https://www.instagram.com/semcomp/">Instagram</a>&nbsp;para n&atilde;o perder nenhum detalhe da programa&ccedil;&atilde;o incr&iacute;vel que preparamos especialmente para VOC&Ecirc;!</p>
         </div>`
       );
