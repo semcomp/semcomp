@@ -287,7 +287,7 @@ function Profile() {
                   </div>
                 }
               </Card>
-              <Card className="flex flex-col items-center p-9 w-full mb-6">
+              {/* <Card className="flex flex-col items-center p-9 w-full mb-6">
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Coffee
                 </h1>
@@ -321,7 +321,7 @@ function Profile() {
                     </button>
                   </>
                 )}
-              </Card>
+              </Card> */}
             </>
           )}
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
@@ -349,7 +349,7 @@ function Profile() {
           )} */}
 
           {/* ABRIR AQUI PARA MOSTRAR INSCRIÇÕES */}
-          <Card className="flex flex-col items-center p-9 w-full mb-6 text-center">
+          {/* <Card className="flex flex-col items-center p-9 w-full mb-6 text-center">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Inscrições em Eventos
             </h1>
@@ -397,7 +397,7 @@ function Profile() {
                 Inscrever
               </button>
             }
-          </Card>
+          </Card> */}
 
           
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR CONQUISTAS () */}

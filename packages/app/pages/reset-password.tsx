@@ -64,6 +64,7 @@ function ResetPassword() {
       // Note that any networking errors should have benn handled by the API object,
       // and therefore, won't need to be handled here.
       console.error(e);
+      toast.error("O serviço de e-mail está indisponível no momento. Tente novamente mais tarde");
     } finally {
       setIsSendingCode(false); // Sets the state to hide the spinner
     }

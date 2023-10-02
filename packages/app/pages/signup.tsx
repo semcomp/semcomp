@@ -104,7 +104,7 @@ function SignupPage() {
       const { data } = await API.signup(userInfo);
       localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
-      router.push(Routes.home);
+      router.push(Routes.profile);
     } catch (e) {
       // Note: this catch don't really have to treat the errors because the API
       // already has network error treatment.
@@ -162,7 +162,7 @@ function SignupPage() {
             />
           </div>
 
-          Renders the correct form according to the current step
+          {/* Renders the correct form according to the current step */}
           {stepComponent}
         </Card> 
         <div id="infos-semcomp">

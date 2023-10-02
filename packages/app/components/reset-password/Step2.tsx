@@ -6,7 +6,7 @@ function Step2() {
   const router = useRouter();
 
   return (
-    <div className="w-full">
+    <div className="w-full text-center">
       <p>
         Sua senha foi mudada com sucesso! Da próxima vez que você for entrar,
         você já terá que usar a nova senha.

@@ -1,5 +1,4 @@
 import { ReactElement, useEffect, useRef, useState } from "react";
-import useSound from 'use-sound';
 
 const Record = ({ className, isPhone, isMobile }): ReactElement => {
     

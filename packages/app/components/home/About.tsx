@@ -17,19 +17,14 @@ function AboutBeta() {
             <strong>Ciência de Dados</strong> do Instituto de Ciências
             Matemáticas e de Computação (ICMC) da USP de São Carlos.
           </p>
-          {/* <br />
+          <br />
           <p> 
             A sua 26ª edição{" "}
             <strong>ocorrerá entre os dias 21 e 27 de Outubro de 2023</strong>{" "}
             de forma híbrida, com transmissões parciais pelo Youtube.
           </p>
           <br />
-          <p>
-            Já a Semcomp Beta{" "}
-            <strong>ocorrerá nos dias 03 e 04 de junho, também de 2023.</strong> 
-          </p>
-          <br />
-          <p>Não deixe de participar, basta criar sua conta!</p> */}
+          <p>Não deixe de participar, basta criar sua conta!</p>
         </div>
       </section>
     </>

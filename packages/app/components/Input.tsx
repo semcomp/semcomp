@@ -61,7 +61,7 @@ function TextInput({
               title={tooltip ? tooltip : ""}
               enterTouchDelay={1}
             >
-              <Info sx={{ color: "#002776" }} />
+              <Info sx={{ color: "#171214" }} />
             </Tooltip>
           </div>
           <TextField
@@ -112,10 +112,11 @@ function SelectInput({
   choices: string[];
 }) {
   return (
-    <FormControl className="my-3 bg-white" fullWidth>
+    <FormControl className="my-3" fullWidth>
       {/* <InputLabel id="label">{label}</InputLabel> */}
       <p className="pb-4">{label}</p>
       <Select
+        className="bg-white"
         onChange={onChange}
         value={value}
         labelId="label"
