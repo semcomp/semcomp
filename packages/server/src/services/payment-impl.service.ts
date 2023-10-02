@@ -94,7 +94,7 @@ export default class PaymentServiceImpl implements PaymentService {
     // throw new HttpError(400, ["Vendas encerradas!"]);
     const user = await this.userService.findById(userId);
     if (!user) {
-      throw new HttpError(400, []);
+      throw new HttpError(400, ["Usuário n encontrado"]);
     }
 
     const tShirt = await tShirtService.findOne({ size: tShirtSize });
@@ -102,7 +102,17 @@ export default class PaymentServiceImpl implements PaymentService {
       throw new HttpError(400, []);
     }
 
-    const price = withSocialBenefit ? 7.0 : 14.0;
+    let price
+
+    if(kitOption.includes("Kit") && kitOption.includes("Coffee")) {
+      price = 75
+    } else if (kitOption.includes("Kit")){
+      price = 65
+    } else {
+      price = 20
+    } 
+
+    price = withSocialBenefit ? price/2 : price
 
     const userPayments = await this.find({ userId });
     const approvedPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.APPROVED);
