@@ -6,9 +6,10 @@ import Payment, { PaymentModel } from "../models/payment";
 import IdService from "./id.service";
 import { UserService } from "./user.service";
 import PaymentIntegrationService from "./payment-integration.service";
-// import tShirtService from "./t-shirt.service";
+import tShirtService from "./t-shirt.service";
 import PaymentService from "./payment.service";
-// import TShirtSize from "../lib/constants/t-shirt-size-enum";
+import TShirtSize from "../lib/constants/t-shirt-size-enum";
+import KitOption from "../lib/constants/kit-option";
 import FoodOption from "../lib/constants/food-option-enum";
 import PaymentStatus from "../lib/constants/payment-status-enum";
 import { PaginationRequest } from "../lib/pagination";
@@ -86,8 +87,9 @@ export default class PaymentServiceImpl implements PaymentService {
     userId: string,
     withSocialBenefit: boolean,
     socialBenefitFileName: string,
-    // tShirtSize: TShirtSize,
+    tShirtSize: TShirtSize,
     foodOption: FoodOption,
+    kitOption: KitOption,
   ): Promise<Payment> {
     // throw new HttpError(400, ["Vendas encerradas!"]);
     const user = await this.userService.findById(userId);
@@ -95,10 +97,10 @@ export default class PaymentServiceImpl implements PaymentService {
       throw new HttpError(400, []);
     }
 
-    // const tShirt = await tShirtService.findOne({ size: tShirtSize });
-    // if (!tShirt) {
-    //   throw new HttpError(400, []);
-    // }
+    const tShirt = await tShirtService.findOne({ size: tShirtSize });
+    if (!tShirt) {
+      throw new HttpError(400, []);
+    }
 
     const price = withSocialBenefit ? 7.0 : 14.0;
 
@@ -112,18 +114,18 @@ export default class PaymentServiceImpl implements PaymentService {
     if (pendingPayment) {
       if (
         pendingPayment.withSocialBenefit !== withSocialBenefit ||
-        pendingPayment.socialBenefitFileName !== socialBenefitFileName
-        // pendingPayment.tShirtSize !== tShirtSize
+        pendingPayment.socialBenefitFileName !== socialBenefitFileName ||
+        pendingPayment.tShirtSize !== tShirtSize
       ) {
         pendingPayment.socialBenefitFileName = socialBenefitFileName;
 
-        // if (pendingPayment.tShirtSize !== tShirtSize) {
-        //   pendingPayment.tShirtSize = tShirtSize;
-        //   const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
-        //   // if (paymentsWithThisTShirtSize >= tShirt.quantity) {
-        //   //   throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
-        //   // }
-        // }
+        if (pendingPayment.tShirtSize !== tShirtSize) {
+          pendingPayment.tShirtSize = tShirtSize;
+          const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
+          if (paymentsWithThisTShirtSize >= tShirt.quantity) {
+            throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
+          }
+        }
 
         if (pendingPayment.withSocialBenefit !== withSocialBenefit) {
           const paymentResponse = await this.paymentIntegrationService.create(
@@ -144,18 +146,19 @@ export default class PaymentServiceImpl implements PaymentService {
       return pendingPayment;
     }
 
-    // const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
-    // if (paymentsWithThisTShirtSize >= tShirt.quantity) {
-    //   throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
-    // }
+    const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
+    if (paymentsWithThisTShirtSize >= tShirt.quantity) {
+      throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
+    }
 
     const newPaymentData: Payment = {
       userId: user.id,
       status: PaymentStatus.PENDING,
       withSocialBenefit,
       socialBenefitFileName,
-      // tShirtSize,
+      tShirtSize,
       foodOption,
+      kitOption,
     };
     const newPayment = await this.create(newPaymentData);
 
@@ -205,7 +208,7 @@ export default class PaymentServiceImpl implements PaymentService {
     for (const payment of pendingPayments) {
       if (payment.updatedAt < new Date(maxDate).getTime()) {
         payment.status = PaymentStatus.CANCELED;
-        // payment.tShirtSize = null;
+        payment.tShirtSize = null;
         await this.update(payment);
       }
     }
@@ -247,8 +250,9 @@ export default class PaymentServiceImpl implements PaymentService {
       qrCodeBase64: entity.qrCodeBase64,
       withSocialBenefit: entity.withSocialBenefit,
       socialBenefitFileName: entity.socialBenefitFileName,
-      // tShirtSize: entity.tShirtSize,
+      tShirtSize: entity.tShirtSize,
       foodOption: entity.foodOption,
+      kitOption: entity.kitOption,
       status: entity.status,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,

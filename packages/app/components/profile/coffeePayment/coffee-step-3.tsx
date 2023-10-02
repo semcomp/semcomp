@@ -32,7 +32,7 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
 
   const [qrCodeBase64, setqrCodeBase64] = useState("");
   const [qrCodeCopyPaste, setqrCodeCopyPaste] = useState("");
-  
+  // console.log("cheguei até aqui [antes de getPayment]")
   async function getPayment() {
     try {
       let fileName: string = null;
@@ -43,19 +43,20 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
 
       const { data: paymentResponse } = await API.coffee.createPayment(
         data.withSocialBenefit, fileName, data.tShirtSize, data.foodOption, data.kitOption
-        );
-        setqrCodeBase64(paymentResponse.qrCodeBase64);
-        setqrCodeCopyPaste(paymentResponse.qrCode);
-      } catch (error) {
-        toast.error(error?.data?.message[0]);
-        console.error(error);
-      }
+      );
+      console.log("[paymantResponse] output", paymentResponse)
+      setqrCodeBase64(paymentResponse.qrCodeBase64);
+      setqrCodeCopyPaste(paymentResponse.qrCode);
+    } catch (error) {
+      toast.error(error?.data?.message[0]);
+      console.error(error);
+    }
   }
 
   useEffect(() => {
     getPayment();
   }, []);
-
+  //console.log("cheguei até aqui [antes de copyToClipboard]")
   function copyToClipboard() {
     navigator.clipboard.writeText(qrCodeCopyPaste);
     toast.success("Copiado!");

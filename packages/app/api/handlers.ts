@@ -1,3 +1,5 @@
+import { KitOption } from "../components/profile/coffeePayment/coffee-step-1";
+import { FoodOption, TShirtSize } from "../components/profile/coffeePayment/coffee-step-2";
 import API from "./base-api";
 import { withCustomError, withNoErrorMessage } from "./error-message";
 
@@ -61,16 +63,16 @@ const Handlers = {
     createPayment: (
       withSocialBenefit: boolean,
       socialBenefitFileName: string,
-      tShirtSize: string,
-      foodOption: string,
-      kitOption: string
+      tShirtSize: TShirtSize,
+      foodOption: FoodOption,
+      kitOption: KitOption
     ) => API.post("/payments", {
       withSocialBenefit,
       socialBenefitFileName,
       tShirtSize,
       foodOption,
       kitOption
-    })
+    }),
   },
   upload: {
     single: async (file: File) => {

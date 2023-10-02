@@ -1,8 +1,9 @@
 import Mongoose from "mongoose";
 
 import PaymentStatus from "../lib/constants/payment-status-enum";
-// import TShirtSize from "../lib/constants/t-shirt-size-enum";
+import TShirtSize from "../lib/constants/t-shirt-size-enum";
 import FoodOption from "../lib/constants/food-option-enum";
+import KitOption from "../lib/constants/kit-option";
 
 type Payment = {
   id?: string;
@@ -13,8 +14,9 @@ type Payment = {
   qrCodeBase64?: string;
   withSocialBenefit: boolean;
   socialBenefitFileName: string;
-  // tShirtSize: TShirtSize;
+  tShirtSize: TShirtSize;
   foodOption: FoodOption;
+  kitOption: KitOption;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -53,9 +55,9 @@ const PaymentSchema = new Mongoose.Schema(
     socialBenefitFileName: {
       type: String,
     },
-    // tShirtSize: {
-    //   type: TShirtSize,
-    // },
+    tShirtSize: {
+      type: TShirtSize,
+    },
     foodOption: {
       type: FoodOption,
     },
@@ -64,6 +66,9 @@ const PaymentSchema = new Mongoose.Schema(
     },
     updatedAt: {
       type: Number,
+    },
+    kitOption: {
+      type: KitOption,
     },
   },
   { collection: "payment" }

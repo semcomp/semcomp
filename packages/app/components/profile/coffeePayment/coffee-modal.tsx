@@ -48,7 +48,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
   return (
     <Modal onRequestClose={onRequestClose}>
       <div className="w-full bg-tertiary text-white text-center text-xl font-bold p-6">
-        Pagamento por PIX do Coffee da Semcomp!
+        Pagamento por PIX do Pacote da Semcomp!
       </div>
       <div className="max-h-lg overflow-y-scroll w-full p-6">
         <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} />

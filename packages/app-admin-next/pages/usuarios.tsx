@@ -6,9 +6,15 @@ import SemcompApi from '../api/semcomp-api';
 import { useAppContext } from '../libs/contextLib';
 import { PaymentStatus, SemcompApiUser } from '../models/SemcompApiModels';
 import DataPage from '../components/DataPage';
-// import { TShirtSize } from '../components/t-shirt/TShirtForm';
+import { TShirtSize } from '../components/t-shirt/TShirtForm';
 import { PaginationRequest, PaginationResponse } from '../models/Pagination';
 import exportToCsv from '../libs/DownloadCsv';
+
+enum KitOption {
+  COMPLETE = "Kit + Coffee", 
+  KIT = "Só Kit",
+  COFFEE = "Só Coffee",
+}
 
 type UserData = {
   "ID": string,
@@ -18,7 +24,8 @@ type UserData = {
   "Telegram": string,
   "Casa": string,
   "Status do pagamento": string,
-  // "Tamanho da camiseta": TShirtSize,
+  "Tamanho da camiseta": TShirtSize,
+  "Tipo de kit": KitOption
   "Permite divulgação?": string,
   "Criado em": string,
 }
@@ -40,7 +47,8 @@ function mapData(data: SemcompApiUser[]): UserData[] {
       "Telegram": user.telegram,
       "Casa": user.house.name,
       "Status do pagamento": paymentStatus,
-      // "Tamanho da camiseta": user.payment.tShirtSize,
+      "Tamanho da camiseta": user.payment.tShirtSize,
+      "Tipo de kit": user.payment.kitOption,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
       "Criado em": new Date(user.createdAt).toISOString(),
     })
