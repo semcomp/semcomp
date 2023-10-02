@@ -21,7 +21,7 @@ function AboutBeta() {
           <p> 
             A sua 26ª edição{" "}
             <strong>ocorrerá entre os dias 21 e 27 de Outubro de 2023</strong>{" "}
-            de forma híbrida, com transmissões parciais pelo Youtube.
+            de forma presencial.
           </p>
           <br />
           <p>Não deixe de participar, basta criar sua conta!</p>
