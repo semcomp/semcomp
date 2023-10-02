@@ -24,7 +24,7 @@ export default class PaymentRouter {
       await this.paymentService.cancelOldPendingPayments()
     });
 
-    router.post(
+    router.get(
       "/generate-qr-codes",
       [this.adminAuthMiddleware.authenticate, this.adminAuthMiddleware.isAuthenticated],
       (req, res, next) => this.paymentController.generateQrCodes(req, res, next),
