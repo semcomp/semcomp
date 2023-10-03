@@ -20,10 +20,10 @@ import CoffeePayment from "../components/profile/coffeePayment/coffee-modal";
 import RequireAuth from "../libs/RequireAuth";
 
 // Casas
-import Indie from "../assets/26-imgs/brasao-indie.png";
-import Rock from "../assets/26-imgs/brasao-rock.png";
-import Funk from "../assets/26-imgs/brasao-funk.png";
-import Pop from "../assets/26-imgs/brasao-pop.png";
+import Indie from "../assets/26-imgs/brasao_indie_complete.png";
+import Rock from "../assets/26-imgs/brasao_rock_complete.png";
+import Funk from "../assets/26-imgs/brasao_funk_complete.png";
+import Pop from "../assets/26-imgs/brasao_pop_complete.png";
 import TelegramIcon from "@mui/icons-material/Telegram";
 import ImgLogo from "../assets/logo-24.png";
 

@@ -4,7 +4,8 @@
 import GaneshImage from "../assets/sponsors/ganesh.png";
 import LugoBots from "../assets/sponsors/lugoBots.png";
 import IcaroTech from "../assets/sponsors/icaro.png";
-import Yara from "../assets/sponsors/YaraLogo.png";
+import Yara from "../assets/sponsors/YaraLogo.png"; 
+import Amdocs from "../assets/sponsors/AmdocsLogo.png"; 
 import Cohere from "../assets/sponsors/cohere.png"
 import IcmcImage from "../assets/sponsors/icmc.png";
 import SMT from "../assets/sponsors/SMTLogo.png";
@@ -51,6 +52,13 @@ const companiesInfo = [
       homepage: "https://cohere.com/"
     },
     logo: Cohere,
+  },
+  {
+    name: "Amdocs",
+    links: {
+      homepage: "https://www.amdocs.com/"
+    },
+    logo: Amdocs,
   },
 ]
 

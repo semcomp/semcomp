@@ -5,6 +5,7 @@ import LugoBots from "../../assets/sponsors/lugo_bots_white.svg";
 import IcaroTech from "../../assets/sponsors/icaro_tech_white.svg";
 import Yara from "../../assets/sponsors/yara_white.svg";
 import SMT from "../../assets/sponsors/smt_white.svg";
+import Amdocs from "../../assets/sponsors/amdocs_white.png";
 import Cohere from "../../assets/sponsors/cohere_white.svg";
 import IcmcImage from "../../assets/sponsors/icmc.png";
 import FogImage from "../../assets/sponsors/fog.png";
@@ -19,7 +20,7 @@ import NavLink from "../navbar/nav-link";
 
 function Sponsors() {
   const supporterLogos = [IcmcImage, PetImage, CodelabImage, FogImage, Ganesh, Gema];
-  const sponsorsLogos = [LugoBots, IcaroTech, Yara, SMT, Cohere];
+  const sponsorsLogos = [LugoBots, IcaroTech, Yara, SMT, Cohere, Amdocs];
 
   return (
     <>
