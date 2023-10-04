@@ -78,10 +78,13 @@ function TShirts() {
   }
 
   async function handleRowClick(index: number) {
+    
+    const tshirts = data.getEntities(); 
+
     setFormData({
-      id: data[index].id,
-      size: data[index].size,
-      quantity: data[index].quantity,
+      id: tshirts[index].id,
+      size: tshirts[index].size,
+      quantity: tshirts[index].quantity,
     });
     setIsEditModalOpen(true);
   }

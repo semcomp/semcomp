@@ -88,10 +88,10 @@ function Houses() {
     const houses = data.getEntities()
     
     setSelectedData({
-      id: houses[0].id,
-      name: houses[0].name,
-      description: houses[0].description,
-      telegramLink: houses[0].telegramLink,
+      id: houses[index].id,
+      name: houses[index].name,
+      description: houses[index].description,
+      telegramLink: houses[index].telegramLink,
     });
     setIsEditModalOpen(true);
   }

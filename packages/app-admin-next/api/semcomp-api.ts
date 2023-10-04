@@ -42,6 +42,11 @@ class SemcompApi {
     return this.http.post('/admin/houses/' + houseId + '/add-points', {points});
   }
 
+  public async editHouse(houseId, data: SemcompApiCreateHouseRequest): Promise<any> {
+    console.log(houseId, data);
+    return this.http.put("/admin/houses/" + houseId, data);
+  }
+
   public async createHouse(data: SemcompApiCreateHouseRequest): Promise<any> {
     return this.http.post("/admin/houses", data);
   }
