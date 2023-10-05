@@ -325,7 +325,7 @@ function Profile() {
             </>
           )}
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
-          {/* {userFetched && (
+          {userFetched && (
             <Card className="flex flex-col items-center p-9 w-full mb-6">
               <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                 Overflow
@@ -346,7 +346,7 @@ function Profile() {
                   O que é o Overflow?
                 </button>
             </Card>
-          )} */}
+          )}
 
           {/* ABRIR AQUI PARA MOSTRAR INSCRIÇÕES */}
           {/* <Card className="flex flex-col items-center p-9 w-full mb-6 text-center">
