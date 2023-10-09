@@ -28,7 +28,7 @@ function Modal({ children, onRequestClose }) {
       aria-modal="true"
     >
       <div
-        className="flex flex-col items-center w-full max-w-xl h-[90%] bg-white"
+        className="flex flex-col items-center w-full max-w-xl max-h-[90%] bg-white"
         onClick={handleCardClick}
       >
         {children}

@@ -45,7 +45,7 @@ function Profile() {
   const [achievements, setAchievements] = useState([]);
 
   const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] = useState(false);  // OBSERVAÇÃO: está relacionado a casa do stack overflow
-  const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
+  const [isCoffeeModalOpen, setCoffeeModalOpen] = useState(false);
 
   // const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
   //   useState(true);
@@ -292,11 +292,10 @@ function Profile() {
                   </div>
                 }
               </Card>
-              {/* <Card className="flex flex-col items-center p-9 w-full mb-6">
+              <Card className="flex flex-col items-center p-9 w-full mb-6">
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Coffee
                 </h1>
-                <p style={{ fontSize: "1rem" }}>Pague com PIX o seu Pacote</p>
                 {userFetched.payment.status === "approved" ? (
                   <>
                     <Chip label="OK" color="success" />
@@ -308,12 +307,12 @@ function Profile() {
                     )}
                     {/* <button
                       onClick={() => {
-                        setIsCoffeeModalOpen(true);
+                        setCoffeeModalOpen(true);
                         blockBodyScroll();
                       }}
                     >
                       Ver infos pacote
-                    </button>
+                    </button> */}
                   </>
                 ) : (
                   <>
@@ -329,7 +328,7 @@ function Profile() {
                     </button>
                   </>
                 )}
-              </Card> */}
+              </Card>
             </>
           )}
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
