@@ -6,9 +6,10 @@ import Payment, { PaymentModel } from "../models/payment";
 import IdService from "./id.service";
 import { UserService } from "./user.service";
 import PaymentIntegrationService from "./payment-integration.service";
-// import tShirtService from "./t-shirt.service";
+import tShirtService from "./t-shirt.service";
 import PaymentService from "./payment.service";
-// import TShirtSize from "../lib/constants/t-shirt-size-enum";
+import TShirtSize from "../lib/constants/t-shirt-size-enum";
+import KitOption from "../lib/constants/kit-option";
 import FoodOption from "../lib/constants/food-option-enum";
 import PaymentStatus from "../lib/constants/payment-status-enum";
 import { PaginationRequest } from "../lib/pagination";
@@ -86,21 +87,32 @@ export default class PaymentServiceImpl implements PaymentService {
     userId: string,
     withSocialBenefit: boolean,
     socialBenefitFileName: string,
-    // tShirtSize: TShirtSize,
+    tShirtSize: TShirtSize,
     foodOption: FoodOption,
+    kitOption: KitOption,
   ): Promise<Payment> {
     throw new HttpError(400, ["Vendas encerradas!"]);
     const user = await this.userService.findById(userId);
     if (!user) {
+      throw new HttpError(400, ["Usuário não encontrado"]);
+    }
+
+    const tShirt = await tShirtService.findOne({ size: tShirtSize });
+    if (!tShirt) {
       throw new HttpError(400, []);
     }
 
-    // const tShirt = await tShirtService.findOne({ size: tShirtSize });
-    // if (!tShirt) {
-    //   throw new HttpError(400, []);
-    // }
+    let price;
 
-    const price = withSocialBenefit ? 7.0 : 14.0;
+    if(kitOption.includes("Kit") && kitOption.includes("Coffee")) {
+      price = 75;
+    } else if (kitOption.includes("Kit")){
+      price = 65;
+    } else {
+      price = 35;
+    } 
+
+    price = withSocialBenefit ? price/2 : price
 
     const userPayments = await this.find({ userId });
     const approvedPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.APPROVED);
@@ -112,20 +124,26 @@ export default class PaymentServiceImpl implements PaymentService {
     if (pendingPayment) {
       if (
         pendingPayment.withSocialBenefit !== withSocialBenefit ||
-        pendingPayment.socialBenefitFileName !== socialBenefitFileName
-        // pendingPayment.tShirtSize !== tShirtSize
+        pendingPayment.socialBenefitFileName !== socialBenefitFileName ||
+        pendingPayment.tShirtSize !== tShirtSize ||
+        pendingPayment.kitOption !== kitOption
       ) {
+
+        
         pendingPayment.socialBenefitFileName = socialBenefitFileName;
 
-        // if (pendingPayment.tShirtSize !== tShirtSize) {
-        //   pendingPayment.tShirtSize = tShirtSize;
-        //   const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
-        //   // if (paymentsWithThisTShirtSize >= tShirt.quantity) {
-        //   //   throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
-        //   // }
-        // }
+        if (pendingPayment.tShirtSize !== tShirtSize && tShirtSize != TShirtSize.NONE) {
+          pendingPayment.tShirtSize = tShirtSize;
+          let paymentsWithThisTShirtSize = await this.count({ tShirtSize, status: PaymentStatus.APPROVED });
+          paymentsWithThisTShirtSize += await this.count({ tShirtSize, status: PaymentStatus.PENDING });
+          if (paymentsWithThisTShirtSize >= tShirt.quantity) {
+            throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
+          }
+        }
 
-        if (pendingPayment.withSocialBenefit !== withSocialBenefit) {
+        if (pendingPayment.withSocialBenefit !== withSocialBenefit || 
+              pendingPayment.kitOption !== kitOption) {
+
           const paymentResponse = await this.paymentIntegrationService.create(
             price,
             user.email,
@@ -133,29 +151,39 @@ export default class PaymentServiceImpl implements PaymentService {
             `${this.notificationUrl}/${pendingPayment.id}`
           );
 
+          if(kitOption === KitOption.COFFEE){
+            pendingPayment.tShirtSize = TShirtSize.NONE;
+          }
+
           pendingPayment.paymentIntegrationId = paymentResponse.id;
           pendingPayment.qrCode = paymentResponse.qrCode;
           pendingPayment.qrCodeBase64 = paymentResponse.qrCodeBase64;
         }
 
+        pendingPayment.kitOption = kitOption;
         await this.update(pendingPayment);
       }
 
       return pendingPayment;
     }
 
-    // const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
-    // if (paymentsWithThisTShirtSize >= tShirt.quantity) {
-    //   throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
-    // }
+    if(tShirtSize != TShirtSize.NONE){
+      let paymentsWithThisTShirtSize = await this.count({ tShirtSize, status: PaymentStatus.APPROVED });
+      paymentsWithThisTShirtSize += await this.count({ tShirtSize, status: PaymentStatus.PENDING });
+      if (paymentsWithThisTShirtSize >= tShirt.quantity) {
+        throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
+      }
+
+    }
 
     const newPaymentData: Payment = {
       userId: user.id,
       status: PaymentStatus.PENDING,
       withSocialBenefit,
       socialBenefitFileName,
-      // tShirtSize,
+      tShirtSize,
       foodOption,
+      kitOption,
     };
     const newPayment = await this.create(newPaymentData);
 
@@ -205,7 +233,7 @@ export default class PaymentServiceImpl implements PaymentService {
     for (const payment of pendingPayments) {
       if (payment.updatedAt < new Date(maxDate).getTime()) {
         payment.status = PaymentStatus.CANCELED;
-        // payment.tShirtSize = null;
+        payment.tShirtSize = null;
         await this.update(payment);
       }
     }
@@ -216,25 +244,34 @@ export default class PaymentServiceImpl implements PaymentService {
     const payments = await this.find({ status: PaymentStatus.APPROVED });
 
     for (const user of users.getEntities()) {
-      if (payments.find((payment) => user.id === payment.userId)) {
-        await QRCode.toFile(`./qr-codes/com-pagamento/${user.email} - ${user.name}.png`, user.id, {
-          color: {
-            dark: '#009541',
-            light: '#0000',
-          },
-          errorCorrectionLevel: 'H',
-          type: "png",
-        });
-      } else {
-        await QRCode.toFile(`./qr-codes/sem-pagamento/${user.email} - ${user.name}.png`, user.id, {
-          color: {
-            dark: '#FFDF00',
-            light: '#0000',
-          },
-          errorCorrectionLevel: 'H',
-          type: "png",
-        });
-      }
+    //   if (payments.find((payment) => user.id === payment.userId)) {
+    //     await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
+    //       color: {
+    //         dark: '#000000',
+    //         light: '#0000',
+    //       },
+    //       errorCorrectionLevel: 'H',
+    //       type: "png",
+    //     });
+    //   } else {
+    //     await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
+    //       color: {
+    //         dark: '#000000',
+    //         light: '#0000',
+    //       },
+    //       errorCorrectionLevel: 'H',
+    //       type: "png",
+    //     });
+    //   }
+    // }
+    await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
+      color: {
+        dark: '#000000',
+        light: '#0000',
+      },
+      errorCorrectionLevel: 'H',
+      type: "png",
+    });
     }
   }
 
@@ -247,8 +284,9 @@ export default class PaymentServiceImpl implements PaymentService {
       qrCodeBase64: entity.qrCodeBase64,
       withSocialBenefit: entity.withSocialBenefit,
       socialBenefitFileName: entity.socialBenefitFileName,
-      // tShirtSize: entity.tShirtSize,
+      tShirtSize: entity.tShirtSize,
       foodOption: entity.foodOption,
+      kitOption: entity.kitOption,
       status: entity.status,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,

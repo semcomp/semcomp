@@ -115,8 +115,9 @@ class AuthController {
       },
       payment: {
         status: payment?.status || null,
-        // tShirtSize: payment?.tShirtSize || null,
+        tShirtSize: payment?.tShirtSize || null,
         foodOption: payment?.foodOption || null,
+        kitOption: payment?.kitOption || null,
       }
     };
   }

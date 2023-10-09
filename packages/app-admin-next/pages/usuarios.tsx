@@ -11,6 +11,12 @@ import { PaginationRequest, PaginationResponse } from '../models/Pagination';
 import exportToCsv from '../libs/DownloadCsv';
 import InfoCards from '../components/reusable/InfoCards';
 
+enum KitOption {
+  COMPLETE = "Kit + Coffee", 
+  KIT = "Só Kit",
+  COFFEE = "Só Coffee",
+}
+
 type UserData = {
   "ID": string,
   "E-mail": string,

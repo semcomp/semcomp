@@ -23,7 +23,9 @@
     "prettier": "2.4.1"
   },
   "dependencies": {
-    "qrcode.react": "^3.0.2"
+    "qrcode.react": "^3.0.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "config": {
     "commitizen": {

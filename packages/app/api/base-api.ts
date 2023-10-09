@@ -27,7 +27,6 @@ function initializeAPI(config) {
     if (token) request.headers.authorization = token;
     return request;
   });
-
   // Updates token if 'Authorization' header is filled
   api.interceptors.response.use((response) => {
     const newToken = response.headers.authorization;
@@ -35,6 +34,7 @@ function initializeAPI(config) {
       setToken(newToken);
       localStorage.setItem("token", newToken);
     }
+    console.log("[response base-api] output", response)
     return response;
   });
 

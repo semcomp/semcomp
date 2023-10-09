@@ -1,8 +1,9 @@
 import { ReactHTMLElement } from "react";
 import Input, { InputType } from "../../Input";
-import CoffeePayment from "./coffee-modal";
+import { CoffeePaymentData } from "./coffee-modal";
 
 export enum TShirtSize {
+  NONE = "NONE",
   PP = "PP",
   P = "P",
   M = "M",
@@ -19,15 +20,17 @@ export enum FoodOption {
   VEGETARIAN = "Vegetariano",
 }
 
-// const TShirtSizes = Object.values(TShirtSize);
+const TShirtSizes = Object.values({
+  PP: "PP",
+  P: "P",
+  M: "M",
+  G: "G",
+  GG: "GG",
+  XGG1: "XGG1",
+  XGG2: "XGG2",
+});
 const foodOptions = Object.values(FoodOption);
 
-export type CoffeePaymentData = {
-  withSocialBenefit: boolean;
-  socialBenefitFile: File;
-  // tShirtSize: TShirtSize;
-  foodOption: FoodOption;
-};
 
 function CoffeeStep2({
   data,
@@ -50,10 +53,10 @@ function CoffeeStep2({
     setData({ ...data, socialBenefitFile: value });
   }
 
-  // function handleTShirtSizeChange(event: React.ChangeEvent<HTMLInputElement>) {
-  //   const value = event.target.value;
-  //   setData({ ...data, tShirtSize: value });
-  // }
+  function handleTShirtSizeChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value;
+    setData({ ...data, tShirtSize: value });
+  }
 
   function handlefoodOptionChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
@@ -82,22 +85,19 @@ function CoffeeStep2({
           type={InputType.File}
         />
       )}
-      {/* <Input
-        className="my-3"
-        label="Tamanho da camiseta"
-        value={data.tShirtSize}
-        onChange={handleTShirtSizeChange}
-        choices={TShirtSizes}
-        type={InputType.Select}
-      /> */}
-      <Input
-        className="my-3"
-        label="Possui alguma restrição alimentar?"
-        value={data.foodOption}
-        onChange={handlefoodOptionChange}
-        choices={foodOptions}
-        type={InputType.Select}
-      />
+      {}
+      { (data.kitOption && (data?.kitOption).includes("Kit")) ? (
+              <Input
+              className="my-3"
+              label="Tamanho da camiseta"
+              value={data.tShirtSize}
+              onChange={handleTShirtSizeChange}
+              choices={TShirtSizes}
+              type={InputType.Select}
+            />
+      ):null }
+      { (!data.kitOption) ? ( <b>Nenhuma opção seleciona no step 1.</b> ):null }
+
     </div>
   );
 }

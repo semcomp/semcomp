@@ -1,17 +1,43 @@
 import { useEffect, useState } from "react";
+import { CoffeePaymentData } from "./coffee-modal";
 
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import { Button, Input, Skeleton } from "@mui/material";
+import { Button, Input, Modal, Skeleton } from "@mui/material";
 import { toast } from "react-toastify";
 
 import API from "../../../api";
-import { CoffeePaymentData } from "./coffee-step-2";
 import Image from "next/image";
+import { KitOption } from "./coffee-step-1";
+import { TShirtSize } from "./coffee-step-2";
 
 function CoffeeStep3({data}: {data: CoffeePaymentData}) {
+
+  const calcValuePayment = (kitOptions) => {data.kitOption
+    let value:any
+    if(kitOptions == "Só Kit") {
+      value = 65
+    } else if (kitOptions == "Kit + Coffee"){
+      value = 75
+    } else if (kitOptions == "Só Coffee"){
+      value = 35
+    } else {
+      value = "Nenhuma opção selecionada"
+    }
+    if(data.withSocialBenefit){
+      return value/2;
+    }
+    return value
+  }
+
+  let valuePayment:any = calcValuePayment(data.kitOption)
+
+  if (valuePayment != "Nenhuma opção selecionada"){
+    data.withSocialBenefit ?? (valuePayment = valuePayment/2)
+  }
+
   const [qrCodeBase64, setqrCodeBase64] = useState("");
   const [qrCodeCopyPaste, setqrCodeCopyPaste] = useState("");
-  
+  // console.log("cheguei até aqui [antes de getPayment]")
   async function getPayment() {
     try {
       let fileName: string = null;
@@ -19,21 +45,28 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
         const { data: uploadResponse } = await API.upload.single(data.socialBenefitFile);
         fileName = uploadResponse.fileName;
       }
-      const { data: paymentResponse } = await API.coffee.createPayment(
-        data.withSocialBenefit, fileName, data.foodOption,
-        );
-        setqrCodeBase64(paymentResponse.qrCodeBase64);
-        setqrCodeCopyPaste(paymentResponse.qrCode);
-      } catch (error) {
-        toast.error(error?.data?.message[0]);
-        console.error(error);
+
+      if(data.kitOption === KitOption.COFFEE){
+        data.tShirtSize = TShirtSize.NONE;
       }
+
+      const { data: paymentResponse } = await API.coffee.createPayment(
+        data.withSocialBenefit, fileName, data.tShirtSize, data.foodOption, data.kitOption
+      );
+      console.log("[paymantResponse] output", paymentResponse)
+      setqrCodeBase64(paymentResponse.qrCodeBase64);
+      setqrCodeCopyPaste(paymentResponse.qrCode);
+    } catch (error) {
+      toast.error(error?.data?.message[0]);
+      console.error(error);
+    }
   }
 
   useEffect(() => {
     getPayment();
   }, []);
 
+  //console.log("cheguei até aqui [antes de copyToClipboard]")
   function copyToClipboard() {
     navigator.clipboard.writeText(qrCodeCopyPaste);
     toast.success("Copiado!");
@@ -53,7 +86,8 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
             style={{ flexDirection: "column" }}
           >
             <p>Escaneie o QR Code abaixo ou copie e cole o código do PIX</p>
-            <b className="py-3">Valor: R${data.withSocialBenefit ? "7.00" : "14.00"}</b>
+            <b className="py-3">Valor: R${ valuePayment }</b>
+            <p>Caso seu QR code não carregou, verifique se seu e-mail está correto!</p>
             <p>
               Depois de realizar o pagamento no seu banco, clique em fechar e
               atualize a página.

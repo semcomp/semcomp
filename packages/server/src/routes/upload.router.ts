@@ -29,7 +29,7 @@ export default class UploadRouter {
     };
 
     this.upload = multer({
-      storage: storage,
+      storage,
       fileFilter: multerFilter,
     });
   }

@@ -31,6 +31,7 @@ import { useAppContext } from "../libs/contextLib";
 import Card from "../components/Card";
 import FundEstudarForm from "../components/profile/fundEstudar";
 import MarkAttendanceModal from "../components/profile/MarkAttendanceModal";
+import { TShirtSize } from "../components/profile/coffeePayment/coffee-step-2";
 
 function Profile() {
   const { user } = useAppContext();
@@ -42,8 +43,10 @@ function Profile() {
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
   const [events, setEvents] = useState([]);
   const [achievements, setAchievements] = useState([]);
+
   const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] = useState(false);  // OBSERVAÇÃO: está relacionado a casa do stack overflow
   const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
+
   // const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
   //   useState(true);
 
@@ -81,6 +84,7 @@ function Profile() {
     fetchUserData();
   }, []);
 
+
   useEffect(() => {
     printFunction();
   });
@@ -115,6 +119,7 @@ function Profile() {
   }
 
 // OBERSERVAÇÃO; relacionado as casas do stack overflow
+  
   const userHouseName = userFetched?.house?.name;
   const userHouseTelegram = userFetched?.house?.telegramLink;
 
@@ -243,12 +248,12 @@ function Profile() {
           onRequestClose={() => setIsAboutOverflowModalOpen(false)}
         />
       )}
-      
+
       {isCoffeeModalOpen && (
         <CoffeePayment
           userHasPaid={userFetched?.payment?.status === "approved"}
           onRequestClose={() => {
-            setIsCoffeeModalOpen(false);
+            setCoffeeModalOpen(false);
             removeBodyStyle();
           }}
         />
@@ -291,14 +296,17 @@ function Profile() {
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Coffee
                 </h1>
+                <p style={{ fontSize: "1rem" }}>Pague com PIX o seu Pacote</p>
                 {userFetched.payment.status === "approved" ? (
                   <>
                     <Chip label="OK" color="success" />
-                    <Chip
-                      className="mt-3"
-                      label={`Camiseta ${userFetched.payment.tShirtSize}`}
-                    />
-                    <button
+                    {userFetched.payment.tShirtSize !== TShirtSize.NONE && (
+                      <Chip
+                        className="mt-3"
+                        label={`Camiseta ${userFetched.payment.tShirtSize}`}
+                      />
+                    )}
+                    {/* <button
                       onClick={() => {
                         setIsCoffeeModalOpen(true);
                         blockBodyScroll();
@@ -313,7 +321,7 @@ function Profile() {
                       <p style={{ fontSize: "0.9rem" }}>Pague com PIX o Coffee</p>
                       <button
                       onClick={() => {
-                        setIsCoffeeModalOpen(true);
+                        setCoffeeModalOpen(true);
                         blockBodyScroll();
                       }}
                       className="bg-tertiary text-white p-2 rounded-lg mt-2">
@@ -351,6 +359,7 @@ function Profile() {
           {/* ABRIR AQUI PARA MOSTRAR INSCRIÇÕES */}
           {/* <Card className="flex flex-col items-center p-9 w-full mb-6 text-center">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+
               Inscrições em Eventos
             </h1>
             <List className="events-list text-center">
@@ -398,7 +407,6 @@ function Profile() {
               </button>
             }
           </Card> */}
-
           
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR CONQUISTAS () */}
           {/* <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">

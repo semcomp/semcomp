@@ -3,6 +3,11 @@ import EventType from "../libs/constants/event-types-enum";
 import Game from "../libs/constants/game-enum";
 import { PaginationResponse } from "./Pagination";
 
+enum KitOption {
+  COMPLETE = "Kit + Coffee", 
+  KIT = "Só Kit",
+  COFFEE = "Só Coffee",
+}
 export class SemcompApiPaginationRequest {
   private page: number;
   private items: number;
@@ -45,6 +50,7 @@ export type SemcompApiUser = {
   payment: {
     status: PaymentStatus,
     tShirtSize: TShirtSize,
+    kitOption: KitOption
   },
   telegram: string,
   disabilities: string[],
