@@ -3,6 +3,7 @@ import Input, { InputType } from "../../Input";
 import { CoffeePaymentData } from "./coffee-modal";
 
 export enum TShirtSize {
+  NONE = "NONE",
   PP = "PP",
   P = "P",
   M = "M",
@@ -19,7 +20,15 @@ export enum FoodOption {
   VEGETARIAN = "Vegetariano",
 }
 
-const TShirtSizes = Object.values(TShirtSize);
+const TShirtSizes = Object.values({
+  PP: "PP",
+  P: "P",
+  M: "M",
+  G: "G",
+  GG: "GG",
+  XGG1: "XGG1",
+  XGG2: "XGG2",
+});
 const foodOptions = Object.values(FoodOption);
 
 
@@ -84,16 +93,6 @@ function CoffeeStep2({
               value={data.tShirtSize}
               onChange={handleTShirtSizeChange}
               choices={TShirtSizes}
-              type={InputType.Select}
-            />
-      ):null }
-      { (data.kitOption && (data?.kitOption).includes("Coffee")) ? (
-              <Input
-              className="my-3"
-              label="Possui alguma restrição alimentar?"
-              value={data.foodOption}
-              onChange={handlefoodOptionChange}
-              choices={foodOptions}
               type={InputType.Select}
             />
       ):null }

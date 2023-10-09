@@ -94,7 +94,7 @@ export default class PaymentServiceImpl implements PaymentService {
     // throw new HttpError(400, ["Vendas encerradas!"]);
     const user = await this.userService.findById(userId);
     if (!user) {
-      throw new HttpError(400, ["Usuário n encontrado"]);
+      throw new HttpError(400, ["Usuário não encontrado"]);
     }
 
     const tShirt = await tShirtService.findOne({ size: tShirtSize });
@@ -102,14 +102,14 @@ export default class PaymentServiceImpl implements PaymentService {
       throw new HttpError(400, []);
     }
 
-    let price
+    let price;
 
     if(kitOption.includes("Kit") && kitOption.includes("Coffee")) {
-      price = 75
+      price = 75;
     } else if (kitOption.includes("Kit")){
-      price = 65
+      price = 65;
     } else {
-      price = 20
+      price = 35;
     } 
 
     price = withSocialBenefit ? price/2 : price
@@ -125,19 +125,25 @@ export default class PaymentServiceImpl implements PaymentService {
       if (
         pendingPayment.withSocialBenefit !== withSocialBenefit ||
         pendingPayment.socialBenefitFileName !== socialBenefitFileName ||
-        pendingPayment.tShirtSize !== tShirtSize
+        pendingPayment.tShirtSize !== tShirtSize ||
+        pendingPayment.kitOption !== kitOption
       ) {
+
+        
         pendingPayment.socialBenefitFileName = socialBenefitFileName;
 
-        if (pendingPayment.tShirtSize !== tShirtSize) {
+        if (pendingPayment.tShirtSize !== tShirtSize && tShirtSize != TShirtSize.NONE) {
           pendingPayment.tShirtSize = tShirtSize;
-          const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
+          let paymentsWithThisTShirtSize = await this.count({ tShirtSize, status: PaymentStatus.APPROVED });
+          paymentsWithThisTShirtSize += await this.count({ tShirtSize, status: PaymentStatus.PENDING });
           if (paymentsWithThisTShirtSize >= tShirt.quantity) {
             throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
           }
         }
 
-        if (pendingPayment.withSocialBenefit !== withSocialBenefit) {
+        if (pendingPayment.withSocialBenefit !== withSocialBenefit || 
+              pendingPayment.kitOption !== kitOption) {
+
           const paymentResponse = await this.paymentIntegrationService.create(
             price,
             user.email,
@@ -145,20 +151,29 @@ export default class PaymentServiceImpl implements PaymentService {
             `${this.notificationUrl}/${pendingPayment.id}`
           );
 
+          if(kitOption === KitOption.COFFEE){
+            pendingPayment.tShirtSize = TShirtSize.NONE;
+          }
+
           pendingPayment.paymentIntegrationId = paymentResponse.id;
           pendingPayment.qrCode = paymentResponse.qrCode;
           pendingPayment.qrCodeBase64 = paymentResponse.qrCodeBase64;
         }
 
+        pendingPayment.kitOption = kitOption;
         await this.update(pendingPayment);
       }
 
       return pendingPayment;
     }
 
-    const paymentsWithThisTShirtSize = await this.count({ tShirtSize });
-    if (paymentsWithThisTShirtSize >= tShirt.quantity) {
-      throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
+    if(tShirtSize != TShirtSize.NONE){
+      let paymentsWithThisTShirtSize = await this.count({ tShirtSize, status: PaymentStatus.APPROVED });
+      paymentsWithThisTShirtSize += await this.count({ tShirtSize, status: PaymentStatus.PENDING });
+      if (paymentsWithThisTShirtSize >= tShirt.quantity) {
+        throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
+      }
+
     }
 
     const newPaymentData: Payment = {

@@ -1,4 +1,5 @@
 enum TShirtSize {
+  NONE = "NONE",
   PP = "PP",
   P = "P",
   M = "M",

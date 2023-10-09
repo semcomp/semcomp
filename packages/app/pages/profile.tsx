@@ -28,6 +28,7 @@ import { useAppContext } from "../libs/contextLib";
 import Card from "../components/Card";
 import FundEstudarForm from "../components/profile/fundEstudar";
 import MarkAttendanceModal from "../components/profile/MarkAttendanceModal";
+import { TShirtSize } from "../components/profile/coffeePayment/coffee-step-2";
 
 function Profile() {
   const { user } = useAppContext();
@@ -288,10 +289,12 @@ function Profile() {
                 {userFetched.payment.status === "approved" ? (
                   <>
                     <Chip label="OK" color="success" />
-                    <Chip
-                      className="mt-3"
-                      // label={`Camiseta ${userFetched.payment.tShirtSize}`}
-                    />
+                    {userFetched.payment.tShirtSize !== TShirtSize.NONE && (
+                      <Chip
+                        className="mt-3"
+                        label={`Camiseta ${userFetched.payment.tShirtSize}`}
+                      />
+                    )}
                     {/* <button
                       onClick={() => {
                         setIsCoffeeModalOpen(true);
@@ -341,7 +344,7 @@ function Profile() {
                 </button>
             </Card>
           )}
-          <Card className="flex flex-col items-center p-9 w-full mb-6">
+          {/* <Card className="flex flex-col items-center p-9 w-full mb-6">
             <h1 style={{ fontSize: "1rem", marginBottom: "1rem" }}>
               Inscrições em Eventos
             </h1>
@@ -389,7 +392,7 @@ function Profile() {
                 Inscrever
               </button>
             }
-          </Card>
+          </Card> */}
           {/* <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Conquistas

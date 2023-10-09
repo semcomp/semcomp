@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { CoffeePaymentData } from "./coffee-modal";
 
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import { Button, Input, Skeleton } from "@mui/material";
+import { Button, Input, Modal, Skeleton } from "@mui/material";
 import { toast } from "react-toastify";
 
 import API from "../../../api";
 import Image from "next/image";
+import { KitOption } from "./coffee-step-1";
+import { TShirtSize } from "./coffee-step-2";
 
 function CoffeeStep3({data}: {data: CoffeePaymentData}) {
 
@@ -17,9 +19,12 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
     } else if (kitOptions == "Kit + Coffee"){
       value = 75
     } else if (kitOptions == "Só Coffee"){
-      value = 20
+      value = 35
     } else {
       value = "Nenhuma opção selecionada"
+    }
+    if(data.withSocialBenefit){
+      return value/2;
     }
     return value
   }
@@ -41,6 +46,10 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
         fileName = uploadResponse.fileName;
       }
 
+      if(data.kitOption === KitOption.COFFEE){
+        data.tShirtSize = TShirtSize.NONE;
+      }
+
       const { data: paymentResponse } = await API.coffee.createPayment(
         data.withSocialBenefit, fileName, data.tShirtSize, data.foodOption, data.kitOption
       );
@@ -56,6 +65,7 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
   useEffect(() => {
     getPayment();
   }, []);
+
   //console.log("cheguei até aqui [antes de copyToClipboard]")
   function copyToClipboard() {
     navigator.clipboard.writeText(qrCodeCopyPaste);

@@ -61,14 +61,14 @@ const PaymentSchema = new Mongoose.Schema(
     foodOption: {
       type: FoodOption,
     },
+    kitOption: {
+      type: KitOption,
+    },
     createdAt: {
       type: Number,
     },
     updatedAt: {
       type: Number,
-    },
-    kitOption: {
-      type: KitOption,
     },
   },
   { collection: "payment" }

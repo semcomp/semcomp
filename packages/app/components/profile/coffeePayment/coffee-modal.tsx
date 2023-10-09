@@ -5,6 +5,7 @@ import Stepper from "../../stepper/Stepper";
 import CoffeeStep1, { KitOption } from "./coffee-step-1";
 import CoffeeStep2, { TShirtSize, FoodOption } from "./coffee-step-2";
 import CoffeeStep3 from "./coffee-step-3";
+import { toast } from "react-toastify";
 
 export type CoffeePaymentData = {
   withSocialBenefit: boolean;
@@ -29,6 +30,8 @@ function SemcompButton({ onClick, children, className, ...props }: any) {
   );
 }
 
+
+
 function CoffeePayment({ onRequestClose, userHasPaid }) {
   const [coffeeStep, setCoffeeStep] = useState(0);
   const [data, setData] = useState({
@@ -38,6 +41,26 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
     kitOption: KitOption.COMPLETE,
     foodOption: FoodOption.NONE,
   } as CoffeePaymentData);
+  
+  function nextCoffeeStep(){
+    if(coffeeStep + 1 === 2){
+      console.log(data.withSocialBenefit);
+      if(data.withSocialBenefit && !data.socialBenefitFile){
+        toast.error("Informe um arquivo!");
+        return;
+      }else if(data.withSocialBenefit){
+        console.log(data.socialBenefitFile);
+
+        if(data.withSocialBenefit && !data.socialBenefitFile.name.endsWith(".pdf")){
+          toast.error("O arquivo precisa ser um pdf");
+          return;
+        }
+      }
+    }
+    
+    setCoffeeStep(coffeeStep + 1);
+
+  }
 
   const stepComponent = [
     <CoffeeStep1 key={0} data={data} setData={setData}/>,
@@ -58,7 +81,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
             Fechar
           </SemcompButton>
           {coffeeStep >= 2 || userHasPaid ? <></> : (
-            <SemcompButton onClick={() => setCoffeeStep(coffeeStep + 1)}>
+            <SemcompButton onClick={nextCoffeeStep}>
               Próximo
             </SemcompButton>
           )}

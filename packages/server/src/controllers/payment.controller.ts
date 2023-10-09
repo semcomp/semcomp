@@ -10,20 +10,18 @@ export default class PaymentController {
 
   public async create(req, res, next) {
     try {
-      console.log("[userid]", req.user.id)
 
-       const payment = await this.paymentService.createPayment(
-         req.user?.id,
-         req.body?.withSocialBenefit,
-         req.body?.socialBenefitFileName,
-         req.body?.tShirtSize,
-         req.body?.foodOption,
-         req.body?.kitOption,
-       )
-       console.log("[payment]", payment)
+
+      const payment = await this.paymentService.createPayment(
+        req.user?.id,
+        req.body?.withSocialBenefit,
+        req.body?.socialBenefitFileName,
+        req.body?.tShirtSize,
+        req.body?.foodOption,
+        req.body?.kitOption,
+        )
       
       return res.status(200).json(payment);
-      console.log("Cheguei até a ultima step da fiunc de pagamento!")
     } catch (error) {
       return handleError(error, next);
     }

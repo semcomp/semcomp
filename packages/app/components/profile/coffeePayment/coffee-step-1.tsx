@@ -29,7 +29,7 @@ function CoffeeStep1({
       <ul>
         <li><b>Kit + Coffee</b>: R$75.00</li>
         <li><b>Kit</b>: R$65.00</li>
-        <li><b>Coffee</b>: R$20.00</li>
+        <li><b>Coffee</b>: R$35.00</li>
       </ul>
       
       <br />
@@ -47,7 +47,20 @@ function CoffeeStep1({
       {/* <p>Ambas dão direto ao Coffee + Kit</p> */}
       {/* <br /> */}
       {/* <p>Os pacotes são limitados</p> */}
-    </div>
+    { (data.kitOption && (data?.kitOption).includes("Coffee")) ? (
+      <>
+            <br/><h1><strong>Possui alguma restrição alimentar?</strong><br/>Procure a coordenação e indique quais são suas restrições.</h1>
+            </>
+            //   <Input
+            //   className="my-3"
+            //   label="Possui alguma restrição alimentar?"
+            //   value={data.foodOption}
+            //   onChange={handlefoodOptionChange}
+            //   choices={foodOptions}
+            //   type={InputType.Select}
+            // />
+            ):null }
+      </div>
   );
 }
 
