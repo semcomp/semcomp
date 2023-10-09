@@ -294,7 +294,7 @@ function Profile() {
               </Card>
               <Card className="flex flex-col items-center p-9 w-full mb-6">
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-                  Coffee
+                Kit e Coffee
                 </h1>
                 {userFetched.payment.status === "approved" ? (
                   <>
@@ -317,14 +317,14 @@ function Profile() {
                 ) : (
                   <>
                       <Chip className="mb-4" label="Sem Coffee" disabled={true} />
-                      <p style={{ fontSize: "0.9rem" }}>Pague com PIX o Coffee</p>
+                      <p style={{ fontSize: "0.9rem" }}>Pague com PIX</p>
                       <button
                       onClick={() => {
                         setCoffeeModalOpen(true);
                         blockBodyScroll();
                       }}
                       className="bg-tertiary text-white p-2 rounded-lg mt-2">
-                      Comprar Coffee
+                      Comprar Kit e Coffee
                     </button>
                   </>
                 )}
