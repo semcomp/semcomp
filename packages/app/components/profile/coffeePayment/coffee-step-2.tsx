@@ -1,6 +1,7 @@
 import { ReactHTMLElement } from "react";
 import Input, { InputType } from "../../Input";
 import { CoffeePaymentData } from "./coffee-modal";
+import { KitOption } from "./coffee-step-1";
 
 export enum TShirtSize {
   NONE = "NONE",
@@ -86,7 +87,7 @@ function CoffeeStep2({
         />
       )}
       {}
-      { (data.kitOption && (data?.kitOption).includes("Kit")) ? (
+      { (data.kitOption && (data?.kitOption).includes("Kit")) && (
               <Input
               className="my-3"
               label="Tamanho da camiseta"
@@ -95,7 +96,25 @@ function CoffeeStep2({
               choices={TShirtSizes}
               type={InputType.Select}
             />
-      ):null }
+      )}
+      
+      { (data.kitOption && (data?.kitOption).includes("Kit")) &&
+          (
+            <p>
+            <br/>
+            Medidas aproximada da modelagem tradicional <br/>
+            LARGURA X COMPRIMENTO <br/><br/>
+    
+            PP- 51x66 cm <br/>
+            P - 53x70 cm <br/>
+            M - 56X75 cm <br/>
+            G - 58X77 cm <br/>
+            GG - 64X80 cm <br/>
+
+            </p>
+          )
+        }
+        
       { (!data.kitOption) ? ( <b>Nenhuma opção seleciona no step 1.</b> ):null }
 
     </div>
