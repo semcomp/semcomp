@@ -13,6 +13,7 @@ import Card from "../components/Card";
 import Routes from "../routes";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
+import Link from "next/link";
 
 function SignupPage() {
   const router = useRouter();
@@ -103,7 +104,7 @@ function SignupPage() {
       const { data } = await API.signup(userInfo);
       localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
-      router.push(Routes.home);
+      router.push(Routes.profile);
     } catch (e) {
       // Note: this catch don't really have to treat the errors because the API
       // already has network error treatment.
@@ -143,7 +144,16 @@ function SignupPage() {
       <Navbar />
       <main className="flex flex-col md:flex-row justify-center items-center flex-1">
         <Card className="flex flex-col items-center p-9 w-full max-w-lg m-3">
-          <h1 className="text-xl">Cadastrar</h1>
+         {/* <h1 className="text-xl">Inscrições Encerradas! </h1>
+         <p>Caso você tenha uma conta, clique
+        <Link href="/login">
+          <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
+              aqui
+          </a>
+        </Link>
+        </p> */}
+        
+         <h1 className="text-xl">Cadastrar</h1>
           <div className="w-full max-w-xs">
             <Stepper
               numberOfSteps={2}
@@ -154,7 +164,7 @@ function SignupPage() {
 
           {/* Renders the correct form according to the current step */}
           {stepComponent}
-        </Card>
+        </Card> 
         <div id="infos-semcomp">
           <Card className="w-full max-w-lg m-3 p-9">
             <aside>

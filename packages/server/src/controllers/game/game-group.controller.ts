@@ -9,11 +9,12 @@ class GameGroupController {
     try {
       handleValidationResult(req);
 
-      const { name, game } = req.body;
+      const { game } = req.params;
+      const { name } = req.body;
       const { user } = req;
 
       const createdGroup = await gameGroupService.create({
-        name, game
+        game, name
       });
       await gameGroupService.join(
         user.id,

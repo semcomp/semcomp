@@ -163,13 +163,13 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
             )}
             {(event.type === "Palestra" || event.type === "Roda") && (
               <>
-                <br />
+                {/*<br />
                 <button
                   className="bg-tertiary text-white transition-all hover:bg-white hover:text-tertiary p-4 shadow-md hover:shadow-none"
                   onClick={() => router.push("/live")}
                 >
                   Acessar transmissão
-                </button>
+                </button>*/}
               </>
             )}
             {/* CUIDADO: Gambiarra abaixo */}

@@ -6,6 +6,7 @@ import SemcompLogo from "../../assets/logo.svg";
 import { useAppContext } from "../../libs/contextLib";
 import NavLink from "./nav-link";
 import Image from "next/image";
+import { useRef } from "react";
 
 const Navbar = (props) => {
   const { user } = useAppContext();
@@ -16,19 +17,25 @@ const Navbar = (props) => {
     "https://docs.google.com/forms/d/e/1FAIpQLSdBUY4gf8-CKhoXEmZ_bIvovprtGi7KOwNuo2WFcfsejl6a5w/viewform";
 
   function logUserOut() {
+    router.push(Routes.home);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    router.push(Routes.home);
   }
+  
+  const audioRef = useRef<HTMLAudioElement>();
+
+    const playSound = (e) => {
+        // audioRef.current.play();
+    }
 
   // Se alguma propriedade de estilo para o background (bg) for passada
   // via props, vai adicionar nos estilos da navbar.
   // Caso contrário, só mantém o bg-primary
 
   let navStyles =
-    "text-center p-4 w-full {bg-primary} font-primary md:flex md:justify-between md:items-center ";
+    "text-center px-4 py-2 w-full font-primary md:flex md:justify-between md:items-center ";
 
-  props.bg ? (navStyles += props.pg) : (navStyles += "bg-primary");
+  props.bg ? (navStyles += props.pg) : (navStyles += "bg-no-repeat bg-cover bg-left bg-[url('../assets/26-imgs/img_geradora_fundo2.PNG')]");
 
   return (
     <nav className={navStyles}>
@@ -38,34 +45,35 @@ const Navbar = (props) => {
             alt="Semcomp logo"
             src={SemcompLogo.src}
             layout="intrinsic"
-            height={50}
-            width={50}
+            height={70}
+            width={70}
           />
         </div>
       </NavLink>
 
+      <audio ref={audioRef} src="/oi.mp3"></audio>
       <div className="text-center md:flex md:flex-row">
         {/* <Navlink
           style={{ color: "yellow" }}
-          onClick={() =>
+          onClick={() =>  
             window.open(tShirtsFormLink, "_blank", "noopener noreferrer")
           }
         >
           Comprar camiseta
         </Navlink> */}
-        <Navlink href={Routes.home}>Início</Navlink>
-        <Navlink href={Routes.home + "#about"}>Sobre nós</Navlink>
-        {/* <Navlink href={Routes.sponsors}>Patrocinadores</Navlink> */}
-        <Navlink href={Routes.home + "#schedule"}>Cronograma</Navlink>
+        <Navlink onClick={playSound} href={Routes.home}>Início</Navlink>
+        <Navlink onClick={playSound} href={Routes.home + "#about"}>Sobre nós</Navlink>
+        <Navlink onClick={playSound} href={Routes.sponsors}>Patrocinadores</Navlink>
+        <Navlink onClick={playSound} href={Routes.home + "#schedule"}>Cronograma</Navlink>
         {isUserLoggedIn ? (
           <>
             {/* <Navlink href={Routes.riddle}>Riddle</Navlink> */}
             {/* <Navlink href={Routes.riddlethon}>Riddlethon</Navlink> */}
             {/* <Navlink href={Routes.hardToClick}>Duro de Clicar</Navlink> */}
-            <Navlink href={Routes.profile}>Perfil</Navlink>
-            <button onClick={logUserOut}>
+            <Navlink onClick={playSound} href={Routes.profile}>Perfil</Navlink>
+            <button onClick={logUserOut} className="nav">
               <a
-                className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-white rounded-lg hover:bg-hoverWhite duration-200"
+                className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-black rounded-lg hover:bg-hoverWhite duration-200"
                 href=""
               >
                 Sair
@@ -74,8 +82,8 @@ const Navbar = (props) => {
           </>
         ) : (
           <>
-            <Navlink href={Routes.signup}>Cadastrar</Navlink>
-            <Navlink href={Routes.login}>Entrar</Navlink>
+            <Navlink onClick={playSound} href={Routes.signup}>Cadastrar</Navlink>
+            <Navlink onClick={playSound} href={Routes.login}>Entrar</Navlink>
           </>
         )}
       </div>

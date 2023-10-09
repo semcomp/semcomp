@@ -35,7 +35,7 @@ function Question({ question, answer }) {
   }
 
   return (
-    <div className="bg-white text-tertiary">
+    <div className="bg-white text-grayDark">
       <button
         className="text-left w-full p-4 shadow"
         onClick={handleQuestionClick}
@@ -73,10 +73,10 @@ function Question({ question, answer }) {
 const FAQ = () => {
   return (
     <>
-      <section className="flex flex-col items-center text-secondary bg-primary text-center p-16">
+      <section className="flex flex-col items-center text-secondary bg-secondary text-center p-16">
         <h1
           id="titulo"
-          className="text-4xl font-bold font-qatar text-secondary"
+          className="text-4xl font-bold font-qatar text-primary"
         >
           FAQ
         </h1>
@@ -102,10 +102,11 @@ const FAQ = () => {
             question="Tem premiação?"
             answer="Sim! Campeonatos da game night e concursos terão premiações, mas não esqueça que, para poder participar, é preciso estar inscrito na Semcomp."
           />
+          {/*
           <Question
             question="Qual o percentual de presença é preciso alcançar durante a SEMCOMP?"
             answer="É necessário ter 70% de presença, que pode ser obtida através da participação nas palestras. Mas é importante participar dos outros eventos que além de muito interessantes, vão contar pontos para o Overflow! Se você trabalha e não consegue atingir esse percentual, basta justificar com diretamente com seus professores."
-          />
+        />*/}
         </div>
       </section>
     </>

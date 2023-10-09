@@ -22,7 +22,7 @@ function DataPage({
       <main className="flex flex-col justify-center items-center w-full h-full p-4 py-16">
         <div className='w-full flex justify-between'>
           <Toolbar>
-            <h1 className='text-xl'>{title}</h1>
+            <h1 className='my-10 text-3xl font-bold text-gray-700'>{title}</h1>
           </Toolbar>
           {buttons}
         </div>

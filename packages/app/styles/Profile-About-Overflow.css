@@ -3,7 +3,7 @@
 }
 
 .modal-component > .card > .content {
-  max-height: 65vh;
+  max-height: 50vh;
   overflow-x: hidden;
   overflow-y: scroll;
   padding: 5%;
@@ -15,7 +15,6 @@
   color: white;
   width: 100%;
   text-align: center;
-  border-radius: 10px 10px 0 0;
   font-weight: bold;
 }
 

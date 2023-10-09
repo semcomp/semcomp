@@ -24,10 +24,10 @@ function SponsorCard({
   companyLogo,
 }: sponsorProps) {
   return (
-    <div className={"overflow-auto flex flex-col items-center "}>
+    <div className={"overflow-hidden justify-center flex flex-col items-center "}>
       {companyLinks && (
         <div className="flex flex-col justify-between h-full p-0 m-0">
-          <div className={"relative h-32 w-48  " + (companyType == 'Supporter' ? "lg:w-[140px] " : "lg:w-40 ")}>
+          <div className={"relative h-32 w-48 mx-10 " + (companyType == 'Supporter' ? "lg:w-[140px] " : "lg:w-40 ")}>
             <Image
               alt={"Logo " + companyName}
               src={companyLogo}
@@ -38,13 +38,13 @@ function SponsorCard({
           {/* <p className="my-2">{companyName}</p>
           <p className="my-2">{companyDescription}</p> */}
           <div className="flex justify-center">
-            {companyLinks.homepage && (
+            {/* {companyLinks.homepage && (
               <NavLink href={companyLinks.homepage}>
                 <Tooltip title="Site">
                   <PublicRoundedIcon sx={{ color: "#002776" }} />
                 </Tooltip>
               </NavLink>
-            )}
+            )} */}
             {/* {companyLinks.facebook && (
               <LogoLink icon={FacebookLogo} link={companyLinks.facebook} />
             )}

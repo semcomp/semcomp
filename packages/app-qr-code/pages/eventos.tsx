@@ -82,7 +82,6 @@ function Events() {
     } catch (error) {
       console.error(error);
     } finally {
-      setIsLoading(false);
     }
   }
 
@@ -99,6 +98,13 @@ function Events() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  
+  useEffect(() => {
+    if(data){
+      setIsLoading(false);
+    }
+  }, [data]);
 
   return (
     <>

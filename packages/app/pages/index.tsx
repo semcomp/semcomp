@@ -9,9 +9,11 @@ import FAQ from "../components/home/Faq";
 import Sponsors from "../components/home/Sponsors";
 import Stats from "../components/home/Stats";
 import { useAppContext } from "../libs/contextLib";
+import { useRouter } from "next/router";
 
 function Home() {
   const { setUser, setToken } = useAppContext();
+  const router = useRouter();
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -19,6 +21,10 @@ function Home() {
     if (!user || !token) {
       setUser(null);
       setToken(null);
+    }
+
+    if (window.location.pathname != router.pathname) {
+      router.push(`${window.location.pathname}`)
     }
   }, []);
 

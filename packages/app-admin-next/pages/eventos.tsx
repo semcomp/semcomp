@@ -19,8 +19,9 @@ type EventData = {
   Nome: string;
   // "Descrição": string,
   Facilitador: string;
-  Link: string;
-  "Máximo de Inscritos": number;
+  // Link: string;
+  "Max Inscritos": number;
+  "Inscritos": number;
   Tipo: string;
   "Criado em": string;
 };
@@ -47,8 +48,9 @@ function EventsTable({
       Nome: event.name,
       // "Descrição": event.description,
       Facilitador: event.speaker,
-      Link: event.link,
-      "Máximo de Inscritos": event.maxOfSubscriptions,
+      // Link: event.link,
+      "Max Inscritos": event.maxOfSubscriptions,
+      "Inscritos": event.numOfSubscriptions,
       Tipo: event.type,
       "Criado em": new Date(event.createdAt).toISOString(),
     });
@@ -91,8 +93,22 @@ function Events() {
       setData(response);
     } catch (error) {
       console.error(error);
-    } finally {
+    }
+  }
+
+  async function getSubs() {
+    if(data != null){
+      for (const event of data.getEntities()) {
+        if(event.showOnSubscribables){
+          console.log(event.id); 
+          const nsubs = await semcompApi.getSubscriptions(event.id);
+          console.log(nsubs);
+          event.numOfSubscriptions = nsubs;
+        }
+      }
+
       setIsLoading(false);
+      console.log(data);
     }
   }
 
@@ -112,6 +128,10 @@ function Events() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    getSubs();
+  }, [data]);
 
   function MarkAttendance() {
     return (
@@ -168,7 +188,12 @@ function Events() {
               pagination={pagination}
               onRowClick={handleRowClick}
               onRowSelect={handleSelectedIndexesChange}
-              moreInfoContainer={<MarkAttendance></MarkAttendance>}
+              moreInfoContainer={
+              <>
+                
+                <MarkAttendance></MarkAttendance>
+              </>
+              }
               onMoreInfoClick={handleMoreInfoClick}
             />
           }

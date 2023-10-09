@@ -91,7 +91,7 @@ export default class PaymentServiceImpl implements PaymentService {
     foodOption: FoodOption,
     kitOption: KitOption,
   ): Promise<Payment> {
-    // throw new HttpError(400, ["Vendas encerradas!"]);
+    throw new HttpError(400, ["Vendas encerradas!"]);
     const user = await this.userService.findById(userId);
     if (!user) {
       throw new HttpError(400, ["Usuário não encontrado"]);

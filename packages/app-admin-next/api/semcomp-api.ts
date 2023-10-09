@@ -1,5 +1,5 @@
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
-import { SemcompApiCreateEventRequest, SemcompApiCreateHouseRequest, SemcompApiCreateGameQuestionRequest, SemcompApiEditEventRequest, SemcompApiEditGameQuestionRequest, SemcompApiGetEventsResponse, SemcompApiGetHousesResponse, SemcompApiGetGameQuestionsResponse, SemcompApiGetTShirtsResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse, SemcompApiPaginationRequest, SemcompApiGetGameGroupsResponse } from "../models/SemcompApiModels";
+import { SemcompApiCreateEventRequest, SemcompApiCreateHouseRequest, SemcompApiCreateGameQuestionRequest, SemcompApiEditEventRequest, SemcompApiEditGameQuestionRequest, SemcompApiGetEventsResponse, SemcompApiGetHousesResponse, SemcompApiGetGameQuestionsResponse, SemcompApiGetTShirtsResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse, SemcompApiPaginationRequest, SemcompApiGetGameGroupsResponse, SemcompApiUser } from "../models/SemcompApiModels";
 import Http from "./http";
 
 class SemcompApi {
@@ -26,7 +26,7 @@ class SemcompApi {
 
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
-
+ 
   public async getHouses(pagination: PaginationRequest): Promise<SemcompApiGetHousesResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
       pagination.getPage(),
@@ -36,6 +36,15 @@ class SemcompApi {
     const response = await this.http.get("/admin/houses", semcompApiPagination);
 
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  public async addPoints(houseId, points){
+    return this.http.post('/admin/houses/' + houseId + '/add-points', {points});
+  }
+
+  public async editHouse(houseId, data: SemcompApiCreateHouseRequest): Promise<any> {
+    console.log(houseId, data);
+    return this.http.put("/admin/houses/" + houseId, data);
   }
 
   public async createHouse(data: SemcompApiCreateHouseRequest): Promise<any> {
@@ -59,6 +68,10 @@ class SemcompApi {
 
   public async editTShirt(id: string, data: any): Promise<any> {
     return this.http.put(`/admin/t-shirts/${id}`, data);
+  }
+
+  public async getSubscriptions(eventId: string) : Promise<any> {
+    return this.http.get(`/admin/subscription/event/${eventId}`);
   }
 
   public async getEvents(pagination: PaginationRequest): Promise<SemcompApiGetEventsResponse> {

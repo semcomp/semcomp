@@ -113,6 +113,7 @@ export type SemcompApiEvent = {
   needInfoOnSubscription: boolean;
   attendances: any[],
   subscribers: any[],
+  numOfSubscriptions: number;
   createdAt: number,
   updatedAt: number,
 };

@@ -18,8 +18,8 @@ function EventDay({ dayDate, myPage, changePage, isCurrentDay }) {
       className={
         "focus:outline-none w-full p-4 transition duration-300 " +
         (isCurrentDay
-          ? "bg-blue text-secondary"
-          : "bg-white text-tertiary hover:bg-blue hover:text-secondary")
+          ? "bg-tertiary text-white"
+          : "border-solid border-2 border-[#492B80] bg-primary text-white hover:bg-secondary hover:text-black hover:border-[#AC85F4]")
       }
       onClick={handleClick}
     >

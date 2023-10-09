@@ -1,16 +1,12 @@
 import Link from "next/link";
 
-import AmdocsLogo from "../../assets/sponsors/svg/amdocs.svg";
 // import FEstudar from "../../assets/sponsors/FundacaoEstudar.png";
-import EyLogo from "../../assets/sponsors/EYlogoVertical.jpeg";
-import EyLogoSF from "../../assets/sponsors/EYLogoSemFundo.png";
-import GaneshImage from "../../assets/sponsors/ganesh.png";
-import GriauleLogo from "../../assets/sponsors/GriauleLogo.svg";
-import LuizalabsLogo from "../../assets/sponsors/LuizalabsLogo.png";
-import RaizenLogo from "../../assets/sponsors/RaizenLogo.png";
-import SerasaLogo from "../../assets/sponsors/SerasaLogo.png";
-import TokenlabLogo from "../../assets/sponsors/TokenlabLogo.png";
-import TractianLogo from "../../assets/sponsors/TractianLogo.png";
+import LugoBots from "../../assets/sponsors/lugo_bots_white.svg";
+import IcaroTech from "../../assets/sponsors/icaro_tech_white.svg";
+import Yara from "../../assets/sponsors/yara_white.svg";
+import SMT from "../../assets/sponsors/smt_white.svg";
+import Amdocs from "../../assets/sponsors/amdocs_white.png";
+import Cohere from "../../assets/sponsors/cohere_white.svg";
 import IcmcImage from "../../assets/sponsors/icmc.png";
 import FogImage from "../../assets/sponsors/fog.png";
 import CodelabImage from "../../assets/sponsors/logo-codelab-sanca.svg";
@@ -21,20 +17,21 @@ import Routes from "../../routes";
 import Image, { StaticImageData } from "next/image";
 import NavLink from "../navbar/nav-link";
 
+
 function Sponsors() {
   const supporterLogos = [IcmcImage, PetImage, CodelabImage, FogImage, Ganesh, Gema];
-  const sponsorsLogos = [AmdocsLogo, EyLogoSF, GriauleLogo, LuizalabsLogo, RaizenLogo, SerasaLogo, TokenlabLogo, TractianLogo];
+  const sponsorsLogos = [LugoBots, IcaroTech, Yara, SMT, Cohere, Amdocs];
 
   return (
     <>
-      <section className="flex flex-col items-center text-primary bg-white text-center p-16">
-      {/* <h1 id="titulo" className="text-4xl font-bold">
+      <section id="sponsorsBackground" className="flex flex-col items-center text-primary bg-secondary text-center p-16">
+      <h1 id="sponsors" className="text-4xl font-bold">
           Patrocinadores
         </h1>
         <div className="text-base pt-8 max-w-6xl">
-          <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4 lg:gap-4">
+          <div className="grid gap-10 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4 lg:gap-20">
             {sponsorsLogos.map((sponsorsLogo: StaticImageData, index) => (
-              <div className="relative h-32 w-48 lg:w-40">
+              <div className="relative h-60 w-48 lg:w-60">
                 <Image
                   alt={"Logo " + sponsorsLogos[index].toString()}
                   src={sponsorsLogo}
@@ -45,11 +42,11 @@ function Sponsors() {
             ))}
           </div>
           <br />
-        </div> */}
-        <h1 id="titulo" className="text-4xl font-bold">
+        </div>
+        {/* <h1 id="sponsors" className="text-4xl font-bold">
           Apoio
-        </h1>
-        <div className="text-base pt-8 max-w-6xl">
+        </h1> */}
+        {/* <div className="text-base pt-8 max-w-6xl">
           <div className="grid gap-8 grid-cols-1 md:grid-cols-2 place-items-center lg:flex lg:m-4">
             {supporterLogos.map((supporterLogo: StaticImageData, index) => (
                 <div className={"relative h-32 w-48 lg:w-58 " + (index == 6 ? "md:col-span-2" : "")}>
@@ -64,13 +61,14 @@ function Sponsors() {
           </div>
           <br />
 
+        </div> */}
           <NavLink href={Routes.sponsors}>
-            <div className="bg-tertiary p-3 rounded hover:bg-secondary hover:text-black">
+            <div className="button bg-primary p-3 rounded hover:bg-green3-26 text-white hover:bg-tertiary">
               Saiba mais
             </div>
           </NavLink>
-        </div>
       </section>
+      <hr />
     </>
   );
 }

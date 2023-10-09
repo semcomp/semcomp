@@ -61,7 +61,7 @@ function Step0({
         }
         autofocus={true}
         className="my-3"
-        label="Nome "
+        label="Nome completo"
         value={name}
         onChange={handleNameChange}
         type={InputType.Text}
@@ -69,11 +69,11 @@ function Step0({
       <Input
           tooltip={
           <div style={{ fontSize: "14px" }}>
-            Por favor, cadastre um e-mail válido.
+            Por favor, cadastre um e-mail que você tem acesso e que seja válido.
           </div>
         }
         className="my-3"
-        label="E-mail"
+        label="E-mail válido"
         value={email}
         onChange={handleEmailChange}
         type={InputType.Text}

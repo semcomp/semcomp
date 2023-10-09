@@ -9,10 +9,11 @@ import { toast } from "react-toastify";
 import API from "../../api";
 import Spinner from "../spinner";
 import GameConfig from "../../libs/game-config";
+import End from "./end";
 
 const styles = {
   root: "w-full h-full flex justify-center text-center",
-  container: "p-4 max-w-xl",
+  container: "p-4 max-w-4xl",
   title: "text-3xl",
   teamName: "",
   progressTracker: "",
@@ -51,7 +52,8 @@ function Question({
       setInputValue("");
       try {
         const { data: question } = await API.game.getQuestion(
-          questionIndex
+          gameConfig.getEventPrefix(),
+          questionIndex + 1
         );
         setQuestion(question);
       } catch (e) {
@@ -73,8 +75,8 @@ function Question({
 
     setIsSubmitting(true);
     try {
-      socket.emit(`${gameConfig.getGame()}-try-answer` , {token: token, index: question.index, answer: value});
-      await socket.once(`${gameConfig.getGame()}-try-answer-result`, ({ index, isCorrect, group }) => {
+      socket.emit(`${gameConfig.getEventPrefix()}-try-answer` , {token: token, index: question.index, answer: value});
+      await socket.once(`${gameConfig.getEventPrefix()}-try-answer-result`, ({ index, isCorrect, group }) => {
         if (!isCorrect) {
           toast.error("Resposta incorreta");
         } else {
@@ -121,7 +123,7 @@ function Question({
           <img
             src={question.imgUrl}
             alt=""
-            className="max-w-xs w-full h-full object-contain py-4"
+            className="max-w-full w-full h-full object-contain py-4"
           />
         )}
         <div>{question.question}</div>
@@ -156,13 +158,21 @@ export default function Game({
   return (
     <div className={styles.root}>
       <div className={styles.container}>
-        <Question
-          setTeam={setTeam}
-          socket={socket}
-          gameConfig={gameConfig}
-          token={token}
-          questionIndex={completedQuestions.length}
-        />
+        <>
+        {   
+            completedQuestions.length >= gameConfig.getNumberOfQuestions() ?
+              <End gameConfig={gameConfig}/>
+            : gameConfig.verifyIfIsHappening()  ?
+            <Question
+              setTeam={setTeam}
+              socket={socket}
+              gameConfig={gameConfig}
+              token={token}
+              questionIndex={completedQuestions.length}
+            />
+            : <p>Tempo Encerrado!</p>
+          }
+        </>
       </div>
     </div>
   );

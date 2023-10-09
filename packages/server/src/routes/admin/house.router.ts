@@ -22,7 +22,7 @@ router.post(
   "/:id/add-points",
   [
     param("id", "Invalid field 'id'").not().isEmpty(),
-    body("points", "Invalid field 'points'").isFloat({ gt: 0.0 }),
+    body("points", "Invalid field 'points'").isFloat(),
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],

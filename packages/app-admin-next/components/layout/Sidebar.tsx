@@ -15,7 +15,7 @@ import { useAppContext } from '../../libs/contextLib';
 
 function NavLink({title, href}) {
   return (<Link href={href}>
-    <div className="w-full border-b border-gray-300 text-center py-3">
+    <div className="hover:cursor-pointer hover:bg-[#ECECEC] w-full border-b border-gray-300 text-center py-3">
       {title}
     </div>
   </Link>);
