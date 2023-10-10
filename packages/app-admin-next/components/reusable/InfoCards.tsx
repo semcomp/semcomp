@@ -25,14 +25,14 @@ type InfoData = {
   "infoValue": number,
 }
 
-export default function DataTable({
+export default function InfoCards({
   infoData,
 }: {
   infoData: InfoData[]
 }) {
   return(
     <>
-      <div className={'grid grid-cols-' + infoData.length + ' mb-10 gap-5 w-full'}>
+      <div className={'grid grid-cols-4 mb-10 gap-5 w-full'}>
     {
       infoData.map((info) => (
         <div className="p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100">

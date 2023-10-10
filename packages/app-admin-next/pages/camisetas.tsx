@@ -72,8 +72,6 @@ function TShirts() {
       setData(response);
     } catch (error) {
       console.error(error);
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -106,6 +104,12 @@ function TShirts() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if(data != null){
+      setIsLoading(false);
+    }
+  }, [data]);
 
   return (<>
     {isCreateModalOpen && (

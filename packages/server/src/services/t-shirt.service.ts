@@ -5,6 +5,7 @@ import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 import TShirt, { TShirtModel } from "../models/t-shirt";
 import IdServiceImpl from "./id-impl.service";
 import PaymentServiceImpl from "./payment-impl.service";
+import PaymentStatus from "../lib/constants/payment-status-enum";
 
 const idService = new IdServiceImpl();
 const paymentService = new PaymentServiceImpl(null, null, null, null);
@@ -87,9 +88,13 @@ class TShirtService {
 
     const entities: (TShirt & { usedQuantity: number })[] = [];
     for (const tShirt of tShirts.getEntities()) {
+
+      let countTShirt = await paymentService.count({ tShirtSize: tShirt.size, status: PaymentStatus.APPROVED });
+      countTShirt += await paymentService.count({ tShirtSize: tShirt.size, status: PaymentStatus.PENDING });
+      
       entities.push({
         ...tShirt,
-        usedQuantity: await paymentService.count({ tShirtSize: tShirt.size }),
+        usedQuantity: countTShirt,
       });
     }
 

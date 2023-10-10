@@ -68,19 +68,21 @@ function mapData(data: SemcompApiUser[]): UserData[] {
   return newData;
 }
 
-function getCoffees(data: SemcompApiUser[]) : number {
-  let numberOfCoffees: number;
+function countKitOption(kitOption: KitOption, data: SemcompApiUser[]) : number {
+  let count: number;
 
-  numberOfCoffees = 0;
+  count = 0;
   for (const user of data) {
-    if (user.payment.status) {
-      numberOfCoffees++;
+    if (user.payment.status === PaymentStatus.APPROVED) {
+      if(user.payment.kitOption === kitOption){
+        count++;
+      }
     }
   }
 
-  console.log(numberOfCoffees);
+  console.log(count);
 
-  return numberOfCoffees;
+  return count;
 }
 
 
@@ -94,22 +96,33 @@ function getInfoData(data: SemcompApiUser[]) : InfoData[] {
     "infoTitle": "Inscritos",
     "infoValue": data.length,
   })
-
-  // Coffees
-  let coffees = getCoffees(data);
+  
+  let coffees = countKitOption(KitOption.COFFEE, data);
   infoData.push({ 
     "infoTitle": "Coffees",
     "infoValue": coffees,
   })
-
+  
+  let kits = countKitOption(KitOption.KIT, data);
   infoData.push({ 
     "infoTitle": "Kits",
-    "infoValue": coffees,
+    "infoValue": kits,
+  })
+  
+  let complete = countKitOption(KitOption.COMPLETE, data);
+  infoData.push({ 
+    "infoTitle": "Kits + Coffee",
+    "infoValue": complete,
   })
 
   infoData.push({ 
-    "infoTitle": "Kits + Coffee",
-    "infoValue": coffees,
+    "infoTitle": "Coffees Vendidos",
+    "infoValue": complete + coffees,
+  })
+
+  infoData.push({ 
+    "infoTitle": "Total",
+    "infoValue": complete + coffees + kits,
   })
   
   return infoData;
