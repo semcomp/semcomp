@@ -35,7 +35,7 @@ export default function InfoCards({
       <div className={'grid grid-cols-4 mb-10 gap-5 w-full'}>
     {
       infoData.map((info) => (
-        <div className="p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100">
+        <div key={info.infoTitle} className="p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100">
             <h5 className="mb-2 text-2xl font-bold text-gray-700">{info.infoTitle}</h5>
             <p className="font-normal text-gray-700">{info.infoValue}</p>
         </div>
