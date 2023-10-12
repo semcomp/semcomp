@@ -13,6 +13,7 @@ import FogImage from "../assets/sponsors/fog.png";
 import CodelabImage from "../assets/sponsors/logo-codelab-sanca.svg";
 import PetImage from "../assets/sponsors/pet.png";
 import GemaImage from "../assets/sponsors/gema2.png";
+import Data from "../assets/sponsors/data.png";
 import Footer from "../components/Footer";
 import Navbar from "../components/navbar";
 import SponsorCard from "../components/sponsor-card";
@@ -101,12 +102,12 @@ const supportersInfo = [
     description: "",
   },
   
-  // {
-  //   name: "FundacaoEstudar",
-  //   link: "https://www.estudar.org.br/",
-  //   logo: FEstudar,
-  //   description: "",
-  // },
+  {
+    name: "Data",
+    link: "http://data.icmc.usp.br/",
+    logo: Data,
+    description: "",
+  },
   
 ];
 
@@ -134,6 +135,7 @@ const SponsorsPage = () => {
                     companyLogo={company.logo}
                     companyLinks={company.links}
                   />
+                  
                 </a>
               ))} 
             </div>
@@ -143,6 +145,8 @@ const SponsorsPage = () => {
           </h2>
           <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:flex lg:m-4 ">
             {supportersInfo.map((supporter, index) => (
+              
+              <a href={supporter.link} className="hover:bg-[#dcdcde] rounded-lg">
               <SponsorCard
                 key={index}
                 companyDescription={supporter.description}
@@ -151,6 +155,7 @@ const SponsorsPage = () => {
                 companyLogo={supporter.logo}
                 companyLinks={supporter.link}
               />
+              </a>
             ))}
           </div>
         </main>
