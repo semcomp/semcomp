@@ -2,9 +2,9 @@ import { CoffeePaymentData } from "./coffee-modal";
 import Input, { InputType } from "../../Input";
 
 export enum KitOption {
-  // COMPLETE = "Kit + Coffee", 
+  COMPLETE = "Kit + Coffee", 
   KIT = "Só Kit",
-  // COFFEE = "Só Coffee",
+  COFFEE = "Só Coffee",
 }
 
 const kitOption = Object.values(KitOption);
