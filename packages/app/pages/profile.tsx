@@ -292,7 +292,7 @@ function Profile() {
                   </div>
                 }
               </Card>
-              {/* <Card className="flex flex-col items-center p-9 w-full mb-6">
+              <Card className="flex flex-col items-center p-9 w-full mb-6">
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                 Kit e Coffee
                 </h1>
@@ -305,14 +305,14 @@ function Profile() {
                         label={`Camiseta ${userFetched.payment.tShirtSize}`}
                       />
                     )}
-                    <button
+                    {/* <button
                       onClick={() => {
                         setCoffeeModalOpen(true);
                         blockBodyScroll();
                       }}
                     >
                       Ver infos pacote
-                    </button>
+                    </button> */}
                   </>
                 ) : (
                   <>
@@ -324,11 +324,11 @@ function Profile() {
                         blockBodyScroll();
                       }}
                       className="bg-tertiary text-white p-2 rounded-lg mt-2">
-                      Comprar Kit e Coffee
+                      Comprar Kit
                     </button>
                   </>
                 )}
-              </Card> */}
+              </Card>
             </>
           )}
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}

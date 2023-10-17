@@ -73,9 +73,17 @@ function countKitOption(kitOption: KitOption, data: SemcompApiUser[]) : number {
 
   count = 0;
   for (const user of data) {
-    if (user.payment.status === PaymentStatus.APPROVED) {
-      if(user.payment.kitOption === kitOption){
-        count++;
+    if(kitOption == KitOption.COMPLETE || kitOption == KitOption.KIT){
+      if (user.payment.status === PaymentStatus.APPROVED || user.payment.status === PaymentStatus.PENDING) {
+        if(user.payment.kitOption === kitOption){
+          count++;
+        }
+      }
+    }else{
+      if (user.payment.status === PaymentStatus.APPROVED) {
+        if(user.payment.kitOption === kitOption){
+          count++;
+        }
       }
     }
   }

@@ -2,9 +2,9 @@ import { CoffeePaymentData } from "./coffee-modal";
 import Input, { InputType } from "../../Input";
 
 export enum KitOption {
-  COMPLETE = "Kit + Coffee", 
+  // COMPLETE = "Kit + Coffee", 
   KIT = "Só Kit",
-  COFFEE = "Só Coffee",
+  // COFFEE = "Só Coffee",
 }
 
 const kitOption = Object.values(KitOption);
@@ -27,9 +27,9 @@ function CoffeeStep1({
       <p>Opções disponíveis para a Semcomp 26:</p>
       <br />
       <ul>
-        <li><b>Kit + Coffee</b>: R$75.00</li>
+        {/* <li><b>Kit + Coffee</b>: R$75.00</li> */}
         <li><b>Kit</b>: R$65.00</li>
-        <li><b>Coffee</b>: R$35.00</li>
+        {/* <li><b>Coffee</b>: R$35.00</li> */}
       </ul>
       
       <br />
