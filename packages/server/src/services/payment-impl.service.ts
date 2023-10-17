@@ -91,7 +91,8 @@ export default class PaymentServiceImpl implements PaymentService {
     foodOption: FoodOption,
     kitOption: KitOption,
   ): Promise<Payment> {
-    // throw new HttpError(400, ["Vendas encerradas!"]);
+    throw new HttpError(400, ["Vendas encerradas! Atingimos o limite de vendas."]);
+
     const user = await this.userService.findById(userId);
     if (!user) {
       throw new HttpError(400, ["Usuário não encontrado"]);
@@ -151,9 +152,9 @@ export default class PaymentServiceImpl implements PaymentService {
             `${this.notificationUrl}/${pendingPayment.id}`
           );
 
-          if(kitOption === KitOption.COFFEE){
-            pendingPayment.tShirtSize = TShirtSize.NONE;
-          }
+          // if(kitOption === KitOption.COFFEE){
+          //   pendingPayment.tShirtSize = TShirtSize.NONE;
+          // }
 
           pendingPayment.withSocialBenefit = withSocialBenefit;
           pendingPayment.paymentIntegrationId = paymentResponse.id;

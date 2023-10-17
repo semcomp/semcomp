@@ -317,7 +317,7 @@ function Profile() {
                 ) : (
                   <>
                       <Chip className="mb-4" label="Sem Coffee" disabled={true} />
-                      <p style={{ fontSize: "0.9rem" }}>Pague com PIX</p>
+                      {/* <p style={{ fontSize: "0.9rem" }}>Pague com PIX</p>
                       <button
                       onClick={() => {
                         setCoffeeModalOpen(true);
@@ -325,7 +325,7 @@ function Profile() {
                       }}
                       className="bg-tertiary text-white p-2 rounded-lg mt-2">
                       Comprar Kit
-                    </button>
+                    </button> */}
                   </>
                 )}
               </Card>
