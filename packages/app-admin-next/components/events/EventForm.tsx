@@ -232,13 +232,13 @@ function EventForm({
         value={data.showOnSubscribables}
         type={InputType.Checkbox}
       />
-      <Input
+      {/* <Input
         className="my-3"
         label="Precisa de informações adicionais para inscrição?"
         onChange={handleNeedInfoOnSubscriptionChange}
         value={data.needInfoOnSubscription}
         type={InputType.Checkbox}
-      />
+      /> */}
     </>
   );
 }

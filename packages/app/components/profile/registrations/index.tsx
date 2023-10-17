@@ -45,7 +45,8 @@ function Registrations({ onRequestClose }) {
   async function fetchEvents() {
     try {
       const response = await API.events.getSubscribables();
-      setEvents(response.data);
+      if(response.data)
+        setEvents(response.data);
     } catch (e) {
       console.error(e);
       return [];

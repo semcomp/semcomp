@@ -99,13 +99,13 @@ function getInfoData(data: SemcompApiUser[]) : InfoData[] {
   
   let coffees = countKitOption(KitOption.COFFEE, data);
   infoData.push({ 
-    "infoTitle": "Coffees",
+    "infoTitle": "Só Coffee",
     "infoValue": coffees,
   })
   
   let kits = countKitOption(KitOption.KIT, data);
   infoData.push({ 
-    "infoTitle": "Kits",
+    "infoTitle": "Só Kit",
     "infoValue": kits,
   })
   
