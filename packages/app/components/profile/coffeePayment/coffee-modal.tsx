@@ -38,7 +38,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
     withSocialBenefit: false,
     socialBenefitFile: null,
     tShirtSize: TShirtSize.M,
-    kitOption: KitOption.COMPLETE,
+    kitOption: KitOption.KIT,
     foodOption: FoodOption.NONE,
   } as CoffeePaymentData);
   
