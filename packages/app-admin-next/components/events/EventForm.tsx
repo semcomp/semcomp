@@ -149,7 +149,7 @@ function EventForm({
       />
       <Input
         className="my-3"
-        label="Facilitador"
+        label="Ministrante"
         value={data.speaker}
         onChange={handleSpeakerChange}
         type={InputType.Text}

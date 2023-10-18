@@ -18,7 +18,7 @@ type EventData = {
   // ID: string;
   Nome: string;
   // "Descrição": string,
-  Facilitador: string;
+  Ministrante: string;
   // Link: string;
   "Max Inscritos": number;
   "Inscritos": number;
@@ -47,7 +47,7 @@ function EventsTable({
       // ID: event.id,
       Nome: event.name,
       // "Descrição": event.description,
-      Facilitador: event.speaker,
+      Ministrante: event.speaker,
       // Link: event.link,
       "Max Inscritos": event.maxOfSubscriptions,
       "Inscritos": event.numOfSubscriptions,
