@@ -66,7 +66,7 @@ function Registrations({ onRequestClose }) {
       <div className="w-full bg-tertiary text-white text-center text-xl font-bold p-6">
         Inscrições
       </div>
-      <div className="max-h-96 overflow-y-scroll p-6">
+      <div className="h-96 overflow-y-scroll p-6">
         <AppBar style={{ backgroundColor: "transparent" }} position="static">
           <Tabs variant="scrollable" value={tab} onChange={handleChange}>
             {Object.keys(events).map((type, index) => (

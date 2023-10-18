@@ -356,7 +356,7 @@ function Profile() {
           )}
 
           {/* ABRIR AQUI PARA MOSTRAR INSCRIÇÕES */}
-          {/* <Card className="flex flex-col items-center p-9 w-full mb-6 text-center">
+          <Card className="flex flex-col items-center p-9 w-full mb-6 text-center">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
 
               Inscrições em Eventos
@@ -405,7 +405,7 @@ function Profile() {
                 Inscrever
               </button>
             }
-          </Card> */}
+          </Card>
           
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR CONQUISTAS () */}
           {/* <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
