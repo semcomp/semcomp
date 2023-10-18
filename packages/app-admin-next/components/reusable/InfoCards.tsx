@@ -32,7 +32,7 @@ export default function InfoCards({
 }) {
   return(
     <>
-      <div className={'grid grid-cols-4 mb-10 gap-5 w-full'}>
+      <div className={'grid lg:grid-cols-4 mb-10 gap-5 w-full sm:grid-cols-2'}>
     {
       infoData.map((info) => (
         <div key={info.infoTitle} className="p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100">

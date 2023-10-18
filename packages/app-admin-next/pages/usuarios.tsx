@@ -26,6 +26,7 @@ type UserData = {
   "Casa": string,
   "Status do pagamento": string,
   "Tamanho da camiseta": TShirtSize,
+  "Opção de compra": KitOption,
   "Permite divulgação?": string,
   "Criado em": string,
 }
@@ -53,6 +54,7 @@ function mapData(data: SemcompApiUser[]): UserData[] {
       "Casa": user.house.name,
       "Status do pagamento": paymentStatus,
       "Tamanho da camiseta": user.payment.tShirtSize,
+      "Opção de compra": user.payment.kitOption,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
       "Criado em": new Date(user.createdAt).toLocaleString("pt-br", 
       {
