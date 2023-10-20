@@ -46,9 +46,9 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
         fileName = uploadResponse.fileName;
       }
 
-      if(data.kitOption === KitOption.COFFEE){
-        data.tShirtSize = TShirtSize.NONE;
-      }
+      // if(data.kitOption === KitOption.COFFEE){
+      //   data.tShirtSize = TShirtSize.NONE;
+      // }
 
       const { data: paymentResponse } = await API.coffee.createPayment(
         data.withSocialBenefit, fileName, data.tShirtSize, data.foodOption, data.kitOption

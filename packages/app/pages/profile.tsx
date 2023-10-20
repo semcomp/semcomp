@@ -292,7 +292,7 @@ function Profile() {
                   </div>
                 }
               </Card>
-              {/* <Card className="flex flex-col items-center p-9 w-full mb-6">
+              <Card className="flex flex-col items-center p-9 w-full mb-6">
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                 Kit e Coffee
                 </h1>
@@ -305,19 +305,19 @@ function Profile() {
                         label={`Camiseta ${userFetched.payment.tShirtSize}`}
                       />
                     )}
-                    <button
+                    {/* <button
                       onClick={() => {
                         setCoffeeModalOpen(true);
                         blockBodyScroll();
                       }}
                     >
                       Ver infos pacote
-                    </button>
+                    </button> */}
                   </>
                 ) : (
                   <>
                       <Chip className="mb-4" label="Sem Coffee" disabled={true} />
-                      <p style={{ fontSize: "0.9rem" }}>Pague com PIX</p>
+                      {/* <p style={{ fontSize: "0.9rem" }}>Pague com PIX</p>
                       <button
                       onClick={() => {
                         setCoffeeModalOpen(true);
@@ -325,10 +325,10 @@ function Profile() {
                       }}
                       className="bg-tertiary text-white p-2 rounded-lg mt-2">
                       Comprar Kit
-                    </button>
+                    </button> */}
                   </>
                 )}
-              </Card> */}
+              </Card>
             </>
           )}
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
@@ -356,7 +356,7 @@ function Profile() {
           )}
 
           {/* ABRIR AQUI PARA MOSTRAR INSCRIÇÕES */}
-          {/* <Card className="flex flex-col items-center p-9 w-full mb-6 text-center">
+          <Card className="flex flex-col items-center p-9 w-full mb-6 text-center">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
 
               Inscrições em Eventos
@@ -405,7 +405,7 @@ function Profile() {
                 Inscrever
               </button>
             }
-          </Card> */}
+          </Card>
           
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR CONQUISTAS () */}
           {/* <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
