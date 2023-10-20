@@ -46,7 +46,6 @@ export default function GamePage({children}) {
   function handleNewGroupInfo(info) {
     if (info) {
       setTeam(info);
-      setTimeout(() => console.log(team), 1000);
     }
     setIsFetchingTeam(false);
   }
@@ -89,13 +88,13 @@ export default function GamePage({children}) {
     }, 1000);
     return () => clearInterval(handler);
   }, []);
-  
   return (<>
     <Navbar />
       <div className='p-6'>
         <Card className='p-6'>
           {
 
+            //quando não estiver buscando renderiza esse pedaço
             !isFetchingTeam ? <Lobby
               gameConfig={gameConfig}
               setTeam={setTeam}

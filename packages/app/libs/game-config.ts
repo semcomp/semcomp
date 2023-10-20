@@ -17,7 +17,7 @@ export default class GameConfig {
 
   constructor(gameSlug: string) {
     // if (gameSlug === HARD_TO_CLICK.slug) {
-      this.game = HARD_TO_CLICK;
+      this.game = RIDDLE;
       return;
     // }
     // if (gameSlug === RIDDLETHON.slug) {
@@ -65,7 +65,7 @@ export default class GameConfig {
   }
 
   public verifyIfIsHappening() {
-    console.log(new Date(Math.max(Date.now() - this.getStartDate().getTime(), 0)).getTime() > 0 && (this.getEndDate().getTime() - Date.now() > 0))
+    // console.log(new Date(Math.max(Date.now() - this.getStartDate().getTime(), 0)).getTime() > 0 && (this.getEndDate().getTime() - Date.now() > 0))
 
     return (new Date(Math.max(Date.now() - this.getStartDate().getTime(), 0)).getTime() > 0) && (this.getEndDate().getTime() - Date.now() > 0)
   }
