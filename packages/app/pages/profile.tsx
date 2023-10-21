@@ -264,7 +264,7 @@ function Profile() {
           {userFetched && (
             <>
               <Card className="flex flex-col items-center p-9 w-full mb-6">
-                {/* <QRCodeSVG value={userFetched && userFetched.id} /> */}
+                <QRCodeSVG value={userFetched && userFetched.id} />
                 <p className="font-bold text-xl text-center my-3">
                   {userFetched.name}
                 </p>
@@ -280,7 +280,7 @@ function Profile() {
                     >
                       Editar
                     </button>
-                    {/* <button 
+                    <button 
                       onClick={() => {
                         setIsMarkAttendanceModalOpen(true);
                         blockBodyScroll();
@@ -288,7 +288,7 @@ function Profile() {
                       className="bg-primary text-white p-2 rounded-lg my-3"
                     >
                       Scanear Presença 
-                    </button> */}
+                    </button>
                   </div>
                 }
               </Card>
