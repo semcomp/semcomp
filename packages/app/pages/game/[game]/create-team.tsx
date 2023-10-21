@@ -26,8 +26,7 @@ export default function GamePage({children}) {
     IOSocket(baseURL, {
       withCredentials: true,
       transports: ["websocket"],
-    })
-  );
+    }));
   const { token } = useAppContext();
 
   function handleCreateGroup(name: string) {

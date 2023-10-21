@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 
 import { Button, Dialog } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { toast } from "react-toastify";
+
+import IOSocket from "socket.io-client";
+import { baseURL } from "../../constants/api-url";
 
 import API from "../../api";
 import Spinner from "../spinner";
@@ -168,7 +172,6 @@ function Lobby({
 }: { gameConfig: GameConfig } & any) {
   const { user: me } = useAppContext();
   const router = useRouter();
-
   function canAddTeammates() {
     if (team.members.length >= gameConfig.getMaximumNumberOfMembersInGroup()) return false;
     return true;
@@ -184,68 +187,104 @@ function Lobby({
   }
 
   function renderTeammates() {
+    console.log("Render :",team)
     return team.members.map((mate) => (
       <Teammate gameConfig={gameConfig} setTeam={setTeam} name={mate.name} key={mate.id} thisIsMe={mate.id === me.id} />
     ));
   }
 
-  if (!team)
-    return (
-      <div>
-        Você ainda não está numa equipe. Crie uma equipe para jogar. Caso você queira entrar em um grupo já existente peça para o criador do grupo enviar o link do grupo para você.
-        <div className="flex w-full justify-center mt-4">
-          <Button
-            onClick={goToCreateTeam}
-            style={{
-              backgroundColor: "#045079",
-              color: "white",
-              margin: "0 8px",
-            }}
-            variant="contained"
-          >
-            Criar
-          </Button>
-          <Button
-            onClick={goToJoinTeam}
-            style={{
-              backgroundColor: "#045079",
-              color: "white",
-              margin: "0 8px",
-            }}
-            variant="contained"
-          >
-            Entrar
-          </Button>
-        </div>
-      </div>
-    );
+  const [socket] = useState(() =>
+    IOSocket(baseURL, {
+      withCredentials: true,
+      transports: ["websocket"],
+    }));
 
-  return (
-    <div>
-      Sua equipe:
-      <div style={{ height: 144 }} className={styles.teammatesContainer}>
-        {renderTeammates()}
-      </div>
-      <div>
-        {canAddTeammates() ? (
-          <div className="mb-8">
-            Envie este id para adicionar mais pessoas à sua equipe. (máximo de
-            até {gameConfig.getMaximumNumberOfMembersInGroup()} membros)
-            <CopyableLink text={createInviteLink()} />
-          </div>
-        ) : (
-          <div className="mb-8">
-            Sua equipe já atingiu o máximo de {gameConfig.getMaximumNumberOfMembersInGroup()} membros
-          </div>
-        )}
-      </div>
-      <Countdown
-        gameConfig={gameConfig}
-        team={team}
-        onSubmit={goToGame}
-      />
-    </div>
-  );
+    const { token } = useAppContext();
+
+
+
+    function createTeam(){
+        if (!team) {
+            // Criar o time quando não houver um
+            //Verificar se a pessoa já está em um
+            const name = me.email;
+            socket.emit(`${gameConfig.getEventPrefix()}-create-group`, { token, name });
+            socket.on(`${gameConfig.getEventPrefix()}-group-info`, (info)=> {
+                setTeam(info)
+            });
+        }
+        router.push(gameConfig.getRoutes()[GameRoutes.PLAY]);
+    }
+
+      return (
+        <div>
+            <div>{gameConfig.getDescription()}
+            <Countdown
+            gameConfig={gameConfig}
+            team={team}
+            onSubmit={createTeam}
+        />
+            </div>
+        
+        </div>
+      );
+//   if (!team)
+//     return (
+//       <div>
+//         {/* Você ainda não está numa equipe. Crie uma equipe para jogar. Caso você queira entrar em um grupo já existente peça para o criador do grupo enviar o link do grupo para você.
+//         <div className="flex w-full justify-center mt-4">
+//           <Button
+//             onClick={goToCreateTeam}
+//             style={{
+//               backgroundColor: "#045079",
+//               color: "white",
+//               margin: "0 8px",
+//             }}
+//             variant="contained"
+//           >
+//             Criar
+//           </Button>
+//           <Button
+//             onClick={goToJoinTeam}
+//             style={{
+//               backgroundColor: "#045079",
+//               color: "white",
+//               margin: "0 8px",
+//             }}
+//             variant="contained"
+//           >
+//             Entrar
+//           </Button>
+//         </div> */}
+//       </div>
+//     );
+
+//   return (
+//     <div>
+//       Sua equipe:
+//       <div style={{ height: 144 }} className={styles.teammatesContainer}>
+//         {renderTeammates()}
+//       </div>
+//       <div>
+//         {canAddTeammates() ? (
+//           <div className="mb-8">
+//             Envie este id para adicionar mais pessoas à sua equipe. (máximo de
+//             até {gameConfig.getMaximumNumberOfMembersInGroup()} membros)
+//             <CopyableLink text={createInviteLink()} />
+//           </div>
+//         ) : (
+//           <div className="mb-8">
+//             Sua equipe já atingiu o máximo de {gameConfig.getMaximumNumberOfMembersInGroup()} membros
+//           </div>
+//         )}
+//       </div>
+//       <Countdown
+//         gameConfig={gameConfig}
+//         team={team}
+//         onSubmit={goToGame}
+//       />
+//     </div>
+//   );
 }
 
 export default Lobby;
