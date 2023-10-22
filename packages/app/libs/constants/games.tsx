@@ -10,7 +10,7 @@ type Game = {
 }
 
 const RIDDLE_DESCRIPTION = <>
-      <h1>Riddle</h1>
+      <h1 style={{ fontSize: "40px", width: "100%", textAlign: "center", margin: "20px 0 20px 0" }}><b>Riddle</b></h1>
       <div>
         <p>
           Os Riddles da SEMCOMP marcam presença, mais uma vez, como um dos
@@ -27,20 +27,23 @@ const RIDDLE_DESCRIPTION = <>
           Sherlock Holmes tomar conta de você e desvende nossos desafios!
         </p>
         <br />
-        <p>O jogo começa dia 26/09 às 12h! Divirta-se =)</p>
+        <p>O jogo começa dia 23/10 às 9h! Divirta-se =)</p>
         <br />
-        <p>
+        <p style={{textAlign: "center"}}>
           <b>&gt;&gt;&gt; Como jogar</b>
         </p>
-        <p>
+        <p style={{textAlign: "center"}}>
           <b>Siga o seguinte algoritmo:</b>
         </p>
-        <ol style={{ listStyleType: "decimal", marginLeft: "2rem" }}>
-          <li>Analise a imagem e leia os textos</li>
-          <li>Coloque a senha</li>
-          <li>Perceba que a senha está errada</li>
-          <li>Volte para 1</li>
-        </ol>
+        <div style={{textAlign: "left", width: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>
+          <ol style={{ listStyleType: "decimal"}}>
+            <li>Analise a imagem e leia os textos</li>
+            <li>Coloque a senha</li>
+            <li>Perceba que a senha está errada</li>
+            <li>Volte para 1</li>
+          </ol>
+
+        </div>
         <br />
         <p>
           Você deve colocar a senha na caixa de texto abaixo do riddle. Após
@@ -53,10 +56,12 @@ const RIDDLE_DESCRIPTION = <>
           ASCII.
         </p>
         <br />
-        <p>
-          Subversivos. Salvadores da Semcomp. Sempre Solícitos.
-          <br /> - S.
-        </p>
+        <div>
+          <p>
+            Subversivos. Salvadores da Semcomp. Sempre Solícitos.
+            <br /> - S.
+          </p>
+        </div>
     </div>
 </>
 const HARD_TO_CLICK_DESCRIPTION = <>
@@ -142,9 +147,9 @@ export const RIDDLE: Game = {
   description: RIDDLE_DESCRIPTION,
   slug: 'riddle',
   eventPrefix: 'riddle',
-  startDate: new Date("2023-10-23 00:00"),
+  startDate: new Date("2023-10-23 09:00"),
   endDate: new Date("2023-10-27 17:00"),
-  numberOfQuestions: 2,
+  numberOfQuestions: 50,
   maximumNumberOfMembersInGroup: 2,
 }
 

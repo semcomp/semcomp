@@ -123,7 +123,7 @@ function Question({
           <img
             src={question.imgUrl}
             alt=""
-            className="max-w-full w-full h-full object-contain py-4"
+            className="max-w-full w-[500px] h-full object-contain py-4"
           />
         )}
         <div>{question.question}</div>

@@ -13,8 +13,7 @@ function End({gameConfig}) {
         <br />
         <br />
         <p>
-          Até mais, aguarde a cerimônia de encerramento para descobrir quais
-          foram as equipes vencedoras.
+          Até mais, aguarde a cerimônia de encerramento para descobrir quem foi o vencedor.
         </p>
       </div>
     </div>

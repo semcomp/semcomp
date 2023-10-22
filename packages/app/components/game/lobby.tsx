@@ -128,7 +128,7 @@ function Countdown({ team, gameConfig, onSubmit }: {gameConfig: GameConfig, team
   }, [targetMilliseconds]);
 
   if (team && team.completedQuestions.length === 80) {
-    return <div>Riddlethon já completo</div>;
+    return <div>Riddle já completo</div>;
   }
   
   return (
@@ -152,7 +152,7 @@ function Countdown({ team, gameConfig, onSubmit }: {gameConfig: GameConfig, team
           <Button
             variant="contained"
             onClick={onSubmit}
-            style={{ backgroundColor: "#045079", color: "white" }}
+            style={{ backgroundColor: "#171214", color: "white" }}
           >
             Jogar
           </Button>
@@ -217,8 +217,8 @@ function Lobby({
     }
 
       return (
-        <div>
-            <div>{gameConfig.getDescription()}
+        <div className="w-full flex justify-center items-center">
+            <div className="w-[1200px]">{gameConfig.getDescription()}
             <Countdown
             gameConfig={gameConfig}
             team={team}
