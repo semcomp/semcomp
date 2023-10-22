@@ -82,11 +82,11 @@ const HomeHeader = (): ReactElement => {
         </div>
         )}
       <div className="flex flex-col items-center h-[50px]d">
-          {/* <Link href="/signup" className="">
+          <Link href="/signup" className="">
             <button className="bg-primary text-white text-lg md:text-2xl m-2 p-2 md:p-5 rounded-2xl hover:bg-secondary hover:border-solid hover:border-2 hover:text-black mb-10">
               Inscreva-se
             </button>
-          </Link> */}
+          </Link>
       </div>
 
         {/* COUNTDOWN */}
