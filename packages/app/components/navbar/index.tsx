@@ -70,8 +70,8 @@ const Navbar = (props) => {
             <Navlink href={Routes.riddle}>Riddle</Navlink>
             {/* <Navlink href={Routes.riddlethon}>Riddlethon</Navlink> */}
             {/* <Navlink href={Routes.hardToClick}>Duro de Clicar</Navlink> */}
-            <Navlink onClick={playSound} href={Routes.profile}>Perfil</Navlink>
             <Navlink onClick={playSound} href={Routes.cts_contest}>CTS & Context</Navlink>
+            <Navlink onClick={playSound} href={Routes.profile}>Perfil</Navlink>
             <button onClick={logUserOut} className="nav">
               <a
                 className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-black rounded-lg hover:bg-hoverWhite duration-200"
