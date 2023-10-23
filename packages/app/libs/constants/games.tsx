@@ -55,13 +55,13 @@ const RIDDLE_DESCRIPTION = <>
           Lembrando que as senhas são todas em letras minúsculas e caracteres
           ASCII.
         </p>
-        <br />
+        {/* <br />
         <div>
           <p>
             Subversivos. Salvadores da Semcomp. Sempre Solícitos.
             <br /> - S.
           </p>
-        </div>
+        </div> */}
     </div>
 </>
 const HARD_TO_CLICK_DESCRIPTION = <>
