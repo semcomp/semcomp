@@ -31,8 +31,9 @@ function MarkAttendanceModal({
         await semcompApi.markAttendance(data.id, userId);
         toast.success("Presença cadastrada");
       } catch (e) {
-        toast.error("Erro ao cadastrar presença");
+        toast.error(e?.response?.data?.message[0]);
         console.error(e);
+        console.log(e.response.data.message);
       }
     }
     lastScannedUserId = userId;
@@ -48,15 +49,15 @@ function MarkAttendanceModal({
           videoId="video"
           scanDelay={500}
           onResult={(result: any, error) => {
-            console.log(result);
-            console.log(error);
+            // console.log(result);
+            // console.log(error);
             if (result) {
               handleSubmit(result?.text);
             }
 
-            if (error) {
-              console.info(error);
-            }
+            // if (error) {
+            //   console.info(error);
+            // }
 
             setTimeout(forceUpdate, 500);
           }}

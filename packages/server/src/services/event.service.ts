@@ -330,6 +330,14 @@ class EventService {
       return { message: "Presença salva com sucesso!" };
     }
 
+    if(event.type === EventTypes.MINICURSO){
+      const subscription = await subscriptionService.findOne({ userId: userId, eventId: eventId});
+      console.log(subscription);
+      if(!subscription){
+        throw new HttpError(400, ["Usuário não está inscrito nesse minicurso!"]);
+      }
+    }
+
     const attendance: Attendance = {
       userId: userId,
       eventId: eventId,
