@@ -33,6 +33,10 @@ function mapData(data: SemcompApiGameGroup[]): GameGroupData[] {
     minute: 'numeric',
   }
   for (const gameQuestion of data) {
+    
+    if(gameQuestion.completedQuestions.length >= 1)
+      gameQuestion.createdAt = gameQuestion.completedQuestions[0].createdAt;
+
     newData.push({
       ID: gameQuestion.id,
       Jogo: gameQuestion.game,
