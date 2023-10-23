@@ -13,6 +13,7 @@ import EditEventModal from "../components/events/EditEventModal";
 import DataPage from "../components/DataPage";
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
 import MarkAttendanceModal from "../components/events/MarkAttendanceModal";
+import DownloadSubscriptions from "../components/events/DownloadSubscriptions";
 
 type EventData = {
   // ID: string;
@@ -86,6 +87,15 @@ function Events() {
   const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] =
     useState(false);
 
+
+  const [isGuestUser, setIsGuestUser] = useState(true);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if(user.email.startsWith("admin"))
+      setIsGuestUser(false);
+  }, []);
+
   async function fetchData() {
     try {
       setIsLoading(true);
@@ -112,6 +122,7 @@ function Events() {
     }
   }
 
+
   async function handleRowClick(index: number) {
     setSelectedData(data.getEntities()[index]);
     setIsEditModalOpen(true);
@@ -124,6 +135,42 @@ function Events() {
   async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
     setSelectedIndexes(updatedSelectedIndexes);
   }
+
+  // function mapData(data: String[]): UserData[] {
+  //   const newData: UserData[] = [];
+  //   for (const user of data) {
+  //     let paymentStatus = "";
+  //     if (user.payment.status) {
+  //       console.log(user.payment.status);
+  //       paymentStatus = user.payment.status === PaymentStatus.APPROVED ? "Aprovado" : "Pendente";
+  //     }
+  
+  //     newData.push({
+  //       "ID": user.id,
+  //       "E-mail": user.email,
+  //       "Nome": user.name,
+  //       "Curso": user.course,
+  //       "Telegram": user.telegram,
+  //       "Casa": user.house.name,
+  //       "Status do pagamento": paymentStatus,
+  //       "Tamanho da camiseta": user.payment.tShirtSize,
+  //       "Opção de compra": user.payment.kitOption,
+  //       "Permite divulgação?": user.permission ? "Sim" : "Não",
+  //       "Criado em": new Date(user.createdAt).toLocaleString("pt-br", 
+  //       {
+  //         day: 'numeric',
+  //         month: 'numeric',
+  //         year: 'numeric',
+  //         hour: 'numeric',
+  //         minute: 'numeric',
+  //       }),
+  //     })
+  //   }
+  
+  //   return newData;
+  // }
+
+  
 
   useEffect(() => {
     fetchData();
@@ -147,12 +194,21 @@ function Events() {
     );
   }
 
+  function moreInfoContent(selectedData) {
+    return (
+      <>
+        <MarkAttendance></MarkAttendance>
+        {/* <DownloadSubscriptions eventId={selectedData?.id}></DownloadSubscriptions> */}
+      </>
+    );
+  }
+
   return (
     <>
       {isCreateModalOpen && (
         <CreateEventModal onRequestClose={() => setIsCreateModalOpen(false)} />
       )}
-      {isEditModalOpen && (
+      {isEditModalOpen && !isGuestUser && (
         <EditEventModal
           initialValue={selectedData}
           onRequestClose={() => {
@@ -174,13 +230,16 @@ function Events() {
           title="Eventos"
           isLoading={isLoading}
           buttons={
-            <button
-              className="bg-black text-white py-3 px-6"
-              type="button"
-              onClick={() => setIsCreateModalOpen(true)}
-            >
-              Criar
-            </button>
+            !isGuestUser && (
+              <button
+                className="bg-black text-white py-3 px-6"
+                type="button"
+                onClick={() => setIsCreateModalOpen(true)}
+              >
+                Criar
+              </button>
+
+            )
           }
           table={
             <EventsTable
@@ -188,13 +247,8 @@ function Events() {
               pagination={pagination}
               onRowClick={handleRowClick}
               onRowSelect={handleSelectedIndexesChange}
-              moreInfoContainer={
-              <>
-                
-                <MarkAttendance></MarkAttendance>
-              </>
-              }
               onMoreInfoClick={handleMoreInfoClick}
+              moreInfoContainer={moreInfoContent(selectedData)}
             />
           }
         ></DataPage>

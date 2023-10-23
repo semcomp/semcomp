@@ -266,10 +266,10 @@ export default class PaymentServiceImpl implements PaymentService {
     //     });
     //   }
     // }
-    await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
+    await QRCode.toFile(`./qr-code/${user.email} - ${user.name}.png`, user.id, {
       color: {
         dark: '#000000',
-        light: '#0000',
+        light: '#ffffff',
       },
       errorCorrectionLevel: 'H',
       type: "png",

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 import Drawer from '@mui/material/Drawer';
@@ -40,6 +40,15 @@ const AppBar = styled(MuiAppBar as any, {
 }));
 
 function Sidebar() {
+  
+  const [isGuestUser, setIsGuestUser] = useState(true);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if(user.email.startsWith("admin"))
+      setIsGuestUser(false);
+  }, []);
+
   const { logOut } = useAppContext();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -76,15 +85,15 @@ function Sidebar() {
         onClick={() => setIsOpen(false)}
         onKeyDown={() => setIsOpen(false)}
       >
-        <NavLink title="Usuários" href={Routes.users}></NavLink>
-        <NavLink title="Camisetas" href={Routes.tShirts}></NavLink>
+        { !isGuestUser && <NavLink title="Usuários" href={Routes.users}></NavLink> }
+        { !isGuestUser && <NavLink title="Camisetas" href={Routes.tShirts}></NavLink>}
         {/* <NavLink title="Administradores" href={Routes.adminUsers}></NavLink> */}
         {/* <NavLink title="Conquistas" href={Routes.achievements}></NavLink> */}
         <NavLink title="Eventos" href={Routes.events}></NavLink>
-        <NavLink title="Jogo - Perguntas" href={Routes.gameQuestions}></NavLink>
-        <NavLink title="Jogo - Grupos" href={Routes.gameGroups}></NavLink>
+        { !isGuestUser && <NavLink title="Jogo - Perguntas" href={Routes.gameQuestions}></NavLink>}
+        { !isGuestUser && <NavLink title="Jogo - Grupos" href={Routes.gameGroups}></NavLink>}
         {/* <NavLink title="Logs" href={Routes.logs}></NavLink> */}
-        <NavLink title="Casas" href={Routes.houses}></NavLink>
+        { !isGuestUser && <NavLink title="Casas" href={Routes.houses}></NavLink>}
         {/* <NavLink title="Enviar Email" href={Routes.broadcastEmail}></NavLink> */}
         <button className="w-full bg-black text-white text-center py-3" onClick={handleLogout}>
           Sair
