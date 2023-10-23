@@ -21,7 +21,7 @@ const MAX_MEMBERS_IN_GROUP = {
 };
 const MAX_MEMBERS = {
   [Game.HARD_TO_CLICK]: 60,
-  [Game.RIDDLE]: 30,
+  [Game.RIDDLE]: 700,
   [Game.RIDDLETHON]: 30,
 };
 
