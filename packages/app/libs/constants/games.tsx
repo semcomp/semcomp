@@ -149,7 +149,7 @@ export const RIDDLE: Game = {
   eventPrefix: 'riddle',
   startDate: new Date("2023-10-23 09:00"),
   endDate: new Date("2023-10-27 17:00"),
-  numberOfQuestions: 50,
+  numberOfQuestions: 51,
   maximumNumberOfMembersInGroup: 2,
 }
 
