@@ -9,6 +9,7 @@ const Routes = {
   sponsors: "/sponsors",
   profile: "/profile",
   live: "/live",
+  cts_contest: "/cts-contest",
 };
 
 export default Routes;
