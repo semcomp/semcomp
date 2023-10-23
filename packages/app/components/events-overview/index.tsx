@@ -8,7 +8,7 @@ function EventsOverview() {
 
   function transformEvents(data) {
     data = data.filter(
-      (event) => event.type !== "Concurso" && event.type !== "Game Night"
+      (event) => event.type !== "Concurso"  && event.type !== "Game Night" && event.type !== "Hackathon"
     );
 
     let allTypes = Object.create(null);

@@ -170,7 +170,7 @@ export default function Game({
               token={token}
               questionIndex={completedQuestions.length}
             />
-            : <p>Tempo Encerrado!</p>
+            : <p>Fora do tempo!</p>
           }
         </>
       </div>
