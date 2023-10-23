@@ -83,7 +83,7 @@ const Navbar = (props) => {
           </>
         ) : (
           <>
-            <Navlink onClick={playSound} href={Routes.signup}>Cadastrar</Navlink>
+            {/* <Navlink onClick={playSound} href={Routes.signup}>Cadastrar</Navlink> */}
             <Navlink onClick={playSound} href={Routes.login}>Entrar</Navlink>
           </>
         )}
