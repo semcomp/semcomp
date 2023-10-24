@@ -70,7 +70,7 @@ const Navbar = (props) => {
             <Navlink href={Routes.riddle}>Riddle</Navlink>
             {/* <Navlink href={Routes.riddlethon}>Riddlethon</Navlink> */}
             {/* <Navlink href={Routes.hardToClick}>Duro de Clicar</Navlink> */}
-            <Navlink onClick={playSound} href={Routes.cts_contest}>CTS & Context</Navlink>
+            <Navlink onClick={playSound} href={Routes.cts_contest}>CTS & Contest</Navlink>
             <Navlink onClick={playSound} href={Routes.profile}>Perfil</Navlink>
             <button onClick={logUserOut} className="nav">
               <a
