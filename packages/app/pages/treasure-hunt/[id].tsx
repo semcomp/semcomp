@@ -1,10 +1,10 @@
-import { Button } from "@mui/material";
-import Footer from "../components/Footer";
-import Navbar from "../components/navbar"; 
+
+import Footer from "../../components/Footer";
+import Navbar from "../../components/navbar"; 
 import { useRouter } from 'next/router';
 import { useEffect, useState } from "react";
-import API from "../api";
-import Status from "../libs/constants/status-treasure-hunt-enum";
+import API from "../../api";
+import Status from "../../libs/constants/status-treasure-hunt-enum";
 
 const TreasureHuntPage = () => {
     const router = useRouter();
@@ -21,18 +21,18 @@ const TreasureHuntPage = () => {
         setImageFetched(data);
     }
     
-    useEffect(() => {
-        console.log(window.location.pathname);
-        if (window.location.pathname != router.pathname) {
-          // router.query.lang is defined
-          fetchTreasureHuntData();
-        }
-      }, [router])
-    
     // useEffect(() => {
-    //     if(router.query.id){
+    //     console.log(window.location.pathname);
+    //     if (window.location.pathname != router.pathname) {
+    //       // router.query.lang is defined
     //     }
-    // }, [router.query]);
+    //   }, [router])
+    
+    useEffect(() => {
+        if(router.query.id){
+            fetchTreasureHuntData();
+        }
+    }, [router.query]);
 
     useEffect(() => {
         if(imageFetched){
