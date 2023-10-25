@@ -92,6 +92,7 @@ function Sidebar() {
         <NavLink title="Eventos" href={Routes.events}></NavLink>
         { !isGuestUser && <NavLink title="Jogo - Perguntas" href={Routes.gameQuestions}></NavLink>}
         { !isGuestUser && <NavLink title="Jogo - Grupos" href={Routes.gameGroups}></NavLink>}
+        { !isGuestUser && <NavLink title="Caça ao Tesouro" href={Routes.treasureHuntImages}></NavLink>}
         {/* <NavLink title="Logs" href={Routes.logs}></NavLink> */}
         { !isGuestUser && <NavLink title="Casas" href={Routes.houses}></NavLink>}
         {/* <NavLink title="Enviar Email" href={Routes.broadcastEmail}></NavLink> */}

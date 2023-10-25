@@ -11,6 +11,7 @@ import eventsRouter from "./event.router";
 import housesRouter from "./house.router";
 import emailRouter from "./email.router";
 import subscriptionRouter from "./subscription.router";
+import treasureHuntImageRouter from "./treasure-hunt-image.router";
 import pushNotificationRouter from "./push-notification.router";
 import TShirtRouter from "./t-shirt.router";
 import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
@@ -47,6 +48,7 @@ export default class AdminRouter {
     router.use("/push-notification", pushNotificationRouter);
     router.use("/t-shirts", tShirtRouter.create());
     router.use("/subscription", subscriptionRouter);
+    router.use("/treasure-hunt-images", treasureHuntImageRouter);
 
     return router;
   }

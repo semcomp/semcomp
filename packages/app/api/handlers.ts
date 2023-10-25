@@ -82,6 +82,9 @@ const Handlers = {
       });
     },
   },
+  treasureHunt : {
+    getImage: withNoErrorMessage((imageId: string) => API.get(`/treasure-hunt-images/${imageId}`))
+  }
 };
 
 export default Handlers;

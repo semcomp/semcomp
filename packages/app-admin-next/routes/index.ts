@@ -11,6 +11,7 @@ const Routes = {
   logs: '/logs',
   houses: '/casas',
   broadcastEmail: '/enviar-email',
+  treasureHuntImages: '/caca-tesouro-imagens',
 };
 
 export default Routes;

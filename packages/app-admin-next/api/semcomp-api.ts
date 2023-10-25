@@ -1,5 +1,24 @@
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
-import { SemcompApiCreateEventRequest, SemcompApiCreateHouseRequest, SemcompApiCreateGameQuestionRequest, SemcompApiEditEventRequest, SemcompApiEditGameQuestionRequest, SemcompApiGetEventsResponse, SemcompApiGetHousesResponse, SemcompApiGetGameQuestionsResponse, SemcompApiGetTShirtsResponse, SemcompApiGetUsersResponse, SemcompApiLoginResponse, SemcompApiPaginationRequest, SemcompApiGetGameGroupsResponse, SemcompApiUser } from "../models/SemcompApiModels";
+import { 
+  SemcompApiCreateEventRequest, 
+  SemcompApiCreateHouseRequest, 
+  SemcompApiCreateGameQuestionRequest, 
+  SemcompApiEditEventRequest, 
+  SemcompApiEditGameQuestionRequest, 
+  SemcompApiGetEventsResponse, 
+  SemcompApiGetHousesResponse, 
+  SemcompApiGetGameQuestionsResponse, 
+  SemcompApiGetTShirtsResponse, 
+  SemcompApiGetUsersResponse, 
+  SemcompApiLoginResponse, 
+  SemcompApiPaginationRequest,
+  SemcompApiGetGameGroupsResponse, 
+  SemcompApiUser, 
+  SemcompApiGetTreasureHuntImageResponse,
+  SemcompApiCreateTreasureHuntImageRequest,
+  SemcompApiEditTreasureHuntImageRequest 
+
+} from "../models/SemcompApiModels";
 import Http from "./http";
 
 class SemcompApi {
@@ -74,6 +93,10 @@ class SemcompApi {
     return this.http.get(`/admin/subscription/event/${eventId}`);
   }
 
+  public async getSubscriptionsUsers(eventId: string) : Promise<any> {
+    return this.http.get(`/admin/subscription/event/users/${eventId}`);
+  }
+
   public async getEvents(pagination: PaginationRequest): Promise<SemcompApiGetEventsResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
       pagination.getPage(),
@@ -126,6 +149,34 @@ class SemcompApi {
 
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
+
+  public async getTreasureHuntImages(pagination: PaginationRequest): Promise<SemcompApiGetTreasureHuntImageResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/treasure-hunt-images/", semcompApiPagination);
+
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  public async createTreasureHuntImage(data: SemcompApiCreateTreasureHuntImageRequest): Promise<any> {
+    return this.http.post("/admin/treasure-hunt-images", data);
+  }
+
+  public async editTreasureHuntImage(id: string, data: SemcompApiEditTreasureHuntImageRequest): Promise<any> {
+    return this.http.put(`/admin/treasure-hunt-images/${id}`, data);
+  }
+  
+  public async deleteTreasureHuntImage(id: string): Promise<any> {
+    return this.http.delete(`/admin/treasure-hunt-images/${id}`);
+  }
+
+  public async generateQRCodeTreasureHuntImage(id: string): Promise<any> {
+    return this.http.get(`/admin/treasure-hunt-images/qr-code/${id}`);
+  }
+
 }
 
 export default SemcompApi;

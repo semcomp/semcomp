@@ -1,6 +1,7 @@
 import { TShirtSize } from "../components/t-shirt/TShirtForm";
 import EventType from "../libs/constants/event-types-enum";
 import Game from "../libs/constants/game-enum";
+import Status from "../libs/constants/status-treasure-hunt-enum";
 import { PaginationResponse } from "./Pagination";
 
 enum KitOption {
@@ -180,3 +181,23 @@ export type SemcompApiGameGroup = {
 };
 
 export type SemcompApiGetGameGroupsResponse = PaginationResponse<SemcompApiGameGroup>;
+
+
+export type SemcompApiTreasureHuntImage = {
+  id: string;
+  place: string;
+  status: Status;
+  imgUrl: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type SemcompApiGetTreasureHuntImageResponse = PaginationResponse<SemcompApiTreasureHuntImage>;
+
+export type SemcompApiCreateTreasureHuntImageRequest = {
+  place: string;
+  status: Status;
+  imgUrl: string;
+};
+
+export type SemcompApiEditTreasureHuntImageRequest = SemcompApiCreateTreasureHuntImageRequest;

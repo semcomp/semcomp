@@ -19,6 +19,7 @@ import userServiceImpl from "../services/user.service";
 import UploadRouter from "./upload.router";
 import AuthRouter from "./auth.router";
 import AuthController from "../controllers/auth.controller";
+import treasureHuntImageRouter from "./treasure-hunt.router";
 
 const router = Router();
 
@@ -51,5 +52,6 @@ router.use("/events", eventsRouter);
 router.use("/users", userRouter);
 router.use("/houses", houseRouter);
 router.use("/push-notifications", pushNotificationRouter);
+router.use("/treasure-hunt-images", treasureHuntImageRouter);
 
 export default router;

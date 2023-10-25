@@ -10,6 +10,7 @@ const Routes = {
   profile: "/profile",
   live: "/live",
   cts_contest: "/cts-contest",
+  treasure_hunt: "/treasure-hunt",
 };
 
 export default Routes;
