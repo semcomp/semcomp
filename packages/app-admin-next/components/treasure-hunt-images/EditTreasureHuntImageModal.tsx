@@ -86,7 +86,7 @@ function EditTreasureHuntImageModal({ initialValue, onRequestClose }) {
         <QRCode
             className="hidden"
             id={data.id}
-            value={`http://semcomp.icmc.usp.br/treasure-hunt?id=${data.id}`}
+            value={`http://semcomp.icmc.usp.br/treasure-hunt/${data.id}`}
             size={290}
             level={"H"}
             includeMargin={true}
