@@ -42,11 +42,14 @@ const AppBar = styled(MuiAppBar as any, {
 function Sidebar() {
   
   const [isGuestUser, setIsGuestUser] = useState(true);
+  const [isGamenightUser, setIsGamenightUser] = useState(true);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if(user.email.startsWith("admin"))
       setIsGuestUser(false);
+    if(user.email.startsWith("gamenight"))
+      setIsGamenightUser(false);
   }, []);
 
   const { logOut } = useAppContext();
@@ -89,10 +92,10 @@ function Sidebar() {
         { !isGuestUser && <NavLink title="Camisetas" href={Routes.tShirts}></NavLink>}
         {/* <NavLink title="Administradores" href={Routes.adminUsers}></NavLink> */}
         {/* <NavLink title="Conquistas" href={Routes.achievements}></NavLink> */}
-        <NavLink title="Eventos" href={Routes.events}></NavLink>
+        { !isGamenightUser && <NavLink title="Eventos" href={Routes.events}></NavLink>}
         { !isGuestUser && <NavLink title="Jogo - Perguntas" href={Routes.gameQuestions}></NavLink>}
         { !isGuestUser && <NavLink title="Jogo - Grupos" href={Routes.gameGroups}></NavLink>}
-        { !isGuestUser && <NavLink title="Caça ao Tesouro" href={Routes.treasureHuntImages}></NavLink>}
+        { (!isGuestUser || isGamenightUser) && <NavLink title="Caça ao Tesouro" href={Routes.treasureHuntImages}></NavLink>}
         {/* <NavLink title="Logs" href={Routes.logs}></NavLink> */}
         { !isGuestUser && <NavLink title="Casas" href={Routes.houses}></NavLink>}
         {/* <NavLink title="Enviar Email" href={Routes.broadcastEmail}></NavLink> */}
