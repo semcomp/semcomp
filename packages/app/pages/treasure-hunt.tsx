@@ -21,11 +21,18 @@ const TreasureHuntPage = () => {
         setImageFetched(data);
     }
     
-    useEffect(() => {
-        if(router.query.id){
-            fetchTreasureHuntData();
-        }
-    }, [router.query]);
+    useEffect(()=>{
+        if(!router.isReady) return;
+    
+        // codes using router.query
+        fetchTreasureHuntData();
+    
+    }, [router.isReady]);
+
+    // useEffect(() => {
+    //     if(router.query.id){
+    //     }
+    // }, [router.query]);
 
     useEffect(() => {
         if(imageFetched){
