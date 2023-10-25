@@ -92,7 +92,7 @@ function Sidebar() {
         { !isGuestUser && <NavLink title="Camisetas" href={Routes.tShirts}></NavLink>}
         {/* <NavLink title="Administradores" href={Routes.adminUsers}></NavLink> */}
         {/* <NavLink title="Conquistas" href={Routes.achievements}></NavLink> */}
-        { !isGamenightUser && <NavLink title="Eventos" href={Routes.events}></NavLink>}
+        { <NavLink title="Eventos" href={Routes.events}></NavLink>}
         { !isGuestUser && <NavLink title="Jogo - Perguntas" href={Routes.gameQuestions}></NavLink>}
         { !isGuestUser && <NavLink title="Jogo - Grupos" href={Routes.gameGroups}></NavLink>}
         { (!isGuestUser || isGamenightUser) && <NavLink title="Caça ao Tesouro" href={Routes.treasureHuntImages}></NavLink>}
