@@ -49,7 +49,7 @@ function Sidebar() {
     if(user.email.startsWith("admin"))
       setIsGuestUser(false);
     if(user.email.startsWith("gamenight"))
-      setIsGamenightUser(false);
+      setIsGamenightUser(true);
   }, []);
 
   const { logOut } = useAppContext();
