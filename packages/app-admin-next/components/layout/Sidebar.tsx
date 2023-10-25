@@ -42,7 +42,7 @@ const AppBar = styled(MuiAppBar as any, {
 function Sidebar() {
   
   const [isGuestUser, setIsGuestUser] = useState(true);
-  const [isGamenightUser, setIsGamenightUser] = useState(true);
+  const [isGamenightUser, setIsGamenightUser] = useState(false);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
