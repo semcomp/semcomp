@@ -22,7 +22,8 @@ const TreasureHuntPage = () => {
     }
     
     useEffect(() => {
-        if (router.asPath !== router.route) {
+        console.log(window.location.pathname);
+        if (window.location.pathname != router.pathname) {
           // router.query.lang is defined
           fetchTreasureHuntData();
         }
