@@ -23,6 +23,15 @@ type GameGroupData = {
   "Data e hora da última questão": string;
 };
 
+function getMaxQuestion(completedQuestions) {
+  let max;
+  for(const question of completedQuestions){
+    if(question.index == completedQuestions.length){
+      return question;
+    }
+  }
+  return;
+}
 
 function mapData(data: SemcompApiGameGroup[]): GameGroupData[] {
   const newData: GameGroupData[] = [];
@@ -33,9 +42,12 @@ function mapData(data: SemcompApiGameGroup[]): GameGroupData[] {
     minute: 'numeric',
   }
   for (const gameQuestion of data) {
-    
-    if(gameQuestion.completedQuestions.length >= 1)
-      gameQuestion.createdAt = gameQuestion.completedQuestions[0].createdAt;
+    // console.log(" || \n");
+    if(gameQuestion.completedQuestions.length >= 1){
+      
+      gameQuestion.createdAt = getMaxQuestion(gameQuestion.completedQuestions)?.createdAt;
+    }
+     
 
     newData.push({
       ID: gameQuestion.id,
@@ -103,7 +115,6 @@ function GameGroups() {
     } catch (error) {
       console.error(error);
     } finally {
-      setIsLoading(false);
     }
   }
 
@@ -118,6 +129,12 @@ function GameGroups() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if(data){
+      setIsLoading(false);
+    }
+  }, [data]);
 
   return (
     <>
