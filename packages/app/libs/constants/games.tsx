@@ -148,7 +148,7 @@ export const RIDDLE: Game = {
   slug: 'riddle',
   eventPrefix: 'riddle',
   startDate: new Date("2023-10-23 09:00"),
-  endDate: new Date("2023-10-27 17:00"),
+  endDate: new Date("2023-10-27 12:00"),
   numberOfQuestions: 77,
   maximumNumberOfMembersInGroup: 2,
 }
