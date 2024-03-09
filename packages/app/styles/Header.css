@@ -1,5 +1,6 @@
 #header {
-  background-image: url("../assets/26-imgs/img_geradora_fundo2.PNG");
+  /* background-image: url("../assets/26-imgs/img_geradora_fundo2.PNG"); */
+  background-color: #173A72;
   background-repeat: no-repeat;
   background-position:bottom;
   background-size: cover;
@@ -9,7 +10,7 @@
 }
 #subtitle{
   user-select: none;
-  font-family: ZingRust;
+  font-family: Poppins;
 }
 #header-content {
   /* Estava None, deixei flex para manter o texto mesmo na tela fullscreen. */
@@ -20,12 +21,12 @@
 /* Mobiles */
 @media (max-width: 748px) {
   #title{
-    font-size: 50px;
+    font-size: 100px;
     width: 100%;
   }
   #subtitle{
     font-size: 15px;
-    font-family: ZingRust;
+    font-family: Poppins;
     text-align: center;
   }
 
@@ -34,12 +35,12 @@
 /* Ipads */
 @media (min-width: 748px) and (max-width: 1350px) {
   #title{
-    font-size: 90px;
+    font-size: 120px;
     width: 100%;
   }
   #subtitle{
     font-size: 25px;
-    font-family: ZingRust;
+    font-family: Poppins;
     text-align: center;
   }
 
@@ -47,11 +48,11 @@
 
 @media (min-width: 1350px) and (max-width: 1920px) {
   #title{
-    font-size: 120px;
+    font-size: 200px;
   }
   #subtitle{
     font-size: 30px;
-    font-family: ZingRust;
+    font-family: Poppins;
   }
 
   #header-content {
@@ -64,7 +65,7 @@
 
 @media (min-width: 1920px) {
   #title{
-    font-size: 160px;
+    font-size: 250px;
     height: 210px;
   }
   #subtitle{

@@ -35,8 +35,8 @@ function Home() {
         <HomeHeader />
         {/*<Stats />*/}
         <About />
-        <Schedule />
-        <Sponsors />
+        {/* <Schedule /> */}
+        {/* <Sponsors /> */}
         <FAQ />
         <Footer />
       </div>

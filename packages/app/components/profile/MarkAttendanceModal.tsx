@@ -41,7 +41,6 @@ function MarkAttendanceModal({
           scanDelay={500}
           onResult={(result: any, error) => {
             if (result) {
-              console.log("AAAAAAAAAAAAAaa");
               handleSubmit(result?.text);
             }
 

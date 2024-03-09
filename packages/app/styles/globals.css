@@ -112,8 +112,9 @@ body::-webkit-scrollbar-track {
 }
  
 body::-webkit-scrollbar-thumb {
-  background-image: url("../assets/26-imgs/img_geradora_fundo.PNG");
-  border-radius: 10px;
+  /* background-image: url("../assets/26-imgs/img_geradora_fundo.PNG"); */
+  background-color: #002776;
+  /* border-radius: 10px; */
 }
 
 html,
@@ -132,7 +133,7 @@ a {
 }
 
 button{
-  font-family: ZingRust;
+  font-family: Poppins;
   font-weight: 300;
 }
 

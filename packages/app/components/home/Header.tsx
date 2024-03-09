@@ -46,36 +46,36 @@ const HomeHeader = (): ReactElement => {
       { !isMobile ? (<div className="z-30 flex flex-wrap items-center justify-center h-[1000px] ">
           <div
             id="header-content"
-            className="w-[58%] flex flex-col items-center px-2 text-center justify-between text-right mr-[50px]"
+            className="flex flex-col items-center text-center justify-between pb-32"
           >
-            <h1 id="title" className="w-full text-right">
-              SEMCOMP 26
+            <h1 id="title" className="w-full text-center text-white">
+              SEMCOMP
             </h1>
-            <h1 id="subtitle" className="text-sm md:text-3xl text-black w-full text-right mr-[150px]">
+            <h1 id="subtitle" className="text-sm md:text-3xl text-white w-full text-center">
               A maior semana acadêmica de computação do Brasil!
             </h1>
           </div>
 
-          <Record
+          {/* <Record
           className="relative w-[30%] flex flex-col items-left"
           isPhone={isPhone}
-          isMobile={isMobile}/>
+          isMobile={isMobile}/> */}
 
         </div>) : (
           <div className="flex flex-wrap items-center justify-center">
-            <Record 
+            {/* <Record 
               className="flex items-center justify-center flex-auto w-full"
               isPhone={isPhone}
               isMobile={isMobile}
-            />
+            /> */}
           <div
             id="header-content"
-            className="flex flex-col items-center px-2 text-center justify-between flex-auto"
+            className="flex flex-col items-center px-2 text-center text-white justify-between flex-auto pb-16"
           >
             <h1 id="title">
-              SEMCOMP 26
+              SEMCOMP
             </h1>
-            <h1 id="subtitle" className="text-sm md:text-3xl text-black w-full text-left">
+            <h1 id="subtitle" className="text-sm md:text-3xl text-white w-full text-left">
               A maior semana acadêmica de computação do Brasil!
             </h1>
           </div>

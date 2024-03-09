@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 
 import Navlink from "./nav-link"; // a link reference 'a' with the appearance of a button
 import Routes from "../../routes";
-import SemcompLogo from "../../assets/logo.svg";
+import SemcompLogo from "../../assets/logo.webp";
 import { useAppContext } from "../../libs/contextLib";
 import NavLink from "./nav-link";
 import Image from "next/image";
@@ -33,9 +33,9 @@ const Navbar = (props) => {
   // Caso contrário, só mantém o bg-primary
 
   let navStyles =
-    "text-center px-4 py-2 w-full font-primary md:flex md:justify-between md:items-center ";
+    "text-center px-4 py-2 w-full font-primary md:flex md:justify-between md:items-center";
 
-  props.bg ? (navStyles += props.pg) : (navStyles += "bg-no-repeat bg-cover bg-left bg-[url('../assets/26-imgs/img_geradora_fundo2.PNG')]");
+  props.bg ? (navStyles += props.pg) : (navStyles += "bg-no-repeat bg-cover bg-left");
 
   return (
     <nav className={navStyles}>
@@ -63,18 +63,18 @@ const Navbar = (props) => {
         </Navlink> */}
         <Navlink onClick={playSound} href={Routes.home}>Início</Navlink>
         <Navlink onClick={playSound} href={Routes.home + "#about"}>Sobre nós</Navlink>
-        <Navlink onClick={playSound} href={Routes.sponsors}>Patrocinadores</Navlink>
-        <Navlink onClick={playSound} href={Routes.home + "#schedule"}>Cronograma</Navlink>
+        {/* <Navlink onClick={playSound} href={Routes.sponsors}>Patrocinadores</Navlink> */}
+        {/* <Navlink onClick={playSound} href={Routes.home + "#schedule"}>Cronograma</Navlink> */}
         {isUserLoggedIn ? (
           <>
-            <Navlink href={Routes.riddle}>Riddle</Navlink>
+            {/* <Navlink href={Routes.riddle}>Riddle</Navlink> */}
             {/* <Navlink href={Routes.riddlethon}>Riddlethon</Navlink> */}
             {/* <Navlink href={Routes.hardToClick}>Duro de Clicar</Navlink> */}
-            <Navlink onClick={playSound} href={Routes.cts_contest}>CTS & Contest</Navlink>
-            <Navlink onClick={playSound} href={Routes.profile}>Perfil</Navlink>
+            {/* <Navlink onClick={playSound} href={Routes.cts_contest}>CTS & Contest</Navlink> */}
+            {/* <Navlink onClick={playSound} href={Routes.profile}>Perfil</Navlink> */}
             <button onClick={logUserOut} className="nav">
               <a
-                className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-black rounded-lg hover:bg-hoverWhite duration-200"
+                className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg text-white rounded-lg hover:bg-hoverWhite duration-200"
                 href="/"
               >
                 Sair
@@ -84,7 +84,7 @@ const Navbar = (props) => {
         ) : (
           <>
             {/* <Navlink onClick={playSound} href={Routes.signup}>Cadastrar</Navlink> */}
-            <Navlink onClick={playSound} href={Routes.login}>Entrar</Navlink>
+            {/* <Navlink onClick={playSound} href={Routes.login}>Entrar</Navlink> */}
           </>
         )}
       </div>

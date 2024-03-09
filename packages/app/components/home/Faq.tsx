@@ -76,11 +76,11 @@ const FAQ = () => {
       <section className="flex flex-col items-center text-secondary bg-secondary text-center p-16">
         <h1
           id="titulo"
-          className="text-4xl font-bold font-qatar text-primary"
+          className="text-4xl font-bold text-primary"
         >
           FAQ
         </h1>
-        <div className="text-base pt-8 max-w-4xl">
+        <div className="text-base max-w-4xl">
           <Question
             question="Como faço para participar da Semcomp?"
             answer="Para participar, basta se inscrever aqui mesmo em nosso site! O evento será híbrido, com transmissão das palestras pelo Youtube, então é preciso comparecer à USP de São Carlos durante o período anunciado para os demais eventos. Para mais notícias, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos)"

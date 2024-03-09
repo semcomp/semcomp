@@ -13,9 +13,9 @@ module.exports = {
       xl: "1440px",
     },
     colors: {
-      primary: "#171214", 
-      secondary: "#AC85F4",
-      tertiary: "#623da6",
+      primary: "#173A72", 
+      secondary: "#FFFFF",
+      tertiary: "#E83C50",
       blue: "#002776",
       orange: "#EC4E20",
       green: "#009541",
@@ -39,8 +39,8 @@ module.exports = {
       pink2_26: "#EF99CD",
     },
     fontFamily: {
-      primary: ["Belerofonte"],
-      secondary: ["ZingRust"],
+      primary: ["Staatliches"],
+      secondary: ["Poppins"],
       tertiary: ["Poppins"]
     },
     extend: {},
