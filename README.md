@@ -12,4 +12,4 @@
 - Inicie o projeto com `npm run dev`, o app estará rodando na porta na porta 3000.
 - Vá para o endereço `http://localhost:3000`.
 
-teste
+testeaaa
