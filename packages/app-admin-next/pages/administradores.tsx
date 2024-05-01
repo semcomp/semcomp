@@ -34,9 +34,10 @@ function AdminUsersTable({
     newData.push({
       "ID": admin.id,
       "Email": admin.email,
-      "Permissões": admin.adminRole.map(role => AdminRoles[role]).join(', '),
+      "Permissões": admin.adminRole.map(role => AdminRoles[role.toUpperCase()]).join(', '),
       "Criado em": new Date(admin.createdAt).toISOString(),
       "Atualizado em": new Date(admin.updatedAt).toISOString(),
+
     })
   }
 
@@ -77,7 +78,7 @@ function AdminUsers() {
 
     const nameRoles = admins[index].adminRole;
     const roles = {};
-    for(let key of Object.keys(AdminRoles)) {
+    for(let key of Object.keys(nameRoles)) {
       if(nameRoles.includes(key)) {
         roles[key] = true;
       } else {
@@ -124,7 +125,7 @@ function AdminUsers() {
     {
       !isLoading && (
         <DataPage
-          title="Administradores"
+          title="Usuários Admins"
           isLoading={isLoading}
           table={<AdminUsersTable
             data={data}

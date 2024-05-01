@@ -15,6 +15,7 @@ import {
   SemcompApiGetGameGroupsResponse, 
   SemcompApiUser, 
   SemcompApiGetAdminUserResponse,
+  SemcompApiGetAdminUserResponse,
   SemcompApiGetTreasureHuntImageResponse,
   SemcompApiCreateTreasureHuntImageRequest,
   SemcompApiEditTreasureHuntImageRequest 
@@ -63,13 +64,14 @@ class SemcompApi {
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
-  public async getAdminRole(id: String): Promise<string[]> {
+  public async getAdminRole(id: String): Promise<any> {
     const response = await this.http.get("/admin/admin-users/role/" + id);
 
     return response;
   }
 
   public async editAdminRole(id: string, data: any): Promise<any> {
+    console.log('data no semcomp-api: ', data);
     return this.http.put(`/admin/admin-users/${id}`, data);
   }
 
