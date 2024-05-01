@@ -54,7 +54,7 @@ class AdminAuthService {
       !foundAdminUser.password ||
       !bcrypt.compareSync(password, foundAdminUser.password)
     ) {
-      throw new HttpError(401, []);
+      throw new HttpError(401, ['Usuário admin não encontrado']);
     }
 
     return foundAdminUser;

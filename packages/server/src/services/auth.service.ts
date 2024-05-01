@@ -34,8 +34,6 @@ class AuthService {
   }
 
   public async signup(user: User, disabilities: Disability[]): Promise<User> {
-    throw new HttpError(503, ["Inscrições encerradas!"]);
-
     const foundUser = await userService.findOne({ email: user.email });
     if (foundUser) {
       throw new HttpError(401, []);
@@ -84,7 +82,7 @@ class AuthService {
       !foundUser.password ||
       !bcrypt.compareSync(password, foundUser.password)
     ) {
-      throw new HttpError(401, []);
+      throw new HttpError(401, ['Usuário não encontrado']);
     }
 
     return foundUser;

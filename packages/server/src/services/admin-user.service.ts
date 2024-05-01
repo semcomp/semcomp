@@ -3,19 +3,33 @@ import { Model } from "mongoose";
 
 import AdminUser, { AdminUserModel } from "../models/admin-user";
 import IdServiceImpl from "./id-impl.service";
+import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 
 const idService = new IdServiceImpl();
 
 class AdminUserService {
-  public async find(filters?: Partial<AdminUser>): Promise<AdminUser[]> {
-    const adminUsers = await AdminUserModel.find(filters);
+  public async find({
+    filters,
+    pagination,
+  } : {
+    filters?: Partial<AdminUser>,
+    pagination?: PaginationRequest
+  }):  Promise<PaginationResponse<AdminUser>>
+  {
+    const adminUsers = await AdminUserModel
+      .find(filters)
+      .skip(pagination.getSkip())
+      .limit(pagination.getItems());;
 
+    const count = await this.count(filters);
+      
     const entities: AdminUser[] = [];
     for (const adminUser of adminUsers) {
       entities.push(this.mapEntity(adminUser));
     }
 
-    return entities;
+    const paginatedResponse = new PaginationResponse(entities, count);
+    return paginatedResponse;
   }
 
   public async findById(id: string): Promise<AdminUser> {
@@ -49,7 +63,7 @@ class AdminUserService {
   public async update(adminUser: AdminUser): Promise<AdminUser> {
     adminUser.updatedAt = Date.now();
     const entity = await AdminUserModel.findOneAndUpdate({ id: adminUser.id }, adminUser);
-
+    console.log('ALTERADO', entity);
     return this.findById(entity.id);
   }
 

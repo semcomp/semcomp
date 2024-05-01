@@ -14,6 +14,7 @@ import {
   SemcompApiPaginationRequest,
   SemcompApiGetGameGroupsResponse, 
   SemcompApiUser, 
+  SemcompApiGetAdminUserResponse,
   SemcompApiGetTreasureHuntImageResponse,
   SemcompApiCreateTreasureHuntImageRequest,
   SemcompApiEditTreasureHuntImageRequest 
@@ -45,7 +46,28 @@ class SemcompApi {
 
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
- 
+
+  public async getAdminUsers(pagination: PaginationRequest): Promise<SemcompApiGetAdminUserResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/admin-users", semcompApiPagination);
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  public async getAdminRole(id: String): Promise<any> {
+    const response = await this.http.get("/admin/admin-users/role/" + id);
+
+    return response;
+  }
+
+  public async editAdminRole(id: string, data: any): Promise<any> {
+    console.log('data no semcomp-api: ', data);
+    return this.http.put(`/admin/admin-users/${id}`, data);
+  }
+
   public async getHouses(pagination: PaginationRequest): Promise<SemcompApiGetHousesResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
       pagination.getPage(),
@@ -53,7 +75,6 @@ class SemcompApi {
     );
 
     const response = await this.http.get("/admin/houses", semcompApiPagination);
-
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
@@ -62,7 +83,6 @@ class SemcompApi {
   }
 
   public async editHouse(houseId, data: SemcompApiCreateHouseRequest): Promise<any> {
-    console.log(houseId, data);
     return this.http.put("/admin/houses/" + houseId, data);
   }
 
