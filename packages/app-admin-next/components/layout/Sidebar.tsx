@@ -117,6 +117,9 @@ function Sidebar() {
           onKeyDown={() => setIsOpen(false)}
           >
             <p className='max-w-xl text-center'>Suas permissões não estão definidas, peça para que o administrador adicione-as.</p>
+            <button className="w-full bg-black text-white text-center py-3" onClick={handleLogout}>
+              Sair
+            </button>
         </Box>)
       }
     </Drawer>

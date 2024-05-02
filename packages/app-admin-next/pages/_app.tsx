@@ -27,7 +27,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   async function fetchAdminRole() {
     try {
       const role = await semcompApi.getAdminRole(user.id);
-      console.log("roles do user", role);
       setAdminRole(role);  
     } catch (error) {
       console.error(error);
@@ -49,12 +48,17 @@ function MyApp({ Component, pageProps }: AppProps) {
       toast.error("Token expirado!");
     }
 
+    function callbackMessageError(message): void {
+      toast.error(message);
+    }
+
     const token = localStorage.getItem("token");
     const http = new Http(
       baseURL,
       token,
       callbackOnTokenRefresh,
       callbackOnBadToken,
+      callbackMessageError
     );
 
     setSemcompApi(new SemcompApi(http));

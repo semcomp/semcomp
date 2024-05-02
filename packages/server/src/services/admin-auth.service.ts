@@ -32,16 +32,23 @@ class AdminAuthService {
   public async signup(adminUser: AdminUser): Promise<AdminUser> {
     const foundAdminAdminUser = await adminUserService.findOne({ email: adminUser.email });
     if (foundAdminAdminUser) {
-      throw new HttpError(401, ['Usuário existente.']);
+      throw new HttpError(409, ['Usuário existente.']);
     }
 
     const createdAdminUser = await adminUserService.create(adminUser);
     
     await emailService.send(
       createdAdminUser.email,
-      "Bem vindo a Semcomp 2023!",
+      "Bem vindo a Semcomp 2024!",
       `Você se cadastrou no nosso backoffice e já está tudo certo!!!`,
-      `<div><h1>Voc&ecirc;&nbsp;se&nbsp;cadastrou&nbsp;no&nbsp;nosso&nbsp;app&nbsp;e&nbsp;j&aacute;&nbsp;est&aacute;&nbsp;tudo&nbsp;certo!!!</h1></div>`
+      `<div style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px', lineHeight: '1.6' }}>
+      <p>Você se cadastrou no nosso backoffice e já está tudo certo!!!</p>
+      <div style={{ marginTop: '20px' }}>
+        <h3 style={{ margin: '0', fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
+          Você se cadastrou no nosso app e já está tudo certo!!!
+        </h3>
+      </div>
+    </div>`
     );
 
     return createdAdminUser;
@@ -54,7 +61,7 @@ class AdminAuthService {
       !foundAdminUser.password ||
       !bcrypt.compareSync(password, foundAdminUser.password)
     ) {
-      throw new HttpError(401, ['Usuário admin não encontrado']);
+      throw new HttpError(401, ['Credenciais inválidas.']);
     }
 
     return foundAdminUser;
@@ -63,7 +70,7 @@ class AdminAuthService {
   public async forgotPassword(email: string): Promise<AdminUser> {
     const adminUser = await adminUserService.findOne({ email });
     if (!adminUser || !adminUser.password) {
-      throw new HttpError(401, []);
+      throw new HttpError(401, ['Credenciais inválidas.']);
     }
 
     const code = crypto.randomBytes(6).toString("hex");
@@ -88,7 +95,7 @@ class AdminAuthService {
       !adminUser.password ||
       code !== adminUser.resetPasswordCode
     ) {
-      throw new HttpError(401, []);
+      throw new HttpError(401,  ['Credenciais inválidas.']);
     }
 
     adminUser.password = bcrypt.hashSync(adminUser.password, bcrypt.genSaltSync(10));

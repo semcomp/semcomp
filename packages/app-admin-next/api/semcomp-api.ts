@@ -35,6 +35,12 @@ class SemcompApi {
       { email, password },
     );
   }
+  public async signup(email: string, password: string): Promise<SemcompApiLoginResponse> {
+    return this.http.post(
+      "/admin/auth/signup",
+      { email, password },
+    );
+  }
 
   public async getUsers(pagination: PaginationRequest): Promise<SemcompApiGetUsersResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
@@ -57,14 +63,13 @@ class SemcompApi {
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
-  public async getAdminRole(id: String): Promise<any> {
+  public async getAdminRole(id: String): Promise<string[]> {
     const response = await this.http.get("/admin/admin-users/role/" + id);
 
     return response;
   }
 
   public async editAdminRole(id: string, data: any): Promise<any> {
-    console.log('data no semcomp-api: ', data);
     return this.http.put(`/admin/admin-users/${id}`, data);
   }
 

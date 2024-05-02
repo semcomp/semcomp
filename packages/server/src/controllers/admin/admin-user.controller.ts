@@ -18,7 +18,6 @@ class AdminUserController {
       );
 
       const adminUsers = await adminUserService.find({pagination});
-      console.log('service: ', adminUsers);
       return res.status(200).json(adminUsers);
     } catch (error) {
       return handleError(error, next);
@@ -31,7 +30,7 @@ class AdminUserController {
 
       const foundUser = await adminUserService.findOne({ email: req.body.email });
       if (foundUser) {
-        throw new HttpError(401, []);
+        throw new HttpError(409, ['Email já cadastrado.']);
       }
 
       const createdUser = await adminUserService.create(req.body);

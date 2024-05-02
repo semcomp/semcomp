@@ -22,13 +22,10 @@ function EditAdminRoleModal({
 
   async function handleSubmit() {
     const roles = Object.keys(data.adminRole).filter((key) => data.adminRole[key] === true);
-    console.log(roles);
     const newData = {...data, adminRole: roles};
-    console.log(newData);
     
     try {
       setIsLoading(true);
-      console.log(data); 
       const response = await semcompApi.editAdminRole(newData.id, newData);
     } catch (error) {
       console.error(error);

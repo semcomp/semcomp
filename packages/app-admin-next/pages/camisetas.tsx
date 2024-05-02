@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import DataTable from '../components/reusable/DataTable';
-import RequireRootAuth from '../libs/RequireAuth';
+import RequireAuth from '../libs/RequireAuth';
 import SemcompApi from '../api/semcomp-api';
 import { useAppContext } from '../libs/contextLib';
 import { SemcompApiTShirt } from '../models/SemcompApiModels';
@@ -31,7 +31,6 @@ function TShirtsTable({
   onRowSelect: (selectedIndexes: number[]) => void,
 }) {
   const newData: TShirtData[] = [];
-  console.log('data: ', data);
   for (const tShirt of data.getEntities()) {
     newData.push({
       "ID": tShirt.id,
@@ -149,4 +148,4 @@ function TShirts() {
   </>);
 }
 
-export default RequireRootAuth(TShirts);
+export default RequireAuth(TShirts);

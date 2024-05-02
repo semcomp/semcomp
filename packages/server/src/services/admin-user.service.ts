@@ -63,7 +63,6 @@ class AdminUserService {
   public async update(adminUser: AdminUser): Promise<AdminUser> {
     adminUser.updatedAt = Date.now();
     const entity = await AdminUserModel.findOneAndUpdate({ id: adminUser.id }, adminUser);
-    console.log('ALTERADO', entity);
     return this.findById(entity.id);
   }
 
