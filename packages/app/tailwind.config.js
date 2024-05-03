@@ -39,9 +39,9 @@ module.exports = {
       pink2_26: "#EF99CD",
     },
     fontFamily: {
-      primary: ["Staatliches"],
-      secondary: ["Poppins"],
-      tertiary: ["Poppins"]
+      primary: ["UPHEAVAL"], //Staatliches
+      secondary: ["VideoType"], //Poppins
+      tertiary: ["VideoType"]
     },
     extend: {},
   },
