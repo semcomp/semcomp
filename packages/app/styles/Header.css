@@ -10,7 +10,7 @@
 }
 #subtitle{
   user-select: none;
-  font-family: Poppins;
+  font-family: UPHEAVAL;
 }
 #header-content {
   /* Estava None, deixei flex para manter o texto mesmo na tela fullscreen. */
@@ -26,7 +26,7 @@
   }
   #subtitle{
     font-size: 15px;
-    font-family: Poppins;
+    font-family: UPHEAVAL;
     text-align: center;
   }
 
@@ -40,7 +40,7 @@
   }
   #subtitle{
     font-size: 25px;
-    font-family: Poppins;
+    font-family: UPHEAVAL;
     text-align: center;
   }
 
@@ -52,7 +52,7 @@
   }
   #subtitle{
     font-size: 30px;
-    font-family: Poppins;
+    font-family: UPHEAVAL;
   }
 
   #header-content {

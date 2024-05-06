@@ -2,7 +2,7 @@
 
 @media (min-width: 769px) and (max-width: 1960px) {
   #titulo {
-    font-family: Poppins;
+    font-family: UPHEAVAL;
     
     width: 80%;
     border-radius: 200px;
@@ -11,7 +11,7 @@
   }
 
   #sponsors {
-    font-family: ZingRust;
+    font-family: VideoType;
     
     /* letter-spacing: 0.1em; */
     /* color:#ffffff; */
@@ -28,5 +28,5 @@
 
 
 #sponsors {
-  font-family: ZingRust;
+  font-family: VideoType;
 }
