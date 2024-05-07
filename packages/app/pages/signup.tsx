@@ -144,15 +144,16 @@ function SignupPage() {
       <Navbar />
       <main className="flex flex-col md:flex-row justify-center items-center flex-1">
         <Card className="flex flex-col items-center p-9 w-full max-w-lg m-3">
-          {/* <h1 className="text-xl">Inscrições Encerradas! </h1>
-          <p>Caso você tenha uma conta, clique
-          <Link href="/login">
-            <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
-              aqui
-            </a>
-          </Link>
-          </p> */}
+         {/* <h1 className="text-xl">Inscrições Encerradas! </h1>
+         <p>Caso você tenha uma conta, clique
+        <Link href="/login">
+          <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
+              aqui
+          </a>
+        </Link>
+        </p> */}
         
+         <h1 className="text-xl">Cadastrar</h1>
          <h1 className="text-xl">Cadastrar</h1>
           <div className="w-full max-w-xs">
             <Stepper
@@ -162,7 +163,7 @@ function SignupPage() {
             />
           </div>
 
-          Renders the correct form according to the current step
+          {/* Renders the correct form according to the current step */}
           {stepComponent}
         </Card> 
         <div id="infos-semcomp">

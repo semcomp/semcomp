@@ -1,6 +1,4 @@
 #header {
-  /* background-image: url("../assets/26-imgs/img_geradora_fundo2.PNG"); */
-  background-color: #173A72;
   background-repeat: no-repeat;
   background-position:bottom;
   background-size: cover;
@@ -10,7 +8,7 @@
 }
 #subtitle{
   user-select: none;
-  font-family: UPHEAVAL;
+  font-family: VideoType;
 }
 #header-content {
   /* Estava None, deixei flex para manter o texto mesmo na tela fullscreen. */
@@ -21,12 +19,12 @@
 /* Mobiles */
 @media (max-width: 748px) {
   #title{
-    font-size: 100px;
+    font-size: 85px;
     width: 100%;
   }
   #subtitle{
-    font-size: 15px;
-    font-family: UPHEAVAL;
+    font-size: 10px;
+    font-family: VideoType;
     text-align: center;
   }
 
@@ -40,7 +38,7 @@
   }
   #subtitle{
     font-size: 25px;
-    font-family: UPHEAVAL;
+    font-family: VideoType;
     text-align: center;
   }
 
@@ -52,7 +50,7 @@
   }
   #subtitle{
     font-size: 30px;
-    font-family: UPHEAVAL;
+    font-family: VideoType;
   }
 
   #header-content {
@@ -66,13 +64,10 @@
 @media (min-width: 1920px) {
   #title{
     font-size: 250px;
-    height: 210px;
   }
   #subtitle{
     font-size: 40px;
-  }
-  #header {
-    background-color: #4AD2F8;
+    font-family: VideoType;
   }
 }
 

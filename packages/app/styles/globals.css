@@ -141,10 +141,6 @@ a {
 }
 
 button{
-  font-family: Poppins;
+  font-family: VideoType;
   font-weight: 300;
-}
-
-button.nav{
-  font-family: Poppins;
 }
