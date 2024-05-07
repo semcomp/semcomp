@@ -31,7 +31,7 @@ rather place this everywhere in case someone adds a target="_blank" later.
 const Footer = () => {
   return (
     <>
-      <footer className="items-center justify-around bg-primary text-white p-8 lg:flex">
+      <footer className="items-center justify-around text-white p-8 lg:flex font-secondary">
         <section className="text-center py-4">
           <p>Entre em contato conosco</p>
           <div>

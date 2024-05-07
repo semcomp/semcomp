@@ -37,56 +37,43 @@ const HomeHeader = (): ReactElement => {
   return (
     <header
       id="header"
-      className="h-screen flex flex-col justify-between font-primary text-black"
+      className="h-screen flex flex-col font-primary text-black"
     >
       <div className="w-full z-40">
         <NavBar bg={" "} />
       </div>
 
-      { !isMobile ? (<div className="z-30 flex flex-wrap items-center justify-center h-[1000px] ">
+      { !isMobile ? (<div className="z-30 flex flex-wrap items-center justify-center">
           <div
             id="header-content"
-            className="flex flex-col items-center text-center justify-between pb-32"
+            className="flex flex-col items-center text-center mt-[9%] mb-20"
           >
-            <h1 id="title" className="w-full text-center text-white">
-              SEMCOMP
+            <h1 id="title" className="w-full text-center leading-[200px]">
+              SEMCOMP 27
             </h1>
-            <h1 id="subtitle" className="text-sm md:text-3xl text-white w-full text-center">
+            <h1 id="subtitle" className="text-sm md:text-3xl w-full text-center">
               A maior semana acadêmica de computação do Brasil!
             </h1>
           </div>
 
-          {/* <Record
-          className="relative w-[30%] flex flex-col items-left"
-          isPhone={isPhone}
-          isMobile={isMobile}/> */}
-
         </div>) : (
-          <div className="flex flex-wrap items-center justify-center">
-            {/* <Record 
-              className="flex items-center justify-center flex-auto w-full"
-              isPhone={isPhone}
-              isMobile={isMobile}
-            /> */}
+          <div className="flex flex-wrap items-center justify-center mt-[50%] mb-20">
           <div
             id="header-content"
-            className="flex flex-col items-center px-2 text-center text-white justify-between flex-auto pb-16"
+            className="flex flex-col items-center px-2 text-center justify-between flex-auto"
           >
-            <h1 id="title">
-              SEMCOMP
-            </h1>
-            <h1 id="subtitle" className="text-sm md:text-3xl text-white w-full text-left">
-              A maior semana acadêmica de computação do Brasil!
+            <h1 id="title" className="leading-[50px]">
+              SEMCOMP <br></br> 27
             </h1>
           </div>
         </div>
         )}
-      <div className="flex flex-col items-center h-[50px]d">
-          {/* <Link href="/signup" className="">
-            <button className="bg-primary text-white text-lg md:text-2xl m-2 p-2 md:p-5 rounded-2xl hover:bg-secondary hover:border-solid hover:border-2 hover:text-black mb-10">
+      <div className="flex flex-col items-center">
+          <Link href="/signup" >
+            <button className="bg-primary text-white text-lg md:text-2xl p-4 md:p-5 rounded-2xl hover:bg-secondary hover:border-solid hover:border-2 hover:text-black">
               Inscreva-se
             </button>
-          </Link> */}
+          </Link>
       </div>
 
         {/* COUNTDOWN */}

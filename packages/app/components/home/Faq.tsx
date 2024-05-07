@@ -44,11 +44,11 @@ function Question({ question, answer }) {
       </button>
       <div
         ref={answerRef}
-        className="text-black transition-all overflow-auto text-left "
+        className="text-black transition-all overflow-auto text-left font-secondary font-light"
       >
         <div className="p-4">
           <p>
-            {/* Veja https://pastebin.com/XN5HjgBC */}
+            {/* Linkify: Veja https://pastebin.com/XN5HjgBC */}
             <Linkify
               componentDecorator={(decoratedHref, decoratedText, key) => (
                 <a
@@ -73,10 +73,10 @@ function Question({ question, answer }) {
 const FAQ = () => {
   return (
     <>
-      <section className="flex flex-col items-center text-secondary bg-secondary text-center p-16">
+      <section className="flex flex-col items-center text-secondary text-center my-32 p-16">
         <h1
           id="titulo"
-          className="text-4xl font-bold text-primary"
+          className="text-4xl font-bold text-white"
         >
           FAQ
         </h1>
