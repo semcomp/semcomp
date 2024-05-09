@@ -47,16 +47,7 @@ function findRole(adminRole: Array<String>, page: String) {
   return false;
 }
 
-function findRole(adminRole: Array<String>, page: String) {
-  if(adminRole){
-    return adminRole.find((s:String) => s === page);
-  }
-
-  return false;
-}
-
 function Sidebar() {
-  const { adminRole } = useAppContext();
   const { adminRole } = useAppContext();
   const { logOut } = useAppContext();
 
