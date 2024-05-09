@@ -45,8 +45,9 @@ const Navbar = (props) => {
             alt="Semcomp logo"
             src={SemcompLogo.src}
             layout="intrinsic"
-            height={70}
-            width={70}
+            className="flex justify-center items-center"
+            height={80}
+            width={80}
           />
         </div>
       </NavLink>
@@ -60,7 +61,7 @@ const Navbar = (props) => {
         >
           Comprar camiseta
         </Navlink> */}
-        <Navlink href={Routes.home}>Início</Navlink>
+        {/* <Navlink href={Routes.home}>Início</Navlink> */}
         <Navlink href={Routes.home + "#about"}>Sobre nós</Navlink>
         {/* <Navlink href={Routes.sponsors}>Patrocinadores</Navlink> */}
         <Navlink href={Routes.home + "#schedule"}>Cronograma</Navlink>

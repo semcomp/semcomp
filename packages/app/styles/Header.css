@@ -6,6 +6,45 @@
 #title{
   user-select: none;
 }
+#beta{
+  /* -webkit-text-stroke-width: 0.1px;
+  -webkit-text-stroke-color: yellow; */
+  text-shadow:
+      2px  2px 0 yellow,
+     -2px -2px 0 yellow,  
+      2px -2px 0 yellow,
+     -2px  2px 0 yellow,
+      2px  2px 0 yellow;
+      animation: pulse_scale 2s infinite;
+      rotate: 350deg;
+}
+
+@keyframes pulse_scale {
+  0% {
+      transform: scale(1);
+  }
+  50% {
+      transform: scale(1.1);
+  }
+  100% {
+      transform: scale(1);
+  }
+}
+
+#inscreva:hover{
+  animation: bounce2 1s infinite;
+}
+
+@keyframes bounce2 {
+  70% { transform:translateY(0%); }
+  80% { transform:translateY(-15%); }
+  90% { transform:translateY(0%); }
+  95% { transform:translateY(-7%); }
+  97% { transform:translateY(0%); }
+  99% { transform:translateY(-3%); }
+  100% { transform:translateY(0); }
+}
+
 #subtitle{
   user-select: none;
   font-family: VideoType;
@@ -19,8 +58,9 @@
 /* Mobiles */
 @media (max-width: 748px) {
   #title{
-    font-size: 85px;
+    font-size: 80px;
     width: 100%;
+    line-height: 1.6;
   }
   #subtitle{
     font-size: 10px;
@@ -46,7 +86,7 @@
 
 @media (min-width: 1350px) and (max-width: 1920px) {
   #title{
-    font-size: 200px;
+    font-size: 170px;
   }
   #subtitle{
     font-size: 30px;
@@ -63,7 +103,7 @@
 
 @media (min-width: 1920px) {
   #title{
-    font-size: 250px;
+    font-size: 200px;
   }
   #subtitle{
     font-size: 40px;

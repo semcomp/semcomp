@@ -5,10 +5,10 @@ function AboutBeta() {
         id="about"
         className="flex flex-col items-center text-center p-16"
       >
-        <h1 id="titulo" className="text-4xl font-bold text-white">
+        <h1 id="titulo" className="text-5xl text-white">
           Sobre a Semcomp
         </h1>
-        <div className="text-xl pt-8 max-w-4xl text-white">
+        <div className="text-2xl pt-8 max-w-4xl text-white">
           <p id="aboutText" className="text-white font-secondary">
             A <strong>Semcomp</strong> é a{" "}
             <strong>Semana Acadêmica de Computação</strong>, realizada pelos

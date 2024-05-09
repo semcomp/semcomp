@@ -13,9 +13,9 @@ module.exports = {
       xl: "1440px",
     },
     colors: {
-      primary: "#173A72", 
-      secondary: "#FFFFF",
-      tertiary: "#E83C50",
+      primary: "#2E1B5B", 
+      secondary: "#F5CE00",
+      tertiary: "#642712",
       blue: "#002776",
       orange: "#EC4E20",
       green: "#009541",
@@ -26,7 +26,8 @@ module.exports = {
       grayLight: "#f0f0f0",
       white: "#fafafa",
       hoverWhite: "rgba(255, 255, 255, 0.3)",
-      darkblue: "#2E1B5B"
+      darkblue: "#2E1B5B",
+      pink: "#FF3184"
     },
     fontFamily: {
       primary: ["UPHEAVAL"], //Staatliches
