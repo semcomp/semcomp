@@ -154,7 +154,6 @@ function SignupPage() {
         </p> */}
         
          <h1 className="text-xl">Cadastrar</h1>
-         <h1 className="text-xl">Cadastrar</h1>
           <div className="w-full max-w-xs">
             <Stepper
               numberOfSteps={2}
