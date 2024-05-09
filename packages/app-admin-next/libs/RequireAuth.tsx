@@ -10,11 +10,8 @@ import { SemcompApiAdminUser } from '../models/SemcompApiModels';
 
 const RequireAuth = (WrappedComponent) => {
   return (props) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { user } = useAppContext();
-    const { adminRole } = useAppContext();
-    const nameComp = WrappedComponent.name.toUpperCase();
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const { user, semcompApi }: { user: SemcompApiAdminUser, semcompApi: SemcompApi } = useAppContext();
+    const [rolesLoaded, setRolesLoaded] = useState(false); 
     const router = useRouter();
     const nameComp = WrappedComponent.name.toUpperCase();
 
@@ -39,12 +36,7 @@ const RequireAuth = (WrappedComponent) => {
         toast.error("Sua sessão expirou. Por favor, faça login novamente");
         router.push(Routes.login);
         return null;
-      } else if (nameComp !== "HOME" && !!adminRole && !adminRole.find((role) => role === nameComp)){
-        toast.error("Você não possui permissão para acessar a essa página.");
-        router.push(Routes.home);
-        return null;
       }
-
 
       return <WrappedComponent {...props} />;
     }
