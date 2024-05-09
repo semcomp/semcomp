@@ -76,7 +76,7 @@ const FAQ = () => {
       <section className="flex flex-col items-center text-secondary text-center my-32 p-16">
         <h1
           id="titulo"
-          className="text-4xl font-bold text-white"
+          className="text-5xl text-white"
         >
           FAQ
         </h1>

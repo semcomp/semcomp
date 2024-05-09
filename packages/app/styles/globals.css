@@ -112,7 +112,7 @@ html,
 }
 
 body::-webkit-scrollbar {
-  width: 0.7em;
+  width: 0em;
 }
  
 body::-webkit-scrollbar-track {
@@ -121,7 +121,7 @@ body::-webkit-scrollbar-track {
  
 body::-webkit-scrollbar-thumb {
   /* background-image: url("../assets/26-imgs/img_geradora_fundo.PNG"); */
-  background-color: #002776;
+  background-color: #2E1B5B;
   /* border-radius: 10px; */
 }
 

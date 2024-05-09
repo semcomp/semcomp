@@ -12,8 +12,7 @@
 
   #sponsors {
     font-family: VideoType;
-    
-    /* letter-spacing: 0.1em; */
+    letter-spacing: .2rem;
     /* color:#ffffff; */
     /* color:primary; */
     /* text-shadow: -0.06em 0.08em 0 #000000cc; */
@@ -29,4 +28,5 @@
 
 #sponsors {
   font-family: VideoType;
+  letter-spacing: .2rem;
 }

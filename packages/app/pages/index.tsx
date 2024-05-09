@@ -21,7 +21,6 @@ function Home() {
     if (!user || !token) {
       setUser(null);
       setToken(null);
-      // background-image: url("../assets/27-imgs/background.PNG");
     }
 
     if (window.location.pathname != router.pathname) {
@@ -30,11 +29,11 @@ function Home() {
   }, []);
 
   return (
-    <main className="home bg-[url('../assets/27-imgs/background.PNG')] bg-cover bg-no-repeat">
+    <main className="home bg-[url('../assets/27-imgs/background.png')] bg-cover bg-no-repeat">
       <div>
         {/* <LiveNow /> */}
         <HomeHeader />
-        {/*<Stats />*/}
+        {/* <Stats /> */}
         <About />
         <Schedule />
         {/* <Sponsors /> */}
