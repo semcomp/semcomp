@@ -6,7 +6,7 @@ import RequireAuth from "../libs/RequireAuth";
 /** Tailwind styles. */
 const styles = {
   root: 'h-full w-full flex',
-  main: 'flex flex-col justify-center items-center w-full h-full p-4',
+  main: 'flex flex-col justify-center items-center w-full h-full p-4 mt-14',
   title: 'text-4xl pb-4 text-center',
   paragraph: 'max-w-xl text-center',
 };

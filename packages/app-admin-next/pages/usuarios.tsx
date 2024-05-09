@@ -90,16 +90,12 @@ function countKitOption(kitOption: KitOption, data: SemcompApiUser[]) : number {
     }
   }
 
-  console.log(count);
-
   return count;
 }
 
 
 function getInfoData(data: SemcompApiUser[]) : InfoData[] {
   const infoData: InfoData[] = [];
-
-  console.log(data);
 
   // Total of subs 
   infoData.push({ 

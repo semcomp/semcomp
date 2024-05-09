@@ -22,8 +22,8 @@ const style = {
   link: 'text-blue-500',
 };
 
-function Login() {
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
+function Cadastro() {
+  const [isLoading, setIsLoading] = useState(false);
   const {
     setUser, semcompApi
   }: {
@@ -32,33 +32,35 @@ function Login() {
 
   const emailRef: any = useRef();
   const passwordRef: any = useRef();
+  const passwordCheckRef: any = useRef();
 
   async function submit(event) {
     event.preventDefault();
 
     const email = emailRef.current.value.trim().toLowerCase();
     const password = passwordRef.current.value;
+    const passwordCheck = passwordCheckRef.current.value;
 
     if (!email) return toast.error('Você deve fornecer um e-mail');
     if (!password) return toast.error('Você deve fornecer uma senha');
-    if (password.length < 6) return toast.error('Sua senha deve ter no mínimo 6 caracteres');
+    if (passwordCheck !== password) return toast.error('As senhas devem ser iguais');
 
     try {
-      setIsLoggingIn(true);
-      const response = await semcompApi.login(email, password);
+      setIsLoading(true);
+      const response = await semcompApi.signup(email, password);
       localStorage.setItem("user", JSON.stringify(response));
       setUser(response);
     } catch (e) {
       console.error(e);
     } finally {
-      setIsLoggingIn(false);
+      setIsLoading(false);
     }
   }
 
   return (
     <main className={style.main}>
       <div className={style.card}>
-        <h1 className={style.title}>Login</h1>
+        <h1 className={style.title}>Cadastro</h1>
         <form className={style.form} onSubmit={submit}>
           <input
             className={style.input}
@@ -74,21 +76,28 @@ function Login() {
             placeholder='Senha'
             autoComplete='current-password'
           />
+          <input
+            className={style.input}
+            ref={passwordCheckRef}
+            type='password'
+            placeholder='Confirmar senha'
+            autoComplete='current-password'
+          />
           <LoadingButton
-            isLoading={isLoggingIn}
+            isLoading={isLoading}
             className={style.button}
             type='submit'
           >
-            LOGIN
+            CADASTRAR
           </LoadingButton>
         </form>
         <hr className={style.hr} />
         <p className={style.createAccountLink}>
-          Ainda não tem conta? Crie uma <Link href={Routes.signup}><a className={style.link}>aqui</a></Link>.
+          Já possui uma conta? Faça login <Link href={Routes.login}><a className={style.link}>aqui</a></Link>.
         </p>
       </div>
     </main>
   );
 }
 
-export default RequireNoAuth(Login);
+export default RequireNoAuth(Cadastro);
