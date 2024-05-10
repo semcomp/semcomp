@@ -35,7 +35,7 @@ function Question({ question, answer }) {
   }
 
   return (
-    <div className="bg-white text-grayDark">
+    <div className="bg-white text-grayDark p-[20]">
       <button
         className="text-left w-full p-4 shadow"
         onClick={handleQuestionClick}
@@ -73,11 +73,8 @@ function Question({ question, answer }) {
 const FAQ = () => {
   return (
     <>
-      <section className="flex flex-col items-center text-secondary text-center my-32 p-16">
-        <h1
-          id="titulo"
-          className="text-5xl text-white"
-        >
+      <section className="flex flex-col items-center text-secondary text-center">
+        <h1 id="titulo" className="text-5xl text-white">
           FAQ
         </h1>
         <div className="text-base max-w-4xl">

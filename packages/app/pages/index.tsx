@@ -1,11 +1,9 @@
 import { useEffect } from "react";
-
 import About from "../components/home/About";
 import Footer from "../components/Footer";
 import HomeHeader from "../components/home/Header";
 import Schedule from "../components/home/Schedule";
 import FAQ from "../components/home/Faq";
-// import LiveNow from "../components/home/live-now";
 import Sponsors from "../components/home/Sponsors";
 import Stats from "../components/home/Stats";
 import { useAppContext } from "../libs/contextLib";
@@ -24,23 +22,35 @@ function Home() {
     }
 
     if (window.location.pathname != router.pathname) {
-      router.push(`${window.location.pathname}`)
+      router.push(`${window.location.pathname}`);
     }
   }, []);
 
   return (
-    <main className="home bg-[url('../assets/27-imgs/background.png')] bg-cover bg-no-repeat">
+    <main className="home">
       <div>
-        {/* <LiveNow /> */}
-        <HomeHeader />
-        {/* <Stats /> */}
-        <About />
-        <Schedule />
-        {/* <Sponsors /> */}
-        <FAQ />
-        <Footer />
+        <section className="bg-[url('../assets/27-imgs/bgheadercontinue.png')] bg-repeat h-[857px]">
+          <section className="bg-[url('../assets/27-imgs/leftbgheader.png')] bg-no-repeat h-[857px]">
+            <div className="relative">
+              {" "}
+              {/* Alterado de 'fixed inset-0 overflow-hidden' para 'relative' */}
+              <section className="absolute right-[10px] top-0 h-[857px] w-[650px] bg-[url('../assets/27-imgs/rightbgheader.png')] bg-no-repeat bg-cover"></section>
+              <div className="relative h-[857px]">
+                <HomeHeader />
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section className="bg-[url('../assets/27-imgs/terrabg.png')] bg-repeat ">
+          <About />
+          <Schedule />
+          <FAQ />
+          <Footer />
+        </section>
       </div>
     </main>
   );
 }
+
 export default Home;
