@@ -42,7 +42,7 @@ function Home() {
           </section>
         </section>
 
-        <section className="bg-[url('../assets/27-imgs/terrabg.png')] bg-repeat ">
+        <section className="bg-[url('../assets/27-imgs/terrabg.png')] bg-repeat">
           <About />
           <Schedule />
           <FAQ />

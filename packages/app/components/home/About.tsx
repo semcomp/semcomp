@@ -3,7 +3,7 @@ function AboutBeta() {
     <>
       <section
         id="about"
-        className="flex flex-col items-center text-center p-16"
+        className="flex flex-col items-center text-center pt-[150px]"
       >
         <h1 id="titulo" className="text-5xl text-white">
           Sobre a Semcomp
@@ -18,7 +18,7 @@ function AboutBeta() {
             Matemáticas e de Computação (ICMC) da USP de São Carlos.
           </p>
           <br />
-          <p> 
+          <p>
             {/* A sua 26ª edição{" "}
             <strong>ocorrerá entre os dias 21 e 27 de Outubro de 2023</strong>{" "} */}
             {/* de forma presencial. */}
