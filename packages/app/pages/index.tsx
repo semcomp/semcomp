@@ -41,7 +41,6 @@ function Home() {
         </section>
 
         <section className="bg-[url('../assets/27-imgs/terrabg.png')] bg-repeat">
-          <section className="absolute right-[10px] top-0 h-[857px] w-[650px] bg-[url('../assets/27-imgs/rightbgheader.png')] bg-no-repeat bg-cover"></section>
           <About />
           <Schedule />
           <FAQ />
