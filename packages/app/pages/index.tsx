@@ -27,13 +27,11 @@ function Home() {
   }, []);
 
   return (
-    <main className="home">
+    <main className="home  bg-black min-h-screen">
       <div>
         <section className="bg-[url('../assets/27-imgs/bgheadercontinue.png')] bg-repeat h-[857px]">
           <section className="bg-[url('../assets/27-imgs/leftbgheader.png')] bg-no-repeat h-[857px]">
             <div className="relative">
-              {" "}
-              {/* Alterado de 'fixed inset-0 overflow-hidden' para 'relative' */}
               <section className="absolute right-[10px] top-0 h-[857px] w-[650px] bg-[url('../assets/27-imgs/rightbgheader.png')] bg-no-repeat bg-cover"></section>
               <div className="relative h-[857px]">
                 <HomeHeader />
@@ -43,10 +41,15 @@ function Home() {
         </section>
 
         <section className="bg-[url('../assets/27-imgs/terrabg.png')] bg-repeat">
+          <section className="absolute right-[10px] top-0 h-[857px] w-[650px] bg-[url('../assets/27-imgs/rightbgheader.png')] bg-no-repeat bg-cover"></section>
           <About />
           <Schedule />
           <FAQ />
-          <Footer />
+          <br />
+          <br />
+          <section className="bg-black">
+            <Footer />
+          </section>
         </section>
       </div>
     </main>
