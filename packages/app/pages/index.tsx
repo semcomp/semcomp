@@ -29,7 +29,7 @@ function Home() {
   return (
     <main className="home  bg-black min-h-screen">
       <div>
-        <section className="bg-[url('../assets/27-imgs/littebgheader.png')] xl:bg-[url('../assets/27-imgs/bgheadercontinue.png')] bg-no-repeat h-[857px]">
+        <section className="bg-[url('../assets/27-imgs/littebgheader.png')] xl:bg-[url('../assets/27-imgs/bgheadercontinue.png')] bg-repeat h-[857px]">
           <section>
             <div className="relative">
               <section
@@ -52,7 +52,7 @@ function Home() {
           </section>
         </section>
 
-        <section className="bg-[url('../assets/27-imgs/terrabg.png')] bg-repeat">
+        <section className="bg-[url('../assets/27-imgs/litteterrabg.png')] xl:bg-[url('../assets/27-imgs/terrabg.png')] bg-repeat">
           <About />
           <Schedule />
           <FAQ />
