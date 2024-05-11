@@ -29,23 +29,23 @@ function Home() {
   return (
     <main className="home  bg-black min-h-screen">
       <div>
-        <section className="bg-[url('../assets/27-imgs/littebgClouds.png')] xl:bg-[url('../assets/27-imgs/bgClouds.png')] bg-repeat h-[857px]">
+        <section className="bg-[url('../assets/27-imgs/littebgClouds.png')] md:bg-[url('../assets/27-imgs/mediumbgClouds.png')] xl:bg-[url('../assets/27-imgs/bgClouds.png')] bg-repeat h-[840px]">
           <section>
             <div className="relative">
               <section
                 className="
               bg-[url('../assets/27-imgs/litteICMCPlate.png')] xl:bg-[url('../assets/27-imgs/ICMCPlate.png')]    bg-no-repeat  
-              absolute left-[0px] top-0 h-[857px] w-[450px] 
+              absolute left-[0px] top-0 h-[840px] w-[450px] 
               "
               ></section>
 
               <section
                 className="
               bg-[url('../assets/27-imgs/litteChair.png')] md:bg-[url('../assets/27-imgs/mediumChair.png')] xl:bg-[url('../assets/27-imgs/chair.png')]   bg-no-repeat 
-              absolute right-[10px] top-0 h-[857px] w-[590px] 
+              absolute right-[10px] top-0 h-[840px] w-[590px] 
               "
               ></section>
-              <div className="relative h-[857px]">
+              <div className="relative h-[850px]">
                 <HomeHeader />
               </div>
             </div>
