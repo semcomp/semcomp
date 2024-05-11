@@ -29,14 +29,22 @@ function Home() {
   return (
     <main className="home  bg-black min-h-screen">
       <div>
-        <section className="bg-[url('../assets/27-imgs/bgheadercontinue.png')] bg-repeat h-[857px]">
+        <section className="bg-[url('../assets/27-imgs/littebgheader.png')] xl:bg-[url('../assets/27-imgs/bgheadercontinue.png')] bg-no-repeat h-[857px]">
           <section>
             <div className="relative">
-              <section className="hidden lg:block absolute left-[0px] top-0 h-[857px] w-[450px] bg-[url('../assets/27-imgs/leftbgheader.png')] bg-no-repeat bg-cover"></section>
-              <section className="hidden lg:block absolute right-[10px] top-0 h-[857px] w-[590px] bg-[url('../assets/27-imgs/rightbgheader.png')] bg-no-repeat bg-cover"></section>
+              <section
+                className="
+              bg-[url('../assets/27-imgs/placaICMC.png')] xl:bg-[url('../assets/27-imgs/leftbgheader.png')] bg-no-repeat 
+              absolute left-[0px] top-0 h-[857px] w-[450px] 
+              "
+              ></section>
 
-              <section className="lg:hidden absolute left-0 top-0 h-[857px] w-[450px] bg-[url('../assets/27-imgs/placaICMC.png')] bg-no-repeat bg-cover"></section>
-
+              <section
+                className="
+              bg-[url('../assets/27-imgs/planta.png')] xl:bg-[url('../assets/27-imgs/rightbgheader.png')] bg-no-repeat 
+              absolute right-[10px] top-0 h-[857px] w-[590px] 
+              "
+              ></section>
               <div className="relative h-[857px]">
                 <HomeHeader />
               </div>
