@@ -53,13 +53,15 @@ function Home() {
         </section>
 
         <section className="bg-[url('../assets/27-imgs/littebgGround.png')] xl:bg-[url('../assets/27-imgs/bgGround.png')] bg-repeat">
-          <About />
-          <Schedule />
-          <FAQ />
-          <br />
-          <br />
-          <section className="bg-black">
-            <Footer />
+          <section className="bg-[url('../assets/27-imgs/littebgGround.png')] xl:bg-[url('../assets/27-imgs/bgFossils.png')] bg-no-repeat">
+            <About />
+            <Schedule />
+            <FAQ />
+            <br />
+            <br />
+            <section className="pt-[20px] bg-black/40">
+              <Footer />
+            </section>
           </section>
         </section>
       </div>
