@@ -53,8 +53,8 @@ function Home() {
         </section>
 
         <section className="bg-[url('../assets/27-imgs/littebgGround.png')] xl:bg-[url('../assets/27-imgs/bgGround.png')] bg-repeat">
-          <section className="bg-[url('../assets/27-imgs/littebgGround.png')] xl:bg-[url('../assets/27-imgs/bgFossils.png')] bg-no-repeat">
-            <section className="bg-[url('../assets/27-imgs/littebgGround.png')] xl:bg-[url('../assets/27-imgs/bgRock.png')] bg-no-repeat bg-right">
+          <section className="md:bg-[url('../assets/27-imgs/mediumbgFossils.png')] xl:bg-[url('../assets/27-imgs/bgFossils.png')] bg-no-repeat">
+            <section className="md:bg-[url('../assets/27-imgs/mediumbgRock.png')] xl:bg-[url('../assets/27-imgs/bgRock.png')] bg-no-repeat bg-right">
               <About />
               <Schedule />
               <FAQ />
