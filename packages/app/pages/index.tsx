@@ -29,19 +29,19 @@ function Home() {
   return (
     <main className="home  bg-black min-h-screen">
       <div>
-        <section className="bg-[url('../assets/27-imgs/littebgheader.png')] xl:bg-[url('../assets/27-imgs/bgheadercontinue.png')] bg-repeat h-[857px]">
+        <section className="bg-[url('../assets/27-imgs/littebgClouds.png')] xl:bg-[url('../assets/27-imgs/bgClouds.png')] bg-repeat h-[857px]">
           <section>
             <div className="relative">
               <section
                 className="
-              bg-[url('../assets/27-imgs/placaICMC.png')] xl:bg-[url('../assets/27-imgs/leftbgheader.png')] bg-no-repeat 
+              bg-[url('../assets/27-imgs/litteICMCPlate.png')] xl:bg-[url('../assets/27-imgs/ICMCPlate.png')]    bg-no-repeat  
               absolute left-[0px] top-0 h-[857px] w-[450px] 
               "
               ></section>
 
               <section
                 className="
-              bg-[url('../assets/27-imgs/planta.png')] xl:bg-[url('../assets/27-imgs/rightbgheader.png')] bg-no-repeat 
+              bg-[url('../assets/27-imgs/litteChair.png')] md:bg-[url('../assets/27-imgs/mediumChair.png')] xl:bg-[url('../assets/27-imgs/chair.png')]   bg-no-repeat 
               absolute right-[10px] top-0 h-[857px] w-[590px] 
               "
               ></section>
@@ -52,7 +52,7 @@ function Home() {
           </section>
         </section>
 
-        <section className="bg-[url('../assets/27-imgs/litteterrabg.png')] xl:bg-[url('../assets/27-imgs/terrabg.png')] bg-repeat">
+        <section className="bg-[url('../assets/27-imgs/littebgGround.png')] xl:bg-[url('../assets/27-imgs/bgGround.png')] bg-repeat">
           <About />
           <Schedule />
           <FAQ />
