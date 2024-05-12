@@ -15,7 +15,8 @@ const HomeHeader = (): ReactElement => {
 
   const updateImageDimensionsAndMargins = () => {
     const screenWidth = window.innerWidth;
-    let tempImageWidth, tempImageHeight, tempNoAbsoluteMarginTop, tempBetaMarginTop;
+    const screenHeight = window.innerHeight;
+    let tempImageWidth: number, tempImageHeight: number, tempNoAbsoluteMarginTop: number, tempBetaMarginTop: number;
 
     // para ajustar a altura dos elementos na pagina ajuste o valor de tempNoAbsoluteMarginTop
     if (screenWidth >= 1440) {
@@ -45,6 +46,14 @@ const HomeHeader = (): ReactElement => {
       tempNoAbsoluteMarginTop = 280;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 330;
     }
+
+    if(screenHeight < 884 && screenWidth >= 1440){
+      tempBetaMarginTop = tempNoAbsoluteMarginTop - 50;
+    } 
+
+    if(screenHeight < 780 && screenWidth >= 1440){
+      tempBetaMarginTop = tempNoAbsoluteMarginTop + 15;
+    } 
 
     // estados com os valores calculados
     setImageHeight(tempImageHeight);
@@ -100,6 +109,7 @@ const HomeHeader = (): ReactElement => {
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[100px]"
             style={{ marginTop: `${betaMarginTop}px` }}
           >
+
             <h1
               id="beta"
               className="
