@@ -15,7 +15,6 @@ import {
   SemcompApiGetGameGroupsResponse, 
   SemcompApiUser, 
   SemcompApiGetAdminUserResponse,
-  SemcompApiGetAdminUserResponse,
   SemcompApiGetTreasureHuntImageResponse,
   SemcompApiCreateTreasureHuntImageRequest,
   SemcompApiEditTreasureHuntImageRequest, 
@@ -205,7 +204,7 @@ class SemcompApi {
     return this.http.get(`/admin/treasure-hunt-images/qr-code/${id}`);
   }
 
-  public async getAdminConfig(): Promise<SemcompApiConfigs> {
+/*   public async getAdminConfig(): Promise<SemcompApiConfigs> {
     const response = await this.http.get("/admin/config");
     console.log(response);
     return response;
@@ -213,8 +212,38 @@ class SemcompApi {
 
   public async setAdminSingup(setSingup){
     return this.http.post('/admin/open-singup', {setSingup});
+  } */
+
+  public async getConfig(): Promise<any> {
+    return this.http.get(`/config`);
   }
 
+  public async getCoffeeQuantity(): Promise<any> {
+    return this.http.get(`/config/coffee-quantity`);
+  }
+
+  public async getCoffeeTotal(): Promise<any> {
+    return this.http.get(`/config/coffee-total`);
+  }
+
+  public async updateConfig(config: any): Promise<any> {
+    console.log('update config: ', config);
+    return this.http.put(
+      "/config",
+      { config },
+    );
+  }
+
+  public async getCoffeeRemainings(): Promise<any> {
+    return this.http.get(`/config/coffee-remaining`);
+  }
+
+  public async updateCoffeeQuantity(value: Number): Promise<any> {
+    return this.http.put(
+      "/config/coffee-quantitity",
+      { value },
+    );
+  }
 }
 
 export default SemcompApi;

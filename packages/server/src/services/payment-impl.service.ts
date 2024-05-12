@@ -8,6 +8,7 @@ import { UserService } from "./user.service";
 import PaymentIntegrationService from "./payment-integration.service";
 import tShirtService from "./t-shirt.service";
 import PaymentService from "./payment.service";
+import ConfigService from "./config.service";
 import TShirtSize from "../lib/constants/t-shirt-size-enum";
 import KitOption from "../lib/constants/kit-option";
 import FoodOption from "../lib/constants/food-option-enum";
@@ -91,7 +92,7 @@ export default class PaymentServiceImpl implements PaymentService {
     foodOption: FoodOption,
     kitOption: KitOption,
   ): Promise<Payment> {
-    throw new HttpError(400, ["Vendas encerradas! Atingimos o limite de vendas."]);
+    // throw new HttpError(400, ["Vendas encerradas! Atingimos o limite de vendas."]);
 
     const user = await this.userService.findById(userId);
     if (!user) {
@@ -100,11 +101,17 @@ export default class PaymentServiceImpl implements PaymentService {
 
     const tShirt = await tShirtService.findOne({ size: tShirtSize });
     if (!tShirt) {
-      throw new HttpError(400, []);
+      throw new HttpError(400, ['Camisa não encontrada!']);
     }
 
     let price;
 
+    if (kitOption.includes("Coffee")) {
+      const config = await ConfigService.getOne(); 
+      if(config.coffeeTotal - config.coffeeQuantity <= 0){
+        throw new HttpError(400, ["Coffees esgotados!"]);
+      }
+    }
     if(kitOption.includes("Kit") && kitOption.includes("Coffee")) {
       price = 75;
     } else if (kitOption.includes("Kit")){

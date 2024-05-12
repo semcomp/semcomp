@@ -13,7 +13,7 @@ const Routes = {
   houses: '/casas',
   broadcastEmail: '/enviar-email',
   treasureHuntImages: '/caca-tesouro-imagens',
-  configuration: '/config',
+  configuration: '/configuracoes',
 };
 
 export default Routes;
