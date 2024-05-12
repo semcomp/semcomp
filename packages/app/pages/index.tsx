@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import About from "../components/home/About";
 import Footer from "../components/Footer";
 import HomeHeader from "../components/home/Header";
@@ -12,6 +12,7 @@ import { useRouter } from "next/router";
 function Home() {
   const { setUser, setToken } = useAppContext();
   const router = useRouter();
+  const [sectionHeight, setSectionHeight] = useState(840);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -24,7 +25,21 @@ function Home() {
     if (window.location.pathname != router.pathname) {
       router.push(`${window.location.pathname}`);
     }
-  }, []);
+ 
+
+   // Captura a altura da tela do usuário e ajusta a altura da seção
+   const updateSectionHeight = () => {
+    const screenHeight = window.innerHeight;
+    setSectionHeight(screenHeight < 884 ? screenHeight - 100 : 840);
+  };
+
+  // Chama a função na montagem e ao redimensionar a janela
+  updateSectionHeight();
+  window.addEventListener("resize", updateSectionHeight);
+
+  // Remove o listener ao desmontar o componente
+  return () => window.removeEventListener("resize", updateSectionHeight);
+}, []);
 
   return (
     <main className="home  bg-black min-h-screen">
@@ -35,40 +50,22 @@ function Home() {
         tablet:bg-[url('../assets/27-imgs/littebgClouds.png')] 
         medphone:bg-[url('../assets/27-imgs/littebgClouds.png')] 
         phone:bg-[url('../assets/27-imgs/littebgClouds.png')] 
-        bg-repeat h-[840px]">
+        bg-repeat">
         <section>
             <div className="relative">
-              <section className="
-              superdesktop:bg-[url('../assets/27-imgs/ICMCPlate.png')]
-              desktop:bg-[url('../assets/27-imgs/ICMCPlate.png')]
-              tablet:bg-[url('../assets/27-imgs/litteICMCPlate.png')] 
-              medphone:bg-[url('../assets/27-imgs/litteICMCPlate.png')]
-              phone:bg-[url('../assets/27-imgs/litteICMCPlate.png')]
-
-              bg-no-repeat  
-              absolute left-[0px] top-0 h-[840px] w-[450px] 
-              "
-              ></section>
-              <section
-                className="
-                superdesktop:bg-[url('../assets/27-imgs/chair.png')]
-                desktop:bg-[url('../assets/27-imgs/chair.png')]
-                tablet:bg-[url('../assets/27-imgs/mediumChair.png')] 
-                medphone:bg-[url('../assets/27-imgs/litteChair.png')]
-                phone:bg-[url('../assets/27-imgs/litteChair.png')]
-                
-                bg-no-repeat 
-                absolute right-[10px] top-0 h-[842px] w-[590px] 
-              "
-              ></section>
-              <div className="relative h-[850px]">
+        
+              <div style={{height:`${sectionHeight}px`}} className="relative ">
                 <HomeHeader />
               </div>
             </div>
           </section>
         </section>
 
-        <section className="bg-[url('../assets/27-imgs/littebgGround.png')] xl:bg-[url('../assets/27-imgs/bgGround.png')] bg-repeat">
+        <section className="bg-[url('../assets/27-imgs/bgGround.png')] 
+              tablet:bg-[url('../assets/27-imgs/littebgGround.png')] 
+                medphone:bg-[url('../assets/27-imgs/littebgGround.png')] 
+                phone:bg-[url('../assets/27-imgs/littebgGround.png')] 
+        bg-repeat">
           <section className="md:bg-[url('../assets/27-imgs/mediumbgFossils.png')] xl:bg-[url('../assets/27-imgs/bgFossils.png')] bg-no-repeat">
             <section className="md:bg-[url('../assets/27-imgs/mediumbgRock.png')] xl:bg-[url('../assets/27-imgs/bgRock.png')] bg-no-repeat bg-right">
               <About />

@@ -69,6 +69,31 @@ const HomeHeader = (): ReactElement => {
         <Sidebar />
       </div>
 
+      <section className="
+              superdesktop:bg-[url('../assets/27-imgs/ICMCPlate.png')]
+              desktop:bg-[url('../assets/27-imgs/ICMCPlate.png')]
+              tablet:bg-[url('../assets/27-imgs/litteICMCPlate.png')] 
+              medphone:bg-[url('../assets/27-imgs/litteICMCPlate.png')]
+              phone:bg-[url('../assets/27-imgs/litteICMCPlate.png')]
+
+              bg-no-repeat  
+              absolute left-[0px] bottom-0 h-[140px] w-[639px] 
+              "
+              ></section>
+
+      <section
+                className="
+                superdesktop:bg-[url('../assets/27-imgs/chair.png')]
+                desktop:bg-[url('../assets/27-imgs/chair.png')]
+                tablet:bg-[url('../assets/27-imgs/mediumChair.png')] 
+                medphone:bg-[url('../assets/27-imgs/litteChair.png')]
+                phone:bg-[url('../assets/27-imgs/litteChair.png')]
+                
+                bg-no-repeat 
+                absolute right-[0px] bottom-0 h-[145px] w-[639px] 
+              "
+       ></section>
+
       <div className="text-center" style={{ marginTop: `${noAbsoluteMarginTop}px` }}>
         <div>
           <div
