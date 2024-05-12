@@ -15,33 +15,33 @@ const HomeHeader = (): ReactElement => {
 
   const updateImageDimensionsAndMargins = () => {
     const screenWidth = window.innerWidth;
-    let tempImageHeight, tempImageWidth, tempNoAbsoluteMarginTop, tempBetaMarginTop;
+    let tempImageWidth, tempImageHeight, tempNoAbsoluteMarginTop, tempBetaMarginTop;
 
     // para ajustar a altura dos elementos na pagina ajuste o valor de tempNoAbsoluteMarginTop
     if (screenWidth >= 1440) {
-      tempImageHeight = 700;
-      tempImageWidth = 3500;
+      tempImageWidth = 672;
+      tempImageHeight = 177.5;
       tempNoAbsoluteMarginTop = -15;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 85;
     } else if (screenWidth >= 1000 && screenWidth < 1440) {
-      tempImageHeight = 700;
-      tempImageWidth = 3500;
+      tempImageWidth = 642;
+      tempImageHeight = 157.5;
       tempNoAbsoluteMarginTop = 50;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 123;
     } else if (screenWidth >= 640 && screenWidth < 1000) {
-      tempImageHeight = 500;
-      tempImageWidth = 2500;
+      tempImageWidth = 321;
+      tempImageHeight = 78.75;
       tempNoAbsoluteMarginTop = 250;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 290;
     } else if (screenWidth >= 430) {
-      tempImageHeight = 500;
-      tempImageWidth = 2500;
+      tempImageWidth = 160.5;
+      tempImageHeight = 39.38;
       tempNoAbsoluteMarginTop = 250;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 320;
     } 
     else {
-      tempImageHeight = 50;
-      tempImageWidth = 300;
+      tempImageWidth = 160.5;
+      tempImageHeight = 39.38;
       tempNoAbsoluteMarginTop = 280;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 330;
     }
@@ -144,12 +144,12 @@ const HomeHeader = (): ReactElement => {
             md:w-64
             relative"
           >
-            <Image
-              src={pixelButton}
-              alt="Descrição da imagem"
-              height={imageHeight}
-              width={imageWidth}
-            />
+          <Image
+            src={pixelButton}
+            alt="Descrição da imagem"
+            height={imageHeight}
+            width={imageWidth}
+          />
             <Link href="/signup">
               <button
                 className="
