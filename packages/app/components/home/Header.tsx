@@ -4,11 +4,12 @@ import { ReactElement } from "react";
 import NavBar from "../navbar";
 import Image from "next/image";
 import pixelButton from "../../assets/27-imgs/pixel_button.png";
+import Countdown from "./Countdown";
+import Sidebar from "../sidebar";
 
 const HomeHeader = (): ReactElement => {
   const [imageHeight, setimageHeight] = useState(600); // Defina um valor padrão
   const [imageWidth, setimageWidth] = useState(600); // Defina um valor padrão
-
 
   const updateimageHeight = () => {
     const screenWidth = window.innerWidth;
@@ -27,7 +28,6 @@ const HomeHeader = (): ReactElement => {
     } else {
       setimageHeight(130); // Ajuste para telas muito pequenas
       setimageWidth(700);
-
     }
   };
 
@@ -47,7 +47,9 @@ const HomeHeader = (): ReactElement => {
     >
       <div className="w-full z-4">
         <NavBar bg={" text-primary "} />
+        <Sidebar />
       </div>
+
 
         <div className="text-center ">
           <h1 className="
