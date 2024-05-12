@@ -10,30 +10,24 @@ const ConfigService = {
 
     return config;
   },
-  getOne: async (id) => {
-    const config = await ConfigModel.findById(id);
-
-    if (!config) {
-      throw new createError.NotFound(
-        `Não foi encontrada configuração com o id ${id}`
-      );
-    }
-
+  getOne: async () => {
+    const config = await ConfigModel.findOne();
+    console.log('GETONE; ', config);
     return config;
   },
-  update: async (event: Config) => {
-    event.updatedAt = Date.now();
-    const entity = await ConfigModel.findOneAndUpdate({ id: event.id }, event);
+  update: async (config: Config) => {
+    config.updatedAt = Date.now();
+    const entity = await ConfigModel.findOneAndUpdate({ id: config.id }, config);
 
-    return ConfigService.getOne(entity.id);
+    return entity;
   },
-  create: async (event: Config) => {
+  create: async (config: Config) => {
     const newConfig = new ConfigModel() as any;
 
     newConfig._id = new ObjectId();
-    newConfig.coffeeQuantity = event.coffeeQuantity;
-    newConfig.switchBeta = event.switchBeta;
-    newConfig.showLogin = event.showLogin;
+    newConfig.coffeeTotal = config.coffeeTotal;
+    newConfig.switchBeta = config.switchBeta;
+    newConfig.showLogin = config.showLogin;
 
     await newConfig.save();
 
@@ -59,9 +53,9 @@ const ConfigService = {
 
     return config;
   },
-  setCoffeeQuantity: async (coffeeQuantity) => {
+  setCoffeeTotal: async (coffeeTotal) => {
     const config = await ConfigModel.findOne();
-    config.coffeeQuantity = coffeeQuantity;
+    config.coffeeTotal = coffeeTotal;
     await config.save();
 
     return config;
