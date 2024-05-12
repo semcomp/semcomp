@@ -9,7 +9,8 @@ export enum adminRole {
   GameQuestion = "GameQuestions", 
   GameGroup = "GameGroups", 
   Event = "Events",
-  TreasureHuntImage = "TreasureHuntImages"
+  TreasureHuntImage = "TreasureHuntImages",
+  Configuration = "Configuration"
 }
 
 // const adminRoles = Object.values(adminRole);

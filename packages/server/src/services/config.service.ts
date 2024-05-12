@@ -52,6 +52,13 @@ const ConfigService = {
 
     return config;
   },
+  setSwitchRegistration: async (switchRegistration) => {
+    const config = await ConfigModel.findOne();
+    config.switchRegistration = switchRegistration;
+    await config.save();
+
+    return config;
+  },
   setShowLogin: async (showLogin) => {
     const config = await ConfigModel.findOne();
     config.showLogin = showLogin;

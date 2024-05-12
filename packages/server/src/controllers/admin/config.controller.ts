@@ -82,16 +82,28 @@ import { NextFunction, Request, Response } from "express";
     }
 
     public async setSwitchBeta(req: Request, res: Response, next: NextFunction) {
-        try {
-          const { bool } = req.body;
-    
-          const updatedConfig = await configService.setSwitchBeta(bool);
-    
-          return res.status(200).json();
-        } catch (error) {
-          return handleError(error, next);
-        }
+      try {
+        const { bool } = req.body;
+  
+        const updatedConfig = await configService.setSwitchBeta(bool);
+  
+        return res.status(200).json();
+      } catch (error) {
+        return handleError(error, next);
       }
+    }
+  
+    public async setSwitchRegistration(req: Request, res: Response, next: NextFunction) {
+      try {
+        const { bool } = req.body;
+  
+        const updatedConfig = await configService.setSwitchRegistration(bool);
+  
+        return res.status(200).json();
+      } catch (error) {
+        return handleError(error, next);
+      }
+    }
 }
 
 export default new CofigController();

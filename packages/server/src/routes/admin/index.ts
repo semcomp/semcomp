@@ -17,6 +17,7 @@ import TShirtRouter from "./t-shirt.router";
 import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
 import PaymentServiceImpl from "../../services/payment-impl.service";
 import PaymentRouter from "./payment.router";
+import ConfigRouter from "../config.router";
 
 const tShirtRouter = new TShirtRouter(adminAuthMiddleware);
 
@@ -49,6 +50,7 @@ export default class AdminRouter {
     router.use("/t-shirts", tShirtRouter.create());
     router.use("/subscription", subscriptionRouter);
     router.use("/treasure-hunt-images", treasureHuntImageRouter);
+    router.use("/config", ConfigRouter);
 
     return router;
   }

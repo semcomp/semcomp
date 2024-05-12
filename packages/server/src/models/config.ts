@@ -4,6 +4,7 @@ export type Config = {
     id?: string;
     coffeeQuantity: number;
     switchBeta: boolean;
+    switchRegistration: boolean;
     showLogin: boolean;
     createdAt?: number;
     updatedAt?: number;
@@ -16,6 +17,10 @@ const ConfigSchema = new Mongoose.Schema(
       required: true,
     },
     switchBeta: {
+      type: Boolean,
+      default: false,
+    },
+    switchRegistration: {
       type: Boolean,
       default: false,
     },
