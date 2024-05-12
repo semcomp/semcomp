@@ -29,7 +29,7 @@ const Navbar = (props) => {
   let logoSize;
 
   let navStyles =
-    "text-center px-4 w-full font-secondary md:flex md:justify-between md:items-center";
+    "text-center px-4 w-full font-secondary md:flex md:justify-between md:items-center mobile:hidden";
 
   props.bg ? (navStyles += props.bg) : (navStyles += " bg-white text-primary shadow-lg z-10");
   props.bg ? logoSize = 80 : logoSize = 50; 

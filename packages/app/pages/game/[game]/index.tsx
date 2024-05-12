@@ -6,6 +6,7 @@ import { Card } from '@mui/material';
 
 import GameConfig, { GameRoutes } from "../../../libs/game-config";
 import Navbar from '../../../components/navbar';
+import Sidebar from '../../../components/sidebar';
 import Footer from '../../../components/Footer';
 import { baseURL } from "../../../constants/api-url";
 import { useAppContext } from "../../../libs/contextLib";
@@ -151,6 +152,7 @@ export default function GamePage({children}) {
 
   return (<>
     <Navbar />
+<Sidebar />
       <div className='p-6'>
         <Card className='p-6'>
           {

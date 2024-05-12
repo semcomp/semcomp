@@ -4,13 +4,14 @@ import { toast } from "react-toastify";
 
 import API from "../api";
 import Footer from "../components/Footer";
-import NavBar from "../components/navbar";
+import Sidebar from '../components/sidebar';
 import Stepper from "../components/stepper/Stepper";
 import Step0 from "../components/reset-password/Step0";
 import Step1 from "../components/reset-password/Step1";
 import Step2 from "../components/reset-password/Step2";
 import Card from "../components/Card";
 import { useAppContext } from "../libs/contextLib";
+import Navbar from "../components/navbar";
 
 function ResetPassword() {
   // Controls the current step on the form.
@@ -129,7 +130,8 @@ function ResetPassword() {
 
   return (
     <div className="flex flex-col justify-between min-h-screen">
-      <NavBar />
+      <Navbar />
+      <Sidebar />
       <main className="flex justify-center items-center flex-1">
         <Card>
           <div className="flex flex-col items-center p-9 w-full max-w-lg">
