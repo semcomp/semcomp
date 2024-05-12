@@ -41,13 +41,13 @@ router.get(
 );
 
 router.post(
-  "/open-singup",
+  "/open-signup",
   [
-    body("openSingup", "Invalid field 'openSingup'").isBoolean(),
+    body("openSignup", "Invalid field 'openSignup'").isBoolean(),
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],
-  ConfigController.setOpenSingup
+  ConfigController.setOpenSignup
 );
 
 export default router;

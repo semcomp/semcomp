@@ -46,9 +46,9 @@ const ConfigService = {
 
     return config;
   },
-  setOpenSingup: async (setOpenSingup) => {
+  setOpenSignup: async (setOpenSignup) => {
     const config = await ConfigModel.findOne();
-    config.setOpenSingup = setOpenSingup;
+    config.openSignup = setOpenSignup;
     await config.save();
 
     return config;

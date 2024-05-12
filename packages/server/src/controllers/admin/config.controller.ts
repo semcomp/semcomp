@@ -138,13 +138,13 @@ import { NextFunction, Request, Response } from "express";
       }
     }
   
-    public async setOpenSingup(req: Request, res: Response, next: NextFunction) {
+    public async setOpenSignup(req: Request, res: Response, next: NextFunction) {
       try {
-        const { bool } = req.body;
+        const { openSignup } = req.body;
   
-        const updatedConfig = await configService.setOpenSingup(bool);
+        const updatedConfig = await configService.setOpenSignup(openSignup);
   
-        return res.status(200).json();
+        return res.status(200).json(updatedConfig);
       } catch (error) {
         return handleError(error, next);
       }

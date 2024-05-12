@@ -7,6 +7,7 @@ import LoadingButton from '../components/reusable/LoadingButton';
 import { useAppContext } from '../libs/contextLib';
 import RequireAuth from '../libs/RequireAuth';
 import SemcompApi from '../api/semcomp-api';
+import SwitchButton from '../components/SwitchButton';
 
 export enum KitOption {
     COMPLETE = "COMPLETE", 
@@ -19,7 +20,7 @@ const kitOption = Object.values(KitOption);
 /** Tailwind styles. */
 const style = {
   main: 'h-full flex justify-center items-center p-4',
-  card: 'rounded-lg p-4 bg-white shadow-lg w-full max-w-md flex flex-col items-center',
+  card: 'rounded-lg p-4 bg-white shadow-lg w-full max-w-md flex flex-col items-center mx-2',
   title: 'text-2xl font-bold',
   form: 'w-full flex flex-col justify-center items-center',
   input: 'my-2 py-2 px-4 border rounded-lg w-full',
@@ -43,6 +44,8 @@ function Config() {
     const [coffeeQuantity, setCoffeeQuantity] = useState(null);
     const [saveKitOption, setSaveKitOption] = useState(null);
 
+    const [openSignup, setSignup] = useState(false);
+    
     async function fetchData() {
         setIsLoading(true);
         try {
@@ -52,6 +55,7 @@ function Config() {
             setCoffeeTotal(config.coffeeTotal);
             setCoffeeQuantity(config.coffeeQuantity);
             setCoffeeActivated(config.coffeeRemaining > 0);
+            setSignup(config.openSignup);
         } catch (error) {
             toast.error('Erro ao buscar dados do coffee');
         } finally {
@@ -102,57 +106,81 @@ function Config() {
         setSaveKitOption(value);
     }
 
-    return (
-        <DataPage
-            title="Configurações"
-            isLoading={isLoading}
-            table={
-                <div className={style.main}>
-                    <div className={style.card}>
-                        <div className={style.title}>Coffee</div>
-                        <hr className={style.hr} />
-                        <div>   
-                        <Input
-                            className="my-3"
-                            label="Quantidade"
-                            value={coffeeTotal}
-                            onChange={handleQuantityChange}
-                            type={InputType.Number}
-                        />
-                        <p>Comprados: {coffeeQuantity}</p>
-                        <button className={style.button} onClick={toggleCoffee}>
-                            {coffeeActivated ? 'Desativar' : 'Ativar'} coffee
-                        </button>
-                        </div>
-                    </div>
+    //Função para alterar o openSignup do bando de dados usando a SemcompAPI
+    const setConfigSignup = async (setSignup) => {
+        try {
+            const response = await semcompApi.setConfigSignup(setSignup);
+            /* console.log(response); */
+        } catch (error) {
+            console.error('Erro ao alterar openSignup no banco de dados(configuracoes.tsx):', error);
+        }
+    };
 
-                    <div className={style.card}>
-                        <div className={style.title}>Opções de venda</div>
-                        <hr className={style.hr} />
-                        <div>   
+    return (
+        <>
+            <DataPage
+                title="Configurações"
+                isLoading={isLoading}
+                table={
+                    <div className={style.main}>
+                        <div className={style.card}>
+                            <div className={style.title}>Coffee</div>
+                            <hr className={style.hr} />
+                            <div>   
                             <Input
                                 className="my-3"
-                                label="Opções:"
-                                value={KitOption[saveKitOption]}
-                                onChange={handleKitOptionChange}
-                                choices={kitOption}
-                                type={InputType.Select}
+                                label="Quantidade"
+                                value={coffeeTotal}
+                                onChange={handleQuantityChange}
+                                type={InputType.Number}
                             />
+                            <p>Comprados: {coffeeQuantity}</p>
+                            <button className={style.button} onClick={toggleCoffee}>
+                                {coffeeActivated ? 'Desativar' : 'Ativar'} coffee
+                            </button>
+                            </div>
+                        </div>
+
+                        <div className={style.card}>
+                            <div className={style.title}>Opções de venda</div>
+                            <hr className={style.hr} />
+                            <div>   
+                                <Input
+                                    className="my-3"
+                                    label="Opções:"
+                                    value={KitOption[saveKitOption]}
+                                    onChange={handleKitOptionChange}
+                                    choices={kitOption}
+                                    type={InputType.Select}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="w-full px-6">
+                            <LoadingButton
+                            isLoading={isLoading}
+                            className="w-full text-white py-3 px-6"
+                            onClick={handleSubmit}
+                            >
+                            Enviar
+                            </LoadingButton>
+                        </div>
+
+                        <div className={style.card}>
+                            <div className={style.title}>Abrir Inscrições</div>
+                            <hr className={style.hr} />
+                            <div className='p-2'>   
+                                <SwitchButton 
+                                    isChecked={openSignup} 
+                                    setIsChecked={setSignup} 
+                                    setIsCheckedDataBase={setConfigSignup}
+                                />
+                            </div>
                         </div>
                     </div>
-
-                    <div className="w-full px-6">
-                        <LoadingButton
-                        isLoading={isLoading}
-                        className="w-full text-white py-3 px-6"
-                        onClick={handleSubmit}
-                        >
-                        Enviar
-                        </LoadingButton>
-                    </div>
-                </div>
-            }
-        ></DataPage>
+                }
+            ></DataPage>
+        </>
     );
 }
 

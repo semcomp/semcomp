@@ -6,7 +6,7 @@ export type Config = {
     coffeeQuantity: number;
     coffeeTotal: number;
     switchBeta: boolean;
-    openSingup: boolean;
+    openSignup: boolean;
     showLogin: boolean;
     kitOption: KitOption;
     openBuy: boolean;
@@ -27,7 +27,7 @@ const ConfigSchema = new Mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    openSingup: {
+    openSignup: {
       type: Boolean,
       default: false,
     },
@@ -54,4 +54,4 @@ const ConfigSchema = new Mongoose.Schema(
   { collection: "config" }
 );
 
-export default Mongoose.model("config", ConfigSchema);
+export default Mongoose.model<Config>("config", ConfigSchema);

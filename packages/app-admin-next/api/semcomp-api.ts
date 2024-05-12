@@ -204,15 +204,6 @@ class SemcompApi {
     return this.http.get(`/admin/treasure-hunt-images/qr-code/${id}`);
   }
 
-/*   public async getAdminConfig(): Promise<SemcompApiConfigs> {
-    const response = await this.http.get("/admin/config");
-    console.log(response);
-    return response;
-  }
-
-  public async setAdminSingup(setSingup){
-    return this.http.post('/admin/open-singup', {setSingup});
-  } */
 
   public async getConfig(): Promise<any> {
     return this.http.get(`/config`);
@@ -243,6 +234,10 @@ class SemcompApi {
       "/config/coffee-quantitity",
       { value },
     );
+  }
+
+  public async setConfigSignup(setSignup): Promise<any>{
+    return this.http.post('/config/open-signup', { openSignup: setSignup});
   }
 }
 
