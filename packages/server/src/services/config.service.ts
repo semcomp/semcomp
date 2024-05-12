@@ -52,9 +52,9 @@ const ConfigService = {
 
     return config;
   },
-  setSwitchRegistration: async (switchRegistration) => {
+  setOpenSingup: async (setOpenSingup) => {
     const config = await ConfigModel.findOne();
-    config.switchRegistration = switchRegistration;
+    config.setOpenSingup = setOpenSingup;
     await config.save();
 
     return config;

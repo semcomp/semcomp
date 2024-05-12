@@ -18,7 +18,8 @@ import {
   SemcompApiGetAdminUserResponse,
   SemcompApiGetTreasureHuntImageResponse,
   SemcompApiCreateTreasureHuntImageRequest,
-  SemcompApiEditTreasureHuntImageRequest 
+  SemcompApiEditTreasureHuntImageRequest, 
+  SemcompApiConfigs
 
 } from "../models/SemcompApiModels";
 import Http from "./http";
@@ -202,6 +203,16 @@ class SemcompApi {
 
   public async generateQRCodeTreasureHuntImage(id: string): Promise<any> {
     return this.http.get(`/admin/treasure-hunt-images/qr-code/${id}`);
+  }
+
+  public async getAdminConfig(): Promise<SemcompApiConfigs> {
+    const response = await this.http.get("/admin/config");
+    console.log(response);
+    return response;
+  }
+
+  public async setAdminSingup(setSingup){
+    return this.http.post('/admin/open-singup', {setSingup});
   }
 
 }

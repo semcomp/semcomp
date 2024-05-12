@@ -93,11 +93,11 @@ import { NextFunction, Request, Response } from "express";
       }
     }
   
-    public async setSwitchRegistration(req: Request, res: Response, next: NextFunction) {
+    public async setOpenSingup(req: Request, res: Response, next: NextFunction) {
       try {
         const { bool } = req.body;
   
-        const updatedConfig = await configService.setSwitchRegistration(bool);
+        const updatedConfig = await configService.setOpenSingup(bool);
   
         return res.status(200).json();
       } catch (error) {

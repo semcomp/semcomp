@@ -4,7 +4,7 @@ export type Config = {
     id?: string;
     coffeeQuantity: number;
     switchBeta: boolean;
-    switchRegistration: boolean;
+    openSingup: boolean;
     showLogin: boolean;
     createdAt?: number;
     updatedAt?: number;
@@ -20,7 +20,7 @@ const ConfigSchema = new Mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    switchRegistration: {
+    openSingup: {
       type: Boolean,
       default: false,
     },
