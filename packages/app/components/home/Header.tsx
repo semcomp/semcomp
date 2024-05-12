@@ -8,38 +8,59 @@ import Countdown from "./Countdown";
 import Sidebar from "../sidebar";
 
 const HomeHeader = (): ReactElement => {
-  const [imageHeight, setimageHeight] = useState(600); // Defina um valor padrão
-  const [imageWidth, setimageWidth] = useState(600); // Defina um valor padrão
+  const [imageHeight, setimageHeight] = useState<number>(0)
+  const [imageWidth, setimageWidth] = useState<number>(0)
+  const [noAbsoluteMarginTop, setNoAbsoluteMarginTop] = useState<number>(0)
+  const [betaMarginTop, setBetaMarginTop] = useState<number>(0)
 
   const updateimageHeight = () => {
-    const screenWidth = window.innerWidth;
+      const screenWidth = window.innerWidth;
 
-    // Verifique os intervalos de largura da tela e defina o valor apropriado
-    if (screenWidth >= 1440) {
-      setimageHeight(700); // Ajuste para telas grandes
-      setimageWidth(3500);
-    } else if (screenWidth >= 1000 && screenWidth < 1440) {
-      setimageHeight(700); // Ajuste para telas médias
-      setimageWidth(3500);
-
-    } else if (screenWidth >= 640 && screenWidth < 1000) {
-      setimageHeight(500); // Ajuste para telas pequenas
-      setimageWidth(2500);
-    } else {
-      setimageHeight(50); // Ajuste para telas muito pequenas
-      setimageWidth(300);
-    }
+      if (screenWidth >= 1440) {
+          setimageHeight(700);
+          setimageWidth(3500);
+          setNoAbsoluteMarginTop(110);
+      } else if (screenWidth >= 1000 && screenWidth < 1440) {
+          setimageHeight(700);
+          setimageWidth(3500);
+          setNoAbsoluteMarginTop(150);
+      } else if (screenWidth >= 640 && screenWidth < 1000) {
+          setimageHeight(500);
+          setimageWidth(2500);
+          setNoAbsoluteMarginTop(250);
+      } else {
+          setimageHeight(50);
+          setimageWidth(300);
+          setNoAbsoluteMarginTop(280);
+      }
   };
 
-  // Adiciona e remove event listener para 'resize'
   useEffect(() => {
-    updateimageHeight();
-    window.addEventListener('resize', updateimageHeight);
-    return () => {
-      window.removeEventListener('resize', updateimageHeight);
-    };
-  }, []);
+    // Atualiza betaMarginTop toda vez que noAbsoluteMarginTop mudar
+    if (noAbsoluteMarginTop !== undefined) {
+      if (window.innerWidth >= 1440) {
+        setBetaMarginTop(noAbsoluteMarginTop - 80);
+      } else if (window.innerWidth >= 1000) {
+        setBetaMarginTop(noAbsoluteMarginTop - 120);
+      } else if (window.innerWidth >= 640) {
+        setBetaMarginTop(noAbsoluteMarginTop - 290);
 
+      } else if (window.innerWidth >= 430) {
+        setBetaMarginTop(noAbsoluteMarginTop - 320);
+      }
+        else {
+        setBetaMarginTop(noAbsoluteMarginTop - 331);
+      }
+    }
+  }, [noAbsoluteMarginTop]);
+
+  useEffect(() => {
+      updateimageHeight();
+      window.addEventListener('resize', updateimageHeight);
+      return () => {
+          window.removeEventListener('resize', updateimageHeight);
+      };
+  }, []);
   return (
     <header
       id="header"
@@ -50,11 +71,12 @@ const HomeHeader = (): ReactElement => {
         <Sidebar />
       </div>
 
-      <div className="text-center ">
+      <div className="text-center " style={{marginTop:`${noAbsoluteMarginTop}px`}}>
 
         <div>
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[100px] "
+          style={{marginTop:`${betaMarginTop}px`}}
           >
             <h1 id="beta" className="
 
@@ -72,12 +94,6 @@ const HomeHeader = (): ReactElement => {
         tablet:ml-[350px]
         medphone:ml-[265px]
         phone:ml-[240px]
-
-        superdesktop:mt-[30px]
-        desktop:mt-[30px]
-        tablet:-mt-[40px]
-        medphone:-mt-[40px]
-        phone:-mt-[52px]
         ">
               BETA
             </h1>
@@ -90,12 +106,6 @@ const HomeHeader = (): ReactElement => {
           tablet:text-[100px]
           medphone:text-[65px]
           phone:text-[55px]
-
-          superdesktop:mt-[110px]
-          desktop:mt-[150px]
-          tablet:mt-[250px]
-          medphone:mt-[280px]
-          phone:mt-[280px]
    "
           > SEMCOMP 27 </h1>
         </div>
@@ -167,41 +177,11 @@ const HomeHeader = (): ReactElement => {
         </div>
       </div>
 
-      {/* <div className="">
-        <div
-          id="header-content"
-          className="flex flex-col relative items-center text-center w-full "
-        >
-          <h1
-            id="title"
-            className="text-center text-primary "
-          >
-            SEMCOMP 27
-          </h1>
-          <h1 id="beta" className="text-center text-primary font-secondary font-black md:text-3xl xl:text-5xl">
-            BETA
-          </h1>
-        </div>
-        <div>
-          <h1
-            id="subtitle"
-            className="text-sm text-primary sm:text-sm md:text-3xl xl:text-4xl w-full text-center mb-16"
-          >
-            A maior semana acadêmica de computação do Brasil!
-          </h1>
-        </div>
+      <div className="mt-[50px]">
+        <Countdown />
       </div>
 
-      <div className="flex flex-col items-center relative w-full">
-        <div id="inscreva" className="flex flex-col cursor-pointer items-center justify-center w-60 md:w-64 relative">
-          <Image src={pixelButton} />
-          <Link href="/signup">
-            <button className="absolute text-primary text-lg md:text-2xl xl:text-2xl p-4 md:p-5 xl:p-5 rounded-2xl">
-              INSCREVA-SE
-            </button>
-          </Link>
-        </div>
-      </div> */}
+
 
     </header>
   );
