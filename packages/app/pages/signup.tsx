@@ -7,6 +7,7 @@ import API from "../api";
 import ArrowIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import Footer from "../components/Footer";
 import Navbar from "../components/navbar";
+import Sidebar from '../components/sidebar';
 import Stepper from "../components/stepper/Stepper";
 import Step0 from "../components/signup/Step0";
 import Step1 from "../components/signup/Step1";
@@ -151,6 +152,7 @@ function SignupPage() {
   return (
     <div className="flex flex-col justify-between min-h-screen">
       <Navbar />
+      <Sidebar />
       <main className="flex w-full flex-1 md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs mobile:bg-[url('../assets/27-imgs/login-bg.png')] mobile:bg-cover">
         <div className="flex flex-col items-center justify-center md:w-[80%] mobile:w-full">
           <div className="items-center justify-center font-secondary bg-white h-fit md:w-[70%] md:p-9 tablet:p-12 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">

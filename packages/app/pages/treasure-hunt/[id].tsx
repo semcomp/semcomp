@@ -1,6 +1,7 @@
 
 import Footer from "../../components/Footer";
 import Navbar from "../../components/navbar"; 
+import Sidebar from '../../components/sidebar';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from "react";
 import API from "../../api";
@@ -47,6 +48,7 @@ const TreasureHuntPage = () => {
     return (
         <div className="min-h-full w-full flex flex-col">
         <Navbar />
+        <Sidebar />
 
         {/* This div is here to allow for the aside to be on the right side of the page */}
         <div className=" m-8 flex flex-col items-center md:w-full md:justify-between md:px-16 md:py-8 md:m-0">

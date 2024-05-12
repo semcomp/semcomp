@@ -11,6 +11,7 @@ import Footer from "../components/Footer";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
 import Navbar from "../components/navbar";
+import Sidebar from '../components/sidebar';
 import SemcompLogo from "../assets/27-imgs/logo.svg";
 import Card from "../components/Card";
 import Input, { InputType } from "../components/Input";
@@ -61,6 +62,7 @@ function Login() {
   return (
     <div className="flex flex-col min-h-screen md:h-full">
       <Navbar />
+      <Sidebar />
       <main className="flex w-full flex-1 md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs mobile:bg-[url('../assets/27-imgs/login-bg.png')] mobile:bg-cover">
         <div className="flex flex-col items-center justify-center md:w-[80%] mobile:w-full">
           <div className="items-center justify-center h-fit md:w-[70%] md:p-9 tablet:p-12 phone:p-9 font-secondary bg-white md:rounded-none tablet:rounded-lg phone:w-full">
