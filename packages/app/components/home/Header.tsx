@@ -12,6 +12,9 @@ const HomeHeader = (): ReactElement => {
   const [imageWidth, setImageWidth] = useState<number | undefined>();
   const [noAbsoluteMarginTop, setNoAbsoluteMarginTop] = useState<number | undefined>();
   const [betaMarginTop, setBetaMarginTop] = useState<number | undefined>();
+  const [showBeta, setShowBeta] = useState<boolean>(true);
+  const [showCounter, setShowCounter] = useState<boolean>(true);
+
 
   const updateImageDimensionsAndMargins = () => {
     const screenWidth = window.innerWidth;
@@ -19,41 +22,87 @@ const HomeHeader = (): ReactElement => {
     let tempImageWidth: number, tempImageHeight: number, tempNoAbsoluteMarginTop: number, tempBetaMarginTop: number;
 
     // para ajustar a altura dos elementos na pagina ajuste o valor de tempNoAbsoluteMarginTop
+
+    // grandão
     if (screenWidth >= 1440) {
       tempImageWidth = 672;
       tempImageHeight = 177.5;
       tempNoAbsoluteMarginTop = -15;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 85;
-    } else if (screenWidth >= 1000 && screenWidth < 1440) {
+      setShowBeta(screenHeight >= 817);
+      setShowCounter(screenHeight >= 817);
+    
+    } 
+    // normal
+    else if (screenWidth >= 1000 && screenWidth < 1440) {
       tempImageWidth = 642;
       tempImageHeight = 157.5;
       tempNoAbsoluteMarginTop = 50;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 123;
-    } else if (screenWidth >= 640 && screenWidth < 1000) {
+      setShowBeta(screenHeight >= 830);
+      setShowCounter(screenHeight >= 830);
+        } 
+    // tablet
+  
+    else if (screenWidth >= 640 && screenWidth < 1000) {
       tempImageWidth = 321;
       tempImageHeight = 78.75;
       tempNoAbsoluteMarginTop = 250;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 290;
-    } else if (screenWidth >= 430) {
+      setShowBeta(screenHeight >= 885);
+      setShowCounter(screenHeight >= 722);
+    } 
+    // outros
+    else if (screenWidth >= 430) {
       tempImageWidth = 160.5;
       tempImageHeight = 39.38;
       tempNoAbsoluteMarginTop = 250;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 320;
+      setShowBeta(screenHeight >= 890);
+      setShowCounter(screenHeight >= 622);
     } 
     else {
       tempImageWidth = 160.5;
       tempImageHeight = 39.38;
       tempNoAbsoluteMarginTop = 280;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 330;
+      setShowBeta(screenHeight >= 890);
+      setShowCounter(screenHeight >= 697);
+
+
+
     }
+
+    // dando mais suporte a monitores anões
 
     if(screenHeight < 884 && screenWidth >= 1440){
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 50;
     } 
 
-    if(screenHeight < 780 && screenWidth >= 1440){
+    else if(screenHeight < 780 && screenWidth >= 1440){
       tempBetaMarginTop = tempNoAbsoluteMarginTop + 15;
     } 
+
+    else if(screenHeight < 884 && (screenWidth >= 1000 && screenWidth < 1440)){
+      tempBetaMarginTop = tempNoAbsoluteMarginTop - 90;
+    } 
+
+    if(screenHeight < 780 && (screenWidth >= 1000 && screenWidth < 1440)){
+      tempBetaMarginTop = tempNoAbsoluteMarginTop - 10;
+    } 
+
+    else if(screenHeight < 884 && (screenWidth >= 640 && screenWidth < 1000)){
+      tempBetaMarginTop = tempNoAbsoluteMarginTop - 205;
+    } 
+
+    if(screenHeight < 875 && (screenWidth >= 640 && screenWidth < 1000)){
+      tempBetaMarginTop = tempNoAbsoluteMarginTop - 250;
+    } 
+
+
+
+
+
 
     // estados com os valores calculados
     setImageHeight(tempImageHeight);
@@ -105,9 +154,9 @@ const HomeHeader = (): ReactElement => {
 
       <div className="text-center" style={{ marginTop: `${noAbsoluteMarginTop}px` }}>
         <div>
-          <div
+        <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[100px]"
-            style={{ marginTop: `${betaMarginTop}px` }}
+            style={{ marginTop: `${betaMarginTop}px`, display: showBeta ? 'block' : 'none' }}
           >
 
             <h1
@@ -124,7 +173,17 @@ const HomeHeader = (): ReactElement => {
                 desktop:ml-[475px]
                 tablet:ml-[350px]
                 medphone:ml-[265px]
-                phone:ml-[240px]"
+                phone:ml-[240px]
+                
+                superdesktop:text-[40px]
+                desktop:text-[35px]
+                tablet:text-[27px]
+                medphone:text-[15px]
+                phone:text-[15px]
+                "
+
+                
+
             >
               BETA
             </h1>
@@ -204,7 +263,7 @@ const HomeHeader = (): ReactElement => {
         </div>
       </div>
 
-      <div className="mt-[50px]">
+      <div style={{ display: showCounter ? 'block' : 'none' }} className="mt-[50px]">
         <Countdown />
       </div>
     </header>
