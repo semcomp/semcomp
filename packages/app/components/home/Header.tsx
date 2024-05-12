@@ -78,7 +78,7 @@ const HomeHeader = (): ReactElement => {
         </div>
       )}
       <div className="flex flex-col items-center relative w-full">
-        <div id="inscreva" className="flex flex-col items-center justify-center w-60 lg:w-64 relative">
+        <div id="inscreva" className="flex flex-col cursor-pointer items-center justify-center w-60 lg:w-64 relative">
             <Image src={pixeButton}/>
             <Link href="/signup" >
               <button className="absolute text-primary text-lg md:text-2xl p-4 md:p-5 lg:text-2xl rounded-2xl">

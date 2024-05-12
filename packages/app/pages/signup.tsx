@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 
 import API from "../api";
+import ArrowIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import Footer from "../components/Footer";
 import Navbar from "../components/navbar";
 import Stepper from "../components/stepper/Stepper";
@@ -14,10 +15,14 @@ import Routes from "../routes";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
 import Link from "next/link";
+import PrivacyPolicyModal from "../components/signup/PrivacyPolicyModal";
 
 function SignupPage() {
   const router = useRouter();
   const { setUser } = useAppContext();
+  
+  // Privacy Policy  
+  const [isPrivacyPolicyModalOpen, setIsPrivacyPolicyModalOpen] = useState(false);
 
   // Controls the current step on the form.
   const [step, setStep] = useState(0);
@@ -48,6 +53,10 @@ function SignupPage() {
     // Execute validation if the user is trying to go the the next step
     if (step === 0 && newStep === 1) handleStep0Submit();
     else setStep(newStep);
+  }
+
+  function handleGoBack() {
+    setStep(0);
   }
 
   function handleStep0Submit() {
@@ -142,46 +151,82 @@ function SignupPage() {
   return (
     <div className="flex flex-col justify-between min-h-screen">
       <Navbar />
-      <main className="flex flex-col md:flex-row justify-center items-center flex-1">
-        <Card className="flex flex-col items-center p-9 w-full max-w-lg m-3">
-         {/* <h1 className="text-xl">Inscrições Encerradas! </h1>
-         <p>Caso você tenha uma conta, clique
-        <Link href="/login">
-          <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
-              aqui
-          </a>
-        </Link>
-        </p> */}
-        
-         <h1 className="text-xl">Cadastrar</h1>
-          <div className="w-full max-w-xs">
-            <Stepper
-              numberOfSteps={2}
-              activeStep={step}
-              onStepClick={handleStepClick}
-            />
-          </div>
+      <main className="flex w-full flex-1 md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs mobile:bg-[url('../assets/27-imgs/login-bg.png')] mobile:bg-cover">
+        <div className="flex flex-col items-center justify-center md:w-[80%] mobile:w-full">
+          <div className="items-center justify-center font-secondary bg-white h-fit md:w-[70%] md:p-9 tablet:p-12 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">
+            { step > 0 && (
+              <div className="flex items-center justify-center hover:bg-[#E6E6E6] p-2 rounded-lg h-fit w-fit">
+                <ArrowIcon 
+                  onClick={handleGoBack}
+                  sx={{ mr: 0.5 }} 
+                />
+              </div>
+            )}
+            {isPrivacyPolicyModalOpen && (
+                <PrivacyPolicyModal
+                  onRequestClose={() => setIsPrivacyPolicyModalOpen(false)}
+                />
+              )}
+            {/* <h1 className="text-xl">Inscrições Encerradas! </h1>
+            <p>Caso você tenha uma conta, clique
+            <Link href="/login">
+              <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
+                 aqui
+              </a>
+            </Link>
+            </p> */}
+            
+            <h1 className="text-2xl font-secondary text-center tablet:text-3xl">Cadastrar</h1>
+              <div className="flex items-center justify-center w-full">
+                <div className="w-full max-w-xs ">
+                  <Stepper
+                    numberOfSteps={2}
+                    activeStep={step}
+                    onStepClick={handleStepClick}
+                  />
+                </div>
+              </div>
 
-          {/* Renders the correct form according to the current step */}
-          {stepComponent}
-        </Card> 
-        <div id="infos-semcomp">
-          <Card className="w-full max-w-lg m-3 p-9">
-            <aside>
-              Ficamos muito felizes por se interessar em nosso evento!
-              <br />
-              <br />
-              A Semcomp é 100% construída e pensada por alunos dos cursos de<strong> Ciências de Computação</strong> e de<strong> Sistemas de Informação</strong> do campus <strong>São Carlos da Universidade de São Paulo</strong>. Todo ano realizamos um evento presencial cheio de palestras, minicursos, concursos, diversão e muita comida!
-              <br />
-              <br />
-              Esperamos que todos se divirtam bastante! Para mais informações, basta seguir a Semcomp no <a className="social-links" href="https://instagram.com/semcomp" rel="noopnener">Instagram (@semcomp)</a> e no <a className="social-links" href="https://t.me/semcomp_avisos" rel="noopnener" >Telegram (https://t.me/semcomp_avisos).</a><br />
-              <br />
-              Com carinho, Equipe Semcomp!
-            </aside>
+              {/* Renders the correct form according to the current step */}
+              {stepComponent}
+              <section className="text-center md:pt-12 tablet:pt-20 phone:pt-8">
+                <p>© Semcomp 2024. Todos os direitos reservados.</p>
+                <p className="mt-3 mb-6 hover:text-primary text-xs cursor-pointer">
+                    { step < 1 && (<span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
+                      <u>Política de Privacidade</u>
+                    </span>
+                  )}
+                </p>
+              </section>
+          </div>
+        </div>
+        <div id="info-semcomp" className="md:flex flex-col items-center phone:hidden tablet:hidden w-full justify-center bg-[url('../assets/27-imgs/login-bg.png')] bg-cover bg-no-repeat">
+          <Card className="max-w-md m-8 px-12 py-20 text-sm font-secondary text-justify bg-white rounded-md">
+          <aside className="max-w-base">
+                <p className="text-xl text-center m-0 p-4">Obrigado por se interessar no nosso evento!</p> 
+                <br />A Semcomp é
+                100% construída e pensada por alunos da{" "}
+                <strong>Universidade de São Paulo, do campus São Carlos</strong>,
+                dos cursos de{" "}
+                <strong>Sistemas de informação e Ciências da Computação</strong>.
+                Ela ocorre todo ano no
+                <strong>
+                  {" "}
+                  ICMC - Instituto de Ciências Matemáticas e Computação
+                </strong>
+                , um evento presencial cheio de palestras, minicursos, aprendizado e
+                muita comida.
+                <br />
+                <br />
+                Esperamos que todos vocês gostem e aguardem para mais informações.{" "}
+                <br />
+                <br />
+                Com carinho, Equipe Semcomp!
+              </aside>
           </Card>
         </div>
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

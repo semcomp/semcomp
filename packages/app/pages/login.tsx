@@ -34,8 +34,7 @@ function Login() {
   // See the `LoadingButton` component below in the return statement.
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { setUser } = useAppContext();
-  const [isPrivacyPolicyModalOpen, setIsPrivacyPolicyModalOpen] =
-  useState(false);
+  const [isPrivacyPolicyModalOpen, setIsPrivacyPolicyModalOpen] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -127,7 +126,7 @@ function Login() {
             <div>
               <section className="text-center md:pt-12 tablet:pt-20 phone:pt-8">
                 <p>© Semcomp 2024. Todos os direitos reservados.</p>
-                <p className="mt-3 mb-6 hover:text-primary text-xs">
+                <p className="mt-3 mb-6 hover:text-primary text-xs cursor-pointer">
                     <span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
                       <u>Política de Privacidade</u>
                     </span>
