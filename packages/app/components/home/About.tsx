@@ -3,12 +3,31 @@ function AboutBeta() {
     <>
       <section
         id="about"
-        className="flex flex-col items-center text-center pt-[150px]"
+        className="flex flex-col items-center text-center p-[25px]
+        "
       >
-        <h1 id="titulo" className="text-5xl text-white">
+        <h1 id="titulo" className="text-white
+            superdesktop:text-[50px]
+            desktop:text-[40px]
+            tablet:text-[30px]
+            medphone:text-[20px]
+            phone:text-[20px]
+        ">
           Sobre a Semcomp
         </h1>
-        <div className="text-2xl pt-8 max-w-4xl text-white">
+        <div className="
+        text-white
+
+        superdesktop:text-[25px]
+        desktop:text-[20px]
+        tablet:text-[15px]
+        medphone:text-[13px]
+        phone:text-[13px]
+
+
+
+        
+        ">
           <p id="aboutText" className="text-white font-secondary">
             A <strong>Semcomp</strong> é a{" "}
             <strong>Semana Acadêmica de Computação</strong>, realizada pelos

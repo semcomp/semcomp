@@ -99,11 +99,6 @@ const HomeHeader = (): ReactElement => {
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 250;
     } 
 
-
-
-
-
-
     // estados com os valores calculados
     setImageHeight(tempImageHeight);
     setImageWidth(tempImageWidth);
@@ -181,9 +176,7 @@ const HomeHeader = (): ReactElement => {
                 medphone:text-[15px]
                 phone:text-[15px]
                 "
-
-                
-
+    
             >
               BETA
             </h1>

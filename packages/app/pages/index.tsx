@@ -68,6 +68,9 @@ function Home() {
         bg-repeat">
           <section className="md:bg-[url('../assets/27-imgs/mediumbgFossils.png')] xl:bg-[url('../assets/27-imgs/bgFossils.png')] bg-no-repeat">
             <section className="md:bg-[url('../assets/27-imgs/mediumbgRock.png')] xl:bg-[url('../assets/27-imgs/bgRock.png')] bg-no-repeat bg-right">
+              <br/>
+              <br/>
+
               <About />
               <Schedule />
               <FAQ />
