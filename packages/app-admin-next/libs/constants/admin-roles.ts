@@ -7,7 +7,7 @@ const AdminRoles = {
     EVENTS: "Eventos",
     TREASUREHUNTIMAGES: "Caça ao Tesouro",
     ADMINUSERS: "Administradores",
-    CONFIGURATION: "Configuração"
+    CONFIG: "Configurações",
 };
 
 export default AdminRoles;
