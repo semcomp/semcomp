@@ -6,11 +6,19 @@ import {
 import { NextFunction, Request, Response } from "express";
   
   class CofigController {
+<<<<<<< HEAD
     public async list(req: Request, res: Response, next: NextFunction) {
       try {
         const configs = await configService.get();
   
         return res.status(200).json(configs);
+=======
+    public async getOne(req: Request, res: Response, next: NextFunction) {
+      try {
+        const config = await configService.getOne();
+  
+        return res.status(200).json(config);
+>>>>>>> 9d0520c98c63796b69897d1b53798adc210c64ad
       } catch (error) {
         return handleError(error, next);
       }
@@ -34,6 +42,7 @@ import { NextFunction, Request, Response } from "express";
       try {
         handleValidationResult(req);
   
+<<<<<<< HEAD
         const { id } = req.params;
   
         const config = req.body;
@@ -41,6 +50,13 @@ import { NextFunction, Request, Response } from "express";
         const foundConfig = await configService.getOne(id);
         const updatedEvent = await configService.update({
           ...foundConfig,
+=======
+        const config = req.body.config;
+        
+        const foundConfig = await configService.getOne();
+        const updatedEvent = await configService.update({
+          ...foundConfig.toObject(),
+>>>>>>> 9d0520c98c63796b69897d1b53798adc210c64ad
           ...config,
         });
   
@@ -49,14 +65,31 @@ import { NextFunction, Request, Response } from "express";
         return handleError(error, next);
       }
     }
+
+    public async setCoffeeQuantity(req: Request, res: Response, next: NextFunction) {
+      try {
+        handleValidationResult(req);
+        const value = req.body.value;
+
+        const foundConfig = await configService.getOne();
+        foundConfig['coffeeQuantity'] = foundConfig['coffeeQuantity'] + value;
+
+        const updatedEvent = await configService.update({
+          ...foundConfig.toObject(),
+        });
   
+        return res.status(200).json(updatedEvent);
+      } catch (error) {
+        return handleError(error, next);
+      }
+    }
     public async delete(req: Request, res: Response, next: NextFunction) {
       try {
         handleValidationResult(req);
   
         const { id } = req.params;
   
-        const foundConfig = await configService.getOne(id);
+        const foundConfig = await configService.getOne();
         if (foundConfig) {
             const deletedEvent = await configService.delete(foundConfig);
             return res.status(200).send(deletedEvent);
@@ -69,11 +102,41 @@ import { NextFunction, Request, Response } from "express";
       }
     }
   
-    public async setCoffeeQuantity(req: Request, res: Response, next: NextFunction) {
+    public async getCoffeeQuantity(req: Request, res: Response, next: NextFunction) {
+      try {
+        const config = await configService.getOne();
+  
+        return res.status(200).json(config.coffeeQuantity);
+      } catch (error) {
+        return handleError(error, next);
+      }
+    }
+
+    public async getCoffeeTotal(req: Request, res: Response, next: NextFunction) {
+      try {
+        const config = await configService.getOne();
+  
+        return res.status(200).json(config.coffeeTotal);
+      } catch (error) {
+        return handleError(error, next);
+      }
+    }
+
+    public async getRemainingCoffee(req: Request, res: Response, next: NextFunction) {
+      try {
+        const config = await configService.getOne();
+  
+        return res.status(200).json(config.coffeeTotal-config.coffeeQuantity);
+      } catch (error) {
+        return handleError(error, next);
+      }
+    }
+
+    public async setCoffeeTotal(req: Request, res: Response, next: NextFunction) {
       try {
         const { quantity } = req.body;
   
-        const updatedConfig = await configService.setCoffeeQuantity(quantity);
+        const updatedConfig = await configService.setCoffeeTotal(quantity);
   
         return res.status(200).json();
       } catch (error) {

@@ -1,10 +1,14 @@
 import Mongoose from "mongoose";
+import KitOption from "../lib/constants/kit-option";
 
 export type Config = {
     id?: string;
     coffeeQuantity: number;
+    coffeeTotal: number;
     switchBeta: boolean;
     showLogin: boolean;
+    kitOption: KitOption;
+    openBuy: boolean;
     createdAt?: number;
     updatedAt?: number;
 };
@@ -12,6 +16,9 @@ export type Config = {
 const ConfigSchema = new Mongoose.Schema(
   {
     coffeeQuantity: {
+      type: Number,
+    },
+    coffeeTotal: {
       type: Number,
       required: true,
     },
@@ -22,6 +29,15 @@ const ConfigSchema = new Mongoose.Schema(
     showLogin: {
         type: Boolean,
         default: false,
+    },
+    openBuy: {
+      type: Boolean,
+      default: false,
+  },
+    kitOption: {
+      type: KitOption,
+      required: true,
+      default: KitOption.COFFEE,
     },
     createdAt: {
       type: Number,

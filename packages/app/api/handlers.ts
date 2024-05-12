@@ -55,6 +55,9 @@ const Handlers = {
   achievements: {
     getAchievements: withNoErrorMessage(() => API.get("/achievements")),
   },
+  config: {
+    getConfig: withNoErrorMessage(() => API.get("/config")),
+  },
   coffee: {
     createPayment: (
       withSocialBenefit: boolean,
@@ -69,6 +72,10 @@ const Handlers = {
       foodOption,
       kitOption
     }),
+    checkCoffeeTotal: withNoErrorMessage(() => API.get("/config/coffee-total")),
+    checkCoffeeQuantity: withNoErrorMessage(() => API.get("/config/coffee-quantity")),
+    checkRemainingCoffee: withNoErrorMessage(() => API.get("/config/coffee-remaining")),
+    updateCoffeeQuantity: withNoErrorMessage((value:Number) => API.put("/config/coffee-quantity", value),),
   },
   upload: {
     single: async (file: File) => {

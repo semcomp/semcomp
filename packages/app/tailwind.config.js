@@ -6,10 +6,13 @@ module.exports = {
   ],
   theme: {
     screens: {
-      xxs: "400px",
+      'phone': {'min': '0px', 'max': '640px'},
+      'tablet': {'min': '640px', 'max': '1000px'},
+      'desktop': {'min': '1000px', 'max': '1440px'},
+      'mobile': {'min': '0px', 'max': '1000px'},
       sm: "640px",
-      md: "768px",
-      lg: "976px",
+      md: "1000px",
+      lg: "1450px",
       xl: "1440px",
     },
     colors: {
@@ -34,7 +37,12 @@ module.exports = {
       secondary: ["VideoType"], //Poppins
       tertiary: ["VideoType"]
     },
-    extend: {},
+    extend: {
+      backgroundImage: {
+        'sky': "url('/assets/27-imgs/login-bg.png')",
+        'footer-texture': "url('/img/footer-texture.png')",
+      }
+    },
   },
   plugins: [],
 };

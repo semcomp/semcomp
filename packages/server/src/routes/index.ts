@@ -20,6 +20,7 @@ import UploadRouter from "./upload.router";
 import AuthRouter from "./auth.router";
 import AuthController from "../controllers/auth.controller";
 import treasureHuntImageRouter from "./treasure-hunt.router";
+import configRouter from "./config.router";
 
 const router = Router();
 
@@ -53,5 +54,6 @@ router.use("/users", userRouter);
 router.use("/houses", houseRouter);
 router.use("/push-notifications", pushNotificationRouter);
 router.use("/treasure-hunt-images", treasureHuntImageRouter);
+router.use("/config", configRouter);
 
 export default router;

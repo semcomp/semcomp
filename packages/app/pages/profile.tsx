@@ -35,6 +35,7 @@ import { TShirtSize } from "../components/profile/coffeePayment/coffee-step-2";
 
 function Profile() {
   const { user } = useAppContext();
+  const [eventCount, setEventCount] = useState(null);
   const [userFetched, setUserFetched] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] = useState(false);
@@ -64,6 +65,8 @@ function Profile() {
     try {
       const response = await API.events.getSubscribables();
       setEvents(response.data);
+      console.log("Events", response.data);
+      setEventCount(Object.keys(response.data).length);
     } catch (e) {
       console.error(e);
       return [];
@@ -264,7 +267,7 @@ function Profile() {
           {userFetched && (
             <>
               <Card className="flex flex-col items-center p-9 w-full mb-6">
-                <QRCodeSVG value={userFetched && userFetched.id} />
+                {/* <QRCodeSVG value={userFetched && userFetched.id} /> */}
                 <p className="font-bold text-xl text-center my-3">
                   {userFetched.name}
                 </p>
@@ -280,7 +283,7 @@ function Profile() {
                     >
                       Editar
                     </button>
-                    <button 
+                    {/* <button 
                       onClick={() => {
                         setIsMarkAttendanceModalOpen(true);
                         blockBodyScroll();
@@ -288,7 +291,7 @@ function Profile() {
                       className="bg-primary text-white p-2 rounded-lg my-3"
                     >
                       Scanear Presença 
-                    </button>
+                    </button> */}
                   </div>
                 }
               </Card>
@@ -305,19 +308,11 @@ function Profile() {
                         label={`Camiseta ${userFetched.payment.tShirtSize}`}
                       />
                     )}
-                    {/* <button
-                      onClick={() => {
-                        setCoffeeModalOpen(true);
-                        blockBodyScroll();
-                      }}
-                    >
-                      Ver infos pacote
-                    </button> */}
                   </>
                 ) : (
                   <>
-                      <Chip className="mb-4" label="Sem Coffee" disabled={true} />
-                      {/* <p style={{ fontSize: "0.9rem" }}>Pague com PIX</p>
+                      {/* <Chip className="mb-4" label="Sem Coffee" disabled={true} /> */}
+                      <p style={{ fontSize: "0.9rem" }}>Pague com PIX</p>
                       <button
                       onClick={() => {
                         setCoffeeModalOpen(true);
@@ -325,14 +320,14 @@ function Profile() {
                       }}
                       className="bg-tertiary text-white p-2 rounded-lg mt-2">
                       Comprar Kit
-                    </button> */}
+                    </button>
                   </>
                 )}
               </Card>
             </>
           )}
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
-          {userFetched && (
+          {/* {userFetched && (
             <Card className="flex flex-col items-center p-9 w-full mb-6">
               <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                 Overflow
@@ -353,59 +348,62 @@ function Profile() {
                   O que é o Overflow?
                 </button>
             </Card>
-          )}
+          )} */}
 
           {/* ABRIR AQUI PARA MOSTRAR INSCRIÇÕES */}
-          <Card className="flex flex-col items-center p-9 w-full mb-6 text-center">
-            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+          { eventCount > 0 &&
+            (
+            <Card className="flex flex-col items-center p-9 w-full mb-6 text-center">
+              <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
 
-              Inscrições em Eventos
-            </h1>
-            <List className="events-list text-center">
-              {Object.keys(events).map((type) =>
-                events[type].map((e) =>
-                  e.events.map((item) => {
-                    if (item.isSubscribed === true) {
-                      return (
-                        <div key={item.name}>
-                          <ListItem>
-                            <ListItemText
-                              primary={`${type}:  ${item.name}`}
-                              secondary={
-                                item.link ? (
-                                  <a
-                                    target="_blank"
-                                    className="underline text-tertiary text-center pb-4 text-base"
-                                    href={item.link}
-                                  >
-                                    Acesse aqui
-                                  </a>
-                                ) : (
-                                  formatTime(item.startDate, item.endDate)
-                                )
-                              }
-                            />
-                          </ListItem>
-                          <Divider />
-                        </div>
-                      );
-                    }
-                  })
-                )
-              )}
-            </List>
-            {
-              <button
-                onClick={() => {
-                  setIsRegistrationsModalOpen(true);
-                  blockBodyScroll();
-                }}
-                className="bg-tertiary text-white p-2 rounded-lg mt-2"
-              >
-                Inscrever
-              </button>
-            }
-          </Card>
+                Inscrições em Eventos
+              </h1>
+              <List className="events-list text-center">
+                {Object.keys(events).map((type) =>
+                  events[type].map((e) =>
+                    e.events.map((item) => {
+                      if (item.isSubscribed === true) {
+                        return (
+                          <div key={item.name}>
+                            <ListItem>
+                              <ListItemText
+                                primary={`${type}:  ${item.name}`}
+                                secondary={
+                                  item.link ? (
+                                    <a
+                                      target="_blank"
+                                      className="underline text-tertiary text-center pb-4 text-base"
+                                      href={item.link}
+                                    >
+                                      Acesse aqui
+                                    </a>
+                                  ) : (
+                                    formatTime(item.startDate, item.endDate)
+                                  )
+                                }
+                              />
+                            </ListItem>
+                            <Divider />
+                          </div>
+                        );
+                      }
+                    })
+                  )
+                )}
+              </List>
+              {
+                <button
+                  onClick={() => {
+                    setIsRegistrationsModalOpen(true);
+                    blockBodyScroll();
+                  }}
+                  className="bg-tertiary text-white p-2 rounded-lg mt-2"
+                >
+                  Inscrever
+                </button>
+              }
+            </Card>
+          )}
           
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR CONQUISTAS () */}
           {/* <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">

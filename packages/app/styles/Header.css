@@ -84,9 +84,16 @@
 
 }
 
-@media (min-width: 1350px) and (max-width: 1920px) {
+@media (min-width: 1350px) and (max-width: 1520px) {
   #title{
     font-size: 170px;
+  }
+  #beta{
+    top: 110px;
+    left: 450px;
+  }
+  #header-content{
+    margin-top: 60px;
   }
   #subtitle{
     font-size: 30px;
@@ -101,9 +108,17 @@
 
 }
 
-@media (min-width: 1920px) {
+@media (min-width: 1520px) {
   #title{
     font-size: 200px;
+  }
+  #beta{
+    top: 140px;
+    left: 520px;
+  }
+  #header-content{
+    margin-top: 140px;
+    margin-bottom: 50px;
   }
   #subtitle{
     font-size: 40px;

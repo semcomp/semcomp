@@ -16,6 +16,7 @@ import GemaImage from "../assets/sponsors/gema2.png";
 import Data from "../assets/sponsors/data.png";
 import Footer from "../components/Footer";
 import Navbar from "../components/navbar";
+import Sidebar from '../components/sidebar';
 import SponsorCard from "../components/sponsor-card";
 
 const companiesInfo = [
@@ -115,7 +116,7 @@ const SponsorsPage = () => {
   return (
     <div className="min-h-full w-full flex flex-col">
       <Navbar />
-
+      <Sidebar />
       {/* This div is here to allow for the aside to be on the right side of the page */}
       <div className=" m-8 flex flex-col items-center md:w-full md:justify-between md:px-16 md:py-8 md:m-0">
         <main className=" flex flex-col px-0 py-4 lg:w-full">
