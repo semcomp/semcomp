@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ReactElement, useEffect, useState } from "react";
 import NavBar from "../navbar";
 import Image from "next/image";
+import Countdown from "./Countdown";
 import pixeButton from "../../assets/27-imgs/pixel_button.png";
 
 const HomeHeader = (): ReactElement => {
@@ -41,18 +42,18 @@ const HomeHeader = (): ReactElement => {
       className="h-screen flex flex-col font-primary text-black"
     >
       <div className="w-full z-4">
-        <NavBar bg={" "} />
+        <NavBar bg={" text-primary "} />
       </div>
 
       { !isMobile ? (<div className="z-3 flex flex-wrap items-center justify-center">
           <div
             id="header-content"
-            className="flex flex-col relative items-center text-center w-full h-[150px] mt-[50px]"
+            className="flex flex-col relative items-center text-center w-full h-[150px]"
           >
             <h1 id="title" className="z-1 absolute w-full text-center text-primary leading-[200px]">
               SEMCOMP 27
             </h1>
-            <h1 id="beta" className="z-2 w-full absolute text-center text-primary font-secondary font-black text-3xl top-[110px] left-[450px]">
+            <h1 id="beta" className="z-2 w-full absolute text-center text-primary font-secondary font-black text-3xl">
               BETA
             </h1>
           </div> 
@@ -76,10 +77,10 @@ const HomeHeader = (): ReactElement => {
         </div>
         )}
       <div className="flex flex-col items-center relative w-full">
-        <div id="inscreva" className="flex flex-col items-center justify-center w-60 relative">
+        <div id="inscreva" className="flex flex-col items-center justify-center w-60 lg:w-64 relative">
             <Image src={pixeButton}/>
             <Link href="/signup" >
-              <button className="absolute text-primary text-lg md:text-2xl p-4 md:p-5 rounded-2xl">
+              <button className="absolute text-primary text-lg md:text-2xl p-4 md:p-5 lg:text-2xl rounded-2xl">
                 INSCREVA-SE
               </button>
             </Link>

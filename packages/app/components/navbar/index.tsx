@@ -21,33 +21,29 @@ const Navbar = (props) => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
   }
-  
-  const audioRef = useRef<HTMLAudioElement>();
-
-    const playSound = (e) => {
-        // audioRef.current.play();
-    }
 
   // Se alguma propriedade de estilo para o background (bg) for passada
   // via props, vai adicionar nos estilos da navbar.
   // Caso contrário, só mantém o bg-primary
 
+  let logoSize;
+
   let navStyles =
-    "text-center px-4 py-2 w-full font-secondary md:flex md:justify-between md:items-center";
+    "text-center px-4 w-full font-secondary md:flex md:justify-between md:items-center";
 
-  props.bg ? (navStyles += props.pg) : (navStyles += "bg-primary");
-
+  props.bg ? (navStyles += props.bg) : (navStyles += " bg-white text-primary shadow-lg z-10");
+  props.bg ? logoSize = 80 : logoSize = 50; 
+  
   return (
     <nav className={navStyles}>
       <NavLink href={Routes.home}>
         <div id="logo-img">
-          <Image
+          <img
             alt="Semcomp logo"
             src={SemcompLogo.src}
-            layout="intrinsic"
             className="flex justify-center items-center"
-            height={80}
-            width={80}
+            height={logoSize}
+            width={logoSize}
           />
         </div>
       </NavLink>
