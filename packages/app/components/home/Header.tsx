@@ -3,13 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { ReactElement } from "react";
 import NavBar from "../navbar";
 import Image from "next/image";
-<<<<<<< HEAD
 import pixelButton from "../../assets/27-imgs/pixel_button.png";
-=======
-import Countdown from "./Countdown";
-import pixeButton from "../../assets/27-imgs/pixel_button.png";
-import Sidebar from "../sidebar";
->>>>>>> refs/remotes/origin/develop
 
 const HomeHeader = (): ReactElement => {
   const [imageHeight, setimageHeight] = useState(600); // Defina um valor padrão
@@ -53,7 +47,6 @@ const HomeHeader = (): ReactElement => {
     >
       <div className="w-full z-4">
         <NavBar bg={" text-primary "} />
-        <Sidebar />
       </div>
 
         <div className="text-center ">
