@@ -26,8 +26,8 @@ const HomeHeader = (): ReactElement => {
       setimageHeight(500); // Ajuste para telas pequenas
       setimageWidth(2500);
     } else {
-      setimageHeight(130); // Ajuste para telas muito pequenas
-      setimageWidth(700);
+      setimageHeight(50); // Ajuste para telas muito pequenas
+      setimageWidth(300);
     }
   };
 
@@ -50,8 +50,38 @@ const HomeHeader = (): ReactElement => {
         <Sidebar />
       </div>
 
+      <div className="text-center ">
 
-        <div className="text-center ">
+        <div>
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[100px] "
+          >
+            <h1 id="beta" className="
+
+        text-secondary
+        font-secondary
+
+        superdesktop:text-[40px]
+        desktop:text-[35px]
+        tablet:text-[27px]
+        medphone:text-[15px]
+        phone:text-[15px]
+
+        superdesktop:ml-[605px]
+        desktop:ml-[475px]
+        tablet:ml-[350px]
+        medphone:ml-[265px]
+        phone:ml-[240px]
+
+        superdesktop:mt-[30px]
+        desktop:mt-[30px]
+        tablet:-mt-[40px]
+        medphone:-mt-[40px]
+        phone:-mt-[52px]
+        ">
+              BETA
+            </h1>
+          </div>
           <h1 className="
           text-primary
 
@@ -68,6 +98,9 @@ const HomeHeader = (): ReactElement => {
           phone:mt-[280px]
    "
           > SEMCOMP 27 </h1>
+        </div>
+
+
 
         <h2 className="
         text-primary 
@@ -86,10 +119,13 @@ const HomeHeader = (): ReactElement => {
 
         mb-10 
         font-secondary">
-        A maior semana acadêmica de computação do Brasil!
+          A maior semana acadêmica de computação do Brasil!
         </h2>
+
+
+
         <div className="flex flex-col items-center relative w-full">
-        <div id="inscreva" className="
+          <div id="inscreva" className="
 
         superdesktop:mt-[20px]
         desktop:mt-[20px]
@@ -106,14 +142,14 @@ const HomeHeader = (): ReactElement => {
         md:w-64 
         relative
         ">
-        <Image
-        src={pixelButton} // O caminho da imagem
-        alt="Descrição da imagem"
-        height={imageHeight} // Largura desejada
-        width={imageWidth} // Altura desejada
-        />
-          <Link href="/signup">
-            <button className="
+            <Image
+              src={pixelButton} // O caminho da imagem
+              alt="Descrição da imagem"
+              height={imageHeight} // Largura desejada
+              width={imageWidth} // Altura desejada
+            />
+            <Link href="/signup">
+              <button className="
             absolute
             text-primary
             rounded-2xl
@@ -121,15 +157,15 @@ const HomeHeader = (): ReactElement => {
             superdesktop:text-[20px]
             desktop:text-[20px]
             tablet:text-[18px]
-            medphone:text-[17px]
+            medphone:text-[15px]
             phone:text-[15px]
             ">
-              INSCREVA-SE
-            </button>
-          </Link>
+                INSCREVA-SE
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
-    </div>
 
       {/* <div className="">
         <div
