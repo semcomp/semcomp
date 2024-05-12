@@ -16,11 +16,21 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [semcompApi, setSemcompApi] = useState(null);
+  const [adminRole, setAdminRole] = useState(null);
 
   function logOut(): void {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
+  }
+
+  async function fetchAdminRole() {
+    try {
+      const role = await semcompApi.getAdminRole(user.id);
+      setAdminRole(role);  
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   useEffect(() => {
@@ -38,12 +48,17 @@ function MyApp({ Component, pageProps }: AppProps) {
       toast.error("Token expirado!");
     }
 
+    function callbackMessageError(message): void {
+      toast.error(message);
+    }
+
     const token = localStorage.getItem("token");
     const http = new Http(
       baseURL,
       token,
       callbackOnTokenRefresh,
       callbackOnBadToken,
+      callbackMessageError
     );
 
     setSemcompApi(new SemcompApi(http));
@@ -51,12 +66,19 @@ function MyApp({ Component, pageProps }: AppProps) {
     setIsLoading(false);
   }, []);
 
+  useEffect(() => {
+    if (user !== null) {
+      fetchAdminRole();
+    }
+  }, [user]);
+
   return (
     <AppContext.Provider value={{
       user,
       setUser,
       logOut,
       semcompApi,
+      adminRole,
     }}>
       <Head>
         <link

@@ -7,15 +7,18 @@ import { handleError } from "../../lib/handle-error";
 import adminUserService from "../../services/admin-user.service";
 import HttpError from "../../lib/http-error";
 import adminLogService from "../../services/admin-log.service";
+import { PaginationRequest } from "../../lib/pagination";
 
 class AdminUserController {
   public async list(req, res, next) {
     try {
-      const adminUsers = await adminUserService.find();
+      const pagination = new PaginationRequest(
+        +req.query.page,
+        +req.query.items,
+      );
 
-      return res.status(200).json({
-        adminUsers,
-      });
+      const adminUsers = await adminUserService.find({pagination});
+      return res.status(200).json(adminUsers);
     } catch (error) {
       return handleError(error, next);
     }
@@ -27,7 +30,7 @@ class AdminUserController {
 
       const foundUser = await adminUserService.findOne({ email: req.body.email });
       if (foundUser) {
-        throw new HttpError(401, []);
+        throw new HttpError(409, ['Email já cadastrado.']);
       }
 
       const createdUser = await adminUserService.create(req.body);
@@ -94,6 +97,21 @@ class AdminUserController {
       await adminLogService.create(adminLog);
 
       return res.status(200).send(adminUserFound);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  };
+
+  public async findRoleById(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const adminUserFound = await adminUserService.findById(id);
+      if (!adminUserFound) {
+        throw new HttpError(404, ["Usuário não encontrado."]);
+      }
+      
+      return res.status(200).send((adminUserFound.adminRole));
     } catch (error) {
       return handleError(error, next);
     }

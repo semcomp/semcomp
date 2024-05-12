@@ -6,66 +6,67 @@ import Countdown from "./Countdown";
 import pixeButton from "../../assets/27-imgs/pixel_button.png";
 
 const HomeHeader = (): ReactElement => {
-
   const [isMobile, setIsMobile] = useState(false);
   const [isPhone, setIsPhone] = useState(false);
- 
-  //choose the screen size 
+
+  //choose the screen size
   const handleResize = () => {
     console.log(window.screen);
     if (window.innerWidth < 1350) {
       setIsMobile(true);
-    } else{
+    } else {
       setIsMobile(false);
     }
 
-    if(window.innerWidth < 748)
-      setIsPhone(true);
-    else
-      setIsPhone(false);
-  }
-  
+    if (window.innerWidth < 748) setIsPhone(true);
+    else setIsPhone(false);
+  };
+
   // create an event listener
   useEffect(() => {
     window.addEventListener("resize", handleResize);
-  })
+  });
 
   useEffect(() => {
     handleResize();
-  }, [])
-
-  
+  }, []);
 
   return (
     <header
       id="header"
-      className="h-screen flex flex-col font-primary text-black"
+      className="h-screen flex flex-col font-primary text-black   "
     >
       <div className="w-full z-4">
         <NavBar bg={" text-primary "} />
       </div>
 
-      { !isMobile ? (<div className="z-3 flex flex-wrap items-center justify-center">
+      {!isMobile ? (
+        <div className="z-3 flex flex-wrap items-center justify-center">
           <div
             id="header-content"
             className="flex flex-col relative items-center text-center w-full h-[150px]"
           >
-            <h1 id="title" className="z-1 absolute w-full text-center text-primary leading-[200px]">
+            <h1
+              id="title"
+              className="z-1 absolute w-full text-center text-primary leading-[200px]"
+            >
               SEMCOMP 27
             </h1>
             <h1 id="beta" className="z-2 w-full absolute text-center text-primary font-secondary font-black text-3xl">
               BETA
             </h1>
-          </div> 
-            <div>
-              <h1 id="subtitle" className="text-sm text-primary md:text-3xl w-full text-center mb-16">
-                A maior semana acadêmica de computação do Brasil!
-              </h1>
           </div>
-          
-
-        </div>) : (
-          <div className="flex flex-wrap items-center justify-center mt-[20%] mb-20">
+          <div>
+            <h1
+              id="subtitle"
+              className="text-sm text-primary md:text-3xl w-full text-center mb-16"
+            >
+              A maior semana acadêmica de computação do Brasil!
+            </h1>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-center mt-[20%] mb-20">
           <div
             id="header-content"
             className="flex flex-col items-center px-2 text-center justify-between flex-auto"
@@ -75,7 +76,7 @@ const HomeHeader = (): ReactElement => {
             </h1>
           </div>
         </div>
-        )}
+      )}
       <div className="flex flex-col items-center relative w-full">
         <div id="inscreva" className="flex flex-col items-center justify-center w-60 lg:w-64 relative">
             <Image src={pixeButton}/>
@@ -87,8 +88,8 @@ const HomeHeader = (): ReactElement => {
         </div>
       </div>
 
-        {/* COUNTDOWN */}
-        {/* <div className="p-2 md:p-4">
+      {/* COUNTDOWN */}
+      {/* <div className="p-2 md:p-4">
           <Countdown />
         </div> */}
     </header>

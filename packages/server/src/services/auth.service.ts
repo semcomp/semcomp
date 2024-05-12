@@ -84,7 +84,7 @@ class AuthService {
       !foundUser.password ||
       !bcrypt.compareSync(password, foundUser.password)
     ) {
-      throw new HttpError(401, []);
+      throw new HttpError(401, ['Usuário não encontrado']);
     }
 
     return foundUser;

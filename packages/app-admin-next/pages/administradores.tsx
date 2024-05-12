@@ -1,100 +1,102 @@
 import { useEffect, useState } from 'react';
 
 import DataTable from '../components/reusable/DataTable';
-import RequireRootAuth from '../libs/RequireAuth';
+import RequireAuth from '../libs/RequireAuth';
 import SemcompApi from '../api/semcomp-api';
 import { useAppContext } from '../libs/contextLib';
-import { SemcompApiTShirt } from '../models/SemcompApiModels';
-import CreateTShirtModal from '../components/t-shirt/CreateTShirtModal';
-import EditTShirtModal from '../components/t-shirt/EditTShirtModal';
-import { TShirtFormData, TShirtSize } from '../components/t-shirt/TShirtForm';
+import { SemcompApiAdminUser } from '../models/SemcompApiModels';
+import AdminRoles from '../libs/constants/admin-roles';
+import EditAdminRoleModal from '../components/adminList/EditAdminRoleModal';
 import DataPage from '../components/DataPage';
 import { PaginationRequest, PaginationResponse } from '../models/Pagination';
 
-type TShirtData = {
+type AdminData = {
   "ID": string,
-  "Tamanho": string,
-  "Quantidade": number,
-  "Quantidade Utilizada": number,
+  "Email": string,
+  "Permissões": string,
   "Criado em": string,
+  "Atualizado em": string,
 }
 
-function TShirtsTable({
+function AdminUsersTable({
   data,
   pagination,
   onRowClick,
   onRowSelect,
 }: {
-  data: PaginationResponse<SemcompApiTShirt>,
+  data: PaginationResponse<SemcompApiAdminUser>,
   pagination: PaginationRequest,
   onRowClick: (selectedIndex: number) => void,
   onRowSelect: (selectedIndexes: number[]) => void,
 }) {
-  const newData: TShirtData[] = [];
-  console.log('data: ', data);
-  for (const tShirt of data.getEntities()) {
+  const newData: AdminData[] = [];
+  for (const admin of data.getEntities()) {
     newData.push({
-      "ID": tShirt.id,
-      "Tamanho": tShirt.size,
-      "Quantidade": tShirt.quantity,
-      "Quantidade Utilizada": tShirt.usedQuantity,
-      "Criado em": new Date(tShirt.createdAt).toISOString(),
+      "ID": admin.id,
+      "Email": admin.email,
+      "Permissões": admin.adminRole.map(role => AdminRoles[role.toUpperCase()]).join(', '),
+      "Criado em": new Date(admin.createdAt).toISOString(),
+      "Atualizado em": new Date(admin.updatedAt).toISOString(),
+
     })
   }
 
   return (<DataTable
-    data={new PaginationResponse<TShirtData>(newData, data.getTotalNumberOfItems())}
+    data={new PaginationResponse<AdminData>(newData, data.getTotalNumberOfItems())}
     pagination={pagination}
     onRowClick={onRowClick}
     onRowSelect={onRowSelect}
   ></DataTable>);
 }
 
-function TShirts() {
+function AdminUsers() {
   const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
 
   const [data, setData] = useState(null);
   const [pagination, setPagination] = useState(new PaginationRequest(() => fetchData()));
-  const [formData, setFormData] = useState({
-    id: null,
-    size: TShirtSize.M,
-    quantity: 0,
-  } as TShirtFormData);
+  const [formData, setFormData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
-
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   async function fetchData() {
     try {
       setIsLoading(true);
-      const response = await semcompApi.getTShirts(pagination);
+      const response = await semcompApi.getAdminUsers(pagination);
       setData(response);
     } catch (error) {
       console.error(error);
     }
   }
 
-  async function handleRowClick(index: number) {
+  function formatAdminRoles(roles: string[]) {
     
-    const tshirts = data.getEntities(); 
+  }    
+  
+  async function handleRowClick(index: number) {  
+    const admins = data.getEntities(); 
+
+    const nameRoles = admins[index].adminRole;
+    const roles = {};
+    for(let key of Object.keys(nameRoles)) {
+      if(nameRoles.includes(key)) {
+        roles[key] = true;
+      } else {
+        roles[key] = false;
+      }
+    }
 
     setFormData({
-      id: tshirts[index].id,
-      size: tshirts[index].size,
-      quantity: tshirts[index].quantity,
+      id: admins[index].id,
+      email: admins[index].email,
+      adminRole: roles,
     });
+
     setIsEditModalOpen(true);
   }
 
   async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
     setSelectedIndexes(updatedSelectedIndexes);
-  }
-
-  function handleCloseCreateModal() {
-    setIsCreateModalOpen(false);
-    fetchData();
   }
 
   function handleCloseEditModal() {
@@ -113,15 +115,8 @@ function TShirts() {
   }, [data]);
 
   return (<>
-    {isCreateModalOpen && (
-      <CreateTShirtModal
-        data={formData}
-        setData={setFormData}
-        onRequestClose={handleCloseCreateModal}
-      />
-    )}
     {isEditModalOpen && (
-      <EditTShirtModal
+      <EditAdminRoleModal
         data={formData}
         setData={setFormData}
         onRequestClose={handleCloseEditModal}
@@ -130,14 +125,9 @@ function TShirts() {
     {
       !isLoading && (
         <DataPage
-          title="Camisetas"
+          title="Usuários Admins"
           isLoading={isLoading}
-          buttons={<button
-            className="bg-black text-white py-3 px-6"
-            type="button"
-            onClick={() => setIsCreateModalOpen(true)}
-          >Criar</button>}
-          table={<TShirtsTable
+          table={<AdminUsersTable
             data={data}
             pagination={pagination}
             onRowClick={handleRowClick}
@@ -149,4 +139,4 @@ function TShirts() {
   </>);
 }
 
-export default RequireRootAuth(TShirts);
+export default RequireAuth(AdminUsers);

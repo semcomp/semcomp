@@ -1,6 +1,7 @@
 const Routes = {
   home: '/',
   login: '/login',
+  signup: '/cadastro',
   users: '/usuarios',
   tShirts: '/camisetas',
   adminUsers: '/administradores',

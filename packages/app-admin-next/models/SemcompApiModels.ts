@@ -39,6 +39,11 @@ export enum PaymentStatus {
   APPROVED = "approved",
 };
 
+export type SemcompApiLocalStorageUser = {
+  id: string,
+  email: string,
+};
+
 export type SemcompApiUser = {
   id: string,
   email: string,
@@ -60,7 +65,17 @@ export type SemcompApiUser = {
   updatedAt: number,
 };
 
+export type SemcompApiAdminUser = {
+  id: string,
+  email: string,
+  adminRole: string[],
+  createdAt: number,
+  updatedAt: number,
+};
+
 export type SemcompApiGetUsersResponse = PaginationResponse<SemcompApiUser>;
+
+export type SemcompApiGetAdminUserResponse = PaginationResponse<SemcompApiAdminUser>;
 
 export type SemcompApiLoginResponse = {
   email: string,

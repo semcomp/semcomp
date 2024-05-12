@@ -5,7 +5,7 @@ const Schedule = () => {
     <>
       <section
         id="schedule"
-        className="flex flex-col items-center text-secondary text-center p-16 m-20"
+        className="flex flex-col items-center text-secondary text-center p-16  overflow-auto"
       >
         <h1 id="titulo" className="text-5xl text-white">
           Cronograma

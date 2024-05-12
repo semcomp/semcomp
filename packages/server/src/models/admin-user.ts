@@ -30,10 +30,9 @@ const AdminUserSchema = new Mongoose.Schema(
       type: String,
       required: true,
     },
-    // 0 - Root Access
-    // 1 - Full Access
+    // Screens that admin have access
     adminRole: {
-      type: Number,
+      type: [String],
     },
     resetPasswordCode: {
       type: String,

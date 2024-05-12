@@ -12,11 +12,11 @@ class AdminAuthController {
     try {
       handleValidationResult(req);
 
-      const { key } = req.body;
+      // const { key } = req.body;
 
-      if (key !== process.env.ADMIN_KEY) {
-        throw new createError.Forbidden("Palavra chave incorreta.");
-      }
+      // if (key !== process.env.ADMIN_KEY) {
+      //   throw new createError.Forbidden("Palavra chave incorreta.");
+      // }
 
       const createdUser = await adminAuthService.signup(req.body);
 
