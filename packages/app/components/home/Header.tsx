@@ -76,28 +76,15 @@ const HomeHeader = (): ReactElement => {
     // dando mais suporte a monitores anões
 
     if(screenHeight < 884 && screenWidth >= 1440){
-      tempBetaMarginTop = tempNoAbsoluteMarginTop - 50;
+      tempBetaMarginTop = -1 * (screenHeight - 817) / 2;
     } 
 
-    else if(screenHeight < 780 && screenWidth >= 1440){
-      tempBetaMarginTop = tempNoAbsoluteMarginTop + 15;
-    } 
+  
 
-    else if(screenHeight < 884 && (screenWidth >= 1000 && screenWidth < 1440)){
-      tempBetaMarginTop = tempNoAbsoluteMarginTop - 90;
-    } 
 
-    if(screenHeight < 780 && (screenWidth >= 1000 && screenWidth < 1440)){
-      tempBetaMarginTop = tempNoAbsoluteMarginTop - 10;
-    } 
 
-    else if(screenHeight < 884 && (screenWidth >= 640 && screenWidth < 1000)){
-      tempBetaMarginTop = tempNoAbsoluteMarginTop - 205;
-    } 
 
-    if(screenHeight < 875 && (screenWidth >= 640 && screenWidth < 1000)){
-      tempBetaMarginTop = tempNoAbsoluteMarginTop - 250;
-    } 
+
 
     // estados com os valores calculados
     setImageHeight(tempImageHeight);
@@ -151,7 +138,7 @@ const HomeHeader = (): ReactElement => {
         <div>
         <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[100px]"
-            style={{ marginTop: `${betaMarginTop}px`, display: showBeta ? 'block' : 'none' }}
+            style={{ marginTop: `${betaMarginTop}px` }}
           >
 
             <h1
@@ -176,7 +163,9 @@ const HomeHeader = (): ReactElement => {
                 medphone:text-[15px]
                 phone:text-[15px]
                 "
-    
+
+                
+
             >
               BETA
             </h1>
