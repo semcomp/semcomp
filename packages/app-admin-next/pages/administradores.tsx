@@ -78,7 +78,7 @@ function AdminUsers() {
 
     const nameRoles = admins[index].adminRole;
     const roles = {};
-    for(let key of Object.keys(nameRoles)) {
+    for(let key of Object.keys(AdminRoles)) {
       if(nameRoles.includes(key)) {
         roles[key] = true;
       } else {
@@ -91,7 +91,6 @@ function AdminUsers() {
       email: admins[index].email,
       adminRole: roles,
     });
-
     setIsEditModalOpen(true);
   }
 
