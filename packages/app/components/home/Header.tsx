@@ -75,16 +75,24 @@ const HomeHeader = (): ReactElement => {
 
     // dando mais suporte a monitores anões
 
-    if(screenHeight < 884 && screenWidth >= 1440){
-      tempBetaMarginTop = -1 * (screenHeight - 817) / 2;
-    } 
+    if(screenHeight < 830 && screenWidth >= 1000 && screenWidth < 1440){
+      tempBetaMarginTop = -1 * (screenHeight - 770) / 2;
+    }
+    if(screenHeight < 885 && screenWidth >= 640 && screenWidth < 1000){
+      tempBetaMarginTop = -1 * (screenHeight - 850) / 2;
+    }
 
-  
+    if(screenHeight < 890 && screenWidth < 640){
+      tempBetaMarginTop = -1 * (screenHeight - 810) / 2;
+    }
 
+    if(screenHeight < 890 && screenWidth < 430){
+      tempBetaMarginTop = -1 * (screenHeight - 840) / 2;
+    }
 
-
-
-
+    if(screenHeight < 890 && screenWidth >= 1400){
+      tempBetaMarginTop = -1 * (screenHeight - 730) / 2;
+    }
 
     // estados com os valores calculados
     setImageHeight(tempImageHeight);
