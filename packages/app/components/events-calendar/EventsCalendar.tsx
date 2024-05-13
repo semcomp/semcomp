@@ -40,7 +40,7 @@ const EventsCalendar = (props) => {
   }, []);
 
   if (events.length === 0) {
-    return <p>Por enquanto não temos nenhum evento divulgado!</p>;
+    return (<p className="text-tertiary bg-white p-3 font-secondary rounded-xl bg-opacity-70 mb-32 mt-8">Por enquanto não temos nenhum evento divulgado!</p>);
   }
 
   let splittedEventList = []; // will be a list of lists
