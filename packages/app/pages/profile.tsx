@@ -325,22 +325,30 @@ function Profile() {
                 ) : (
                   <>
                       <Chip className="mb-4" label="Sem Coffee" disabled={true} />
-                      {!closeSales ? (
-                          <>
-                            <p style={{ fontSize: "0.9rem" }}>Pague com PIX</p>
-                            <button
-                              onClick={() => {
-                              setCoffeeModalOpen(true);
-                              blockBodyScroll();
-                              }}
-                              className="bg-tertiary text-white p-2 rounded-lg mt-2"
-                            >
-                              Comprar Kit
-                            </button>
-                          </>
-                        ) : 
+                      { config.openSales ? (
                         <>
-                          <p className="text-center"> As vendas estão esgotadas! </p>
+                        { !closeSales ? (
+                            <>
+                              <p style={{ fontSize: "0.9rem" }}>Pague com PIX</p>
+                              <button
+                                onClick={() => {
+                                setCoffeeModalOpen(true);
+                                blockBodyScroll();
+                                }}
+                                className="bg-tertiary text-white p-2 rounded-lg mt-2"
+                              >
+                                Comprar Kit
+                              </button>
+                            </>
+                          ) : 
+                          <>
+                            <p className="text-center"> As vendas estão esgotadas! </p>
+                          </>
+                        }
+                        </>
+                      ) : 
+                        <>
+                          <p className="text-center"> Não há vendas no momento. </p>
                         </>
                       }
                   </>

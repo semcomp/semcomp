@@ -105,7 +105,12 @@ export default class PaymentServiceImpl implements PaymentService {
     foodOption: FoodOption,
     kitOption: KitOption,
   ): Promise<Payment> {
-    // throw new HttpError(400, ["Vendas encerradas! Atingimos o limite de vendas."]);
+    const config = await ConfigService.getOne(); 
+    if(config === undefined){
+      throw new HttpError(401, ["Erro ao acessar as Configs(auth.service.ts)"]);
+    } else if(!(config.openSales)){
+      throw new HttpError(503, ["Vendas encerradas!"]);
+    }
 
     const user = await this.userService.findById(userId);
     if (!user) {
@@ -120,12 +125,12 @@ export default class PaymentServiceImpl implements PaymentService {
     let price;
 
     if (kitOption.includes("Coffee")) {
-      const config = await ConfigService.getOne(); 
       const purchasedCoffee = await this.getPurchasedCoffee();
       if(config.coffeeTotal - purchasedCoffee <= 0){
         throw new HttpError(400, ["Coffees esgotados!"]);
       }
     }
+    
     if(kitOption.includes("Kit") && kitOption.includes("Coffee")) {
       price = 75;
     } else if (kitOption.includes("Kit")){
@@ -134,7 +139,7 @@ export default class PaymentServiceImpl implements PaymentService {
       price = 0.01;
     } 
 
-    price = withSocialBenefit ? price/2 : price
+    price = withSocialBenefit ? price/2 : price;
 
     const userPayments = await this.find({ userId });
     const approvedPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.APPROVED);
