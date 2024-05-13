@@ -47,7 +47,7 @@ function Home() {
   }, []);
 
   return (
-    <main className="home bg-black min-h-screen">
+    <main className="home bg-gray-800 min-h-screen">
       <div>
         <section className="
         superdesktop:bg-[url('../assets/27-imgs/bgClouds.png')] 
@@ -83,7 +83,7 @@ function Home() {
 
                 <br />
                 <br />
-                <section className="pt-[20px] bg-black/40">
+                <section className="pt-[20px] bg-black/50">
                   <Footer />
                 </section>
               </section>
