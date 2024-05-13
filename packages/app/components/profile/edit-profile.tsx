@@ -52,7 +52,7 @@ function EditProfile({ onRequestClose }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div className="w-full bg-tertiary text-white text-center text-xl font-bold p-6">
+      <div className="w-full bg-primary text-white text-center text-xl p-6">
         Editar Cadastro
       </div>
       <div className="max-h-96 p-6">
@@ -98,7 +98,7 @@ function EditProfile({ onRequestClose }) {
             type={InputType.Text}
           />
           <LoadingButton
-            className="w-full py-2 px-8 rounded-xl text-white bg-green mb-2"
+            className="w-full py-2 px-8 rounded-xl text-white bg-primary mb-2"
             type="submit"
             isLoading={isUpdating}
           >
@@ -107,7 +107,7 @@ function EditProfile({ onRequestClose }) {
         </form>
       </div>
       <button
-        className="bg-orange text-white py-3 px-6 mt-10 mb-6 rounded-xl"
+        className="bg-[#F24444] text-white pb-3 px-6 mt-10 mb-6 rounded-xl"
         type="button"
         onClick={onRequestClose}
       >

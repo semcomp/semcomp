@@ -90,18 +90,18 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div className="w-full bg-tertiary text-white text-center text-xl font-bold p-6">
-        Pagamento por PIX do Pacote da Semcomp!
+      <div className="w-full bg-primary text-white text-center text-xl p-6">
+        Pagamento por PIX do Coffee da Semcomp!
       </div>
       <div className="max-h-lg w-full p-6">
         <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} />
         {stepComponent}
         <div className="flex justify-between w-full">
-          <SemcompButton className="bg-orange" onClick={onRequestClose}>
+          <SemcompButton className="bg-[#F24444]" onClick={onRequestClose}>
             Fechar
           </SemcompButton>
           {coffeeStep >= 2 || userHasPaid ? <></> : (
-            <SemcompButton onClick={nextCoffeeStep}>
+            <SemcompButton className="bg-primary" onClick={nextCoffeeStep}>
               Próximo
             </SemcompButton>
           )}
