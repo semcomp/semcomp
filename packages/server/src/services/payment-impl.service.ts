@@ -124,7 +124,7 @@ export default class PaymentServiceImpl implements PaymentService {
 
     let price;
 
-    if (kitOption.includes("Coffee")) {
+    if (!kitOption.includes("Coffee")) {
       const purchasedCoffee = await this.getPurchasedCoffee();
       if(config.coffeeTotal - purchasedCoffee <= 0){
         throw new HttpError(400, ["Coffees esgotados!"]);
@@ -201,7 +201,6 @@ export default class PaymentServiceImpl implements PaymentService {
       if (paymentsWithThisTShirtSize >= tShirt.quantity) {
         throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
       }
-
     }
 
     const newPaymentData: Payment = {
@@ -215,16 +214,21 @@ export default class PaymentServiceImpl implements PaymentService {
     };
     const newPayment = await this.create(newPaymentData);
 
-    const paymentResponse = await this.paymentIntegrationService.create(
-      price,
-      user.email,
-      "Semcomp",
-      `${this.notificationUrl}/${newPayment.id}`
-    );
-
-    newPayment.paymentIntegrationId = paymentResponse.id;
-    newPayment.qrCode = paymentResponse.qrCode;
-    newPayment.qrCodeBase64 = paymentResponse.qrCodeBase64;
+    try {
+      const paymentResponse = await this.paymentIntegrationService.create(
+        price,
+        user.email,
+        "Semcomp",
+        `${this.notificationUrl}/${newPayment.id}`
+      );
+  
+      newPayment.paymentIntegrationId = paymentResponse.id;
+      newPayment.qrCode = paymentResponse.qrCode;
+      newPayment.qrCodeBase64 = paymentResponse.qrCodeBase64;      
+    } catch {
+      await this.delete(newPayment);
+      throw new HttpError(400, ["Erro no servidor! Tente novamente mais tarde."]);
+    }
 
     return await this.update(newPayment);
   }
