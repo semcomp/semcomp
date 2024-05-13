@@ -313,13 +313,13 @@ function Profile() {
                   </div>
                 }
               </Card>
-              <Card className="flex flex-col items-center p-9 w-full mb-6">
+              <Card className="flex flex-col items-center p-9 w-full mb-6 bg-white rounded-lg">
                 <h1 className="text-xl py-2">
                   {KitOption[config.kitOption]}
                 </h1>
                 {userFetched.payment.status === "approved" ? (
                   <>
-                    <Chip label="OK" color="success" />
+                    <Chip label="Pago" color="success" />
                     {/* {userFetched.payment.tShirtSize !== TShirtSize.NONE && (
                       <Chip
                         className="mt-3"

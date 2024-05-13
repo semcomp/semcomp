@@ -136,7 +136,7 @@ export default class PaymentServiceImpl implements PaymentService {
     } else if (kitOption.includes("Kit")){
       price = 65;
     } else {
-      price = 0.01;
+      price = 18;
     } 
 
     price = withSocialBenefit ? price/2 : price;
