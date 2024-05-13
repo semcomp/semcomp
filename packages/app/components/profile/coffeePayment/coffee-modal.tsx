@@ -23,7 +23,7 @@ function SemcompButton({ onClick, children, className, ...props }: any) {
       type="button"
       onClick={onClick}
       className={
-        "rounded bg-tertiary text-white shadow-md px-6 py-3 " + className
+        "rounded bg-primary text-white shadow-md px-6 py-3 " + className
       }
       {...props}
     >
@@ -73,6 +73,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
     
     if(paymentInfo) {
       if (paymentInfo.status === "pending") {
+        setData({...data, kitOption: paymentInfo.kitOption});
         setCoffeeStep(2);
       }
     }
@@ -101,7 +102,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
             Fechar
           </SemcompButton>
           {coffeeStep >= 2 || userHasPaid ? <></> : (
-            <SemcompButton className="bg-primary" onClick={nextCoffeeStep}>
+            <SemcompButton onClick={nextCoffeeStep}>
               Próximo
             </SemcompButton>
           )}
