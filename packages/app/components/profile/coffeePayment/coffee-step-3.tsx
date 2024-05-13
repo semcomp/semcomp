@@ -15,11 +15,11 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
   const calcValuePayment = (kitOptions) => {
     let value: any;
     
-    if(kitOptions == "Só Kit") {
+    if(kitOptions == "Kit") {
       value = 0.01;
-    } else if (kitOptions == "Kit + Coffee"){
+    } else if (kitOptions == "Kit e Coffee"){
       value = 0.01;
-    } else if (kitOptions == "Só Coffee"){
+    } else if (kitOptions == "Coffee"){
       value = 0.01;
     } else {
       value = "Nenhuma opção selecionada";
@@ -39,7 +39,7 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
 
   const [qrCodeBase64, setqrCodeBase64] = useState("");
   const [qrCodeCopyPaste, setqrCodeCopyPaste] = useState("");
-  // console.log("cheguei até aqui [antes de getPayment]")
+  
   async function getPayment() {
     try {
       let fileName: string = null;
@@ -55,7 +55,6 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
       const { data: paymentResponse } = await API.coffee.createPayment(
         data.withSocialBenefit, fileName, data.tShirtSize, data.foodOption, data.kitOption
       );
-      console.log("[paymantResponse] output", paymentResponse)
       setqrCodeBase64(paymentResponse.qrCodeBase64);
       setqrCodeCopyPaste(paymentResponse.qrCode);
     } catch (error) {
@@ -68,7 +67,6 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
     getPayment();
   }, []);
 
-  //console.log("cheguei até aqui [antes de copyToClipboard]")
   function copyToClipboard() {
     navigator.clipboard.writeText(qrCodeCopyPaste);
     toast.success("Copiado!");

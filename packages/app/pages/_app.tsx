@@ -3,7 +3,7 @@ import type { AppProps } from "next/app";
 import Head from "next/head";
 
 import { ToastContainer, toast } from "react-toastify";
-
+import handler from "../api";
 import { initializeAPI } from "../api/base-api";
 import baseURL from "../constants/api-url";
 import { AppContext } from "../libs/contextLib";
@@ -15,6 +15,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [config, setConfig] = useState(null);
 
   initializeAPI({
     baseURL,
@@ -27,9 +28,20 @@ function MyApp({ Component, pageProps }: AppProps) {
     },
   });
 
+  async function fetchConfig() {
+    try {
+      const config = await handler.config.getConfig().then((res) => res.data);
+      setConfig(config);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
+    fetchConfig();
+
     if (user && token) {
       setUser(user);
       setToken(token);
@@ -44,6 +56,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         setUser,
         token,
         setToken,
+        config,
       }}
     >
       <Head>
