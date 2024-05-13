@@ -86,7 +86,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
   const stepComponent = [
     <CoffeeStep1 key={0} data={data} setData={setData}/>,
     <CoffeeStep2 key={1} data={data} setData={setData} />,
-    <CoffeeStep3 key={2} data={data} />,
+    <CoffeeStep3 key={2} data={data}/>,
   ][coffeeStep];
 
   return (
@@ -94,7 +94,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
       <div className="w-full bg-primary text-white text-center text-xl p-6">
         Pagamento por PIX do Coffee da Semcomp!
       </div>
-      <div className="max-h-lg w-full p-6">
+      <div className="max-h-lg w-full overflow-y-scroll p-6">
         <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} />
         {stepComponent}
         <div className="flex justify-between w-full">
