@@ -26,11 +26,15 @@ https://www.jitbit.com/alexblog/256-targetblank---the-most-underestimated-vulner
 (ps: I know this is only meaningful on target="_blank" links, but I'd
 rather place this everywhere in case someone adds a target="_blank" later.
 */
-const Footer = () => {
+const Footer = (props) => {
+
+  let footerStyle = "items-center justify-around p-4 lg:flex font-secondary text-sm ";
+  props.className ? (footerStyle += props.className) : footerStyle += "shadow-2xl bg-white text-primary";
+
   return (
-    <footer className="items-center justify-around text-white p-8 lg:flex font-secondary ">
-      <section className="text-center py-2 text-sm">
-        <p>Entre em contato conosco</p>
+      <footer className={footerStyle}>
+        <section className="text-center py-2 mobile:hidden">
+          <p>Entre em contato conosco</p>
         <div className="flex flex-col items-center">
           <div className="flex items-center my-1">
             <EmailIcon sx={{ mr: 0.5 }} />

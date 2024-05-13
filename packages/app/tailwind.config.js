@@ -6,8 +6,8 @@ module.exports = {
   ],
   theme: {
     screens: {
-      'superdesktop': {'min': '1440px'},
-      'desktop': {'min': '1000px', 'max': '1440px'},
+      'superdesktop': {'min': '1600px'},
+      'desktop': {'min': '1000px', 'max': '1600px'},
       'tablet': {'min': '640px', 'max': '1000px'},
       'phone': {'min': '0px', 'max': '640px'},
       

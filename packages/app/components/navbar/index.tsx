@@ -85,7 +85,7 @@ const Navbar = (props) => {
             <Navlink href={Routes.profile}>Perfil</Navlink>
             <button onClick={logUserOut} className="nav">
               <a
-                className="flex justify-center items-center px-2 py-2 mx-2 mb-2 text-lg rounded-lg hover:bg-hoverWhite duration-200"
+                className="flex justify-center items-center px-2 text-lg rounded-lg hover:bg-hoverWhite duration-200"
                 href="/"
               >
                 Sair
@@ -94,7 +94,7 @@ const Navbar = (props) => {
           </>
         ) : (
           <>
-            {/* { <Navlink href={Routes.signup}>Cadastrar</Navlink> } */}
+            <Navlink href={Routes.signup}>Cadastrar</Navlink>
             <Navlink href={Routes.login}>Entrar</Navlink>
           </>
         )}

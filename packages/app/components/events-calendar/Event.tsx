@@ -8,7 +8,7 @@ import Linkify from "react-linkify";
   For the sake of simplicity, we will assume that all events start and end in the same day.
   This might change in the future, so refactoring this component could be a thing.
 */
-function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
+function Event({ home, event, isUserLoggedIn, onPresenceSubmited }) {
   // State that controls whether the event has been clicked or not
   const [isOpen, setIsOpen] = useState(false);
 
@@ -68,11 +68,12 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
       return <Chip label="Presente" color="primary" size="small" />;
     }
   }
+  let background = home ? " bg-[#F4DEDE] text-tertiary" : " bg-white text-primary";
 
   return (
     <>
       <button
-        className="focus:outline-none bg-white text-tertiary w-full shadow"
+        className={"focus:outline-none w-full shadow-lg " + background }
         onClick={handleEventClick}
       >
         <div className="flex items-center">
@@ -92,7 +93,7 @@ function Event({ event, isUserLoggedIn, onPresenceSubmited }) {
         className="transition-all duration-500 overflow-hidden"
         style={{ height: 0 }}
       >
-        <div className="bg-white text-black p-6 text-left w-full">
+        <div className={"font-secondary p-6 text-left w-full " + background}>
           <span className="text-left">
             <p>
               <strong>

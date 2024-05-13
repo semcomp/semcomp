@@ -32,9 +32,9 @@ function Question({ question, answer }) {
   }
 
   return (
-    <div className="bg-white text-grayDark p-2">
+    <div className="bg-[#F4DEDE] text-tertiary">
       <button
-        className="text-left w-full p-2 shadow flex justify-between items-center focus:outline-none"
+        className="text-left w-full p-4 shadow flex justify-between items-center focus:outline-none"
         onClick={handleQuestionClick}
       >
         <span>{question}</span>
@@ -47,7 +47,7 @@ function Question({ question, answer }) {
       </button>
       <div
         ref={answerRef}
-        className="text-black transition-all overflow-hidden text-left font-secondary font-light"
+        className="text-tertiary transition-all overflow-hidden text-left font-secondary font-light"
         style={{ height: "0px", transition: "height 0.5s ease" }}
       >
         <div className="p-4">
@@ -76,26 +76,26 @@ function Question({ question, answer }) {
 const FAQ = () => {
   return (
     <>
-      <section className="flex flex-col items-center text-secondary text-center" style={{ maxWidth: "1200px", margin: "0 auto" }}>
+      <section className="flex flex-col items-center text-tertiary text-center md:px-16" style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <h1 id="titulo" className="
-        superdesktop:text-title-superlarge
-        desktop:text-title-large
-        tablet:text-title-medium
-        medphone:text-title-small
-        phone:text-title-tiny
-        text-white">
+          superdesktop:text-title-superlarge
+          desktop:text-title-large
+          tablet:text-title-medium
+          medphone:text-title-small
+          phone:text-title-tiny
+          text-white">
           FAQ
         </h1>
         <div className="
                 superdesktop:text-superlarge
-                desktop:text-large
+                desktop:text-medium
                 tablet:text-medium
                 medphone:text-small
                 phone:text-tiny
         ">
           <Question
             question="Como faço para participar da Semcomp?"
-            answer="Para participar, basta se inscrever aqui mesmo em nosso site! O evento será híbrido, com transmissão das palestras pelo Youtube, então é preciso comparecer à USP de São Carlos durante o período anunciado para os demais eventos. Para mais notícias, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos)"
+            answer="Para participar, basta se inscrever aqui mesmo em nosso site! O nosso evento é presencial e ocorre no Instituto de Ciências Matemáticas e Computação da USP de São Carlos. Para mais notícias, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos)"
           />
           <Question
             question="Onde tenho acesso aos avisos da Semcomp?"
