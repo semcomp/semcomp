@@ -216,3 +216,17 @@ export type SemcompApiCreateTreasureHuntImageRequest = {
 };
 
 export type SemcompApiEditTreasureHuntImageRequest = SemcompApiCreateTreasureHuntImageRequest;
+
+
+export type SemcompApiConfigs = {
+  id?: string;
+  coffeeQuantity: number;
+  coffeeTotal: number;
+  switchBeta: boolean;
+  openSignup: boolean;
+  showLogin: boolean;
+  kitOption: KitOption;
+  openBuy: boolean;
+  createdAt?: number;
+  updatedAt?: number;
+};

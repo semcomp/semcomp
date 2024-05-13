@@ -7,17 +7,15 @@ import TwitterIcon from "@mui/icons-material/Twitter";
 
 function SocialLinkIcon({ link, icon }: { link: string; icon: any }) {
   return (
-    <>
-      <div className="p-1">
-        <a
-          className="bg-white text-primary p-2 rounded-full"
-          href={link}
-          rel="noopener"
-        >
-          {icon}
-        </a>
-      </div>
-    </>
+    <div className="p-1">
+      <a
+        className="bg-white text-primary p-2 rounded-full"
+        href={link}
+        rel="noopener"
+      >
+        {icon}
+      </a>
+    </div>
   );
 }
 
@@ -34,53 +32,51 @@ const Footer = (props) => {
   props.className ? (footerStyle += props.className) : footerStyle += "shadow-2xl bg-white text-primary";
 
   return (
-    <>
       <footer className={footerStyle}>
         <section className="text-center py-2 mobile:hidden">
           <p>Entre em contato conosco</p>
-          <div>
+        <div className="flex flex-col items-center">
+          <div className="flex items-center my-1">
             <EmailIcon sx={{ mr: 0.5 }} />
-            <a href="mailto:semcomp@icmc.usp.br">
-              Assuntos gerais: semcomp@icmc.usp.br
-            </a>
+            <a href="mailto:semcomp@icmc.usp.br">semcomp@icmc.usp.br</a>
           </div>
-          <div>
+          <div className="flex items-center my-1">
             <EmailIcon sx={{ mr: 0.5 }} />
             <a href="mailto:patrocinio_semcomp@icmc.usp.br">
-              Patrocínio: patrocinio_semcomp@icmc.usp.br
+              patrocinio_semcomp@icmc.usp.br
             </a>
           </div>
-        </section>
-        <section className="text-center py-2">
-          <p>© Semcomp 2023. Todos os direitos reservados.</p>
-        </section>
-        <section className="text-center py-2">
-          <p>Nos siga nas redes sociais</p>
-          <div className="flex justify-center p-2">
-            <SocialLinkIcon
-              link="https://www.facebook.com/Semcomp/"
-              icon={<FacebookIcon />}
-            />
-            <SocialLinkIcon
-              link="https://www.youtube.com/channel/UCPF97UIRX8AnkS9gU907g1Q"
-              icon={<YouTubeIcon />}
-            />
-            <SocialLinkIcon
-              link="https://instagram.com/semcomp"
-              icon={<InstagramIcon />}
-            />
-            <SocialLinkIcon
-              link="https://www.linkedin.com/company/semcomp/"
-              icon={<LinkedInIcon />}
-            />
-            <SocialLinkIcon
-              link="https://twitter.com/semcomp"
-              icon={<TwitterIcon />}
-            />
-          </div>
-        </section>
-      </footer>
-    </>
+        </div>
+      </section>
+      <section className="text-center py-2 text-sm">
+        <p>© Semcomp 2023. Todos os direitos reservados.</p>
+      </section>
+      <section className="text-center py-2 text-sm">
+        <p>Nos siga nas redes sociais</p>
+        <div className="flex justify-center p-2">
+          <SocialLinkIcon
+            link="https://www.facebook.com/Semcomp/"
+            icon={<FacebookIcon />}
+          />
+          <SocialLinkIcon
+            link="https://www.youtube.com/channel/UCPF97UIRX8AnkS9gU907g1Q"
+            icon={<YouTubeIcon />}
+          />
+          <SocialLinkIcon
+            link="https://instagram.com/semcomp"
+            icon={<InstagramIcon />}
+          />
+          <SocialLinkIcon
+            link="https://www.linkedin.com/company/semcomp/"
+            icon={<LinkedInIcon />}
+          />
+          <SocialLinkIcon
+            link="https://twitter.com/semcomp"
+            icon={<TwitterIcon />}
+          />
+        </div>
+      </section>
+    </footer>
   );
 };
 

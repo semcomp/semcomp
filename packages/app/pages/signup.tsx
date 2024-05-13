@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
 import { toast } from "react-toastify";
@@ -17,6 +17,7 @@ import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
 import Link from "next/link";
 import PrivacyPolicyModal from "../components/signup/PrivacyPolicyModal";
+import handler from '../api/handlers';
 
 function SignupPage() {
   const router = useRouter();
@@ -149,6 +150,22 @@ function SignupPage() {
     />,
   ][step];
 
+  //Get the information from 'config' to check if signup is enabled
+  const [openSignup, setOpenSignup] = useState(true);
+  async function fetchData() {
+    try {
+      const config = await handler.config.getConfig().then((res) => res.data);
+      //console.log(config);
+      setOpenSignup(config.openSignup); 
+    } catch (error) {
+        toast.error('Erro ao buscar dados de configuração');
+    }
+  }
+
+  useEffect(() => {
+      fetchData();
+  }, []);
+
   return (
     <div className="flex flex-col justify-between min-h-screen">
       <Navbar />
@@ -169,37 +186,50 @@ function SignupPage() {
                   onRequestClose={() => setIsPrivacyPolicyModalOpen(false)}
                 />
               )}
-            {/* <h1 className="text-xl">Inscrições Encerradas! </h1>
-            <p>Caso você tenha uma conta, clique
-            <Link href="/login">
-              <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
-                 aqui
-              </a>
-            </Link>
-            </p> */}
             
-            <h1 className="text-2xl font-secondary text-center tablet:text-3xl">Cadastrar</h1>
-              <div className="flex items-center justify-center w-full">
-                <div className="w-full max-w-xs ">
-                  <Stepper
-                    numberOfSteps={2}
-                    activeStep={step}
-                    onStepClick={handleStepClick}
-                  />
-                </div>
-              </div>
+            {
+              /* What appears on the screen depends on whether signup is enabled */
+              openSignup?
+              (
+                <>
+                  <h1 className="text-2xl font-secondary text-center tablet:text-3xl">Cadastrar</h1>
+                  <div className="flex items-center justify-center w-full">
+                    <div className="w-full max-w-xs ">
+                      <Stepper
+                        numberOfSteps={2}
+                        activeStep={step}
+                        onStepClick={handleStepClick}
+                      />
+                    </div>
+                  </div>
 
-              {/* Renders the correct form according to the current step */}
-              {stepComponent}
-              <section className="text-center md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base">
-                <p>© Semcomp 2024. Todos os direitos reservados.</p>
-                <p className="mt-3 mb-6 hover:text-primary text-xs cursor-pointer">
-                    { step < 1 && (<span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
-                      <u>Política de Privacidade</u>
-                    </span>
-                  )}
-                </p>
-              </section>
+                  {/* Renders the correct form according to the current step */}
+                  {stepComponent}
+                  <section className="text-center md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base">
+                    <p>© Semcomp 2024. Todos os direitos reservados.</p>
+                    <p className="mt-3 mb-6 hover:text-primary text-xs cursor-pointer">
+                        { step < 1 && (<span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
+                          <u>Política de Privacidade</u>
+                        </span>
+                      )}
+                    </p>
+                  </section>
+                </>
+              ):
+              (
+                <>
+                  <h1 className="text-xl">Inscrições Encerradas! </h1>
+                  <p>Caso você tenha uma conta, clique
+                  <Link href="/login">
+                    <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
+                       aqui
+                    </a>
+                  </Link>
+                  </p>
+                </>
+                
+              )
+            }
           </div>
         </div>
         <div id="info-semcomp" className="md:flex flex-col items-center phone:hidden tablet:hidden w-full justify-center bg-[url('../assets/27-imgs/login-bg.png')] bg-cover bg-no-repeat">

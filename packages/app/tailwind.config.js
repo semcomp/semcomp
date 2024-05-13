@@ -6,14 +6,20 @@ module.exports = {
   ],
   theme: {
     screens: {
-      'phone': {'min': '0px', 'max': '640px'},
-      'tablet': {'min': '640px', 'max': '1000px'},
+      'superdesktop': {'min': '1440px'},
       'desktop': {'min': '1000px', 'max': '1440px'},
+      'tablet': {'min': '640px', 'max': '1000px'},
+      'phone': {'min': '0px', 'max': '640px'},
+      
+      
+      'medphone': {'min': '430px', 'max': '640px'},
       'mobile': {'min': '0px', 'max': '1000px'},
+      ee: "400px",
+      dd: "520px",
       sm: "640px",
       md: "1000px",
-      lg: "1450px",
       xl: "1440px",
+      lg: "1450px",
     },
     colors: {
       primary: "#2E1B5B", 
@@ -36,6 +42,19 @@ module.exports = {
       primary: ["UPHEAVAL"], //Staatliches
       secondary: ["VideoType"], //Poppins
       tertiary: ["VideoType"]
+    },
+    fontSize: {
+      'superlarge': '25px',
+      'large': '20px',
+      'medium': '15px',
+      'small': '14px',
+      'tiny': '13px',
+
+      'title-superlarge': '50px',
+      'title-large': '40px',
+      'title-medium': '35px',
+      'title-small': '30px',
+      'title-tiny': '25px',
     },
     extend: {
       backgroundImage: {
