@@ -16,11 +16,11 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
     let value: any;
     
     if(kitOptions == "Kit") {
-      value = 0.01;
+      value = 18;
     } else if (kitOptions == "Kit e Coffee"){
-      value = 0.01;
+      value = 18;
     } else if (kitOptions == "Coffee"){
-      value = 0.01;
+      value = 18;
     } else {
       value = "Nenhuma opção selecionada";
     }
