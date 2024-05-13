@@ -6,12 +6,25 @@ function Question({ question, answer }) {
   const [isOpen, setIsOpen] = useState(false);
   const answerRef = useRef(null);
 
-  useEffect(() => {
+  // atualizar a altura ao redimensionar a janela
+  const updateHeight = () => {
     if (isOpen) {
       answerRef.current.style.height = answerRef.current.scrollHeight + "px";
     } else {
       answerRef.current.style.height = "0px";
     }
+  };
+
+  useEffect(() => {
+    window.addEventListener('resize', updateHeight);
+
+    return () => {
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, []);
+
+  useEffect(() => {
+    updateHeight();
   }, [isOpen]);
 
   function handleQuestionClick() {
