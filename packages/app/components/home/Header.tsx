@@ -13,6 +13,7 @@ const HomeHeader = (): ReactElement => {
   const [noAbsoluteMarginTop, setNoAbsoluteMarginTop] = useState<number | undefined>();
   const [betaMarginTop, setBetaMarginTop] = useState<number | undefined>();
   const [showBeta, setShowBeta] = useState<boolean>(true);
+  const [showAccessorys, setShowAccessorys] = useState<boolean>(true); 
   
   const [showCounter, setShowCounter] = useState<boolean>(true);
 
@@ -49,7 +50,7 @@ const HomeHeader = (): ReactElement => {
       tempImageWidth = 321;
       tempImageHeight = 65;
       tempNoAbsoluteMarginTop = 250;
-      tempBetaMarginTop = tempNoAbsoluteMarginTop - 290;
+      tempBetaMarginTop = tempNoAbsoluteMarginTop - 280;
       setShowBeta(screenHeight >= 885);
       setShowCounter(screenHeight >= 722);
     } 
@@ -58,7 +59,7 @@ const HomeHeader = (): ReactElement => {
       tempImageWidth = 160.5;
       tempImageHeight = 39.38;
       tempNoAbsoluteMarginTop = 250;
-      tempBetaMarginTop = tempNoAbsoluteMarginTop - 320;
+      tempBetaMarginTop = tempNoAbsoluteMarginTop - 290;
       setShowBeta(screenHeight >= 890);
       setShowCounter(screenHeight >= 622);
     } 
@@ -66,7 +67,7 @@ const HomeHeader = (): ReactElement => {
       tempImageWidth = 160.5;
       tempImageHeight = 39.38;
       tempNoAbsoluteMarginTop = 280;
-      tempBetaMarginTop = tempNoAbsoluteMarginTop - 330;
+      tempBetaMarginTop = tempNoAbsoluteMarginTop - 290;
       setShowBeta(screenHeight >= 890);
       setShowCounter(screenHeight >= 697);
     }
@@ -80,22 +81,29 @@ const HomeHeader = (): ReactElement => {
     }
     if(screenHeight < 885 && screenWidth >= 640 && screenWidth < 1000){
       tempNoAbsoluteMarginTop = 100;
-      tempBetaMarginTop = -1 * (screenHeight - 570) / 2;
+      tempBetaMarginTop = -1 * (screenHeight - 590) / 2;
     }
 
     if(screenHeight < 890 && screenWidth < 640){
       tempNoAbsoluteMarginTop = 140;
-      tempBetaMarginTop = -1 * (screenHeight - 585) / 2;
+      tempBetaMarginTop = -1 * (screenHeight - 640) / 2;
     }
 
     if(screenHeight < 890 && screenWidth < 430){
       tempNoAbsoluteMarginTop = 120;
-      tempBetaMarginTop = -1 * (screenHeight - 530) / 2;
+      tempBetaMarginTop = -1 * (screenHeight - 580) / 2;
     }
 
     if(screenHeight < 890 && screenWidth >= 1400){
       tempNoAbsoluteMarginTop = -100;
-      tempBetaMarginTop = -1 * (screenHeight - 520) / 2;
+      tempBetaMarginTop = -1 * (screenHeight - 540) / 2;
+    }
+
+    if(screenHeight < 620){
+      // deixar showAceessorys = false
+      setShowAccessorys(false);
+    }  else { 
+      setShowAccessorys(true);
     }
 
     // estados com os valores calculados
@@ -120,7 +128,7 @@ const HomeHeader = (): ReactElement => {
         <NavBar bg={" text-primary "} />
         <Sidebar />
       </div>
-
+      <div style={{display: showAccessorys ? 'block' : 'none' }}>
       <section className="
               superdesktop:bg-[url('../assets/27-imgs/ICMCPlate.png')]
               desktop:bg-[url('../assets/27-imgs/ICMCPlate.png')]
@@ -145,7 +153,7 @@ const HomeHeader = (): ReactElement => {
                 absolute right-[0px] bottom-0 h-[145px] w-[639px] 
               "
        ></section>
-
+  </div>
       <div className="text-center" style={{ marginTop: `${noAbsoluteMarginTop}px` }}>
         <div>
         <div

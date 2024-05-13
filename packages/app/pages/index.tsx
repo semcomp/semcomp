@@ -25,24 +25,29 @@ function Home() {
     if (window.location.pathname != router.pathname) {
       router.push(`${window.location.pathname}`);
     }
- 
 
-   // Captura a altura da tela do usuário e ajusta a altura da seção
-   const updateSectionHeight = () => {
-    const screenHeight = window.innerHeight;
-    setSectionHeight(screenHeight < 884 ? screenHeight - 100 : 840);
-  };
+    // Captura a altura da tela do usuário e ajusta a altura da seção
+    const updateSectionHeight = () => {
+      const screenHeight = window.innerHeight;
+      if (screenHeight < 1000) {
+        setSectionHeight(screenHeight - 150);
+      } else if (screenHeight < 884) {
+        setSectionHeight(screenHeight - 100);
+      } else {
+        setSectionHeight(840);
+      }
+    };
 
-  // Chama a função na montagem e ao redimensionar a janela
-  updateSectionHeight();
-  window.addEventListener("resize", updateSectionHeight);
+    // Chama a função na montagem e ao redimensionar a janela
+    updateSectionHeight();
+    window.addEventListener("resize", updateSectionHeight);
 
-  // Remove o listener ao desmontar o componente
-  return () => window.removeEventListener("resize", updateSectionHeight);
-}, []);
+    // Remove o listener ao desmontar o componente
+    return () => window.removeEventListener("resize", updateSectionHeight);
+  }, []);
 
   return (
-    <main className="home  bg-black min-h-screen">
+    <main className="home bg-black min-h-screen">
       <div>
         <section className="
         superdesktop:bg-[url('../assets/27-imgs/bgClouds.png')] 
@@ -51,45 +56,39 @@ function Home() {
         medphone:bg-[url('../assets/27-imgs/littebgClouds.png')] 
         phone:bg-[url('../assets/27-imgs/littebgClouds.png')] 
         bg-repeat">
-        <section>
-            <div className="relative">
-        
-              <div style={{height:`${sectionHeight}px`}} className="relative ">
-                <HomeHeader />
+          <section>
+              <div className="relative">
+                <div style={{height: `${sectionHeight}px`}} className="relative ">
+                  <HomeHeader />
+                </div>
               </div>
-            </div>
+            </section>
           </section>
-        </section>
 
-        <section className="bg-[url('../assets/27-imgs/bgGround.png')] 
-              tablet:bg-[url('../assets/27-imgs/littebgGround.png')] 
+          <section className="bg-[url('../assets/27-imgs/bgGround.png')] 
+                tablet:bg-[url('../assets/27-imgs/littebgGround.png')] 
                 medphone:bg-[url('../assets/27-imgs/littebgGround.png')] 
                 phone:bg-[url('../assets/27-imgs/littebgGround.png')] 
-                bg-repeat
+                bg-repeat p-5">
+            <section className="md:bg-[url('../assets/27-imgs/mediumbgFossils.png')] xl:bg-[url('../assets/27-imgs/bgFossils.png')] bg-no-repeat">
+              <section className="md:bg-[url('../assets/27-imgs/mediumbgRock.png')] xl:bg-[url('../assets/27-imgs/bgRock.png')] bg-no-repeat bg-right">
+                <br/>
+                <br/>
 
-                p-5
-        
-        "
-        >
-          <section className="md:bg-[url('../assets/27-imgs/mediumbgFossils.png')] xl:bg-[url('../assets/27-imgs/bgFossils.png')] bg-no-repeat">
-            <section className="md:bg-[url('../assets/27-imgs/mediumbgRock.png')] xl:bg-[url('../assets/27-imgs/bgRock.png')] bg-no-repeat bg-right">
-              <br/>
-              <br/>
-
-              <About />
-              <Schedule />
-              <FAQ />
-              <br />
-              <br />
-              <section className="pt-[20px] bg-black/40">
-                <Footer />
+                <About />
+                <Schedule />
+                <FAQ />
+                <br />
+                <br />
+                <section className="pt-[20px] bg-black/40">
+                  <Footer />
+                </section>
               </section>
             </section>
           </section>
-        </section>
-      </div>
-    </main>
-  );
-}
+        </div>
+      </main>
+    );
+  }
 
-export default Home;
+  export default Home;
