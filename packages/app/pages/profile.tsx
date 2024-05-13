@@ -330,9 +330,11 @@ function Profile() {
                 ) : (
                   <>
                       <Chip className="mb-4" label="Sem Coffee" disabled={true} />
-                      {!closeSales ? (
-                          <>
-                            <p className="text-sm pb-2">Pague com PIX</p>
+                      { config.openSales ? (
+                        <>
+                        { !closeSales ? (
+                            <>
+                              <p className="text-sm pb-2">Pague com PIX</p>
                             <button
                               onClick={() => {
                               setCoffeeModalOpen(true);
@@ -341,10 +343,16 @@ function Profile() {
                               className="bg-primary text-white p-3 rounded-lg mt-2">
                               Comprar Kit
                             </button>
+                            </>
+                          ) : 
+                          <>
+                            <p className="text-center"> As vendas estão esgotadas! </p>
                           </>
-                        ) : 
+                        }
+                        </>
+                      ) : 
                         <>
-                          <p className="text-center"> As vendas estão esgotadas! </p>
+                          <p className="text-center"> Não há vendas no momento. </p>
                         </>
                       }
                   </>

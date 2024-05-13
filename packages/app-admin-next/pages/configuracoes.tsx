@@ -39,7 +39,7 @@ function Config() {
         setUser: any, semcompApi: SemcompApi
     } = useAppContext();
     
-    const [coffeeActivated, setCoffeeActivated] = useState(false);
+    const [openSales, setOpenSales] = useState(false);
     const [coffeeTotal, setCoffeeTotal] = useState(null);
     const [saveKitOption, setSaveKitOption] = useState(null);
 
@@ -52,7 +52,7 @@ function Config() {
 
             setSaveKitOption(config.kitOption);
             setCoffeeTotal(config.coffeeTotal);
-            setCoffeeActivated(config.coffeeRemaining > 0);
+            setOpenSales(config.openSales);
             setSignup(config.openSignup);
         } catch (error) {
             toast.error('Erro ao buscar dados do coffee');
@@ -74,7 +74,7 @@ function Config() {
         const config = {
             coffeeTotal: coffeeTotal,
             kitOption: saveKitOption,
-
+            openSales: openSales,
         }
         const response = await semcompApi.updateConfig(config);
         toast.success('Salvo com sucesso!');
@@ -87,10 +87,10 @@ function Config() {
     }
 
     // Função para alternar o status do coffee
-    const toggleCoffee = async () => {
+    const toggleSales = async () => {
         const confirmed = window.confirm("Tem certeza de que deseja alterar o status do Coffee?");
         if (confirmed) {
-            setCoffeeActivated(!coffeeActivated);
+            setOpenSales(!openSales);
         }
     };
 
@@ -108,7 +108,6 @@ function Config() {
     const setConfigSignup = async (setSignup) => {
         try {
             const response = await semcompApi.setConfigSignup(setSignup);
-            /* console.log(response); */
         } catch (error) {
             console.error('Erro ao alterar openSignup no banco de dados(configuracoes.tsx):', error);
         }
@@ -132,8 +131,8 @@ function Config() {
                                 onChange={handleQuantityChange}
                                 type={InputType.Number}
                             />
-                            <button className={style.button} onClick={toggleCoffee}>
-                                {coffeeActivated ? 'Desativar' : 'Ativar'} coffee
+                            <button className={style.button} onClick={toggleSales}>
+                                {openSales ? 'Desativar' : 'Ativar'} coffee
                             </button>
                             </div>
                         </div>

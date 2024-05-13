@@ -123,6 +123,18 @@ import PaymentServiceImpl from "../../services/payment-impl.service";
         return handleError(error, next);
       }
     }
+
+    public async setOpenSales(req: Request, res: Response, next: NextFunction) {
+      try {
+        const { openSales } = req.body;
+  
+        const updatedConfig = await configService.setOpenSales(openSales);
+  
+        return res.status(200).json(updatedConfig);
+      } catch (error) {
+        return handleError(error, next);
+      }
+    }
 }
 
 export default new CofigController();

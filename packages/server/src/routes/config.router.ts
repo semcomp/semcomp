@@ -39,4 +39,14 @@ router.post(
   ConfigController.setOpenSignup
 );
 
+router.post(
+  "/open-sales",
+  [
+    body("openSales", "Invalid field 'openSales'").isBoolean(),
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+  ],
+  ConfigController.setOpenSales
+);
+
 export default router;

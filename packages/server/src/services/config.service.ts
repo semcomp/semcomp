@@ -12,7 +12,6 @@ const ConfigService = {
   },
   getOne: async () => {
     const config = await ConfigModel.findOne();
-    console.log('GETONE; ', config);
     return config;
   },
   update: async (config: Config) => {
@@ -42,6 +41,13 @@ const ConfigService = {
   setSwitchBeta: async (switchBeta) => {
     const config = await ConfigModel.findOne();
     config.switchBeta = switchBeta;
+    await config.save();
+
+    return config;
+  },
+  setOpenSales: async (setOpenSales) => {
+    const config = await ConfigModel.findOne();
+    config.openSales = setOpenSales;
     await config.save();
 
     return config;
