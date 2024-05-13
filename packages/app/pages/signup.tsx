@@ -262,9 +262,9 @@ function SignupPage() {
                 href="https://t.me/semcomp_avisos"
                 rel="noopnener"
               >
-                Telegram (https://t.me/semcomp_avisos)para ficarem ligados em
-                tudo!.
+                Telegram (https://t.me/semcomp_avisos) 
               </a>
+              {" "} para ficarem ligados em tudo!.
               <br />
               <br />
               Com carinho, Equipe Semcomp!
