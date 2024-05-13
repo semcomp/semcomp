@@ -124,7 +124,7 @@ export default class PaymentServiceImpl implements PaymentService {
 
     let price;
 
-    if (!kitOption.includes("Coffee")) {
+    if (kitOption.includes("Coffee")) {
       const purchasedCoffee = await this.getPurchasedCoffee();
       if(config.coffeeTotal - purchasedCoffee <= 0){
         throw new HttpError(400, ["Coffees esgotados!"]);
