@@ -98,6 +98,12 @@ class Http {
     return data;
   }
 
+  public async patch(url: string, body?: any): Promise<any> {
+    console.log('body: ', body);
+    const { data } = await this.instance.patch(url, body);
+    return data;
+  }
+
   public async delete(url: string): Promise<any> {
     const { data } = await this.instance.delete(url);
     return data;

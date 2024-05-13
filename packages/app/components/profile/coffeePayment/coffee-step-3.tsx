@@ -12,24 +12,26 @@ import { TShirtSize } from "./coffee-step-2";
 
 function CoffeeStep3({data}: {data: CoffeePaymentData}) {
 
-  const calcValuePayment = (kitOptions) => {data.kitOption
-    let value:any
+  const calcValuePayment = (kitOptions) => {
+    let value: any;
+    
     if(kitOptions == "Só Kit") {
-      value = 65
+      value = 0.01;
     } else if (kitOptions == "Kit + Coffee"){
-      value = 75
+      value = 0.01;
     } else if (kitOptions == "Só Coffee"){
-      value = 35
+      value = 0.01;
     } else {
-      value = "Nenhuma opção selecionada"
+      value = "Nenhuma opção selecionada";
     }
     if(data.withSocialBenefit){
       return value/2;
     }
-    return value
+    
+    return value;
   }
 
-  let valuePayment:any = calcValuePayment(data.kitOption)
+  let valuePayment:any = calcValuePayment(data.kitOption);
 
   if (valuePayment != "Nenhuma opção selecionada"){
     data.withSocialBenefit ?? (valuePayment = valuePayment/2)
@@ -57,8 +59,8 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
       setqrCodeBase64(paymentResponse.qrCodeBase64);
       setqrCodeCopyPaste(paymentResponse.qrCode);
     } catch (error) {
-      toast.error(error?.data?.message[0]);
       console.error(error);
+      toast.error(error?.data?.message[0]);
     }
   }
 

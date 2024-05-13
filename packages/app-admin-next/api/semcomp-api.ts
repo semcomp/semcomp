@@ -15,10 +15,10 @@ import {
   SemcompApiGetGameGroupsResponse, 
   SemcompApiUser, 
   SemcompApiGetAdminUserResponse,
-  SemcompApiGetAdminUserResponse,
   SemcompApiGetTreasureHuntImageResponse,
   SemcompApiCreateTreasureHuntImageRequest,
-  SemcompApiEditTreasureHuntImageRequest 
+  SemcompApiEditTreasureHuntImageRequest, 
+  SemcompApiConfigs
 
 } from "../models/SemcompApiModels";
 import Http from "./http";
@@ -204,6 +204,41 @@ class SemcompApi {
     return this.http.get(`/admin/treasure-hunt-images/qr-code/${id}`);
   }
 
+
+  public async getConfig(): Promise<any> {
+    return this.http.get(`/config`);
+  }
+
+  public async getCoffeeQuantity(): Promise<any> {
+    return this.http.get(`/config/coffee-quantity`);
+  }
+
+  public async getCoffeeTotal(): Promise<any> {
+    return this.http.get(`/config/coffee-total`);
+  }
+
+  public async updateConfig(config: any): Promise<any> {
+    console.log('update config: ', config);
+    return this.http.put(
+      "/config",
+      { config },
+    );
+  }
+
+  public async getCoffeeRemainings(): Promise<any> {
+    return this.http.get(`/config/coffee-remaining`);
+  }
+
+  public async updateCoffeeQuantity(value: Number): Promise<any> {
+    return this.http.put(
+      "/config/coffee-quantitity",
+      { value },
+    );
+  }
+
+  public async setConfigSignup(setSignup): Promise<any>{
+    return this.http.post('/config/open-signup', { openSignup: setSignup});
+  }
 }
 
 export default SemcompApi;

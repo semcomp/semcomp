@@ -1,13 +1,13 @@
 import { CoffeePaymentData } from "./coffee-modal";
 import Input, { InputType } from "../../Input";
+import handler from '../../../api/handlers';
+import { useEffect, useState } from "react";
 
 export enum KitOption {
-  // COMPLETE = "Kit + Coffee", 
+  COMPLETE = "Kit + Coffee", 
   KIT = "Só Kit",
-  // COFFEE = "Só Coffee",
+  COFFEE = "Só Coffee",
 }
-
-const kitOption = Object.values(KitOption);
 
 function CoffeeStep1({
   data,
@@ -16,6 +16,25 @@ function CoffeeStep1({
   data: CoffeePaymentData;
   setData: any;
 }) {
+  const [kitOption, setKitOption] = useState(null);
+
+  async function fetchKitOption () {
+    const config = await handler.config.getConfig().then((res) => res.data);
+    const remainingCoffees = config['coffeeTotal'] - config['coffeeQuantity'];
+    console.log('config', config);
+    console.log('remainingCoffees', remainingCoffees);
+    if(config['kitOption'] === "COMPLETE" && remainingCoffees > 0) {
+      setKitOption( ["Kit + Coffee", "Só Kit", "Só Coffee"] );
+    } else if (config['kitOption'] === "KIT" || (config['kitOption'] === "COMPLETE" && remainingCoffees <= 0)) {
+      setKitOption(["Só Kit"]);
+    } else if (remainingCoffees > 0) {
+      setKitOption( ["Só Coffee"] );
+    }
+  };
+  
+  useEffect(() => {
+    fetchKitOption();
+  }, []);
 
   function handleKitOptionChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
@@ -35,18 +54,19 @@ function CoffeeStep1({
       <br />
         <p>Estudantes com bolsa <b>PAPFE</b> pagam <b>metade</b> do preço em todas as opções acima, basta apresentar o documento PAFPE na próxima etapa.</p>
       <br />
-      <Input
-        className="my-3"
-        label="Opções:"
-        value={data.kitOption}
-        onChange={handleKitOptionChange}
-        choices={kitOption}
-        type={InputType.Select}
-      />
-      {/* <br /> */}
-      {/* <p>Ambas dão direto ao Coffee + Kit</p> */}
-      {/* <br /> */}
-      {/* <p>Os pacotes são limitados</p> */}
+      { kitOption && 
+        <Input
+          className="my-3"
+          label="Opções:"
+          value={data.kitOption}
+          onChange={handleKitOptionChange}
+          choices={kitOption}
+          type={InputType.Select}
+        />
+      } {/* <br /> */}
+        {/* <p>Ambas dão direto ao Coffee + Kit</p> */}
+        {/* <br /> */}
+        {/* <p>Os pacotes são limitados</p> */}
     { (data.kitOption && (data?.kitOption).includes("Coffee")) ? (
       <>
             <br/><h1><strong>Possui alguma restrição alimentar?</strong><br/>Procure a coordenação e indique quais são suas restrições.</h1>

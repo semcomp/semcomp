@@ -5,14 +5,15 @@ import Routes from "../../routes";
 import SemcompLogo from "../../assets/27-imgs/logo.svg";
 import { useAppContext } from "../../libs/contextLib";
 import NavLink from "./nav-link";
+import handler from '../../api/handlers';
 import Image from "next/image";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 
 const Navbar = (props) => {
   const { user } = useAppContext();
   const router = useRouter();
   const isUserLoggedIn = Boolean(user);
-
+  const [openSignup, setOpenSignup] = useState(true);
   const tShirtsFormLink =
     "https://docs.google.com/forms/d/e/1FAIpQLSdBUY4gf8-CKhoXEmZ_bIvovprtGi7KOwNuo2WFcfsejl6a5w/viewform";
 
@@ -21,6 +22,20 @@ const Navbar = (props) => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
   }
+
+  async function fetchData() {
+    try {
+      const config = await handler.config.getConfig().then((res) => res.data);
+      //console.log(config);
+      setOpenSignup(config.openSignup); 
+    } catch (error) {
+        console.log(error);
+    }
+  }
+
+  useEffect(() => {
+      fetchData();
+  }, []);
 
   // Se alguma propriedade de estilo para o background (bg) for passada
   // via props, vai adicionar nos estilos da navbar.
@@ -79,7 +94,7 @@ const Navbar = (props) => {
           </>
         ) : (
           <>
-            {/* <Navlink href={Routes.signup}>Cadastrar</Navlink> */}
+            {/* { <Navlink href={Routes.signup}>Cadastrar</Navlink> } */}
             <Navlink href={Routes.login}>Entrar</Navlink>
           </>
         )}
