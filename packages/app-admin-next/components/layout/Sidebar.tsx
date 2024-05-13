@@ -102,6 +102,8 @@ function Sidebar() {
               && <NavLink title="Caça ao Tesouro" href={Routes.treasureHuntImages}></NavLink>}
             { findRole(adminRole, 'ADMINUSERS') &&
               <NavLink title="Administradores" href={Routes.adminUsers}></NavLink>}
+            { findRole(adminRole, 'CONFIG') &&
+              <NavLink title="Configurações" href={Routes.configuration}></NavLink>}
             {/* <NavLink title="Conquistas" href={Routes.achievements}></NavLink> */}
             {/* adminRole === 0 && <NavLink title="Logs" href={Routes.logs}></NavLink> */}
             {/* adminRole === 0 && <NavLink title="Enviar Email" href={Routes.broadcastEmail}></NavLink> */}
