@@ -55,6 +55,7 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
       const { data: paymentResponse } = await API.coffee.createPayment(
         data.withSocialBenefit, fileName, data.tShirtSize, data.foodOption, data.kitOption
       );
+      console.log("STEP3")
       setqrCodeBase64(paymentResponse.qrCodeBase64);
       setqrCodeCopyPaste(paymentResponse.qrCode);
     } catch (error) {

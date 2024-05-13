@@ -69,15 +69,21 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
   }
 
   async function getInfo() {
-    const paymentInfo = await handler.coffee.getPaymentInfo(user.id).then((res) => res.data);
-    
-    if(paymentInfo) {
-      if (paymentInfo.status === "pending") {
-        setData({...data, ...{ kitOption: paymentInfo.kitOption, withSocialBenefit: paymentInfo.withSocialBenefit }});
-        setCoffeeStep(2);
+    console.log("GET INFO")
+    try{
+      const paymentInfo = await handler.coffee.getPaymentInfo(user.id).then((res) => res.data);
+      
+      if(paymentInfo) {
+        if (paymentInfo.status === "pending") {
+          setData({...data, ...{ kitOption: paymentInfo.kitOption, withSocialBenefit: paymentInfo.withSocialBenefit }});
+          setCoffeeStep(2);
+        }
       }
+      return paymentInfo;
+
+    } catch (error) {
+      console.error(error);
     }
-    return paymentInfo;
   } 
   useEffect(() => {
     const a = getInfo();
