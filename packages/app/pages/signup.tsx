@@ -42,7 +42,7 @@ function SignupPage() {
     isStudent: false,
     course: "",
     disabilities: [],
-    permission: false
+    permission: false,
   });
 
   // This is used to display a spinner on step1's submit button
@@ -235,25 +235,39 @@ function SignupPage() {
         <div id="info-semcomp" className="md:flex flex-col items-center phone:hidden tablet:hidden w-full justify-center bg-[url('../assets/27-imgs/login-bg.png')] bg-cover bg-no-repeat">
           <Card className="max-w-md m-8 px-12 py-20 text-sm font-secondary text-justify bg-white rounded-md">
           <aside className="max-w-base">
-                <p className="text-xl text-center m-0 p-4">Obrigado por se interessar no nosso evento!</p> 
-                <br />A Semcomp é
-                100% construída e pensada por alunos da{" "}
-                <strong>Universidade de São Paulo, do campus São Carlos</strong>,
-                dos cursos de{" "}
-                <strong>Sistemas de informação e Ciências da Computação</strong>.
-                Ela ocorre todo ano no
-                <strong>
-                  {" "}
-                  ICMC - Instituto de Ciências Matemáticas e Computação
-                </strong>
-                , um evento presencial cheio de palestras, minicursos, aprendizado e
-                muita comida.
-                <br />
-                <br />
-                Esperamos que todos vocês gostem e aguardem para mais informações.{" "}
-                <br />
-                <br />
-                Com carinho, Equipe Semcomp!
+          Ficamos muito felizes por se interessar em nosso evento!
+              <br />
+              <br />A Semcomp é 100% construída e pensada por alunos dos cursos
+              dos cursos de<strong> Ciências de Computação</strong>,
+              <strong> Sistemas de Informação</strong> e
+              <strong> Ciência de Dados</strong> do campus
+              <strong> São Carlos da Universidade de São Paulo</strong>. Todo
+              ano realizamos um evento presencial com muitas palestras,
+              minicursos, concursos, interação e muita comida! Ah, E por último
+              mais não menos importante, o nosso Hackathon! Ficou animado?
+              <br />
+              <br />
+              Esperamos que todos se divirtam bastante e tenham o melhor da
+              maior semana de computação do Brasil. Sigam a Semcomp no{" "}
+              <a
+                className="social-links"
+                href="https://instagram.com/semcomp"
+                rel="noopnener"
+              >
+                Instagram (@semcomp)
+              </a>{" "}
+              e no{" "}
+              <a
+                className="social-links"
+                href="https://t.me/semcomp_avisos"
+                rel="noopnener"
+              >
+                Telegram (https://t.me/semcomp_avisos) 
+              </a>
+              {" "} para ficarem ligados em tudo!.
+              <br />
+              <br />
+              Com carinho, Equipe Semcomp!
               </aside>
           </Card>
         </div>
