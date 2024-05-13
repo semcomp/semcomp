@@ -3,22 +3,18 @@ import KitOption from "../lib/constants/kit-option";
 
 export type Config = {
     id?: string;
-    coffeeQuantity: number;
     coffeeTotal: number;
     switchBeta: boolean;
     openSignup: boolean;
     showLogin: boolean;
     kitOption: KitOption;
-    openBuy: boolean;
+    openSales: boolean;
     createdAt?: number;
     updatedAt?: number;
 };
 
 const ConfigSchema = new Mongoose.Schema(
   {
-    coffeeQuantity: {
-      type: Number,
-    },
     coffeeTotal: {
       type: Number,
       required: true,
@@ -35,7 +31,7 @@ const ConfigSchema = new Mongoose.Schema(
         type: Boolean,
         default: false,
     },
-    openBuy: {
+    openSales: {
       type: Boolean,
       default: false,
   },

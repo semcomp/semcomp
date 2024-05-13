@@ -57,7 +57,8 @@ const Handlers = {
   },
   config: {
     getConfig: withNoErrorMessage(() => API.get("/config")),
-  },
+    checkCoffeeTotal: withNoErrorMessage(() => API.get("/config/coffee-total")),
+    checkRemainingCoffee: withNoErrorMessage(() => API.get("/config/coffee-remaining")), },
   coffee: {
     createPayment: (
       withSocialBenefit: boolean,
@@ -72,10 +73,8 @@ const Handlers = {
       foodOption,
       kitOption
     }),
-    checkCoffeeTotal: withNoErrorMessage(() => API.get("/config/coffee-total")),
-    checkCoffeeQuantity: withNoErrorMessage(() => API.get("/config/coffee-quantity")),
-    checkRemainingCoffee: withNoErrorMessage(() => API.get("/config/coffee-remaining")),
-    updateCoffeeQuantity: withNoErrorMessage((value:Number) => API.put("/config/coffee-quantity", value),),
+    getPaymentInfo: withNoErrorMessage((id: string) => API.get(`payments/user-id/${id}`)),
+    getPurchasedCoffees: withNoErrorMessage(() => API.get("payments/purchased-coffees")),
   },
   upload: {
     single: async (file: File) => {

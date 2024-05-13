@@ -4,6 +4,7 @@ import {
   import { handleError } from "../../lib/handle-error";
   import configService from "../../services/config.service";
 import { NextFunction, Request, Response } from "express";
+import PaymentServiceImpl from "../../services/payment-impl.service";
   
   class CofigController {
     public async getOne(req: Request, res: Response, next: NextFunction) {
@@ -48,23 +49,6 @@ import { NextFunction, Request, Response } from "express";
       }
     }
 
-    public async setCoffeeQuantity(req: Request, res: Response, next: NextFunction) {
-      try {
-        handleValidationResult(req);
-        const value = req.body.value;
-
-        const foundConfig = await configService.getOne();
-        foundConfig['coffeeQuantity'] = foundConfig['coffeeQuantity'] + value;
-
-        const updatedEvent = await configService.update({
-          ...foundConfig.toObject(),
-        });
-  
-        return res.status(200).json(updatedEvent);
-      } catch (error) {
-        return handleError(error, next);
-      }
-    }
     public async delete(req: Request, res: Response, next: NextFunction) {
       try {
         handleValidationResult(req);
@@ -83,16 +67,6 @@ import { NextFunction, Request, Response } from "express";
         return handleError(error, next);
       }
     }
-  
-    public async getCoffeeQuantity(req: Request, res: Response, next: NextFunction) {
-      try {
-        const config = await configService.getOne();
-  
-        return res.status(200).json(config.coffeeQuantity);
-      } catch (error) {
-        return handleError(error, next);
-      }
-    }
 
     public async getCoffeeTotal(req: Request, res: Response, next: NextFunction) {
       try {
@@ -107,8 +81,8 @@ import { NextFunction, Request, Response } from "express";
     public async getRemainingCoffee(req: Request, res: Response, next: NextFunction) {
       try {
         const config = await configService.getOne();
-  
-        return res.status(200).json(config.coffeeTotal-config.coffeeQuantity);
+        const purchasedCoffee = await new PaymentServiceImpl(null,null,null,null).getPurchasedCoffee();
+        return res.status(200).json(config.coffeeTotal-purchasedCoffee);
       } catch (error) {
         return handleError(error, next);
       }

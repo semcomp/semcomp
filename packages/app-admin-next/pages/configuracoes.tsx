@@ -41,7 +41,6 @@ function Config() {
     
     const [coffeeActivated, setCoffeeActivated] = useState(false);
     const [coffeeTotal, setCoffeeTotal] = useState(null);
-    const [coffeeQuantity, setCoffeeQuantity] = useState(null);
     const [saveKitOption, setSaveKitOption] = useState(null);
 
     const [openSignup, setSignup] = useState(false);
@@ -53,7 +52,6 @@ function Config() {
 
             setSaveKitOption(config.kitOption);
             setCoffeeTotal(config.coffeeTotal);
-            setCoffeeQuantity(config.coffeeQuantity);
             setCoffeeActivated(config.coffeeRemaining > 0);
             setSignup(config.openSignup);
         } catch (error) {
@@ -134,7 +132,6 @@ function Config() {
                                 onChange={handleQuantityChange}
                                 type={InputType.Number}
                             />
-                            <p>Comprados: {coffeeQuantity}</p>
                             <button className={style.button} onClick={toggleCoffee}>
                                 {coffeeActivated ? 'Desativar' : 'Ativar'} coffee
                             </button>

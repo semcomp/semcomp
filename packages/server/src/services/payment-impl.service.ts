@@ -56,6 +56,11 @@ export default class PaymentServiceImpl implements PaymentService {
     return entity && this.mapEntity(entity);
   }
 
+  public async findByUserId(id: string): Promise<Payment> {
+    const entity = await PaymentModel.findOne({ userId: id });
+    return this.mapEntity(entity);
+  }
+
   public async count(filters?: Partial<Payment>): Promise<number> {
     const count = await PaymentModel.count(filters);
 
@@ -84,6 +89,14 @@ export default class PaymentServiceImpl implements PaymentService {
     return entity && this.mapEntity(entity);
   }
 
+  public async getPurchasedCoffee(): Promise<number> {
+    const getPurchasedCoffee = await PaymentModel.countDocuments({
+      status: { $in: ['approved', 'pending'] },
+      kitOption: { $in: ['Coffee', 'Kit e Coffee'] }
+    });
+    return getPurchasedCoffee;
+  }
+  
   public async createPayment(
     userId: string,
     withSocialBenefit: boolean,
@@ -108,7 +121,8 @@ export default class PaymentServiceImpl implements PaymentService {
 
     if (kitOption.includes("Coffee")) {
       const config = await ConfigService.getOne(); 
-      if(config.coffeeTotal - config.coffeeQuantity <= 0){
+      const purchasedCoffee = await this.getPurchasedCoffee();
+      if(config.coffeeTotal - purchasedCoffee <= 0){
         throw new HttpError(400, ["Coffees esgotados!"]);
       }
     }
@@ -117,7 +131,7 @@ export default class PaymentServiceImpl implements PaymentService {
     } else if (kitOption.includes("Kit")){
       price = 65;
     } else {
-      price = 35;
+      price = 0.01;
     } 
 
     price = withSocialBenefit ? price/2 : price
