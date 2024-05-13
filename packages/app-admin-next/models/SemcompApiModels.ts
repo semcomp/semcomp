@@ -5,9 +5,9 @@ import Status from "../libs/constants/status-treasure-hunt-enum";
 import { PaginationResponse } from "./Pagination";
 
 enum KitOption {
-  COMPLETE = "Kit + Coffee", 
-  KIT = "Só Kit",
-  COFFEE = "Só Coffee",
+  COMPLETE = "Kit e Coffee", 
+  KIT = "Kit",
+  COFFEE = "Coffee",
 }
 export class SemcompApiPaginationRequest {
   private page: number;
@@ -220,13 +220,12 @@ export type SemcompApiEditTreasureHuntImageRequest = SemcompApiCreateTreasureHun
 
 export type SemcompApiConfigs = {
   id?: string;
-  coffeeQuantity: number;
   coffeeTotal: number;
   switchBeta: boolean;
   openSignup: boolean;
   showLogin: boolean;
   kitOption: KitOption;
-  openBuy: boolean;
+  openSales: boolean;
   createdAt?: number;
   updatedAt?: number;
 };

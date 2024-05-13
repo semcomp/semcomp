@@ -32,27 +32,41 @@ import Card from "../components/Card";
 import FundEstudarForm from "../components/profile/fundEstudar";
 import MarkAttendanceModal from "../components/profile/MarkAttendanceModal";
 import { TShirtSize } from "../components/profile/coffeePayment/coffee-step-2";
+import { KitOption } from "../components/profile/coffeePayment/coffee-step-1";
 import Sidebar from "../components/sidebar";
 import Navbar from "../components/navbar/index";
 
 function Profile() {
-  const { user } = useAppContext();
+  const { config } = useAppContext();
   const [eventCount, setEventCount] = useState(null);
   const [userFetched, setUserFetched] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] = useState(false);
-  const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] =
-    useState(false);
+  const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] = useState(false);
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
   const [events, setEvents] = useState([]);
   const [achievements, setAchievements] = useState([]);
-
+  const [closeSales, setCloseSales] = useState(false);
   const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] = useState(false);  // OBSERVAÇÃO: está relacionado a casa do stack overflow
   const [isCoffeeModalOpen, setCoffeeModalOpen] = useState(false);
 
   // const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
   //   useState(true);
 
+  useEffect(() => {
+    getRemainingCoffee();
+  }, []);
+  
+  async function getRemainingCoffee() {
+    try {
+      const response = await API.config.checkRemainingCoffee();
+      setCloseSales(response.data <= 0);
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  };
+  
   async function fetchAchievements() {
     try {
       const response = await API.achievements.getAchievements();
@@ -67,7 +81,6 @@ function Profile() {
     try {
       const response = await API.events.getSubscribables();
       setEvents(response.data);
-      console.log("Events", response.data);
       setEventCount(Object.keys(response.data).length);
     } catch (e) {
       console.error(e);
@@ -300,9 +313,9 @@ function Profile() {
                   </div>
                 }
               </Card>
-              <Card className="flex flex-col items-center p-9 w-full mb-6 bg-white rounded-lg">
+              <Card className="flex flex-col items-center p-9 w-full mb-6">
                 <h1 className="text-xl py-2">
-                Coffee
+                  {KitOption[config.kitOption]}
                 </h1>
                 {userFetched.payment.status === "approved" ? (
                   <>
@@ -316,16 +329,24 @@ function Profile() {
                   </>
                 ) : (
                   <>
-                      {/* <Chip className="mb-4" label="Sem Coffee" disabled={true} /> */}
-                      <p className="text-sm pb-2">Pague com PIX!</p>
-                      <button
-                      onClick={() => {
-                        setCoffeeModalOpen(true);
-                        blockBodyScroll();
-                      }}
-                      className="bg-primary text-white p-3 rounded-lg mt-2">
-                      Comprar Kit
-                    </button>
+                      <Chip className="mb-4" label="Sem Coffee" disabled={true} />
+                      {!closeSales ? (
+                          <>
+                            <p className="text-sm pb-2">Pague com PIX</p>
+                            <button
+                              onClick={() => {
+                              setCoffeeModalOpen(true);
+                              blockBodyScroll();
+                              }}
+                              className="bg-primary text-white p-3 rounded-lg mt-2">
+                              Comprar Kit
+                            </button>
+                          </>
+                        ) : 
+                        <>
+                          <p className="text-center"> As vendas estão esgotadas! </p>
+                        </>
+                      }
                   </>
                 )}
               </Card>

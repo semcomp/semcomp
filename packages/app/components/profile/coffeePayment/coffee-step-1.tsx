@@ -4,9 +4,10 @@ import handler from '../../../api/handlers';
 import { useEffect, useState } from "react";
 
 export enum KitOption {
-  COMPLETE = "Kit + Coffee", 
-  KIT = "Só Kit",
-  COFFEE = "Só Coffee",
+  COMPLETE = "Kit e Coffee", 
+  KIT = "Kit",
+  COFFEE = "Coffee",
+  NONE = "Nenhum",
 }
 
 function CoffeeStep1({
@@ -20,15 +21,14 @@ function CoffeeStep1({
 
   async function fetchKitOption () {
     const config = await handler.config.getConfig().then((res) => res.data);
-    const remainingCoffees = config['coffeeTotal'] - config['coffeeQuantity'];
-    console.log('config', config);
-    console.log('remainingCoffees', remainingCoffees);
+    const purchased = await handler.coffee.getPurchasedCoffees().then((res) => res.data);
+    const remainingCoffees = config['coffeeTotal'] - purchased;  
     if(config['kitOption'] === "COMPLETE" && remainingCoffees > 0) {
-      setKitOption( ["Kit + Coffee", "Só Kit", "Só Coffee"] );
+      setKitOption( ["Kit e Coffee", "Kit", "Coffee"] );
     } else if (config['kitOption'] === "KIT" || (config['kitOption'] === "COMPLETE" && remainingCoffees <= 0)) {
-      setKitOption(["Só Kit"]);
+      setKitOption(["Kit"]);
     } else if (remainingCoffees > 0) {
-      setKitOption( ["Só Coffee"] );
+      setKitOption( ["Coffee"] );
     }
   };
   
@@ -46,7 +46,7 @@ function CoffeeStep1({
       <p>Opções disponíveis para a Semcomp 26:</p>
       <br />
       <ul>
-        {/* <li><b>Kit + Coffee</b>: R$75.00</li> */}
+        {/* <li><b>Kit e Coffee</b>: R$75.00</li> */}
         <li><b>Kit</b>: R$65.00</li>
         {/* <li><b>Coffee</b>: R$35.00</li> */}
       </ul>

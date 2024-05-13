@@ -1,5 +1,6 @@
 import { handleError } from "../lib/handle-error";
 import PaymentService from "../services/payment.service";
+import PaymentServiceImpl from "../services/payment-impl.service";
 
 export default class PaymentController {
   private paymentService: PaymentService;
@@ -35,5 +36,25 @@ export default class PaymentController {
     } catch (error) {
       return handleError(error, next);
     }
+  };
+
+  public async findByUserId(req, res, next) {
+    try {
+      const payment = await await new PaymentServiceImpl(null, null, null, null).findByUserId(req.params.id);
+
+      return res.status(200).json(payment);
+    } catch (error) {
+      return handleError(error, next);
+    }
   }
+
+  public async getPurchasedCoffee(req, res, next) {
+    try {
+      const coffeePurchased = await new PaymentServiceImpl(null, null, null, null).getPurchasedCoffee();
+
+      return res.status(200).json(coffeePurchased);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  };
 }

@@ -12,9 +12,9 @@ import exportToCsv from '../libs/DownloadCsv';
 import InfoCards from '../components/reusable/InfoCards';
 
 enum KitOption {
-  COMPLETE = "Kit + Coffee", 
-  KIT = "Só Kit",
-  COFFEE = "Só Coffee",
+  COMPLETE = "Kit e Coffee", 
+  KIT = "Kit",
+  COFFEE = "Coffee",
 }
 
 type UserData = {
@@ -41,7 +41,6 @@ function mapData(data: SemcompApiUser[]): UserData[] {
   for (const user of data) {
     let paymentStatus = "";
     if (user.payment.status) {
-      console.log(user.payment.status);
       paymentStatus = user.payment.status === PaymentStatus.APPROVED ? "Aprovado" : "Pendente";
     }
 
@@ -105,13 +104,13 @@ function getInfoData(data: SemcompApiUser[]) : InfoData[] {
   
   let coffees = countKitOption(KitOption.COFFEE, data);
   infoData.push({ 
-    "infoTitle": "Só Coffee",
+    "infoTitle": "Coffee",
     "infoValue": coffees,
   })
   
   let kits = countKitOption(KitOption.KIT, data);
   infoData.push({ 
-    "infoTitle": "Só Kit",
+    "infoTitle": "Kit",
     "infoValue": kits,
   })
   
@@ -145,7 +144,6 @@ function UsersTable({
   onRowSelect: (selectedIndexes: number[]) => void,
   allData: PaginationResponse<SemcompApiUser>,
 }) {
-  console.log(allData);
   const infoData: InfoData[] = getInfoData(allData.getEntities());
   
 
