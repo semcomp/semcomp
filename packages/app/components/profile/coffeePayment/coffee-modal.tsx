@@ -73,7 +73,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
     
     if(paymentInfo) {
       if (paymentInfo.status === "pending") {
-        setData({...data, kitOption: paymentInfo.kitOption});
+        setData({...data, ...{ kitOption: paymentInfo.kitOption, withSocialBenefit: paymentInfo.withSocialBenefit }});
         setCoffeeStep(2);
       }
     }
