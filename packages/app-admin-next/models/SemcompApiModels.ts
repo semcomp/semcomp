@@ -5,9 +5,9 @@ import Status from "../libs/constants/status-treasure-hunt-enum";
 import { PaginationResponse } from "./Pagination";
 
 enum KitOption {
-  COMPLETE = "Kit + Coffee", 
-  KIT = "Só Kit",
-  COFFEE = "Só Coffee",
+  COMPLETE = "Kit e Coffee", 
+  KIT = "Kit",
+  COFFEE = "Coffee",
 }
 export class SemcompApiPaginationRequest {
   private page: number;
@@ -39,6 +39,11 @@ export enum PaymentStatus {
   APPROVED = "approved",
 };
 
+export type SemcompApiLocalStorageUser = {
+  id: string,
+  email: string,
+};
+
 export type SemcompApiUser = {
   id: string,
   email: string,
@@ -60,7 +65,17 @@ export type SemcompApiUser = {
   updatedAt: number,
 };
 
+export type SemcompApiAdminUser = {
+  id: string,
+  email: string,
+  adminRole: string[],
+  createdAt: number,
+  updatedAt: number,
+};
+
 export type SemcompApiGetUsersResponse = PaginationResponse<SemcompApiUser>;
+
+export type SemcompApiGetAdminUserResponse = PaginationResponse<SemcompApiAdminUser>;
 
 export type SemcompApiLoginResponse = {
   email: string,
@@ -201,3 +216,16 @@ export type SemcompApiCreateTreasureHuntImageRequest = {
 };
 
 export type SemcompApiEditTreasureHuntImageRequest = SemcompApiCreateTreasureHuntImageRequest;
+
+
+export type SemcompApiConfigs = {
+  id?: string;
+  coffeeTotal: number;
+  switchBeta: boolean;
+  openSignup: boolean;
+  showLogin: boolean;
+  kitOption: KitOption;
+  openSales: boolean;
+  createdAt?: number;
+  updatedAt?: number;
+};

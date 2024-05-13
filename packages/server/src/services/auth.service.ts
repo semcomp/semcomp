@@ -12,6 +12,7 @@ import HttpError from "../lib/http-error";
 import userDisabilityService from "./user-disability.service";
 import UserDisability from "../models/user-disability";
 import emailService from "./email.service";
+import ConfigService from "./config.service";
 
 const tokenService = new JsonWebToken(process.env.JWT_PRIVATE_KEY, "30d");
 
@@ -34,7 +35,14 @@ class AuthService {
   }
 
   public async signup(user: User, disabilities: Disability[]): Promise<User> {
-    throw new HttpError(503, ["Inscrições encerradas!"]);
+
+    const config = await ConfigService.getOne();
+    if(config === undefined){
+      throw new HttpError(401, ["Erro ao acessar as Configs(auth.service.ts)"]);
+    }
+    if(!(config.openSignup)){
+      throw new HttpError(503, ["Inscrições encerradas!"]);
+    }
 
     const foundUser = await userService.findOne({ email: user.email });
     if (foundUser) {
@@ -84,7 +92,7 @@ class AuthService {
       !foundUser.password ||
       !bcrypt.compareSync(password, foundUser.password)
     ) {
-      throw new HttpError(401, []);
+      throw new HttpError(401, ['Usuário não encontrado']);
     }
 
     return foundUser;

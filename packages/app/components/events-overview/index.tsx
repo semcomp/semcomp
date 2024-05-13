@@ -50,7 +50,7 @@ function EventsOverview() {
 
   return (
     <div className="events-overview-component__root">
-      <p className="events-overview-component__title">Eventos</p>
+      <p className="events-overview-component__title text-xl">Eventos</p>
       {/* <div className="events-overview-component__types-container">
         {renderEvents()}
       </div> */}

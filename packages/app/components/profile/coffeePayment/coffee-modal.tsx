@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 import Modal from "../../Modal";
 import Stepper from "../../stepper/Stepper";
 import CoffeeStep1, { KitOption } from "./coffee-step-1";
 import CoffeeStep2, { TShirtSize, FoodOption } from "./coffee-step-2";
 import CoffeeStep3 from "./coffee-step-3";
-import { toast } from "react-toastify";
+import handler from "../../../api/handlers";
+import { useAppContext } from "../../../libs/contextLib";
 
 export type CoffeePaymentData = {
   withSocialBenefit: boolean;
@@ -38,19 +40,23 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
     withSocialBenefit: false,
     socialBenefitFile: null,
     tShirtSize: TShirtSize.M,
-    kitOption: KitOption.KIT,
+    kitOption: KitOption.NONE,
     foodOption: FoodOption.NONE,
   } as CoffeePaymentData);
   
+  const { user } = useAppContext();
+
   function nextCoffeeStep(){
-    if(coffeeStep + 1 === 2){
-      console.log(data.withSocialBenefit);
+    if(coffeeStep + 1 === 1){
+      if(data.kitOption === KitOption.NONE){
+        toast.error("Selecione uma opção!");
+        return;
+      }
+    } else if(coffeeStep + 1 === 2){
       if(data.withSocialBenefit && !data.socialBenefitFile){
         toast.error("Informe um arquivo!");
         return;
       }else if(data.withSocialBenefit){
-        console.log(data.socialBenefitFile);
-
         if(data.withSocialBenefit && !data.socialBenefitFile.name.endsWith(".pdf")){
           toast.error("O arquivo precisa ser um pdf");
           return;
@@ -61,6 +67,20 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
     setCoffeeStep(coffeeStep + 1);
 
   }
+
+  async function getInfo() {
+    const paymentInfo = await handler.coffee.getPaymentInfo(user.id).then((res) => res.data);
+    
+    if(paymentInfo) {
+      if (paymentInfo.status === "pending") {
+        setCoffeeStep(2);
+      }
+    }
+    return paymentInfo;
+  } 
+  useEffect(() => {
+    const a = getInfo();
+  }, []);
 
   const stepComponent = [
     <CoffeeStep1 key={0} data={data} setData={setData}/>,
@@ -73,7 +93,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
       <div className="w-full bg-tertiary text-white text-center text-xl font-bold p-6">
         Pagamento por PIX do Pacote da Semcomp!
       </div>
-      <div className="max-h-lg overflow-y-scroll w-full p-6">
+      <div className="max-h-lg w-full p-6">
         <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} />
         {stepComponent}
         <div className="flex justify-between w-full">

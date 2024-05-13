@@ -6,12 +6,14 @@ class Http {
   private token: string;
   private callbackOnTokenRefresh: CallableFunction;
   private callbackOnBadToken: CallableFunction;
+  private callbackMessageError: CallableFunction;
 
   constructor(
     url: string,
     token: string,
     callbackOnTokenRefresh: CallableFunction,
     callbackOnBadToken: CallableFunction,
+    callbackMessageError: CallableFunction,
   ) {
     this.instance = axios.create({
       baseURL: url,
@@ -20,6 +22,7 @@ class Http {
     this.token = token;
     this.callbackOnTokenRefresh = callbackOnTokenRefresh;
     this.callbackOnBadToken = callbackOnBadToken;
+    this.callbackMessageError = callbackMessageError;
 
     this.configure();
   }
@@ -51,7 +54,11 @@ class Http {
 
   private onResponseError(error: AxiosError): Promise<AxiosError> {
     const response = error.response;
-    if (response && response.status === 401) {
+    const message = (error.response.data as { message: string }).message;
+    
+    if (response && message) {
+      this.callbackMessageError(message[0]);
+    } else if (response && response.status === 401) {
       this.token = null;
       this.callbackOnBadToken();
     }
@@ -88,6 +95,12 @@ class Http {
 
   public async put(url: string, body?: any): Promise<any> {
     const { data } = await this.instance.put(url, body);
+    return data;
+  }
+
+  public async patch(url: string, body?: any): Promise<any> {
+    console.log('body: ', body);
+    const { data } = await this.instance.patch(url, body);
     return data;
   }
 

@@ -1,6 +1,7 @@
 const Routes = {
   home: '/',
   login: '/login',
+  signup: '/cadastro',
   users: '/usuarios',
   tShirts: '/camisetas',
   adminUsers: '/administradores',
@@ -12,6 +13,7 @@ const Routes = {
   houses: '/casas',
   broadcastEmail: '/enviar-email',
   treasureHuntImages: '/caca-tesouro-imagens',
+  configuration: '/configuracoes',
 };
 
 export default Routes;

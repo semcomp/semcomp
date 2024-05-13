@@ -84,7 +84,7 @@ function Login() {
         </form>
         <hr className={style.hr} />
         <p className={style.createAccountLink}>
-          Ainda não tem conta? Crie uma <Link href={Routes.login} className={style.link}>aqui</Link>.
+          Ainda não tem conta? Crie uma <Link href={Routes.signup}><a className={style.link}>aqui</a></Link>.
         </p>
       </div>
     </main>

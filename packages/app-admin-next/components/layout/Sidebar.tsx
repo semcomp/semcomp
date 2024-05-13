@@ -39,19 +39,16 @@ const AppBar = styled(MuiAppBar as any, {
   }),
 }));
 
+function findRole(adminRole: Array<String>, page: String) {
+  if(adminRole){
+    return adminRole.find((s:String) => s === page);
+  }
+
+  return false;
+}
+
 function Sidebar() {
-  
-  const [isGuestUser, setIsGuestUser] = useState(true);
-  const [isGamenightUser, setIsGamenightUser] = useState(false);
-
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if(user.email.startsWith("admin"))
-      setIsGuestUser(false);
-    if(user.email.startsWith("gamenight"))
-      setIsGamenightUser(true);
-  }, []);
-
+  const { adminRole } = useAppContext();
   const { logOut } = useAppContext();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -83,26 +80,47 @@ function Sidebar() {
       open={isOpen}
       onClose={() => setIsOpen(false)}
     >
-      <Box
-        sx={{ width: drawerWidth }}
-        onClick={() => setIsOpen(false)}
-        onKeyDown={() => setIsOpen(false)}
-      >
-        { !isGuestUser && <NavLink title="Usuários" href={Routes.users}></NavLink> }
-        { !isGuestUser && <NavLink title="Camisetas" href={Routes.tShirts}></NavLink>}
-        {/* <NavLink title="Administradores" href={Routes.adminUsers}></NavLink> */}
-        {/* <NavLink title="Conquistas" href={Routes.achievements}></NavLink> */}
-        { <NavLink title="Eventos" href={Routes.events}></NavLink>}
-        { !isGuestUser && <NavLink title="Jogo - Perguntas" href={Routes.gameQuestions}></NavLink>}
-        { !isGuestUser && <NavLink title="Jogo - Grupos" href={Routes.gameGroups}></NavLink>}
-        { (!isGuestUser || isGamenightUser) && <NavLink title="Caça ao Tesouro" href={Routes.treasureHuntImages}></NavLink>}
-        {/* <NavLink title="Logs" href={Routes.logs}></NavLink> */}
-        { !isGuestUser && <NavLink title="Casas" href={Routes.houses}></NavLink>}
-        {/* <NavLink title="Enviar Email" href={Routes.broadcastEmail}></NavLink> */}
-        <button className="w-full bg-black text-white text-center py-3" onClick={handleLogout}>
-          Sair
-        </button>
-      </Box>
+      { adminRole && (
+          <Box
+          sx={{ width: drawerWidth }}
+          onClick={() => setIsOpen(false)}
+          onKeyDown={() => setIsOpen(false)}
+          >
+            { findRole(adminRole, 'USERS') 
+              && <NavLink title="Usuários" href={Routes.users}></NavLink> }
+            { findRole(adminRole, 'TSHIRTS') 
+              && <NavLink title="Camisetas" href={Routes.tShirts}></NavLink>}
+            { findRole(adminRole, 'GAMEQUESTIONS') 
+              && <NavLink title="Jogo - Perguntas" href={Routes.gameQuestions}></NavLink>}
+            { findRole(adminRole, 'GAMEGROUPS') 
+              && <NavLink title="Jogo - Grupos" href={Routes.gameGroups}></NavLink>}
+            { findRole(adminRole, 'HOUSES') 
+              &&  <NavLink title="Casas" href={Routes.houses}></NavLink>}
+            { findRole(adminRole, 'EVENTS') 
+              && <NavLink title="Eventos" href={Routes.events}></NavLink>}
+            { findRole(adminRole, 'TREASUREHUNTIMAGES') 
+              && <NavLink title="Caça ao Tesouro" href={Routes.treasureHuntImages}></NavLink>}
+            { findRole(adminRole, 'ADMINUSERS') &&
+              <NavLink title="Administradores" href={Routes.adminUsers}></NavLink>}
+            { findRole(adminRole, 'CONFIG') &&
+              <NavLink title="Configurações" href={Routes.configuration}></NavLink>}
+            {/* <NavLink title="Conquistas" href={Routes.achievements}></NavLink> */}
+            {/* adminRole === 0 && <NavLink title="Logs" href={Routes.logs}></NavLink> */}
+            {/* adminRole === 0 && <NavLink title="Enviar Email" href={Routes.broadcastEmail}></NavLink> */}
+            <button className="w-full bg-black text-white text-center py-3" onClick={handleLogout}>
+              Sair
+            </button>
+          </Box>
+        ) 
+      ||
+        (<Box
+          sx={{ width: drawerWidth }}
+          onClick={() => setIsOpen(false)}
+          onKeyDown={() => setIsOpen(false)}
+          >
+            <p className='max-w-xl text-center'>Suas permissões não estão definidas, peça para que o administrador adicione-as.</p>
+        </Box>)
+      }
     </Drawer>
   </>);
 }

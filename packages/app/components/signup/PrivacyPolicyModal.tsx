@@ -45,10 +45,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
           práticas de privacidade e das escolhas que você pode fazer, bem como
           direitos que você pode exercer em relação aos Dados Pessoais tratados
           por nós. Se você tiver alguma dúvida sobre o uso de Dados Pessoais,
-          entre em contato com{" "}
-          <a href="https://www.notion.so/semcomp-icmc-usp-br-7ae739c777c84d3c95cd509b54e31ad6">
-            semcomp@icmc.usp.br
-          </a>
+          entre em contato com <strong>semcomp@icmc.usp.br</strong>
           .
         </p>
         <p>
@@ -461,10 +458,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
           Caso pretenda exercer qualquer um dos direitos previstos, inclusive
           retirar o seu consentimento, nesta Política de Privacidade e/ou nas
           Leis de Proteção de Dados, ou resolver quaisquer dúvidas relacionadas
-          ao Tratamento de seus Dados Pessoais, favor contatar-nos em{" "}
-          <a href="https://www.notion.so/semcomp-icmc-usp-br-82a7b27fe9074df1a433cdde80bf7ce1">
-            semcomp@icmc.usp.br
-          </a>
+          ao Tratamento de seus Dados Pessoais, favor contatar-nos em <strong>semcomp@icmc.usp.br</strong>
           .
         </p>
       </div>

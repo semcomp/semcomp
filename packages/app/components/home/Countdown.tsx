@@ -6,10 +6,10 @@ function CountdownNumber({ number, label }: { number: number; label: string }) {
   return (
     <div className="p-2 md:p-4">
       <Card className="flex flex-col items-center justify-center w-14 h-14 md:w-28 md:h-28">
-        <span className="text-2xl md:text-4xl text-white">
+        <span className="text-2xl md:text-4xl text-primary">
           {number.toString().padStart(2, "0")}
         </span>
-        <span className="text-xs md:text-base text-white">{label}</span>
+        <span className="text-xs md:text-base text-primary">{label}</span>
       </Card>
     </div>
   );
@@ -24,7 +24,7 @@ const Countdown = (): ReactElement => {
 
   useEffect(() => {
     setInterval(() => {
-      let eventDate = new Date(2023, 9, 21, 8).getTime();
+      let eventDate = new Date(2024, 4, 25, 8).getTime();
       let difference = eventDate - new Date().getTime();
       if (difference < 1) {
         setTimeUp(true);
@@ -48,7 +48,7 @@ const Countdown = (): ReactElement => {
   }
 
   if (timeUp) {
-    return <p>A Semcomp 26 começou!</p>;
+    return <p></p>;
   }
 
   return (

@@ -8,6 +8,7 @@ import { UserService } from "./user.service";
 import PaymentIntegrationService from "./payment-integration.service";
 import tShirtService from "./t-shirt.service";
 import PaymentService from "./payment.service";
+import ConfigService from "./config.service";
 import TShirtSize from "../lib/constants/t-shirt-size-enum";
 import KitOption from "../lib/constants/kit-option";
 import FoodOption from "../lib/constants/food-option-enum";
@@ -55,6 +56,11 @@ export default class PaymentServiceImpl implements PaymentService {
     return entity && this.mapEntity(entity);
   }
 
+  public async findByUserId(id: string): Promise<Payment> {
+    const entity = await PaymentModel.findOne({ userId: id });
+    return this.mapEntity(entity);
+  }
+
   public async count(filters?: Partial<Payment>): Promise<number> {
     const count = await PaymentModel.count(filters);
 
@@ -83,6 +89,14 @@ export default class PaymentServiceImpl implements PaymentService {
     return entity && this.mapEntity(entity);
   }
 
+  public async getPurchasedCoffee(): Promise<number> {
+    const getPurchasedCoffee = await PaymentModel.countDocuments({
+      status: { $in: ['approved', 'pending'] },
+      kitOption: { $in: ['Coffee', 'Kit e Coffee'] }
+    });
+    return getPurchasedCoffee;
+  }
+  
   public async createPayment(
     userId: string,
     withSocialBenefit: boolean,
@@ -91,7 +105,12 @@ export default class PaymentServiceImpl implements PaymentService {
     foodOption: FoodOption,
     kitOption: KitOption,
   ): Promise<Payment> {
-    throw new HttpError(400, ["Vendas encerradas! Atingimos o limite de vendas."]);
+    const config = await ConfigService.getOne(); 
+    if(config === undefined){
+      throw new HttpError(401, ["Erro ao acessar as Configs(auth.service.ts)"]);
+    } else if(!(config.openSales)){
+      throw new HttpError(503, ["Vendas encerradas!"]);
+    }
 
     const user = await this.userService.findById(userId);
     if (!user) {
@@ -100,20 +119,27 @@ export default class PaymentServiceImpl implements PaymentService {
 
     const tShirt = await tShirtService.findOne({ size: tShirtSize });
     if (!tShirt) {
-      throw new HttpError(400, []);
+      throw new HttpError(400, ['Camisa não encontrada!']);
     }
 
     let price;
 
+    if (kitOption.includes("Coffee")) {
+      const purchasedCoffee = await this.getPurchasedCoffee();
+      if(config.coffeeTotal - purchasedCoffee <= 0){
+        throw new HttpError(400, ["Coffees esgotados!"]);
+      }
+    }
+    
     if(kitOption.includes("Kit") && kitOption.includes("Coffee")) {
       price = 75;
     } else if (kitOption.includes("Kit")){
       price = 65;
     } else {
-      price = 35;
+      price = 0.01;
     } 
 
-    price = withSocialBenefit ? price/2 : price
+    price = withSocialBenefit ? price/2 : price;
 
     const userPayments = await this.find({ userId });
     const approvedPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.APPROVED);

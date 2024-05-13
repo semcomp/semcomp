@@ -1,6 +1,4 @@
 #header {
-  /* background-image: url("../assets/26-imgs/img_geradora_fundo2.PNG"); */
-  background-color: #173A72;
   background-repeat: no-repeat;
   background-position:bottom;
   background-size: cover;
@@ -8,9 +6,52 @@
 #title{
   user-select: none;
 }
+#beta{
+  /* -webkit-text-stroke-width: 0.1px;
+  -webkit-text-stroke-color: yellow; */
+  text-shadow:
+      1px  2px 0 #2E1B5B,
+     -1px -2px 0 #2E1B5B,  
+      1px -2px 0 #2E1B5B,
+     -1px  2px 0 #2E1B5B,
+      0px  2px 0 #2E1B5B,
+      2px  2px 0 #2E1B5B,
+     -2px -1px 0 #2E1B5B,
+      2px  0px 0 #2E1B5B,
+      1px  2px 0 #2E1B5B;
+      animation: pulse_scale 2s infinite;
+      rotate: 350deg;
+}
+
+@keyframes pulse_scale {
+  0% {
+      transform: scale(1);
+  }
+  50% {
+      transform: scale(1.1);
+  }
+  100% {
+      transform: scale(1);
+  }
+}
+
+#inscreva:hover{
+  animation: bounce2 1s infinite;
+}
+
+@keyframes bounce2 {
+  70% { transform:translateY(0%); }
+  80% { transform:translateY(-15%); }
+  90% { transform:translateY(0%); }
+  95% { transform:translateY(-7%); }
+  97% { transform:translateY(0%); }
+  99% { transform:translateY(-3%); }
+  100% { transform:translateY(0); }
+}
+
 #subtitle{
   user-select: none;
-  font-family: Poppins;
+  font-family: VideoType;
 }
 #header-content {
   /* Estava None, deixei flex para manter o texto mesmo na tela fullscreen. */
@@ -21,12 +62,13 @@
 /* Mobiles */
 @media (max-width: 748px) {
   #title{
-    font-size: 100px;
+    font-size: 80px;
     width: 100%;
+    line-height: 1.6;
   }
   #subtitle{
-    font-size: 15px;
-    font-family: Poppins;
+    font-size: 10px;
+    font-family: VideoType;
     text-align: center;
   }
 
@@ -40,19 +82,26 @@
   }
   #subtitle{
     font-size: 25px;
-    font-family: Poppins;
+    font-family: VideoType;
     text-align: center;
   }
 
 }
 
-@media (min-width: 1350px) and (max-width: 1920px) {
+@media (min-width: 1350px) and (max-width: 1520px) {
   #title{
-    font-size: 200px;
+    font-size: 170px;
+  }
+  #beta{
+    top: 110px;
+    left: 450px;
+  }
+  #header-content{
+    margin-top: 60px;
   }
   #subtitle{
     font-size: 30px;
-    font-family: Poppins;
+    font-family: VideoType;
   }
 
   #header-content {
@@ -63,16 +112,21 @@
 
 }
 
-@media (min-width: 1920px) {
+@media (min-width: 1520px) {
   #title{
-    font-size: 250px;
-    height: 210px;
+    font-size: 200px;
+  }
+  #beta{
+    top: 140px;
+    left: 520px;
+  }
+  #header-content{
+    margin-top: 140px;
+    margin-bottom: 50px;
   }
   #subtitle{
     font-size: 40px;
-  }
-  #header {
-    background-color: #4AD2F8;
+    font-family: VideoType;
   }
 }
 

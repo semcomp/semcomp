@@ -80,7 +80,7 @@ function TextInput({
         </>
       ) : (
         <>
-          <p className="pb-4">{label}</p>
+          <p className="pb-2">{label}</p>
           <TextField
             fullWidth
             autoFocus={autofocus}
@@ -190,7 +190,7 @@ function DateInput({
 }) {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <FormControl className="my-3 bg-white" fullWidth>
+      <FormControl className="my-2 bg-white" fullWidth>
         <DateTimePicker
           label={label}
           value={dayjs(value)}

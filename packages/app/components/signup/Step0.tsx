@@ -44,7 +44,7 @@ function Step0({
   }
 
   return (
-    <form className="w-full" onSubmit={handleSubmit}>
+    <form className="w-full font-secondary" onSubmit={handleSubmit}>
       <Input
         tooltip={
           <div style={{ fontSize: "14px" }}>
@@ -60,7 +60,7 @@ function Step0({
           </div>
         }
         autofocus={true}
-        className="my-3"
+        className="my-3 font-secondary"
         label="Nome completo"
         value={name}
         onChange={handleNameChange}
@@ -72,14 +72,14 @@ function Step0({
             Por favor, cadastre um e-mail que você tem acesso e que seja válido.
           </div>
         }
-        className="my-3"
+        className="my-3 font-secondary"
         label="E-mail válido"
         value={email}
         onChange={handleEmailChange}
         type={InputType.Text}
       />
       <Input
-        className="my-3"
+        className="my-3 font-secondary"
         label="Senha"
         value={password}
         onChange={handlePasswordChange}
@@ -94,13 +94,13 @@ function Step0({
       />
       <button
         type="submit"
-        className="bg-primary text-white font-bold w-full py-3 shadow"
+        className="bg-primary text-white font-bold w-full py-3 shadow font-secondary"
       >
         Próximo
       </button>
       <div className="mt-3">
         <Link href="/login">
-          <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
+          <a className="text-blue-700 hover:text-blue-500 visited:bg-none font-secondary">
             Ja tem uma conta?
           </a>
         </Link>

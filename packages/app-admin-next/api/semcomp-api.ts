@@ -14,9 +14,11 @@ import {
   SemcompApiPaginationRequest,
   SemcompApiGetGameGroupsResponse, 
   SemcompApiUser, 
+  SemcompApiGetAdminUserResponse,
   SemcompApiGetTreasureHuntImageResponse,
   SemcompApiCreateTreasureHuntImageRequest,
-  SemcompApiEditTreasureHuntImageRequest 
+  SemcompApiEditTreasureHuntImageRequest, 
+  SemcompApiConfigs
 
 } from "../models/SemcompApiModels";
 import Http from "./http";
@@ -34,6 +36,12 @@ class SemcompApi {
       { email, password },
     );
   }
+  public async signup(email: string, password: string): Promise<SemcompApiLoginResponse> {
+    return this.http.post(
+      "/admin/auth/signup",
+      { email, password },
+    );
+  }
 
   public async getUsers(pagination: PaginationRequest): Promise<SemcompApiGetUsersResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
@@ -45,7 +53,27 @@ class SemcompApi {
 
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
- 
+
+  public async getAdminUsers(pagination: PaginationRequest): Promise<SemcompApiGetAdminUserResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/admin-users", semcompApiPagination);
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  public async getAdminRole(id: String): Promise<any> {
+    const response = await this.http.get("/admin/admin-users/role/" + id);
+
+    return response;
+  }
+
+  public async editAdminRole(id: string, data: any): Promise<any> {
+    return this.http.put(`/admin/admin-users/${id}`, data);
+  }
+
   public async getHouses(pagination: PaginationRequest): Promise<SemcompApiGetHousesResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
       pagination.getPage(),
@@ -53,7 +81,6 @@ class SemcompApi {
     );
 
     const response = await this.http.get("/admin/houses", semcompApiPagination);
-
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
@@ -62,7 +89,6 @@ class SemcompApi {
   }
 
   public async editHouse(houseId, data: SemcompApiCreateHouseRequest): Promise<any> {
-    console.log(houseId, data);
     return this.http.put("/admin/houses/" + houseId, data);
   }
 
@@ -177,6 +203,34 @@ class SemcompApi {
     return this.http.get(`/admin/treasure-hunt-images/qr-code/${id}`);
   }
 
+
+  public async getConfig(): Promise<any> {
+    return this.http.get(`/config`);
+  }
+
+
+  public async getCoffeeTotal(): Promise<any> {
+    return this.http.get(`/config/coffee-total`);
+  }
+
+  public async updateConfig(config: any): Promise<any> {
+   return this.http.put(
+      "/config",
+      { config },
+    );
+  }
+
+  public async getCoffeeRemainings(): Promise<any> {
+    return this.http.get(`/config/coffee-remaining`);
+  }
+
+  public async setConfigSignup(setSignup): Promise<any>{
+    return this.http.post('/config/open-signup', { openSignup: setSignup});
+  }
+
+  public async setConfigSales(setSales): Promise<any>{
+    return this.http.post('/config/open-sales', { openSales: setSales});
+  }
 }
 
 export default SemcompApi;

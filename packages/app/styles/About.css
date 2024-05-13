@@ -2,18 +2,20 @@
 
 @media (min-width: 769px) and (max-width: 1960px) {
   #titulo {
-    font-family: Poppins;
+    font-family: UPHEAVAL;
     
     width: 80%;
     border-radius: 200px;
     padding-top: 0.5%;
     padding-bottom: 0.5%; 
+
+
   }
 
+
   #sponsors {
-    font-family: ZingRust;
-    
-    /* letter-spacing: 0.1em; */
+    font-family: VideoType;
+    letter-spacing: .2rem;
     /* color:#ffffff; */
     /* color:primary; */
     /* text-shadow: -0.06em 0.08em 0 #000000cc; */
@@ -22,11 +24,16 @@
     border-radius: 200px;
     padding-top: 0.5%;
     padding-bottom: 0.5%;  */
+
+    
   }
+
+
 
 }
 
 
 #sponsors {
-  font-family: ZingRust;
+  font-family: VideoType;
+  letter-spacing: .2rem;
 }

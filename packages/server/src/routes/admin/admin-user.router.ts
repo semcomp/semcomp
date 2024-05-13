@@ -36,4 +36,10 @@ router.delete(
   adminUserController.deleteById
 );
 
+router.get(
+  "/role/:id",
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+  adminUserController.findRoleById
+);
+
 export default router;

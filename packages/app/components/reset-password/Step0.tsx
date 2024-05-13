@@ -39,7 +39,7 @@ function Step0(
       />
       <LoadingButton
         type="submit"
-        className="bg-primary text-white font-bold w-full py-3 shadow"
+        className="bg-primary text-white w-full p-3 shadow"
         isLoading={isSendingCode}
       >
         Enviar código por e-mail

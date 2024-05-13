@@ -3,13 +3,29 @@ function AboutBeta() {
     <>
       <section
         id="about"
-        className="flex flex-col items-center text-center p-16 bg-primary"
+        className="flex flex-col items-center text-center md:px-[200px] tablet:px-[100px] phone:px-8"
       >
-        <h1 id="titulo" className="text-4xl font-bold text-white">
+        <h1 id="titulo" className="text-white
+        superdesktop:text-title-superlarge
+        desktop:text-title-large
+        tablet:text-title-medium
+        medphone:text-title-small
+        phone:text-title-tiny
+            text stroke
+        ">
           Sobre a Semcomp
         </h1>
-        <div className="text-xl pt-8 max-w-4xl text-white">
-          <p id="aboutText" className="text-white">
+        <div className="
+        text-white
+
+        superdesktop:text-superlarge
+        desktop:text-large
+        tablet:text-medium
+        medphone:text-small
+        phone:text-tiny
+
+        ">
+          <p id="aboutText" className="text-white font-secondary">
             A <strong>Semcomp</strong> é a{" "}
             <strong>Semana Acadêmica de Computação</strong>, realizada pelos
             cursos de <strong>Ciências de Computação</strong>, de{" "}
@@ -18,7 +34,7 @@ function AboutBeta() {
             Matemáticas e de Computação (ICMC) da USP de São Carlos.
           </p>
           <br />
-          <p> 
+          <p>
             {/* A sua 26ª edição{" "}
             <strong>ocorrerá entre os dias 21 e 27 de Outubro de 2023</strong>{" "} */}
             {/* de forma presencial. */}

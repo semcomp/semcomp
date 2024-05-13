@@ -32,24 +32,41 @@ import Card from "../components/Card";
 import FundEstudarForm from "../components/profile/fundEstudar";
 import MarkAttendanceModal from "../components/profile/MarkAttendanceModal";
 import { TShirtSize } from "../components/profile/coffeePayment/coffee-step-2";
+import { KitOption } from "../components/profile/coffeePayment/coffee-step-1";
+import Sidebar from "../components/sidebar";
+import Navbar from "../components/navbar/index";
 
 function Profile() {
-  const { user } = useAppContext();
+  const { config } = useAppContext();
+  const [eventCount, setEventCount] = useState(null);
   const [userFetched, setUserFetched] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] = useState(false);
-  const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] =
-    useState(false);
+  const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] = useState(false);
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
   const [events, setEvents] = useState([]);
   const [achievements, setAchievements] = useState([]);
-
+  const [closeSales, setCloseSales] = useState(false);
   const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] = useState(false);  // OBSERVAÇÃO: está relacionado a casa do stack overflow
   const [isCoffeeModalOpen, setCoffeeModalOpen] = useState(false);
 
   // const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
   //   useState(true);
 
+  useEffect(() => {
+    getRemainingCoffee();
+  }, []);
+  
+  async function getRemainingCoffee() {
+    try {
+      const response = await API.config.checkRemainingCoffee();
+      setCloseSales(response.data <= 0);
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  };
+  
   async function fetchAchievements() {
     try {
       const response = await API.achievements.getAchievements();
@@ -64,6 +81,7 @@ function Profile() {
     try {
       const response = await API.events.getSubscribables();
       setEvents(response.data);
+      setEventCount(Object.keys(response.data).length);
     } catch (e) {
       console.error(e);
       return [];
@@ -101,6 +119,8 @@ function Profile() {
       if (!children) {
         let warning = document.createElement('p');
         warning.classList.add('no-event-warning');
+        warning.classList.add('text-[#A4A4A4]');
+        warning.classList.add('leading-3');
         warning.innerHTML = 'Voce não se inscreveu em nenhum evento.';
         element.appendChild(warning);
       }
@@ -206,7 +226,7 @@ function Profile() {
   });
 
   return (
-    <div className="min-h-full w-full flex flex-col">
+    <div className="min-h-screen w-full flex flex-col justify-between bg-[url('../assets/27-imgs/profile-bg.png')] bg-cover font-secondary text-sm">
       {isEditModalOpen && (
         <EditProfile
           onRequestClose={() => {
@@ -258,14 +278,15 @@ function Profile() {
           }}
         />
       )}
-      <Header />
-      <main className="p-8 h-full w-full self-center justify-center col-gap-4 min-h-[70vh] md:flex">
+      <Navbar />
+      <Sidebar />
+      <main className="p-8 h-full w-full justify-center col-gap-4 md:flex pt-16">
         <div className="flex flex-col self-start w-full md:w-60">
           {userFetched && (
             <>
-              <Card className="flex flex-col items-center p-9 w-full mb-6">
-                <QRCodeSVG value={userFetched && userFetched.id} />
-                <p className="font-bold text-xl text-center my-3">
+              <Card className="flex flex-col items-center p-9 w-full mb-6 bg-white rounded-lg">
+                {/* <QRCodeSVG value={userFetched && userFetched.id} /> */}
+                <p className="text-xl text-center my-3">
                   {userFetched.name}
                 </p>
                 <p className="text-center">{userFetched.course}</p>
@@ -276,11 +297,11 @@ function Profile() {
                         setIsEditModalOpen(true);
                         blockBodyScroll();
                       }}
-                      className="bg-tertiary text-white p-2 rounded-lg"
+                      className="bg-primary text-white p-2 rounded-lg"
                     >
                       Editar
                     </button>
-                    <button 
+                    {/* <button 
                       onClick={() => {
                         setIsMarkAttendanceModalOpen(true);
                         blockBodyScroll();
@@ -288,51 +309,59 @@ function Profile() {
                       className="bg-primary text-white p-2 rounded-lg my-3"
                     >
                       Scanear Presença 
-                    </button>
+                    </button> */}
                   </div>
                 }
               </Card>
               <Card className="flex flex-col items-center p-9 w-full mb-6">
-                <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-                Kit e Coffee
+                <h1 className="text-xl py-2">
+                  {KitOption[config.kitOption]}
                 </h1>
                 {userFetched.payment.status === "approved" ? (
                   <>
                     <Chip label="OK" color="success" />
-                    {userFetched.payment.tShirtSize !== TShirtSize.NONE && (
+                    {/* {userFetched.payment.tShirtSize !== TShirtSize.NONE && (
                       <Chip
                         className="mt-3"
                         label={`Camiseta ${userFetched.payment.tShirtSize}`}
                       />
-                    )}
-                    {/* <button
-                      onClick={() => {
-                        setCoffeeModalOpen(true);
-                        blockBodyScroll();
-                      }}
-                    >
-                      Ver infos pacote
-                    </button> */}
+                    )} */}
                   </>
                 ) : (
                   <>
                       <Chip className="mb-4" label="Sem Coffee" disabled={true} />
-                      {/* <p style={{ fontSize: "0.9rem" }}>Pague com PIX</p>
-                      <button
-                      onClick={() => {
-                        setCoffeeModalOpen(true);
-                        blockBodyScroll();
-                      }}
-                      className="bg-tertiary text-white p-2 rounded-lg mt-2">
-                      Comprar Kit
-                    </button> */}
+                      { config.openSales ? (
+                        <>
+                        { !closeSales ? (
+                            <>
+                              <p className="text-sm pb-2">Pague com PIX</p>
+                            <button
+                              onClick={() => {
+                              setCoffeeModalOpen(true);
+                              blockBodyScroll();
+                              }}
+                              className="bg-primary text-white p-3 rounded-lg mt-2">
+                              Comprar Kit
+                            </button>
+                            </>
+                          ) : 
+                          <>
+                            <p className="text-center"> As vendas estão esgotadas! </p>
+                          </>
+                        }
+                        </>
+                      ) : 
+                        <>
+                          <p className="text-center"> Não há vendas no momento. </p>
+                        </>
+                      }
                   </>
                 )}
               </Card>
             </>
           )}
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
-          {userFetched && (
+          {/* {userFetched && (
             <Card className="flex flex-col items-center p-9 w-full mb-6">
               <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                 Overflow
@@ -353,59 +382,61 @@ function Profile() {
                   O que é o Overflow?
                 </button>
             </Card>
-          )}
+          )} */}
 
           {/* ABRIR AQUI PARA MOSTRAR INSCRIÇÕES */}
-          <Card className="flex flex-col items-center p-9 w-full mb-6 text-center">
-            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-
-              Inscrições em Eventos
-            </h1>
-            <List className="events-list text-center">
-              {Object.keys(events).map((type) =>
-                events[type].map((e) =>
-                  e.events.map((item) => {
-                    if (item.isSubscribed === true) {
-                      return (
-                        <div key={item.name}>
-                          <ListItem>
-                            <ListItemText
-                              primary={`${type}:  ${item.name}`}
-                              secondary={
-                                item.link ? (
-                                  <a
-                                    target="_blank"
-                                    className="underline text-tertiary text-center pb-4 text-base"
-                                    href={item.link}
-                                  >
-                                    Acesse aqui
-                                  </a>
-                                ) : (
-                                  formatTime(item.startDate, item.endDate)
-                                )
-                              }
-                            />
-                          </ListItem>
-                          <Divider />
-                        </div>
-                      );
-                    }
-                  })
-                )
-              )}
-            </List>
-            {
-              <button
-                onClick={() => {
-                  setIsRegistrationsModalOpen(true);
-                  blockBodyScroll();
-                }}
-                className="bg-tertiary text-white p-2 rounded-lg mt-2"
-              >
-                Inscrever
-              </button>
-            }
-          </Card>
+          { eventCount > 0 &&
+            (
+            <Card className="flex flex-col items-center p-9 w-full mb-6 text-center bg-white rounded-lg">
+              <h1 className="text-xl">
+                Inscrições em Eventos
+              </h1>
+              <List className="events-list text-center">
+                {Object.keys(events).map((type) =>
+                  events[type].map((e) =>
+                    e.events.map((item) => {
+                      if (item.isSubscribed === true) {
+                        return (
+                          <div key={item.name}>
+                            <ListItem>
+                              <ListItemText
+                                primary={`${type}:  ${item.name}`}
+                                secondary={
+                                  item.link ? (
+                                    <a
+                                      target="_blank"
+                                      className="underline text-tertiary text-center pb-4"
+                                      href={item.link}
+                                    >
+                                      Acesse aqui
+                                    </a>
+                                  ) : (
+                                    formatTime(item.startDate, item.endDate)
+                                  )
+                                }
+                              />
+                            </ListItem>
+                            <Divider />
+                          </div>
+                        );
+                      }
+                    })
+                  )
+                )}
+              </List>
+              {
+                <button
+                  onClick={() => {
+                    setIsRegistrationsModalOpen(true);
+                    blockBodyScroll();
+                  }}
+                  className="bg-primary text-white p-2 rounded-lg mt-2"
+                >
+                  Inscrever
+                </button>
+              }
+            </Card>
+          )}
           
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR CONQUISTAS () */}
           {/* <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
@@ -451,10 +482,11 @@ function Profile() {
           </Card> */}
         </div>
         <div>
-          <Card className="flex flex-col items-center p-9 mb-6 max-w-4xl">
+          {/* <Card className="flex flex-col items-center p-9 mb-6 max-w-4xl bg-white rounded-lg">
             <EventsOverview />
-          </Card>
-          <Card className="flex flex-col items-center p-9 mb-6 max-w-4xl">
+          </Card> */}
+          <Card className="flex flex-col items-center p-9 mb-6 max-w-4xl bg-white rounded-lg">
+            <p className="events-overview-component__title text-xl mb-8">Eventos</p>
             <EventsCalendar />
           </Card>
         </div>

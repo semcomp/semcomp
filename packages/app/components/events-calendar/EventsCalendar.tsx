@@ -13,7 +13,7 @@ function sortEvents(e1, e2) {
   return e1.endDate < e2.endDate ? -1 : 1;
 }
 
-const EventsCalendar = () => {
+const EventsCalendar = (props) => {
   const [events, setEvents] = useState([]);
   const [curPage, setCurPage] = useState(0);
 
@@ -40,7 +40,7 @@ const EventsCalendar = () => {
   }, []);
 
   if (events.length === 0) {
-    return <p>Por enquanto não temos nenhum evento divulgado!</p>;
+    return (<p className="text-tertiary bg-white p-3 font-secondary rounded-xl bg-opacity-70 mb-32 mt-8">Por enquanto não temos nenhum evento divulgado!</p>);
   }
 
   let splittedEventList = []; // will be a list of lists
@@ -94,6 +94,7 @@ const EventsCalendar = () => {
     const eventDay = eventList[0].startDate;
     return (
       <EventDay
+        home={props.home}
         dayDate={eventDay}
         key={idx}
         myPage={idx}
@@ -105,6 +106,7 @@ const EventsCalendar = () => {
 
   const curEventList = splittedEventList[curPage].map((event) => (
     <Event
+      home={props.home}
       key={event.id}
       event={event}
       onPresenceSubmited={handlePresenceSubmited}
@@ -113,8 +115,8 @@ const EventsCalendar = () => {
   ));
 
   return (
-    <div className="md:flex lg:w-[650px]">
-      <div className="grid grid-cols-3 sm:flex sm:flex-row md:flex-col">
+    <div className="md:flex tablet:flex tablet:flex-col lg:w-[650px]">
+      <div className="grid grid-cols-3 tablet:flex phone:flex-row tablet:flex-row md:flex md:flex-col">
         {eventDayList}
       </div>
       <div className="basis-5/6">{curEventList}</div>

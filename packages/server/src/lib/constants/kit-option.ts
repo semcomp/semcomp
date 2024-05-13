@@ -1,7 +1,7 @@
 enum KitOption {
-  COMPLETE = "Kit + Coffee", 
-  KIT = "Só Kit",
-  COFFEE = "Só Coffee",
+  COMPLETE = "Kit e Coffee", 
+  KIT = "Kit",
+  COFFEE = "Coffee",
 };
 
 export default KitOption;

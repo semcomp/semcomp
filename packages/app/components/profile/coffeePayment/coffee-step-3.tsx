@@ -12,24 +12,26 @@ import { TShirtSize } from "./coffee-step-2";
 
 function CoffeeStep3({data}: {data: CoffeePaymentData}) {
 
-  const calcValuePayment = (kitOptions) => {data.kitOption
-    let value:any
-    if(kitOptions == "Só Kit") {
-      value = 65
-    } else if (kitOptions == "Kit + Coffee"){
-      value = 75
-    } else if (kitOptions == "Só Coffee"){
-      value = 35
+  const calcValuePayment = (kitOptions) => {
+    let value: any;
+    
+    if(kitOptions == "Kit") {
+      value = 0.01;
+    } else if (kitOptions == "Kit e Coffee"){
+      value = 0.01;
+    } else if (kitOptions == "Coffee"){
+      value = 0.01;
     } else {
-      value = "Nenhuma opção selecionada"
+      value = "Nenhuma opção selecionada";
     }
     if(data.withSocialBenefit){
       return value/2;
     }
-    return value
+    
+    return value;
   }
 
-  let valuePayment:any = calcValuePayment(data.kitOption)
+  let valuePayment:any = calcValuePayment(data.kitOption);
 
   if (valuePayment != "Nenhuma opção selecionada"){
     data.withSocialBenefit ?? (valuePayment = valuePayment/2)
@@ -37,7 +39,7 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
 
   const [qrCodeBase64, setqrCodeBase64] = useState("");
   const [qrCodeCopyPaste, setqrCodeCopyPaste] = useState("");
-  // console.log("cheguei até aqui [antes de getPayment]")
+  
   async function getPayment() {
     try {
       let fileName: string = null;
@@ -53,12 +55,11 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
       const { data: paymentResponse } = await API.coffee.createPayment(
         data.withSocialBenefit, fileName, data.tShirtSize, data.foodOption, data.kitOption
       );
-      console.log("[paymantResponse] output", paymentResponse)
       setqrCodeBase64(paymentResponse.qrCodeBase64);
       setqrCodeCopyPaste(paymentResponse.qrCode);
     } catch (error) {
-      toast.error(error?.data?.message[0]);
       console.error(error);
+      toast.error(error?.data?.message[0]);
     }
   }
 
@@ -66,7 +67,6 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
     getPayment();
   }, []);
 
-  //console.log("cheguei até aqui [antes de copyToClipboard]")
   function copyToClipboard() {
     navigator.clipboard.writeText(qrCodeCopyPaste);
     toast.success("Copiado!");

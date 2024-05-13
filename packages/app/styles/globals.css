@@ -52,6 +52,14 @@
   font-family: "ZingRust";
   src: url("../assets/26-fonts/zing.rust-demo-base.otf");
 }
+@font-face {
+  font-family: "UPHEAVAL";
+  src: url("../assets/27-fonts/upheavtt.ttf");
+}
+@font-face {
+  font-family: "VideoType";
+  src: url("../assets/27-fonts/videotype.ttf");
+}
 
 
 @font-face {
@@ -104,7 +112,7 @@ html,
 }
 
 body::-webkit-scrollbar {
-  width: 0.7em;
+  width: 0em;
 }
  
 body::-webkit-scrollbar-track {
@@ -113,7 +121,7 @@ body::-webkit-scrollbar-track {
  
 body::-webkit-scrollbar-thumb {
   /* background-image: url("../assets/26-imgs/img_geradora_fundo.PNG"); */
-  background-color: #002776;
+  background-color: #2E1B5B;
   /* border-radius: 10px; */
 }
 
@@ -133,10 +141,6 @@ a {
 }
 
 button{
-  font-family: Poppins;
+  font-family: VideoType;
   font-weight: 300;
-}
-
-button.nav{
-  font-family: Poppins;
 }

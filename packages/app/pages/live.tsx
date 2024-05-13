@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/navbar";
+import Sidebar from '../components/sidebar';
 import API from "../api";
 
 import { toast } from "react-toastify";
@@ -127,6 +128,7 @@ function Livestream() {
   return (
     <div className="livestream-page-container">
       <Navbar />
+      <Sidebar />
       <div className="livestream-page-content-container">
         {loading || event ? (
           <>
