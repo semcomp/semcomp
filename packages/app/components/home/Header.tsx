@@ -26,7 +26,7 @@ const HomeHeader = (): ReactElement => {
     // para ajustar a altura dos elementos na pagina ajuste o valor de tempNoAbsoluteMarginTop
 
     // grandão
-    if (screenWidth >= 1440) {
+    if (screenWidth >= 1600) {
       tempImageWidth = 672;
       tempImageHeight = 150;
       tempNoAbsoluteMarginTop = -15;
@@ -36,16 +36,16 @@ const HomeHeader = (): ReactElement => {
     
     } 
     // normal
-    else if (screenWidth >= 1000 && screenWidth < 1440) {
+    else if (screenWidth >= 1000 && screenWidth < 1600) {
       tempImageWidth = 642;
       tempImageHeight = 135;
       tempNoAbsoluteMarginTop = 50;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 123;
       setShowBeta(screenHeight >= 830);
       setShowCounter(screenHeight >= 830);
-        } 
+    } 
+    
     // tablet
-  
     else if (screenWidth >= 640 && screenWidth < 1000) {
       tempImageWidth = 321;
       tempImageHeight = 65;
@@ -55,7 +55,7 @@ const HomeHeader = (): ReactElement => {
       setShowCounter(screenHeight >= 722);
     } 
     // outros
-    else if (screenWidth >= 430) {
+    else if (screenWidth >= 430 && screenWidth < 640) {
       tempImageWidth = 160.5;
       tempImageHeight = 39.38;
       tempNoAbsoluteMarginTop = 250;
@@ -63,7 +63,7 @@ const HomeHeader = (): ReactElement => {
       setShowBeta(screenHeight >= 890);
       setShowCounter(screenHeight >= 622);
     } 
-    else {
+    else if (screenWidth < 430){
       tempImageWidth = 160.5;
       tempImageHeight = 39.38;
       tempNoAbsoluteMarginTop = 280;
@@ -74,7 +74,7 @@ const HomeHeader = (): ReactElement => {
 
     // dando mais suporte a monitores anões
 
-    if(screenHeight < 885 && screenWidth >= 1000 && screenWidth < 1440){
+    if(screenHeight < 885 && screenWidth >= 1000 && screenWidth < 1600){
       tempNoAbsoluteMarginTop = -30;
       tempBetaMarginTop = -1 * (screenHeight - 640) / 2;
 
@@ -91,12 +91,12 @@ const HomeHeader = (): ReactElement => {
 
     if(screenHeight < 890 && screenWidth < 430){
       tempNoAbsoluteMarginTop = 120;
-      tempBetaMarginTop = -1 * (screenHeight - 580) / 2;
+      tempBetaMarginTop = -1 * (screenHeight - 590) / 2;
     }
 
     if(screenHeight < 890 && screenWidth >= 1400){
-      tempNoAbsoluteMarginTop = -100;
-      tempBetaMarginTop = -1 * (screenHeight - 540) / 2;
+      tempNoAbsoluteMarginTop = -40;
+      tempBetaMarginTop = -1 * (screenHeight - 660) / 2;
     }
 
     if(screenHeight < 620){
@@ -110,6 +110,8 @@ const HomeHeader = (): ReactElement => {
     setImageHeight(tempImageHeight);
     setImageWidth(tempImageWidth);
     setNoAbsoluteMarginTop(tempNoAbsoluteMarginTop);
+
+    console.log(tempNoAbsoluteMarginTop);
     setBetaMarginTop(tempBetaMarginTop);
   };
 
@@ -164,10 +166,11 @@ const HomeHeader = (): ReactElement => {
             <h1
               id="beta"
               className="
+                select-none
                 text-secondary
                 font-secondary
                 superdesktop:text-[40px]
-                desktop:text-[35px]
+                desktop:text-[30px]
                 tablet:text-[27px]
                 medphone:text-[15px]
                 phone:text-[15px]
@@ -192,6 +195,7 @@ const HomeHeader = (): ReactElement => {
           </div>
           <h1
             className="
+            select-none
             text-primary
             superdesktop:text-[200px]
             desktop:text-[150px]
@@ -205,6 +209,7 @@ const HomeHeader = (): ReactElement => {
 
         <h2
           className="
+            select-none
             text-primary
             superdesktop:text-[35px]
             desktop:text-[27px]
@@ -247,7 +252,7 @@ const HomeHeader = (): ReactElement => {
             width={imageWidth}
           />
             <Link href="/signup">
-              <button
+              <button style={{ outline: "none" }}
                 className="
                   absolute
                   text-primary

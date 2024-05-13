@@ -3,8 +3,7 @@ function AboutBeta() {
     <>
       <section
         id="about"
-        className="flex flex-col items-center text-center
-        "
+        className="flex flex-col items-center text-center md:px-[200px] tablet:px-[100px] phone:px-8"
       >
         <h1 id="titulo" className="text-white
         superdesktop:text-title-superlarge

@@ -10,11 +10,15 @@
   /* -webkit-text-stroke-width: 0.1px;
   -webkit-text-stroke-color: yellow; */
   text-shadow:
+      1px  2px 0 #2E1B5B,
+     -1px -2px 0 #2E1B5B,  
+      1px -2px 0 #2E1B5B,
+     -1px  2px 0 #2E1B5B,
+      0px  2px 0 #2E1B5B,
       2px  2px 0 #2E1B5B,
-     -2px -2px 0 #2E1B5B,  
-      2px -2px 0 #2E1B5B,
-     -2px  2px 0 #2E1B5B,
-      2px  2px 0 #2E1B5B;
+     -2px -1px 0 #2E1B5B,
+      2px  0px 0 #2E1B5B,
+      1px  2px 0 #2E1B5B;
       animation: pulse_scale 2s infinite;
       rotate: 350deg;
 }

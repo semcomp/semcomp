@@ -75,9 +75,9 @@ function Home() {
               <section className="md:bg-[url('../assets/27-imgs/mediumbgRock.png')] xl:bg-[url('../assets/27-imgs/bgRock.png')] bg-no-repeat bg-right">
                 <br/>
                 <br/>
-                <div className="pr-[80px] pl-[80px]">
+                <div className="py-[80px]">
                 <About />
-                <Schedule />
+                <Schedule home={true}/>
                 <FAQ />
                 </div>
 
