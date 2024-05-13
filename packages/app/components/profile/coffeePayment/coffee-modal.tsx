@@ -15,6 +15,8 @@ export type CoffeePaymentData = {
   tShirtSize: TShirtSize;
   foodOption: FoodOption;
   kitOption: KitOption;
+  qrCodeBase64: string;
+  qrCode: string;
 };
 
 function SemcompButton({ onClick, children, className, ...props }: any) {
@@ -70,10 +72,9 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
 
   async function getInfo() {
     const paymentInfo = await handler.coffee.getPaymentInfo(user.id).then((res) => res.data);
-    
-    if(paymentInfo) {
+   if(paymentInfo) {
       if (paymentInfo.status === "pending") {
-        setData({...data, ...{ kitOption: paymentInfo.kitOption, withSocialBenefit: paymentInfo.withSocialBenefit }});
+        setData({...data, ...paymentInfo });
         setCoffeeStep(2);
       }
     }
