@@ -142,8 +142,7 @@ function Login() {
               <aside className="max-w-base">
               Ficamos muito felizes por se interessar em nosso evento!
               <br />
-              <br />A Semcomp é 100% construída e pensada por alunos
-              dos cursos de<strong> Ciências de Computação</strong>,
+              <br />A Semcomp é 100% construída e pensada por alunos dos cursos de<strong> Ciências de Computação</strong>,
               <strong> Sistemas de Informação</strong> e
               <strong> Ciência de Dados</strong> do campus
               <strong> São Carlos da Universidade de São Paulo</strong>. Todo
