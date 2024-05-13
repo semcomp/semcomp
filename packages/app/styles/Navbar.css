@@ -17,6 +17,11 @@
   }
 }
 
+#home-sidebar{
+  background-color: transparent;
+  box-shadow: none;
+}
+
 /* @media screen and (max-width: 640px){
   .navbar-content img {
     display: none;

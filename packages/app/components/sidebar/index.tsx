@@ -49,7 +49,7 @@ const AppBar = styled(MuiAppBar as any, {
   }),
 }));
 
-function Sidebar() {
+function Sidebar(props) {
     const { user } = useAppContext();
     const router = useRouter();
     const isUserLoggedIn = Boolean(user);
@@ -64,8 +64,8 @@ function Sidebar() {
 
     return (<div className={"md:hidden mobile:flex"}>
         <header>
-        <AppBar position="fixed" style={{ backgroundColor: 'transparent', boxShadow: 'none' }} open={isOpen} color="default">
-            <Toolbar style={{ backgroundColor: 'transparent' }}>
+        <AppBar position="fixed" id={props.id} open={isOpen} color="default">
+            <Toolbar>
             <ThemeProvider theme={theme}>
               <IconButton
                   color="primary"

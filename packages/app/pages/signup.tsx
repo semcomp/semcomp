@@ -155,7 +155,7 @@ function SignupPage() {
       <Sidebar />
       <main className="flex w-full flex-1 md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs mobile:bg-[url('../assets/27-imgs/login-bg.png')] mobile:bg-cover">
         <div className="flex flex-col items-center justify-center md:w-[80%] mobile:w-full">
-          <div className="items-center justify-center font-secondary bg-white h-fit md:w-[70%] md:p-9 tablet:p-12 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">
+          <div className="items-center justify-center font-secondary bg-white h-fit phone:mt-12 md:w-[70%] md:p-9 tablet:p-12 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">
             { step > 0 && (
               <div className="flex items-center justify-center hover:bg-[#E6E6E6] p-2 rounded-lg h-fit w-fit">
                 <ArrowIcon 
@@ -191,7 +191,7 @@ function SignupPage() {
 
               {/* Renders the correct form according to the current step */}
               {stepComponent}
-              <section className="text-center md:pt-12 tablet:pt-20 phone:pt-8">
+              <section className="text-center md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base">
                 <p>© Semcomp 2024. Todos os direitos reservados.</p>
                 <p className="mt-3 mb-6 hover:text-primary text-xs cursor-pointer">
                     { step < 1 && (<span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>

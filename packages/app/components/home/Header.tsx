@@ -39,7 +39,7 @@ const HomeHeader = (): ReactElement => {
     >
       <div className="w-full z-4">
         <NavBar bg={" text-primary "} />
-        <Sidebar />
+        <Sidebar id={ "home-sidebar" } />
       </div>
 
       {!isMobile ? (

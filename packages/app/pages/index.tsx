@@ -61,7 +61,7 @@ function Home() {
               <br />
               <br />
               <section className="pt-[20px] bg-black/40">
-                <Footer />
+                <Footer className={"text-white"}/>
               </section>
             </section>
           </section>
