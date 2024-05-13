@@ -69,15 +69,18 @@ function Home() {
                 tablet:bg-[url('../assets/27-imgs/littebgGround.png')] 
                 medphone:bg-[url('../assets/27-imgs/littebgGround.png')] 
                 phone:bg-[url('../assets/27-imgs/littebgGround.png')] 
-                bg-repeat p-5">
+                bg-repeat 
+               ">
             <section className="md:bg-[url('../assets/27-imgs/mediumbgFossils.png')] xl:bg-[url('../assets/27-imgs/bgFossils.png')] bg-no-repeat">
               <section className="md:bg-[url('../assets/27-imgs/mediumbgRock.png')] xl:bg-[url('../assets/27-imgs/bgRock.png')] bg-no-repeat bg-right">
                 <br/>
                 <br/>
-
+                <div className="pr-[80px] pl-[80px]">
                 <About />
                 <Schedule />
                 <FAQ />
+                </div>
+
                 <br />
                 <br />
                 <section className="pt-[20px] bg-black/40">
