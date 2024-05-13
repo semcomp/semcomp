@@ -142,14 +142,14 @@ function Login() {
               <aside className="max-w-base">
               Ficamos muito felizes por se interessar em nosso evento!
               <br />
-              <br />A Semcomp é 100% construída e pensada por alunos dos cursos
+              <br />A Semcomp é 100% construída e pensada por alunos
               dos cursos de<strong> Ciências de Computação</strong>,
               <strong> Sistemas de Informação</strong> e
               <strong> Ciência de Dados</strong> do campus
               <strong> São Carlos da Universidade de São Paulo</strong>. Todo
               ano realizamos um evento presencial com muitas palestras,
-              minicursos, concursos, interação e muita comida! Ah, E por último
-              mais não menos importante, o nosso Hackathon! Ficou animado?
+              minicursos, concursos, interação e muita comida! Ah, e por último
+              mas não menos importante, o nosso Hackathon! Ficou animado?
               <br />
               <br />
               Esperamos que todos se divirtam bastante e tenham o melhor da
@@ -172,7 +172,7 @@ function Login() {
               {" "} para ficarem ligados em tudo!.
               <br />
               <br />
-              Com carinho, Equipe Semcomp!
+              Com carinho, equipe Semcomp!
               </aside>
             </Card>
           </div>

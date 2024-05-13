@@ -42,22 +42,27 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
   
   async function getPayment() {
     try {
-      let fileName: string = null;
-      if (data.socialBenefitFile) {
-        const { data: uploadResponse } = await API.upload.single(data.socialBenefitFile);
-        fileName = uploadResponse.fileName;
+      console.log("CREATE PAYMENT")
+      if(!data['id']){
+        let fileName: string = null;
+        if (data.socialBenefitFile) {
+          const { data: uploadResponse } = await API.upload.single(data.socialBenefitFile);
+          fileName = uploadResponse.fileName;
+        }
+
+        // if(data.kitOption === KitOption.COFFEE){
+        //   data.tShirtSize = TShirtSize.NONE;
+        // }
+
+        const { data: paymentResponse } = await API.coffee.createPayment(
+          data.withSocialBenefit, fileName, data.tShirtSize, data.foodOption, data.kitOption
+        );
+        setqrCodeBase64(paymentResponse.qrCodeBase64);
+        setqrCodeCopyPaste(paymentResponse.qrCode);
+      } else {
+        setqrCodeBase64(data['qrCodeBase64']);
+        setqrCodeCopyPaste(data['qrCode']);
       }
-
-      // if(data.kitOption === KitOption.COFFEE){
-      //   data.tShirtSize = TShirtSize.NONE;
-      // }
-
-      const { data: paymentResponse } = await API.coffee.createPayment(
-        data.withSocialBenefit, fileName, data.tShirtSize, data.foodOption, data.kitOption
-      );
-      console.log("STEP3")
-      setqrCodeBase64(paymentResponse.qrCodeBase64);
-      setqrCodeCopyPaste(paymentResponse.qrCode);
     } catch (error) {
       console.error(error);
       toast.error(error?.data?.message[0]);
