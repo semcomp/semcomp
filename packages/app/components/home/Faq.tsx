@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Linkify from "react-linkify";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 function Question({ question, answer }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,15 +21,21 @@ function Question({ question, answer }) {
   return (
     <div className="bg-white text-grayDark p-2">
       <button
-        className="text-left w-full p-2 shadow"
+        className="text-left w-full p-2 shadow flex justify-between items-center focus:outline-none"
         onClick={handleQuestionClick}
       >
-        {question}
+        <span>{question}</span>
+        <ExpandMoreIcon
+          className={`transition-transform duration-500 ease-in-out ${
+            isOpen ? "rotate-180" : ""
+          }`}
+          style={{ transition: "transform 0.5s ease" }}
+        />
       </button>
       <div
         ref={answerRef}
         className="text-black transition-all overflow-hidden text-left font-secondary font-light"
-        style={{ height: "0px" }}
+        style={{ height: "0px", transition: "height 0.5s ease" }}
       >
         <div className="p-4">
           <p>
