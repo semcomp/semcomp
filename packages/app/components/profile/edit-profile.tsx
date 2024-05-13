@@ -98,7 +98,7 @@ function EditProfile({ onRequestClose }) {
             type={InputType.Text}
           />
           <LoadingButton
-            className="w-full py-2 px-8 rounded-xl text-white bg-primary mb-2"
+            className="w-full py-4 px-8 rounded-xl text-white bg-primary mb-2"
             type="submit"
             isLoading={isUpdating}
           >
@@ -107,7 +107,7 @@ function EditProfile({ onRequestClose }) {
         </form>
       </div>
       <button
-        className="bg-[#F24444] text-white pb-3 px-6 mt-10 mb-6 rounded-xl"
+        className="bg-[#F24444] text-white p-3 px-6 mt-8 mb-6 rounded-xl"
         type="button"
         onClick={onRequestClose}
       >
