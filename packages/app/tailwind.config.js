@@ -43,6 +43,19 @@ module.exports = {
       secondary: ["VideoType"], //Poppins
       tertiary: ["VideoType"]
     },
+    fontSize: {
+      'superlarge': '25px',
+      'large': '20px',
+      'medium': '15px',
+      'small': '14px',
+      'tiny': '13px',
+
+      'title-superlarge': '50px',
+      'title-large': '40px',
+      'title-medium': '35px',
+      'title-small': '30px',
+      'title-tiny': '25px',
+    },
     extend: {
       backgroundImage: {
         'sky': "url('/assets/27-imgs/login-bg.png')",

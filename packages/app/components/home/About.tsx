@@ -3,30 +3,28 @@ function AboutBeta() {
     <>
       <section
         id="about"
-        className="flex flex-col items-center text-center p-[25px]
+        className="flex flex-col items-center text-center
         "
       >
         <h1 id="titulo" className="text-white
-            superdesktop:text-[50px]
-            desktop:text-[40px]
-            tablet:text-[30px]
-            medphone:text-[20px]
-            phone:text-[20px]
+        superdesktop:text-title-superlarge
+        desktop:text-title-large
+        tablet:text-title-medium
+        medphone:text-title-small
+        phone:text-title-tiny
+            text stroke
         ">
           Sobre a Semcomp
         </h1>
         <div className="
         text-white
 
-        superdesktop:text-[25px]
-        desktop:text-[20px]
-        tablet:text-[15px]
-        medphone:text-[13px]
-        phone:text-[13px]
+        superdesktop:text-superlarge
+        desktop:text-large
+        tablet:text-medium
+        medphone:text-small
+        phone:text-tiny
 
-
-
-        
         ">
           <p id="aboutText" className="text-white font-secondary">
             A <strong>Semcomp</strong> é a{" "}

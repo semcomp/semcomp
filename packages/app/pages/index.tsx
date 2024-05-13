@@ -65,7 +65,12 @@ function Home() {
               tablet:bg-[url('../assets/27-imgs/littebgGround.png')] 
                 medphone:bg-[url('../assets/27-imgs/littebgGround.png')] 
                 phone:bg-[url('../assets/27-imgs/littebgGround.png')] 
-        bg-repeat">
+                bg-repeat
+
+                p-5
+        
+        "
+        >
           <section className="md:bg-[url('../assets/27-imgs/mediumbgFossils.png')] xl:bg-[url('../assets/27-imgs/bgFossils.png')] bg-no-repeat">
             <section className="md:bg-[url('../assets/27-imgs/mediumbgRock.png')] xl:bg-[url('../assets/27-imgs/bgRock.png')] bg-no-repeat bg-right">
               <br/>

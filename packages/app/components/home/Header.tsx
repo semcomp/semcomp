@@ -13,6 +13,7 @@ const HomeHeader = (): ReactElement => {
   const [noAbsoluteMarginTop, setNoAbsoluteMarginTop] = useState<number | undefined>();
   const [betaMarginTop, setBetaMarginTop] = useState<number | undefined>();
   const [showBeta, setShowBeta] = useState<boolean>(true);
+  
   const [showCounter, setShowCounter] = useState<boolean>(true);
 
 
@@ -26,7 +27,7 @@ const HomeHeader = (): ReactElement => {
     // grandão
     if (screenWidth >= 1440) {
       tempImageWidth = 672;
-      tempImageHeight = 177.5;
+      tempImageHeight = 150;
       tempNoAbsoluteMarginTop = -15;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 85;
       setShowBeta(screenHeight >= 817);
@@ -36,7 +37,7 @@ const HomeHeader = (): ReactElement => {
     // normal
     else if (screenWidth >= 1000 && screenWidth < 1440) {
       tempImageWidth = 642;
-      tempImageHeight = 157.5;
+      tempImageHeight = 135;
       tempNoAbsoluteMarginTop = 50;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 123;
       setShowBeta(screenHeight >= 830);
@@ -46,7 +47,7 @@ const HomeHeader = (): ReactElement => {
   
     else if (screenWidth >= 640 && screenWidth < 1000) {
       tempImageWidth = 321;
-      tempImageHeight = 78.75;
+      tempImageHeight = 65;
       tempNoAbsoluteMarginTop = 250;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 290;
       setShowBeta(screenHeight >= 885);
@@ -68,30 +69,33 @@ const HomeHeader = (): ReactElement => {
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 330;
       setShowBeta(screenHeight >= 890);
       setShowCounter(screenHeight >= 697);
-
-
-
     }
 
     // dando mais suporte a monitores anões
 
-    if(screenHeight < 830 && screenWidth >= 1000 && screenWidth < 1440){
-      tempBetaMarginTop = -1 * (screenHeight - 770) / 2;
+    if(screenHeight < 885 && screenWidth >= 1000 && screenWidth < 1440){
+      tempNoAbsoluteMarginTop = -30;
+      tempBetaMarginTop = -1 * (screenHeight - 640) / 2;
+
     }
     if(screenHeight < 885 && screenWidth >= 640 && screenWidth < 1000){
-      tempBetaMarginTop = -1 * (screenHeight - 850) / 2;
+      tempNoAbsoluteMarginTop = 100;
+      tempBetaMarginTop = -1 * (screenHeight - 570) / 2;
     }
 
     if(screenHeight < 890 && screenWidth < 640){
-      tempBetaMarginTop = -1 * (screenHeight - 810) / 2;
+      tempNoAbsoluteMarginTop = 140;
+      tempBetaMarginTop = -1 * (screenHeight - 585) / 2;
     }
 
     if(screenHeight < 890 && screenWidth < 430){
-      tempBetaMarginTop = -1 * (screenHeight - 840) / 2;
+      tempNoAbsoluteMarginTop = 120;
+      tempBetaMarginTop = -1 * (screenHeight - 530) / 2;
     }
 
     if(screenHeight < 890 && screenWidth >= 1400){
-      tempBetaMarginTop = -1 * (screenHeight - 730) / 2;
+      tempNoAbsoluteMarginTop = -100;
+      tempBetaMarginTop = -1 * (screenHeight - 520) / 2;
     }
 
     // estados com os valores calculados
