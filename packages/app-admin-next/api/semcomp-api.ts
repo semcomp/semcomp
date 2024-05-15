@@ -66,7 +66,7 @@ class SemcompApi {
 
   public async getAdminRole(id: String): Promise<any> {
     const response = await this.http.get("/admin/admin-users/role/" + id);
-
+    console.log('response no api: ', response);
     return response;
   }
 
