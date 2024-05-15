@@ -143,4 +143,4 @@ function AdminUsers() {
   </>);
 }
 
-export default RequireAuth(AdminUsers);
+export default RequireAuth(AdminUsers, "ADMINUSERS");

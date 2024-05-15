@@ -56,7 +56,7 @@ class Http {
     const response = error.response;
     let message = '';
 
-    if (error.response.data) {
+    if (response) {
       message = (error.response.data as { message: string }).message;      
     }
     
