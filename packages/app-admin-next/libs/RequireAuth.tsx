@@ -8,22 +8,17 @@ import { useAppContext } from './contextLib';
 import SemcompApi from '../api/semcomp-api';
 import { SemcompApiAdminUser } from '../models/SemcompApiModels';
 
-const RequireAuth = (WrappedComponent) => {
+const RequireAuth = (WrappedComponent, nameComponent) => {
   return (props) => {
     const { user, semcompApi }: { user: SemcompApiAdminUser, semcompApi: SemcompApi } = useAppContext();
     const [rolesLoaded, setRolesLoaded] = useState(false); 
     const router = useRouter();
 
-    const nameComp = WrappedComponent.name.toUpperCase();
-    console.log('o que é o wrappedComponent?\n\n\n\n', WrappedComponent,'\n\n\n\n');
-    console.log('nome componente; ', WrappedComponent.name);
-
     const fetchRoles = async () => {
       if (user) {
         const roles = await semcompApi.getAdminRole(user.id);
-        console.log('roles: ', roles);
-        console.log('home === ', nameComp === 'HOME')
-        if (nameComp !== "HOME" && !roles.includes(nameComp)) {
+
+        if (nameComponent !== "HOME" && !roles.includes(nameComponent)) {
           toast.error("Você não possui permissão para acessar a essa página.");
           router.push(Routes.home);
         }
@@ -33,13 +28,11 @@ const RequireAuth = (WrappedComponent) => {
 
     useEffect(() => {
       if (semcompApi !== null) {
-        console.log('nome componente antes fetchRoles: ', nameComp);
-
         fetchRoles();
       }
     }, [semcompApi]);
 
-    if (typeof window !== "undefined" && (rolesLoaded || nameComp === "HOME")) {
+    if (typeof window !== "undefined" && (rolesLoaded || nameComponent === "HOME")) {
       if (!user) {
         toast.error("Sua sessão expirou. Por favor, faça login novamente");
         router.push(Routes.login);

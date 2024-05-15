@@ -136,4 +136,4 @@ function GameQuestions() {
   </>);
 }
 
-export default RequireAuth(GameQuestions);
+export default RequireAuth(GameQuestions, "GAMEQUESTIONS");

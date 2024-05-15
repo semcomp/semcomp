@@ -149,4 +149,4 @@ function TShirts() {
   </>);
 }
 
-export default RequireRootAuth(TShirts);
+export default RequireRootAuth(TShirts, "CAMISETAS");

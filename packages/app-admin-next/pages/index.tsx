@@ -27,4 +27,4 @@ const Home: NextPage = () => {
   )
 }
 
-export default RequireAuth(Home);
+export default RequireAuth(Home, "HOME");

@@ -180,4 +180,4 @@ function Config() {
     );
 }
 
-export default RequireAuth(Config);
+export default RequireAuth(Config, "CONFIGURACOES");

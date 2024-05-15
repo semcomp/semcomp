@@ -158,4 +158,4 @@ function GameGroups() {
   );
 }
 
-export default RequireAuth(GameGroups);
+export default RequireAuth(GameGroups, "GAMEGROUPS");

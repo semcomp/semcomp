@@ -131,4 +131,4 @@ function TreasureHuntImages() {
   </>);
 }
 
-export default RequireAuth(TreasureHuntImages);
+export default RequireAuth(TreasureHuntImages, "TREASUREHUNTIMAGES");
