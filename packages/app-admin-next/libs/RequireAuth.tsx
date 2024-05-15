@@ -13,23 +13,24 @@ const RequireAuth = (WrappedComponent) => {
     const { user, semcompApi }: { user: SemcompApiAdminUser, semcompApi: SemcompApi } = useAppContext();
     const [rolesLoaded, setRolesLoaded] = useState(false); 
     const router = useRouter();
+
     const nameComp = WrappedComponent.name.toUpperCase();
+    const fetchRoles = async () => {
+      if (user) {
+        const roles = await semcompApi.getAdminRole(user.id);
+        if (nameComp !== "HOME" && !roles.includes(nameComp)) {
+          toast.error("Você não possui permissão para acessar a essa página.");
+          router.push(Routes.home);
+        }
+        setRolesLoaded(true);
+      }
+    };
 
     useEffect(() => {
-      const fetchRoles = async () => {
-        if (user) {
-          const roles = await semcompApi.getAdminRole(user.id);
-          if (typeof window !== "undefined" && nameComp !== "HOME" && !!roles && !roles.includes(nameComp)) {
-            toast.error("Você não possui permissão para acessar a essa página.");
-            router.push(Routes.home);
-            return;
-          }
-          setRolesLoaded(true);
-        }
+      if (semcompApi !== null) {
+        fetchRoles();
       }
-
-      fetchRoles();
-    }, [user, semcompApi]);
+    }, [semcompApi]);
 
     if (typeof window !== "undefined" && (rolesLoaded || nameComp === "HOME")) {
       if (!user) {

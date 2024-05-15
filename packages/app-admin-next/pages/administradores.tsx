@@ -58,20 +58,19 @@ function AdminUsers() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  let isMounted = true;
 
   async function fetchData() {
     try {
       setIsLoading(true);
       const response = await semcompApi.getAdminUsers(pagination);
+      if (!isMounted) return;
+      
       setData(response);
     } catch (error) {
       console.error(error);
     }
   }
-
-  function formatAdminRoles(roles: string[]) {
-    
-  }    
   
   async function handleRowClick(index: number) {  
     const admins = data.getEntities(); 
@@ -104,7 +103,13 @@ function AdminUsers() {
   }
 
   useEffect(() => {
-    fetchData();
+    if (isMounted) {
+      fetchData();
+    }
+
+    return () => {
+      isMounted = false;
+    }
   }, []);
 
   useEffect(() => {
