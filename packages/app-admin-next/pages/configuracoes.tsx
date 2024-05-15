@@ -40,8 +40,8 @@ function Config() {
     } = useAppContext();
     
     const [openSales, setOpenSales] = useState(false);
-    const [coffeeTotal, setCoffeeTotal] = useState(null);
-    const [saveKitOption, setSaveKitOption] = useState(null);
+    const [coffeeTotal, setCoffeeTotal] = useState(0);
+    const [saveKitOption, setSaveKitOption] = useState("COFFEE");
 
     const [openSignup, setSignup] = useState(false);
     
@@ -96,7 +96,7 @@ function Config() {
 
     function handleQuantityChange(event: React.ChangeEvent<HTMLInputElement>) {
         const value = event.target.value;
-        setCoffeeTotal(value);
+        setCoffeeTotal(Number(value));
     }
     
     function handleKitOptionChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -180,4 +180,4 @@ function Config() {
     );
 }
 
-export default RequireAuth(Config, "CONFIGURACOES");
+export default RequireAuth(Config, "CONFIG");

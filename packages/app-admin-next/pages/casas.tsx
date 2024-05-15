@@ -150,4 +150,4 @@ function Houses() {
   </>);
 }
 
-export default RequireAuth(Houses, "CASAS");
+export default RequireAuth(Houses, "HOUSES");

@@ -262,4 +262,4 @@ function Users() {
   </>);
 }
 
-export default RequireAuth(Users, "USUARIOS");
+export default RequireAuth(Users, "USERS");

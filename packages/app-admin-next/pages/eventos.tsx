@@ -257,4 +257,4 @@ function Events() {
   );
 }
 
-export default RequireAuth(Events, "EVENTOS");
+export default RequireAuth(Events, "EVENTS");

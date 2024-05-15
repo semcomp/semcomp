@@ -31,7 +31,6 @@ function TShirtsTable({
   onRowSelect: (selectedIndexes: number[]) => void,
 }) {
   const newData: TShirtData[] = [];
-  console.log('data: ', data);
   for (const tShirt of data.getEntities()) {
     newData.push({
       "ID": tShirt.id,
@@ -149,4 +148,4 @@ function TShirts() {
   </>);
 }
 
-export default RequireRootAuth(TShirts, "CAMISETAS");
+export default RequireRootAuth(TShirts, "TSHIRTS");
