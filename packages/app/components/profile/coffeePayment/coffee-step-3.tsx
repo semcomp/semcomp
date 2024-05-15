@@ -42,6 +42,7 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
   
   async function getPayment() {
     try {
+      console.log("CREATE PAYMENT")
       if(!data['id']){
         let fileName: string = null;
         if (data.socialBenefitFile) {

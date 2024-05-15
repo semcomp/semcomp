@@ -341,7 +341,7 @@ function Profile() {
                               blockBodyScroll();
                               }}
                               className="bg-primary text-white p-3 rounded-lg mt-2">
-                              Comprar Kit
+                              Comprar!
                             </button>
                             </>
                           ) : 
