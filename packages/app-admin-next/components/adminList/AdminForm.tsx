@@ -34,8 +34,9 @@ function AdminForm({
   return (
     <>
       {
-        Object.keys(adminRoles).map((key) => (
+        Object.keys(adminRoles).map((key, index) => (
           <Input
+            key={index}
             className="my-3"
             label={adminRoles[key]}
             value={data.adminRole[key]}
