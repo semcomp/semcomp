@@ -15,13 +15,14 @@ const RequireAuth = (WrappedComponent) => {
     const router = useRouter();
 
     const nameComp = WrappedComponent.name.toUpperCase();
-    console.log('nome componente; ', nameComp);
+    console.log('o que é o wrappedComponent?\n\n\n\n', WrappedComponent,'\n\n\n\n');
+    console.log('nome componente; ', WrappedComponent.name);
 
     const fetchRoles = async () => {
       if (user) {
         const roles = await semcompApi.getAdminRole(user.id);
         console.log('roles: ', roles);
-        console.log('tem role? ', roles.includes(nameComp));
+        console.log('home === ', nameComp === 'HOME')
         if (nameComp !== "HOME" && !roles.includes(nameComp)) {
           toast.error("Você não possui permissão para acessar a essa página.");
           router.push(Routes.home);
