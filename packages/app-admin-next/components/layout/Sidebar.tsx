@@ -80,7 +80,7 @@ function Sidebar() {
       open={isOpen}
       onClose={() => setIsOpen(false)}
     >
-      { adminRole.length === 0 && (
+      { adminRole && adminRole.length !== 0 ? (
           <Box
           sx={{ width: drawerWidth }}
           onClick={() => setIsOpen(false)}
@@ -112,7 +112,7 @@ function Sidebar() {
             </button>
           </Box>
         ) 
-      ||
+      :
         (<Box
           sx={{ width: drawerWidth }}
           onClick={() => setIsOpen(false)}
