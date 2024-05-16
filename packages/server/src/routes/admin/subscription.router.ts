@@ -12,4 +12,10 @@ router.get(
     adminSubscribeController.findByEventId
   );
 
+  router.get(
+    "/event/users/:eventId",
+    [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+    adminSubscribeController.getUsersByEvent
+  );
+
 export default router;

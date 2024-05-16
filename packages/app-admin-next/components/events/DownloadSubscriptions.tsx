@@ -3,12 +3,9 @@ import { toast } from "react-toastify";
 
 import SemcompApi from "../../api/semcomp-api";
 import { useAppContext } from "../../libs/contextLib";
-import LoadingButton from "../reusable/LoadingButton";
-import { useRouter } from 'next/router';
-import Input, { InputType } from "../Input";
 import exportToCsv from '../../libs/DownloadCsv';
 
-function DownloadSubscriptions({ eventId }) {
+function DownloadSubscriptions({ eventId, eventName }) {
   const {
     semcompApi
   }: {
@@ -20,10 +17,12 @@ function DownloadSubscriptions({ eventId }) {
   async function fetchDownloadData(data) {
     try {
       setIsLoading(true);
-      console.log(eventId);
-    //   const response = await semcompApi.getSubscriptionsUsers(data.id);
-      // exportToCsv(mapData(response.getEntities()));
-
+      const response = await semcompApi.getSubscriptionsUsers(eventId);
+      if(response.length > 0){
+        exportToCsv(response, eventName);
+      }else{
+        toast.error("Não há inscritos para esse evento ainda!");
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -34,11 +33,11 @@ function DownloadSubscriptions({ eventId }) {
   return (
     <>
        <button
-          className="w-full bg-black text-white py-3 px-6"
+          className="w-full bg-black text-white py-3 px-6 my-2"
           type='button'
           onClick={fetchDownloadData}
         >
-          Baixar Planilha
+          Baixar lista de inscritos
         </button>
     </>
   );
