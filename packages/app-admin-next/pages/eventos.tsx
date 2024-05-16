@@ -13,7 +13,6 @@ import EditEventModal from "../components/events/EditEventModal";
 import DataPage from "../components/DataPage";
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
 import MarkAttendanceModal from "../components/events/MarkAttendanceModal";
-import DownloadSubscriptions from "../components/events/DownloadSubscriptions";
 
 type EventData = {
   // ID: string;
@@ -189,7 +188,6 @@ function Events() {
     return (
       <>
         <MarkAttendance></MarkAttendance>
-        {/* <DownloadSubscriptions eventId={selectedData?.id}></DownloadSubscriptions> */}
       </>
     );
   }

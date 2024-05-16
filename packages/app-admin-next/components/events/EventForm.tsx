@@ -2,8 +2,10 @@ import { useState } from "react";
 
 import EventType from "../../libs/constants/event-types-enum";
 import Input, { InputType } from "../Input";
+import DownloadSubscriptions from "./DownloadSubscriptions";
 
 export type EventFormData = {
+  id: string
   name: string;
   speaker: string;
   description: string;
@@ -25,6 +27,7 @@ const EVENT_TYPES = Object.values(EventType);
 function EventForm({
   onDataChange,
   initialData = {
+    id: "",
     name: "",
     speaker: "",
     description: "",
@@ -239,6 +242,7 @@ function EventForm({
         value={data.needInfoOnSubscription}
         type={InputType.Checkbox}
       /> */}
+      { data && data.showOnSubscribables && <DownloadSubscriptions eventId={data.id} eventName={data.name}></DownloadSubscriptions>}
     </>
   );
 }

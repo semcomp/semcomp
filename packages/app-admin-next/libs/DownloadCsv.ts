@@ -13,7 +13,7 @@ function downloadFile({ data, fileName, fileType }) {
   a.remove()
 }
 
-export default function exportToCsv(data: any[]) {
+export default function exportToCsv(data: any[], fileName: string = 'data') {
   let headers = Object.keys(data[0]);
   console.log(headers)
 
@@ -24,7 +24,7 @@ export default function exportToCsv(data: any[]) {
 
   downloadFile({
     data: [headers, ...dataCsv].join('\n'),
-    fileName: 'data.csv',
+    fileName: fileName + '.csv',
     fileType: 'text/csv',
   })
 }
