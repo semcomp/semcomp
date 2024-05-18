@@ -106,7 +106,7 @@ import PaymentServiceImpl from "../../services/payment-impl.service";
   
         const updatedConfig = await configService.setSwitchBeta(bool);
   
-        return res.status(200).json();
+        return res.status(200).json(updatedConfig);
       } catch (error) {
         return handleError(error, next);
       }

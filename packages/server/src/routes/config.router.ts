@@ -49,4 +49,14 @@ router.post(
   ConfigController.setOpenSales
 );
 
+router.post(
+  "/switch-beta",
+  [
+    body("switchBeta", "Invalid field 'switchBeta'").isBoolean(),
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+  ],
+  ConfigController.setSwitchBeta
+)
+
 export default router;

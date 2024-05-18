@@ -231,6 +231,10 @@ class SemcompApi {
   public async setConfigSales(setSales): Promise<any>{
     return this.http.post('/config/open-sales', { openSales: setSales});
   }
+
+  public async setConfigBeta(setBeta): Promise<any>{
+    return this.http.post('/config/switch-beta', { switchBeta: setBeta});
+  }
 }
 
 export default SemcompApi;

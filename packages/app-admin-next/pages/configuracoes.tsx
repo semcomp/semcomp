@@ -44,7 +44,9 @@ function Config() {
     const [saveKitOption, setSaveKitOption] = useState("COFFEE");
 
     const [openSignup, setSignup] = useState(false);
-    
+           
+    const [switchBeta, setSwitchBeta] = useState(false);
+           
     async function fetchData() {
         setIsLoading(true);
         try {
@@ -54,6 +56,7 @@ function Config() {
             setCoffeeTotal(config.coffeeTotal);
             setOpenSales(config.openSales);
             setSignup(config.openSignup);
+            setSwitchBeta(config.switchBeta);
         } catch (error) {
             toast.error('Erro ao buscar dados do coffee');
         } finally {
@@ -110,6 +113,15 @@ function Config() {
             const response = await semcompApi.setConfigSignup(setSignup);
         } catch (error) {
             console.error('Erro ao alterar openSignup no banco de dados(configuracoes.tsx):', error);
+        }
+    };
+
+    //Função para alterar o status de semcomp Beta ou Alfa no bando de dados usando a SemcompAPI
+    const setConfigSwitchBeta = async (setSwitchBeta) => {
+        try {
+            const response = await semcompApi.setConfigBeta(setSwitchBeta);
+        } catch (error) {
+            console.error('Erro ao alterar o status do switch Beta no banco de dados(configuracoes.tsx):', error);
         }
     };
 
@@ -173,6 +185,19 @@ function Config() {
                                 />
                             </div>
                         </div>
+                    
+                        <div className={style.card}>
+                            <div className={style.title}>Trocar modo Beta</div>
+                            <hr className={style.hr} />
+                            <div className='p-2'>   
+                                <SwitchButton 
+                                    isChecked={switchBeta} 
+                                    setIsChecked={setSwitchBeta} 
+                                    setIsCheckedDataBase={setConfigSwitchBeta}
+                                />
+                            </div>
+                        </div>
+                    
                     </div>
                 }
             ></DataPage>
