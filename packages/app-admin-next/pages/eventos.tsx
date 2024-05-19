@@ -87,15 +87,6 @@ function Events() {
   const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] =
     useState(false);
 
-
-  const [isGuestUser, setIsGuestUser] = useState(true);
-
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if(user.email.startsWith("admin"))
-      setIsGuestUser(false);
-  }, []);
-
   async function fetchData() {
     try {
       setIsLoading(true);
@@ -208,7 +199,7 @@ function Events() {
       {isCreateModalOpen && (
         <CreateEventModal onRequestClose={() => setIsCreateModalOpen(false)} />
       )}
-      {isEditModalOpen && !isGuestUser && (
+      {isEditModalOpen && (
         <EditEventModal
           initialValue={selectedData}
           onRequestClose={() => {
@@ -230,7 +221,7 @@ function Events() {
           title="Eventos"
           isLoading={isLoading}
           buttons={
-            !isGuestUser && (
+              (
               <button
                 className="bg-black text-white py-3 px-6"
                 type="button"

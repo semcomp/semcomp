@@ -80,7 +80,7 @@ function Sidebar() {
       open={isOpen}
       onClose={() => setIsOpen(false)}
     >
-      { adminRole && (
+      { adminRole && adminRole.length !== 0 ? (
           <Box
           sx={{ width: drawerWidth }}
           onClick={() => setIsOpen(false)}
@@ -112,13 +112,15 @@ function Sidebar() {
             </button>
           </Box>
         ) 
-      ||
+      :
         (<Box
           sx={{ width: drawerWidth }}
           onClick={() => setIsOpen(false)}
           onKeyDown={() => setIsOpen(false)}
           >
-            <p className='max-w-xl text-center p-4'>Suas permissões não estão definidas, peça para que o administrador adicione-as.</p>
+            <div className='h-fit my-4'>
+              <p className='max-w-xl text-center p-4'>Suas permissões não estão definidas, peça para que o administrador adicione-as.</p>
+            </div>
             <button className="w-full bg-black text-white text-center py-3" onClick={handleLogout}>
               Sair
             </button>
