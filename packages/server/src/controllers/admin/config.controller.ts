@@ -6,7 +6,7 @@ import {
 import { NextFunction, Request, Response } from "express";
 import PaymentServiceImpl from "../../services/payment-impl.service";
   
-  class CofigController {
+  class ConfigController {
     public async getOne(req: Request, res: Response, next: NextFunction) {
       try {
         const config = await configService.getOne();
@@ -102,9 +102,9 @@ import PaymentServiceImpl from "../../services/payment-impl.service";
 
     public async setSwitchBeta(req: Request, res: Response, next: NextFunction) {
       try {
-        const { bool } = req.body;
+        const { switchBeta } = req.body;
   
-        const updatedConfig = await configService.setSwitchBeta(bool);
+        const updatedConfig = await configService.setSwitchBeta(switchBeta);
   
         return res.status(200).json(updatedConfig);
       } catch (error) {
@@ -137,4 +137,4 @@ import PaymentServiceImpl from "../../services/payment-impl.service";
     }
 }
 
-export default new CofigController();
+export default new ConfigController();
