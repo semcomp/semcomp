@@ -12,11 +12,11 @@ import {
   Collapse,
   IconButton,
   TablePagination,
-  Typography,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-
+import { DeleteOutlineOutlined } from "@mui/icons-material";
+import { EditOutlined } from "@mui/icons-material";
 import Input, { InputType } from "../Input";
 import { PaginationRequest, PaginationResponse } from "../../models/Pagination";
 
@@ -27,6 +27,7 @@ function Row({
   onSelectChange,
   moreInfoContainer,
   onMoreInfoClick,
+  actions,
 }: {
   index: number;
   row: any;
@@ -34,6 +35,7 @@ function Row({
   onSelectChange: (isSelected: boolean) => void;
   moreInfoContainer: ReactNode;
   onMoreInfoClick: (index: number) => void;
+  actions: {};
 }) {
   const [isSelected, setIsSelected] = useState(false);
   const [open, setOpen] = useState(false);
@@ -76,6 +78,33 @@ function Row({
             </TableCell>
           );
         })}
+        {
+          actions ? (
+            <TableCell>
+              <div className="inline-flex items-center flex-nowrap">
+                {Object.keys(actions).map((action, index) => {
+                  if (action === 'edit') {
+                    return (
+                      <IconButton key={index} onClick={actions[action]}>
+                        <EditOutlined/>
+                      </IconButton>
+                    );
+                  } else if (action === 'delete') {
+                    return (
+                      <IconButton key={index} onClick={() => actions[action](row)}>
+                        <DeleteOutlineOutlined/>
+                      </IconButton>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+            </TableCell>
+
+          ) : (
+            null
+          )
+        }
       </TableRow>
       {moreInfoContainer && (
         <TableRow
@@ -101,6 +130,7 @@ export default function DataTable({
   onRowSelect,
   moreInfoContainer,
   onMoreInfoClick,
+  actions,
 }: {
   data: PaginationResponse<any>;
   pagination: PaginationRequest;
@@ -108,6 +138,7 @@ export default function DataTable({
   onRowSelect: (indexes: number[]) => void;
   moreInfoContainer?: ReactNode;
   onMoreInfoClick?: (index: number) => void;
+  actions?: {},
 }) {
   const [selectedRows, setSelectedRows] = useState([]);
 
@@ -153,6 +184,12 @@ export default function DataTable({
                     return <TableCell key={index}>{key}</TableCell>;
                   }
                 )}
+                { actions ?  (
+                  <TableCell>Ações</TableCell>
+                  ) : (
+                    null
+                  )
+                }
               </TableRow>
             </TableHead>
             <TableBody>
@@ -167,6 +204,7 @@ export default function DataTable({
                   }
                   moreInfoContainer={moreInfoContainer}
                   onMoreInfoClick={onMoreInfoClick}
+                  actions={actions}
                 />
               ))}
             </TableBody>

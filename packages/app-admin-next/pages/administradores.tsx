@@ -23,11 +23,13 @@ function AdminUsersTable({
   pagination,
   onRowClick,
   onRowSelect,
+  actions,
 }: {
   data: PaginationResponse<SemcompApiAdminUser>,
   pagination: PaginationRequest,
   onRowClick: (selectedIndex: number) => void,
   onRowSelect: (selectedIndexes: number[]) => void,
+  actions: {},
 }) {
   const newData: AdminData[] = [];
   for (const admin of data.getEntities()) {
@@ -46,6 +48,7 @@ function AdminUsersTable({
     pagination={pagination}
     onRowClick={onRowClick}
     onRowSelect={onRowSelect}
+    actions={actions}
   ></DataTable>);
 }
 
@@ -102,6 +105,18 @@ function AdminUsers() {
     fetchData();
   }
 
+  function refresh() {
+    fetchData();
+  }
+
+  async function deleteAdmin(row) {
+    const confirmed = window.confirm("Tem certeza de que deseja excluir " + row.email + "?");
+      if (confirmed) {
+        const deleted = await semcompApi.deleteAdminUser(row.ID);
+        refresh();
+      }
+  }
+
   useEffect(() => {
     if (isMounted) {
       fetchData();
@@ -136,6 +151,7 @@ function AdminUsers() {
             pagination={pagination}
             onRowClick={handleRowClick}
             onRowSelect={handleSelectedIndexesChange}
+            actions={{"delete": deleteAdmin}}
           />}
         ></DataPage>
       )

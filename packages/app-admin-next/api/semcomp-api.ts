@@ -64,6 +64,12 @@ class SemcompApi {
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
+  public async deleteAdminUser(id: string): Promise<any> {
+    const response = await this.http.delete("/admin/admin-users/" + id);
+    
+    return response;
+  }
+
   public async getAdminRole(id: String): Promise<any> {
     const response = await this.http.get("/admin/admin-users/role/" + id);
     
