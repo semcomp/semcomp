@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 
 import Navlink from "./nav-link"; // a link reference 'a' with the appearance of a button
 import Routes from "../../routes";
-import SemcompLogo from "../../assets/27-imgs/logo.svg";
+import SemcompLogo from "../../assets/27-imgs/logo.png";
 import { useAppContext } from "../../libs/contextLib";
 import NavLink from "./nav-link";
 import handler from '../../api/handlers';
