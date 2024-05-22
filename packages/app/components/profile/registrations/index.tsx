@@ -63,10 +63,10 @@ function Registrations({ onRequestClose }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div className="w-full bg-tertiary text-white text-center text-xl font-bold p-6">
+      <div className="w-full bg-primary text-white text-center text-xl p-6">
         Inscrições
       </div>
-      <div className="h-96 overflow-y-scroll p-6">
+      <div className="h-96 overflow-y-scroll p-6 w-full">
         <AppBar style={{ backgroundColor: "transparent" }} position="static">
           <Tabs variant="scrollable" value={tab} onChange={handleChange}>
             {Object.keys(events).map((type, index) => (
@@ -92,7 +92,7 @@ function Registrations({ onRequestClose }) {
         ))}
       </div>
       <button
-        className="bg-orange text-white py-3 px-6 m-4 rounded-xl"
+        className="bg-[#F24444] hover:bg-[#B63A3A] text-white py-3 px-6 m-4 rounded-xl"
         type="button"
         onClick={onRequestClose}
       >
