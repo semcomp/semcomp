@@ -8,6 +8,7 @@ const AdminRoles = {
     TREASUREHUNTIMAGES: "Caça ao Tesouro",
     ADMINUSERS: "Administradores",
     CONFIG: "Configurações",
+    DELETE: "Permissão para exclusão de dados",
 };
 
 export default AdminRoles;

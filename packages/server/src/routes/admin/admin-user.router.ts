@@ -32,7 +32,7 @@ router.put(
 
 router.delete(
   "/:id",
-  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated, adminAuthMiddleware.authToDelete],
   adminUserController.deleteById
 );
 

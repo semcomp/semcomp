@@ -11,9 +11,8 @@ export enum adminRole {
   EVENT = "Events",
   TREASUREHUNTIMAGE = "TreasureHuntImages",
   CONFIG = "Config",
+  DELETE = "Delete",
 }
-
-// const adminRoles = Object.values(adminRole);
 
 export type AdminFormData = {
   id: string;

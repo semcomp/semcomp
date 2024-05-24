@@ -27,6 +27,20 @@ class AdminAuthMiddleware {
       return handleError(error, next);
     }
   }
+
+  public async authToDelete(req, res, next) {
+    try {
+      if (!req.adminUser) {
+        return next(new createError.Unauthorized());
+      }
+      req.adminUser = await adminAuthService.authToDelete(req.adminUser);
+       
+      next();
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
 }
 
 export default new AdminAuthMiddleware();

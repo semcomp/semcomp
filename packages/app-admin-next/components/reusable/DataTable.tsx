@@ -19,6 +19,7 @@ import { DeleteOutlineOutlined } from "@mui/icons-material";
 import { EditOutlined } from "@mui/icons-material";
 import Input, { InputType } from "../Input";
 import { PaginationRequest, PaginationResponse } from "../../models/Pagination";
+import { useAppContext } from "../../libs/contextLib";
 
 function Row({
   index,
@@ -39,6 +40,7 @@ function Row({
 }) {
   const [isSelected, setIsSelected] = useState(false);
   const [open, setOpen] = useState(false);
+  const { adminRole } = useAppContext();
 
   function handleOnSelect() {
     onSelectChange(!isSelected);
@@ -89,7 +91,7 @@ function Row({
                         <EditOutlined/>
                       </IconButton>
                     );
-                  } else if (action === 'delete') {
+                  } else if (action === 'delete' && adminRole.includes('DELETE')) {
                     return (
                       <IconButton key={index} onClick={() => actions[action](row)}>
                         <DeleteOutlineOutlined/>
