@@ -186,10 +186,8 @@ export default function DataTable({
                     return <TableCell key={index}>{key}</TableCell>;
                   }
                 )}
-                { actions ?  (
+                { actions &&  (
                   <TableCell>Ações</TableCell>
-                  ) : (
-                    null
                   )
                 }
               </TableRow>

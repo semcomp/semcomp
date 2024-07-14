@@ -5,6 +5,7 @@ const AdminRoles = {
     GAMEQUESTIONS: "Jogo - Perguntas",
     GAMEGROUPS: "Jogo - Grupos",
     EVENTS: "Eventos",
+    EDIT_EVENTS: "Permissão para edição dos eventos",
     TREASUREHUNTIMAGES: "Caça ao Tesouro",
     ADMINUSERS: "Administradores",
     CONFIG: "Configurações",

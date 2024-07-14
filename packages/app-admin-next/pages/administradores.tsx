@@ -110,7 +110,7 @@ function AdminUsers() {
   }
 
   async function deleteAdmin(row) {
-    const confirmed = window.confirm("Tem certeza de que deseja excluir " + row.email + "?");
+    const confirmed = window.confirm("Tem certeza de que deseja excluir " + row.Email + "?");
       if (confirmed) {
         const deleted = await semcompApi.deleteAdminUser(row.ID);
         refresh();

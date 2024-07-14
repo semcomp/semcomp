@@ -72,7 +72,7 @@ function EventsTable({
 
 function Events() {
   const { semcompApi }: { semcompApi: SemcompApi } = useAppContext();
-
+  const { adminRole } = useAppContext();
   const [data, setData] = useState(null as SemcompApiGetEventsResponse);
   const [pagination, setPagination] = useState(
     new PaginationRequest(() => fetchData())
@@ -100,22 +100,23 @@ function Events() {
     if(data != null){
       for (const event of data.getEntities()) {
         if(event.showOnSubscribables){
-          console.log(event.id); 
           const nsubs = await semcompApi.getSubscriptions(event.id);
-          console.log(nsubs);
           event.numOfSubscriptions = nsubs;
         }
       }
 
       setIsLoading(false);
-      console.log(data);
     }
   }
 
 
   async function handleRowClick(index: number) {
-    setSelectedData(data.getEntities()[index]);
-    setIsEditModalOpen(true);
+    if (adminRole.includes('EDIT_EVENTS')) {
+      setSelectedData(data.getEntities()[index]);
+      setIsEditModalOpen(true);
+    }
+    
+    return null;
   }
 
   async function handleMoreInfoClick(index: number) {
