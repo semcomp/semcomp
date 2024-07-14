@@ -62,9 +62,11 @@ export default class UserController {
         return houseMember.userId === user.id;
       });
 
-      userHouse = housesFound.getEntities().find((house) => {
-        return house.id === userHouseMember.houseId;
-      }).name;
+      if(userHouseMember) {
+        userHouse = housesFound.getEntities().find((house) => {
+          return house.id === userHouseMember.houseId;
+        }).name;
+      }
 
       let userPayment = payments.find((payment) => {
         return payment.userId === user.id && payment.status === PaymentStatus.APPROVED;

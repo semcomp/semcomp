@@ -147,7 +147,7 @@ class HouseService {
   };
 
   private mapEntity(entity: Model<House> & House): House {
-    return {
+    return entity ? {
       id: entity.id,
       name: entity.name,
       description: entity.description,
@@ -155,7 +155,7 @@ class HouseService {
       score: entity.score,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
-    };
+    } : null;
   }
 }
 

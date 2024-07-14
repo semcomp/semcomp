@@ -9,7 +9,6 @@ router.get(
   "/",
   [
     authMiddleware.authenticate,
-    authMiddleware.authenticateUserHouse,
     authMiddleware.isAuthenticated,
   ],
   AchievementController.getUserAchievements

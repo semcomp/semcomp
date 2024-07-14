@@ -34,7 +34,9 @@ function initializeAPI(config) {
       setToken(newToken);
       localStorage.setItem("token", newToken);
     }
-    console.log("[response base-api] output", response)
+    if (process.env.NODE_ENV === "development") {
+      console.log("[response base-api] output", response);
+    }
     return response;
   });
 

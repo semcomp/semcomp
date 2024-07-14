@@ -64,11 +64,13 @@ class HouseMemberService {
   public async assignUserHouse(userId: string): Promise<void> {
     const houseWithLessMembers = await this.getHouseWithLessMembers();
 
-    const houseMember: HouseMember = {
-      userId,
-      houseId: houseWithLessMembers.id,
-    };
-    await this.create(houseMember);
+    if (houseWithLessMembers) {
+      const houseMember: HouseMember = {
+        userId,
+        houseId: houseWithLessMembers.id,
+      };
+      await this.create(houseMember);
+    }
   };
 
   private async getHouseWithLessMembers(): Promise<House> {
@@ -87,17 +89,20 @@ class HouseMemberService {
         memberCount,
       })
     }
+    if (houseWithMemberCount.length > 0) {
+      return houseWithMemberCount.reduce((prev, curr) => {
+        return prev.memberCount < curr.memberCount ? prev : curr;
+      }).house;
+    }
 
-    return houseWithMemberCount.reduce((prev, curr) => {
-      return prev.memberCount < curr.memberCount ? prev : curr;
-    }).house;
+    return null;
   };
 
 
   private mapEntity(entity: Model<HouseMember> & HouseMember): HouseMember {
     return {
       id: entity.id,
-      houseId: entity.houseId,
+      houseId: entity.houseId ? entity.houseId : null,
       userId: entity.userId,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,

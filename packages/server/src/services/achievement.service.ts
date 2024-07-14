@@ -68,7 +68,7 @@ class AchievementService {
   public async getUserAchievements(userId: string): Promise<(Achievement & { isEarned: boolean })[]> {
     const achievements = await this.find();
     const userHouse = await houseMemberService.findOne({ userId });
-    const userHouseAchievements = await houseAchievementService.find({ houseId: userHouse.id });
+    const userHouseAchievements = await houseAchievementService.find({ houseId: userHouse ? userHouse.id : null });
     const userAchievements = await userAchievementService.find({ userId });
 
     const achievementsWithUserInfo = [];
@@ -76,9 +76,9 @@ class AchievementService {
       const userHaveAchievement = userAchievements.find(
         (userAchievement) => userAchievement.achievementId === achievement.id
       );
-      const userHouseHasAchievement = userHouseAchievements.find(
+      const userHouseHasAchievement = userHouseAchievements ? userHouseAchievements.find(
         (houseAchievement) => houseAchievement.achievementId === achievement.id
-      );
+      ) : null;
 
       achievementsWithUserInfo.push({
         ...achievement,

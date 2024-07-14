@@ -55,8 +55,8 @@ class Http {
   private onResponseError(error: AxiosError): Promise<AxiosError> {
     const response = error.response;
     let message = '';
-
-    if (response) {
+    
+    if (response && response.data) {
       message = (error.response.data as { message: string }).message;      
     }
     

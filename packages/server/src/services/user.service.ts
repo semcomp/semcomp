@@ -146,6 +146,10 @@ class UserServiceImpl implements UserService {
 
   async getUserHouse(userId: string): Promise<House> {
     const userHouseMember = await houseMemberService.findOne({ userId });
+    if (!userHouseMember) {
+      return null;
+    }
+    
     const userHouse = await houseService.findOne({ id: userHouseMember.houseId });
 
     return userHouse;

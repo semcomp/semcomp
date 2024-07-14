@@ -38,7 +38,7 @@ class UserController {
     }
   }
 
-  public static mapUserResponse(user: User, house: House) {
+  public static mapUserResponse(user: User, house?: House) {
     return {
       email: user.email,
       name: user.name,
@@ -47,11 +47,11 @@ class UserController {
       permission: user.permission,
       discord: user.discord,
       telegram: user.telegram,
-      house: {
+      house: house ? {
         name: house.name,
         description: house.description,
         telegramLink: house.telegramLink,
-      },
+      } : null,
     };
   }
 }

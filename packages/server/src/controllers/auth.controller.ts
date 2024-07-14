@@ -99,7 +99,7 @@ class AuthController {
     }
   }
 
-  private mapUserResponse(user: User, house: House, payment?: Payment) {
+  private mapUserResponse(user: User, house?: House, payment?: Payment) {
     return {
       email: user.email,
       name: user.name,
@@ -108,11 +108,11 @@ class AuthController {
       permission: user.permission,
       discord: user.discord,
       telegram: user.telegram,
-      house: {
+      house: house ? {
         name: house.name,
         description: house.description,
         telegramLink: house.telegramLink,
-      },
+      } : null,
       payment: {
         status: payment?.status || null,
         tShirtSize: payment?.tShirtSize || null,
