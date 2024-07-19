@@ -82,7 +82,7 @@ function Row({
           return (
             <TableCell key={index} onClick={() => onClick(index)}>
               {typeof (value) === 'boolean' &&
-                (row["Opção de compra"] === "Kit" || row["Opção de compra"] === "Coffee") &&
+                (row["Opção de compra"] === "Kit" || row["Opção de compra"] === "Kit e Coffee") &&
                 (row["Status do pagamento"] === "Aprovado") ? <Input
                 className="my-3"
                 onChange={handleOpenKitModal}
