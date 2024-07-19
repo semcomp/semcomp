@@ -12,7 +12,7 @@ import exportToCsv from '../libs/DownloadCsv';
 import InfoCards from '../components/reusable/InfoCards';
 
 enum KitOption {
-  COMPLETE = "Kit e Coffee", 
+  COMPLETE = "Kit e Coffee",
   KIT = "Kit",
   COFFEE = "Coffee",
 }
@@ -25,6 +25,7 @@ type UserData = {
   "Telegram": string,
   "Casa": string,
   "Status do pagamento": string,
+  "Retirou Kit": boolean,
   "Tamanho da camiseta": TShirtSize,
   "Opção de compra": KitOption,
   "Permite divulgação?": string,
@@ -54,37 +55,36 @@ function mapData(data: SemcompApiUser[]): UserData[] {
       "Status do pagamento": paymentStatus,
       "Tamanho da camiseta": user.payment.tShirtSize,
       "Opção de compra": user.payment.kitOption,
+      "Retirou Kit": user.gotKit,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
-      "Criado em": new Date(user.createdAt).toLocaleString("pt-br", 
-      {
-        day: 'numeric',
-        month: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-      }),
+      "Criado em": new Date(user.createdAt).toLocaleString("pt-br",
+        {
+          day: 'numeric',
+          month: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+        }),
     })
   }
 
   return newData;
 }
 
-function countKitOption(kitOption: KitOption, data: SemcompApiUser[]) : number {
+function countKitOption(kitOption: KitOption, data: SemcompApiUser[]): number {
   let count: number;
 
   count = 0;
   for (const user of data) {
-    if(kitOption == KitOption.COMPLETE || kitOption == KitOption.KIT){
+    if (kitOption == KitOption.COMPLETE || kitOption == KitOption.KIT) {
       if (user.payment.status === PaymentStatus.APPROVED || user.payment.status === PaymentStatus.PENDING) {
-        if(user.payment.kitOption === kitOption){
+        if (user.payment.kitOption === kitOption) {
           count++;
         }
       }
-    }else{
-      if (user.payment.status === PaymentStatus.APPROVED) {
-        if(user.payment.kitOption === kitOption){
-          count++;
-        }
+    } else if (user.payment.status === PaymentStatus.APPROVED) {
+      if (user.payment.kitOption === kitOption) {
+        count++;
       }
     }
   }
@@ -93,43 +93,52 @@ function countKitOption(kitOption: KitOption, data: SemcompApiUser[]) : number {
 }
 
 
-function getInfoData(data: SemcompApiUser[]) : InfoData[] {
+function getInfoData(data: SemcompApiUser[]): InfoData[] {
   const infoData: InfoData[] = [];
+  console.log(data);
 
   // Total of subs 
-  infoData.push({ 
+  infoData.push({
     "infoTitle": "Inscritos",
     "infoValue": data.length,
   })
-  
+
   let coffees = countKitOption(KitOption.COFFEE, data);
-  infoData.push({ 
+  infoData.push({
     "infoTitle": "Coffee",
     "infoValue": coffees,
   })
-  
+
   let kits = countKitOption(KitOption.KIT, data);
-  infoData.push({ 
+  infoData.push({
     "infoTitle": "Kit",
     "infoValue": kits,
   })
-  
+
+  let numKitStatus = data.filter(function (item) {
+    return item.gotKit;
+  }).length;
+  infoData.push({
+    "infoTitle": "Kits Retirados",
+    "infoValue": numKitStatus,
+  })
+
   let complete = countKitOption(KitOption.COMPLETE, data);
-  infoData.push({ 
+  infoData.push({
     "infoTitle": "Kits + Coffee",
     "infoValue": complete,
   })
 
-  infoData.push({ 
+  infoData.push({
     "infoTitle": "Coffees Vendidos",
     "infoValue": complete + coffees,
   })
 
-  infoData.push({ 
+  infoData.push({
     "infoTitle": "Total",
     "infoValue": complete + coffees + kits,
   })
-  
+
   return infoData;
 }
 
@@ -138,14 +147,16 @@ function UsersTable({
   pagination,
   onRowSelect,
   allData,
+  updateKitStatus,
 }: {
   data: PaginationResponse<SemcompApiUser>,
   pagination: PaginationRequest,
   onRowSelect: (selectedIndexes: number[]) => void,
   allData: PaginationResponse<SemcompApiUser>,
+  updateKitStatus: (id: string, status: boolean) => any,
 }) {
   const infoData: InfoData[] = getInfoData(allData.getEntities());
-  
+
 
   return (<>
     <InfoCards
@@ -156,12 +167,13 @@ function UsersTable({
       pagination={pagination}
       onRowClick={(index: number) => console.log(index)}
       onRowSelect={onRowSelect}
+      updateKitStatus={updateKitStatus}
     ></DataTable>
   </>);
 }
 
 function Users() {
-  const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
+  const { semcompApi }: { semcompApi: SemcompApi } = useAppContext();
 
   const [data, setData] = useState(null as PaginationResponse<SemcompApiUser>);
   const [allData, setAllData] = useState(null as PaginationResponse<SemcompApiUser>);
@@ -181,11 +193,11 @@ function Users() {
 
   async function fetchTableData() {
     try {
-      if(data == null){
+      if (data == null) {
         const response = await fetchData(pagination);
         setData(response);
       }
-      
+
     } catch (error) {
       console.error(error);
     }
@@ -205,7 +217,7 @@ function Users() {
 
   async function fetchAllData() {
     try {
-      if(allData == null){
+      if (allData == null) {
         const response = await fetchAllDataParse(paginationComplete);
         setAllData(response);
       }
@@ -214,7 +226,16 @@ function Users() {
     }
 
   }
-  
+
+  async function updateKitStatus(id: string, status: boolean) {
+    try {
+      const response = await semcompApi.updateKitStatus(id, status);
+      return response;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   // Get all data about users
   useEffect(() => {
     setIsLoading(true);
@@ -224,7 +245,7 @@ function Users() {
 
   useEffect(() => {
     // If all the data is finnaly fetched, then the isLoading is false
-    if(data != null && allData != null){
+    if (data != null && allData != null) {
       setIsLoading(false);
     }
 
@@ -241,12 +262,12 @@ function Users() {
           title="Usuários"
           isLoading={isLoading}
           table={
-      
             <UsersTable
-            data={data}
-            pagination={pagination}
-            onRowSelect={handleSelectedIndexesChange}
-            allData={allData}
+              data={data}
+              pagination={pagination}
+              onRowSelect={handleSelectedIndexesChange}
+              allData={allData}
+              updateKitStatus={updateKitStatus}
             />
           }
         ></DataPage>
