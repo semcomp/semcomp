@@ -11,6 +11,7 @@ type User = {
   permission?: boolean;
   resetPasswordCode?: string;
   paid?: boolean;
+  gotKit?: boolean;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -59,6 +60,11 @@ const UserSchema = new Mongoose.Schema(
       type: String,
     },
     paid: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
+    gotKit: {
       type: Boolean,
       default: false,
       required: true,
