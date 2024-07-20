@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { forwardRef, ReactNode, useEffect, useImperativeHandle, useRef, useState } from "react";
 
 import DataTable from "../components/reusable/DataTable";
 import RequireAuth from "../libs/RequireAuth";
@@ -13,6 +13,7 @@ import EditEventModal from "../components/events/EditEventModal";
 import DataPage from "../components/DataPage";
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
 import MarkAttendanceModal from "../components/events/MarkAttendanceModal";
+import { toast } from "react-toastify";
 import Input, { InputType } from "../components/Input";
 import util from "../libs/util";
 
@@ -30,7 +31,7 @@ type EventData = {
   "Criado em": string;
 };
 
-function EventsTable({
+const EventsTable = forwardRef(({
   data,
   pagination,
   onRowClick,
@@ -44,7 +45,7 @@ function EventsTable({
   onRowSelect: (selectedIndexes: number[]) => void;
   moreInfoContainer: ReactNode;
   onMoreInfoClick: (selectedIndex: number) => void;
-}) {
+}, eventTableRef?) => {
   const newData: EventData[] = [];
   for (const event of data.getEntities()) {
     newData.push({
@@ -61,6 +62,15 @@ function EventsTable({
       "Criado em": util.formatDate(event.createdAt),
     });
   }
+  const dataTableRef = useRef(null);
+
+  function unsetSelectAll() {
+    dataTableRef.current.handleSelectAll(false);
+  }
+
+  useImperativeHandle(eventTableRef, () => ({
+    unsetSelectAll,
+  }));
 
   return (
     <DataTable
@@ -72,9 +82,10 @@ function EventsTable({
       onRowSelect={onRowSelect}
       moreInfoContainer={moreInfoContainer}
       onMoreInfoClick={onMoreInfoClick}
+      ref={dataTableRef}
     ></DataTable>
   );
-}
+});
 
 function Events() {
   const { semcompApi }: { semcompApi: SemcompApi } = useAppContext();
@@ -89,9 +100,11 @@ function Events() {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] =
-    useState(false);
+  const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] = useState(false);
+  const eventTableRef = useRef(null);
 
+  const btnHeight = "50px";
+  
   async function fetchData() {
     try {
       setIsLoading(true);
@@ -197,6 +210,45 @@ function Events() {
     );
   }
 
+  async function updateEvent(status: boolean, option: string) {
+    const updatedEvents = [];
+
+    if(selectedIndexes && selectedIndexes.length > 0){
+      for (const index of selectedIndexes) {
+        const event = data.getEntities()[index];
+        try {
+          if (option === "schedule") {
+            event.showOnSchedule = status;
+
+            let response = await semcompApi.editEvent(event.id, event);
+            if (response){
+              toast.success(`Evento <${event.name}> ${status ? "adicionado no" : "removido do"} cronograma`);
+              updatedEvents.push(index);
+            } else {
+              toast.error(`Erro ao tentar ${status ? "adicionar" : "remover"}  o evento <${event.name}> do cronograma`);
+            }
+          } else {
+            event.showOnSubscribables = status;
+            let response = await semcompApi.editEvent(event.id, event);
+
+            if (response){
+              toast.success(`Evento <${event.name}> ${status ? "adicionado na" : "removido da"} lista de inscrições`);
+              updatedEvents.push(index);
+            } else {
+              toast.error(`Erro ao tentar ${status ? "adicionar" : "remover"}  o evento <${event.name}> da lista de inscrições`);
+            }
+          }
+        } catch (error) {
+          toast.error(`Erro ao executar a operação`);
+        }
+      }
+    }
+
+    // CONSERTAR - Não está removendo os checkboxes dos eventos que foram adicionados no cronograma
+    setSelectedIndexes(notAdded => notAdded.filter((index) => !updatedEvents.includes(index)));
+    eventTableRef.current.unsetSelectAll();
+  }
+
   return (
     <>
       {isCreateModalOpen && (
@@ -225,14 +277,52 @@ function Events() {
           isLoading={isLoading}
           buttons={
               (
-              <button
-                className="bg-black text-white py-3 px-6"
-                type="button"
-                onClick={() => setIsCreateModalOpen(true)}
-              >
-                Criar
-              </button>
-
+              <>
+              { selectedIndexes && selectedIndexes.length > 0 &&
+                  ( <>
+                    <button
+                      className="bg-black text-white py-3 px-6 mx-2"
+                      style={{ height: btnHeight }}
+                      type="button"
+                      onClick={() => updateEvent(true, "schedule")}
+                    >
+                      Exibir no cronograma
+                    </button>
+                    <button
+                      className="bg-black text-white py-3 px-6 mx-2"
+                      style={{ height: btnHeight }}
+                      type="button"
+                      onClick={() => updateEvent(false, "schedule")}
+                    >
+                      Remover do cronograma
+                    </button> 
+                    <button
+                      className="bg-black text-white py-3 px-6 mx-2"
+                      style={{ height: btnHeight }}
+                      type="button"
+                      onClick={() => updateEvent(true, "subscribables")}
+                    >
+                      Exibir na lista de inscrições
+                    </button>
+                   <button
+                      className="bg-black text-white py-3 px-6 mx-2"
+                      style={{ height: btnHeight }}
+                      type="button"
+                      onClick={() => updateEvent(false, "subscribables")}
+                    >
+                      Remover da lista de inscrições
+                    </button>
+                  </> )
+                }
+                <button
+                  className="bg-black text-white py-3 px-6 mx-2"
+                  style={{ height: btnHeight }}
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(true)}
+                >
+                  Criar
+                </button>
+              </>
             )
           }
           table={
@@ -243,6 +333,7 @@ function Events() {
               onRowSelect={handleSelectedIndexesChange}
               onMoreInfoClick={handleMoreInfoClick}
               moreInfoContainer={moreInfoContent(selectedData)}
+              ref={eventTableRef}
             />
           }
         ></DataPage>

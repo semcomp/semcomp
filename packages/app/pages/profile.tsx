@@ -365,10 +365,8 @@ function Profile() {
         <div className="flex flex-col w-full md:grid md:grid-cols-1 gap-4 z-20">
           {userFetched && (
             <>
-              <Card className="flex flex-col items-center p-9 w-full bg-[#232234ff] rounded-lg justify-center">
-                <div className="border-8 border-solid rounded-lg border-white">
-                  <QRCodeSVG value={userFetched && userFetched.id} />
-                </div>
+              <Card className="flex flex-col items-center p-9 w-full mb-6 bg-white rounded-lg">
+                <QRCodeSVG value={userFetched && userFetched.id} />
                 <p className="text-xl text-center my-3">
                   {userFetched.name}
                 </p>
@@ -475,6 +473,29 @@ function Profile() {
                 }
               </Card>
             </>
+          )}
+          {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
+          {userFetched && userFetched.house && (
+            <Card className="flex flex-col items-center p-9 w-full mb-6">
+              <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+                Overflow
+              </h1>
+              <strong>Sua casa é...</strong>
+              <Image className="w-full" alt="User house" src={houseImageSrc} />
+              <p className="house-name text-lg">{userFetched.house.name}</p>
+              <a
+                className="bg-[#0088cc] text-white p-2 rounded-lg mt-2 text-center"
+                href={userHouseTelegram}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Entrar no grupo
+                <TelegramIcon />
+              </a> 
+              <button className="text-sm mt-5 text-tertiary" onClick={() => setIsAboutOverflowModalOpen(true)}>
+                  O que é o Overflow?
+                </button>
+            </Card>
           )}
 
           {/* ABRIR AQUI PARA MOSTRAR INSCRIÇÕES */}

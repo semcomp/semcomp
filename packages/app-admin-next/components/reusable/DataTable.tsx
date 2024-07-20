@@ -1,4 +1,4 @@
-import { ReactNode, useState, useMemo } from "react";
+import { forwardRef, ReactNode, useEffect, useImperativeHandle, useState, useMemo } from "react";
 
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -16,17 +16,17 @@ import {
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import SearchIcon from "@mui/icons-material/Search";
-import { DeleteOutlineOutlined } from "@mui/icons-material";
-import { EditOutlined } from "@mui/icons-material";
 import Input, { InputType } from "../Input";
 import { PaginationRequest, PaginationResponse } from "../../models/Pagination";
 import { useAppContext } from "../../libs/contextLib";
+import { DeleteOutlineOutlined, EditOutlined } from "@mui/icons-material";
 
 function Row({
   index,
   row,
   onClick,
   onSelectChange,
+  _isSelected,
   moreInfoContainer,
   isOpen,
   onMoreInfoClick,
@@ -37,14 +37,19 @@ function Row({
   row: any;
   onClick: (index: number) => void;
   onSelectChange: (isSelected: boolean) => void;
+  _isSelected: boolean;
   moreInfoContainer: ReactNode;
   isOpen: boolean;
   onMoreInfoClick: (index: number) => void;
   renderCell?: (column: string, row: any) => ReactNode;
-  actions: {};
+  actions?: {};
 }) {
-  const [isSelected, setIsSelected] = useState(false);
+  const [isSelected, setIsSelected] = useState(_isSelected);
   const { adminRole } = useAppContext();
+
+  useEffect(() => {
+    setIsSelected(_isSelected);
+  }, [_isSelected]);
 
   function handleOnSelect() {
     onSelectChange(!isSelected);
@@ -126,7 +131,7 @@ function Row({
   );
 }
 
-export default function DataTable({
+const DataTable = forwardRef(({
   data,
   pagination,
   onRowClick,
@@ -144,8 +149,9 @@ export default function DataTable({
   onMoreInfoClick?: (index: number) => void;
   renderCell?: (column: string, row: any) => ReactNode;
   actions?: {};
-}) {
+}, dataTableRef?) => {
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterQuery, setFilterQuery] = useState("");
@@ -155,7 +161,7 @@ export default function DataTable({
     let updatedSelectedRows = [...selectedRows];
 
     if (isSelected) {
-      updatedSelectedRows.push(selectChangeIndex);
+      updatedSelectedRows = [...selectedRows, selectChangeIndex];
     } else {
       updatedSelectedRows = updatedSelectedRows.filter((index) => index !== selectChangeIndex);
     }
@@ -176,6 +182,18 @@ export default function DataTable({
   ) {
     pagination.setItems(parseInt(event.target.value, 10));
   }
+
+  function handleSelectAll(status?: boolean) {
+    const newStatus = typeof status === "boolean" ? status : !selectAll;
+    setSelectAll(newStatus);
+    const selectedRows = !newStatus ? [] : data.getEntities().map((_, index) => index);
+    setSelectedRows(selectedRows);
+    onRowSelect(selectedRows);
+  }
+
+  useImperativeHandle(dataTableRef, () => ({
+    handleSelectAll,
+  }));
 
   function handleSort(key: string) {
     let direction: 'asc' | 'desc' = 'asc';
@@ -264,7 +282,13 @@ export default function DataTable({
             <TableHead>
               <TableRow>
                 {moreInfoContainer && <TableCell></TableCell>}
-                <TableCell></TableCell>
+                <TableCell>
+                <Input
+                    onChange={handleSelectAll}
+                    value={selectAll}
+                    type={InputType.Checkbox}
+                  />
+                  </TableCell>
                 {Object.keys(data.getEntities()[0]).map((key: any, index: number) => {
                   return (
                     <TableCell key={index}>
@@ -288,8 +312,9 @@ export default function DataTable({
                   key={index}
                   index={index}
                   row={row}
-                  onClick={() => onRowClick(index)}
+                  onClick={() => { onRowClick(index); }}
                   onSelectChange={(isSelected) => handleRowSelect(index, isSelected)}
+                  _isSelected={selectedRows.includes(index)}
                   moreInfoContainer={moreInfoContainer}
                   isOpen={openRowIndex === index}
                   onMoreInfoClick={handleMoreInfoClick}
@@ -313,4 +338,6 @@ export default function DataTable({
       )}
     </>
   );
-}
+});
+
+export default DataTable;
