@@ -170,6 +170,7 @@ function Users() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
   const [aux, setAux] = useState();
+  const downloadBtnHeight = '48px';
 
   async function fetchData(pagination: PaginationRequest) {
     return await semcompApi.getUsers(pagination);
@@ -236,28 +237,33 @@ function Users() {
 
   return (<>
     {
-      !isLoading && (<>
-        <DataPage
-          title="Usuários"
-          isLoading={isLoading}
-          table={
-      
-            <UsersTable
-            data={data}
-            pagination={pagination}
-            onRowSelect={handleSelectedIndexesChange}
-            allData={allData}
-            />
-          }
-        ></DataPage>
-        <button
-          className="w-full bg-black text-white py-3 px-6"
-          type='button'
-          onClick={fetchDownloadData}
-        >
-          Baixar Planilha
-        </button>
-      </>)
+      !isLoading && (
+        <>
+          <div style={{ height: `calc(100vh - ${downloadBtnHeight})` }}>
+              <DataPage
+                title="Usuários"
+                isLoading={isLoading}
+                table={
+            
+                  <UsersTable
+                    data={data}
+                    pagination={pagination}
+                    onRowSelect={handleSelectedIndexesChange}
+                    allData={allData}
+                  />
+                }
+              ></DataPage>
+              <button
+                className="w-full bg-black text-white py-3 px-6"
+                type='button'
+                style={{ height: downloadBtnHeight }}
+                onClick={fetchDownloadData}
+              >
+                Baixar Planilha
+              </button>
+            </div>
+        </>
+      )
     }
   </>);
 }
