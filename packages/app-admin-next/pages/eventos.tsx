@@ -211,8 +211,6 @@ function Events() {
   }
 
   async function updateEvent(status: boolean, option: string) {
-    const updatedEvents = [];
-
     if(selectedIndexes && selectedIndexes.length > 0){
       for (const index of selectedIndexes) {
         const event = data.getEntities()[index];
@@ -223,7 +221,6 @@ function Events() {
             let response = await semcompApi.editEvent(event.id, event);
             if (response){
               toast.success(`Evento <${event.name}> ${status ? "adicionado no" : "removido do"} cronograma`);
-              updatedEvents.push(index);
             } else {
               toast.error(`Erro ao tentar ${status ? "adicionar" : "remover"}  o evento <${event.name}> do cronograma`);
             }
@@ -233,7 +230,6 @@ function Events() {
 
             if (response){
               toast.success(`Evento <${event.name}> ${status ? "adicionado na" : "removido da"} lista de inscrições`);
-              updatedEvents.push(index);
             } else {
               toast.error(`Erro ao tentar ${status ? "adicionar" : "remover"}  o evento <${event.name}> da lista de inscrições`);
             }
@@ -244,8 +240,6 @@ function Events() {
       }
     }
 
-    // CONSERTAR - Não está removendo os checkboxes dos eventos que foram adicionados no cronograma
-    setSelectedIndexes(notAdded => notAdded.filter((index) => !updatedEvents.includes(index)));
     eventTableRef.current.unsetSelectAll();
   }
 
