@@ -27,7 +27,7 @@ type UserData = {
   "Telegram": string,
   "Casa": string,
   "Status do pagamento": string,
-  "Retirou Kit": ReactElement | boolean,
+  "Retirou Kit": ReactElement | string,
   "Tamanho da camiseta": TShirtSize,
   "Opção de compra": KitOption,
   "Permite divulgação?": string,
@@ -63,7 +63,7 @@ function mapData(data: SemcompApiUser[], handleOpenKitModal?: () => void): UserD
       "Status do pagamento": paymentStatus,
       "Tamanho da camiseta": user.payment.tShirtSize,
       "Opção de compra": user.payment.kitOption,
-      "Retirou Kit": handleOpenKitModal ? gotKit : user.gotKit,
+      "Retirou Kit": handleOpenKitModal ? gotKit : (user.gotKit ? "Sim" : "Não"),
       "Permite divulgação?": user.permission ? "Sim" : "Não",
       "Criado em": new Date(user.createdAt).toLocaleString("pt-br",
         {
@@ -222,7 +222,6 @@ function UsersTable({
       data={new PaginationResponse<UserData>(mapData(data.getEntities(), handleOpenKitModal), data.getTotalNumberOfItems())}
       pagination={pagination}
       onRowClick={(index: number) => {
-        console.log(index);
         setSelected(index);
       }}
       onRowSelect={onRowSelect}
@@ -240,6 +239,7 @@ function Users() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
   const [aux, setAux] = useState();
+  const downloadBtnHeight = '48px';
 
   async function fetchData(pagination: PaginationRequest) {
     return await semcompApi.getUsers(pagination);
@@ -315,28 +315,33 @@ function Users() {
 
   return (<>
     {
-      !isLoading && (<>
-        <DataPage
-          title="Usuários"
-          isLoading={isLoading}
-          table={
-            <UsersTable
-              data={data}
-              pagination={pagination}
-              onRowSelect={handleSelectedIndexesChange}
-              allData={allData}
-              updateKitStatus={updateKitStatus}
+      !isLoading && (
+        <>
+          <div style={{ height: `calc(100vh - ${downloadBtnHeight})` }}>
+              <DataPage
+                title="Usuários"
+                isLoading={isLoading}
+                table={
+                        <UsersTable
+                      data={data}
+                      pagination={pagination}
+                      onRowSelect={handleSelectedIndexesChange}
+                      allData={allData}
+                    updateKitStatus={updateKitStatus}
             />
-          }
-        ></DataPage>
-        <button
-          className="w-full bg-black text-white py-3 px-6"
-          type='button'
-          onClick={fetchDownloadData}
-        >
-          Baixar Planilha
-        </button>
-      </>)
+                }
+              ></DataPage>
+              <button
+                className="w-full bg-black text-white py-3 px-6"
+                type='button'
+                style={{ height: downloadBtnHeight }}
+                onClick={fetchDownloadData}
+              >
+                Baixar Planilha
+              </button>
+            </div>
+        </>
+      )
     }
   </>);
 }
