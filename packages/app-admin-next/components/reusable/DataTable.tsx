@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -20,8 +20,6 @@ import { EditOutlined } from "@mui/icons-material";
 import Input, { InputType } from "../Input";
 import { PaginationRequest, PaginationResponse } from "../../models/Pagination";
 import { useAppContext } from "../../libs/contextLib";
-import { Modal } from "./Modal";
-import { UserData } from "../../models/SemcompApiModels";
 
 function Row({
   index,
@@ -30,16 +28,14 @@ function Row({
   onSelectChange,
   moreInfoContainer,
   onMoreInfoClick,
-  handleOpenKitModal,
   actions,
 }: {
   index: number;
-  row: UserData;
+  row: any;
   onClick: (index: number) => void;
   onSelectChange: (isSelected: boolean) => void;
   moreInfoContainer: ReactNode;
   onMoreInfoClick: (index: number) => void;
-  handleOpenKitModal: () => void;
   actions: {};
 }) {
   const [isSelected, setIsSelected] = useState(false);
@@ -78,17 +74,9 @@ function Row({
           />
         </TableCell>
         {Object.values(row).map((value: any, index: number) => {
-          // se for um booleano, então crio um input
           return (
             <TableCell key={index} onClick={() => onClick(index)}>
-              {typeof (value) === 'boolean' &&
-                (row["Opção de compra"] === "Kit" || row["Opção de compra"] === "Kit e Coffee") &&
-                (row["Status do pagamento"] === "Aprovado") ? <Input
-                className="my-3"
-                onChange={handleOpenKitModal}
-                value={row["Retirou Kit"]}
-                type={InputType.Checkbox}
-              /> : value}
+              {value}
             </TableCell>
           );
         })}
@@ -145,33 +133,16 @@ export default function DataTable({
   moreInfoContainer,
   onMoreInfoClick,
   actions,
-  updateKitStatus,
 }: {
-  data: PaginationResponse<UserData>;
+  data: PaginationResponse<any>;
   pagination: PaginationRequest;
   onRowClick: (index: number) => void;
   onRowSelect: (indexes: number[]) => void;
   moreInfoContainer?: ReactNode;
   onMoreInfoClick?: (index: number) => void;
   actions?: {},
-  updateKitStatus: (id: string, status: boolean) => any;
 }) {
   const [selectedRows, setSelectedRows] = useState([]);
-  const [isKitModalOpen, setKitModalOpen] = useState<boolean>(false);
-  const [selected, setSelected] = useState(null);
-
-  const handleOpenKitModal = () => {
-    setKitModalOpen(true);
-  }
-  const handleCloseKitModal = () => {
-    setKitModalOpen(false);
-  }
-  const handleSubmit = async (index: number) => {
-    data.getEntities()[index]["Retirou Kit"] = !data.getEntities()[index]["Retirou Kit"];
-    const response = await updateKitStatus(data.getEntities()[index].ID, data.getEntities()[index]["Retirou Kit"]);
-    console.log(response);
-    handleCloseKitModal();
-  }
 
   function handleRowSelect(selectChangeIndex: number, isSelected: boolean) {
     let updatedSelectedRows = selectedRows;
@@ -203,24 +174,6 @@ export default function DataTable({
 
   return (
     <>
-      <Modal
-        isOpen={isKitModalOpen}
-        hasCloseBtn={false}
-        onClose={handleCloseKitModal}>
-        <div className="flex flex-col gap-5">
-          Confirmar mudança?
-          <div className="flex justify-between">
-            <button className="bg-green-600 text-white py-2 px-4 hover:bg-green-800" onClick={() =>
-              handleSubmit(selected)}>
-              Sim
-            </button>
-            <button className="bg-red-600 text-white py-2 px-4 hover:bg-red-800" onClick={handleCloseKitModal}>
-              Não
-            </button>
-          </div>
-        </div>
-      </Modal>
-
       {data.getEntities()[0] && (
         <TableContainer component={Paper}>
           <Table aria-label="collapsible table">
@@ -245,16 +198,12 @@ export default function DataTable({
                   key={index}
                   index={index}
                   row={row}
-                  onClick={() => {
-                    onRowClick(index);
-                    setSelected(index);
-                  }}
+                  onClick={() => onRowClick(index)}
                   onSelectChange={(isSelected) =>
                     handleRowSelect(index, isSelected)
                   }
                   moreInfoContainer={moreInfoContainer}
                   onMoreInfoClick={onMoreInfoClick}
-                  handleOpenKitModal={handleOpenKitModal}
                   actions={actions}
                 />
               ))}
