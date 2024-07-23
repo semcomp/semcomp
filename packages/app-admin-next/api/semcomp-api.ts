@@ -1,23 +1,23 @@
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
-import { 
-  SemcompApiCreateEventRequest, 
-  SemcompApiCreateHouseRequest, 
-  SemcompApiCreateGameQuestionRequest, 
-  SemcompApiEditEventRequest, 
-  SemcompApiEditGameQuestionRequest, 
-  SemcompApiGetEventsResponse, 
-  SemcompApiGetHousesResponse, 
-  SemcompApiGetGameQuestionsResponse, 
-  SemcompApiGetTShirtsResponse, 
-  SemcompApiGetUsersResponse, 
-  SemcompApiLoginResponse, 
+import {
+  SemcompApiCreateEventRequest,
+  SemcompApiCreateHouseRequest,
+  SemcompApiCreateGameQuestionRequest,
+  SemcompApiEditEventRequest,
+  SemcompApiEditGameQuestionRequest,
+  SemcompApiGetEventsResponse,
+  SemcompApiGetHousesResponse,
+  SemcompApiGetGameQuestionsResponse,
+  SemcompApiGetTShirtsResponse,
+  SemcompApiGetUsersResponse,
+  SemcompApiLoginResponse,
   SemcompApiPaginationRequest,
-  SemcompApiGetGameGroupsResponse, 
-  SemcompApiUser, 
+  SemcompApiGetGameGroupsResponse,
+  SemcompApiUser,
   SemcompApiGetAdminUserResponse,
   SemcompApiGetTreasureHuntImageResponse,
   SemcompApiCreateTreasureHuntImageRequest,
-  SemcompApiEditTreasureHuntImageRequest, 
+  SemcompApiEditTreasureHuntImageRequest,
   SemcompApiConfigs
 
 } from "../models/SemcompApiModels";
@@ -66,13 +66,13 @@ class SemcompApi {
 
   public async deleteAdminUser(id: string): Promise<any> {
     const response = await this.http.delete("/admin/admin-users/" + id);
-    
+
     return response;
   }
 
   public async getAdminRole(id: String): Promise<any> {
     const response = await this.http.get("/admin/admin-users/role/" + id);
-    
+
     return response;
   }
 
@@ -90,8 +90,8 @@ class SemcompApi {
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
-  public async addPoints(houseId, points){
-    return this.http.post('/admin/houses/' + houseId + '/add-points', {points});
+  public async addPoints(houseId, points) {
+    return this.http.post('/admin/houses/' + houseId + '/add-points', { points });
   }
 
   public async editHouse(houseId, data: SemcompApiCreateHouseRequest): Promise<any> {
@@ -121,11 +121,11 @@ class SemcompApi {
     return this.http.put(`/admin/t-shirts/${id}`, data);
   }
 
-  public async getSubscriptions(eventId: string) : Promise<any> {
+  public async getSubscriptions(eventId: string): Promise<any> {
     return this.http.get(`/admin/subscription/event/${eventId}`);
   }
 
-  public async getSubscriptionsUsers(eventId: string) : Promise<any> {
+  public async getSubscriptionsUsers(eventId: string): Promise<any> {
     return this.http.get(`/admin/subscription/event/users/${eventId}`);
   }
 
@@ -200,7 +200,7 @@ class SemcompApi {
   public async editTreasureHuntImage(id: string, data: SemcompApiEditTreasureHuntImageRequest): Promise<any> {
     return this.http.put(`/admin/treasure-hunt-images/${id}`, data);
   }
-  
+
   public async deleteTreasureHuntImage(id: string): Promise<any> {
     return this.http.delete(`/admin/treasure-hunt-images/${id}`);
   }
@@ -209,6 +209,10 @@ class SemcompApi {
     return this.http.get(`/admin/treasure-hunt-images/qr-code/${id}`);
   }
 
+  public async updateKitStatus(id: string, status: boolean): Promise<any> {
+    const data = { gotKit: status };
+    return this.http.put(`/admin/users/${id}`, data);
+  }
 
   public async getConfig(): Promise<any> {
     return this.http.get(`/config`);
@@ -220,7 +224,7 @@ class SemcompApi {
   }
 
   public async updateConfig(config: any): Promise<any> {
-   return this.http.put(
+    return this.http.put(
       "/config",
       { config },
     );
@@ -230,12 +234,12 @@ class SemcompApi {
     return this.http.get(`/config/coffee-remaining`);
   }
 
-  public async setConfigSignup(setSignup): Promise<any>{
-    return this.http.post('/config/open-signup', { openSignup: setSignup});
+  public async setConfigSignup(setSignup): Promise<any> {
+    return this.http.post('/config/open-signup', { openSignup: setSignup });
   }
 
-  public async setConfigSales(setSales): Promise<any>{
-    return this.http.post('/config/open-sales', { openSales: setSales});
+  public async setConfigSales(setSales): Promise<any> {
+    return this.http.post('/config/open-sales', { openSales: setSales });
   }
 }
 

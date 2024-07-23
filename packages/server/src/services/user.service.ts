@@ -31,6 +31,7 @@ type Filters = User | {
   permission: boolean[];
   resetPasswordCode: string[];
   paid: boolean[];
+  gotKit: boolean[];
   createdAt: number[];
   updatedAt: number[];
 };
@@ -286,6 +287,7 @@ class UserServiceImpl implements UserService {
       permission: entity.permission,
       resetPasswordCode: entity.resetPasswordCode,
       paid: entity.paid,
+      gotKit: entity.gotKit,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };
