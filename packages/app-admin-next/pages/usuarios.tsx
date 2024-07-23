@@ -328,8 +328,8 @@ function Users() {
                       onRowSelect={handleSelectedIndexesChange}
                       allData={allData}
                     updateKitStatus={updateKitStatus}
-            />
-                }
+              />
+              }
               ></DataPage>
               <button
                 className="w-full bg-black text-white py-3 px-6"
