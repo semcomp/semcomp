@@ -22,4 +22,6 @@ export default interface PaymentIntegrationService {
   ): Promise<CreatedPayment>;
 
   find(id: number): Promise<Payment>;
+  refund(id: number, amount: number): Promise<Payment>;
+  cancel(id: number): Promise<Payment>;
 }

@@ -1,6 +1,7 @@
 import { handleError } from "../lib/handle-error";
 import PaymentService from "../services/payment.service";
 import PaymentServiceImpl from "../services/payment-impl.service";
+import { NextFunction, Request, Response } from "express";
 
 export default class PaymentController {
   private paymentService: PaymentService;
@@ -40,7 +41,7 @@ export default class PaymentController {
 
   public async findByUserId(req, res, next) {
     try {
-      const payment = await await new PaymentServiceImpl(null, null, null, null).findByUserId(req.params.id);
+      const payment = await new PaymentServiceImpl(null, null, null, null).findByUserId(req.params.id);
 
       return res.status(200).json(payment);
     } catch (error) {
@@ -57,4 +58,13 @@ export default class PaymentController {
       return handleError(error, next);
     }
   };
+
+  public async getRemainingTShirts(req, res, next) {
+    try {
+      const availableTShirts = await new PaymentServiceImpl(null, null, null, null).getAvailableTShirts();
+      return res.status(200).json(availableTShirts);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
 }

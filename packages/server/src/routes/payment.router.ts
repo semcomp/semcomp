@@ -35,6 +35,12 @@ export default class PaymentRouter {
       '/purchased-coffees',
       (req, res, next) => this.paymentController.getPurchasedCoffee(req, res, next),
     );
+
+    router.get(
+      '/remaining-tshirts',
+      (req, res, next) => this.paymentController.getRemainingTShirts(req, res, next),
+    )
+
     return router;
   }
 }
