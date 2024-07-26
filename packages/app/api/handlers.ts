@@ -75,6 +75,7 @@ const Handlers = {
     }),
     getPaymentInfo: withNoErrorMessage((id: string) => API.get(`payments/user-id/${id}`)),
     getPurchasedCoffees: withNoErrorMessage(() => API.get("payments/purchased-coffees")),
+    getAvailableTShirts: withNoErrorMessage(() => API.get("payments/remaining-tshirts")),
   },
   upload: {
     single: async (file: File) => {

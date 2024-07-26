@@ -53,7 +53,8 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
         // if(data.kitOption === KitOption.COFFEE){
         //   data.tShirtSize = TShirtSize.NONE;
         // }
-
+        
+        data.tShirtSize = TShirtSize[data.tShirtSize.split(' ')[0]];
         const { data: paymentResponse } = await API.coffee.createPayment(
           data.withSocialBenefit, fileName, data.tShirtSize, data.foodOption, data.kitOption
         );
@@ -93,12 +94,11 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
           >
             <p>Escaneie o QR Code abaixo ou copie e cole o código do PIX</p>
             <b className="py-3">Valor: R${ valuePayment }</b>
-            <p>Caso seu QR code não carregou, verifique se seu e-mail está correto!</p>
+            <p>Caso seu QR code não carregue, verifique se seu e-mail está correto!</p>
             <p>
-              Depois de realizar o pagamento no seu banco, clique em fechar e
-              atualize a página.
+              Após realizar o pagamento, atualize a página. Você possui <b>2 horas</b> para realizá-lo.
             </p>
-            <p>Pode ser que demore um tempo para o pagamento ser realizado.</p>
+            <i>Pode ser que demore um tempo para que o pagamento seja efetivado.</i>
           </section>
           <div>
             <section className="m-4 flex justify-center items-center flex-col">

@@ -43,11 +43,11 @@ function CoffeeStep1({
 
   return (
     <div className="my-6">
-      <p>Opções disponíveis para a Semcomp 27 Beta:</p>
+      <p>Opções disponíveis para a Semcomp 27:</p>
       <br />
       <ul>
-        {/* <li><b>Kit e Coffee</b>: R$75.00</li> */}
-        {/* <li><b>Kit</b>: R$65.00</li> */}
+        <li><b>Kit e Coffee</b>: R$75.00</li>
+        <li><b>Kit</b>: R$65.00</li>
         <li><b>Coffee</b>: R$18.00</li>
       </ul>
       

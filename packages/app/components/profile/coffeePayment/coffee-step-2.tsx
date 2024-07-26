@@ -1,7 +1,8 @@
-import { ReactHTMLElement } from "react";
+import { ReactHTMLElement, useEffect, useState } from "react";
 import Input, { InputType } from "../../Input";
 import { CoffeePaymentData } from "./coffee-modal";
 import { KitOption } from "./coffee-step-1";
+import API from "../../../api";
 
 export enum TShirtSize {
   NONE = "NONE",
@@ -39,7 +40,9 @@ function CoffeeStep2({
 }: {
   data: CoffeePaymentData;
   setData: any;
-}) {
+  }) {
+  const [tShirtChoices, setTShirtChoices] = useState<string[]>([]);
+  
   function handleWithSocialBenefitChange(
     event: React.ChangeEvent<HTMLInputElement>
   ) {
@@ -63,6 +66,23 @@ function CoffeeStep2({
     const value = event.target.value;
     setData({...data, foodOption: value});
   }
+
+  useEffect(() => {
+    const getAvailableTShirts = async () => {
+      const availableTShirts : Object = await API.coffee.getAvailableTShirts().then((res) => res.data);
+      
+      const choices: string[] = [];
+      Object.keys(availableTShirts).map((tshirt) => {
+        if (tshirt !== "NONE" && availableTShirts[tshirt] != 0) {
+          choices.push(`${tshirt} (${availableTShirts[tshirt]} disponíveis)`);
+        }
+      })
+
+      setTShirtChoices(choices);
+    }
+
+    getAvailableTShirts();
+  }, [])
 
   return (
     <div className="my-6">
@@ -89,11 +109,11 @@ function CoffeeStep2({
       {}
       { (data.kitOption && (data?.kitOption).includes("Kit")) && (
               <Input
-              className="my-3"
+              className="my-3 font-secondary"
               label="Tamanho da camiseta"
               value={data.tShirtSize}
               onChange={handleTShirtSizeChange}
-              choices={TShirtSizes}
+              choices={tShirtChoices}
               type={InputType.Select}
             />
       )}
