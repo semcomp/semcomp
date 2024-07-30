@@ -46,6 +46,16 @@ class TShirtService {
     return entity && this.mapEntity(entity);
   }
 
+  public async findMany(filters?: Partial<TShirt>): Promise<TShirt[]> {
+    const tShirts = await TShirtModel.find(filters);
+    const entities: TShirt[] = [];
+    for (const tShirt of tShirts) {
+      entities.push(this.mapEntity(tShirt));
+    }
+
+    return entities;
+  }
+
   public async count(filters?: Partial<TShirt>): Promise<number> {
     const count = await TShirtModel.count(filters);
 

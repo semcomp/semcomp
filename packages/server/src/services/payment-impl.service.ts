@@ -100,9 +100,9 @@ export default class PaymentServiceImpl implements PaymentService {
 
   public async getAvailableTShirts(): Promise<Object> {
     const availableTShirts: Object = {};
-    Object.keys(TShirtSize).map((key) => { availableTShirts[key] = 0 });
-
-    const allTShirtSize = Object.values(TShirtSize);
+    Object.keys(TShirtSize).map((key) => {
+      if (key != 'NONE') availableTShirts[key] = 0;
+    });
 
     const approvedPayments = await this.find({ status: PaymentStatus.APPROVED });
     const pendingPayments = await this.find({ status: PaymentStatus.PENDING });
@@ -110,14 +110,8 @@ export default class PaymentServiceImpl implements PaymentService {
     approvedPayments.map((payment) => { availableTShirts[payment.tShirtSize]-- });
     pendingPayments.map((payment) => { availableTShirts[payment.tShirtSize]-- });
 
-    const promises = allTShirtSize.map(async (shirtSize) => {
-      if (shirtSize === 'NONE') return;
-      const tShirt = await tShirtService.findOne({ size: shirtSize });
-      const tShirtCount = tShirt.quantity;
-      availableTShirts[shirtSize] += tShirtCount;
-    })
-
-    await Promise.all(promises);
+    const allAvailableTShirts = await tShirtService.findMany({});
+    allAvailableTShirts.map((tShirt) => { availableTShirts[tShirt.size] += tShirt.quantity; })
 
     return availableTShirts;
   }

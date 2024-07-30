@@ -73,8 +73,11 @@ function CoffeeStep2({
       
       const choices: string[] = [];
       Object.keys(availableTShirts).map((tshirt) => {
-        if (tshirt !== "NONE" && availableTShirts[tshirt] != 0) {
-          choices.push(`${tshirt} (${availableTShirts[tshirt]} disponíveis)`);
+        if (availableTShirts[tshirt] != 0) {
+          if (availableTShirts[tshirt] != 1)
+            choices.push(`${tshirt} (${availableTShirts[tshirt]} disponíveis)`);
+          else
+            choices.push(`${tshirt} (${availableTShirts[tshirt]} disponível)`);
         }
       })
 
