@@ -32,7 +32,6 @@ class GameGroupController {
       const entities = await gameGroupService.findWithInfo({ pagination: new PaginationRequest(1, 9999)});
 
       const winner = await gameGroupService.findBestGroupForEachGame(entities);
-      console.log(winner);
       
       return res.status(200).json(winner);
     } catch (error) {
