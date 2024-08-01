@@ -45,8 +45,17 @@ class GameGroupCompletedQuestionService {
 
   public async create(gameGroupCompletedQuestion: GameGroupCompletedQuestion): Promise<GameGroupCompletedQuestion> {
     gameGroupCompletedQuestion.id = await idService.create();
-    gameGroupCompletedQuestion.createdAt = Date.now();
-    gameGroupCompletedQuestion.updatedAt = Date.now();
+
+    const now = Date.now();
+
+    // diferença de fuso horário em milissegundos (3 horas * 60 minutos * 60 segundos * 1000 milissegundos)
+    // Não estou considerando horário de verão, pois atualmente ele não está em vigor
+    const timezoneOffset = 3 * 60 * 60 * 1000;
+
+    const nowInBrazil = now - timezoneOffset;
+
+    gameGroupCompletedQuestion.createdAt = nowInBrazil;
+    gameGroupCompletedQuestion.updatedAt = nowInBrazil;
     const entity = await GameGroupCompletedQuestionModel.create(gameGroupCompletedQuestion);
 
     return this.findById(entity.id);
