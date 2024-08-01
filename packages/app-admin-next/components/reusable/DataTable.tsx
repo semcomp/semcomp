@@ -59,7 +59,7 @@ function Row({
             <IconButton
               aria-label="expand row"
               size="small"
-              onClick={() => {setOpen(!open); onMoreInfoClick(index)}}
+              onClick={() => { setOpen(!open); onMoreInfoClick(index) }}
             >
               {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
             </IconButton>
@@ -88,13 +88,13 @@ function Row({
                   if (action === 'edit') {
                     return (
                       <IconButton key={index} onClick={actions[action]}>
-                        <EditOutlined/>
+                        <EditOutlined />
                       </IconButton>
                     );
                   } else if (action === 'delete' && adminRole.includes('DELETE')) {
                     return (
                       <IconButton key={index} onClick={() => actions[action](row)}>
-                        <DeleteOutlineOutlined/>
+                        <DeleteOutlineOutlined />
                       </IconButton>
                     );
                   }
@@ -186,9 +186,9 @@ export default function DataTable({
                     return <TableCell key={index}>{key}</TableCell>;
                   }
                 )}
-                { actions &&  (
+                {actions && (
                   <TableCell>Ações</TableCell>
-                  )
+                )
                 }
               </TableRow>
             </TableHead>

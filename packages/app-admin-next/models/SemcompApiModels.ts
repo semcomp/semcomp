@@ -58,12 +58,28 @@ export type SemcompApiUser = {
     tShirtSize: TShirtSize,
     kitOption: KitOption
   },
+  gotKit: boolean,
   telegram: string,
   disabilities: string[],
   permission: boolean,
   createdAt: number,
   updatedAt: number,
 };
+
+export type UserData = {
+  "ID": string,
+  "E-mail": string,
+  "Nome": string,
+  "Curso": string,
+  "Telegram": string,
+  "Casa": string,
+  "Status do pagamento": string,
+  "Retirou Kit": boolean,
+  "Tamanho da camiseta": TShirtSize,
+  "Opção de compra": KitOption,
+  "Permite divulgação?": string,
+  "Criado em": string,
+}
 
 export type SemcompApiAdminUser = {
   id: string,

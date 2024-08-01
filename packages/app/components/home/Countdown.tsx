@@ -24,7 +24,7 @@ const Countdown = (): ReactElement => {
 
   useEffect(() => {
     setInterval(() => {
-      let eventDate = new Date(2024, 4, 25, 8).getTime();
+      let eventDate = new Date(2024, 9, 19, 8).getTime();
       let difference = eventDate - new Date().getTime();
       if (difference < 1) {
         setTimeUp(true);
