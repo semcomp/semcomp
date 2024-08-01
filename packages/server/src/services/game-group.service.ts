@@ -25,6 +25,20 @@ const MAX_MEMBERS = {
   [Game.RIDDLETHON]: 30,
 };
 
+const createEmptyGameGroupWithInfo = (enumGame: Game): GameGroupWithInfo => {
+  return {
+    id: '',
+    game: enumGame,
+    name: 'Sem ganhador até o momento',
+    availableClues: 0,
+    availableSkips: 0,
+    createdAt: 0,
+    updatedAt: 0,
+    members: [],
+    completedQuestions: []
+  };
+};
+
 type GameGroupWithInfo = GameGroup & {
   members: Partial<User>[],
   completedQuestions: {
@@ -217,6 +231,59 @@ class GameGroupService {
     };
   }
 
+  public async findBestGroupForEachGame(response: PaginationResponse<GameGroupWithInfo>){
+    const entities  = response.getEntities();
+
+    // Organiza estities em games
+    const games: Record<string, GameGroupWithInfo[]> = {};
+
+    for (const entity of entities) {
+      if (!games[entity.game]) {
+        games[entity.game] = [];
+      }
+      games[entity.game].push(entity);
+    }
+
+    const bestGroups: Record<string, GameGroupWithInfo> = {};
+
+    for (const game in games) {
+      const groups = games[game];
+      
+      // Encontra o grupo com mais completedQuestions
+      groups.sort((a, b) => {
+        const diff = b.completedQuestions.length - a.completedQuestions.length;
+        if (diff !== 0) return diff;
+
+        // Em caso de empate, sort por createdAt da ultima questao completa.
+        const lastQuestionA = a.completedQuestions[a.completedQuestions.length - 1]?.createdAt || 0;
+        const lastQuestionB = b.completedQuestions[b.completedQuestions.length - 1]?.createdAt || 0;
+        return lastQuestionA - lastQuestionB;
+      });
+
+
+      if(groups[0].completedQuestions.length !== 0){
+        bestGroups[game] = groups[0];
+      }else{ // Em caso de ninguem ter feito uma questao ainda
+        let enumGame: Game;
+        switch (game){
+          case Game.RIDDLE:
+            enumGame = Game.RIDDLE;
+            break;
+          case Game.RIDDLETHON:
+            enumGame = Game.RIDDLETHON;
+            break;
+          case Game.HARD_TO_CLICK:
+            enumGame = Game.HARD_TO_CLICK;
+            break;
+        }
+      
+        bestGroups[game] = createEmptyGameGroupWithInfo(enumGame);
+      }
+    }
+
+    return bestGroups;
+  }
+
   public async findWithInfo({
     pagination,
   }: {
@@ -277,5 +344,7 @@ class GameGroupService {
     };
   }
 };
+
+
 
 export default new GameGroupService();
