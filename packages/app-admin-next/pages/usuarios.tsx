@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-
 import DataTable from '../components/reusable/DataTable';
 import RequireAuth from '../libs/RequireAuth';
 import SemcompApi from '../api/semcomp-api';
@@ -92,7 +91,6 @@ function countKitOption(kitOption: KitOption, data: SemcompApiUser[]) : number {
   return count;
 }
 
-
 function getInfoData(data: SemcompApiUser[]) : InfoData[] {
   const infoData: InfoData[] = [];
 
@@ -138,30 +136,55 @@ function UsersTable({
   pagination,
   onRowSelect,
   allData,
+  handleKitChange,
+  handleCoffeeChange,
 }: {
   data: PaginationResponse<SemcompApiUser>,
   pagination: PaginationRequest,
   onRowSelect: (selectedIndexes: number[]) => void,
   allData: PaginationResponse<SemcompApiUser>,
+  handleKitChange: (id: string, hasKit: boolean) => void,
+  handleCoffeeChange: (id: string, hasCoffee: boolean) => void,
 }) {
   const infoData: InfoData[] = getInfoData(allData.getEntities());
-  
 
-  return (<>
-    <InfoCards
-      infoData={infoData}
-    />
-    <DataTable
-      data={new PaginationResponse<UserData>(mapData(data.getEntities()), data.getTotalNumberOfItems())}
-      pagination={pagination}
-      onRowClick={(index: number) => console.log(index)}
-      onRowSelect={onRowSelect}
-    ></DataTable>
-  </>);
+  return (
+    <>
+      <InfoCards
+        infoData={infoData}
+      />
+      <DataTable
+        data={new PaginationResponse<UserData>(mapData(data.getEntities()), data.getTotalNumberOfItems())}
+        pagination={pagination}
+        onRowClick={(index: number) => console.log(index)}
+        onRowSelect={onRowSelect}
+        renderCell={(column, row) => {
+          if (column === "Possui Kit?") {
+            return (
+              <input
+                type="checkbox"
+                checked={row["Opção de compra"] === KitOption.KIT || row["Opção de compra"] === KitOption.COMPLETE}
+                onChange={(e) => handleKitChange(row.ID, e.target.checked)}
+              />
+            );
+          } else if (column === "Possui Coffee?") {
+            return (
+              <input
+                type="checkbox"
+                checked={row["Opção de compra"] === KitOption.COFFEE || row["Opção de compra"] === KitOption.COMPLETE}
+                onChange={(e) => handleCoffeeChange(row.ID, e.target.checked)}
+              />
+            );
+          }
+          return row[column];
+        }}
+      ></DataTable>
+    </>
+  );
 }
 
 function Users() {
-  const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
+  const { semcompApi }: { semcompApi: SemcompApi } = useAppContext();
 
   const [data, setData] = useState(null as PaginationResponse<SemcompApiUser>);
   const [allData, setAllData] = useState(null as PaginationResponse<SemcompApiUser>);
@@ -169,7 +192,8 @@ function Users() {
   const [paginationComplete, setPaginationComplete] = useState(new PaginationRequest(() => fetchAllData(), 1, 9999));
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
-  const [aux, setAux] = useState();
+  const [searchTerm, setSearchTerm] = useState(""); // Adicionando o estado de pesquisa
+  const [filteredUsers, setFilteredUsers] = useState<SemcompApiUser[]>([]); // Estado para armazenar usuários filtrados
 
   async function fetchData(pagination: PaginationRequest) {
     return await semcompApi.getUsers(pagination);
@@ -181,11 +205,10 @@ function Users() {
 
   async function fetchTableData() {
     try {
-      if(data == null){
+      if (data == null) {
         const response = await fetchData(pagination);
         setData(response);
       }
-      
     } catch (error) {
       console.error(error);
     }
@@ -205,16 +228,15 @@ function Users() {
 
   async function fetchAllData() {
     try {
-      if(allData == null){
+      if (allData == null) {
         const response = await fetchAllDataParse(paginationComplete);
         setAllData(response);
       }
     } catch (error) {
       console.error(error);
     }
-
   }
-  
+
   // Get all data about users
   useEffect(() => {
     setIsLoading(true);
@@ -223,43 +245,155 @@ function Users() {
   }, []);
 
   useEffect(() => {
-    // If all the data is finnaly fetched, then the isLoading is false
-    if(data != null && allData != null){
+    // If all the data is finally fetched, then the isLoading is false
+    if (data != null && allData != null) {
       setIsLoading(false);
     }
+  }, [allData, data]);
 
-  }, [allData, data])
+  useEffect(() => {
+    if (allData) {
+      const filtered = allData.getEntities().filter(user =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredUsers(filtered);
+    }
+  }, [searchTerm, allData]);
 
   async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
     setSelectedIndexes(updatedSelectedIndexes);
   }
 
-  return (<>
-    {
-      !isLoading && (<>
-        <DataPage
-          title="Usuários"
-          isLoading={isLoading}
-          table={
-      
-            <UsersTable
-            data={data}
-            pagination={pagination}
-            onRowSelect={handleSelectedIndexesChange}
-            allData={allData}
-            />
-          }
-        ></DataPage>
-        <button
-          className="w-full bg-black text-white py-3 px-6"
-          type='button'
-          onClick={fetchDownloadData}
-        >
-          Baixar Planilha
-        </button>
-      </>)
+  const handleKitChange = (id: string, hasKit: boolean) => {
+    setAllData((prevData) => {
+      const updatedUsers = prevData.getEntities().map(user => {
+        if (user.id === id) {
+          const newKitOption = hasKit
+            ? (user.payment.kitOption === KitOption.COFFEE ? KitOption.COMPLETE : KitOption.KIT)
+            : (user.payment.kitOption === KitOption.COMPLETE ? KitOption.COFFEE : KitOption.NONE);
+          return {
+            ...user,
+            payment: {
+              ...user.payment,
+              kitOption: newKitOption
+            }
+          };
+        }
+        return user;
+      });
+      return new PaginationResponse(updatedUsers, prevData.getTotalNumberOfItems());
+    });
+
+    setData((prevData) => {
+      const updatedUsers = prevData.getEntities().map(user => {
+        if (user.id === id) {
+          const newKitOption = hasKit
+            ? (user.payment.kitOption === KitOption.COFFEE ? KitOption.COMPLETE : KitOption.KIT)
+            : (user.payment.kitOption === KitOption.COMPLETE ? KitOption.COFFEE : KitOption.NONE);
+          return {
+            ...user,
+            payment: {
+              ...user.payment,
+              kitOption: newKitOption
+            }
+          };
+        }
+        return user;
+      });
+      return new PaginationResponse(updatedUsers, prevData.getTotalNumberOfItems());
+    });
+  };
+
+  const handleCoffeeChange = (id: string, hasCoffee: boolean) => {
+    setAllData((prevData) => {
+      const updatedUsers = prevData.getEntities().map(user => {
+        if (user.id === id) {
+          const newKitOption = hasCoffee
+            ? (user.payment.kitOption === KitOption.KIT ? KitOption.COMPLETE : KitOption.COFFEE)
+            : (user.payment.kitOption === KitOption.COMPLETE ? KitOption.KIT : KitOption.NONE);
+          return {
+            ...user,
+            payment: {
+              ...user.payment,
+              kitOption: newKitOption
+            }
+          };
+        }
+        return user;
+      });
+      return new PaginationResponse(updatedUsers, prevData.getTotalNumberOfItems());
+    });
+
+    setData((prevData) => {
+      const updatedUsers = prevData.getEntities().map(user => {
+        if (user.id === id) {
+          const newKitOption = hasCoffee
+            ? (user.payment.kitOption === KitOption.KIT ? KitOption.COMPLETE : KitOption.COFFEE)
+            : (user.payment.kitOption === KitOption.COMPLETE ? KitOption.KIT : KitOption.NONE);
+          return {
+            ...user,
+            payment: {
+              ...user.payment,
+              kitOption: newKitOption
+            }
+          };
+        }
+        return user;
+      });
+      return new PaginationResponse(updatedUsers, prevData.getTotalNumberOfItems());
+    });
+  };
+
+  const getFilteredData = () => {
+    if (!searchTerm) {
+      return data;
     }
-  </>);
+    const filteredEntities = allData.getEntities().filter(user =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    return new PaginationResponse<SemcompApiUser>(filteredEntities, filteredEntities.length);
+  }
+
+  return (
+    <>
+      {
+        !isLoading && (
+          <>
+            <DataPage
+              title="Usuários"
+              isLoading={isLoading}
+              table={
+                <>
+                  <input
+                    type="text"
+                    placeholder="Pesquisar por nome..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="mb-4 p-2 border border-gray-300 rounded w-full" 
+                  />
+                  <UsersTable
+                    data={getFilteredData()}
+                    pagination={pagination}
+                    onRowSelect={handleSelectedIndexesChange}
+                    allData={allData}
+                    handleKitChange={handleKitChange}
+                    handleCoffeeChange={handleCoffeeChange}
+                  />
+                </>
+              }
+            />
+            <button
+              className="w-full bg-black text-white py-3 px-6"
+              type='button'
+              onClick={fetchDownloadData}
+            >
+              Baixar Planilha
+            </button>
+          </>
+        )
+      }
+    </>
+  );
 }
 
 export default RequireAuth(Users, "USERS");
