@@ -184,7 +184,7 @@ function UsersTable({
 }
 
 function Users() {
-  const { semcompApi }: { semcompApi: SemcompApi } = useAppContext();
+  const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
 
   const [data, setData] = useState(null as PaginationResponse<SemcompApiUser>);
   const [allData, setAllData] = useState(null as PaginationResponse<SemcompApiUser>);
@@ -205,7 +205,7 @@ function Users() {
 
   async function fetchTableData() {
     try {
-      if (data == null) {
+      if(data==null) {
         const response = await fetchData(pagination);
         setData(response);
       }
@@ -228,7 +228,7 @@ function Users() {
 
   async function fetchAllData() {
     try {
-      if (allData == null) {
+      if(allData == null) {
         const response = await fetchAllDataParse(paginationComplete);
         setAllData(response);
       }
@@ -246,7 +246,7 @@ function Users() {
 
   useEffect(() => {
     // If all the data is finally fetched, then the isLoading is false
-    if (data != null && allData != null) {
+    if(data != null && allData != null){
       setIsLoading(false);
     }
   }, [allData, data]);
