@@ -12,6 +12,12 @@ router.get(
   adminGameGroupsController.list
 );
 
+router.get(
+  "/winner",
+  [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+  adminGameGroupsController.listWinner
+);
+
 router.delete(
   "/:id",
   [

@@ -12,7 +12,8 @@ import {
   SemcompApiGetUsersResponse,
   SemcompApiLoginResponse,
   SemcompApiPaginationRequest,
-  SemcompApiGetGameGroupsResponse,
+  SemcompApiGetGameGroupsResponse, 
+  SemcompApiGetGameWinnersResponse,
   SemcompApiUser,
   SemcompApiGetAdminUserResponse,
   SemcompApiGetTreasureHuntImageResponse,
@@ -180,6 +181,13 @@ class SemcompApi {
     const response = await this.http.get("/admin/game/groups", semcompApiPagination);
 
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  public async getGameWinner(): Promise<SemcompApiGetGameWinnersResponse> {
+    
+    const response = await this.http.get("/admin/game/groups/winner");
+
+    return response;
   }
 
   public async getTreasureHuntImages(pagination: PaginationRequest): Promise<SemcompApiGetTreasureHuntImageResponse> {
