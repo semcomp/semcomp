@@ -56,17 +56,17 @@ const HomeHeader = (): ReactElement => {
     } 
     // outros
     else if (screenWidth >= 430 && screenWidth < 640) {
-      tempImageWidth = 160.5;
-      tempImageHeight = 39.38;
-      tempNoAbsoluteMarginTop = 250;
+      tempImageWidth = 280;
+      tempImageHeight = 50;
+      tempNoAbsoluteMarginTop = 160;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 290;
       setShowBeta(screenHeight >= 890);
       setShowCounter(screenHeight >= 622);
     } 
     else if (screenWidth < 430){
-      tempImageWidth = 160.5;
-      tempImageHeight = 39.38;
-      tempNoAbsoluteMarginTop = 280;
+      tempImageWidth = 260;
+      tempImageHeight = 50;
+      tempNoAbsoluteMarginTop = 140;
       tempBetaMarginTop = tempNoAbsoluteMarginTop - 290;
       setShowBeta(screenHeight >= 890);
       setShowCounter(screenHeight >= 697);
@@ -162,47 +162,18 @@ const HomeHeader = (): ReactElement => {
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[100px]"
             style={{ marginTop: `${betaMarginTop}px` }}
           >
-
-            <h1
-              id="beta"
-              className="
-                select-none
-                text-secondary
-                font-secondary
-                superdesktop:text-[40px]
-                desktop:text-[30px]
-                tablet:text-[27px]
-                medphone:text-[15px]
-                phone:text-[15px]
-                superdesktop:ml-[605px]
-                desktop:ml-[475px]
-                tablet:ml-[350px]
-                medphone:ml-[265px]
-                phone:ml-[240px]
-                
-                superdesktop:text-[40px]
-                desktop:text-[35px]
-                tablet:text-[27px]
-                medphone:text-[15px]
-                phone:text-[15px]
-                "
-
-                
-
-            >
-              BETA
-            </h1>
           </div>
           <h1
             className="
-            select-none
-            text-primary
-            superdesktop:text-[200px]
-            desktop:text-[150px]
-            tablet:text-[100px]
-            medphone:text-[65px]
-            phone:text-[55px]"
-          >
+              select-none
+              text-primary
+              superdesktop:text-[200px]
+              desktop:text-[150px]
+              tablet:text-[100px]
+              medphone:text-[75px]
+              phone:text-[70px] 
+              phone:leading-[50px]"
+            >
             SEMCOMP 27
           </h1>
         </div>
@@ -214,13 +185,13 @@ const HomeHeader = (): ReactElement => {
             superdesktop:text-[35px]
             desktop:text-[27px]
             tablet:text-[18px]
-            medphone:text-[12px]
-            phone:text-[10px]
+            medphone:text-[20px]
+            phone:text-[20px]
             superdesktop:-mt-[60px]
             desktop:-mt-[50px]
             tablet:-mt-[35px]
-            medphone:-mt-[25px]
-            phone:-mt-[20px]
+            medphone:mt-[20px]
+            phone:mt-[20px]
             mb-10
             font-secondary"
         >
@@ -234,8 +205,8 @@ const HomeHeader = (): ReactElement => {
             superdesktop:mt-[20px]
             desktop:mt-[20px]
             tablet:-mt-[10px]
-            medphone:-mt-[25px]
-            phone:-mt-[20px]
+            medphone:-mt-[0px]
+            phone:-mt-[0px]
             flex
             flex-col
             cursor-pointer
@@ -260,8 +231,8 @@ const HomeHeader = (): ReactElement => {
                   superdesktop:text-[20px]
                   desktop:text-[20px]
                   tablet:text-[18px]
-                  medphone:text-[15px]
-                  phone:text-[15px]"
+                  medphone:text-[18px]
+                  phone:text-[18px]"
               >
                 INSCREVA-SE
               </button>
