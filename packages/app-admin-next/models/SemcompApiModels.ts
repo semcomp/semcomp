@@ -213,6 +213,7 @@ export type SemcompApiGameGroup = {
 
 export type SemcompApiGetGameGroupsResponse = PaginationResponse<SemcompApiGameGroup>;
 
+export type SemcompApiGetGameWinnersResponse = Record<string, SemcompApiGameGroup>
 
 export type SemcompApiTreasureHuntImage = {
   id: string;

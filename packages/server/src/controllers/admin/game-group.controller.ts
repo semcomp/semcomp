@@ -24,6 +24,21 @@ class GameGroupController {
     }
   };
 
+  public async listWinner(req, res, next) {
+    try {
+
+      // Usar uma pagination com (1, 9999) para evitar criar outro .findWithInfo()
+      // Estou considerando que não haverá mais que 9999 grupos somando todos os games
+      const entities = await gameGroupService.findWithInfo({ pagination: new PaginationRequest(1, 9999)});
+
+      const winner = await gameGroupService.findBestGroupForEachGame(entities);
+      
+      return res.status(200).json(winner);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  };
+
   public async deleteById(req, res, next) {
     try {
       const { id } = req.params;

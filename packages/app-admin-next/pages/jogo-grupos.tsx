@@ -7,6 +7,7 @@ import { useAppContext } from "../libs/contextLib";
 import {
   SemcompApiGameGroup,
   SemcompApiGetGameGroupsResponse,
+  SemcompApiGetGameWinnersResponse,
 } from "../models/SemcompApiModels";
 import DataPage from "../components/DataPage";
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
@@ -97,10 +98,28 @@ function GameGroupsTable({
   );
 }
 
+function ShowWinner({dataWinner} : {dataWinner: SemcompApiGetGameWinnersResponse}){
+  return (
+    <div className="w-2/4 flex flex-col items-center mb-4">
+      <h3 className="mt-8 text-3xl font-bold text-gray-700">Vencedores: </h3>
+      {
+        
+        Object.keys(dataWinner).map((key) => (
+          <div key={key}>
+            <strong>{key}:</strong> {String(dataWinner[key].name)}
+          </div>
+        ))
+      
+      }
+    </div>
+  );
+}
+
 function GameGroups() {
   const { semcompApi }: { semcompApi: SemcompApi } = useAppContext();
 
   const [data, setData] = useState(null as SemcompApiGetGameGroupsResponse);
+  const [dataWinner, setDataWinner] = useState(null as SemcompApiGetGameWinnersResponse);
   const [pagination, setPagination] = useState(
     new PaginationRequest(() => fetchData())
   );
@@ -111,7 +130,9 @@ function GameGroups() {
     try {
       setIsLoading(true);
       const response = await semcompApi.getGameGroups(pagination);
+      const winner = await semcompApi.getGameWinner();
       setData(response);
+      setDataWinner(winner);
     } catch (error) {
       console.error(error);
     } finally {
@@ -131,10 +152,10 @@ function GameGroups() {
   }, []);
 
   useEffect(() => {
-    if(data){
+    if(data && dataWinner){
       setIsLoading(false);
     }
-  }, [data]);
+  }, [data, dataWinner]);
 
   return (
     <>
@@ -143,6 +164,11 @@ function GameGroups() {
           <DataPage
             title="Jogo - Grupos"
             isLoading={isLoading}
+            buttons={
+              <ShowWinner 
+                dataWinner={dataWinner}
+              />
+            }
             table={
               <GameGroupsTable
                 data={data}
