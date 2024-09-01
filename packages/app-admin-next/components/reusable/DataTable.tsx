@@ -210,6 +210,7 @@ export default function DataTable({
             </TableBody>
           </Table>
           <TablePagination
+            className="sticky left-0"
             component="div"
             count={data.getTotalNumberOfItems()}
             page={pagination.getPage() - 1}
