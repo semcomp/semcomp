@@ -2,7 +2,14 @@ import Mongoose from "mongoose";
 
 const ObjectID = Mongoose.Schema.Types.ObjectId;
 
-const DeviceSchema = new Mongoose.Schema(
+export interface Device {
+  token: string;
+  user?: Mongoose.Types.ObjectId;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const DeviceSchema = new Mongoose.Schema<Device>(
   {
     token: {
       type: String,
@@ -23,4 +30,4 @@ const DeviceSchema = new Mongoose.Schema(
   { collection: "device" }
 );
 
-export default Mongoose.model("device", DeviceSchema);
+export default Mongoose.model<Device>("device", DeviceSchema);

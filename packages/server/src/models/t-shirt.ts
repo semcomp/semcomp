@@ -3,16 +3,16 @@ import Mongoose from "mongoose";
 import TShirtSize from "../lib/constants/t-shirt-size-enum";
 
 type TShirt = {
-  id?: string;
+  id: string;
   size: TShirtSize;
-  quantity?: number;
+  quantity: number;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default TShirt;
 
-const TShirtSchema = new Mongoose.Schema(
+const TShirtSchema = new Mongoose.Schema<TShirt>(
   {
     id: {
       type: String,
@@ -39,7 +39,4 @@ const TShirtSchema = new Mongoose.Schema(
   { collection: "t-shirt" }
 );
 
-export const TShirtModel = Mongoose.model(
-  "t-shirt",
-  TShirtSchema,
-);
+export const TShirtModel = Mongoose.model<TShirt>("t-shirt", TShirtSchema);

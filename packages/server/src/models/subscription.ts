@@ -1,18 +1,18 @@
 import Mongoose from "mongoose";
 
 type Subscription = {
-  id?: string;
+  id: string;
   eventId: string;
   userId: string;
-  info: object;
+  info?: object;
   hasGroup: boolean;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default Subscription;
 
-const SubscriptionSchema = new Mongoose.Schema(
+const SubscriptionSchema = new Mongoose.Schema<Subscription>(
   {
     id: {
       type: String,
@@ -45,4 +45,7 @@ const SubscriptionSchema = new Mongoose.Schema(
   { collection: "subscription" }
 );
 
-export const SubscriptionModel = Mongoose.model("subscription", SubscriptionSchema);
+export const SubscriptionModel = Mongoose.model<Subscription>(
+  "subscription",
+  SubscriptionSchema
+);

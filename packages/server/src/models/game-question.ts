@@ -3,22 +3,22 @@ import Mongoose from "mongoose";
 import Game from "../lib/constants/game-enum";
 
 type GameQuestion = {
-  id?: string;
+  id: string;
   game: Game;
   index: number;
   title: string;
   question: string;
-  imgUrl: string;
-  clue: string;
+  imgUrl?: string;
+  clue?: string;
   answer: string;
   isLegendary: boolean;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default GameQuestion;
 
-const GameQuestionSchema = new Mongoose.Schema(
+const GameQuestionSchema = new Mongoose.Schema<GameQuestion>(
   {
     id: {
       type: String,
@@ -27,9 +27,10 @@ const GameQuestionSchema = new Mongoose.Schema(
       index: true,
     },
     game: {
-      type: Game,
+      type: String,
       default: Game.RIDDLE,
       required: true,
+      enum: Object.values(Game),
     },
     index: {
       type: Number,
@@ -68,7 +69,7 @@ const GameQuestionSchema = new Mongoose.Schema(
   { collection: "game-question" }
 );
 
-export const GameQuestionModel = Mongoose.model(
+export const GameQuestionModel = Mongoose.model<GameQuestion>(
   "game-question",
-  GameQuestionSchema,
+  GameQuestionSchema
 );

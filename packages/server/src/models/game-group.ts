@@ -3,18 +3,18 @@ import Mongoose from "mongoose";
 import Game from "../lib/constants/game-enum";
 
 type GameGroup = {
-  id?: string;
-  game?: Game;
+  id: string;
+  game: Game;
   name: string;
-  availableClues?: number;
-  availableSkips?: number;
+  availableClues: number;
+  availableSkips: number;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default GameGroup;
 
-const GameGroupSchema = new Mongoose.Schema(
+const GameGroupSchema = new Mongoose.Schema<GameGroup>(
   {
     id: {
       type: String,
@@ -23,9 +23,10 @@ const GameGroupSchema = new Mongoose.Schema(
       index: true,
     },
     game: {
-      type: Game,
+      type: String,
       default: Game.RIDDLE,
       required: true,
+      enum: Object.values(Game),
     },
     name: {
       type: String,
@@ -51,7 +52,7 @@ const GameGroupSchema = new Mongoose.Schema(
   { collection: "game-group" }
 );
 
-export const GameGroupModel = Mongoose.model(
+export const GameGroupModel = Mongoose.model<GameGroup>(
   "game-group",
-  GameGroupSchema,
+  GameGroupSchema
 );

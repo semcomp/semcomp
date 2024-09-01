@@ -2,16 +2,16 @@ import Mongoose from "mongoose";
 import Disability from "../lib/constants/disability-enum";
 
 type UserDisability = {
-  id?: string;
+  id: string;
   userId: string;
-  disability: Disability;
+  disability?: Disability;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default UserDisability;
 
-const UserDisabilitySchema = new Mongoose.Schema(
+const UserDisabilitySchema = new Mongoose.Schema<UserDisability>(
   {
     id: {
       type: String,
@@ -37,4 +37,7 @@ const UserDisabilitySchema = new Mongoose.Schema(
   { collection: "user-disability" }
 );
 
-export const UserDisabilityModel = Mongoose.model("user-disability", UserDisabilitySchema);
+export const UserDisabilityModel = Mongoose.model<UserDisability>(
+  "user-disability",
+  UserDisabilitySchema
+);

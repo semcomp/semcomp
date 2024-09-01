@@ -1,16 +1,16 @@
 import Mongoose from "mongoose";
 
 type GameGroupUsedClue = {
-  id?: string;
+  id: string;
   gameGroupId: string;
   gameQuestionId: string;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default GameGroupUsedClue;
 
-const GameGroupUsedClueSchema = new Mongoose.Schema(
+const GameGroupUsedClueSchema = new Mongoose.Schema<GameGroupUsedClue>(
   {
     id: {
       type: String,
@@ -37,7 +37,7 @@ const GameGroupUsedClueSchema = new Mongoose.Schema(
   { collection: "game-group-used-clue" }
 );
 
-export const GameGroupUsedClueModel = Mongoose.model(
+export const GameGroupUsedClueModel = Mongoose.model<GameGroupUsedClue>(
   "game-group-used-clue",
-  GameGroupUsedClueSchema,
+  GameGroupUsedClueSchema
 );

@@ -1,24 +1,24 @@
 import Mongoose from "mongoose";
 
 type User = {
-  id?: string;
+  id: string;
   email: string;
   name: string;
   password?: string;
   course?: string;
   discord?: string;
   telegram?: string;
-  permission?: boolean;
+  permission: boolean;
   resetPasswordCode?: string;
-  paid?: boolean;
-  gotKit?: boolean;
+  paid: boolean;
+  gotKit: boolean;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default User;
 
-const UserSchema = new Mongoose.Schema(
+const UserSchema = new Mongoose.Schema<User>(
   {
     id: {
       type: String,
@@ -79,4 +79,4 @@ const UserSchema = new Mongoose.Schema(
   { collection: "user" }
 );
 
-export const UserModel = Mongoose.model("user", UserSchema);
+export const UserModel = Mongoose.model<User>("user", UserSchema);

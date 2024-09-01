@@ -1,18 +1,18 @@
 import Mongoose from "mongoose";
 
 type House = {
-  id?: string;
+  id: string;
   name: string;
   description: string;
   telegramLink: string;
   score: number;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default House;
 
-const HouseSchema = new Mongoose.Schema(
+const HouseSchema = new Mongoose.Schema<House>(
   {
     id: {
       type: String,
@@ -47,4 +47,4 @@ const HouseSchema = new Mongoose.Schema(
   { collection: "house" }
 );
 
-export const HouseModel = Mongoose.model("house", HouseSchema);
+export const HouseModel = Mongoose.model<House>("house", HouseSchema);

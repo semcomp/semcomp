@@ -1,19 +1,19 @@
 import Mongoose from "mongoose";
 
 type AdminLog = {
-  id?: string;
+  id: string;
   adminId: string;
   type: string;
   collectionName: string;
-  objectBefore?: string;
-  objectAfter?: string;
+  objectBefore: string | null;
+  objectAfter: string | null;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default AdminLog;
 
-const AdminLogSchema = new Mongoose.Schema(
+const AdminLogSchema = new Mongoose.Schema<AdminLog>(
   {
     id: {
       type: String,
@@ -54,4 +54,7 @@ const AdminLogSchema = new Mongoose.Schema(
   { collection: "admin-log" }
 );
 
-export const AdminLogModel = Mongoose.model("admin-log", AdminLogSchema);
+export const AdminLogModel = Mongoose.model<AdminLog>(
+  "admin-log",
+  AdminLogSchema
+);

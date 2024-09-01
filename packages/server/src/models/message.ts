@@ -2,7 +2,15 @@ import Mongoose from "mongoose";
 
 const ObjectID = Mongoose.Schema.Types.ObjectId;
 
-const MessageSchema = new Mongoose.Schema(
+export type Message = {
+  text: string;
+  user?: Mongoose.Types.ObjectId;
+  group?: Mongoose.Types.ObjectId;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+const MessageSchema = new Mongoose.Schema<Message>(
   {
     text: {
       type: String,
@@ -27,4 +35,4 @@ const MessageSchema = new Mongoose.Schema(
   { collection: "message" }
 );
 
-export default Mongoose.model("message", MessageSchema);
+export default Mongoose.model<Message>("message", MessageSchema);

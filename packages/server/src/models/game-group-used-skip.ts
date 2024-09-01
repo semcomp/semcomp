@@ -1,16 +1,16 @@
 import Mongoose from "mongoose";
 
 type GameGroupUsedSkip = {
-  id?: string;
+  id: string;
   gameGroupId: string;
   gameQuestionId: string;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default GameGroupUsedSkip;
 
-const GameGroupUsedSkipSchema = new Mongoose.Schema(
+const GameGroupUsedSkipSchema = new Mongoose.Schema<GameGroupUsedSkip>(
   {
     id: {
       type: String,
@@ -37,7 +37,7 @@ const GameGroupUsedSkipSchema = new Mongoose.Schema(
   { collection: "game-group-used-skip" }
 );
 
-export const GameGroupUsedSkipModel = Mongoose.model(
+export const GameGroupUsedSkipModel = Mongoose.model<GameGroupUsedSkip>(
   "game-group-used-skip",
-  GameGroupUsedSkipSchema,
+  GameGroupUsedSkipSchema
 );

@@ -6,24 +6,24 @@ import FoodOption from "../lib/constants/food-option-enum";
 import KitOption from "../lib/constants/kit-option";
 
 type Payment = {
-  id?: string;
+  id: string;
   paymentIntegrationId?: number;
   userId: string;
   status: PaymentStatus;
   qrCode?: string;
   qrCodeBase64?: string;
-  withSocialBenefit: boolean;
-  socialBenefitFileName: string;
-  tShirtSize: TShirtSize;
-  foodOption: FoodOption;
-  kitOption: KitOption;
+  withSocialBenefit?: boolean;
+  socialBenefitFileName?: string;
+  tShirtSize?: TShirtSize;
+  foodOption?: FoodOption;
+  kitOption?: KitOption;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default Payment;
 
-const PaymentSchema = new Mongoose.Schema(
+const PaymentSchema = new Mongoose.Schema<Payment>(
   {
     id: {
       type: String,
@@ -39,9 +39,10 @@ const PaymentSchema = new Mongoose.Schema(
       required: true,
     },
     status: {
-      type: PaymentStatus,
+      type: String,
       default: PaymentStatus.PENDING,
       required: true,
+      enum: Object.values(PaymentStatus),
     },
     qrCode: {
       type: String,
@@ -62,7 +63,8 @@ const PaymentSchema = new Mongoose.Schema(
       type: FoodOption,
     },
     kitOption: {
-      type: KitOption,
+      type: String,
+      enum: Object.values(KitOption),
     },
     createdAt: {
       type: Number,
@@ -74,7 +76,4 @@ const PaymentSchema = new Mongoose.Schema(
   { collection: "payment" }
 );
 
-export const PaymentModel = Mongoose.model(
-  "payment",
-  PaymentSchema,
-);
+export const PaymentModel = Mongoose.model<Payment>("payment", PaymentSchema);

@@ -1,16 +1,16 @@
 import Mongoose from "mongoose";
 
 type Attendance = {
-  id?: string;
+  id: string;
   eventId: string;
   userId: string;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default Attendance;
 
-const AttendanceSchema = new Mongoose.Schema(
+const AttendanceSchema = new Mongoose.Schema<Attendance>(
   {
     id: {
       type: String,
@@ -36,4 +36,7 @@ const AttendanceSchema = new Mongoose.Schema(
   { collection: "attendance" }
 );
 
-export const AttendanceModel = Mongoose.model("attendance", AttendanceSchema);
+export const AttendanceModel = Mongoose.model<Attendance>(
+  "attendance",
+  AttendanceSchema
+);

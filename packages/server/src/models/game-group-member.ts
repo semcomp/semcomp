@@ -1,16 +1,16 @@
 import Mongoose from "mongoose";
 
 type GameGroupMember = {
-  id?: string;
+  id: string;
   gameGroupId: string;
   userId: string;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default GameGroupMember;
 
-const GameGroupMemberSchema = new Mongoose.Schema(
+const GameGroupMemberSchema = new Mongoose.Schema<GameGroupMember>(
   {
     id: {
       type: String,
@@ -37,7 +37,7 @@ const GameGroupMemberSchema = new Mongoose.Schema(
   { collection: "game-group-member" }
 );
 
-export const GameGroupMemberModel = Mongoose.model(
+export const GameGroupMemberModel = Mongoose.model<GameGroupMember>(
   "game-group-member",
-  GameGroupMemberSchema,
+  GameGroupMemberSchema
 );

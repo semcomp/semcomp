@@ -1,18 +1,18 @@
 import Mongoose from "mongoose";
 
 type AdminUser = {
-  id?: string;
+  id: string;
   email: string;
-  password?: string;
-  adminRole?: string;
+  password: string;
+  adminRole?: string[];
   resetPasswordCode?: string;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default AdminUser;
 
-const AdminUserSchema = new Mongoose.Schema(
+const AdminUserSchema = new Mongoose.Schema<AdminUser>(
   {
     id: {
       type: String,
@@ -47,4 +47,7 @@ const AdminUserSchema = new Mongoose.Schema(
   { collection: "admin-user" }
 );
 
-export const AdminUserModel = Mongoose.model("admin-user", AdminUserSchema);
+export const AdminUserModel = Mongoose.model<AdminUser>(
+  "admin-user",
+  AdminUserSchema
+);

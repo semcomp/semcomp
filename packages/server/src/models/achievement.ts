@@ -5,25 +5,25 @@ import AchievementTypes from "../lib/constants/achievement-types-enum";
 import EventTypes from "../lib/constants/event-types-enum";
 
 type Achievement = {
-  id?: string;
-  title: string,
-  description: string,
-  startDate: number,
-  endDate: number,
-  type: AchievementTypes,
-  minPercentage: number,
-  category: AchievementCategories,
-  eventId: string,
-  eventType: EventTypes,
-  numberOfPresences: number,
-  numberOfAchievements: number,
+  id: string;
+  title: string;
+  description: string;
+  startDate: number;
+  endDate: number;
+  type: AchievementTypes;
+  minPercentage: number;
+  category: AchievementCategories;
+  eventId?: string;
+  eventType: EventTypes;
+  numberOfPresences?: number;
+  numberOfAchievements?: number;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default Achievement;
 
-const AchievementSchema = new Mongoose.Schema(
+const AchievementSchema = new Mongoose.Schema<Achievement>(
   {
     id: {
       type: String,
@@ -90,4 +90,7 @@ const AchievementSchema = new Mongoose.Schema(
   { collection: "achievement" }
 );
 
-export const AchievementModel = Mongoose.model("achievement", AchievementSchema);
+export const AchievementModel = Mongoose.model<Achievement>(
+  "achievement",
+  AchievementSchema
+);

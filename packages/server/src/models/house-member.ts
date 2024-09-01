@@ -1,16 +1,16 @@
 import Mongoose from "mongoose";
 
 type HouseMember = {
-  id?: string;
+  id: string;
   houseId: string;
   userId: string;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default HouseMember;
 
-const HouseMemberSchema = new Mongoose.Schema(
+const HouseMemberSchema = new Mongoose.Schema<HouseMember>(
   {
     id: {
       type: String,
@@ -37,4 +37,7 @@ const HouseMemberSchema = new Mongoose.Schema(
   { collection: "house-member" }
 );
 
-export const HouseMemberModel = Mongoose.model("house-member", HouseMemberSchema);
+export const HouseMemberModel = Mongoose.model<HouseMember>(
+  "house-member",
+  HouseMemberSchema
+);

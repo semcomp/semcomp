@@ -3,12 +3,12 @@ import Mongoose from "mongoose";
 import EventTypes from "../lib/constants/event-types-enum";
 
 type Event = {
-  id?: string;
+  id: string;
   name: string;
   description: string;
-  speaker: string;
-  location: string;
-  link: string;
+  speaker?: string;
+  location?: string;
+  link?: string;
   maxOfSubscriptions: number;
   startDate: number;
   endDate: number;
@@ -20,11 +20,11 @@ type Event = {
   needInfoOnSubscription: boolean;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default Event;
 
-const EventSchema = new Mongoose.Schema(
+const EventSchema = new Mongoose.Schema<Event>(
   {
     id: {
       type: String,
@@ -98,4 +98,4 @@ const EventSchema = new Mongoose.Schema(
   { collection: "event" }
 );
 
-export const EventModel = Mongoose.model("event", EventSchema);
+export const EventModel = Mongoose.model<Event>("event", EventSchema);

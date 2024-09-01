@@ -1,16 +1,16 @@
 import Mongoose from "mongoose";
 
 type UserAchievement = {
-  id?: string;
+  id: string;
   userId: string;
   achievementId: string;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default UserAchievement;
 
-const UserAchievementSchema = new Mongoose.Schema(
+const UserAchievementSchema = new Mongoose.Schema<UserAchievement>(
   {
     id: {
       type: String,
@@ -36,4 +36,7 @@ const UserAchievementSchema = new Mongoose.Schema(
   { collection: "user-achievement" }
 );
 
-export const UserAchievementModel = Mongoose.model("user-achievement", UserAchievementSchema);
+export const UserAchievementModel = Mongoose.model<UserAchievement>(
+  "user-achievement",
+  UserAchievementSchema
+);

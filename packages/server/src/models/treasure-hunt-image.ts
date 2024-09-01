@@ -3,17 +3,17 @@ import Mongoose from "mongoose";
 import Status from "../lib/constants/status-treasure-hunt-image";
 
 type TreasureHuntImage = {
-  id?: string;
-  place: string;
+  id: string;
+  place?: string;
   status: Status;
-  imgUrl: string;
+  imgUrl?: string;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default TreasureHuntImage;
 
-const TreasureHuntImageSchema = new Mongoose.Schema(
+const TreasureHuntImageSchema = new Mongoose.Schema<TreasureHuntImage>(
   {
     id: {
       type: String,
@@ -22,12 +22,13 @@ const TreasureHuntImageSchema = new Mongoose.Schema(
       index: true,
     },
     place: {
-        type: String,
+      type: String,
     },
     status: {
-      type: Status,
+      type: String,
       default: Status.BLOCKED,
       required: true,
+      enum: Object.values(Status),
     },
     imgUrl: {
       type: String,
@@ -42,7 +43,7 @@ const TreasureHuntImageSchema = new Mongoose.Schema(
   { collection: "treasure-hunt-image" }
 );
 
-export const TreasureHuntImageModel = Mongoose.model(
+export const TreasureHuntImageModel = Mongoose.model<TreasureHuntImage>(
   "treasure-hunt-image",
-  TreasureHuntImageSchema,
+  TreasureHuntImageSchema
 );
