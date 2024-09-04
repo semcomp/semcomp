@@ -179,7 +179,7 @@ export default class UserController {
         achievementId: achievement.id,
       });
       if (userAchievement) {
-        throw new HttpError(400, ["Conquista já completa."]);
+        throw new HttpError(400, [`Conquista já completa por ${user.name}.`]);
       }
 
       userAchievement = {

@@ -103,7 +103,6 @@ class Http {
   }
 
   public async patch(url: string, body?: any): Promise<any> {
-    console.log('body: ', body);
     const { data } = await this.instance.patch(url, body);
     return data;
   }

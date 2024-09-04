@@ -104,7 +104,8 @@ function Sidebar() {
               <NavLink title="Administradores" href={Routes.adminUsers}></NavLink>}
             { findRole(adminRole, 'CONFIG') &&
               <NavLink title="Configurações" href={Routes.configuration}></NavLink>}
-            {/* <NavLink title="Conquistas" href={Routes.achievements}></NavLink> */}
+            { findRole(adminRole, 'ACHIEVEMENTS') &&
+              <NavLink title="Conquistas" href={Routes.achievements}></NavLink> }
             {/* adminRole === 0 && <NavLink title="Logs" href={Routes.logs}></NavLink> */}
             {/* adminRole === 0 && <NavLink title="Enviar Email" href={Routes.broadcastEmail}></NavLink> */}
             <button className="w-full bg-black text-white text-center py-3" onClick={handleLogout}>

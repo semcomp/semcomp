@@ -30,7 +30,7 @@ class HouseAchievementService {
   }
 
   public async count(filters?: Partial<HouseAchievement>): Promise<number> {
-    const count = await HouseAchievementModel.count(filters);
+    const count = await HouseAchievementModel.countDocuments(filters);
 
     return count;
   }

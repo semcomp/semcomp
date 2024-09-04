@@ -1,7 +1,5 @@
-import createError from "http-errors";
-
+import HttpError from "../../lib/http-error";
 import AdminLog from "../../models/admin-log";
-
 import {
   handleValidationResult,
 } from "../../lib/handle-validation-result";
@@ -136,18 +134,18 @@ class HouseController {
 
       const house = await houseService.findById(houseId);
       if (!house) {
-        throw new createError.NotFound("Casa não encontrada.");
+        throw new HttpError(404, ["Casa não encontrada."]);
       }
       const achievement = await achievementService.find({
         id: achievementId,
         type: AchievementTypes.CASA,
       });
       if (!achievement) {
-        throw new createError.NotFound("Conquista não encontrada.");
+        throw new HttpError(404, ["Conquista não encontrada."]);
       }
 
       if (await houseAchievementService.findOne({ houseId, achievementId })) {
-        throw new createError.BadRequest("A casa já possui essa conquista.");
+        throw new HttpError(400, [`A casa ${house.name} já possui essa conquista.`]);
       }
 
       const houseAchievement: HouseAchievement = {

@@ -98,6 +98,10 @@ class HouseService {
       const houseMembers = await houseMemberService.find({ houseId: house.id });
       const houseAchievementCount = await houseAchievementService.count({ houseId: house.id });
       for (const achievement of achievements) {
+        if (achievement.startDate && achievement.startDate > Date.now() ||
+          achievement.endDate && achievement.endDate < Date.now()) {
+          continue;
+        }
         const houseAchievement = await houseAchievementService.findOne({ houseId: house.id, achievementId: achievement.id });
 
         if (houseAchievement) {
@@ -108,14 +112,15 @@ class HouseService {
         if (achievement.category === AchievementCategories.PRESENCA_EM_EVENTO) {
           let i = 0;
           const totalUsersWhoAttendedThisEventCount = await attendanceService.count({ eventId: achievement.eventId });
-          let houseMembersWhoAttendedThisEventCount = 0
+          let houseMembersWhoAttendedThisEventCount = 0;
           for (const houseMember of houseMembers) {
             if (await attendanceService.findOne({ eventId: achievement.eventId, userId: houseMember.userId })) {
               houseMembersWhoAttendedThisEventCount++;
             }
           }
 
-          if (houseMembersWhoAttendedThisEventCount > houseMemberCount * (achievement.minPercentage / 100)) {
+          if (houseMembersWhoAttendedThisEventCount > 0 &&
+              houseMembersWhoAttendedThisEventCount >= houseMemberCount * (achievement.minPercentage / 100)) {
             const newHouseAchievement: HouseAchievement = {
               achievementId: achievement.id,
               houseId: house.id,

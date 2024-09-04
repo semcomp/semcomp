@@ -27,10 +27,12 @@ import Pop from "../assets/26-imgs/brasao_pop_complete.png";
 import TelegramIcon from "@mui/icons-material/Telegram";
 import ImgLogo from "../assets/logo-24.png";
 
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import { useAppContext } from "../libs/contextLib";
 import Card from "../components/Card";
 import FundEstudarForm from "../components/profile/fundEstudar";
 import MarkAttendanceModal from "../components/profile/MarkAttendanceModal";
+import AddAchievementModal from "../components/profile/AddAchievementModal";
 import { TShirtSize } from "../components/profile/coffeePayment/coffee-step-2";
 import { KitOption } from "../components/profile/coffeePayment/coffee-step-1";
 import Sidebar from "../components/sidebar";
@@ -42,6 +44,7 @@ function Profile() {
   const [userFetched, setUserFetched] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] = useState(false);
+  const [IsAddAchievementModalOpen, setIsAddAchievementModalOpen] = useState(false);
   const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] = useState(false);
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
   const [events, setEvents] = useState([]);
@@ -168,8 +171,6 @@ function Profile() {
     return result;
   }
 
-  achievements.forEach((a) => (a.image = stringify(a.title)));
-
   function removeBodyStyle() {
     document.body.setAttribute("style", ``);
   }
@@ -227,7 +228,7 @@ function Profile() {
 
   return (
     <div className="min-h-screen w-full flex flex-col justify-between bg-[url('../assets/27-imgs/profile-bg.png')] bg-cover font-secondary text-sm">
-      {isEditModalOpen && (
+      { isEditModalOpen && (
         <EditProfile
           onRequestClose={() => {
             setIsEditModalOpen(false);
@@ -236,7 +237,7 @@ function Profile() {
           }}
         />
       )}
-      {isMarkAttendanceModalOpen && (
+      { isMarkAttendanceModalOpen && (
         <MarkAttendanceModal
           onRequestClose={() => {
             setIsMarkAttendanceModalOpen(false);
@@ -245,7 +246,7 @@ function Profile() {
           }}
         />
         )}
-      {isRegistrationsModalOpen && (
+      { isRegistrationsModalOpen && (
         <Registrations
           onRequestClose={() => {
             setIsRegistrationsModalOpen(false);
@@ -253,7 +254,7 @@ function Profile() {
           }}
         />
       )}
-      {isAchievementsModalOpen && (
+      { isAchievementsModalOpen && (
         <Achievements
           onRequestClose={() => {
             setIsAchievementsModalOpen(false);
@@ -262,6 +263,16 @@ function Profile() {
           conquistasLista={achievements}
         />
       )}
+      { IsAddAchievementModalOpen && (
+        <AddAchievementModal
+          onRequestClose={() => {
+            setIsAddAchievementModalOpen(false);
+            removeBodyStyle();
+            fetchUserData();
+          }}
+        />
+        ) 
+      }
       {/** Relacionado as casa do stackoverflow */}
       {isAboutOverflowModalOpen && (
         <AboutOverflow
@@ -285,7 +296,7 @@ function Profile() {
           {userFetched && (
             <>
               <Card className="flex flex-col items-center p-9 w-full mb-6 bg-white rounded-lg">
-                {/* <QRCodeSVG value={userFetched && userFetched.id} /> */}
+                <QRCodeSVG value={userFetched && userFetched.id} />
                 <p className="text-xl text-center my-3">
                   {userFetched.name}
                 </p>
@@ -308,7 +319,7 @@ function Profile() {
                       }}
                       className="bg-primary text-white p-2 rounded-lg my-3"
                     >
-                      Scanear Presença 
+                      Escanear Presença 
                     </button> */}
                   </div>
                 }
@@ -439,20 +450,28 @@ function Profile() {
           )}
           
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR CONQUISTAS () */}
-          {/* <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
-            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+          <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
+            <div className="flex items-center justify-between w-full">
+              <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
               Conquistas
-            </h1>
+              </h1>       
+              <CameraAltIcon 
+                className="mb-4 ml-auto"
+                onClick={() => {
+                  setIsAddAchievementModalOpen(true);
+                  blockBodyScroll();
+                }}
+                cursor="pointer"
+                titleAccess="Escanear Conquista"
+              />
+            </div>
             <div className="grid auto-cols-auto auto-rows-auto">
               {earnedAchievements.slice(0, 6).map((conquista) => {
-                const achievementsImageSrc = AchievementsImages(
-                  conquista.image
-                );
                 return (
                   <>
                     <img
                       key={conquista.id}
-                      src={achievementsImageSrc}
+                      src={conquista.imageBase64}
                       alt={conquista.title}
                       style={{ padding: ".3rem", maxHeight: "80px" }}
                     />
@@ -470,7 +489,8 @@ function Profile() {
                 Ver mais
               </button>
             }
-          </div> */}
+            
+          </div>
 
           
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}

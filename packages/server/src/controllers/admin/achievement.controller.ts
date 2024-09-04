@@ -4,11 +4,17 @@ import {
   handleValidationResult,
 } from "../../lib/handle-validation-result";
 import { handleError } from "../../lib/handle-error";
+import { PaginationRequest } from "../../lib/pagination";
 
 class AchievementController {
   public async list(req, res, next) {
     try {
-      const achievements = await achievementService.find();
+      const pagination = new PaginationRequest(
+        +req.query.page,
+        +req.query.items,
+      );
+      
+      const achievements = await achievementService.findWithPagination({ pagination });
 
       return res.status(200).json(achievements);
     } catch (error) {
@@ -21,7 +27,6 @@ class AchievementController {
       handleValidationResult(req);
 
       const achievement = await achievementService.create(req.body);
-
       return res.status(200).json(achievement);
     } catch (error) {
       return handleError(error, next);
@@ -55,7 +60,6 @@ class AchievementController {
       handleValidationResult(req);
 
       const { id } = req.params;
-
       const achievement = await achievementService.delete(id);
 
       return res.status(200).json(achievement);

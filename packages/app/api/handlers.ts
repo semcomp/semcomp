@@ -54,6 +54,7 @@ const Handlers = {
   },
   achievements: {
     getAchievements: withNoErrorMessage(() => API.get("/achievements")),
+    readUserAchievementByQrCode: withNoErrorMessage((achievementId: string) => API.post(`/achievements/${achievementId}/qrcode`)),
   },
   config: {
     getConfig: withNoErrorMessage(() => API.get("/config")),

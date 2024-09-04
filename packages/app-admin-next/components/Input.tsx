@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 import {
   Checkbox,
@@ -9,6 +9,7 @@ import {
   Select,
   TextField,
   Tooltip,
+  Autocomplete,
 } from "@mui/material";
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -18,11 +19,13 @@ import { Info } from "@mui/icons-material";
 
 export enum InputType {
   Select = "select",
+  Autocomplete = "autocomplete",
   Checkbox = "checkbox",
   Text = "text",
   Number = "number",
   Password = "password",
   File = "file",
+  Image = "image",
   Date = "date",
 }
 
@@ -98,6 +101,49 @@ function SelectInput({
   </FormControl>);
 }
 
+function AutoCompleteInput({
+  label,
+  onChange,
+  value,
+  labelKey,
+  valueKey,
+  options,
+}: {
+  label: string;
+  onChange: any;
+  value: string;
+  labelKey: string;
+  valueKey: string;
+  options: Object[];
+}) {
+  const [actualValue, setActualValue] = useState<any>(null);
+  
+  useEffect(() => {
+    if (options) {
+        const option = options.find((option) => option[valueKey] === value);
+        if (option) {
+            setActualValue(option);
+        }
+    }
+  }, [options]);
+
+  return (
+    <FormControl className="my-3 bg-white" fullWidth>
+      <Autocomplete
+        options={options}
+        value={actualValue}
+        getOptionLabel={(option) => option[labelKey]}
+        renderInput={(params) => <TextField {...params} label={label} />}
+        onChange={(event, newValue) => {
+          setActualValue(newValue);
+          onChange(newValue ? newValue[valueKey] : null);
+        }}
+      />
+    </FormControl>
+  );
+}
+
+
 function CheckboxInput({
   onChange,
   value,
@@ -129,6 +175,25 @@ function FileInput({
   </FormControl>;
 }
 
+function ImageInput({
+  label,
+  onChange,
+  value,
+}: {
+  label: string;
+  onChange: any;
+  value: string;
+}) {
+  return <FormControl className="my-3 bg-white" fullWidth>
+    <MaterialInput
+      type="file"
+      onChange={onChange}
+      value={value}
+      inputProps={{accept:"image/*"}}
+    />
+  </FormControl>;
+}
+
 function DateInput({ label, onChange, value }: { label: string, onChange: any; value: number }) {
   return <LocalizationProvider dateAdapter={AdapterDayjs}>
     <FormControl className="my-3 bg-white" fullWidth>
@@ -153,17 +218,21 @@ function Input({
   start,
   end,
   className,
+  labelKey,
+  valueKey,
 }: {
   label?: any;
   onChange: (event: any) => void;
   value?: string | number | boolean;
   type: InputType;
-  choices?: string[];
+  choices?: string[] | Object[];
   tooltip?: any,
   autofocus?: boolean,
   start?: ReactNode;
   end?: ReactNode;
   className?: string;
+  labelKey?: string;
+  valueKey?: string;
 }) {
   let input = (
     <TextInput
@@ -188,7 +257,20 @@ function Input({
         label={label}
         onChange={onChange}
         value={value as string}
-        choices={choices}
+        choices={choices as string[]}
+      />
+    );
+  }
+
+  if (type === InputType.Autocomplete) {
+    input = (
+      <AutoCompleteInput
+        label={label}
+        onChange={onChange}
+        value={value as string}
+        labelKey={labelKey}
+        valueKey={valueKey}
+        options={choices as Object[]}
       />
     );
   }
@@ -199,6 +281,10 @@ function Input({
 
   if (type === InputType.Date) {
     input = <DateInput label={label} onChange={onChange} value={value as number} />;
+  }
+
+  if (type === InputType.Image) {
+    input = <ImageInput label={label} onChange={onChange} value={value as string} />;
   }
 
   return (

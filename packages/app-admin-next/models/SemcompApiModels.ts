@@ -1,4 +1,6 @@
 import { TShirtSize } from "../components/t-shirt/TShirtForm";
+import AchievementCategories from "../libs/constants/achievement-categories-enum";
+import AchievementTypes from "../libs/constants/achievement-types-enum";
 import EventType from "../libs/constants/event-types-enum";
 import Game from "../libs/constants/game-enum";
 import Status from "../libs/constants/status-treasure-hunt-enum";
@@ -234,6 +236,41 @@ export type SemcompApiCreateTreasureHuntImageRequest = {
 
 export type SemcompApiEditTreasureHuntImageRequest = SemcompApiCreateTreasureHuntImageRequest;
 
+export type SemcompApiAchievement = {
+  id: string;
+  title: string;
+  description: string;
+  startDate: number;
+  endDate: number;
+  type: AchievementTypes;
+  minPercentage: number;
+  category: AchievementCategories;
+  eventId: string;
+  eventType: EventType;
+  numberOfPresences: number;
+  numberOfAchievements: number;
+  createdAt: number;
+  updatedAt: number;
+}; 
+
+export type SemcompApiGetAchievementsResponse = PaginationResponse<SemcompApiAchievement>;
+
+export type SemcompApiCreateAchievementRequest = {
+  title: string;
+  description: string;
+  startDate: number;
+  endDate: number;
+  type: AchievementTypes;
+  minPercentage: number;
+  category: AchievementCategories;
+  eventId: string;
+  eventType: EventType;
+  numberOfPresences: number;
+  numberOfAchievements: number;
+  imageBase64: string;
+};
+
+export type SemcompApiEditAchievementRequest = SemcompApiCreateAchievementRequest;
 
 export type SemcompApiConfigs = {
   id?: string;

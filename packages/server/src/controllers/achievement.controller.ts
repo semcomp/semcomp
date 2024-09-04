@@ -17,6 +17,21 @@ const userController = {
       return handleError(error, next);
     }
   },
+
+  addQrCodeAchievement: async (req, res, next) => {
+    try {
+      handleValidationResult(req);
+
+      const { achievementId } = req.params;
+      const userId = req.user.id;
+
+      const user = await achievementService.addQrCodeAchievement(userId, achievementId);
+
+      return res.status(200).json(user);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
 };
 
 export default userController;
