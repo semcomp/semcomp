@@ -15,7 +15,6 @@ import Achievements from "../components/profile/achievements";
 import EventsOverview from "../components/events-overview";
 import HouseScores from "../components/house-scores";
 import AboutOverflow from "../components/profile/about-overflow";
-import AchievementsImages from "../components/profile/achievements_images";
 import CoffeePayment from "../components/profile/coffeePayment/coffee-modal";
 import RequireAuth from "../libs/RequireAuth";
 
@@ -49,6 +48,7 @@ function Profile() {
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
   const [events, setEvents] = useState([]);
   const [achievements, setAchievements] = useState([]);
+  const [earnedAchievements, setEarnedAchievements] = useState([]);
   const [closeSales, setCloseSales] = useState(false);
   const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] = useState(false);  // OBSERVAÇÃO: está relacionado a casa do stack overflow
   const [isCoffeeModalOpen, setCoffeeModalOpen] = useState(false);
@@ -71,9 +71,22 @@ function Profile() {
   };
   
   async function fetchAchievements() {
+    if (!config || !config.openAchievement) {
+      console.log('error');
+      return [];
+    }
+
     try {
       const response = await API.achievements.getAchievements();
       setAchievements(response.data);
+
+      const earnAchievements = [];
+      response.data.map((conquista) => {
+        if (conquista.isEarned) {
+          earnAchievements.push(conquista);
+        }
+      });
+      setEarnedAchievements(earnAchievements);
     } catch (e) {
       console.error(e);
       return [];
@@ -93,8 +106,11 @@ function Profile() {
 
   useEffect(() => {
     fetchSubscribedEvents();
-    fetchAchievements();
   }, []);
+
+  useEffect(() => {
+    fetchAchievements();
+  }, [config]);
 
   async function fetchUserData() {
     const { data } = await API.auth.me();
@@ -218,13 +234,6 @@ function Profile() {
 
     return `${day} (${dayInNumbers}), ${startTime} às ${endTime}`;
   }
-
-  const earnedAchievements = [];
-  achievements.map((conquista) => {
-    if (conquista.isEarned) {
-      earnedAchievements.push(conquista);
-    }
-  });
 
   return (
     <div className="min-h-screen w-full flex flex-col justify-between bg-[url('../assets/27-imgs/profile-bg.png')] bg-cover font-secondary text-sm">
@@ -449,49 +458,51 @@ function Profile() {
             </Card>
           )}
           
-          {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR CONQUISTAS () */}
-          <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
-            <div className="flex items-center justify-between w-full">
-              <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-              Conquistas
-              </h1>       
-              <CameraAltIcon 
-                className="mb-4 ml-auto"
-                onClick={() => {
-                  setIsAddAchievementModalOpen(true);
-                  blockBodyScroll();
-                }}
-                cursor="pointer"
-                titleAccess="Escanear Conquista"
-              />
-            </div>
-            <div className="grid auto-cols-auto auto-rows-auto">
-              {earnedAchievements.slice(0, 6).map((conquista) => {
-                return (
-                  <>
-                    <img
-                      key={conquista.id}
-                      src={conquista.imageBase64}
-                      alt={conquista.title}
-                      style={{ padding: ".3rem", maxHeight: "80px" }}
-                    />
-                  </>
-                );
-              })}
-            </div>
-            {
-              <button
-                onClick={() => {
-                  setIsAchievementsModalOpen(true);
-                  blockBodyScroll();
-                }}
-              >
-                Ver mais
-              </button>
-            }
-            
-          </div>
-
+          { userFetched && config.openAchievement &&
+            ( 
+              <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
+                <div className="flex items-center justify-between w-full">
+                  <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+                  Conquistas
+                  </h1>       
+                  <CameraAltIcon 
+                    className="mb-4 ml-auto"
+                    onClick={() => {
+                      setIsAddAchievementModalOpen(true);
+                      blockBodyScroll();
+                    }}
+                    cursor="pointer"
+                    titleAccess="Escanear Conquista"
+                  />
+                </div>
+                <div className="grid auto-cols-auto auto-rows-auto">
+                  {earnedAchievements.slice(0, 6).map((conquista) => {
+                    return (
+                      <>
+                        <img
+                          key={conquista.id}
+                          src={conquista.imageBase64}
+                          alt={conquista.title}
+                          style={{ padding: ".3rem", maxHeight: "80px" }}
+                        />
+                      </>
+                    );
+                  })}
+                </div>
+                {
+                  <button
+                    onClick={() => {
+                      setIsAchievementsModalOpen(true);
+                      blockBodyScroll();
+                    }}
+                  >
+                    Ver mais
+                  </button>
+                }
+                
+              </div>
+            )
+          }
           
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
           {/* <Card className="flex flex-col items-center p-9 w-full mb-6">

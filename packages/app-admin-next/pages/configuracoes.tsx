@@ -42,9 +42,9 @@ function Config() {
     const [openSales, setOpenSales] = useState(false);
     const [coffeeTotal, setCoffeeTotal] = useState(0);
     const [saveKitOption, setSaveKitOption] = useState("COFFEE");
-
     const [openSignup, setSignup] = useState(false);
-    
+    const [openAchievement, setOpenAchievement] = useState(false);
+
     async function fetchData() {
         setIsLoading(true);
         try {
@@ -54,6 +54,7 @@ function Config() {
             setCoffeeTotal(config.coffeeTotal);
             setOpenSales(config.openSales);
             setSignup(config.openSignup);
+            setOpenAchievement(config.openAchievement);
         } catch (error) {
             toast.error('Erro ao buscar dados do coffee');
         } finally {
@@ -75,6 +76,7 @@ function Config() {
             coffeeTotal: coffeeTotal,
             kitOption: saveKitOption,
             openSales: openSales,
+            openAchievement: openAchievement,
         }
         const response = await semcompApi.updateConfig(config);
         toast.success('Salvo com sucesso!');
@@ -170,6 +172,17 @@ function Config() {
                                     isChecked={openSignup} 
                                     setIsChecked={setSignup} 
                                     setIsCheckedDataBase={setConfigSignup}
+                                />
+                            </div>
+                        </div>
+
+                        <div className={style.card}>
+                            <div className={style.title}>Abrir Conquistas</div>
+                            <hr className={style.hr} />
+                            <div className='p-2'>   
+                                <SwitchButton 
+                                    isChecked={openAchievement} 
+                                    setIsChecked={setOpenAchievement}
                                 />
                             </div>
                         </div>

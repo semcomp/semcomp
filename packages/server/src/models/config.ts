@@ -9,6 +9,7 @@ export type Config = {
     showLogin: boolean;
     kitOption: KitOption;
     openSales: boolean;
+    openAchievement: boolean;
     createdAt?: number;
     updatedAt?: number;
 };
@@ -34,7 +35,11 @@ const ConfigSchema = new Mongoose.Schema(
     openSales: {
       type: Boolean,
       default: false,
-  },
+    },
+    openAchievement: {
+      type: Boolean,
+      default: false,
+    },
     kitOption: {
       type: KitOption,
       required: true,

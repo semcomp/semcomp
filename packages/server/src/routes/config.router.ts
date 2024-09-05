@@ -49,4 +49,14 @@ router.post(
   ConfigController.setOpenSales
 );
 
+router.post(
+  "/open-achievement",
+  [
+    body("openAchievement", "Invalid field 'openAchievement'").isBoolean(),
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+  ],
+  ConfigController.setOpenAchievement
+);
+
 export default router;

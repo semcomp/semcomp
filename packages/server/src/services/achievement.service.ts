@@ -9,6 +9,7 @@ import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 import { handleError } from "../lib/handle-error";
 import UserAchievement from "../models/user-achievement";
 import HttpError from "../lib/http-error";
+import configService from "./config.service";
 
 const idService = new IdServiceImpl();
 
@@ -90,6 +91,11 @@ class AchievementService {
   }
 
   public async addQrCodeAchievement(userId: string, achievementId: string) {
+    const config = await configService.getOne();
+    if (!config || !config.openAchievement) {
+      throw new HttpError(423, ['Conquistas bloqueadas.']);
+    }
+
     const userAchievement = await userAchievementService.findOne({ userId: userId, achievementId: achievementId });
     if (userAchievement) {
       throw new HttpError(409, ['Conquista já atribuída.']);

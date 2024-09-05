@@ -17,6 +17,7 @@ import UserAchievement from "../models/user-achievement";
 import userDisabilityService from "./user-disability.service";
 import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 import EventTypes from "../lib/constants/event-types-enum";
+import configService from "./config.service";
 
 const idService = new IdServiceImpl();
 
@@ -157,6 +158,11 @@ class UserServiceImpl implements UserService {
   }
 
   async checkAchievements(): Promise<void> {
+    const config = await configService.getOne();
+    if (!config || !config.openAchievement) {
+      return null;
+    }
+    
     const users = await this.find({ pagination: new PaginationRequest(1, 9999) });
     const events = await eventService.find({ pagination: new PaginationRequest(1, 9999) });
     const individualAchievements = await achievementService.find({

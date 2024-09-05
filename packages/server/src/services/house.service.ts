@@ -10,6 +10,7 @@ import attendanceService from "./attendance.service";
 import HouseAchievement from "../models/house-achievement";
 import AchievementCategories from "../lib/constants/achievement-categories-enum";
 import { PaginationRequest, PaginationResponse } from "../lib/pagination";
+import configService from "./config.service";
 
 const idService = new IdServiceImpl();
 
@@ -88,6 +89,11 @@ class HouseService {
   }
 
   public async checkAchievements() {
+    const config = await configService.getOne();
+    if (!config || !config.openAchievement) {
+      return null;
+    }
+
     const houses = await this.find({ pagination: new PaginationRequest(1, 9999) });
     const achievements = await achievementService.find({
       type: AchievementTypes.CASA,

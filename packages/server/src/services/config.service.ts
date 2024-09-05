@@ -33,42 +33,49 @@ const ConfigService = {
     return newConfig;
   },
 
-  delete: async (id) => {
+  delete: async (id: string) => {
     const deletedConfig = await ConfigModel.findByIdAndDelete(id);
 
     return deletedConfig;
   },
-  setSwitchBeta: async (switchBeta) => {
+  setSwitchBeta: async (switchBeta: boolean) => {
     const config = await ConfigModel.findOne();
     config.switchBeta = switchBeta;
     await config.save();
 
     return config;
   },
-  setOpenSales: async (setOpenSales) => {
+  setOpenSales: async (setOpenSales: boolean) => {
     const config = await ConfigModel.findOne();
     config.openSales = setOpenSales;
     await config.save();
 
     return config;
   },
-  setOpenSignup: async (setOpenSignup) => {
+  setOpenSignup: async (setOpenSignup: boolean) => {
     const config = await ConfigModel.findOne();
     config.openSignup = setOpenSignup;
     await config.save();
 
     return config;
   },
-  setShowLogin: async (showLogin) => {
+  setShowLogin: async (showLogin: boolean) => {
     const config = await ConfigModel.findOne();
     config.showLogin = showLogin;
     await config.save();
 
     return config;
   },
-  setCoffeeTotal: async (coffeeTotal) => {
+  setCoffeeTotal: async (coffeeTotal: number) => {
     const config = await ConfigModel.findOne();
     config.coffeeTotal = coffeeTotal;
+    await config.save();
+
+    return config;
+  },
+  setOpenAchievement: async (openAchievement: boolean) => {
+    const config = await ConfigModel.findOne();
+    config.openAchievement = openAchievement;
     await config.save();
 
     return config;
