@@ -1,97 +1,77 @@
 import { useEffect, useState } from "react";
-import About from "../components/home/About";
-import Footer from "../components/Footer";
-import HomeHeader from "../components/home/Header";
-import Schedule from "../components/home/Schedule";
-import FAQ from "../components/home/Faq";
-import Sponsors from "../components/home/Sponsors";
-import Stats from "../components/home/Stats";
 import { useAppContext } from "../libs/contextLib";
 import { useRouter } from "next/router";
+import image1 from "../assets/27-imgs/bgs/1.jpg";
+import image2 from "../assets/27-imgs/bgs/2.jpg";
+import image3 from "../assets/27-imgs/bgs/3.jpg";
+import image4 from "../assets/27-imgs/bgs/4.jpg";
+import image5 from "../assets/27-imgs/bgs/5.jpg";
+import image6 from "../assets/27-imgs/bgs/6.jpg";
+import image7 from "../assets/27-imgs/bgs/7.jpg";
+import image8 from "../assets/27-imgs/bgs/8.jpg";
+import image9 from "../assets/27-imgs/bgs/9.jpg";
+import image10 from "../assets/27-imgs/bgs/10.jpg";
+import image11 from "../assets/27-imgs/bgs/11.jpg";
+
+// as imagens são importadas para que o webpack possa otimizá-las
+const images = [
+  image1, image2, image3, image4, image5, image6, 
+  image7, image8, image9, image10, image11
+];
+
+const timeToImage = [
+  { start: 5, end: 7, img: images[0] },
+  { start: 7, end: 8, img: images[1] },
+  { start: 8, end: 10, img: images[2] },
+  { start: 10, end: 12, img: images[3] },
+  { start: 12, end: 14, img: images[4] },
+  { start: 14, end: 16, img: images[5] },
+  { start: 16, end: 17, img: images[6] },
+  { start: 17, end: 18, img: images[7] },
+  { start: 18, end: 19, img: images[8] },
+  { start: 19, end: 22, img: images[9] },
+  { start: 0, end: 5, img: images[10] },
+];
 
 function Home() {
   const { setUser, setToken } = useAppContext();
   const router = useRouter();
-  const [sectionHeight, setSectionHeight] = useState(840);
+  const [backgroundImage, setBackgroundImage] = useState(images[0]);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = localStorage.getItem("user");
     const token = localStorage.getItem("token");
     if (!user || !token) {
       setUser(null);
       setToken(null);
     }
 
-    if (window.location.pathname != router.pathname) {
-      router.push(`${window.location.pathname}`);
+    if (window.location.pathname !== router.pathname) {
+      router.push(window.location.pathname);
     }
 
-    // Captura a altura da tela do usuário e ajusta a altura da seção
-    const updateSectionHeight = () => {
-      const screenHeight = window.innerHeight;
-      if (screenHeight < 1000) {
-        setSectionHeight(screenHeight - 150);
-      } else if (screenHeight < 884) {
-        setSectionHeight(screenHeight - 100);
-      } else {
-        setSectionHeight(840);
-      }
+    const updateBackgroundImage = () => {
+      const currentHour = new Date().getHours();
+      const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
+      setBackgroundImage(matchedImage?.img || images[10]);
     };
 
-    // Chama a função na montagem e ao redimensionar a janela
-    updateSectionHeight();
-    window.addEventListener("resize", updateSectionHeight);
-
-    // Remove o listener ao desmontar o componente
-    return () => window.removeEventListener("resize", updateSectionHeight);
-  }, []);
+    updateBackgroundImage();
+    const intervalId = setInterval(updateBackgroundImage, 3600000); // atualiza a cada hora
+    return () => clearInterval(intervalId);
+  }, [router, setUser, setToken]);
 
   return (
-    <main className="home bg-gray-800 min-h-screen">
-      <div>
-        <section className="
-        superdesktop:bg-[url('../assets/27-imgs/bgClouds.png')] 
-        desktop:bg-[url('../assets/27-imgs/bgClouds.png')] 
-        tablet:bg-[url('../assets/27-imgs/littebgClouds.png')] 
-        medphone:bg-[url('../assets/27-imgs/littebgClouds.png')] 
-        phone:bg-[url('../assets/27-imgs/littebgClouds.png')] 
-        bg-repeat">
-          <section>
-              <div className="relative">
-                <div style={{height: `${sectionHeight}px`}} className="relative ">
-                  <HomeHeader />
-                </div>
-              </div>
-            </section>
-          </section>
+    <main
+      className="min-h-screen bg-gray-800 home"
+      style={{
+        backgroundImage: `url(${backgroundImage.src})`,
+        backgroundPosition: "center bottom",
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+      }}
+    />
+  );
+}
 
-          <section className="bg-[url('../assets/27-imgs/bgGround.png')] 
-                tablet:bg-[url('../assets/27-imgs/littebgGround.png')] 
-                medphone:bg-[url('../assets/27-imgs/littebgGround.png')] 
-                phone:bg-[url('../assets/27-imgs/littebgGround.png')] 
-                bg-repeat 
-               ">
-            <section className="md:bg-[url('../assets/27-imgs/mediumbgFossils.png')] xl:bg-[url('../assets/27-imgs/bgFossils.png')] bg-no-repeat">
-              <section className="md:bg-[url('../assets/27-imgs/mediumbgRock.png')] xl:bg-[url('../assets/27-imgs/bgRock.png')] bg-no-repeat bg-right">
-                <br/>
-                <br/>
-                <div className="py-[80px]">
-                <About />
-                <Schedule home={true}/>
-                <FAQ />
-                </div>
-
-                <br />
-                <br />
-                <section className="pt-[20px] bg-black/50">
-                  <Footer className={"text-white"}/>
-                </section>
-              </section>
-            </section>
-          </section>
-        </div>
-      </main>
-    );
-  }
-
-  export default Home;
+export default Home;
