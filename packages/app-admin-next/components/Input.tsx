@@ -11,10 +11,10 @@ import {
   Tooltip,
   Autocomplete,
 } from "@mui/material";
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import dayjs, { Dayjs } from 'dayjs';
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import dayjs, { Dayjs } from "dayjs";
 import { Info } from "@mui/icons-material";
 
 export enum InputType {
@@ -31,6 +31,7 @@ export enum InputType {
 
 function TextInput({
   label,
+  placeholder, // Adiciona placeholder
   onChange,
   value,
   type,
@@ -40,37 +41,44 @@ function TextInput({
   end,
 }: {
   label: string;
-  onChange: any;
+  placeholder?: string; // Define o tipo para placeholder
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   value: string;
   type: InputType;
-  tooltip: any,
-  autofocus: boolean,
+  tooltip?: string;
+  autofocus?: boolean;
   start?: ReactNode;
   end?: ReactNode;
 }) {
-  return (<>
-    {
-      tooltip && (
-        <Tooltip arrow placement="top-start" title={tooltip ? tooltip : ""} enterTouchDelay={1}>
+  return (
+    <>
+      {tooltip && (
+        <Tooltip
+          arrow
+          placement="top-start"
+          title={tooltip}
+          enterTouchDelay={1}
+        >
           <Info sx={{ color: "#002776" }} />
         </Tooltip>
-      )
-    }
-    <TextField
-      fullWidth
-      autoFocus={autofocus}
-      onChange={onChange}
-      value={value}
-      type={type}
-      label={label}
-      variant="outlined"
-      className="my-3 bg-white"
-      InputProps={{
-        startAdornment: start,
-        endAdornment: end,
-      }}
-    />
-  </>);
+      )}
+      <TextField
+        fullWidth
+        autoFocus={autofocus}
+        onChange={onChange}
+        value={value}
+        type={type}
+        label={label}
+        placeholder={placeholder} // Define o placeholder aqui
+        variant="outlined"
+        className="my-3 bg-white"
+        InputProps={{
+          startAdornment: start,
+          endAdornment: end,
+        }}
+      />
+    </>
+  );
 }
 
 function SelectInput({
@@ -80,25 +88,22 @@ function SelectInput({
   choices,
 }: {
   label: string;
-  onChange: any;
+  onChange: (event: any) => void;
   value: string;
   choices: string[];
 }) {
-  return (<FormControl className="my-3 bg-white" fullWidth>
-    <InputLabel id="label">{label}</InputLabel>
-    <Select
-      onChange={onChange}
-      value={value}
-      label={label}
-      labelId="label"
-    >
-      {choices.map((choice) => (
-        <MenuItem key={choice} value={choice}>
-          {choice}
-        </MenuItem>
-      ))}
-    </Select>
-  </FormControl>);
+  return (
+    <FormControl className="my-3 bg-white" fullWidth>
+      <InputLabel id="label">{label}</InputLabel>
+      <Select onChange={onChange} value={value} label={label} labelId="label">
+        {choices.map((choice) => (
+          <MenuItem key={choice} value={choice}>
+            {choice}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
 }
 
 function AutoCompleteInput({
@@ -148,14 +153,14 @@ function CheckboxInput({
   onChange,
   value,
 }: {
-  onChange: any;
-  value: boolean
+  onChange: (event: any) => void;
+  value: boolean;
 }) {
-  return <Checkbox
-    onChange={onChange}
-    checked={value}
-    className="my-3 bg-white"
-  />;
+  return (
+    <FormControl className="my-3 bg-white">
+      <Checkbox onChange={onChange} checked={value} />
+    </FormControl>
+  );
 }
 
 function FileInput({
@@ -194,21 +199,32 @@ function ImageInput({
   </FormControl>;
 }
 
-function DateInput({ label, onChange, value }: { label: string, onChange: any; value: number }) {
-  return <LocalizationProvider dateAdapter={AdapterDayjs}>
-    <FormControl className="my-3 bg-white" fullWidth>
-      <DateTimePicker
-        label={label}
-        value={dayjs(value)}
-        onChange={(day: Dayjs) => onChange(day.valueOf())}
-        renderInput={(params) => <TextField {...params} />}
-      />
-    </FormControl>
-  </LocalizationProvider>;
+function DateInput({
+  label,
+  onChange,
+  value,
+}: {
+  label: string;
+  onChange: (value: number) => void;
+  value: number;
+}) {
+  return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <FormControl className="my-3 bg-white" fullWidth>
+        <DateTimePicker
+          label={label}
+          value={dayjs(value)}
+          onChange={(day: Dayjs) => onChange(day.valueOf())}
+          renderInput={(params) => <TextField {...params} />}
+        />
+      </FormControl>
+    </LocalizationProvider>
+  );
 }
 
 function Input({
   label,
+  placeholder, // Adiciona placeholder
   onChange,
   value,
   type,
@@ -221,13 +237,14 @@ function Input({
   labelKey,
   valueKey,
 }: {
-  label?: any;
+  label?: string;
+  placeholder?: string; // Define o tipo para placeholder
   onChange: (event: any) => void;
   value?: string | number | boolean;
   type: InputType;
   choices?: string[] | Object[];
-  tooltip?: any,
-  autofocus?: boolean,
+  tooltip?: string;
+  autofocus?: boolean;
   start?: ReactNode;
   end?: ReactNode;
   className?: string;
@@ -236,8 +253,9 @@ function Input({
 }) {
   let input = (
     <TextInput
-      label={label}
+      label={label!}
       onChange={onChange}
+      placeholder={placeholder}
       value={value as string}
       type={type}
       tooltip={tooltip}
