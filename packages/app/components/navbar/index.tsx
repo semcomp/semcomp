@@ -78,7 +78,7 @@ const Navbar = (props) => {
         <Navlink href={Routes.home + "#schedule"}>Cronograma</Navlink>
         {isUserLoggedIn ? (
           <>
-            <Navlink href={Routes.riddle}>Riddle</Navlink>
+            {/* <Navlink href={Routes.riddle}>Riddle</Navlink> */}
             {/* <Navlink href={Routes.riddlethon}>Riddlethon</Navlink> */}
             {/* <Navlink href={Routes.hardToClick}>Duro de Clicar</Navlink> */}
             {/* <Navlink href={Routes.cts_contest}>CTS & Contest</Navlink> */}
