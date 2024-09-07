@@ -196,7 +196,6 @@ function Users() {
     new PaginationRequest(() => fetchTableData())
   );
 
-  // Movendo fetchAllData antes de ser usada
   async function fetchAllData() {
     try {
       const response = await fetchAllDataParse(paginationComplete);
@@ -227,7 +226,7 @@ function Users() {
     try {
       const response = await fetchData(pagination);
       setData(response);
-      setFilteredUsers(mapData(response.getEntities())); // Define os usuários filtrados como os dados paginados
+      setFilteredUsers(mapData(response.getEntities()));
     } catch (error) {
       console.error(error);
     }
@@ -263,7 +262,7 @@ function Users() {
           )
         );
       } else {
-        setFilteredUsers(mapData(data?.getEntities() || [])); // Reseta os usuários filtrados para o estado paginado
+        setFilteredUsers(mapData(data?.getEntities() || []));
       }
       setIsLoading(false);
     }
