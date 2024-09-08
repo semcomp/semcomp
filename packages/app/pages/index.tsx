@@ -21,24 +21,21 @@ import image7bottom from "../assets/27-imgs/bgs-bottom/7.png";
 import image10bottom from "../assets/27-imgs/bgs-bottom/10.png";
 import image11bottom from "../assets/27-imgs/bgs-bottom/11.png";
 
-// array dos backgrounds
 const images = [
   image1, image2, image3, image4, image5, image6, 
   image7, image8, image9, image10, image11
 ];
 
-// associação dos bottoms apenas para os backgrounds 3, 4, 5, 6, 7, 10 e 11
 const bottomImagesMap: { [key: number]: string } = {
-  2: image3bottom.src,  // Index 2 para image3
-  3: image4bottom.src,  // Index 3 para image4
-  4: image5bottom.src,  // Index 4 para image5
-  5: image6bottom.src,  // Index 5 para image6
-  6: image7bottom.src,  // Index 6 para image7
-  9: image10bottom.src, // Index 9 para image10
-  10: image11bottom.src // Index 10 para image11
+  2: image3bottom.src,  
+  3: image4bottom.src,  
+  4: image5bottom.src,  
+  5: image6bottom.src,  
+  6: image7bottom.src,  
+  9: image10bottom.src, 
+  10: image11bottom.src 
 };
 
-// cada background tem um horário específico
 const timeToImage = [
   { start: 5, end: 7, imgIndex: 0 },
   { start: 7, end: 8, imgIndex: 1 },
@@ -53,7 +50,6 @@ const timeToImage = [
   { start: 0, end: 5, imgIndex: 10 },
 ];
 
-// posição do background levando em conta a posição do sol/lua
 const backgroundPositions = [
   "left bottom", "left bottom", "left center", "center top", "center top",
   "center top", "right center", "right bottom", "right bottom", "left center", "center top"
@@ -62,9 +58,14 @@ const backgroundPositions = [
 const Home: React.FC = () => {
   const { setUser, setToken } = useAppContext();
   const router = useRouter();
+  
   const [backgroundImage, setBackgroundImage] = useState<string>(images[0].src);
-  const [bottomImage, setBottomImage] = useState<string>(""); // Estado para a imagem bottom
+  const [bottomImage, setBottomImage] = useState<string>("");
   const [backgroundPosition, setBackgroundPosition] = useState<string>(backgroundPositions[0]);
+  
+  // variável de desenvolvimento para setar manualmente o background
+  const [devMode, setDevMode] = useState<boolean>(false);
+  const [manualBackgroundIndex, setManualBackgroundIndex] = useState<number | null>(null); 
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -79,18 +80,26 @@ const Home: React.FC = () => {
     }
 
     const updateBackgroundImage = () => {
-      const currentHour = new Date().getHours();
-      const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
-      const imgIndex = matchedImage?.imgIndex ?? 10;
-      setBackgroundImage(images[imgIndex].src);
-      setBottomImage(bottomImagesMap[imgIndex] || ""); // Define o bottomImage apenas se existir
-      setBackgroundPosition(backgroundPositions[imgIndex]);
+      if (devMode && manualBackgroundIndex !== null) {
+        // Usa a imagem definida manualmente
+        setBackgroundImage(images[manualBackgroundIndex].src);
+        setBottomImage(bottomImagesMap[manualBackgroundIndex] || "");
+        setBackgroundPosition(backgroundPositions[manualBackgroundIndex]);
+      } else {
+        // Lógica baseada no horário
+        const currentHour = new Date().getHours();
+        const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
+        const imgIndex = matchedImage?.imgIndex ?? 10;
+        setBackgroundImage(images[imgIndex].src);
+        setBottomImage(bottomImagesMap[imgIndex] || "");
+        setBackgroundPosition(backgroundPositions[imgIndex]);
+      }
     };
 
     updateBackgroundImage();
     const intervalId = setInterval(updateBackgroundImage, 3600000);
     return () => clearInterval(intervalId);
-  }, [router, setUser, setToken]);
+  }, [router, setUser, setToken, devMode, manualBackgroundIndex]);
 
   return (
     <main
@@ -102,23 +111,47 @@ const Home: React.FC = () => {
         backgroundRepeat: "no-repeat",
       }}
     >
-      {bottomImage && ( // Exibe a div apenas se houver bottomImage definido
+      {/* interface para ativar o modo de desenvolvimento e setar manualmente o background */}
+      <div className="absolute top-0 left-0 z-50 p-4">
+        <label>
+          <input
+            type="checkbox"
+            checked={devMode}
+            onChange={() => setDevMode(!devMode)}
+          />
+          Modo de Desenvolvimento
+        </label>
+        {devMode && (
+          <div>
+            <label>
+              Defina o background manualmente (0 a {images.length - 1}):
+              <input
+                type="number"
+                value={manualBackgroundIndex ?? ''}
+                onChange={(e) => setManualBackgroundIndex(Number(e.target.value))}
+                min={0}
+                max={images.length - 1}
+              />
+            </label>
+          </div>
+        )}
+      </div>
+
+      {bottomImage && (
         <div
           style={{
-            backgroundImage: `url(${bottomImage})`, // Usa o bottom correspondente
+            backgroundImage: `url(${bottomImage})`,
             backgroundPosition: "bottom center",
             backgroundSize: "cover",
             backgroundRepeat: "no-repeat",
-            height: "100vh", // Ajusta a altura da div
-            width: "100%", // Ajusta a largura da div
-            position: "absolute", // Faz a div sobrepor o conteúdo
-            top: 0, // Coloca no topo
-            left: 0, // Alinha à esquerda
-            zIndex: 1, // Garante que fique acima do fundo principal
+            height: "100vh",
+            width: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            zIndex: 1,
           }}
-        >
-          {/* Conteúdo opcional pode ser colocado aqui */}
-        </div>
+        ></div>
       )}
     </main>
   );
