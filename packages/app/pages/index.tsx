@@ -13,7 +13,7 @@ import image9 from "../assets/27-imgs/bgs/9.jpg";
 import image10 from "../assets/27-imgs/bgs/10.jpg";
 import image11 from "../assets/27-imgs/bgs/11.jpg";
 
-// as imagens são importadas para que o webpack possa otimizá-las
+// As imagens são importadas para que o webpack possa otimizá-las
 const images = [
   image1, image2, image3, image4, image5, image6, 
   image7, image8, image9, image10, image11
@@ -37,6 +37,7 @@ function Home() {
   const { setUser, setToken } = useAppContext();
   const router = useRouter();
   const [backgroundImage, setBackgroundImage] = useState(images[0]);
+  const [backgroundPosition, setBackgroundPosition] = useState("center center");
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -53,11 +54,22 @@ function Home() {
     const updateBackgroundImage = () => {
       const currentHour = new Date().getHours();
       const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
-      setBackgroundImage(matchedImage?.img || images[10]);
+      const selectedImage = matchedImage?.img || images[10];
+      setBackgroundImage(selectedImage);
+
+      // posição do background com base no índice da imagem
+      const imageIndex = images.indexOf(selectedImage);
+      if ([0, 1, 2, 9].includes(imageIndex)) {
+        setBackgroundPosition("left top"); // Para 1, 2, 3, 10
+      } else if ([3, 4, 5, 10].includes(imageIndex)) {
+        setBackgroundPosition("center top"); // Para 4, 5, 6
+      } else {
+        setBackgroundPosition("right top"); // Para 7, 8, 9, 11
+      }
     };
 
     updateBackgroundImage();
-    const intervalId = setInterval(updateBackgroundImage, 3600000); // atualiza a cada hora
+    const intervalId = setInterval(updateBackgroundImage, 3600000); // Atualiza a cada hora
     return () => clearInterval(intervalId);
   }, [router, setUser, setToken]);
 
@@ -66,7 +78,7 @@ function Home() {
       className="min-h-screen bg-gray-800 home"
       style={{
         backgroundImage: `url(${backgroundImage.src})`,
-        backgroundPosition: "center bottom",
+        backgroundPosition: backgroundPosition,
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
       }}
