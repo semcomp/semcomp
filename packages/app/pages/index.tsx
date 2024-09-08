@@ -13,31 +13,38 @@ import image9 from "../assets/27-imgs/bgs/9.jpg";
 import image10 from "../assets/27-imgs/bgs/10.jpg";
 import image11 from "../assets/27-imgs/bgs/11.jpg";
 
-// As imagens são importadas para que o webpack possa otimizá-las
+// array dos backgrounds
 const images = [
   image1, image2, image3, image4, image5, image6, 
   image7, image8, image9, image10, image11
 ];
 
+// cada background tem um horário específico
 const timeToImage = [
-  { start: 5, end: 7, img: images[0] },
-  { start: 7, end: 8, img: images[1] },
-  { start: 8, end: 10, img: images[2] },
-  { start: 10, end: 12, img: images[3] },
-  { start: 12, end: 14, img: images[4] },
-  { start: 14, end: 16, img: images[5] },
-  { start: 16, end: 17, img: images[6] },
-  { start: 17, end: 18, img: images[7] },
-  { start: 18, end: 19, img: images[8] },
-  { start: 19, end: 22, img: images[9] },
-  { start: 0, end: 5, img: images[10] },
+  { start: 5, end: 7, imgIndex: 0 },
+  { start: 7, end: 8, imgIndex: 1 },
+  { start: 8, end: 10, imgIndex: 2 },
+  { start: 10, end: 12, imgIndex: 3 },
+  { start: 12, end: 14, imgIndex: 4 },
+  { start: 14, end: 16, imgIndex: 5 },
+  { start: 16, end: 17, imgIndex: 6 },
+  { start: 17, end: 18, imgIndex: 7 },
+  { start: 18, end: 19, imgIndex: 8 },
+  { start: 19, end: 22, imgIndex: 9 },
+  { start: 0, end: 5, imgIndex: 10 },
 ];
 
-function Home() {
+// posição do background levando em conta a posição do sol/lua
+const backgroundPositions = [
+  "left bottom", "left bottom", "left center", "center top", "center top",
+  "center top", "right center", "right bottom", "right bottom", "left center", "center top"
+];
+
+const Home: React.FC = () => {
   const { setUser, setToken } = useAppContext();
   const router = useRouter();
-  const [backgroundImage, setBackgroundImage] = useState(images[0]);
-  const [backgroundPosition, setBackgroundPosition] = useState("center center");
+  const [backgroundImage, setBackgroundImage] = useState<string>(images[0].src);
+  const [backgroundPosition, setBackgroundPosition] = useState<string>(backgroundPositions[0]);
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -54,22 +61,13 @@ function Home() {
     const updateBackgroundImage = () => {
       const currentHour = new Date().getHours();
       const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
-      const selectedImage = matchedImage?.img || images[10];
-      setBackgroundImage(selectedImage);
-
-      // posição do background com base no índice da imagem
-      const imageIndex = images.indexOf(selectedImage);
-      if ([0, 1, 2, 9].includes(imageIndex)) {
-        setBackgroundPosition("left top"); // Para 1, 2, 3, 10
-      } else if ([3, 4, 5, 10].includes(imageIndex)) {
-        setBackgroundPosition("center top"); // Para 4, 5, 6
-      } else {
-        setBackgroundPosition("right top"); // Para 7, 8, 9, 11
-      }
+      const imgIndex = matchedImage?.imgIndex ?? 10;
+      setBackgroundImage(images[imgIndex].src);
+      setBackgroundPosition(backgroundPositions[imgIndex]);
     };
 
     updateBackgroundImage();
-    const intervalId = setInterval(updateBackgroundImage, 3600000); // Atualiza a cada hora
+    const intervalId = setInterval(updateBackgroundImage, 3600000);
     return () => clearInterval(intervalId);
   }, [router, setUser, setToken]);
 
@@ -77,13 +75,13 @@ function Home() {
     <main
       className="min-h-screen bg-gray-800 home"
       style={{
-        backgroundImage: `url(${backgroundImage.src})`,
+        backgroundImage: `url(${backgroundImage})`,
         backgroundPosition: backgroundPosition,
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
       }}
     />
   );
-}
+};
 
 export default Home;
