@@ -33,7 +33,6 @@ type UserData = {
   Casa: string;
   "Status do pagamento": string;
   "Retirou Kit": ReactElement | string;
-  gotKit: boolean;
   "Tamanho da camiseta": TShirtSize;
   "Opção de compra": KitOption;
   "Permite divulgação?": string;
@@ -65,6 +64,7 @@ function mapData(data: SemcompApiUser[], handleOpenKitModal?: () => void): UserD
         type={InputType.Checkbox}
       /> : <></>
 
+    console.log(handleOpenKitModal);
     newData.push({
       ID: user.id,
       "E-mail": user.email,
@@ -78,7 +78,6 @@ function mapData(data: SemcompApiUser[], handleOpenKitModal?: () => void): UserD
         : TShirtSize.M,
       "Opção de compra": kitOption,
       "Retirou Kit": handleOpenKitModal ? gotKit : (user.gotKit ? "Sim" : "Não"),
-      gotKit: user.gotKit,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
       "Criado em": new Date(user.createdAt).toLocaleString("pt-br", {
         day: "numeric",
@@ -162,7 +161,7 @@ function UsersTable({
   handleCoffeeChange,
   updateKitStatus,
 }: {
-  data: PaginationResponse<UserData>;
+  data: PaginationResponse<SemcompApiUser>;
   pagination: PaginationRequest;
   onRowSelect: (selectedIndexes: number[]) => void;
   allData: PaginationResponse<SemcompApiUser>;
@@ -185,7 +184,7 @@ function UsersTable({
   const handleSubmit = async (index: number) => {
     // caso o usuário clique em "Sim", roda essa função para mudar se o usuário retirou ou não o kit
     data.getEntities()[index].gotKit = !data.getEntities()[index].gotKit;
-    const response = await updateKitStatus(data.getEntities()[index].ID, data.getEntities()[index].gotKit);
+    const response = await updateKitStatus(data.getEntities()[index].id, data.getEntities()[index].gotKit);
     
     // fazer update do valor dos kits retirados.
     const updatedInfoData = infoData.map((item, idx) => {
@@ -227,7 +226,7 @@ function UsersTable({
       infoData={infoData}
     />
     <DataTable
-      data={new PaginationResponse<UserData>(data.getEntities(), data.getTotalNumberOfItems())}
+      data={new PaginationResponse<UserData>(mapData(data.getEntities(), handleOpenKitModal), data.getTotalNumberOfItems())}
       pagination={pagination}
       onRowClick={(index: number) => {
         setSelected(index);
@@ -265,7 +264,7 @@ function Users() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState<UserData[] | null>(null);
+  const [filteredUsers, setFilteredUsers] = useState<SemcompApiUser[] | null>(null);
   const downloadBtnHeight = '48px';
 
   async function fetchData(pagination: PaginationRequest) {
@@ -280,7 +279,7 @@ function Users() {
     try {
       const response = await fetchData(pagination);
       setData(response);
-      setFilteredUsers(mapData(response.getEntities()));
+      setFilteredUsers(response.getEntities());
     } catch (error) {
       console.error(error);
     }
@@ -320,15 +319,15 @@ function Users() {
 
   useEffect(() => {
     if (allData != null) {
-      const mappedData = mapData(allData.getEntities());
+      const mappedData = allData.getEntities();
       if (searchTerm) {
         setFilteredUsers(
           mappedData.filter((user) =>
-            user.Nome.toLowerCase().includes(searchTerm.toLowerCase())
+            user.name.toLowerCase().includes(searchTerm.toLowerCase())
           )
         );
       } else {
-        setFilteredUsers(mapData(data?.getEntities() || []));
+        setFilteredUsers((data?.getEntities() || []));
       }
       setIsLoading(false);
     }
@@ -405,7 +404,7 @@ function Users() {
                   />
                   <UsersTable
                     data={
-                      new PaginationResponse<UserData>(
+                      new PaginationResponse<SemcompApiUser>(
                         filteredUsers || [],
                         data ? data.getTotalNumberOfItems() : 0
                       )

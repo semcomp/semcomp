@@ -157,7 +157,7 @@ function CheckboxInput({
   value: boolean;
 }) {
   return (
-    <FormControl className="my-3 bg-white">
+    <FormControl className="my-3 bg-transparent">
       <Checkbox onChange={onChange} checked={value} />
     </FormControl>
   );
