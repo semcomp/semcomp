@@ -14,6 +14,7 @@ import image9 from "../assets/27-imgs/bgs/9.png";
 import image10 from "../assets/27-imgs/bgs/10.png";
 import image11 from "../assets/27-imgs/bgs/11.png";
 import cloudy from "../assets/27-imgs/cloudy.png";
+import airplane from "../assets/27-imgs/airplane.gif";
 
 import image3bottom from "../assets/27-imgs/bgs-bottom/3.png";
 import image4bottom from "../assets/27-imgs/bgs-bottom/4.png";
@@ -25,34 +26,49 @@ import image11bottom from "../assets/27-imgs/bgs-bottom/11.png";
 
 // array com todas as imagens de fundo possíveis
 const images = [
-  image1, image2, image3, image4, image5, image6, 
+  image1, image2, image3, image4, image5, image6,
   image7, image8, image9, image10, image11
 ];
 
 // mapeia imagens da parte inferior de acordo com o índice da imagem principal
 const bottomImagesMap: { [key: number]: string } = {
-  2: image3bottom.src,  
-  3: image4bottom.src,  
-  4: image5bottom.src,  
-  5: image6bottom.src,  
-  6: image7bottom.src,  
-  9: image10bottom.src, 
-  10: image11bottom.src 
+  2: image3bottom.src,
+  3: image4bottom.src,
+  4: image5bottom.src,
+  5: image6bottom.src,
+  6: image7bottom.src,
+  9: image10bottom.src,
+  10: image11bottom.src
 };
 
 // filtros aplicados às nuvens para cada imagem de fundo
 const filters = [
-  "brightness(0.9) contrast(1.2)", 
-  "brightness(1.0) hue-rotate(30deg)", 
-  "brightness(1.2) contrast(0.7)", 
-  "brightness(1.2) hue-rotate(-20deg)", 
-  "brightness(1.2) contrast(1.0)", 
-  "brightness(1.1) sepia(0.3)", 
-  "brightness(1.0) contrast(1.3)", 
-  "brightness(1.0) hue-rotate(60deg)", 
-  "brightness(0.7) contrast(1.5)", 
-  "brightness(0.6) sepia(0.3)", 
+  "brightness(0.9) contrast(1.2)",
+  "brightness(1.0) hue-rotate(30deg)",
+  "brightness(1.2) contrast(0.7)",
+  "brightness(1.2) hue-rotate(-20deg)",
+  "brightness(1.2) contrast(1.0)",
+  "brightness(1.1) sepia(0.3)",
+  "brightness(1.0) contrast(1.3)",
+  "brightness(1.0) hue-rotate(60deg)",
+  "brightness(0.7) contrast(1.5)",
+  "brightness(0.6) sepia(0.3)",
   "brightness(0.5) hue-rotate(90deg)"
+];
+
+// filtros aplicados ao avião para cada imagem de fundo
+const filtersAirplane = [
+  "brightness(0.9) contrast(1.2)",
+  "brightness(1.0) hue-rotate(30deg)",
+  "brightness(1.3) contrast(0.7)",
+  "brightness(1.2) hue-rotate(-20deg)",
+  "brightness(1.2) contrast(1.0)",
+  "brightness(1.1) sepia(0.3)",
+  "brightness(1.0) contrast(1.3)",
+  "brightness(1.0) hue-rotate(40deg)",
+  "brightness(0.9) contrast(1.3)",
+  "brightness(0.7) sepia(0.3)",
+  "brightness(0.6) hue-rotate(50deg)"
 ];
 
 // relaciona o horário com o índice da imagem correspondente
@@ -85,6 +101,7 @@ const Home: React.FC = () => {
   const [bottomImage, setBottomImage] = useState<string>("");
   const [backgroundPosition, setBackgroundPosition] = useState<string>(backgroundPositions[0]);
   const [cloudFilter, setCloudFilter] = useState<string>(filters[0]);
+  const [airplaneFilter, setAirplaneFilter] = useState<string>(filtersAirplane[0]); // filtro para o avião
   const [devMode, setDevMode] = useState<boolean>(false);
   const [manualBackgroundIndex, setManualBackgroundIndex] = useState<number | null>(null);
 
@@ -117,6 +134,7 @@ const Home: React.FC = () => {
       setBottomImage(bottomImagesMap[imgIndex] || ""); // verifica se há imagem de fundo inferior
       setBackgroundPosition(backgroundPositions[imgIndex]);
       setCloudFilter(filters[imgIndex]); // aplica o filtro de nuvens apropriado
+      setAirplaneFilter(filtersAirplane[imgIndex]); // aplica o filtro de avião apropriado
     };
 
     updateBackgroundImage();
@@ -157,12 +175,22 @@ const Home: React.FC = () => {
       </div>
 
       {/* Componente ObjectFly substituindo as nuvens */}
-      <ObjectFly 
-        maxItems={4} 
-        direction="right" 
-        image={cloudy.src} 
-        filter={cloudFilter} 
+      <ObjectFly
+        maxItems={4}
+        direction="right"
+        image={cloudy.src}
+        filter={cloudFilter} // aplica filtro para as nuvens
       />
+
+      <ObjectFly
+        maxItems={1}
+        direction="left"
+        image={airplane.src}
+        filter={airplaneFilter} // aplica filtro para o avião
+        minSize={1000}
+        maxSize={1000}
+      />
+
 
       {/* controles de desenvolvimento */}
       <div className="absolute top-0 left-0 z-50 p-4">
@@ -177,7 +205,7 @@ const Home: React.FC = () => {
         {devMode && (
           <div>
             <label>
-              defina o background manualmente (0 a {images.length - 1}):
+              altere o background manualmente (0 a {images.length - 1}):
               <input
                 type="number"
                 value={manualBackgroundIndex ?? ''}
