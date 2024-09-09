@@ -163,7 +163,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     if (showClouds) {
       initializeClouds(); // inicializa as nuvens quando o componente é montado
-      const intervalId = setInterval(moveClouds, 16); // move as nuvens a cada 16ms (aproximadamente 60fps)
+      const intervalId = setInterval(moveClouds, 85); // move as nuvens a cada 16ms (aproximadamente 60fps)
       return () => clearInterval(intervalId);
     }
   }, [showClouds]);
