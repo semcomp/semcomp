@@ -12,7 +12,7 @@ import image8 from "../assets/27-imgs/bgs/8.png";
 import image9 from "../assets/27-imgs/bgs/9.png";
 import image10 from "../assets/27-imgs/bgs/10.png";
 import image11 from "../assets/27-imgs/bgs/11.png";
-import cloudy from "../assets/27-imgs/cloudy.png"; 
+import cloudy from "../assets/27-imgs/cloudy.png";
 
 import image3bottom from "../assets/27-imgs/bgs-bottom/3.png";
 import image4bottom from "../assets/27-imgs/bgs-bottom/4.png";
@@ -83,13 +83,12 @@ const Home: React.FC = () => {
   const [bottomImage, setBottomImage] = useState<string>("");
   const [backgroundPosition, setBackgroundPosition] = useState<string>(backgroundPositions[0]);
   const [cloudFilter, setCloudFilter] = useState<string>(filters[0]); // estado para o filtro da nuvem
-  
-  // variável de desenvolvimento para setar manualmente o background
+  const [clouds, setClouds] = useState<Array<{ id: number, top: number, left: number, width: number }>>([]);
+
   const [devMode, setDevMode] = useState<boolean>(false);
   const [manualBackgroundIndex, setManualBackgroundIndex] = useState<number | null>(null); 
 
   useEffect(() => {
-    // ao carregar a página, verifica se o usuário e token estão no localStorage, e redireciona se necessário
     const user = localStorage.getItem("user");
     const token = localStorage.getItem("token");
     if (!user || !token) {
@@ -97,48 +96,129 @@ const Home: React.FC = () => {
       setToken(null);
     }
 
-    // força o redirecionamento caso a rota do navegador não coincida com a atual no next/router
     if (window.location.pathname !== router.pathname) {
       router.push(window.location.pathname);
     }
 
-    // função para atualizar a imagem de fundo com base na hora ou manualmente no modo de desenvolvimento
     const updateBackgroundImage = () => {
       let imgIndex;
       if (devMode && manualBackgroundIndex !== null) {
-        // usa a imagem definida manualmente no modo de desenvolvimento
         imgIndex = manualBackgroundIndex;
       } else {
-        // lógica para escolher a imagem com base no horário atual
         const currentHour = new Date().getHours();
         const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
         imgIndex = matchedImage?.imgIndex ?? 10;
       }
 
-      // atualiza o estado com a nova imagem de background e o filtro associado
       setBackgroundImage(images[imgIndex].src);
       setBottomImage(bottomImagesMap[imgIndex] || "");
       setBackgroundPosition(backgroundPositions[imgIndex]);
-      setCloudFilter(filters[imgIndex]); // aplica o filtro associado ao background atual
+      setCloudFilter(filters[imgIndex]);
     };
 
-    // chama a função para definir o background ao iniciar e a cada hora
     updateBackgroundImage();
     const intervalId = setInterval(updateBackgroundImage, 3600000);
     return () => clearInterval(intervalId);
   }, [router, setUser, setToken, devMode, manualBackgroundIndex]);
 
+  const initializeClouds = () => {
+    const initialClouds: Array<{ id: number, top: number, left: number, width: number }> = [];
+    for (let i = 0; i < 4; i++) {
+      initialClouds.push({
+        id: i,
+        top: Math.random() * (window.innerHeight - 200), // Randomiza a posição vertical
+        left: Math.random() * window.innerWidth, // Posição inicial aleatória na tela
+        width: Math.random() * 150 + 100, // Largura aleatória entre 100 e 250px
+      });
+    }
+    setClouds(initialClouds);
+  };
+
+  const moveClouds = () => {
+    setClouds((prevClouds) =>
+      prevClouds.map((cloud) => {
+        let newLeft = cloud.left + 1; // Movimenta a nuvem para a direita
+
+        // Se a nuvem sair pela direita, reaparece na esquerda
+        if (newLeft > window.innerWidth) {
+          newLeft = -cloud.width;
+        }
+
+        return {
+          ...cloud,
+          left: newLeft,
+        };
+      })
+    );
+  };
+
+  useEffect(() => {
+    initializeClouds();
+
+    const intervalId = setInterval(moveClouds, 16); // Movimenta as nuvens
+    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden"; // Desativa a rolagem
+
+    return () => {
+      document.body.style.overflow = ""; // Restaura o comportamento padrão ao desmontar
+    };
+  }, []);
+  
   return (
-    <main
-      className="min-h-screen bg-gray-800 home"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundPosition: backgroundPosition,
-        backgroundSize: "cover",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      {/* interface para ativar o modo de desenvolvimento e setar manualmente o background */}
+    <main className="relative min-h-screen bg-gray-800">
+      {/* Camada de fundo */}
+      <div
+        className="absolute inset-0 z-10"
+        style={{
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundPosition: backgroundPosition,
+          backgroundSize: "cover",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        {bottomImage && (
+          <div
+            style={{
+              backgroundImage: `url(${bottomImage})`,
+              backgroundPosition: "bottom center",
+              backgroundSize: "cover",
+              backgroundRepeat: "no-repeat",
+              height: "100vh",
+              width: "100%",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              zIndex: 10,
+            }}
+          ></div>
+        )}
+      </div>
+
+      {/* Camada das nuvens */}
+      <div className="absolute inset-0 z-20">
+        {clouds.map((cloud) => (
+          <div
+            key={cloud.id}
+            className="absolute"
+            style={{
+              top: `${cloud.top}px`,
+              left: `${cloud.left}px`,
+              width: `${cloud.width}px`,
+              height: '200px',
+              backgroundImage: `url(${cloudy.src})`,
+              backgroundPosition: 'center',
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
+              filter: cloudFilter,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Interface para ativar o modo de desenvolvimento e setar manualmente o background */}
       <div className="absolute top-0 left-0 z-50 p-4">
         <label>
           <input
@@ -163,42 +243,6 @@ const Home: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* exibe a imagem inferior, se houver uma correspondente */}
-      {bottomImage && (
-        <div
-          style={{
-            backgroundImage: `url(${bottomImage})`,
-            backgroundPosition: "bottom center",
-            backgroundSize: "cover",
-            backgroundRepeat: "no-repeat",
-            height: "100vh",
-            width: "100%",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            zIndex: 1,
-          }}
-        ></div>
-      )}
-
-      {/* adicionando a nuvem no centro da tela com o filtro dinâmico */}
-      <div
-        style={{
-          backgroundImage: `url(${cloudy.src})`,
-          backgroundPosition: "center center",
-          backgroundSize: "contain",
-          backgroundRepeat: "no-repeat",
-          height: "200px",
-          width: "300px",  
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)", // centraliza a nuvem
-          zIndex: 2, // garante que fique acima do fundo
-          filter: cloudFilter, // aplica o filtro dinâmico
-        }}
-      ></div>
     </main>
   );
 };
