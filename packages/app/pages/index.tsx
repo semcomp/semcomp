@@ -75,6 +75,50 @@ const backgroundPositions = [
   "center top", "right center", "right bottom", "right bottom", "left center", "center top"
 ];
 
+interface Cloud {
+  id: number;
+  top: number;
+  left: number;
+  width: number;
+}
+
+// verificar se a nova posição é válida, considerando o tamanho da nuvem, assim evitando sobreposição
+function isValidPosition(newCloud: Cloud, existingClouds: Cloud[]): boolean {
+  for (const cloud of existingClouds) {
+    // faz o calcula da distância entre as nuvens
+    const distance = Math.sqrt(
+      Math.pow(newCloud.left - cloud.left, 2) + Math.pow(newCloud.top - cloud.top, 2)
+    );
+    //  margem mínima proporcional ao tamanho das nuvens
+    const minDistance = (newCloud.width + cloud.width) / 2; 
+
+    if (distance < minDistance) {
+      return false; // quando a posição é muito próxima de outra nuvem
+    }
+  }
+  return true;
+}
+
+// gera uma nova posição aleatória
+function generateRandomPosition(): Cloud {
+  const top = Math.random() * (window.innerHeight - 350); // Limita a altura para evitar sair da tela
+  const left = Math.random() * window.innerWidth;
+  const width = Math.random() * 150 + 100; // Tamanho aleatório entre 100px e 250px
+  return { id: Date.now(), top, left, width };
+}
+
+// inicializa as nuvens com validação de posicionamento
+function initializeClouds(numClouds: number, setClouds: React.Dispatch<React.SetStateAction<Cloud[]>>) {
+  const initialClouds: Cloud[] = [];
+  while (initialClouds.length < numClouds) {
+    const newCloud = generateRandomPosition();
+    if (isValidPosition(newCloud, initialClouds)) {
+      initialClouds.push(newCloud);
+    }
+  }
+  setClouds(initialClouds);
+}
+
 const Home: React.FC = () => {
   const { setUser, setToken } = useAppContext();
   const router = useRouter();
@@ -84,8 +128,8 @@ const Home: React.FC = () => {
   const [bottomImage, setBottomImage] = useState<string>("");
   const [backgroundPosition, setBackgroundPosition] = useState<string>(backgroundPositions[0]);
   const [cloudFilter, setCloudFilter] = useState<string>(filters[0]);
-  const [clouds, setClouds] = useState<Array<{ id: number, top: number, left: number, width: number }>>([]);
-  const [showClouds, setShowClouds] = useState<boolean>(true); // estado para controlar se as nuvens serão exibidas
+  const [clouds, setClouds] = useState<Cloud[]>([]);
+  const [showClouds, setShowClouds] = useState<boolean>(true); // controla se as nuvens serão exibidas
 
   // modo de desenvolvimento e índice manual para a imagem de fundo
   const [devMode, setDevMode] = useState<boolean>(false);
@@ -105,7 +149,7 @@ const Home: React.FC = () => {
       router.push(window.location.pathname);
     }
 
-    // função que atualiza a imagem de fundo com base no horário ou no modo dev
+    // atualiza a imagem de fundo com base no horário ou no modo dev
     const updateBackgroundImage = () => {
       let imgIndex;
       if (devMode && manualBackgroundIndex !== null) {
@@ -128,47 +172,31 @@ const Home: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [router, setUser, setToken, devMode, manualBackgroundIndex]);
 
-  // função que inicializa as nuvens em posições aleatórias
-  const initializeClouds = () => {
-    const initialClouds: Array<{ id: number, top: number, left: number, width: number }> = [];
-    for (let i = 0; i < 4; i++) {
-      initialClouds.push({
-        id: i,
-        top: Math.random() * (window.innerHeight - 350),
-        left: Math.random() * window.innerWidth,
-        width: Math.random() * 150 + 100,
-      });
-    }
-    setClouds(initialClouds);
-  };
-
-  // função que move as nuvens para a direita e reinicia o movimento ao atingir o final da tela
-  const moveClouds = () => {
-    setClouds((prevClouds) =>
-      prevClouds.map((cloud) => {
-        let newLeft = cloud.left + 1;
-
-        if (newLeft > window.innerWidth) {
-          newLeft = -cloud.width; // reinicia o movimento da nuvem
-        }
-
-        return {
-          ...cloud,
-          left: newLeft,
-        };
-      })
-    );
-  };
-
+  // inicia as nuvens em posições aleatórias com validação de posicionamento, feita anteriormente
   useEffect(() => {
     if (showClouds) {
-      initializeClouds(); // inicializa as nuvens quando o componente é montado
-      const intervalId = setInterval(moveClouds, 85); // move as nuvens a cada 16ms (aproximadamente 60fps)
+      initializeClouds(4, setClouds); // gera até 4 nuvens com validação
+      const intervalId = setInterval(() => {
+        setClouds((prevClouds) =>
+          prevClouds.map((cloud) => {
+            let newLeft = cloud.left + 1;
+
+            if (newLeft > window.innerWidth) {
+              newLeft = -cloud.width; // reinicia o movimento da nuvem quando o usuário redmensiona a tela (para conseguir capturar nova altura da nunvens enm relação ao mar)
+            }
+
+            return {
+              ...cloud,
+              left: newLeft,
+            };
+          })
+        );
+      }, 85); // move as nuvens a cada 16ms (aproximadamente 60fps)
       return () => clearInterval(intervalId);
     }
   }, [showClouds]);
 
-  // função que trata o redimensionamento da janela e re-inicializa as nuvens
+  // trata o redimensionamento da janela e reseta as nuvens
   useEffect(() => {
     let resizeTimeout: NodeJS.Timeout;
     const handleResize = () => {
@@ -176,7 +204,7 @@ const Home: React.FC = () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
         setShowClouds(true); // exibe as nuvens após o redimensionamento
-        initializeClouds(); // re-inicializa as nuvens após o redimensionamento
+        initializeClouds(4, setClouds); // re-inicializa as nuvens após o redimensionamento
       }, 500); // tempo para estabilizar o redimensionamento
     };
 
