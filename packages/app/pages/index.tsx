@@ -22,13 +22,13 @@ import image7bottom from "../assets/27-imgs/bgs-bottom/7.png";
 import image10bottom from "../assets/27-imgs/bgs-bottom/10.png";
 import image11bottom from "../assets/27-imgs/bgs-bottom/11.png";
 
-// lista com todas as imagens de background
+// array com todas as imagens de fundo possíveis
 const images = [
   image1, image2, image3, image4, image5, image6, 
   image7, image8, image9, image10, image11
 ];
 
-// mapeamento das imagens que ficam na parte inferior, associadas a cada background
+// mapeia imagens da parte inferior de acordo com o índice da imagem principal
 const bottomImagesMap: { [key: number]: string } = {
   2: image3bottom.src,  
   3: image4bottom.src,  
@@ -39,22 +39,22 @@ const bottomImagesMap: { [key: number]: string } = {
   10: image11bottom.src 
 };
 
-// lista de filtros de cores aplicados de acordo com a ambientação de cada bg
+// filtros aplicados às nuvens para cada imagem de fundo
 const filters = [
-  "brightness(0.9) contrast(1.2)", // para image1
-  "brightness(1.0) hue-rotate(30deg)", // para image2
-  "brightness(1.2) contrast(0.7)", // para image3
-  "brightness(1.2) hue-rotate(-20deg)", // para image4
-  "brightness(1.2) contrast(1.0)", // para image5
-  "brightness(1.1) sepia(0.3)", // para image6
-  "brightness(1.0) contrast(1.3)", // para image7
-  "brightness(1.0) hue-rotate(60deg)", // para image8
-  "brightness(0.7) contrast(1.5)", // para image9
-  "brightness(0.6) sepia(0.3)", // para image10
-  "brightness(0.5) hue-rotate(90deg)", // para image11
+  "brightness(0.9) contrast(1.2)", 
+  "brightness(1.0) hue-rotate(30deg)", 
+  "brightness(1.2) contrast(0.7)", 
+  "brightness(1.2) hue-rotate(-20deg)", 
+  "brightness(1.2) contrast(1.0)", 
+  "brightness(1.1) sepia(0.3)", 
+  "brightness(1.0) contrast(1.3)", 
+  "brightness(1.0) hue-rotate(60deg)", 
+  "brightness(0.7) contrast(1.5)", 
+  "brightness(0.6) sepia(0.3)", 
+  "brightness(0.5) hue-rotate(90deg)"
 ];
 
-// define a correspondência entre faixas de horário e imagens de background
+// relaciona o horário com o índice da imagem correspondente
 const timeToImage = [
   { start: 5, end: 7, imgIndex: 0 },
   { start: 7, end: 8, imgIndex: 1 },
@@ -69,7 +69,7 @@ const timeToImage = [
   { start: 0, end: 5, imgIndex: 10 },
 ];
 
-// define as posições de background para cada imagem
+// posições de background para alinhar corretamente cada imagem de fundo
 const backgroundPositions = [
   "left bottom", "left bottom", "left center", "center top", "center top",
   "center top", "right center", "right bottom", "right bottom", "left center", "center top"
@@ -78,17 +78,21 @@ const backgroundPositions = [
 const Home: React.FC = () => {
   const { setUser, setToken } = useAppContext();
   const router = useRouter();
-  
+
+  // estado para a imagem de fundo e outras configurações
   const [backgroundImage, setBackgroundImage] = useState<string>(images[0].src);
   const [bottomImage, setBottomImage] = useState<string>("");
   const [backgroundPosition, setBackgroundPosition] = useState<string>(backgroundPositions[0]);
-  const [cloudFilter, setCloudFilter] = useState<string>(filters[0]); // estado para o filtro da nuvem
+  const [cloudFilter, setCloudFilter] = useState<string>(filters[0]);
   const [clouds, setClouds] = useState<Array<{ id: number, top: number, left: number, width: number }>>([]);
+  const [showClouds, setShowClouds] = useState<boolean>(true); // estado para controlar se as nuvens serão exibidas
 
+  // modo de desenvolvimento e índice manual para a imagem de fundo
   const [devMode, setDevMode] = useState<boolean>(false);
   const [manualBackgroundIndex, setManualBackgroundIndex] = useState<number | null>(null); 
 
   useEffect(() => {
+    // verifica se o usuário e token estão no localStorage
     const user = localStorage.getItem("user");
     const token = localStorage.getItem("token");
     if (!user || !token) {
@@ -96,52 +100,56 @@ const Home: React.FC = () => {
       setToken(null);
     }
 
+    // garante que a URL no navegador esteja correta
     if (window.location.pathname !== router.pathname) {
       router.push(window.location.pathname);
     }
 
+    // função que atualiza a imagem de fundo com base no horário ou no modo dev
     const updateBackgroundImage = () => {
       let imgIndex;
       if (devMode && manualBackgroundIndex !== null) {
-        imgIndex = manualBackgroundIndex;
+        imgIndex = manualBackgroundIndex; // usa índice manual no modo dev
       } else {
-        const currentHour = new Date().getHours();
+        const currentHour = new Date().getHours(); // pega a hora atual
         const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
-        imgIndex = matchedImage?.imgIndex ?? 10;
+        imgIndex = matchedImage?.imgIndex ?? 10; // define a imagem de fundo correspondente
       }
 
       setBackgroundImage(images[imgIndex].src);
-      setBottomImage(bottomImagesMap[imgIndex] || "");
+      setBottomImage(bottomImagesMap[imgIndex] || ""); // verifica se há imagem de fundo inferior
       setBackgroundPosition(backgroundPositions[imgIndex]);
-      setCloudFilter(filters[imgIndex]);
+      setCloudFilter(filters[imgIndex]); // aplica o filtro de nuvens apropriado
     };
 
     updateBackgroundImage();
+    // atualiza a cada 1 hora
     const intervalId = setInterval(updateBackgroundImage, 3600000);
     return () => clearInterval(intervalId);
   }, [router, setUser, setToken, devMode, manualBackgroundIndex]);
 
+  // função que inicializa as nuvens em posições aleatórias
   const initializeClouds = () => {
     const initialClouds: Array<{ id: number, top: number, left: number, width: number }> = [];
     for (let i = 0; i < 4; i++) {
       initialClouds.push({
         id: i,
-        top: Math.random() * (window.innerHeight - 200), // Randomiza a posição vertical
-        left: Math.random() * window.innerWidth, // Posição inicial aleatória na tela
-        width: Math.random() * 150 + 100, // Largura aleatória entre 100 e 250px
+        top: Math.random() * (window.innerHeight - 350),
+        left: Math.random() * window.innerWidth,
+        width: Math.random() * 150 + 100,
       });
     }
     setClouds(initialClouds);
   };
 
+  // função que move as nuvens para a direita e reinicia o movimento ao atingir o final da tela
   const moveClouds = () => {
     setClouds((prevClouds) =>
       prevClouds.map((cloud) => {
-        let newLeft = cloud.left + 1; // Movimenta a nuvem para a direita
+        let newLeft = cloud.left + 1;
 
-        // Se a nuvem sair pela direita, reaparece na esquerda
         if (newLeft > window.innerWidth) {
-          newLeft = -cloud.width;
+          newLeft = -cloud.width; // reinicia o movimento da nuvem
         }
 
         return {
@@ -153,23 +161,43 @@ const Home: React.FC = () => {
   };
 
   useEffect(() => {
-    initializeClouds();
+    if (showClouds) {
+      initializeClouds(); // inicializa as nuvens quando o componente é montado
+      const intervalId = setInterval(moveClouds, 16); // move as nuvens a cada 16ms (aproximadamente 60fps)
+      return () => clearInterval(intervalId);
+    }
+  }, [showClouds]);
 
-    const intervalId = setInterval(moveClouds, 16); // Movimenta as nuvens
-    return () => clearInterval(intervalId);
-  }, []);
-
+  // função que trata o redimensionamento da janela e re-inicializa as nuvens
   useEffect(() => {
-    document.body.style.overflow = "hidden"; // Desativa a rolagem
+    let resizeTimeout: NodeJS.Timeout;
+    const handleResize = () => {
+      setShowClouds(false); // esconde as nuvens durante o redimensionamento
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        setShowClouds(true); // exibe as nuvens após o redimensionamento
+        initializeClouds(); // re-inicializa as nuvens após o redimensionamento
+      }, 500); // tempo para estabilizar o redimensionamento
+    };
 
+    window.addEventListener("resize", handleResize);
     return () => {
-      document.body.style.overflow = ""; // Restaura o comportamento padrão ao desmontar
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
-  
+
+  // desabilita o scroll da página
+  useEffect(() => {
+    document.body.style.overflow = "hidden"; 
+
+    return () => {
+      document.body.style.overflow = ""; // restaura o scroll ao desmontar o componente
+    };
+  }, []);
+
   return (
     <main className="relative min-h-screen bg-gray-800">
-      {/* Camada de fundo */}
+      {/* div que contém o background principal */}
       <div
         className="absolute inset-0 z-10"
         style={{
@@ -179,6 +207,7 @@ const Home: React.FC = () => {
           backgroundRepeat: "no-repeat",
         }}
       >
+        {/* imagem de fundo para monitores mais achatados */}
         {bottomImage && (
           <div
             style={{
@@ -197,9 +226,9 @@ const Home: React.FC = () => {
         )}
       </div>
 
-      {/* Camada das nuvens */}
+      {/* div que contém as nuvens */}
       <div className="absolute inset-0 z-20">
-        {clouds.map((cloud) => (
+        {showClouds && clouds.map((cloud) => (
           <div
             key={cloud.id}
             className="absolute"
@@ -218,7 +247,7 @@ const Home: React.FC = () => {
         ))}
       </div>
 
-      {/* Interface para ativar o modo de desenvolvimento e setar manualmente o background */}
+      {/* controles de desenvolvimento */}
       <div className="absolute top-0 left-0 z-50 p-4">
         <label>
           <input
