@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { useAppContext } from "../libs/contextLib";
 import { useRouter } from "next/router";
-import image1 from "../assets/27-imgs/bgs/1.jpg";
-import image2 from "../assets/27-imgs/bgs/2.jpg";
-import image3 from "../assets/27-imgs/bgs/3.jpg";
-import image4 from "../assets/27-imgs/bgs/4.jpg";
-import image5 from "../assets/27-imgs/bgs/5.jpg";
-import image6 from "../assets/27-imgs/bgs/6.jpg";
-import image7 from "../assets/27-imgs/bgs/7.jpg";
-import image8 from "../assets/27-imgs/bgs/8.jpg";
-import image9 from "../assets/27-imgs/bgs/9.jpg";
-import image10 from "../assets/27-imgs/bgs/10.jpg";
-import image11 from "../assets/27-imgs/bgs/11.jpg";
+import image1 from "../assets/27-imgs/bgs/1.png";
+import image2 from "../assets/27-imgs/bgs/2.png";
+import image3 from "../assets/27-imgs/bgs/3.png";
+import image4 from "../assets/27-imgs/bgs/4.png";
+import image5 from "../assets/27-imgs/bgs/5.png";
+import image6 from "../assets/27-imgs/bgs/6.png";
+import image7 from "../assets/27-imgs/bgs/7.png";
+import image8 from "../assets/27-imgs/bgs/8.png";
+import image9 from "../assets/27-imgs/bgs/9.png";
+import image10 from "../assets/27-imgs/bgs/10.png";
+import image11 from "../assets/27-imgs/bgs/11.png";
+
 
 import image3bottom from "../assets/27-imgs/bgs-bottom/3.png";
 import image4bottom from "../assets/27-imgs/bgs-bottom/4.png";
