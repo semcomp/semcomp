@@ -173,13 +173,14 @@ const Home: React.FC = () => {
           ></div>
         )}
       </div>
-
-      {/* Componente ObjectFly substituindo as nuvens */}
+      
       <ObjectFly
         maxItems={4}
         direction="right"
         image={cloudy.src}
         filter={cloudFilter} // aplica filtro para as nuvens
+        minSize={200}
+        maxSize={300}
       />
 
       <ObjectFly
