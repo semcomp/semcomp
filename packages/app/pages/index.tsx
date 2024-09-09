@@ -130,10 +130,9 @@ const Home: React.FC = () => {
   const [cloudFilter, setCloudFilter] = useState<string>(filters[0]);
   const [clouds, setClouds] = useState<Cloud[]>([]);
   const [showClouds, setShowClouds] = useState<boolean>(true); // controla se as nuvens serão exibidas
-
-  // modo de desenvolvimento e índice manual para a imagem de fundo
   const [devMode, setDevMode] = useState<boolean>(false);
   const [manualBackgroundIndex, setManualBackgroundIndex] = useState<number | null>(null); 
+  const [resizeTimeout, setResizeTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // verifica se o usuário e token estão no localStorage
@@ -172,56 +171,50 @@ const Home: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [router, setUser, setToken, devMode, manualBackgroundIndex]);
 
-  // inicia as nuvens em posições aleatórias com validação de posicionamento, feita anteriormente
+  // inicia as nuvens em posições aleatórias com validação de posicionamento
   useEffect(() => {
-    if (showClouds) {
-      initializeClouds(4, setClouds); // gera até 4 nuvens com validação
-      const intervalId = setInterval(() => {
-        setClouds((prevClouds) =>
-          prevClouds.map((cloud) => {
-            let newLeft = cloud.left + 1;
+    initializeClouds(4, setClouds);
+    const intervalId = setInterval(() => {
+      setClouds((prevClouds) =>
+        prevClouds.map((cloud) => {
+          let newLeft = cloud.left + 1;
+          if (newLeft > window.innerWidth) {
+            newLeft = -cloud.width; // reinicia o movimento da nuvem quando o usuário redimensiona
+          }
+          return { ...cloud, left: newLeft };
+        })
+      );
+    }, 85); // move as nuvens a cada 85ms
+    return () => clearInterval(intervalId);
+  }, []);
 
-            if (newLeft > window.innerWidth) {
-              newLeft = -cloud.width; // reinicia o movimento da nuvem quando o usuário redmensiona a tela (para conseguir capturar nova altura da nunvens enm relação ao mar)
-            }
-
-            return {
-              ...cloud,
-              left: newLeft,
-            };
-          })
-        );
-      }, 85); // move as nuvens a cada 16ms (aproximadamente 60fps)
-      return () => clearInterval(intervalId);
-    }
-  }, [showClouds]);
-
-  // trata o redimensionamento da janela e reseta as nuvens
+  // trata o redimensionamento da janela, esconde as nuvens e as re-inicializa após estabilização
   useEffect(() => {
-    let resizeTimeout: NodeJS.Timeout;
     const handleResize = () => {
       setShowClouds(false); // esconde as nuvens durante o redimensionamento
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        setShowClouds(true); // exibe as nuvens após o redimensionamento
+      setClouds([]); // remove todas as nuvens
+      
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout); // limpa o timeout anterior se houver
+      }
+
+      // define um timeout para re-inicializar as nuvens após 500ms de estabilização
+      const timeout = setTimeout(() => {
+        setShowClouds(true); // exibe as nuvens novamente
         initializeClouds(4, setClouds); // re-inicializa as nuvens após o redimensionamento
-      }, 500); // tempo para estabilizar o redimensionamento
+      }, 500); // tempo de estabilização
+
+      setResizeTimeout(timeout); // armazena o novo timeout
     };
 
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout); // limpa o timeout ao desmontar
+      }
     };
-  }, []);
-
-  // desabilita o scroll da página
-  useEffect(() => {
-    document.body.style.overflow = "hidden"; 
-
-    return () => {
-      document.body.style.overflow = ""; // restaura o scroll ao desmontar o componente
-    };
-  }, []);
+  }, [resizeTimeout]);
 
   return (
     <main className="relative min-h-screen bg-gray-800">
