@@ -10,6 +10,14 @@
   },
   "author": "",
   "license": "ISC",
+  "workspaces": [
+    "packages/app",
+    "packages/app-admin",
+    "packages/app-admin-next",
+    "packages/app-admin-next-attendances",
+    "packages/app-qr-code",
+    "packages/server"
+  ],
   "devDependencies": {
     "@commitlint/cli": "^17.0.3",
     "@commitlint/config-conventional": "^17.0.3",
