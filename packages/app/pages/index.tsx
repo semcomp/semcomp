@@ -25,7 +25,7 @@ const Home: React.FC = () => {
 
   return (
     <main className="relative min-h-screen bg-gray-800">
-      <AnimatedBG />
+     <AnimatedBG showDevMode={true} />
       
       {/* conteúdo que ficará a frente do BG, e por isso precisa de um zindez mais alto */}
       <div className="relative z-20 p-8">

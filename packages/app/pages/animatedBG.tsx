@@ -92,7 +92,12 @@ const backgroundPositions = [
   "center top", "right center", "right bottom", "right bottom", "left center", "center top"
 ];
 
-const AnimatedBG: React.FC = () => {
+// Adiciona showDevMode como uma prop opcional
+interface AnimatedBGProps {
+  showDevMode?: boolean;
+}
+
+const AnimatedBG: React.FC<AnimatedBGProps> = ({ showDevMode = false }) => {
   const { setUser, setToken } = useAppContext();
   const router = useRouter();
 
@@ -102,7 +107,7 @@ const AnimatedBG: React.FC = () => {
   const [backgroundPosition, setBackgroundPosition] = useState<string>(backgroundPositions[0]);
   const [cloudFilter, setCloudFilter] = useState<string>(filters[0]);
   const [airplaneFilter, setAirplaneFilter] = useState<string>(filtersAirplane[0]); // filtro para o avião
-  const [devMode, setDevMode] = useState<boolean>(false);
+  const [devMode, setDevMode] = useState<boolean>(showDevMode); // usa a prop para setar o modo dev inicialmente
   const [manualBackgroundIndex, setManualBackgroundIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -180,16 +185,16 @@ const AnimatedBG: React.FC = () => {
       />
 
       {/* controles de desenvolvimento */}
-      <div className="absolute top-0 left-0 z-50 p-4">
-        <label>
-          <input
-            type="checkbox"
-            checked={devMode}
-            onChange={() => setDevMode(!devMode)}
-          />
-          modo de desenvolvimento
-        </label>
-        {devMode && (
+      {devMode && (
+        <div className="absolute top-0 left-0 z-50 p-4">
+          <label>
+            <input
+              type="checkbox"
+              checked={devMode}
+              onChange={() => setDevMode(!devMode)}
+            />
+            modo de desenvolvimento
+          </label>
           <div>
             <label>
               altere o background manualmente (0 a {images.length - 1}):
@@ -202,8 +207,8 @@ const AnimatedBG: React.FC = () => {
               />
             </label>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </main>
   );
 };
