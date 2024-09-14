@@ -18,6 +18,7 @@ import userDisabilityService from "./user-disability.service";
 import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 import EventTypes from "../lib/constants/event-types-enum";
 import configService from "./config.service";
+import subscriptionService from "./subscription.service";
 
 const idService = new IdServiceImpl();
 
@@ -232,9 +233,10 @@ class UserServiceImpl implements UserService {
   }
 
   public async stats(): Promise<UserStats[]> {
+    // conta apenas as horas e porcentagem das palestras e rodas
     const users = await this.find({ pagination: new PaginationRequest(1, 9999) });
     const events = await eventService.find({
-      filters: { type: EventTypes.PALESTRA },
+      filters: { type: EventTypes.PALESTRA || EventTypes.RODA },
       pagination: new PaginationRequest(1, 9999),
     });
 

@@ -13,6 +13,7 @@ import EditEventModal from "../components/events/EditEventModal";
 import DataPage from "../components/DataPage";
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
 import MarkAttendanceModal from "../components/events/MarkAttendanceModal";
+import exportToCsv from "../libs/DownloadCsv";
 
 type EventData = {
   // ID: string;
@@ -24,6 +25,15 @@ type EventData = {
   "Inscritos": number;
   Tipo: string;
   "Criado em": string;
+};
+
+
+type AttendedEventsApiData = {
+  name: string;
+  email: string;
+  course: string;
+  hours: number;
+  percentage: number;
 };
 
 function EventsTable({
@@ -127,39 +137,34 @@ function Events() {
     setSelectedIndexes(updatedSelectedIndexes);
   }
 
-  // function mapData(data: String[]): UserData[] {
-  //   const newData: UserData[] = [];
-  //   for (const user of data) {
-  //     let paymentStatus = "";
-  //     if (user.payment.status) {
-  //       console.log(user.payment.status);
-  //       paymentStatus = user.payment.status === PaymentStatus.APPROVED ? "Aprovado" : "Pendente";
-  //     }
+  async function fetchDownloadData() {
+    try {
+      setIsLoading(true);
+      const response = await semcompApi.getAllAttendance();
+      console.log(response);
+      exportToCsv(mapData(response));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function mapData(data: any[]): any[] {
+    const newData: any[] = [];
+    for (const response of data) {
+      const user: AttendedEventsApiData = response;
+      newData.push({
+        "Nome": user.name,
+        "E-mail": user.email,
+        "Curso": user.course,
+        "Presença(palestra/roda)": user.percentage,
+        "Horas": user.hours,
+      })
+    }
   
-  //     newData.push({
-  //       "ID": user.id,
-  //       "E-mail": user.email,
-  //       "Nome": user.name,
-  //       "Curso": user.course,
-  //       "Telegram": user.telegram,
-  //       "Casa": user.house.name,
-  //       "Status do pagamento": paymentStatus,
-  //       "Tamanho da camiseta": user.payment.tShirtSize,
-  //       "Opção de compra": user.payment.kitOption,
-  //       "Permite divulgação?": user.permission ? "Sim" : "Não",
-  //       "Criado em": new Date(user.createdAt).toLocaleString("pt-br", 
-  //       {
-  //         day: 'numeric',
-  //         month: 'numeric',
-  //         year: 'numeric',
-  //         hour: 'numeric',
-  //         minute: 'numeric',
-  //       }),
-  //     })
-  //   }
-  
-  //   return newData;
-  // }
+    return newData;
+  }
 
   
 
@@ -243,6 +248,15 @@ function Events() {
           }
         ></DataPage>
       )}
+
+      <button
+        className="w-full bg-black text-white py-3 px-6"
+        type="button"
+        style={{ height: '48px' }}
+        onClick={fetchDownloadData}
+      >
+        Baixar Planilha de Presenças
+      </button>
     </>
   );
 }
