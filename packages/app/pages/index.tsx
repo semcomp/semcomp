@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import AnimatedBG from "./animatedBG";
 import ButtonMenuHome from "../components/home/ButtonMenuHome";
 import Modal from "../components/home/Modal";
+import TitleHome from "../components/home/TitleHome";
 
 // Array com os intervalos de horas e seus respectivos índices de imagens
 const timeToImage = [
@@ -81,10 +82,9 @@ const Home: React.FC = () => {
         )
       }
 
-      {/* Conteúdo principal */}
+      {/* Conteúdo principal, o zindex tem que sair maior para não interferir no bg */}
       <div className="relative z-20 p-8">
-        <h1 className="text-4xl font-bold text-white">Bem-vindo à Página Inicial da Semcomp</h1>
-        <p className="text-white">oioioioii</p>
+      <TitleHome />
         <div className="flex flex-col items-center w-full gap-4">
           <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
           <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleSobre} />
