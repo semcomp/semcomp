@@ -144,3 +144,8 @@ button{
   font-family: VideoType;
   font-weight: 300;
 }
+
+.fine-font {
+  font-weight: 300 !important; /* Forçar a fonte mais fina */
+  margin-top: -1vw; /* Aproxima o subtítulo do título */
+}

@@ -35,8 +35,9 @@ const Home: React.FC = () => {
   useEffect(() => {
     const currentHour = new Date().getHours();
     const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
-    setImageIndex(9);
+    setImageIndex(matchedImage?.imgIndex ?? 10); // Se não encontrar uma correspondência, usa o índice 10
   }, []);
+  
 
   //matchedImage?.imgIndex ?? 10
 
@@ -82,7 +83,7 @@ const Home: React.FC = () => {
 
       {/* Conteúdo principal */}
       <div className="relative z-20 flex-grow p-8">
-        <TitleHome />
+        <TitleHome timeIndex={imageIndex}/>
         <div className="flex flex-col items-center w-full gap-4">
           <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
           <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleSobre} />
