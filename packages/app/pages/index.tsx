@@ -51,23 +51,39 @@ const Home: React.FC = () => {
   }, [router, setUser, setToken]);
 
   function handleInscrevase() {
- 
+    // Lógica de ação do botão
+  }
+
+  function handleSobre() {
+
+  }
+
+  function handleCronograma() {
+
+  }
+
+  function handleFaq() {
+    
   }
 
   return (
     <main className="relative min-h-screen bg-gray-800">
 
       {/* Passando o TimeIndex para AnimatedBG */}
+<<<<<<< HEAD
       <AnimatedBG imageIndex={6} showDevMode={true} />
+=======
+      <AnimatedBG imageIndex={3} />
+>>>>>>> refs/remotes/origin/repaginando-tela-inicial
 
       {/* Conteúdo principal, o zindex tem que sair maior para não interferir no bg */}
       <div className="relative z-20 p-8">
       <TitleHome />
         <div className="flex flex-col items-center w-full gap-4">
-          <ButtonMenuHome label="INSCREVA-SE" onClick={handleInscrevase} />
-          <ButtonMenuHome label="SOBRE" onClick={handleInscrevase} />
-          <ButtonMenuHome label="CRONOGRAMA" onClick={handleInscrevase} />
-          <ButtonMenuHome label="FAQ" onClick={handleInscrevase} />
+          <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
+          <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleInscrevase} />
+          <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleInscrevase} />
+          <ButtonMenuHome timeIndex={imageIndex} label="FAQ" onClick={handleInscrevase} />
         </div>
 
       </div>
