@@ -6,11 +6,11 @@ interface TitleHomeProps {
 }
 
 const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
-  const [noAbsoluteMarginTop, setNoAbsoluteMarginTop] = useState<
-    number | undefined
-  >();
+  const [noAbsoluteMarginTop, setNoAbsoluteMarginTop] = useState<number | undefined>();
   const [betaMarginTop, setBetaMarginTop] = useState<number | undefined>();
   const [showAccessorys, setShowAccessorys] = useState<boolean>(true);
+  const [subTitleFontSize, setSubTitleFontSize] = useState<string>("3.5vw");
+  const [titleFontSize, setTitleFontSize] = useState<string>("12.5vw");
 
   useEffect(() => {
     if (timeIndex > 6) {
@@ -18,20 +18,45 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
     }
   }, [timeIndex]);
 
+  useEffect(() => {
+    const updateFontSize = () => {
+      const width = window.innerWidth;
+
+      // Lógica para o subtítulo
+      if (width <= 660) {
+        setSubTitleFontSize("3.5vw");
+      } else {
+        setSubTitleFontSize("2.5vw");
+      }
+
+      // Lógica para o título principal
+      if (width > 1300) {
+        setTitleFontSize("10vw");
+      } else {
+        setTitleFontSize("12.5vw");
+      }
+    };
+
+    window.addEventListener("resize", updateFontSize);
+    updateFontSize(); // Chama a função quando o componente monta
+
+    return () => window.removeEventListener("resize", updateFontSize); // Limpa o listener quando o componente desmonta
+  }, []);
+
   const getTitleColor = (timeIndex: number): string => {
-    if (timeIndex == 0) return "#EFEAFA";
-    if (timeIndex == 1) return "#FCFBFF";
-    if (timeIndex == 2) return "#300E82";
+    if (timeIndex === 0) return "#EFEAFA";
+    if (timeIndex === 1) return "#FCFBFF";
+    if (timeIndex === 2) return "#300E82";
     if (timeIndex <= 5) return "#242D5C";
-    if (timeIndex == 6) return "#242D59";
+    if (timeIndex === 6) return "#242D59";
     if (timeIndex <= 8) return "#F9F004";
-    if (timeIndex == 9) return "#F9F004";
+    if (timeIndex === 9) return "#F9F004";
 
     return "#F9F004";
   };
 
   return (
-    <header id="header" className="text-black  font-primary">
+    <header id="header" className="text-black font-primary">
       <div className="w-full z-4"></div>
       <div style={{ display: showAccessorys ? "block" : "none" }}></div>
       <div
@@ -46,11 +71,11 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
           <h1
             className="relative text-primary"
             style={{
-              fontSize: "12.5vw", // Tamanho do título principal, adaptado para diferentes tamanhos de tela
+              fontSize: titleFontSize, // Usando o estado para definir o tamanho do título principal
               lineHeight: "1",
               color: getTitleColor(timeIndex),
-              textShadow: "2px 4px 6px rgba(36, 36, 36, 0.6)", // Sombra escura com opacidade
-              zIndex: 1, // Garante que o texto fique acima de outros elementos
+              textShadow: "2px 4px 6px rgba(36, 36, 36, 0.6)",
+              zIndex: 1,
             }}
           >
             SEMCOMP 27
@@ -60,13 +85,13 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
         <p
           className="relative text-primary"
           style={{
-            fontSize: "2.6vw", // Tamanho do subtítulo adaptado para diferentes tamanhos de tela
-            fontWeight: 100, // Deixa a fonte mais fina
+            fontSize: subTitleFontSize, // Usando o estado para definir o tamanho do subtítulo
+            fontWeight: 100,
             color: getTitleColor(timeIndex),
-            marginTop: "-0.5vw", // Aproxima o subtítulo do título
-            marginBottom: "1.5vw", // Afasta o subtítulo do próximo elemento
-            textShadow: "1px 2px 4px rgba(36, 36, 36, 0.6)", // Sombra escura com opacidade
-            zIndex: 1, // Garante que o subtítulo fique acima de outros elementos
+            marginTop: "-0.5vw",
+            marginBottom: "1.5vw",
+            textShadow: "1px 2px 4px rgba(36, 36, 36, 0.6)",
+            zIndex: 1,
           }}
         >
           A maior semana acadêmica de computação do Brasil!
