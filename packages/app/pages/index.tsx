@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 
 import AnimatedBG from "./animatedBG";
 import ButtonMenuHome from "../components/home/ButtonMenuHome";
+import Modal from "../components/home/Modal";
 
 // Array com os intervalos de horas e seus respectivos índices de imagens
 const timeToImage = [
@@ -24,6 +25,7 @@ const timeToImage = [
 const Home: React.FC = () => {
   const { setUser, setToken } = useAppContext();
   const router = useRouter();
+  const [ buttonSelected, setButtonSelected ] = useState('')
 
   // Estado para armazenar o índice da imagem
   const [imageIndex, setImageIndex] = useState<number>(10);
@@ -32,8 +34,10 @@ const Home: React.FC = () => {
   useEffect(() => {
     const currentHour = new Date().getHours();
     const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
-    setImageIndex(matchedImage?.imgIndex ?? 10);
+    setImageIndex(9);
   }, []);
+
+  //matchedImage?.imgIndex ?? 10
 
   // Verifica o usuário e token
   useEffect(() => {
@@ -50,26 +54,32 @@ const Home: React.FC = () => {
   }, [router, setUser, setToken]);
 
   function handleInscrevase() {
-    // Lógica de ação do botão
+    
   }
 
   function handleSobre() {
-
+    setButtonSelected('sobre')
   }
 
   function handleCronograma() {
-
+    setButtonSelected('cronograma')
   }
 
   function handleFaq() {
-    
+    setButtonSelected('faq')
   }
 
   return (
     <main className="relative min-h-screen bg-gray-800">
 
       {/* Passando o TimeIndex para AnimatedBG */}
-      <AnimatedBG imageIndex={3} />
+      <AnimatedBG imageIndex={imageIndex} />
+
+      {
+        buttonSelected !== '' && (
+          <Modal setButtonSelected={setButtonSelected} element={buttonSelected} />
+        )
+      }
 
       {/* Conteúdo principal */}
       <div className="relative z-20 p-8">
@@ -77,9 +87,9 @@ const Home: React.FC = () => {
         <p className="text-white">oioioioii</p>
         <div className="flex flex-col items-center w-full gap-4">
           <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
-          <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleInscrevase} />
-          <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleInscrevase} />
-          <ButtonMenuHome timeIndex={imageIndex} label="FAQ" onClick={handleInscrevase} />
+          <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleSobre} />
+          <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleCronograma} />
+          <ButtonMenuHome timeIndex={imageIndex} label="FAQ" onClick={handleFaq} />
         </div>
 
       </div>

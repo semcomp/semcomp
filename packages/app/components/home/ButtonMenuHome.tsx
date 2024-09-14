@@ -6,10 +6,19 @@ interface ButtonProps {
   onClick: () => void;
 }
 
+function bgColorButton(timeIndex: number) {
+  if (timeIndex <= 6) {
+    return 'bg-black/30';
+  } else {
+    return 'bg-gray/30';
+  }
+}
+
 const ButtonMenuHome: React.FC<ButtonProps> = ({ label, timeIndex, onClick }) => {
   return (
     <button
-      className="bg-black/30 hover:bg-black/40 hover:scale-110 transition-all text-white text-superlarge font-bold py-2 flex justify-center w-80"
+      style={{ textShadow: '1px 1px 2px black' }} // Corrigido para um objeto
+      className={`rounded-lg hover:scale-110 transition-all max-w-full text-white text-medium md:text-superlarge font-bold py-2 flex justify-center w-80 ${bgColorButton(timeIndex)}`}
       onClick={onClick}
     >
       {label}
