@@ -185,6 +185,10 @@ class SemcompApi {
     return this.http.post(`/admin/events/${eventId}/mark-attendance`, { userId: userId });
   }
 
+  public async getAttendance(eventId: string): Promise<any> {
+    return this.http.get(`/admin/events/${eventId}/attendances-info`);
+  }
+
   // GAME 
   public async getGameQuestions(pagination: PaginationRequest): Promise<SemcompApiGetGameQuestionsResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
