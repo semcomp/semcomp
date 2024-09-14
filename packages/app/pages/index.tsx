@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAppContext } from "../libs/contextLib";
 import { useRouter } from "next/router";
+
 import AnimatedBG from "./animatedBG";
 import ButtonMenuHome from "../components/home/ButtonMenuHome";
 
@@ -18,6 +19,7 @@ const timeToImage = [
   { start: 19, end: 22, imgIndex: 9 },
   { start: 0, end: 5, imgIndex: 10 },
 ];
+
 
 const Home: React.FC = () => {
   const { setUser, setToken } = useAppContext();
@@ -65,6 +67,7 @@ const Home: React.FC = () => {
 
   return (
     <main className="relative min-h-screen bg-gray-800">
+
       {/* Passando o TimeIndex para AnimatedBG */}
       <AnimatedBG imageIndex={1} />
 
@@ -72,12 +75,13 @@ const Home: React.FC = () => {
       <div className="relative z-20 p-8">
         <h1 className="text-4xl font-bold text-white">Bem-vindo à Página Inicial da Semcomp</h1>
         <p className="text-white">oioioioii</p>
-        <div className="w-full flex items-center flex-col gap-4">
+        <div className="flex flex-col items-center w-full gap-4">
           <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
           <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleInscrevase} />
           <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleInscrevase} />
           <ButtonMenuHome timeIndex={imageIndex} label="FAQ" onClick={handleInscrevase} />
         </div>
+
       </div>
     </main>
   );
