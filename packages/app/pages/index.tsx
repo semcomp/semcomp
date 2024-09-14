@@ -69,7 +69,7 @@ const Home: React.FC = () => {
     <main className="relative min-h-screen bg-gray-800">
 
       {/* Passando o TimeIndex para AnimatedBG */}
-      <AnimatedBG imageIndex={1} />
+      <AnimatedBG imageIndex={3} />
 
       {/* Conteúdo principal */}
       <div className="relative z-20 p-8">

@@ -39,23 +39,40 @@ const bottomImagesMap: { [key: number]: string } = {
   10: image11bottom.src
 };
 
-// filtros aplicados às nuvens e ao avião para cada imagem de fundo
+// filtros aplicados às nuvens para cada imagem de fundo
 const filters = [
   "brightness(0.9) contrast(1.2)",
   "brightness(1.0) hue-rotate(30deg)",
-  // (outros filtros...)
+  "brightness(1.2) contrast(0.7)",
+  "brightness(1.2) hue-rotate(-20deg)",
+  "brightness(1.2) contrast(1.0)",
+  "brightness(1.1) sepia(0.3)",
+  "brightness(1.0) contrast(1.3)",
+  "brightness(1.0) hue-rotate(60deg)",
+  "brightness(0.7) contrast(1.5)",
+  "brightness(0.6) sepia(0.3)",
+  "brightness(0.5) hue-rotate(90deg)"
 ];
 
+// filtros aplicados ao avião para cada imagem de fundo
 const filtersAirplane = [
   "brightness(0.9) contrast(1.2)",
   "brightness(1.0) hue-rotate(30deg)",
-  // (outros filtros...)
+  "brightness(1.1) contrast(0.8)",
+  "brightness(1.2) hue-rotate(-20deg)",
+  "brightness(1.2) contrast(1.0)",
+  "brightness(1.1) sepia(0.3)",
+  "brightness(1.0) contrast(1.3)",
+  "brightness(1.0) hue-rotate(40deg)",
+  "brightness(0.9) contrast(1.3)",
+  "brightness(0.7) sepia(0.3)",
+  "brightness(0.6) hue-rotate(50deg)"
 ];
 
 // posições de background para alinhar corretamente cada imagem de fundo
 const backgroundPositions = [
-  "left bottom", "left bottom", "left center", "center top", 
-  // (outras posições...)
+  "left bottom", "left bottom", "left center", "center top", "center top",
+  "center top", "right center", "right bottom", "right bottom", "left center", "center top"
 ];
 
 interface AnimatedBGProps {
