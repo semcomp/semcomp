@@ -5,7 +5,7 @@ function About() {
         id="about"
         className="flex flex-col items-center text-center md:px-[200px] tablet:px-[100px] phone:px-8"
       >
-        <h1 id="titulo" className="text-white
+        <h1 id="titulo" className="text-primary
         superdesktop:text-title-superlarge
         desktop:text-title-large
         tablet:text-title-medium
@@ -25,7 +25,7 @@ function About() {
         phone:text-tiny
 
         ">
-          <p id="aboutText" className="text-white font-secondary">
+          <p id="aboutText" className="text-[#444] font-secondary">
             A <strong>Semcomp</strong> é a{" "}
             <strong>Semana Acadêmica de Computação</strong>, realizada pelos
             cursos de <strong>Ciências de Computação</strong>, de{" "}

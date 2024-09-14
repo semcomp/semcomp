@@ -12,7 +12,7 @@ const Modal: React.FC<ModalProps> = ({ element, setButtonSelected }) => {
   return (
     <div className="w-full h-full overflow-hidden">
       <div
-        className="absolute z-50 bg-white/95 backdrop-blur shadow-xl flex justify-center p-4 overflow-auto custom-scroll mb-4"
+        className="absolute z-50 bg-white/95 backdrop-blur shadow-xl flex justify-center p-2 md:p-4 overflow-auto custom-scroll mb-4"
         style={{
           width: 'calc(100% - 4rem)', 
           height: 'calc(100% - 4rem)', 
@@ -23,7 +23,7 @@ const Modal: React.FC<ModalProps> = ({ element, setButtonSelected }) => {
       >
         <button
           onClick={() => setButtonSelected('')}
-          className="w-10 h-10 rounded-full flex justify-center items-center text-black fixed top-12 right-12 bg-black/20"
+          className="w-10 h-10 rounded-full flex justify-center items-center text-black fixed top-2 right-2 md:top-8 md:right-8 bg-black/20"
         >
           X
         </button>

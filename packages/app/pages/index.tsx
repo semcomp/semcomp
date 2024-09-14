@@ -9,6 +9,8 @@ import TitleHome from "../components/home/TitleHome";
 import Footer from "../components/Footer";
 import NewFooter from "./newFooter";
 import Countdown from "../components/home/Countdown";
+import Routes from "../routes";
+import handler from '../api/handlers';
 
 // Array com os intervalos de horas e seus respectivos índices de imagens
 const timeToImage = [
@@ -27,16 +29,38 @@ const timeToImage = [
 
 
 const Home: React.FC = () => {
-  const { setUser, setToken } = useAppContext();
+  const { user, setUser, setToken } = useAppContext();
   const router = useRouter();
-  const [ buttonSelected, setButtonSelected ] = useState('')
+  const [ buttonSelected, setButtonSelected ] = useState('');
+  const isUserLoggedIn = Boolean(user);
+  const [openSignup, setOpenSignup] = useState(true);
 
   const [imageIndex, setImageIndex] = useState<number>(10);
+
+  function logUserOut() {
+    router.push(Routes.home);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+  }
+  
+  async function fetchData() {
+    try {
+      const config = await handler.config.getConfig().then((res) => res.data);
+      //console.log(config);
+      setOpenSignup(config.openSignup); 
+    } catch (error) {
+        console.log(error);
+    }
+  }
+  
+  useEffect(() => {
+      fetchData();
+  }, []);
 
   useEffect(() => {
     const currentHour = new Date().getHours();
     const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
-    setImageIndex(2);
+    setImageIndex(8);
   }, []);
 
   //matchedImage?.imgIndex ?? 10
@@ -55,19 +79,32 @@ const Home: React.FC = () => {
   }, [router, setUser, setToken]);
 
   function handleInscrevase() {
-    
+    router.push(Routes.signup);
   }
 
   function handleSobre() {
-    setButtonSelected('sobre')
+    setButtonSelected('sobre');
   }
 
   function handleCronograma() {
-    setButtonSelected('cronograma')
+    setButtonSelected('cronograma');
   }
 
   function handleFaq() {
-    setButtonSelected('faq')
+    setButtonSelected('faq');
+  }
+
+  function handlePerfil() {
+    router.push(Routes.profile);
+  }
+
+  function handleSair() {
+    logUserOut();
+    router.push(Routes.home);
+  }
+
+  function handleEntrar() {
+    router.push(Routes.login)
   }
 
   return (
@@ -86,7 +123,17 @@ const Home: React.FC = () => {
         <TitleHome timeIndex={imageIndex}/>
 
         <div className="flex flex-col items-center w-full gap-4">
-          <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
+          {isUserLoggedIn ? (
+          <>
+            <ButtonMenuHome timeIndex={imageIndex} label="PEFIL" onClick={handlePerfil} />
+            <ButtonMenuHome timeIndex={imageIndex} label="SAIR" onClick={handleSair} />
+          </>
+          ) : (
+            <>
+              <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
+              <ButtonMenuHome timeIndex={imageIndex} label="ENTRAR" onClick={handleEntrar} />
+            </>
+          )}
           <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleSobre} />
           <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleCronograma} />
           <ButtonMenuHome timeIndex={imageIndex} label="FAQ" onClick={handleFaq} />
@@ -95,7 +142,6 @@ const Home: React.FC = () => {
         <Countdown timeIndex={imageIndex} />
         </div>
       </div>
-
 
       {/* Footer */}
       <NewFooter locale="p" />
