@@ -36,7 +36,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     const currentHour = new Date().getHours();
     const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
-    setImageIndex(7);
+    setImageIndex(2);
   }, []);
 
   //matchedImage?.imgIndex ?? 10
