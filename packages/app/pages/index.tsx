@@ -4,7 +4,9 @@ import { useRouter } from "next/router";
 import ObjectFly from "../components/home/ObjectFly";
 import cloudy from "../assets/27-imgs/cloudy.png";
 import airplane from "../assets/27-imgs/airplane.gif";
-import AnimatedBG from "./animatedBG";
+import AnimatedBG from "./animatedBG"; 
+import HomeHeader from "../components/home/Header";
+import TitleHome from "../components/home/TitleHome";
 
 const Home: React.FC = () => {
   const { setUser, setToken } = useAppContext();
@@ -26,11 +28,10 @@ const Home: React.FC = () => {
   return (
     <main className="relative min-h-screen bg-gray-800">
      <AnimatedBG showDevMode={true} />
-      
       {/* conteúdo que ficará a frente do BG, e por isso precisa de um zindez mais alto */}
       <div className="relative z-20 p-8">
-        <h1 className="text-4xl font-bold text-white">Bem-vindo a Pagiana inicial da Semcomp</h1>
-        <p className="text-white">oioioioii</p>
+        <TitleHome />
+        
         
       </div>
     </main>
