@@ -5,6 +5,8 @@ import { useRouter } from "next/router";
 import AnimatedBG from "./animatedBG";
 import ButtonMenuHome from "../components/home/ButtonMenuHome";
 import TitleHome from "../components/home/TitleHome";
+import Footer from "../components/Footer";
+import NewFooter from "./newFooter";
 
 // Array com os intervalos de horas e seus respectivos índices de imagens
 const timeToImage = [
@@ -26,17 +28,14 @@ const Home: React.FC = () => {
   const { setUser, setToken } = useAppContext();
   const router = useRouter();
 
-  // Estado para armazenar o índice da imagem
   const [imageIndex, setImageIndex] = useState<number>(10);
 
-  // Calcula o índice da imagem baseado na hora atual
   useEffect(() => {
     const currentHour = new Date().getHours();
     const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
     setImageIndex(matchedImage?.imgIndex ?? 10);
   }, []);
 
-  // Verifica o usuário e token
   useEffect(() => {
     const user = localStorage.getItem("user");
     const token = localStorage.getItem("token");
@@ -50,40 +49,25 @@ const Home: React.FC = () => {
     }
   }, [router, setUser, setToken]);
 
-  function handleInscrevase() {
-    // Lógica de ação do botão
-  }
-
-  function handleSobre() {
-
-  }
-
-  function handleCronograma() {
-
-  }
-
-  function handleFaq() {
-    
-  }
-
   return (
-    <main className="relative min-h-screen bg-gray-800">
-
+    <div className="flex flex-col min-h-screen bg-gray-800">
       {/* Passando o TimeIndex para AnimatedBG */}
       <AnimatedBG imageIndex={3} />
 
-      {/* Conteúdo principal, o zindex tem que sair maior para não interferir no bg */}
-      <div className="relative z-20 p-8">
-      <TitleHome />
+      {/* Conteúdo principal */}
+      <div className="relative z-20 flex-grow p-8">
+        <TitleHome />
         <div className="flex flex-col items-center w-full gap-4">
-          <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
-          <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleInscrevase} />
-          <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleInscrevase} />
-          <ButtonMenuHome timeIndex={imageIndex} label="FAQ" onClick={handleInscrevase} />
+          <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={() => {}} />
+          <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={() => {}} />
+          <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={() => {}} />
+          <ButtonMenuHome timeIndex={imageIndex} label="FAQ" onClick={() => {}} />
         </div>
-
       </div>
-    </main>
+
+      {/* Footer */}
+      <NewFooter locale="p" />
+    </div>
   );
 };
 
