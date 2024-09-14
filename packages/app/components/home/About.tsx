@@ -1,4 +1,4 @@
-function AboutBeta() {
+function About() {
   return (
     <>
       <section
@@ -47,4 +47,4 @@ function AboutBeta() {
   );
 }
 
-export default AboutBeta;
+export default About;
