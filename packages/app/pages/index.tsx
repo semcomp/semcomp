@@ -51,20 +51,32 @@ const Home: React.FC = () => {
     // Lógica de ação do botão
   }
 
+  function handleSobre() {
+
+  }
+
+  function handleCronograma() {
+
+  }
+
+  function handleFaq() {
+    
+  }
+
   return (
     <main className="relative min-h-screen bg-gray-800">
       {/* Passando o TimeIndex para AnimatedBG */}
-      <AnimatedBG imageIndex={3} showDevMode={true} />
+      <AnimatedBG imageIndex={1} />
 
       {/* Conteúdo principal */}
       <div className="relative z-20 p-8">
         <h1 className="text-4xl font-bold text-white">Bem-vindo à Página Inicial da Semcomp</h1>
         <p className="text-white">oioioioii</p>
         <div className="w-full flex items-center flex-col gap-4">
-          <ButtonMenuHome label="INSCREVA-SE" onClick={handleInscrevase} />
-          <ButtonMenuHome label="SOBRE" onClick={handleInscrevase} />
-          <ButtonMenuHome label="CRONOGRAMA" onClick={handleInscrevase} />
-          <ButtonMenuHome label="FAQ" onClick={handleInscrevase} />
+          <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
+          <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleInscrevase} />
+          <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleInscrevase} />
+          <ButtonMenuHome timeIndex={imageIndex} label="FAQ" onClick={handleInscrevase} />
         </div>
       </div>
     </main>

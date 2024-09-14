@@ -59,11 +59,10 @@ const backgroundPositions = [
 ];
 
 interface AnimatedBGProps {
-  showDevMode?: boolean;
   imageIndex: number;  // Adicione a prop imageIndex
 }
 
-const AnimatedBG: React.FC<AnimatedBGProps> = ({ showDevMode = false, imageIndex }) => {
+const AnimatedBG: React.FC<AnimatedBGProps> = ({ imageIndex }) => {
   const [backgroundImage, setBackgroundImage] = useState<string>(images[imageIndex].src);
   const [bottomImage, setBottomImage] = useState<string>("");
   const [backgroundPosition, setBackgroundPosition] = useState<string>(backgroundPositions[imageIndex]);
