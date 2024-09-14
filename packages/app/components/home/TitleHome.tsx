@@ -20,8 +20,8 @@ const TitleHome = (): ReactElement => {
           <h1
             className="text-primary"
             style={{
-              fontSize: '10vw', // tamanho do título principal, adaptado para diferentes tamanhos de tela
-              lineHeight: '1.1', 
+              fontSize: '13vw', // tamanho do título principal, adaptado para diferentes tamanhos de tela
+              lineHeight: '1', 
             }}
           >
             SEMCOMP 27
@@ -29,7 +29,7 @@ const TitleHome = (): ReactElement => {
         </div>
 
         <h2
-          className="text-primary"
+          className=" text-primary"
           style={{
             fontSize: '3vw', //subtítulo adaptado para diferentes tamanhos de tela
           }}
