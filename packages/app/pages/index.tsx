@@ -70,11 +70,7 @@ const Home: React.FC = () => {
     <main className="relative min-h-screen bg-gray-800">
 
       {/* Passando o TimeIndex para AnimatedBG */}
-<<<<<<< HEAD
-      <AnimatedBG imageIndex={6} showDevMode={true} />
-=======
       <AnimatedBG imageIndex={3} />
->>>>>>> refs/remotes/origin/repaginando-tela-inicial
 
       {/* Conteúdo principal, o zindex tem que sair maior para não interferir no bg */}
       <div className="relative z-20 p-8">
