@@ -6,6 +6,8 @@ import AnimatedBG from "./animatedBG";
 import ButtonMenuHome from "../components/home/ButtonMenuHome";
 import Modal from "../components/home/Modal";
 import TitleHome from "../components/home/TitleHome";
+import Footer from "../components/Footer";
+import NewFooter from "./newFooter";
 
 // Array com os intervalos de horas e seus respectivos índices de imagens
 const timeToImage = [
@@ -28,10 +30,8 @@ const Home: React.FC = () => {
   const router = useRouter();
   const [ buttonSelected, setButtonSelected ] = useState('')
 
-  // Estado para armazenar o índice da imagem
   const [imageIndex, setImageIndex] = useState<number>(10);
 
-  // Calcula o índice da imagem baseado na hora atual
   useEffect(() => {
     const currentHour = new Date().getHours();
     const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
@@ -40,7 +40,6 @@ const Home: React.FC = () => {
 
   //matchedImage?.imgIndex ?? 10
 
-  // Verifica o usuário e token
   useEffect(() => {
     const user = localStorage.getItem("user");
     const token = localStorage.getItem("token");
@@ -71,8 +70,7 @@ const Home: React.FC = () => {
   }
 
   return (
-    <main className="relative min-h-screen bg-gray-800">
-
+    <div className="flex flex-col min-h-screen bg-gray-800">
       {/* Passando o TimeIndex para AnimatedBG */}
       <AnimatedBG imageIndex={imageIndex} />
 
@@ -82,18 +80,20 @@ const Home: React.FC = () => {
         )
       }
 
-      {/* Conteúdo principal, o zindex tem que sair maior para não interferir no bg */}
-      <div className="relative z-20 p-8">
-      <TitleHome />
+      {/* Conteúdo principal */}
+      <div className="relative z-20 flex-grow p-8">
+        <TitleHome />
         <div className="flex flex-col items-center w-full gap-4">
           <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
           <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleSobre} />
           <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleCronograma} />
           <ButtonMenuHome timeIndex={imageIndex} label="FAQ" onClick={handleFaq} />
         </div>
-
       </div>
-    </main>
+
+      {/* Footer */}
+      <NewFooter locale="p" />
+    </div>
   );
 };
 
