@@ -31,7 +31,7 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
   };
 
   return (
-    <header id="header" className="text-black font-primary">
+    <header id="header" className="text-black  font-primary">
       <div className="w-full z-4"></div>
       <div style={{ display: showAccessorys ? "block" : "none" }}></div>
       <div
@@ -46,7 +46,7 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
           <h1
             className="relative text-primary"
             style={{
-              fontSize: "13vw", // Tamanho do título principal, adaptado para diferentes tamanhos de tela
+              fontSize: "12.5vw", // Tamanho do título principal, adaptado para diferentes tamanhos de tela
               lineHeight: "1",
               color: getTitleColor(timeIndex),
               textShadow: "2px 4px 6px rgba(36, 36, 36, 0.6)", // Sombra escura com opacidade
@@ -60,7 +60,7 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
         <p
           className="relative text-primary"
           style={{
-            fontSize: "2vw", // Tamanho do subtítulo adaptado para diferentes tamanhos de tela
+            fontSize: "2.6vw", // Tamanho do subtítulo adaptado para diferentes tamanhos de tela
             fontWeight: 100, // Deixa a fonte mais fina
             color: getTitleColor(timeIndex),
             marginTop: "-0.5vw", // Aproxima o subtítulo do título

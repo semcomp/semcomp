@@ -93,7 +93,9 @@ const Home: React.FC = () => {
           <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleCronograma} />
           <ButtonMenuHome timeIndex={imageIndex} label="FAQ" onClick={handleFaq} />
         </div>
+        <div className="mt-8">
         <Countdown timeIndex={imageIndex} />
+        </div>
       </div>
 
 
