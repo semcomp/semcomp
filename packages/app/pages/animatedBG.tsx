@@ -85,6 +85,7 @@ const AnimatedBG: React.FC<AnimatedBGProps> = ({ imageIndex }) => {
   const [backgroundPosition, setBackgroundPosition] = useState<string>(backgroundPositions[imageIndex]);
   const [cloudFilter, setCloudFilter] = useState<string>(filters[imageIndex]);
   const [airplaneFilter, setAirplaneFilter] = useState<string>(filtersAirplane[imageIndex]);
+  const [showObjects, setShowObjects] = useState(true);
 
   useEffect(() => {
     // Atualiza a imagem de fundo e outros estados com base no imageIndex recebido
@@ -94,6 +95,25 @@ const AnimatedBG: React.FC<AnimatedBGProps> = ({ imageIndex }) => {
     setCloudFilter(filters[imageIndex]);
     setAirplaneFilter(filtersAirplane[imageIndex]);
   }, [imageIndex]);
+
+  useEffect(() => {
+    // Função para verificar o nível de zoom da página
+    const checkZoomLevel = () => {
+      const zoom = window.devicePixelRatio * 100; // Calcula o zoom em porcentagem
+      setShowObjects(zoom >= 75); // Se o zoom for menor que 75%, não mostra os objetos
+    };
+
+    //verifica o zoom inicial ao carregar a página
+    checkZoomLevel();
+
+    // adiciona um listener para verificar o zoom quando a janela é redimensionada
+    window.addEventListener("resize", checkZoomLevel);
+
+    // remove o listener quando o componente é desmontado
+    return () => {
+      window.removeEventListener("resize", checkZoomLevel);
+    };
+  }, []);
 
   return (
     <main>
@@ -123,25 +143,29 @@ const AnimatedBG: React.FC<AnimatedBGProps> = ({ imageIndex }) => {
         )}
       </div>
 
-      <ObjectFly
-        maxItems={4}
-        direction="right"
-        image={cloudy.src}
-        filter={cloudFilter}
-        minSize={200}
-        maxSize={300}
-      />
+      {showObjects && (
+        <>
+          <ObjectFly
+            maxItems={4}
+            direction="right"
+            image={cloudy.src}
+            filter={cloudFilter}
+            minSize={200}
+            maxSize={300}
+          />
 
-      <ObjectFly
-        maxItems={1}
-        direction="left"
-        image={airplane.src}
-        filter={airplaneFilter}
-        minSize={1000}
-        maxSize={1000}
-      />
+          <ObjectFly
+            maxItems={1}
+            direction="left"
+            image={airplane.src}
+            filter={airplaneFilter}
+            minSize={1000}
+            maxSize={1000}
+          />
+        </>
+      )}
     </main>
   );
 };
 
-export default AnimatedBG
+export default AnimatedBG;
