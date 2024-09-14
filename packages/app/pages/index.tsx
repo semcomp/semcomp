@@ -36,11 +36,8 @@ const Home: React.FC = () => {
   useEffect(() => {
     const currentHour = new Date().getHours();
     const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
-<<<<<<< HEAD
     setImageIndex(matchedImage?.imgIndex ?? 10); // Se não encontrar uma correspondência, usa o índice 10
-=======
-    setImageIndex(7);
->>>>>>> refs/remotes/origin/repaginando-tela-inicial
+
   }, []);
   
 
@@ -87,13 +84,9 @@ const Home: React.FC = () => {
       }
 
       {/* Conteúdo principal */}
-<<<<<<< HEAD
       <div className="relative z-20 flex-grow p-8">
         <TitleHome timeIndex={imageIndex}/>
-=======
-      <div className="relative z-20 flex flex-col flex-grow p-8 gap-12">
-        <TitleHome />
->>>>>>> refs/remotes/origin/repaginando-tela-inicial
+
         <div className="flex flex-col items-center w-full gap-4">
           <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
           <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleSobre} />
