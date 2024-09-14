@@ -2,20 +2,34 @@ import { ReactElement, useEffect, useState } from "react";
 
 import Card from "../Card";
 
-function CountdownNumber({ number, label }: { number: number; label: string }) {
+interface CountdownNumberProps {
+  timeIndex: number;
+  number: number;
+  label: string;
+}
+
+function textColor(timeIndex) {
+  if(timeIndex <= 6) {
+    return 'text-black'
+  } else {
+    return 'text-white'
+  }
+}
+
+function CountdownNumber({ timeIndex, number, label }: CountdownNumberProps) {
   return (
     <div className="p-2 md:p-4">
       <Card className="flex flex-col items-center justify-center w-14 h-14 md:w-28 md:h-28">
-        <span className="text-2xl md:text-4xl text-primary">
+        <span className={`text-2xl md:text-4xl font-bold ${textColor(timeIndex)}`}>
           {number.toString().padStart(2, "0")}
         </span>
-        <span className="text-xs md:text-base text-primary">{label}</span>
+        <span className={`text-xs md:text-base font-bold ${textColor(timeIndex)}`}>{label}</span>
       </Card>
     </div>
   );
 }
 
-const Countdown = (): ReactElement => {
+const Countdown = ({timeIndex}: {timeIndex: number}): ReactElement => {
   const [days, setDays] = useState(null);
   const [hours, setHours] = useState(null);
   const [minutes, setMinutes] = useState(null);
@@ -53,10 +67,10 @@ const Countdown = (): ReactElement => {
 
   return (
     <div className="flex flex-wrap justify-center">
-      <CountdownNumber number={days} label={dayString}></CountdownNumber>
-      <CountdownNumber number={hours} label="horas"></CountdownNumber>
-      <CountdownNumber number={minutes} label="minutos"></CountdownNumber>
-      <CountdownNumber number={seconds} label="segundos"></CountdownNumber>
+      <CountdownNumber timeIndex={timeIndex} number={days} label={dayString}></CountdownNumber>
+      <CountdownNumber timeIndex={timeIndex} number={hours} label="horas"></CountdownNumber>
+      <CountdownNumber timeIndex={timeIndex} number={minutes} label="minutos"></CountdownNumber>
+      <CountdownNumber timeIndex={timeIndex} number={seconds} label="segundos"></CountdownNumber>
     </div>
   );
 };
