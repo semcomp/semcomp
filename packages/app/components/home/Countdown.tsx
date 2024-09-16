@@ -19,11 +19,11 @@ function textColor(timeIndex) {
 function CountdownNumber({ timeIndex, number, label }: CountdownNumberProps) {
   return (
     <div className="p-2 md:p-4">
-      <Card className="flex flex-col items-center justify-center w-14 h-14 md:w-28 md:h-28">
-        <span className={`text-2xl md:text-4xl font-bold ${textColor(timeIndex)}`}>
+      <Card className="flex flex-col items-center justify-center w-14 h-14 md:w-28 md:h-28 border-solid border rounded-lg border-white">
+        <span className={`text-2xl md:text-4xl ${textColor(timeIndex)}`}>
           {number.toString().padStart(2, "0")}
         </span>
-        <span className={`text-xs md:text-base font-bold ${textColor(timeIndex)}`}>{label}</span>
+        <span className={`text-xs md:text-base ${textColor(timeIndex)}`}>{label}</span>
       </Card>
     </div>
   );
@@ -66,7 +66,7 @@ const Countdown = ({timeIndex}: {timeIndex: number}): ReactElement => {
   }
 
   return (
-    <div className="flex flex-wrap justify-center">
+    <div className="flex flex-wrap justify-center font-secondary font-thin select-none">
       <CountdownNumber timeIndex={timeIndex} number={days} label={dayString}></CountdownNumber>
       <CountdownNumber timeIndex={timeIndex} number={hours} label="horas"></CountdownNumber>
       <CountdownNumber timeIndex={timeIndex} number={minutes} label="minutos"></CountdownNumber>
