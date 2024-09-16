@@ -1,5 +1,18 @@
-import { ReactElement, useEffect, useState } from "react";
+// Função compartilhada para obter as cores, extraímos para reutilizar
+function getTitleColor(timeIndex: number): string {
+  if (timeIndex === 0) return "#EFEAFA";
+  if (timeIndex === 1) return "#FCFBFF";
+  if (timeIndex === 2) return "#300E82";
+  if (timeIndex <= 5) return "#242D5C";
+  if (timeIndex === 6) return "#242D59";
+  if (timeIndex <= 8) return "#F9F004";
+  if (timeIndex === 9) return "#F9F004";
 
+  return "#F9F004";
+}
+
+// Componente Countdown atualizado para usar a função getTitleColor
+import { ReactElement, useEffect, useState } from "react";
 import Card from "../Card";
 
 interface CountdownNumberProps {
@@ -8,44 +21,40 @@ interface CountdownNumberProps {
   label: string;
 }
 
-function textColor(timeIndex) {
-  if(timeIndex <= 6 && timeIndex > 2) {
-    return 'text-primary'
-  } else {
-    return 'text-white'
-  }
-}
-
-function borderColor(timeIndex) {
-  if(timeIndex <= 6 && timeIndex > 2) {
-    return 'border-primary'
-  } else {
-    return 'border-white'
-  }
-}
-
 function CountdownNumber({ timeIndex, number, label }: CountdownNumberProps) {
+  const textColor = getTitleColor(timeIndex); // Usando a função compartilhada para definir as cores
   return (
     <div className="p-2 md:p-4">
-      <Card className={`flex flex-col items-center justify-center phone:w-14 phone:h-14 tablet:w-24 tablet:h-24 md:w-24 md:h-24 border-solid border rounded-lg ${borderColor(timeIndex)}`}>
-        <span className={`phone:text-lg tablet:text-4xl md:text-4xl ${textColor(timeIndex)}`}>
+      <Card
+        className={`flex flex-col items-center justify-center phone:w-14 phone:h-14 tablet:w-24 tablet:h-24 md:w-24 md:h-24 border-solid border rounded-lg`}
+        style={{ borderColor: textColor }} // Cor da borda baseada no timeIndex
+      >
+        <span
+          className={`phone:text-lg tablet:text-4xl md:text-4xl`}
+          style={{ color: textColor }} // Cor do texto baseada no timeIndex
+        >
           {number.toString().padStart(2, "0")}
         </span>
-        <span className={`phone:text-[10px] tablet:text-base md:text-base ${textColor(timeIndex)}`}>{label}</span>
+        <span
+          className={`phone:text-[10px] tablet:text-base md:text-base`}
+          style={{ color: textColor }} // Cor da label baseada no timeIndex
+        >
+          {label}
+        </span>
       </Card>
     </div>
   );
 }
 
-const Countdown = ({timeIndex}: {timeIndex: number}): ReactElement => {
-  const [days, setDays] = useState(null);
-  const [hours, setHours] = useState(null);
-  const [minutes, setMinutes] = useState(null);
-  const [seconds, setSeconds] = useState(null);
+const Countdown = ({ timeIndex }: { timeIndex: number }): ReactElement => {
+  const [days, setDays] = useState<number | null>(null);
+  const [hours, setHours] = useState<number | null>(null);
+  const [minutes, setMinutes] = useState<number | null>(null);
+  const [seconds, setSeconds] = useState<number | null>(null);
   const [timeUp, setTimeUp] = useState(false);
 
   useEffect(() => {
-    setInterval(() => {
+    const intervalId = setInterval(() => {
       let eventDate = new Date(2024, 9, 19, 8).getTime();
       let difference = eventDate - new Date().getTime();
       if (difference < 1) {
@@ -61,6 +70,8 @@ const Countdown = ({timeIndex}: {timeIndex: number}): ReactElement => {
         setSeconds(seconds);
       }
     }, 1000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const dayString = days > 1 ? "dias" : "dia";
@@ -74,7 +85,7 @@ const Countdown = ({timeIndex}: {timeIndex: number}): ReactElement => {
   }
 
   return (
-    <div className="flex flex-wrap justify-center font-secondary font-thin select-none">
+    <div className="flex flex-wrap justify-center font-thin select-none font-secondary">
       <CountdownNumber timeIndex={timeIndex} number={days} label={dayString}></CountdownNumber>
       <CountdownNumber timeIndex={timeIndex} number={hours} label="horas"></CountdownNumber>
       <CountdownNumber timeIndex={timeIndex} number={minutes} label="minutos"></CountdownNumber>
