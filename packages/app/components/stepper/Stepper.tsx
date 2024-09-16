@@ -25,7 +25,7 @@ function Stepper(
   }
 
   return (
-    <div className="flex justify-between relative">
+    <div className="flex justify-between relative text-black">
       {/* This is the thin line that "connects" the steps */}
       <div className="w-full h-px top-1/2 absolute bg-black" />
 

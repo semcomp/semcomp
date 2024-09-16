@@ -146,7 +146,7 @@ const AnimatedBG: React.FC<AnimatedBGProps> = ({ imageIndex }) => {
       {showObjects && (
         <>
           <ObjectFly
-            maxItems={4}
+            maxItems={5}
             direction="right"
             image={cloudy.src}
             filter={cloudFilter}

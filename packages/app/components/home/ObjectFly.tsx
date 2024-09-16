@@ -46,7 +46,9 @@ function generateRandomPosition(minSize: number, maxSize: number): FlyObject {
 // inicializando todos os objetos de uma vez
 function initializeObjects(numObjects: number, setObjects: React.Dispatch<React.SetStateAction<FlyObject[]>>, minSize: number, maxSize: number) {
   const initialObjects: FlyObject[] = [];
-  while (initialObjects.length < numObjects) { // vai rodar até ter o número de objetos que pedimos
+  
+  const newObject = generateRandomPosition(minSize, maxSize);
+  while (isValidPosition(newObject, initialObjects) && initialObjects.length < numObjects) { // vai rodar até ter o número de objetos que pedimos
     const newObject = generateRandomPosition(minSize, maxSize);
     if (isValidPosition(newObject, initialObjects)) {
       initialObjects.push(newObject); // se a posição for válida (sem bater em outros), adiciona na lista
@@ -55,7 +57,7 @@ function initializeObjects(numObjects: number, setObjects: React.Dispatch<React.
   setObjects(initialObjects); // finalmente, atualizamos o estado com todos os objetos prontos pra voar.
 }
 
-const ObjectFly: React.FC<ObjectFlyProps> = ({ maxItems, direction, image, filter, speed, minSize = 100, maxSize = 250 }) => {
+const ObjectFly: React.FC<ObjectFlyProps> = ({ maxItems, direction, image, filter, speed, minSize = 20, maxSize = 250 }) => {
   const [objects, setObjects] = useState<FlyObject[]>([]); // o estado inicial vai guardar os objetos voadores
   const [showObjects, setShowObjects] = useState<boolean>(true); // controle pra esconder/mostrar os objetos na tela
   const [resizeTimeout, setResizeTimeout] = useState<NodeJS.Timeout | null>(null); // timeout para evitar redimensionar sem parar
@@ -75,7 +77,7 @@ const ObjectFly: React.FC<ObjectFlyProps> = ({ maxItems, direction, image, filte
           } else if (direction === 'left' && newLeft < -obj.width) {
             newLeft = window.innerWidth; // saiu pela esquerda, volta pelo lado direito da tela
           }
-          return { ...obj, left: newLeft }; // atualiza a posição do objeto
+          return { ...obj, left: newLeft}; // atualiza a posição do objeto
         })
       );
     }, movementSpeed); // velocidade do movimento, controlada pela prop ou padrão
@@ -86,18 +88,23 @@ const ObjectFly: React.FC<ObjectFlyProps> = ({ maxItems, direction, image, filte
   // Esse efeito aqui serve pra quando a tela é redimensionada, assim a altura das nuvens é ajustada
   useEffect(() => {
     const handleResize = () => {
+      // console.log("1")
       setShowObjects(false); // esconder os objetos pra não ficarem bugados
       setObjects([]); // limpar os objetos
+      // console.log("2")
 
       if (resizeTimeout) {
         clearTimeout(resizeTimeout); // limpa o timeout anterior se tiver
+        // console.log("3")
       }
-
+      // console.log("4")
       const timeout = setTimeout(() => {
+        // console.log("5")
         setShowObjects(true); // volta a mostrar os objetos
         initializeObjects(maxItems, setObjects, minSize, maxSize); // reinicializa os objetos com a nova tela
       }, 500); // dá um tempinho pro resize antes de recriar os objetos
-
+      
+      // console.log("6")
       setResizeTimeout(timeout);
     };
 
@@ -112,9 +119,9 @@ const ObjectFly: React.FC<ObjectFlyProps> = ({ maxItems, direction, image, filte
 
   return (
     <div className="relative z-20">
-      {showObjects && objects.map((obj) => (
+      {showObjects && objects.map((obj, index) => (
         <div
-          key={obj.id}
+          key={index}
           className="absolute"
           style={{
             top: `${obj.top}px`,

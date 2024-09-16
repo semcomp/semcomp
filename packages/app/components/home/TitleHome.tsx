@@ -24,9 +24,9 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
 
       // Lógica para o subtítulo
       if (width <= 660) {
-        setSubTitleFontSize("3.5vw");
-      } else {
         setSubTitleFontSize("2.5vw");
+      } else {
+        setSubTitleFontSize("2.0vw");
       }
 
       // Lógica para o título principal
@@ -74,7 +74,7 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
               fontSize: titleFontSize, // Usando o estado para definir o tamanho do título principal
               lineHeight: "1",
               color: getTitleColor(timeIndex),
-              textShadow: "2px 4px 6px rgba(36, 36, 36, 0.6)",
+              // textShadow: "2px 4px 6px rgba(36, 36, 36, 0.6)",
               zIndex: 1,
             }}
           >
@@ -90,7 +90,7 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
             color: getTitleColor(timeIndex),
             marginTop: "-0.5vw",
             marginBottom: "1.5vw",
-            textShadow: "1px 2px 4px rgba(36, 36, 36, 0.6)",
+            // textShadow: "1px 2px 4px rgba(36, 36, 36, 0.6)",
             zIndex: 1,
           }}
         >
