@@ -343,7 +343,7 @@ function Profile() {
           {userFetched && (
             <>
               <Card className="flex flex-col items-center p-9 w-full rounded-lg border-solid border justify-center">
-                <div className="border-4 border-solid">
+                <div className="border-8 border-solid rounded-lg">
                   <QRCodeSVG value={userFetched && userFetched.id} />
                 </div>
                 <p className="text-xl text-center my-3">
@@ -390,7 +390,7 @@ function Profile() {
                 ) : (
                   <>
                       {/* <Chip className="mb-4" label="Sem Coffee" disabled={true} /> */}
-                      { config.openSales ? (
+                      { config && config.openSales ? (
                         <>
                         { !closeSales ? (
                             <>

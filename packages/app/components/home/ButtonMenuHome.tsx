@@ -2,16 +2,7 @@ import React from 'react';
 
 interface ButtonProps {
   label: string;
-  timeIndex: number;
   onClick: () => void;
-}
-
-function bgColorButton(timeIndex: number) {
-  if (timeIndex <= 6) {
-    return 'bg-white';
-  } else {
-    return 'bg-white';
-  }
 }
 
 const ButtonMenuHome: React.FC<ButtonProps> = ({ label, onClick }) => {
@@ -27,6 +18,17 @@ const ButtonMenuHome: React.FC<ButtonProps> = ({ label, onClick }) => {
               inset -2px -2px 1px 1px lightgray,
               inset 2px 0px 1px 1px lightgray
             `,
+            outline: 'none' // Adiciona essa propriedade para remover o contorno
+          }}
+          onMouseDown={(e) => {
+            e.currentTarget.style.boxShadow = 'inset 2px 2px 4px rgba(0,0,0,0.2)';
+          }}
+          onMouseUp={(e) => {
+            e.currentTarget.style.boxShadow = `
+              inset -2px 2px 1px 1px grey,
+              inset -2px -2px 1px 1px lightgray,
+              inset 2px 0px 1px 1px lightgray
+            `;
           }}
         >
           {label}
@@ -35,6 +37,5 @@ const ButtonMenuHome: React.FC<ButtonProps> = ({ label, onClick }) => {
     </div>
   );
 };
-
 
 export default ButtonMenuHome;

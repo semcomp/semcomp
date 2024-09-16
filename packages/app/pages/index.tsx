@@ -11,7 +11,6 @@ import NewFooter from "./newFooter";
 import Countdown from "../components/home/Countdown";
 import Routes from "../routes";
 import handler from '../api/handlers';
-import API from "../api";
 
 // Array com os intervalos de horas e seus respectivos índices de imagens
 const timeToImage = [
@@ -35,7 +34,6 @@ const Home: React.FC = () => {
   const [ buttonSelected, setButtonSelected ] = useState('');
   const isUserLoggedIn = Boolean(user);
   const [openSignup, setOpenSignup] = useState(true);
-  const [showCalendar, setShowCalendar] = useState(false);
 
   const [imageIndex, setImageIndex] = useState<number>(10);
 
@@ -43,16 +41,6 @@ const Home: React.FC = () => {
     router.push(Routes.home);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-  }
-
-  async function shouldShowCalendar() {
-    try {
-      const response = await API.events.getAll();
-      setShowCalendar(Object.keys(response.data).length > 0);
-    } catch (e) {
-      console.error(e);
-      return [];
-    }
   }
   
   async function fetchData() {
@@ -67,17 +55,15 @@ const Home: React.FC = () => {
   
   useEffect(() => {
       fetchData();
-      shouldShowCalendar();
   }, []);
 
   useEffect(() => {
     const currentHour = new Date().getHours();
     const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
-    setImageIndex(
-      // 0
-      matchedImage?.imgIndex ?? 10,
-    );
+    setImageIndex(matchedImage?.imgIndex ?? 10);
   }, []);
+
+  //matchedImage?.imgIndex ?? 10
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -133,14 +119,14 @@ const Home: React.FC = () => {
       }
 
       {/* Conteúdo principal */}
-      <div className="relative z-20 flex-grow p-8 flex flex-col items-center justify-center">
+      <div className="relative z-20 flex-grow p-8">
         <TitleHome timeIndex={imageIndex}/>
 
-        <div className="flex flex-col items-center w-full gap-5">
+        <div className="flex flex-col items-center w-full gap-4">
           {isUserLoggedIn ? (
           <>
             <ButtonMenuHome timeIndex={imageIndex} label="PEFIL" onClick={handlePerfil} />
-            <ButtonMenuHome timeIndex={imageIndex} label="RIDDLE" onClick={handleSair} />
+            <ButtonMenuHome timeIndex={imageIndex} label="SAIR" onClick={handleSair} />
           </>
           ) : (
             <>
@@ -149,8 +135,8 @@ const Home: React.FC = () => {
             </>
           )}
           <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleSobre} />
-          {showCalendar ?? <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleCronograma} />}
-          {isUserLoggedIn && <ButtonMenuHome timeIndex={imageIndex} label="SAIR" onClick={handleSair} />}
+          <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleCronograma} />
+          <ButtonMenuHome timeIndex={imageIndex} label="FAQ" onClick={handleFaq} />
         </div>
         <div className="mt-8">
         <Countdown timeIndex={imageIndex} />
