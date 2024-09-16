@@ -33,14 +33,21 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
   }, []);
 
   const getTitleColor = (timeIndex: number): string => {
-    const colors = ["#EFEAFA", "#FCFBFF", "#300E82", "#242D5C", "#242D59"];
-    return colors[timeIndex % colors.length];
+    if (timeIndex === 0) return "#EFEAFA";
+    if (timeIndex === 1) return "#FCFBFF";
+    if (timeIndex === 2) return "#300E82";
+    if (timeIndex <= 5) return "#242D5C";
+    if (timeIndex === 6) return "#242D59";
+    if (timeIndex <= 8) return "#F9F004";
+    if (timeIndex === 9) return "#F9F004";
+
+    return "#F9F004";
   };
 
   return (
     <header className="flex flex-col items-center justify-center w-full text-center text-black font-primary">
       <div className="flex justify-center w-full">
-        <Logo width={logoSize} height={logoSize} fillColor={getTitleColor(timeIndex)} />
+        <Logo width={logoSize} height={logoSize} fillColor={getTitleColor(timeIndex)} className={undefined} />
       </div>
       <h1
         style={{
