@@ -90,7 +90,7 @@ function Login() {
       <Navbar />
       <Sidebar />
       <AnimatedBG imageIndex={imageIndex} />
-      <main className="flex w-full flex-1 md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs">
+      <main className="flex w-full flex-1 md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs justify-center">
         <div className="flex flex-col items-center justify-center md:w-[80%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20">
           <div className="items-center justify-center h-fit md:w-[70%] md:p-9 md:pb-2 tablet:p-12 phone:p-9 font-secondary md:rounded-none tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20">
             <h1 className="text-2xl font-secondary text-center tablet:text-3xl text-white">Entrar</h1>
@@ -164,7 +164,7 @@ function Login() {
             </div>
           </div>
         </div>
-          <div id="info-semcomp" className="md:flex flex-col items-center phone:hidden tablet:hidden w-full">
+          <div id="info-semcomp" className="md:flex flex-col items-center phone:hidden tablet:hidden w-full justify-center">
             <Card className="max-w-md m-8 px-12 py-12 text-sm font-secondary text-justify bg-white rounded-md">
               <aside className="max-w-base">
               Ficamos muito felizes por se interessar em nosso evento!

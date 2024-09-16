@@ -1,11 +1,11 @@
 .pixelbutton{
-  background-color: white;
-  z-index: 2;
+  background-color: rgb(255, 255, 255);
+  z-index: 20;
 }
 
 .pixelbutton::before{
   content: '';
-  background: black;
+  background: rgb(0, 0, 0);
   position: absolute;
   left: 0;
   top: -11%;

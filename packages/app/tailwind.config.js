@@ -13,7 +13,7 @@ module.exports = {
       
       
       'medphone': {'min': '430px', 'max': '640px'},
-      'mobile': {'min': '0px', 'max': '1000px'},
+      'mobile': {'min': '0px', 'max': '1050px'},
       ee: "400px",
       dd: "520px",
       sm: "640px",
