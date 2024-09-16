@@ -1,4 +1,7 @@
-// Função compartilhada para obter as cores, extraímos para reutilizar
+import { ReactElement, useEffect, useState } from "react";
+import Card from "../Card";
+
+// Função compartilhada para obter as cores
 function getTitleColor(timeIndex: number): string {
   if (timeIndex === 0) return "#EFEAFA";
   if (timeIndex === 1) return "#FCFBFF";
@@ -11,10 +14,6 @@ function getTitleColor(timeIndex: number): string {
   return "#F9F004";
 }
 
-// Componente Countdown atualizado para usar a função getTitleColor
-import { ReactElement, useEffect, useState } from "react";
-import Card from "../Card";
-
 interface CountdownNumberProps {
   timeIndex: number;
   number: number;
@@ -23,21 +22,21 @@ interface CountdownNumberProps {
 
 function CountdownNumber({ timeIndex, number, label }: CountdownNumberProps) {
   const textColor = getTitleColor(timeIndex); // Usando a função compartilhada para definir as cores
+
   return (
     <div className="p-2 md:p-4">
       <Card
-        className={`flex flex-col items-center justify-center phone:w-14 phone:h-14 tablet:w-24 tablet:h-24 md:w-24 md:h-24 border-solid border rounded-lg`}
-        style={{ borderColor: textColor }} // Cor da borda baseada no timeIndex
+        className={`flex flex-col items-center justify-center phone:w-14 phone:h-14 tablet:w-24 tablet:h-24 md:w-24 md:h-24`}
       >
         <span
           className={`phone:text-lg tablet:text-4xl md:text-4xl`}
-          style={{ color: textColor }} // Cor do texto baseada no timeIndex
+          style={{ color: textColor }} // Cor do texto
         >
           {number.toString().padStart(2, "0")}
         </span>
         <span
           className={`phone:text-[10px] tablet:text-base md:text-base`}
-          style={{ color: textColor }} // Cor da label baseada no timeIndex
+          style={{ color: textColor }} // Cor da label
         >
           {label}
         </span>
