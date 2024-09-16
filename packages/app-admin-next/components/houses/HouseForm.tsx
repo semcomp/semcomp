@@ -6,6 +6,8 @@ export type HouseFormData = {
   name: string;
   description: string;
   telegramLink: string;
+  image: File;
+  imageBase64: string;
 };
 
 function HouseForm({
@@ -15,6 +17,8 @@ function HouseForm({
     name: "",
     description: "",
     telegramLink: "",
+    image: new File([], ""),
+    imageBase64: "",
   },
 }: {
   onDataChange: (data: HouseFormData) => void;
@@ -40,6 +44,36 @@ function HouseForm({
     onDataChange({...data, telegramLink: value});
   }
 
+  function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files[0];
+  
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      setData({...data, image: file, imageBase64: base64});
+      onDataChange({...data, imageBase64: base64});
+    };
+  }
+
+  function showImage() {
+    if (data.imageBase64) {
+      return (
+        <>
+          <h4 className="mt-8">Imagem atual</h4>
+          <div className="flex justify-center mt-8">
+            <img
+              src={data.imageBase64}
+              alt="Imagem da conquista"
+              className="w-1/2 h-1/2"
+            />
+          </div>
+        </>
+      );
+    }
+  }
+
+
   return (
     <>
       <Input
@@ -63,6 +97,13 @@ function HouseForm({
         onChange={handleTelegramLinkChange}
         type={InputType.Text}
       />
+      <Input
+        className="my-3"
+        label="Imagem da conquista"
+        onChange={handleImageChange}
+        type={InputType.Image}
+      />
+      {showImage()}
     </>
   );
 }

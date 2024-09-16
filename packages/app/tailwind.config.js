@@ -6,14 +6,13 @@ module.exports = {
   ],
   theme: {
     screens: {
-      'superdesktop': {'min': '1600px'},
-      'desktop': {'min': '1000px', 'max': '1600px'},
-      'tablet': {'min': '640px', 'max': '1000px'},
-      'phone': {'min': '0px', 'max': '640px'},
-      
-      
-      'medphone': {'min': '430px', 'max': '640px'},
-      'mobile': {'min': '0px', 'max': '1000px'},
+      superdesktop: { min: "1600px" },
+      desktop: { min: "1000px", max: "1600px" },
+      tablet: { min: "640px", max: "1000px" },
+      phone: { min: "0px", max: "640px" },
+
+      medphone: { min: "430px", max: "640px" },
+      mobile: { min: "0px", max: "1050px" },
       ee: "400px",
       dd: "520px",
       sm: "640px",
@@ -22,7 +21,7 @@ module.exports = {
       lg: "1450px",
     },
     colors: {
-      primary: "#2E1B5B", 
+      primary: "#2E1B5B",
       secondary: "#F5CE00",
       tertiary: "#642712",
       blue: "#002776",
@@ -36,31 +35,31 @@ module.exports = {
       white: "#fafafa",
       hoverWhite: "rgba(255, 255, 255, 0.3)",
       darkblue: "#2E1B5B",
-      pink: "#FF3184"
+      pink: "#FF3184",
     },
     fontFamily: {
       primary: ["UPHEAVAL"], //Staatliches
       secondary: ["VideoType"], //Poppins
-      tertiary: ["VideoType"]
+      tertiary: ["VideoType"],
     },
     fontSize: {
-      'superlarge': '25px',
-      'large': '20px',
-      'medium': '15px',
-      'small': '14px',
-      'tiny': '13px',
+      superlarge: "25px",
+      large: "20px",
+      medium: "15px",
+      small: "14px",
+      tiny: "13px",
 
-      'title-superlarge': '50px',
-      'title-large': '40px',
-      'title-medium': '35px',
-      'title-small': '30px',
-      'title-tiny': '25px',
+      "title-superlarge": "50px",
+      "title-large": "40px",
+      "title-medium": "35px",
+      "title-small": "30px",
+      "title-tiny": "25px",
     },
     extend: {
       backgroundImage: {
-        'sky': "url('/assets/27-imgs/login-bg.png')",
-        'footer-texture': "url('/img/footer-texture.png')",
-      }
+        sky: "url('/assets/27-imgs/login-bg.png')",
+        "footer-texture": "url('/img/footer-texture.png')",
+      },
     },
   },
   plugins: [],

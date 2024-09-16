@@ -1,97 +1,152 @@
 import { useEffect, useState } from "react";
-import About from "../components/home/About";
-import Footer from "../components/Footer";
-import HomeHeader from "../components/home/Header";
-import Schedule from "../components/home/Schedule";
-import FAQ from "../components/home/Faq";
-import Sponsors from "../components/home/Sponsors";
-import Stats from "../components/home/Stats";
 import { useAppContext } from "../libs/contextLib";
 import { useRouter } from "next/router";
 
-function Home() {
-  const { setUser, setToken } = useAppContext();
+import AnimatedBG from "./animatedBG";
+import ButtonMenuHome from "../components/home/ButtonMenuHome";
+import Modal from "../components/home/Modal";
+import TitleHome from "../components/home/TitleHome";
+import Footer from "../components/Footer";
+import NewFooter from "./newFooter";
+import Countdown from "../components/home/Countdown";
+import Routes from "../routes";
+import handler from '../api/handlers';
+
+// Array com os intervalos de horas e seus respectivos índices de imagens
+const timeToImage = [
+  { start: 5, end: 7, imgIndex: 0 },
+  { start: 7, end: 8, imgIndex: 1 },
+  { start: 8, end: 10, imgIndex: 2 },
+  { start: 10, end: 12, imgIndex: 3 },
+  { start: 12, end: 14, imgIndex: 4 },
+  { start: 14, end: 16, imgIndex: 5 },
+  { start: 16, end: 17, imgIndex: 6 },
+  { start: 17, end: 18, imgIndex: 7 },
+  { start: 18, end: 19, imgIndex: 8 },
+  { start: 19, end: 22, imgIndex: 9 },
+  { start: 0, end: 5, imgIndex: 10 },
+];
+
+
+const Home: React.FC = () => {
+  const { user, setUser, setToken } = useAppContext();
   const router = useRouter();
-  const [sectionHeight, setSectionHeight] = useState(840);
+  const [ buttonSelected, setButtonSelected ] = useState('');
+  const isUserLoggedIn = Boolean(user);
+  const [openSignup, setOpenSignup] = useState(true);
+
+  const [imageIndex, setImageIndex] = useState<number>(10);
+
+  function logUserOut() {
+    router.push(Routes.home);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+  }
+  
+  async function fetchData() {
+    try {
+      const config = await handler.config.getConfig().then((res) => res.data);
+      //console.log(config);
+      setOpenSignup(config.openSignup); 
+    } catch (error) {
+        console.log(error);
+    }
+  }
+  
+  useEffect(() => {
+      fetchData();
+  }, []);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const currentHour = new Date().getHours();
+    const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
+    setImageIndex(matchedImage?.imgIndex ?? 10);
+  }, []);
+
+  //matchedImage?.imgIndex ?? 10
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
     const token = localStorage.getItem("token");
     if (!user || !token) {
       setUser(null);
       setToken(null);
     }
 
-    if (window.location.pathname != router.pathname) {
-      router.push(`${window.location.pathname}`);
+    if (window.location.pathname !== router.pathname) {
+      router.push(window.location.pathname);
     }
+  }, [router, setUser, setToken]);
 
-    // Captura a altura da tela do usuário e ajusta a altura da seção
-    const updateSectionHeight = () => {
-      const screenHeight = window.innerHeight;
-      if (screenHeight < 1000) {
-        setSectionHeight(screenHeight - 150);
-      } else if (screenHeight < 884) {
-        setSectionHeight(screenHeight - 100);
-      } else {
-        setSectionHeight(840);
-      }
-    };
-
-    // Chama a função na montagem e ao redimensionar a janela
-    updateSectionHeight();
-    window.addEventListener("resize", updateSectionHeight);
-
-    // Remove o listener ao desmontar o componente
-    return () => window.removeEventListener("resize", updateSectionHeight);
-  }, []);
-
-  return (
-    <main className="home bg-gray-800 min-h-screen">
-      <div>
-        <section className="
-        superdesktop:bg-[url('../assets/27-imgs/bgClouds.png')] 
-        desktop:bg-[url('../assets/27-imgs/bgClouds.png')] 
-        tablet:bg-[url('../assets/27-imgs/littebgClouds.png')] 
-        medphone:bg-[url('../assets/27-imgs/littebgClouds.png')] 
-        phone:bg-[url('../assets/27-imgs/littebgClouds.png')] 
-        bg-repeat">
-          <section>
-              <div className="relative">
-                <div style={{height: `${sectionHeight}px`}} className="relative ">
-                  <HomeHeader />
-                </div>
-              </div>
-            </section>
-          </section>
-
-          <section className="bg-[url('../assets/27-imgs/bgGround.png')] 
-                tablet:bg-[url('../assets/27-imgs/littebgGround.png')] 
-                medphone:bg-[url('../assets/27-imgs/littebgGround.png')] 
-                phone:bg-[url('../assets/27-imgs/littebgGround.png')] 
-                bg-repeat 
-               ">
-            <section className="md:bg-[url('../assets/27-imgs/mediumbgFossils.png')] xl:bg-[url('../assets/27-imgs/bgFossils.png')] bg-no-repeat">
-              <section className="md:bg-[url('../assets/27-imgs/mediumbgRock.png')] xl:bg-[url('../assets/27-imgs/bgRock.png')] bg-no-repeat bg-right">
-                <br/>
-                <br/>
-                <div className="py-[80px]">
-                <About />
-                <Schedule home={true}/>
-                <FAQ />
-                </div>
-
-                <br />
-                <br />
-                <section className="pt-[20px] bg-black/50">
-                  <Footer className={"text-white"}/>
-                </section>
-              </section>
-            </section>
-          </section>
-        </div>
-      </main>
-    );
+  function handleInscrevase() {
+    router.push(Routes.signup);
   }
 
-  export default Home;
+  function handleSobre() {
+    setButtonSelected('sobre');
+  }
+
+  function handleCronograma() {
+    setButtonSelected('cronograma');
+  }
+
+  function handleFaq() {
+    setButtonSelected('faq');
+  }
+
+  function handlePerfil() {
+    router.push(Routes.profile);
+  }
+
+  function handleSair() {
+    logUserOut();
+    router.push(Routes.home);
+  }
+
+  function handleEntrar() {
+    router.push(Routes.login)
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-800">
+      {/* Passando o TimeIndex para AnimatedBG */}
+      <AnimatedBG imageIndex={imageIndex} />
+
+      {
+        buttonSelected !== '' && (
+          <Modal setButtonSelected={setButtonSelected} element={buttonSelected} />
+        )
+      }
+
+      {/* Conteúdo principal */}
+      <div className="relative z-20 flex-grow p-8">
+        <TitleHome timeIndex={imageIndex}/>
+      <br />
+        <div className="flex flex-col items-center w-full gap-4">
+          {isUserLoggedIn ? (
+          <>
+            <ButtonMenuHome timeIndex={imageIndex} label="PEFIL" onClick={handlePerfil} />
+            <ButtonMenuHome timeIndex={imageIndex} label="SAIR" onClick={handleSair} />
+          </>
+          ) : (
+            <>
+              <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
+              <ButtonMenuHome timeIndex={imageIndex} label="ENTRAR" onClick={handleEntrar} />
+            </>
+          )}
+          <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleSobre} />
+          <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleCronograma} />
+          <ButtonMenuHome timeIndex={imageIndex} label="FAQ" onClick={handleFaq} />
+        </div>
+        <div className="mt-8">
+        <Countdown timeIndex={imageIndex} />
+        </div>
+      </div>
+
+      {/* Footer */}
+      <NewFooter locale="p" />
+    </div>
+  );
+};
+
+export default Home;

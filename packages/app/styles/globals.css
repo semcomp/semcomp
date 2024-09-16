@@ -11,6 +11,7 @@
 @import "./Hard-To-Click-Lobby.css";
 @import "./Hard-To-Click.css";
 @import "./Header.css";
+@import "./Home-Button.css";
 @import "./Home-Live-Now.css";
 @import "./Home.css";
 @import "./House-Scores-House-Points.css";
@@ -61,7 +62,6 @@
   src: url("../assets/27-fonts/videotype.ttf");
 }
 
-
 @font-face {
   font-family: "Qatar2022-Bold";
   src: url("../assets/Qatar2022Arabic-Bold.ttf");
@@ -72,12 +72,12 @@
   src: url("../assets/Qatar2022Arabic-Heavy.ttf");
 }
 :root {
-  --color-blue-main:#173A72;
+  --color-blue-main: #173a72;
   --color-dark-blue: #009541;
   --color-blue-secondary: #f2ece5;
-  --color-pink:#E83C50;
-  --color-green: #7EBE51;
-  --color-orange: #EC4E20;
+  --color-pink: #e83c50;
+  --color-green: #7ebe51;
+  --color-orange: #ec4e20;
 
   --color-black-main: #1d1d1b;
   --color-grey-1: #3d3d3d;
@@ -86,17 +86,16 @@
   --color-white: #fafafa;
 
   --color-semcomp25-green: #009541;
-  --color-semcomp25-yellow: #FFDF00;
+  --color-semcomp25-yellow: #ffdf00;
   --color-semcomp25-blue: #002776;
-  --color-semcomp25-white: #ECE5F0;
-  --color-semcomp25-orange: #EC4E20;
-  
-  
-  --color-semcomp26-green: #F2FFDD;
-  --color-semcomp26-yellow: #FFDF00;
-  --color-semcomp26-blue: #4AD2F8;
-  --color-semcomp26-white: #ECE5F0;
-  --color-semcomp26-orange: #EC4E20;
+  --color-semcomp25-white: #ece5f0;
+  --color-semcomp25-orange: #ec4e20;
+
+  --color-semcomp26-green: #f2ffdd;
+  --color-semcomp26-yellow: #ffdf00;
+  --color-semcomp26-blue: #4ad2f8;
+  --color-semcomp26-white: #ece5f0;
+  --color-semcomp26-orange: #ec4e20;
 }
 
 body,
@@ -114,14 +113,14 @@ html,
 body::-webkit-scrollbar {
   width: 0em;
 }
- 
+
 body::-webkit-scrollbar-track {
   box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
 }
- 
+
 body::-webkit-scrollbar-thumb {
   /* background-image: url("../assets/26-imgs/img_geradora_fundo.PNG"); */
-  background-color: #2E1B5B;
+  background-color: #2e1b5b;
   /* border-radius: 10px; */
 }
 
@@ -140,7 +139,12 @@ a {
   box-sizing: border-box;
 }
 
-button{
+button {
   font-family: VideoType;
   font-weight: 300;
+}
+
+.fine-font {
+  font-weight: 300 !important; /* Forçar a fonte mais fina */
+  margin-top: -1vw; /* Aproxima o subtítulo do título */
 }

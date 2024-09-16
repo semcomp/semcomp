@@ -61,7 +61,7 @@ function TextInput({
               title={tooltip ? tooltip : ""}
               enterTouchDelay={1}
             >
-              <Info sx={{ color: "#171214" }} />
+              <Info sx={{ color: "#fffff", paddingX: "2px"}} />
             </Tooltip>
           </div>
           <TextField
@@ -71,7 +71,7 @@ function TextInput({
             value={value}
             type={type}
             variant="outlined"
-            className="my-3 bg-white"
+            className="my-3 bg-white rounded-lg"
             InputProps={{
               startAdornment: start,
               endAdornment: end,
@@ -88,7 +88,7 @@ function TextInput({
             value={value}
             type={type}
             variant="outlined"
-            className="my-3 bg-white"
+            className="my-3 bg-white rounded-lg"
             InputProps={{
               startAdornment: start,
               endAdornment: end,

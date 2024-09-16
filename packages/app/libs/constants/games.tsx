@@ -147,8 +147,8 @@ export const RIDDLE: Game = {
   description: RIDDLE_DESCRIPTION,
   slug: 'riddle',
   eventPrefix: 'riddle',
-  startDate: new Date("2023-10-23 09:00"),
-  endDate: new Date("2023-10-27 12:00"),
+  startDate: new Date("2024-08-24 09:00"),
+  endDate: new Date("2024-10-27 12:00"),
   numberOfQuestions: 77,
   maximumNumberOfMembersInGroup: 2,
 }

@@ -69,19 +69,19 @@ export type SemcompApiUser = {
 };
 
 export type UserData = {
-  "ID": string,
-  "E-mail": string,
-  "Nome": string,
-  "Curso": string,
-  "Telegram": string,
-  "Casa": string,
-  "Status do pagamento": string,
-  "Retirou Kit": boolean,
-  "Tamanho da camiseta": TShirtSize,
-  "Opção de compra": KitOption,
-  "Permite divulgação?": string,
-  "Criado em": string,
-}
+  ID: string;
+  "E-mail": string;
+  Nome: string;
+  Curso: string;
+  Telegram: string;
+  Casa: string;
+  "Status do pagamento": string;
+  "Retirou Kit": boolean;
+  "Tamanho da camiseta": TShirtSize;
+  "Opção de compra": KitOption;
+  "Permite divulgação?": string;
+  "Criado em": string;
+};
 
 export type SemcompApiAdminUser = {
   id: string;
@@ -117,6 +117,7 @@ export type SemcompApiCreateHouseRequest = {
   name: string;
   description: string;
   telegramLink: string;
+  imageBase64: string;
 };
 
 export type SemcompApiTShirt = {
@@ -218,7 +219,10 @@ export type SemcompApiGameGroup = {
 
 export type SemcompApiGetGameGroupsResponse =
   PaginationResponse<SemcompApiGameGroup>;
-export type SemcompApiGetGameWinnersResponse = Record<string, SemcompApiGameGroup>
+export type SemcompApiGetGameWinnersResponse = Record<
+  string,
+  SemcompApiGameGroup
+>;
 
 export type SemcompApiTreasureHuntImage = {
   id: string;
@@ -238,7 +242,8 @@ export type SemcompApiCreateTreasureHuntImageRequest = {
   imgUrl: string;
 };
 
-export type SemcompApiEditTreasureHuntImageRequest = SemcompApiCreateTreasureHuntImageRequest;
+export type SemcompApiEditTreasureHuntImageRequest =
+  SemcompApiCreateTreasureHuntImageRequest;
 
 export type SemcompApiAchievement = {
   id: string;
@@ -255,9 +260,10 @@ export type SemcompApiAchievement = {
   numberOfAchievements: number;
   createdAt: number;
   updatedAt: number;
-}; 
+};
 
-export type SemcompApiGetAchievementsResponse = PaginationResponse<SemcompApiAchievement>;
+export type SemcompApiGetAchievementsResponse =
+  PaginationResponse<SemcompApiAchievement>;
 
 export type SemcompApiCreateAchievementRequest = {
   title: string;
@@ -274,7 +280,8 @@ export type SemcompApiCreateAchievementRequest = {
   imageBase64: string;
 };
 
-export type SemcompApiEditAchievementRequest = SemcompApiCreateAchievementRequest;
+export type SemcompApiEditAchievementRequest =
+  SemcompApiCreateAchievementRequest;
 
 export type SemcompApiConfigs = {
   id?: string;

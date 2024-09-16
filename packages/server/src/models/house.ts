@@ -6,9 +6,10 @@ type House = {
   description: string;
   telegramLink: string;
   score: number;
+  imageBase64: string;
   createdAt?: number;
   updatedAt?: number;
-}
+};
 
 export default House;
 
@@ -37,6 +38,10 @@ const HouseSchema = new Mongoose.Schema(
       default: 0,
       min: 0,
     },
+    imageBase64: {
+      type: String,
+      required: true,
+    },
     createdAt: {
       type: Number,
     },
@@ -44,7 +49,7 @@ const HouseSchema = new Mongoose.Schema(
       type: Number,
     },
   },
-  { collection: "house" }
+  { collection: "house" },
 );
 
 export const HouseModel = Mongoose.model("house", HouseSchema);

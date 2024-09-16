@@ -18,7 +18,10 @@ class AuthController {
     try {
       handleValidationResult(req);
 
-      const createdUser = await authService.signup(req.body, req.body.disabilities);
+      const createdUser = await authService.signup(
+        req.body,
+        req.body.disabilities,
+      );
 
       const token = await authService.createToken(createdUser);
 
@@ -45,9 +48,13 @@ class AuthController {
       res.setHeader("Authorization", `Bearer ${token}`);
 
       const userHouse = await userService.getUserHouse(foundUser.id);
-      const userPayment = await this.paymentService.getUserPayment(foundUser.id);
+      const userPayment = await this.paymentService.getUserPayment(
+        foundUser.id,
+      );
 
-      return res.status(200).json(this.mapUserResponse(foundUser, userHouse, userPayment));
+      return res
+        .status(200)
+        .json(this.mapUserResponse(foundUser, userHouse, userPayment));
     } catch (error) {
       return handleError(error, next);
     }
@@ -80,9 +87,13 @@ class AuthController {
       res.setHeader("Authorization", `Bearer ${token}`);
 
       const userHouse = await userService.getUserHouse(foundUser.id);
-      const userPayment = await this.paymentService.getUserPayment(foundUser.id);
+      const userPayment = await this.paymentService.getUserPayment(
+        foundUser.id,
+      );
 
-      return res.status(200).json(this.mapUserResponse(foundUser, userHouse, userPayment));
+      return res
+        .status(200)
+        .json(this.mapUserResponse(foundUser, userHouse, userPayment));
     } catch (error) {
       return handleError(error, next);
     }
@@ -93,7 +104,9 @@ class AuthController {
       const userHouse = await userService.getUserHouse(req.user.id);
       const userPayment = await this.paymentService.getUserPayment(req.user.id);
 
-      return res.status(200).json(this.mapUserResponse(req.user, userHouse, userPayment));
+      return res
+        .status(200)
+        .json(this.mapUserResponse(req.user, userHouse, userPayment));
     } catch (error) {
       return handleError(error, next);
     }
@@ -108,17 +121,20 @@ class AuthController {
       permission: user.permission,
       discord: user.discord,
       telegram: user.telegram,
-      house: house ? {
-        name: house.name,
-        description: house.description,
-        telegramLink: house.telegramLink,
-      } : null,
+      house: house
+        ? {
+            name: house.name,
+            description: house.description,
+            telegramLink: house.telegramLink,
+            imageBase64: house.imageBase64,
+          }
+        : null,
       payment: {
         status: payment?.status || null,
         tShirtSize: payment?.tShirtSize || null,
         foodOption: payment?.foodOption || null,
         kitOption: payment?.kitOption || null,
-      }
+      },
     };
   }
 }

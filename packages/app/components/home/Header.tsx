@@ -242,7 +242,7 @@ const HomeHeader = (): ReactElement => {
       </div>
 
       <div style={{ display: showCounter ? 'block' : 'none' }} className="mt-[50px]">
-        <Countdown />
+        {/* <Countdown /> */}
       </div>
     </header>
   );
