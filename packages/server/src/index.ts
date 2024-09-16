@@ -7,11 +7,11 @@ import * as rfs from "rotating-file-stream";
 import cors from "cors";
 import path from "path";
 import cookieParser from "cookie-parser";
-// import cron from "node-cron";
+import cron from "node-cron";
 
 import GameController from './controllers/game/game.controller';
-// import houseService from "./services/house.service";
-// import userService from "./services/user.service";
+import houseService from "./services/house.service";
+import userService from "./services/user.service";
 import Routes from "./routes";
 
 import { config } from "dotenv";
@@ -54,10 +54,10 @@ new GameController(io, Game.RIDDLE);
 
 app.use(cors(corsConfig));
 
-// cron.schedule("*/15 * * * *", () => {
-//   houseService.checkAchievements();
-//   userService.checkAchievements();
-// });
+cron.schedule("*/15 * * * *", () => {
+  houseService.checkAchievements();
+  userService.checkAchievements();
+});
 
 // create a rotating write stream
 const accessLogStream = rfs.createStream("access.log", {

@@ -12,11 +12,12 @@ import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
 import Navbar from "../components/navbar";
 import Sidebar from '../components/sidebar';
-import SemcompLogo from "../assets/27-imgs/logo.svg";
+import SemcompLogo from "../assets/27-imgs/logo.png";
 import Card from "../components/Card";
 import Input, { InputType } from "../components/Input";
 import NavLink from "../components/navbar/nav-link";
 import PrivacyPolicyModal from "../components/signup/PrivacyPolicyModal";
+import AnimatedBG from "./animatedBG";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -59,24 +60,50 @@ function Login() {
     }
   }
 
+  const [imageIndex, setImageIndex] = useState<number>(10);
+
+  const timeToImage = [
+    { start: 5, end: 7, imgIndex: 0 },
+    { start: 7, end: 8, imgIndex: 1 },
+    { start: 8, end: 10, imgIndex: 2 },
+    { start: 10, end: 12, imgIndex: 3 },
+    { start: 12, end: 14, imgIndex: 4 },
+    { start: 14, end: 16, imgIndex: 5 },
+    { start: 16, end: 17, imgIndex: 6 },
+    { start: 17, end: 18, imgIndex: 7 },
+    { start: 18, end: 19, imgIndex: 8 },
+    { start: 19, end: 22, imgIndex: 9 },
+    { start: 0, end: 5, imgIndex: 10 },
+  ];
+
+  useEffect(() => {
+    const currentHour = new Date().getHours();
+    const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
+    setImageIndex(
+      // 0
+      matchedImage?.imgIndex ?? 10,
+    );
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen md:h-full">
       <Navbar />
       <Sidebar />
-      <main className="flex w-full flex-1 md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs mobile:bg-[url('../assets/27-imgs/login-bg.png')] mobile:bg-cover">
-        <div className="flex flex-col items-center justify-center md:w-[80%] mobile:w-full">
-          <div className="items-center justify-center h-fit md:w-[70%] md:p-9 tablet:p-12 phone:p-9 font-secondary bg-white md:rounded-none tablet:rounded-lg phone:w-full">
-            <h1 className="text-2xl font-secondary text-center tablet:text-3xl">Entrar</h1>
-            <p className="font-secondary text-center my-4">
+      <AnimatedBG imageIndex={imageIndex} />
+      <main className="flex w-full flex-1 md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs justify-center">
+        <div className="flex flex-col items-center justify-center md:w-[80%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20">
+          <div className="items-center justify-center h-fit md:w-[70%] md:p-9 md:pb-2 tablet:p-12 phone:p-9 font-secondary md:rounded-none tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20">
+            <h1 className="text-2xl font-secondary text-center tablet:text-3xl text-white">Entrar</h1>
+            <p className="font-secondary text-center my-4 text-white">
                 Não tem conta?{" "}
                 <Link href="/signup">
-                  <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
+                  <a className=" hover:text-primary cursor-pointer underline text-white hover:text-blue-500 visited:bg-none">
                     {" "}
                     Crie uma agora!
                   </a>
                 </Link>
               </p>
-            <form className="w-full font-secondary" onSubmit={handleSubmit}>
+            <form className="w-full font-secondary text-white" onSubmit={handleSubmit}>
               {isPrivacyPolicyModalOpen && (
                 <PrivacyPolicyModal
                   onRequestClose={() => setIsPrivacyPolicyModalOpen(false)}
@@ -113,22 +140,22 @@ function Login() {
                 }
               />
               <LoadingButton
-                className="bg-primary text-white w-full py-3 shadow font-secondary"
+                className="bg-primary text-white w-full py-3 shadow font-secondary rounded-lg hover:scale-105"
                 isLoading={isLoggingIn}
                 type="submit"
               >
                 Entrar
               </LoadingButton> 
               <Link href="/reset-password">
-                <div className="text-black text-center w-full my-3 cursor-pointer hover:text-primary underline decoration-solid">
+                <div className="text-center w-full my-3 cursor-pointer hover:text-primary underline decoration-solid text-white">
                   Esqueceu sua senha?
                 </div>
               </Link>
             </form>
             <div>
-              <section className="text-center md:pt-12 tablet:pt-20 phone:pt-8">
+              <section className="text-center md:pt-12 tablet:pt-20 phone:pt-8 text-white">
                 <p>© Semcomp 2024. Todos os direitos reservados.</p>
-                <p className="mt-3 mb-6 hover:text-primary text-xs cursor-pointer">
+                <p className="mt-3 mb-6 hover:text-primary text-xs cursor-pointer text-white">
                     <span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
                       <u>Política de Privacidade</u>
                     </span>
@@ -137,8 +164,8 @@ function Login() {
             </div>
           </div>
         </div>
-          <div id="info-semcomp" className="md:flex flex-col items-center phone:hidden tablet:hidden w-full justify-center bg-[url('../assets/27-imgs/login-bg.png')] bg-cover bg-no-repeat">
-            <Card className="max-w-md m-8 px-12 py-20 text-sm font-secondary text-justify bg-white rounded-md">
+          <div id="info-semcomp" className="md:flex flex-col items-center phone:hidden tablet:hidden w-full justify-center">
+            <Card className="max-w-md m-8 px-12 py-12 text-sm font-secondary text-justify bg-white rounded-md">
               <aside className="max-w-base">
               Ficamos muito felizes por se interessar em nosso evento!
               <br />

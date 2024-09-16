@@ -17,6 +17,7 @@ import UserAchievement from "../models/user-achievement";
 import userDisabilityService from "./user-disability.service";
 import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 import EventTypes from "../lib/constants/event-types-enum";
+import configService from "./config.service";
 
 const idService = new IdServiceImpl();
 
@@ -157,6 +158,11 @@ class UserServiceImpl implements UserService {
   }
 
   async checkAchievements(): Promise<void> {
+    const config = await configService.getOne();
+    if (!config || !config.openAchievement) {
+      return null;
+    }
+    
     const users = await this.find({ pagination: new PaginationRequest(1, 9999) });
     const events = await eventService.find({ pagination: new PaginationRequest(1, 9999) });
     const individualAchievements = await achievementService.find({
@@ -166,6 +172,11 @@ class UserServiceImpl implements UserService {
     for (const user of users.getEntities()) {
       const userAchievementCount = await userAchievementService.count({ userId: user.id });
       for (const achievement of individualAchievements) {
+        if (achievement.startDate && achievement.startDate > Date.now() ||
+          achievement.endDate && achievement.endDate < Date.now()) {
+          continue;
+        }
+        
         const userAchievement = await userAchievementService.findOne({ userId: user.id, achievementId: achievement.id });
         if (userAchievement) {
           continue;
@@ -184,7 +195,7 @@ class UserServiceImpl implements UserService {
 
         // Presença em Tipo de Evento
         if (achievement.category === AchievementCategories.PRESENCA_EM_TIPO_DE_EVENTO) {
-          let i = 0;
+          let attendanceOnEventType = 0;
           for (const event of events.getEntities()) {
             if (
               event.type === achievement.eventType &&
@@ -193,11 +204,11 @@ class UserServiceImpl implements UserService {
                 userId: user.id,
               })
             ) {
-              i++;
+             attendanceOnEventType++;
             }
           }
 
-          if (i >= achievement.numberOfPresences) {
+          if (attendanceOnEventType > 0 && attendanceOnEventType >= achievement.numberOfPresences) {
             const newUserAchievement: UserAchievement = {
               achievementId: achievement.id,
               userId: user.id,
@@ -208,7 +219,7 @@ class UserServiceImpl implements UserService {
 
         // Número de Conquistas
         if (achievement.category === AchievementCategories.NUMERO_DE_CONQUISTAS) {
-          if (userAchievementCount >= achievement.numberOfAchievements) {
+          if (userAchievementCount > 0 && userAchievementCount >= achievement.numberOfAchievements) {
             const newUserAchievement: UserAchievement = {
               achievementId: achievement.id,
               userId: user.id,

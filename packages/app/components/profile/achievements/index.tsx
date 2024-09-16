@@ -36,7 +36,6 @@ function AchievementsContainer({ data }) {
   return (
     <div className="modal-conquistas-grid">
       {data.map((conquista) => {
-        const achievementsImageSrc = AchievementsImages(conquista.image);
         return (
           <Tooltip
             key={conquista.id}
@@ -55,7 +54,7 @@ function AchievementsContainer({ data }) {
               }
               tabIndex={0}
               key={conquista.id}
-              src={achievementsImageSrc}
+              src={conquista.imageBase64}
               alt={conquista.image}
               style={{
                 paddingTop: "1rem",

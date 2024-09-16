@@ -57,10 +57,10 @@ import PaymentServiceImpl from "../../services/payment-impl.service";
   
         const foundConfig = await configService.getOne();
         if (foundConfig) {
-            const deletedEvent = await configService.delete(foundConfig);
-            return res.status(200).send(deletedEvent);
+            const config = await configService.delete(foundConfig.id);
+            return res.status(200).send(config);
         } else {
-
+          return res.status(400).send("Config not found");
         }
   
       } catch (error) {
@@ -129,6 +129,18 @@ import PaymentServiceImpl from "../../services/payment-impl.service";
         const { openSales } = req.body;
   
         const updatedConfig = await configService.setOpenSales(openSales);
+  
+        return res.status(200).json(updatedConfig);
+      } catch (error) {
+        return handleError(error, next);
+      }
+    }
+
+    public async setOpenAchievement(req: Request, res: Response, next: NextFunction) {
+      try {
+        const { openAchievement } = req.body;
+  
+        const updatedConfig = await configService.setOpenAchievement(openAchievement);
   
         return res.status(200).json(updatedConfig);
       } catch (error) {

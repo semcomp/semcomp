@@ -28,6 +28,7 @@ function Row({
   onSelectChange,
   moreInfoContainer,
   onMoreInfoClick,
+  renderCell, // Adiciona a propriedade renderCell
   actions,
 }: {
   index: number;
@@ -36,6 +37,7 @@ function Row({
   onSelectChange: (isSelected: boolean) => void;
   moreInfoContainer: ReactNode;
   onMoreInfoClick: (index: number) => void;
+  renderCell?: (column: string, row: any) => ReactNode; // Propriedade opcional renderCell
   actions: {};
 }) {
   const [isSelected, setIsSelected] = useState(false);
@@ -59,7 +61,10 @@ function Row({
             <IconButton
               aria-label="expand row"
               size="small"
-              onClick={() => { setOpen(!open); onMoreInfoClick(index) }}
+              onClick={() => {
+                setOpen(!open);
+                onMoreInfoClick(index);
+              }}
             >
               {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
             </IconButton>
@@ -73,13 +78,12 @@ function Row({
             type={InputType.Checkbox}
           />
         </TableCell>
-        {Object.values(row).map((value: any, index: number) => {
-          return (
-            <TableCell key={index} onClick={() => onClick(index)}>
-              {value}
-            </TableCell>
-          );
-        })}
+        {Object.keys(row).map((column: string, index: number) => (
+          <TableCell key={index} onClick={() => onClick(index)}>
+            {renderCell ? renderCell(column, row) : row[column]}{" "}
+            {/* Usa renderCell se definido */}
+          </TableCell>
+        ))}
         {
           actions ? (
             <TableCell>
@@ -132,6 +136,7 @@ export default function DataTable({
   onRowSelect,
   moreInfoContainer,
   onMoreInfoClick,
+  renderCell, // Adiciona a propriedade renderCell
   actions,
 }: {
   data: PaginationResponse<any>;
@@ -140,12 +145,13 @@ export default function DataTable({
   onRowSelect: (indexes: number[]) => void;
   moreInfoContainer?: ReactNode;
   onMoreInfoClick?: (index: number) => void;
+  renderCell?: (column: string, row: any) => ReactNode; // Propriedade opcional renderCell
   actions?: {},
 }) {
-  const [selectedRows, setSelectedRows] = useState([]);
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
   function handleRowSelect(selectChangeIndex: number, isSelected: boolean) {
-    let updatedSelectedRows = selectedRows;
+    let updatedSelectedRows = [...selectedRows];
 
     if (isSelected) {
       updatedSelectedRows.push(selectChangeIndex);
@@ -204,12 +210,14 @@ export default function DataTable({
                   }
                   moreInfoContainer={moreInfoContainer}
                   onMoreInfoClick={onMoreInfoClick}
+                  renderCell={renderCell} // Passa a função renderCell para Row
                   actions={actions}
                 />
               ))}
             </TableBody>
           </Table>
           <TablePagination
+            className="sticky left-0"
             component="div"
             count={data.getTotalNumberOfItems()}
             page={pagination.getPage() - 1}

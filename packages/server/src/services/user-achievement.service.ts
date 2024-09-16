@@ -30,7 +30,7 @@ class UserAchievementService {
   }
 
   public async count(filters?: Partial<UserAchievement>): Promise<number> {
-    const count = await UserAchievementModel.count(filters);
+    const count = await UserAchievementModel.countDocuments(filters);
 
     return count;
   }

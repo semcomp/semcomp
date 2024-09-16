@@ -5,7 +5,7 @@ import AchievementTypes from "../lib/constants/achievement-types-enum";
 import EventTypes from "../lib/constants/event-types-enum";
 
 type Achievement = {
-  id?: string;
+  id?: string,
   title: string,
   description: string,
   startDate: number,
@@ -14,11 +14,12 @@ type Achievement = {
   minPercentage: number,
   category: AchievementCategories,
   eventId: string,
-  eventType: EventTypes,
+  eventType: EventTypes | null,
   numberOfPresences: number,
   numberOfAchievements: number,
-  createdAt?: number;
-  updatedAt?: number;
+  imageBase64: string,
+  createdAt?: number,
+  updatedAt?: number,
 }
 
 export default Achievement;
@@ -69,7 +70,7 @@ const AchievementSchema = new Mongoose.Schema(
     },
     eventType: {
       type: String,
-      enum: Object.values(EventTypes),
+      enum: Object.values(EventTypes).concat([null]),
       default: EventTypes.PALESTRA,
     },
     numberOfPresences: {
@@ -79,6 +80,10 @@ const AchievementSchema = new Mongoose.Schema(
     numberOfAchievements: {
       type: Number,
       min: 0,
+    },
+    imageBase64: {
+      type: String,
+      required: true,
     },
     createdAt: {
       type: Number,

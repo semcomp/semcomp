@@ -111,7 +111,7 @@ function Events() {
 
 
   async function handleRowClick(index: number) {
-    if (adminRole.includes('EDIT_EVENTS')) {
+    if (adminRole.includes('EDITEVENTS')) {
       setSelectedData(data.getEntities()[index]);
       setIsEditModalOpen(true);
     }

@@ -72,7 +72,7 @@ function Step0({
             Por favor, cadastre um e-mail que você tem acesso e que seja válido.
           </div>
         }
-        className="my-3 font-secondary"
+        className="my-3 font-secondary rounded-lg"
         label="E-mail válido"
         value={email}
         onChange={handleEmailChange}
@@ -94,13 +94,13 @@ function Step0({
       />
       <button
         type="submit"
-        className="bg-primary text-white font-bold w-full py-3 shadow font-secondary"
+        className="bg-primary text-white font-bold w-full py-3 shadow font-secondary rounded-lg hover:scale-105"
       >
         Próximo
       </button>
       <div className="mt-3">
         <Link href="/login">
-          <a className="text-blue-700 hover:text-blue-500 visited:bg-none font-secondary">
+          <a className="text-white visited:bg-none font-secondary hover:text-primary cursor-pointer underline">
             Já tem uma conta?
           </a>
         </Link>

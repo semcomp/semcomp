@@ -1,11 +1,13 @@
 import { TShirtSize } from "../components/t-shirt/TShirtForm";
+import AchievementCategories from "../libs/constants/achievement-categories-enum";
+import AchievementTypes from "../libs/constants/achievement-types-enum";
 import EventType from "../libs/constants/event-types-enum";
 import Game from "../libs/constants/game-enum";
 import Status from "../libs/constants/status-treasure-hunt-enum";
 import { PaginationResponse } from "./Pagination";
 
-enum KitOption {
-  COMPLETE = "Kit e Coffee", 
+export enum KitOption {
+  COMPLETE = "Kit e Coffee",
   KIT = "Kit",
   COFFEE = "Coffee",
 }
@@ -16,12 +18,12 @@ export class SemcompApiPaginationRequest {
   constructor(page?: number, items?: number) {
     this.page = 1;
     if (page) {
-      this.page = page
+      this.page = page;
     }
 
     this.items = 25;
     if (items) {
-      this.items = items
+      this.items = items;
     }
   }
 
@@ -32,38 +34,38 @@ export class SemcompApiPaginationRequest {
   public getItems(): number {
     return this.items;
   }
-};
+}
 
 export enum PaymentStatus {
   PENDING = "pending",
   APPROVED = "approved",
-};
+}
 
 export type SemcompApiLocalStorageUser = {
-  id: string,
-  email: string,
+  id: string;
+  email: string;
 };
 
 export type SemcompApiUser = {
-  id: string,
-  email: string,
-  name: string,
-  course: string,
-  discord: string,
+  id: string;
+  email: string;
+  name: string;
+  course: string;
+  discord: string;
   house: {
-    name: string,
-  },
+    name: string;
+  };
   payment: {
-    status: PaymentStatus,
-    tShirtSize: TShirtSize,
-    kitOption: KitOption
-  },
-  gotKit: boolean,
-  telegram: string,
-  disabilities: string[],
-  permission: boolean,
-  createdAt: number,
-  updatedAt: number,
+    status: PaymentStatus;
+    tShirtSize: TShirtSize;
+    kitOption: KitOption;
+  };
+  gotKit: boolean;
+  telegram: string;
+  disabilities: string[];
+  permission: boolean;
+  createdAt: number;
+  updatedAt: number;
 };
 
 export type UserData = {
@@ -82,30 +84,31 @@ export type UserData = {
 }
 
 export type SemcompApiAdminUser = {
-  id: string,
-  email: string,
-  adminRole: string[],
-  createdAt: number,
-  updatedAt: number,
+  id: string;
+  email: string;
+  adminRole: string[];
+  createdAt: number;
+  updatedAt: number;
 };
 
 export type SemcompApiGetUsersResponse = PaginationResponse<SemcompApiUser>;
 
-export type SemcompApiGetAdminUserResponse = PaginationResponse<SemcompApiAdminUser>;
+export type SemcompApiGetAdminUserResponse =
+  PaginationResponse<SemcompApiAdminUser>;
 
 export type SemcompApiLoginResponse = {
-  email: string,
-  id: string,
+  email: string;
+  id: string;
 };
 
 export type SemcompApiHouse = {
-  id: string,
-  name: string,
-  description: string,
-  telegramLink: string,
-  score: number,
-  createdAt: number,
-  updatedAt: number,
+  id: string;
+  name: string;
+  description: string;
+  telegramLink: string;
+  score: number;
+  createdAt: number;
+  updatedAt: number;
 };
 
 export type SemcompApiGetHousesResponse = PaginationResponse<SemcompApiHouse>;
@@ -114,21 +117,22 @@ export type SemcompApiCreateHouseRequest = {
   name: string;
   description: string;
   telegramLink: string;
+  imageBase64: string;
 };
 
 export type SemcompApiTShirt = {
-  id: string,
-  size: string,
-  quantity: number,
-  usedQuantity: number,
-  createdAt: number,
-  updatedAt: number,
+  id: string;
+  size: string;
+  quantity: number;
+  usedQuantity: number;
+  createdAt: number;
+  updatedAt: number;
 };
 
 export type SemcompApiGetTShirtsResponse = PaginationResponse<SemcompApiTShirt>;
 
 export type SemcompApiEvent = {
-  id: string,
+  id: string;
   name: string;
   speaker: string;
   description: string;
@@ -143,11 +147,11 @@ export type SemcompApiEvent = {
   showStream: boolean;
   showOnSubscribables: boolean;
   needInfoOnSubscription: boolean;
-  attendances: any[],
-  subscribers: any[],
+  attendances: any[];
+  subscribers: any[];
   numOfSubscriptions: number;
-  createdAt: number,
-  updatedAt: number,
+  createdAt: number;
+  updatedAt: number;
 };
 
 export type SemcompApiGetEventsResponse = PaginationResponse<SemcompApiEvent>;
@@ -185,7 +189,8 @@ export type SemcompApiGameQuestion = {
   updatedAt: number;
 };
 
-export type SemcompApiGetGameQuestionsResponse = PaginationResponse<SemcompApiGameQuestion>;
+export type SemcompApiGetGameQuestionsResponse =
+  PaginationResponse<SemcompApiGameQuestion>;
 
 export type SemcompApiCreateGameQuestionRequest = {
   game: Game;
@@ -198,7 +203,8 @@ export type SemcompApiCreateGameQuestionRequest = {
   isLegendary: boolean;
 };
 
-export type SemcompApiEditGameQuestionRequest = SemcompApiCreateGameQuestionRequest;
+export type SemcompApiEditGameQuestionRequest =
+  SemcompApiCreateGameQuestionRequest;
 
 export type SemcompApiGameGroup = {
   id: string;
@@ -211,8 +217,8 @@ export type SemcompApiGameGroup = {
   updatedAt: number;
 };
 
-export type SemcompApiGetGameGroupsResponse = PaginationResponse<SemcompApiGameGroup>;
-
+export type SemcompApiGetGameGroupsResponse =
+  PaginationResponse<SemcompApiGameGroup>;
 export type SemcompApiGetGameWinnersResponse = Record<string, SemcompApiGameGroup>
 
 export type SemcompApiTreasureHuntImage = {
@@ -224,7 +230,8 @@ export type SemcompApiTreasureHuntImage = {
   updatedAt: number;
 };
 
-export type SemcompApiGetTreasureHuntImageResponse = PaginationResponse<SemcompApiTreasureHuntImage>;
+export type SemcompApiGetTreasureHuntImageResponse =
+  PaginationResponse<SemcompApiTreasureHuntImage>;
 
 export type SemcompApiCreateTreasureHuntImageRequest = {
   place: string;
@@ -234,6 +241,41 @@ export type SemcompApiCreateTreasureHuntImageRequest = {
 
 export type SemcompApiEditTreasureHuntImageRequest = SemcompApiCreateTreasureHuntImageRequest;
 
+export type SemcompApiAchievement = {
+  id: string;
+  title: string;
+  description: string;
+  startDate: number;
+  endDate: number;
+  type: AchievementTypes;
+  minPercentage: number;
+  category: AchievementCategories;
+  eventId: string;
+  eventType: EventType;
+  numberOfPresences: number;
+  numberOfAchievements: number;
+  createdAt: number;
+  updatedAt: number;
+}; 
+
+export type SemcompApiGetAchievementsResponse = PaginationResponse<SemcompApiAchievement>;
+
+export type SemcompApiCreateAchievementRequest = {
+  title: string;
+  description: string;
+  startDate: number;
+  endDate: number;
+  type: AchievementTypes;
+  minPercentage: number;
+  category: AchievementCategories;
+  eventId: string;
+  eventType: EventType;
+  numberOfPresences: number;
+  numberOfAchievements: number;
+  imageBase64: string;
+};
+
+export type SemcompApiEditAchievementRequest = SemcompApiCreateAchievementRequest;
 
 export type SemcompApiConfigs = {
   id?: string;

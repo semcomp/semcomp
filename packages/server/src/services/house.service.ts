@@ -10,6 +10,7 @@ import attendanceService from "./attendance.service";
 import HouseAchievement from "../models/house-achievement";
 import AchievementCategories from "../lib/constants/achievement-categories-enum";
 import { PaginationRequest, PaginationResponse } from "../lib/pagination";
+import configService from "./config.service";
 
 const idService = new IdServiceImpl();
 
@@ -88,6 +89,11 @@ class HouseService {
   }
 
   public async checkAchievements() {
+    const config = await configService.getOne();
+    if (!config || !config.openAchievement) {
+      return null;
+    }
+
     const houses = await this.find({ pagination: new PaginationRequest(1, 9999) });
     const achievements = await achievementService.find({
       type: AchievementTypes.CASA,
@@ -98,6 +104,10 @@ class HouseService {
       const houseMembers = await houseMemberService.find({ houseId: house.id });
       const houseAchievementCount = await houseAchievementService.count({ houseId: house.id });
       for (const achievement of achievements) {
+        if (achievement.startDate && achievement.startDate > Date.now() ||
+          achievement.endDate && achievement.endDate < Date.now()) {
+          continue;
+        }
         const houseAchievement = await houseAchievementService.findOne({ houseId: house.id, achievementId: achievement.id });
 
         if (houseAchievement) {
@@ -108,14 +118,15 @@ class HouseService {
         if (achievement.category === AchievementCategories.PRESENCA_EM_EVENTO) {
           let i = 0;
           const totalUsersWhoAttendedThisEventCount = await attendanceService.count({ eventId: achievement.eventId });
-          let houseMembersWhoAttendedThisEventCount = 0
+          let houseMembersWhoAttendedThisEventCount = 0;
           for (const houseMember of houseMembers) {
             if (await attendanceService.findOne({ eventId: achievement.eventId, userId: houseMember.userId })) {
               houseMembersWhoAttendedThisEventCount++;
             }
           }
 
-          if (houseMembersWhoAttendedThisEventCount > houseMemberCount * (achievement.minPercentage / 100)) {
+          if (houseMembersWhoAttendedThisEventCount > 0 &&
+              houseMembersWhoAttendedThisEventCount >= houseMemberCount * (achievement.minPercentage / 100)) {
             const newHouseAchievement: HouseAchievement = {
               achievementId: achievement.id,
               houseId: house.id,
@@ -153,6 +164,7 @@ class HouseService {
       description: entity.description,
       telegramLink: entity.telegramLink,
       score: entity.score,
+      imageBase64: entity.imageBase64,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     } : null;

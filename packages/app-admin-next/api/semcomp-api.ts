@@ -19,7 +19,9 @@ import {
   SemcompApiGetTreasureHuntImageResponse,
   SemcompApiCreateTreasureHuntImageRequest,
   SemcompApiEditTreasureHuntImageRequest,
-  SemcompApiConfigs
+  SemcompApiGetAchievementsResponse,
+  SemcompApiCreateAchievementRequest,
+  SemcompApiEditAchievementRequest
 
 } from "../models/SemcompApiModels";
 import Http from "./http";
@@ -31,6 +33,7 @@ class SemcompApi {
     this.http = http;
   }
 
+  // AUTH
   public async login(email: string, password: string): Promise<SemcompApiLoginResponse> {
     return this.http.post(
       "/admin/auth/login",
@@ -44,6 +47,7 @@ class SemcompApi {
     );
   }
 
+  // USERS
   public async getUsers(pagination: PaginationRequest): Promise<SemcompApiGetUsersResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
       pagination.getPage(),
@@ -55,6 +59,16 @@ class SemcompApi {
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
+  public async updateKitStatus(id: string, status: boolean): Promise<any> {
+    const data = { gotKit: status };
+    return this.http.put(`/admin/users/${id}`, data);
+  }
+
+  public async addUserAchievement(userId: string, achievementId: string): Promise<any> {
+    return this.http.post(`/admin/users/${userId}/achievements/${achievementId}`, {});
+  }
+
+  // ADMIN-USERS
   public async getAdminUsers(pagination: PaginationRequest): Promise<SemcompApiGetAdminUserResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
       pagination.getPage(),
@@ -81,6 +95,7 @@ class SemcompApi {
     return this.http.put(`/admin/admin-users/${id}`, data);
   }
 
+  // HOUSE
   public async getHouses(pagination: PaginationRequest): Promise<SemcompApiGetHousesResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
       pagination.getPage(),
@@ -103,6 +118,11 @@ class SemcompApi {
     return this.http.post("/admin/houses", data);
   }
 
+  public async addHouseAchievement(houseId: string, achievementId: string): Promise<any> {
+    return this.http.post(`/admin/houses/${houseId}/achievements/${achievementId}`, {});
+  }
+
+  // T-SHIRTS
   public async getTShirts(pagination: PaginationRequest): Promise<SemcompApiGetTShirtsResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
       pagination.getPage(),
@@ -122,6 +142,7 @@ class SemcompApi {
     return this.http.put(`/admin/t-shirts/${id}`, data);
   }
 
+  // SUBSCRIPTIONS
   public async getSubscriptions(eventId: string): Promise<any> {
     return this.http.get(`/admin/subscription/event/${eventId}`);
   }
@@ -130,6 +151,7 @@ class SemcompApi {
     return this.http.get(`/admin/subscription/event/users/${eventId}`);
   }
 
+  // EVENTS
   public async getEvents(pagination: PaginationRequest): Promise<SemcompApiGetEventsResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
       pagination.getPage(),
@@ -153,6 +175,7 @@ class SemcompApi {
     return this.http.post(`/admin/events/${eventId}/mark-attendance`, { userId: userId });
   }
 
+  // GAME 
   public async getGameQuestions(pagination: PaginationRequest): Promise<SemcompApiGetGameQuestionsResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
       pagination.getPage(),
@@ -217,11 +240,32 @@ class SemcompApi {
     return this.http.get(`/admin/treasure-hunt-images/qr-code/${id}`);
   }
 
-  public async updateKitStatus(id: string, status: boolean): Promise<any> {
-    const data = { gotKit: status };
-    return this.http.put(`/admin/users/${id}`, data);
+  // ACHIEVEMENTS
+  public async getAchievement(pagination: PaginationRequest): Promise<SemcompApiGetAchievementsResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+  
+    const response = await this.http.get("admin/achievements", semcompApiPagination);
+    
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
+  public async createAchievement(data: SemcompApiCreateAchievementRequest): Promise<any> {
+    return this.http.post("/admin/achievements", data);
+  }
+
+  public async editAchievement(id: string, data: SemcompApiEditAchievementRequest): Promise<any> {
+    return this.http.put(`/admin/achievements/${id}`, data);
+  }
+
+  public async deleteAchievement(id: string): Promise<any> {
+    const response = await this.http.delete("/admin/achievements/" + id);
+    return response;
+  }
+
+  // CONFIG
   public async getConfig(): Promise<any> {
     return this.http.get(`/config`);
   }

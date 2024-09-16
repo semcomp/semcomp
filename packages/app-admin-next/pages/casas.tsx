@@ -63,7 +63,7 @@ function Houses() {
 
   const [data, setData] = useState(null as SemcompApiGetHousesResponse);
   const [pagination, setPagination] = useState(new PaginationRequest(() => fetchData()));
-  const [selectedData, setSelectedData] = useState(null as HouseFormData);
+  const [selectedData, setSelectedData] = useState(null as SemcompApiHouse);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
 
@@ -84,15 +84,7 @@ function Houses() {
   }
 
   async function handleRowClick(index: number) {
-    
-    const houses = data.getEntities()
-    
-    setSelectedData({
-      id: houses[index].id,
-      name: houses[index].name,
-      description: houses[index].description,
-      telegramLink: houses[index].telegramLink,
-    });
+    setSelectedData(data.getEntities()[index]);
     setIsEditModalOpen(true);
   }
 

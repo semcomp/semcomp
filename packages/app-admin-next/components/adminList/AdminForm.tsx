@@ -9,8 +9,10 @@ export enum adminRole {
   GAMEQUESTION = "GameQuestions", 
   GAMEGROUP = "GameGroups", 
   EVENT = "Events",
+  EDITEVENTS = "EditEvents",
   TREASUREHUNTIMAGE = "TreasureHuntImages",
   CONFIG = "Config",
+  ACHIEVEMENTS = "Achievements",
   DELETE = "Delete",
 }
 
