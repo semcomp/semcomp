@@ -18,6 +18,7 @@ import { useAppContext } from "../libs/contextLib";
 import Link from "next/link";
 import PrivacyPolicyModal from "../components/signup/PrivacyPolicyModal";
 import handler from '../api/handlers';
+import AnimatedBG from "./animatedBG";
 
 function SignupPage() {
   const router = useRouter();
@@ -150,6 +151,31 @@ function SignupPage() {
     />,
   ][step];
 
+  const [imageIndex, setImageIndex] = useState<number>(10);
+
+  const timeToImage = [
+    { start: 5, end: 7, imgIndex: 0 },
+    { start: 7, end: 8, imgIndex: 1 },
+    { start: 8, end: 10, imgIndex: 2 },
+    { start: 10, end: 12, imgIndex: 3 },
+    { start: 12, end: 14, imgIndex: 4 },
+    { start: 14, end: 16, imgIndex: 5 },
+    { start: 16, end: 17, imgIndex: 6 },
+    { start: 17, end: 18, imgIndex: 7 },
+    { start: 18, end: 19, imgIndex: 8 },
+    { start: 19, end: 22, imgIndex: 9 },
+    { start: 0, end: 5, imgIndex: 10 },
+  ];
+
+  useEffect(() => {
+    const currentHour = new Date().getHours();
+    const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
+    setImageIndex(
+      // 0
+      matchedImage?.imgIndex ?? 10,
+    );
+  }, []);
+
   //Get the information from 'config' to check if signup is enabled
   const [openSignup, setOpenSignup] = useState(true);
   async function fetchData() {
@@ -166,15 +192,16 @@ function SignupPage() {
       fetchData();
   }, []);
 
-  return (
-    <div className="flex flex-col justify-between min-h-screen">
+  return (<>
+    <div className="flex flex-col justify-between min-h-screen z-20">
       <Navbar />
       <Sidebar />
-      <main className="flex w-full flex-1 md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs mobile:bg-[url('../assets/27-imgs/login-bg.png')] mobile:bg-cover">
-        <div className="flex flex-col items-center justify-center md:w-[80%] mobile:w-full">
-          <div className="items-center justify-center font-secondary bg-white h-fit phone:mt-12 md:w-[70%] md:p-9 tablet:p-12 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">
+      <AnimatedBG imageIndex={imageIndex} />
+      <main className="flex w-full flex-1 md:text-sm tablet:text-xl phone:text-xs ">
+        <div className="flex flex-col items-center justify-center md:w-[80%] shadow-md mobile:w-full backdrop-brightness-95 backdrop-blur z-20">
+          <div className=" text-white items-center justify-center font-secondary h-fit phone:mt-12 backdrop-brightness-90 backdrop-blur z-20 md:w-[70%] md:p-9 md:pb-2 tablet:p-12 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">
             { step > 0 && (
-              <div className="flex items-center justify-center hover:bg-[#E6E6E6] p-2 rounded-lg h-fit w-fit">
+              <div className="flex items-center justify-center hover:bg-[#E6E6E6] hover:bg-opacity-50 p-2 rounded-lg h-fit w-fit z-20 cursor-pointer">
                 <ArrowIcon 
                   onClick={handleGoBack}
                   sx={{ mr: 0.5 }} 
@@ -192,7 +219,7 @@ function SignupPage() {
               openSignup?
               (
                 <>
-                  <h1 className="text-2xl font-secondary text-center tablet:text-3xl">Cadastrar</h1>
+                  <h1 className="text-2xl font-secondary text-center tablet:text-3xl text-white ">Cadastrar</h1>
                   <div className="flex items-center justify-center w-full">
                     <div className="w-full max-w-xs ">
                       <Stepper
@@ -205,7 +232,7 @@ function SignupPage() {
 
                   {/* Renders the correct form according to the current step */}
                   {stepComponent}
-                  <section className="text-center md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base">
+                  <section className="text-center md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base z-20 text-white ">
                     <p>© Semcomp 2024. Todos os direitos reservados.</p>
                     <p className="mt-3 mb-6 hover:text-primary text-xs cursor-pointer">
                         { step < 1 && (<span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
@@ -232,8 +259,8 @@ function SignupPage() {
             }
           </div>
         </div>
-        <div id="info-semcomp" className="md:flex flex-col items-center phone:hidden tablet:hidden w-full justify-center bg-[url('../assets/27-imgs/login-bg.png')] bg-cover bg-no-repeat">
-          <Card className="max-w-md m-8 px-12 py-20 text-sm font-secondary text-justify bg-white rounded-md">
+        <div id="info-semcomp" className="md:flex flex-col items-center phone:hidden tablet:hidden w-full justify-center">
+          <Card className="max-w-md m-8 px-12 py-12 text-sm font-secondary text-justify bg-white rounded-md">
           <aside className="max-w-base">
           Ficamos muito felizes por se interessar em nosso evento!
               <br />
@@ -274,6 +301,7 @@ function SignupPage() {
       </main>
       {/* <Footer /> */}
     </div>
+  </>
   );
 }
 

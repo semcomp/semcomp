@@ -11,6 +11,7 @@
 @import "./Hard-To-Click-Lobby.css";
 @import "./Hard-To-Click.css";
 @import "./Header.css";
+@import "./Home-Button.css";
 @import "./Home-Live-Now.css";
 @import "./Home.css";
 @import "./House-Scores-House-Points.css";
@@ -143,4 +144,9 @@ a {
 button{
   font-family: VideoType;
   font-weight: 300;
+}
+
+.fine-font {
+  font-weight: 300 !important; /* Forçar a fonte mais fina */
+  margin-top: -1vw; /* Aproxima o subtítulo do título */
 }
