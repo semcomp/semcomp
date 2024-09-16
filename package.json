@@ -40,5 +40,8 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "lint-staged": {
+    "*.{js,ts,css,md,json,html}": "prettier --write"
   }
 }
