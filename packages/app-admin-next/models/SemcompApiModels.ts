@@ -116,6 +116,7 @@ export type SemcompApiCreateHouseRequest = {
   name: string;
   description: string;
   telegramLink: string;
+  imageBase64: string;
 };
 
 export type SemcompApiTShirt = {

@@ -25,6 +25,8 @@ function CreateHouseModal({ onRequestClose }) {
     try {
       setIsLoading(true);
       const response = await semcompApi.createHouse(data);
+      toast.success('Casa editada com sucesso');
+      onRequestClose();
     } catch (error) {
       console.error(error);
     } finally {

@@ -112,6 +112,7 @@ class AuthController {
         name: house.name,
         description: house.description,
         telegramLink: house.telegramLink,
+        imageBase64: house.imageBase64
       } : null,
       payment: {
         status: payment?.status || null,
