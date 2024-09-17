@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "npx eslint .",
-    "prepare": "husky"
+    "prepare": "husky install"
   },
   "author": "",
   "license": "ISC",
@@ -30,7 +30,7 @@
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-react": "^7.26.1",
-    "husky": "^9.1.6",
+    "husky": "^7.0.4",
     "lint-staged": "^15.2.10",
     "prettier": "3.3.3"
   },
