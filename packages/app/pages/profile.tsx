@@ -26,40 +26,47 @@ import Pop from "../assets/26-imgs/brasao_pop_complete.png";
 import TelegramIcon from "@mui/icons-material/Telegram";
 import ImgLogo from "../assets/logo-24.png";
 
-import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import { useAppContext } from "../libs/contextLib";
 import Card from "../components/Card";
-import FundEstudarForm from "../components/profile/fundEstudar";
+//import FundEstudarForm from "../components/profile/fundEstudar";
 import MarkAttendanceModal from "../components/profile/MarkAttendanceModal";
 import AddAchievementModal from "../components/profile/AddAchievementModal";
 import { TShirtSize } from "../components/profile/coffeePayment/coffee-step-2";
 import { KitOption } from "../components/profile/coffeePayment/coffee-step-1";
 import Sidebar from "../components/sidebar";
 import Navbar from "../components/navbar/index";
+import ConfirmarCracha from "../components/profile/ModalConfirmacaoCracha/cracha";
 
 function Profile() {
   const { config } = useAppContext();
   const [eventCount, setEventCount] = useState(null);
   const [userFetched, setUserFetched] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] = useState(false);
-  const [IsAddAchievementModalOpen, setIsAddAchievementModalOpen] = useState(false);
-  const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] = useState(false);
+  const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] =
+    useState(false);
+  const [IsAddAchievementModalOpen, setIsAddAchievementModalOpen] =
+    useState(false);
+  const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] =
+    useState(false);
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
   const [events, setEvents] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [earnedAchievements, setEarnedAchievements] = useState([]);
   const [closeSales, setCloseSales] = useState(false);
-  const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] = useState(false);  // OBSERVAÇÃO: está relacionado a casa do stack overflow
+  const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] =
+    useState(false); // OBSERVAÇÃO: está relacionado a casa do stack overflow
   const [isCoffeeModalOpen, setCoffeeModalOpen] = useState(false);
 
-  // const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
+  //const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
   //   useState(true);
+  const [isConfirmarCrachaModalOpen, setIsConfirmarCrachaModalOpen] =
+    useState(true);
 
   useEffect(() => {
     getRemainingCoffee();
   }, []);
-  
+
   async function getRemainingCoffee() {
     try {
       const response = await API.config.checkRemainingCoffee();
@@ -68,11 +75,11 @@ function Profile() {
       console.error(e);
       return null;
     }
-  };
-  
+  }
+
   async function fetchAchievements() {
     if (!config || !config.openAchievement) {
-      console.log('error');
+      console.log("error");
       return [];
     }
 
@@ -121,7 +128,6 @@ function Profile() {
     fetchUserData();
   }, []);
 
-
   useEffect(() => {
     printFunction();
   });
@@ -131,42 +137,41 @@ function Profile() {
   }, [events]);
 
   function printFunction() {
-    let element = document.getElementsByClassName('events-list')[0];
-    
-    if(element){
+    let element = document.getElementsByClassName("events-list")[0];
+
+    if (element) {
       let children = element.hasChildNodes();
       if (!children) {
-        let warning = document.createElement('p');
-        warning.classList.add('no-event-warning');
-        warning.classList.add('text-[#A4A4A4]');
-        warning.classList.add('leading-3');
-        warning.innerHTML = 'Voce não se inscreveu em nenhum evento.';
+        let warning = document.createElement("p");
+        warning.classList.add("no-event-warning");
+        warning.classList.add("text-[#A4A4A4]");
+        warning.classList.add("leading-3");
+        warning.innerHTML = "Voce não se inscreveu em nenhum evento.";
         element.appendChild(warning);
       }
-
     }
   }
 
   function removeEventsWarning() {
-    let element = document.getElementsByClassName('events-list')[0];
-    if(element){
+    let element = document.getElementsByClassName("events-list")[0];
+    if (element) {
       let children = element.childElementCount;
       if (children > 1) {
-        element.children[0].innerHTML = 'Voce está inscrito nesses eventos:';
+        element.children[0].innerHTML = "Voce está inscrito nesses eventos:";
       }
     }
   }
 
-// OBERSERVAÇÃO; relacionado as casas do stack overflow
-  
+  // OBERSERVAÇÃO; relacionado as casas do stack overflow
+
   const userHouseName = userFetched?.house?.name;
   const userHouseTelegram = userFetched?.house?.telegramLink;
 
   const houseImageSrc = {
-    "Indie": Indie,
-    "Pop": Pop,
-    "Funk": Funk,
-    "Rock": Rock,
+    Indie: Indie,
+    Pop: Pop,
+    Funk: Funk,
+    Rock: Rock,
   }[userHouseName];
 
   function toPascalCase(str: string) {
@@ -237,7 +242,7 @@ function Profile() {
 
   return (
     <div className="min-h-screen w-full flex flex-col justify-between bg-[url('../assets/27-imgs/profile-bg.png')] bg-cover font-secondary text-sm">
-      { isEditModalOpen && (
+      {isEditModalOpen && (
         <EditProfile
           onRequestClose={() => {
             setIsEditModalOpen(false);
@@ -246,7 +251,7 @@ function Profile() {
           }}
         />
       )}
-      { isMarkAttendanceModalOpen && (
+      {isMarkAttendanceModalOpen && (
         <MarkAttendanceModal
           onRequestClose={() => {
             setIsMarkAttendanceModalOpen(false);
@@ -254,8 +259,8 @@ function Profile() {
             fetchUserData();
           }}
         />
-        )}
-      { isRegistrationsModalOpen && (
+      )}
+      {isRegistrationsModalOpen && (
         <Registrations
           onRequestClose={() => {
             setIsRegistrationsModalOpen(false);
@@ -263,7 +268,7 @@ function Profile() {
           }}
         />
       )}
-      { isAchievementsModalOpen && (
+      {isAchievementsModalOpen && (
         <Achievements
           onRequestClose={() => {
             setIsAchievementsModalOpen(false);
@@ -272,7 +277,7 @@ function Profile() {
           conquistasLista={achievements}
         />
       )}
-      { IsAddAchievementModalOpen && (
+      {IsAddAchievementModalOpen && (
         <AddAchievementModal
           onRequestClose={() => {
             setIsAddAchievementModalOpen(false);
@@ -280,8 +285,7 @@ function Profile() {
             fetchUserData();
           }}
         />
-        ) 
-      }
+      )}
       {/** Relacionado as casa do stackoverflow */}
       {isAboutOverflowModalOpen && (
         <AboutOverflow
@@ -306,9 +310,7 @@ function Profile() {
             <>
               <Card className="flex flex-col items-center p-9 w-full mb-6 bg-white rounded-lg">
                 <QRCodeSVG value={userFetched && userFetched.id} />
-                <p className="text-xl text-center my-3">
-                  {userFetched.name}
-                </p>
+                <p className="text-xl text-center my-3">{userFetched.name}</p>
                 <p className="text-center">{userFetched.course}</p>
                 {
                   <div className="flex flex-col pt-3">
@@ -334,9 +336,7 @@ function Profile() {
                 }
               </Card>
               <Card className="flex flex-col items-center p-9 w-full mb-6 bg-white rounded-lg">
-                <h1 className="text-xl py-2">
-                  {KitOption[config.kitOption]}
-                </h1>
+                <h1 className="text-xl py-2">{KitOption[config.kitOption]}</h1>
                 {userFetched.payment.status === "approved" ? (
                   <>
                     <Chip label="Pago" color="success" />
@@ -349,37 +349,50 @@ function Profile() {
                   </>
                 ) : (
                   <>
-                      <Chip className="mb-4" label="Sem Coffee" disabled={true} />
-                      { config.openSales ? (
-                        <>
-                        { !closeSales ? (
-                            <>
-                              <p className="text-sm pb-2">Pague com PIX</p>
+                    <Chip className="mb-4" label="Sem Coffee" disabled={true} />
+                    {config.openSales ? (
+                      <>
+                        {!closeSales ? (
+                          <>
+                            <p className="text-sm pb-2">Pague com PIX</p>
                             <button
                               onClick={() => {
-                              setCoffeeModalOpen(true);
-                              blockBodyScroll();
+                                setCoffeeModalOpen(true);
+                                blockBodyScroll();
                               }}
-                              className="bg-primary text-white p-3 rounded-lg mt-2">
+                              className="bg-primary text-white p-3 rounded-lg mt-2"
+                            >
                               Comprar!
                             </button>
-                            </>
-                          ) : 
-                          <>
-                            <p className="text-center"> As vendas estão esgotadas! </p>
                           </>
-                        }
-                        </>
-                      ) : 
-                        <>
-                          <p className="text-center"> Não há vendas no momento. </p>
-                        </>
-                      }
+                        ) : (
+                          <>
+                            <p className="text-center">
+                              {" "}
+                              As vendas estão esgotadas!{" "}
+                            </p>
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-center">
+                          {" "}
+                          Não há vendas no momento.{" "}
+                        </p>
+                      </>
+                    )}
                   </>
                 )}
               </Card>
             </>
           )}
+          {isConfirmarCrachaModalOpen && (
+            <ConfirmarCracha
+              onRequestClose={() => setIsConfirmarCrachaModalOpen(false)}
+            />
+          )}
+
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
           {/* {userFetched && (
             <Card className="flex flex-col items-center p-9 w-full mb-6">
@@ -405,12 +418,9 @@ function Profile() {
           )} */}
 
           {/* ABRIR AQUI PARA MOSTRAR INSCRIÇÕES */}
-          { eventCount > 0 &&
-            (
+          {eventCount > 0 && (
             <Card className="flex flex-col items-center p-9 w-full mb-6 text-center bg-white rounded-lg">
-              <h1 className="text-xl">
-                Inscrições em Eventos
-              </h1>
+              <h1 className="text-xl">Inscrições em Eventos</h1>
               <List className="events-list text-center">
                 {Object.keys(events).map((type) =>
                   events[type].map((e) =>
@@ -457,53 +467,53 @@ function Profile() {
               }
             </Card>
           )}
-          
-          { userFetched && config.openAchievement &&
-            ( 
-              <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
-                <div className="flex items-center justify-between w-full">
-                  <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+
+          {userFetched && config.openAchievement && (
+            <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
+              <div className="flex items-center justify-between w-full">
+                <h1
+                  className="flex-1 text-center"
+                  style={{ fontSize: "1.5rem", marginBottom: "1rem" }}
+                >
                   Conquistas
-                  </h1>       
-                  <CameraAltIcon 
-                    className="mb-4 ml-auto"
-                    onClick={() => {
-                      setIsAddAchievementModalOpen(true);
-                      blockBodyScroll();
-                    }}
-                    cursor="pointer"
-                    titleAccess="Escanear Conquista"
-                  />
-                </div>
-                <div className="grid auto-cols-auto auto-rows-auto">
-                  {earnedAchievements.slice(0, 6).map((conquista) => {
-                    return (
-                      <>
-                        <img
-                          key={conquista.id}
-                          src={conquista.imageBase64}
-                          alt={conquista.title}
-                          style={{ padding: ".3rem", maxHeight: "80px" }}
-                        />
-                      </>
-                    );
-                  })}
-                </div>
-                {
-                  <button
-                    onClick={() => {
-                      setIsAchievementsModalOpen(true);
-                      blockBodyScroll();
-                    }}
-                  >
-                    Ver mais
-                  </button>
-                }
-                
+                </h1>
+                <CameraAltIcon
+                  className="mb-4 ml-auto"
+                  onClick={() => {
+                    setIsAddAchievementModalOpen(true);
+                    blockBodyScroll();
+                  }}
+                  cursor="pointer"
+                  titleAccess="Escanear Conquista"
+                />
               </div>
-            )
-          }
-          
+              <div className="grid auto-cols-auto auto-rows-auto">
+                {earnedAchievements.slice(0, 6).map((conquista) => {
+                  return (
+                    <>
+                      <img
+                        key={conquista.id}
+                        src={conquista.imageBase64}
+                        alt={conquista.title}
+                        style={{ padding: ".3rem", maxHeight: "80px" }}
+                      />
+                    </>
+                  );
+                })}
+              </div>
+              {
+                <button
+                  onClick={() => {
+                    setIsAchievementsModalOpen(true);
+                    blockBodyScroll();
+                  }}
+                >
+                  Ver mais
+                </button>
+              }
+            </div>
+          )}
+
           {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
           {/* <Card className="flex flex-col items-center p-9 w-full mb-6">
             <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
@@ -517,7 +527,9 @@ function Profile() {
             <EventsOverview />
           </Card> */}
           <Card className="flex flex-col items-center p-9 mb-6 max-w-4xl bg-white rounded-lg">
-            <p className="events-overview-component__title text-xl mb-8">Eventos</p>
+            <p className="events-overview-component__title text-xl mb-8">
+              Eventos
+            </p>
             <EventsCalendar />
           </Card>
         </div>

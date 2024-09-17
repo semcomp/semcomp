@@ -13,8 +13,8 @@ import { TShirtSize } from "../components/t-shirt/TShirtForm";
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
 import exportToCsv from "../libs/DownloadCsv";
 import InfoCards from "../components/reusable/InfoCards";
-import Input, { InputType } from '../components/Input';
-import { Modal } from '../components/reusable/Modal';
+import Input, { InputType } from "../components/Input";
+import { Modal } from "../components/reusable/Modal";
 
 //modifiquei aqui pra n mudar o arquivo original
 enum KitOption {
@@ -44,7 +44,10 @@ type InfoData = {
   infoValue: number;
 };
 
-function mapData(data: SemcompApiUser[], handleOpenKitModal?: () => void): UserData[] {
+function mapData(
+  data: SemcompApiUser[],
+  handleOpenKitModal?: () => void
+): UserData[] {
   const newData: UserData[] = [];
   for (const user of data) {
     let paymentStatus = "";
@@ -57,12 +60,18 @@ function mapData(data: SemcompApiUser[], handleOpenKitModal?: () => void): UserD
           : "Pendente";
       kitOption = user.payment.kitOption as KitOption;
     }
-    const gotKit = (user.payment.kitOption === "Kit" || user.payment.kitOption === "Kit e Coffee") && paymentStatus === "Aprovado" ?
-      <Input
-        onChange={handleOpenKitModal ? handleOpenKitModal : () => { }}
-        value={user.gotKit}
-        type={InputType.Checkbox}
-      /> : <></>
+    const gotKit =
+      (user.payment.kitOption === "Kit" ||
+        user.payment.kitOption === "Kit e Coffee") &&
+      paymentStatus === "Aprovado" ? (
+        <Input
+          onChange={handleOpenKitModal ? handleOpenKitModal : () => {}}
+          value={user.gotKit}
+          type={InputType.Checkbox}
+        />
+      ) : (
+        <></>
+      );
 
     console.log(handleOpenKitModal);
     newData.push({
@@ -77,7 +86,7 @@ function mapData(data: SemcompApiUser[], handleOpenKitModal?: () => void): UserD
         ? user.payment.tShirtSize
         : TShirtSize.M,
       "Opção de compra": kitOption,
-      "Retirou Kit": handleOpenKitModal ? gotKit : (user.gotKit ? "Sim" : "Não"),
+      "Retirou Kit": handleOpenKitModal ? gotKit : user.gotKit ? "Sim" : "Não",
       "Permite divulgação?": user.permission ? "Sim" : "Não",
       "Criado em": new Date(user.createdAt).toLocaleString("pt-br", {
         day: "numeric",
@@ -127,17 +136,17 @@ function getInfoData(data: SemcompApiUser[]): InfoData[] {
   infoData.push({ infoTitle: "Kit", infoValue: kits });
 
   infoData.push({
-    "infoTitle": "Kit",
-    "infoValue": kits,
-  })
+    infoTitle: "Kit",
+    infoValue: kits,
+  });
 
   let numKitStatus = data.filter(function (item) {
     return item.gotKit;
   }).length;
   infoData.push({
-    "infoTitle": "Kits Retirados",
-    "infoValue": numKitStatus,
-  })
+    infoTitle: "Kits Retirados",
+    infoValue: numKitStatus,
+  });
 
   let complete = countKitOption(KitOption.COMPLETE, data);
   infoData.push({ infoTitle: "Kits + Coffee", infoValue: complete });
@@ -167,73 +176,88 @@ function UsersTable({
   allData: PaginationResponse<SemcompApiUser>;
   handleKitChange: (id: string, hasKit: boolean) => void;
   handleCoffeeChange: (id: string, hasCoffee: boolean) => void;
-  updateKitStatus: (id: string, status: boolean) => any,
+  updateKitStatus: (id: string, status: boolean) => any;
 }) {
-  const [infoData, setInfoData] = useState<InfoData[]>(getInfoData(allData.getEntities()));
+  const [infoData, setInfoData] = useState<InfoData[]>(
+    getInfoData(allData.getEntities())
+  );
 
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
   const [selected, setSelected] = useState(null);
 
   const handleOpenKitModal = () => {
     setModalOpen(true);
-  }
+  };
   const handleCloseKitModal = () => {
     setModalOpen(false);
-  }
+  };
 
   const handleSubmit = async (index: number) => {
     // caso o usuário clique em "Sim", roda essa função para mudar se o usuário retirou ou não o kit
     data.getEntities()[index].gotKit = !data.getEntities()[index].gotKit;
-    const response = await updateKitStatus(data.getEntities()[index].id, data.getEntities()[index].gotKit);
-    
+    const response = await updateKitStatus(
+      data.getEntities()[index].id,
+      data.getEntities()[index].gotKit
+    );
+
     // fazer update do valor dos kits retirados.
     const updatedInfoData = infoData.map((item, idx) => {
       if (item.infoTitle === "Kits Retirados") {
         return {
-          ...item, 
-          infoValue: item.infoValue + (response.gotKit ? 1 : -1)
+          ...item,
+          infoValue: item.infoValue + (response.gotKit ? 1 : -1),
         };
       }
-      return item; 
+      return item;
     });
     setInfoData(updatedInfoData);
-    
+
     // fechar o modal
     handleCloseKitModal();
-  }
+  };
 
-
-  return (<>
-    <Modal
-      isOpen={isModalOpen}
-      hasCloseBtn={false}
-      onClose={handleCloseKitModal}>
-      <div className="flex flex-col gap-5">
-        Confirmar mudança?
-        <div className="flex justify-between">
-          <button className="bg-green-600 text-white py-2 px-4 hover:bg-green-800"
-            onClick={() => handleSubmit(selected)}>
-            Sim
-          </button>
-          <button className="bg-red-600 text-white py-2 px-4 hover:bg-red-800" onClick={handleCloseKitModal}>
-            Não
-          </button>
+  return (
+    <>
+      <Modal
+        isOpen={isModalOpen}
+        hasCloseBtn={false}
+        onClose={handleCloseKitModal}
+      >
+        <div className="flex flex-col gap-5">
+          Confirmar mudança?
+          <div className="flex justify-between">
+            <button
+              className="bg-green-600 text-white py-2 px-4 hover:bg-green-800"
+              onClick={() => handleSubmit(selected)}
+            >
+              Sim
+            </button>
+            <button
+              className="bg-red-600 text-white py-2 px-4 hover:bg-red-800"
+              onClick={handleCloseKitModal}
+            >
+              Não
+            </button>
+          </div>
         </div>
-      </div>
-    </Modal>
+      </Modal>
 
-    <InfoCards
-      infoData={infoData}
-    />
-    <DataTable
-      data={new PaginationResponse<UserData>(mapData(data.getEntities(), handleOpenKitModal), data.getTotalNumberOfItems())}
-      pagination={pagination}
-      onRowClick={(index: number) => {
-        setSelected(index);
-      }}
-      onRowSelect={onRowSelect}
-    ></DataTable>
-  </>);
+      <InfoCards infoData={infoData} />
+      <DataTable
+        data={
+          new PaginationResponse<UserData>(
+            mapData(data.getEntities(), handleOpenKitModal),
+            data.getTotalNumberOfItems()
+          )
+        }
+        pagination={pagination}
+        onRowClick={(index: number) => {
+          setSelected(index);
+        }}
+        onRowSelect={onRowSelect}
+      ></DataTable>
+    </>
+  );
 }
 
 function Users() {
@@ -264,8 +288,10 @@ function Users() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState<SemcompApiUser[] | null>(null);
-  const downloadBtnHeight = '48px';
+  const [filteredUsers, setFilteredUsers] = useState<SemcompApiUser[] | null>(
+    null
+  );
+  const downloadBtnHeight = "48px";
 
   async function fetchData(pagination: PaginationRequest) {
     return await semcompApi.getUsers(pagination);
@@ -299,8 +325,6 @@ function Users() {
     }
   }
 
-
-
   async function updateKitStatus(id: string, status: boolean) {
     try {
       const response = await semcompApi.updateKitStatus(id, status);
@@ -327,7 +351,7 @@ function Users() {
           )
         );
       } else {
-        setFilteredUsers((data?.getEntities() || []));
+        setFilteredUsers(data?.getEntities() || []);
       }
       setIsLoading(false);
     }
