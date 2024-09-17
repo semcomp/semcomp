@@ -19,7 +19,7 @@
     "packages/server"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=16 <17"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
