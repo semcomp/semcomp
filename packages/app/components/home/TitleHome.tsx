@@ -7,29 +7,38 @@ interface TitleHomeProps {
 }
 
 const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
-  const [subTitleFontSize, setSubTitleFontSize] = useState<string>("3.5vw");
-  const [titleFontSize, setTitleFontSize] = useState<string>("12.5vw");
-  const [logoSize, setLogoSize] = useState<string>("10vw"); // Tamanho ajustável do logo
+  const [titleSize, setTitleSize] = useState<string>("6vw");
+  const [subTitleSize, setSubTitleSize] = useState<string>("1.5vw");
+  const [subVisible, setSubVisible] = useState<boolean>(true);
 
   useEffect(() => {
-    const updateFontSize = () => {
+    const updateSizes = () => {
       const width = window.innerWidth;
-
-      if (width <= 660) {
-        setSubTitleFontSize("3vw");
-        setLogoSize("20vw"); // Tamanho menor para telas pequenas
+      
+      // Regras para título e subtítulo
+      if (width < 550) {
+        setTitleSize("5pc");
+        setSubVisible(false); // Esconder subtítulo
+      } else if (width < 645) {
+        setTitleSize("5pc");
+        setSubTitleSize("1pc");
+        setSubVisible(true);
+      } else if (width < 1320) {
+        setTitleSize("6pc");
+        setSubTitleSize("1.2pc");
+        setSubVisible(true);
       } else {
-        setSubTitleFontSize("1.5vw");
-        setLogoSize(width > 1050 ? "10vw" : "15vw"); // Tamanhos ajustados para outras larguras de tela
+        // Default
+        setTitleSize("6vw");
+        setSubTitleSize("1.5vw");
+        setSubVisible(true);
       }
-
-      setTitleFontSize(width > 1050 ? "8vw" : "18vw");
     };
 
-    window.addEventListener("resize", updateFontSize);
-    updateFontSize();
+    window.addEventListener("resize", updateSizes);
+    updateSizes();
 
-    return () => window.removeEventListener("resize", updateFontSize);
+    return () => window.removeEventListener("resize", updateSizes);
   }, []);
 
   const getTitleColor = (timeIndex: number): string => {
@@ -46,31 +55,33 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
 
   return (
     <header className="flex flex-col items-center justify-center w-full text-center text-black font-primary">
-      <div className="flex justify-center w-full">
-        <Logo width={logoSize} height={logoSize} fillColor={getTitleColor(timeIndex)} className={undefined} />
+      <div className="flex justify-center w-full mb-4"> {/* Espaçamento entre logo e título */}
+        <Logo width={titleSize} height={titleSize} fillColor={getTitleColor(timeIndex)} className={undefined} />
       </div>
       <h1
         style={{
-          fontSize: titleFontSize,
-          lineHeight: "0.7",
+          fontSize: titleSize, // Tamanho dinâmico do título e logo
+          lineHeight: "0.8",
           color: getTitleColor(timeIndex),
           textShadow: "2px 4px 6px rgba(0, 0, 0, 0.2)",
         }}
       >
         SEMCOMP 27
       </h1>
-      <br />
-      <p
-        style={{
-          fontSize: subTitleFontSize,
-          fontWeight: 100,
-          color: getTitleColor(timeIndex),
-          marginBottom: "1.5vw",
-          textShadow: "1px 2px 4px rgba(0, 0, 0, 0.2)",
-        }}
-      >
-        A maior semana acadêmica de computação do Brasil!
-      </p>
+        {!subVisible && <br />} {/* Adiciona <br /> quando subtítulo é escondido */}
+      {subVisible && (
+        <p
+          style={{
+            fontSize: subTitleSize, // Tamanho dinâmico do subtítulo
+            fontWeight: 100,
+            color: getTitleColor(timeIndex),
+            marginBottom: "1.5vw",
+            textShadow: "1px 2px 4px rgba(0, 0, 0, 0.2)",
+          }}
+        >
+          A maior semana acadêmica de computação do Brasil!
+        </p>
+      )}
     </header>
   );
 };

@@ -121,7 +121,7 @@ const Home: React.FC = () => {
       {/* Conteúdo principal */}
       <div className="relative z-20 flex-grow p-8">
         <TitleHome timeIndex={imageIndex}/>
-      <br />
+
         <div className="flex flex-col items-center w-full gap-4">
           {isUserLoggedIn ? (
           <>
