@@ -2,3 +2,9 @@ node_modules/
 .vscode
 .ds_store
 config/
+
+# ignorar lockfiles de outros gerenciadores de pacotes
+# previne que eles sejam adicionados acidentalmente
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
