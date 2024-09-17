@@ -18,6 +18,9 @@
     "packages/app-qr-code",
     "packages/server"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
     "@commitlint/config-conventional": "^19.5.0",
