@@ -76,11 +76,30 @@ function Login() {
     { start: 0, end: 5, imgIndex: 10 },
   ];
 
+  const getTextColor = (timeIndex: number): string => {
+    if (timeIndex > 7) return "yellow";
+    if (timeIndex === 7) return "white";
+    if (timeIndex > 2) return "blue";
+    if (timeIndex === 2) return "primary";
+    if (timeIndex === 1) return "white";
+    if (timeIndex === 0) return "white";
+  };
+
+  const getBgColor = (timeIndex: number): string => {
+    if (timeIndex > 7) return "yellow";
+    if (timeIndex >= 0) return "primary";
+  };
+
+  const getBgTextColor = (timeIndex: number): string => {
+    if (timeIndex > 7) return "primary";
+    if (timeIndex >= 0) return "white";
+  };
+
   useEffect(() => {
     const currentHour = new Date().getHours();
     const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
     setImageIndex(
-      // 0
+      // 2
       matchedImage?.imgIndex ?? 10,
     );
   }, []);
@@ -90,20 +109,21 @@ function Login() {
       <Navbar />
       <Sidebar />
       <AnimatedBG imageIndex={imageIndex} />
-      <main className="flex justify-center flex-1 w-full md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs">
-        <div className="flex flex-col items-center justify-center md:w-[80%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20">
+      <main className="flex justify-center flex-1 w-full md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs md:items-center">
+        { imageIndex != null &&
+        <div className="flex flex-col items-center justify-center md:w-[50%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20">
           <div className="items-center justify-center h-fit md:w-[70%] md:p-9 md:pb-2 tablet:p-12 phone:p-9 font-secondary md:rounded-none tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20">
-            <h1 className="text-2xl text-center text-white font-secondary tablet:text-3xl">Entrar</h1>
-            <p className="my-4 text-center text-white font-secondary">
+            <h1 className={`text-2xl text-center text-${getTextColor(imageIndex)} font-secondary tablet:text-3xl`}>Entrar</h1>
+            <p className={`my-4 text-center text-${getTextColor(imageIndex)} font-secondary`}>
                 Não tem conta?{" "}
                 <Link href="/signup">
-                  <a className="text-white underline cursor-pointer hover:text-primary hover:text-blue-500 visited:bg-none">
+                  <a className={`text-${getTextColor(imageIndex)} underline cursor-pointer hover:text-${getBgColor(imageIndex)} hover:text-blue-500 visited:bg-none`}>
                     {" "}
                     Crie uma agora!
                   </a>
                 </Link>
               </p>
-            <form className="w-full text-white font-secondary" onSubmit={handleSubmit}>
+            <form className="w-full font-secondary" onSubmit={handleSubmit}>
               {isPrivacyPolicyModalOpen && (
                 <PrivacyPolicyModal
                   onRequestClose={() => setIsPrivacyPolicyModalOpen(false)}
@@ -119,14 +139,14 @@ function Login() {
                   </div>
                 }
                 autofocus={true}
-                className="my-3 font-secondary"
+                className={`my-3 font-secondary text-${getTextColor(imageIndex)}`}
                 label="E-mail"
                 value={email}
                 onChange={handleEmailChange}
                 type={InputType.Text}
               />
               <Input
-                className="my-3 font-secondary"
+                className={`my-3 font-secondary text-${getTextColor(imageIndex)}`}
                 label="Senha"
                 value={password}
                 onChange={handlePasswordChange}
@@ -140,22 +160,22 @@ function Login() {
                 }
               />
               <LoadingButton
-                className="w-full py-3 text-white rounded-lg shadow bg-primary font-secondary hover:scale-105"
+                className={`w-full py-3 text-${getBgTextColor(imageIndex)} rounded-lg shadow bg-${getBgColor(imageIndex)} font-secondary hover:scale-105`}
                 isLoading={isLoggingIn}
                 type="submit"
               >
                 Entrar
               </LoadingButton> 
               <Link href="/reset-password">
-                <div className="w-full my-3 text-center text-white underline cursor-pointer hover:text-primary decoration-solid">
+                <div className={`w-full my-3 text-center text-${getTextColor(imageIndex)} underline cursor-pointer hover:text-${getBgColor(imageIndex)} decoration-solid`}>
                   Esqueceu sua senha?
                 </div>
               </Link>
             </form>
             <div>
-              <section className="text-center text-white md:pt-12 tablet:pt-20 phone:pt-8">
+              <section className={`text-center text-${getTextColor(imageIndex)} md:pt-12 tablet:pt-20 phone:pt-8`}>
                 <p>© Semcomp 2024. Todos os direitos reservados.</p>
-                <p className="mt-3 mb-6 text-xs text-white cursor-pointer hover:text-primary">
+                <p className={`mt-3 mb-6 text-xs text-${getTextColor(imageIndex)} cursor-pointer hover:text-${getBgColor(imageIndex)}`}>
                     <span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
                       <u>Política de Privacidade</u>
                     </span>
@@ -164,9 +184,7 @@ function Login() {
             </div>
           </div>
         </div>
-          <div id="info-semcomp" className="flex-col items-center justify-center w-full md:flex phone:hidden tablet:hidden">
-    
-          </div>
+        }
       </main>
       {/* <Footer /> */}
     </div>

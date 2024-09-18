@@ -119,24 +119,24 @@ const Home: React.FC = () => {
       }
 
       {/* Conteúdo principal */}
-      <div className="relative z-20 flex-grow p-8">
+      <div className="relative z-20 flex-grow p-8 flex flex-col items-center justify-center">
         <TitleHome timeIndex={imageIndex}/>
 
-        <div className="flex flex-col items-center w-full gap-4">
+        <div className="flex flex-col items-center w-full gap-4 ">
           {isUserLoggedIn ? (
           <>
-            <ButtonMenuHome timeIndex={imageIndex} label="PEFIL" onClick={handlePerfil} />
-            <ButtonMenuHome timeIndex={imageIndex} label="SAIR" onClick={handleSair} />
+            <ButtonMenuHome label="PEFIL" onClick={handlePerfil} />
+            <ButtonMenuHome label="SAIR" onClick={handleSair} />
           </>
           ) : (
             <>
-              <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
-              <ButtonMenuHome timeIndex={imageIndex} label="ENTRAR" onClick={handleEntrar} />
+              <ButtonMenuHome label="INSCREVA-SE" onClick={handleInscrevase} />
+              <ButtonMenuHome label="ENTRAR" onClick={handleEntrar} />
             </>
           )}
-          <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleSobre} />
-          <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleCronograma} />
-          <ButtonMenuHome timeIndex={imageIndex} label="FAQ" onClick={handleFaq} />
+          <ButtonMenuHome label="SOBRE" onClick={handleSobre} />
+          <ButtonMenuHome label="CRONOGRAMA" onClick={handleCronograma} />
+          <ButtonMenuHome label="FAQ" onClick={handleFaq} />
         </div>
         <div className="mt-8">
         <Countdown timeIndex={imageIndex} />
