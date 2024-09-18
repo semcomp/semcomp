@@ -141,7 +141,7 @@ const Home: React.FC = () => {
             </>
           )}
           <ButtonMenuHome label="SOBRE" onClick={handleSobre} />
-          <ButtonMenuHome label="CRONOGRAMA" onClick={handleCronograma} />
+          {/* <ButtonMenuHome label="CRONOGRAMA" onClick={handleCronograma} /> */}
           <ButtonMenuHome label="FAQ" onClick={handleFaq} />
           {/* { isMobile &&  */}
           <ButtonMenuHome label="PATROCINADORES" onClick={handleSponsors} />
