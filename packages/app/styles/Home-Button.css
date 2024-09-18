@@ -1,6 +1,7 @@
 .pixelbutton{
   background-color: rgb(255, 255, 255);
   z-index: 20;
+  outline: none; /* Remove o contorno ao clicar */
 }
 
 .pixelbutton::before{

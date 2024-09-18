@@ -11,7 +11,7 @@ import NewFooter from "./newFooter";
 import Countdown from "../components/home/Countdown";
 import Routes from "../routes";
 import handler from '../api/handlers';
-import API from "../api";
+import Sponsors from "../components/home/Sponsors";
 
 // Array com os intervalos de horas e seus respectivos índices de imagens
 const timeToImage = [
@@ -35,7 +35,7 @@ const Home: React.FC = () => {
   const [ buttonSelected, setButtonSelected ] = useState('');
   const isUserLoggedIn = Boolean(user);
   const [openSignup, setOpenSignup] = useState(true);
-  const [showCalendar, setShowCalendar] = useState(false);
+  const [isMobile, setisMobile] = useState(true);
 
   const [imageIndex, setImageIndex] = useState<number>(10);
 
@@ -43,16 +43,6 @@ const Home: React.FC = () => {
     router.push(Routes.home);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-  }
-
-  async function shouldShowCalendar() {
-    try {
-      const response = await API.events.getAll();
-      setShowCalendar(Object.keys(response.data).length > 0);
-    } catch (e) {
-      console.error(e);
-      return [];
-    }
   }
   
   async function fetchData() {
@@ -67,17 +57,15 @@ const Home: React.FC = () => {
   
   useEffect(() => {
       fetchData();
-      shouldShowCalendar();
+      setisMobile(window.innerWidth < 1050)
   }, []);
 
   useEffect(() => {
     const currentHour = new Date().getHours();
     const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
-    setImageIndex(
-      // 0
-      matchedImage?.imgIndex ?? 10,
-    );
+    setImageIndex(matchedImage?.imgIndex ?? 10);
   }, []);
+
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -108,6 +96,10 @@ const Home: React.FC = () => {
     setButtonSelected('faq');
   }
 
+  function handleSponsors() {
+    setButtonSelected('sponsors');
+  }
+
   function handlePerfil() {
     router.push(Routes.profile);
   }
@@ -136,26 +128,33 @@ const Home: React.FC = () => {
       <div className="relative z-20 flex-grow p-8 flex flex-col items-center justify-center">
         <TitleHome timeIndex={imageIndex}/>
 
-        <div className="flex flex-col items-center w-full gap-5">
+        <div className="flex flex-col items-center w-full gap-4 ">
           {isUserLoggedIn ? (
           <>
-            <ButtonMenuHome timeIndex={imageIndex} label="PEFIL" onClick={handlePerfil} />
-            <ButtonMenuHome timeIndex={imageIndex} label="RIDDLE" onClick={handleSair} />
+            <ButtonMenuHome label="PEFIL" onClick={handlePerfil} />
+            <ButtonMenuHome label="SAIR" onClick={handleSair} />
           </>
           ) : (
             <>
-              <ButtonMenuHome timeIndex={imageIndex} label="INSCREVA-SE" onClick={handleInscrevase} />
-              <ButtonMenuHome timeIndex={imageIndex} label="ENTRAR" onClick={handleEntrar} />
+              <ButtonMenuHome label="INSCREVA-SE" onClick={handleInscrevase} />
+              <ButtonMenuHome label="ENTRAR" onClick={handleEntrar} />
             </>
           )}
-          <ButtonMenuHome timeIndex={imageIndex} label="SOBRE" onClick={handleSobre} />
-          {showCalendar ?? <ButtonMenuHome timeIndex={imageIndex} label="CRONOGRAMA" onClick={handleCronograma} />}
-          {isUserLoggedIn && <ButtonMenuHome timeIndex={imageIndex} label="SAIR" onClick={handleSair} />}
+          <ButtonMenuHome label="SOBRE" onClick={handleSobre} />
+          <ButtonMenuHome label="CRONOGRAMA" onClick={handleCronograma} />
+          <ButtonMenuHome label="FAQ" onClick={handleFaq} />
+          {/* { isMobile &&  */}
+          <ButtonMenuHome label="PATROCINADORES" onClick={handleSponsors} />
+          {/* } */}
         </div>
         <div className="mt-8">
         <Countdown timeIndex={imageIndex} />
         </div>
       </div>
+      {/* {
+        !isMobile &&
+        <Sponsors />
+      } */}
 
       {/* Footer */}
       <NewFooter locale="p" />

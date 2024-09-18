@@ -2,12 +2,14 @@ import React, { useEffect, useState } from "react";
 import { ReactElement } from "react";
 import Logo from "../../components/home/Logo";
 
-
 interface TitleHomeProps {
   timeIndex: number;
 }
 
 const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
+  const [titleSize, setTitleSize] = useState<string>("6vw");
+  const [subTitleSize, setSubTitleSize] = useState<string>("1.5vw");
+  const [subVisible, setSubVisible] = useState<boolean>(true);
   const [noAbsoluteMarginTop, setNoAbsoluteMarginTop] = useState<number | undefined>();
   const [betaMarginTop, setBetaMarginTop] = useState<number | undefined>();
   const [showAccessorys, setShowAccessorys] = useState<boolean>(true);
@@ -16,17 +18,10 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
   const [logoSize, setLogoSize] = useState<string>("12.5vw");
 
   useEffect(() => {
-    if (timeIndex > 6) {
-      setShowAccessorys(false);
-    }
-  }, [timeIndex]);
-
-  useEffect(() => {
-    const updateFontSize = () => {
+    const updateFontSize  = () => {
       const width = window.innerWidth;
-
-      // Lógica para o subtítulo
-      if (width <= 660) {
+       // Lógica para o subtítulo
+       if (width <= 660) {
         setSubTitleFontSize("3vw");
       } else {
         setSubTitleFontSize("1.5vw");
@@ -34,7 +29,11 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
 
       // Lógica para o título principal
       if (width > 1050) {
-        setTitleFontSize("8vw");
+        setTitleFontSize("7vw");
+
+      } else if(width > 660){
+        setTitleFontSize("13vw");
+
       } else {
         setTitleFontSize("18vw");
       }
@@ -43,16 +42,16 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
       if (width > 1050) {
         setLogoSize("12vw");
       } else if(width > 660){
-        setLogoSize("30vw");
+        setLogoSize("25vw");
       }else{
         setLogoSize("34vw");
       }
     };
 
     window.addEventListener("resize", updateFontSize);
-    updateFontSize(); // Chama a função quando o componente monta
+    updateFontSize(); 
 
-    return () => window.removeEventListener("resize", updateFontSize); // Limpa o listener quando o componente desmonta
+    return () => window.removeEventListener("resize", updateFontSize);
   }, []);
 
   const getTitleColor = (timeIndex: number): string => {
@@ -61,15 +60,15 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
     if (timeIndex === 2) return "#300E82";
     if (timeIndex <= 5) return "#242D5C";
     if (timeIndex === 6) return "#242D59";
-    if (timeIndex <= 8) return "#FCFBFF";
-    if (timeIndex === 9) return "#FCFBFF";
+    if (timeIndex <= 8) return "#F9F004";
+    if (timeIndex === 9) return "#F9F004";
 
-    return "#FCFBFF";
+    return "#F9F004";
   };
 
   return (
-    <header id="header" className="text-black font-primary">
-      <div className="w-full z-4"></div>
+    <header className="flex flex-col items-center justify-center w-full text-center text-black font-primary">
+       <div className="w-full z-4"></div>
       <div style={{ display: showAccessorys ? "block" : "none" }}></div>
       <div
         className="relative text-center felz"

@@ -76,11 +76,29 @@ function Login() {
     { start: 0, end: 5, imgIndex: 10 },
   ];
 
+  const getTextColor = (timeIndex: number): string => {
+    if (timeIndex > 7) return "yellow";
+    if (timeIndex === 7) return "white";
+    if (timeIndex > 2) return "blue";
+    if (timeIndex === 2) return "primary";
+    if (timeIndex === 1) return "white";
+    if (timeIndex === 0) return "white";
+  };
+
+  const getBgColor = (timeIndex: number): string => {
+    if (timeIndex > 7) return "yellow";
+    if (timeIndex >= 0) return "primary";
+  };
+
+  const getBgTextColor = (timeIndex: number): string => {
+    if (timeIndex > 7) return "primary";
+    if (timeIndex >= 0) return "white";
+  };
+
   useEffect(() => {
     const currentHour = new Date().getHours();
     const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
     setImageIndex(
-      // 0
       matchedImage?.imgIndex ?? 10,
     );
   }, []);
@@ -90,20 +108,21 @@ function Login() {
       <Navbar />
       <Sidebar />
       <AnimatedBG imageIndex={imageIndex} />
-      <main className="flex w-full flex-1 md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs justify-center">
-        <div className="flex flex-col items-center justify-center md:w-[80%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20">
-          <div className="items-center justify-center h-fit md:w-[70%] md:p-9 md:pb-2 tablet:p-12 phone:p-9 font-secondary md:rounded-none tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20">
-            <h1 className="text-2xl font-secondary text-center tablet:text-3xl text-white">Entrar</h1>
-            <p className="font-secondary text-center my-4 text-white">
+      <main className="flex justify-center flex-1 w-full md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs md:items-center">
+        { imageIndex != null &&
+        <div className="flex flex-col items-center justify-center md:w-[50%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20 rounded-lg">
+          <div className="items-center justify-center h-fit md:w-[70%] md:p-9 md:pb-2 tablet:p-12 phone:p-9 font-secondary tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20">
+            <h1 className={`text-2xl text-center text-${getTextColor(imageIndex)} font-secondary tablet:text-3xl`}>Entrar</h1>
+            <p className={`my-4 text-center text-${getTextColor(imageIndex)} font-secondary`}>
                 Não tem conta?{" "}
                 <Link href="/signup">
-                  <a className=" hover:text-primary cursor-pointer underline text-white hover:text-blue-500 visited:bg-none">
+                  <a className={`text-${getTextColor(imageIndex)} underline cursor-pointer hover:text-${getBgColor(imageIndex)} hover:text-blue-500 visited:bg-none`}>
                     {" "}
                     Crie uma agora!
                   </a>
                 </Link>
               </p>
-            <form className="w-full font-secondary text-white" onSubmit={handleSubmit}>
+            <form className="w-full font-secondary" onSubmit={handleSubmit}>
               {isPrivacyPolicyModalOpen && (
                 <PrivacyPolicyModal
                   onRequestClose={() => setIsPrivacyPolicyModalOpen(false)}
@@ -119,14 +138,14 @@ function Login() {
                   </div>
                 }
                 autofocus={true}
-                className="my-3 font-secondary"
+                className={`my-3 font-secondary text-${getTextColor(imageIndex)}`}
                 label="E-mail"
                 value={email}
                 onChange={handleEmailChange}
                 type={InputType.Text}
               />
               <Input
-                className="my-3 font-secondary"
+                className={`my-3 font-secondary text-${getTextColor(imageIndex)}`}
                 label="Senha"
                 value={password}
                 onChange={handlePasswordChange}
@@ -140,22 +159,22 @@ function Login() {
                 }
               />
               <LoadingButton
-                className="bg-primary text-white w-full py-3 shadow font-secondary rounded-lg hover:scale-105"
+                className={`w-full py-3 text-${getBgTextColor(imageIndex)} rounded-lg shadow bg-${getBgColor(imageIndex)} font-secondary hover:scale-105`}
                 isLoading={isLoggingIn}
                 type="submit"
               >
                 Entrar
               </LoadingButton> 
               <Link href="/reset-password">
-                <div className="text-center w-full my-3 cursor-pointer hover:text-primary underline decoration-solid text-white">
+                <div className={`w-full my-3 text-center text-${getTextColor(imageIndex)} underline cursor-pointer hover:text-${getBgColor(imageIndex)} decoration-solid`}>
                   Esqueceu sua senha?
                 </div>
               </Link>
             </form>
             <div>
-              <section className="text-center md:pt-12 tablet:pt-20 phone:pt-8 text-white">
+              <section className={`text-center text-${getTextColor(imageIndex)} md:pt-12 tablet:pt-20 phone:pt-8`}>
                 <p>© Semcomp 2024. Todos os direitos reservados.</p>
-                <p className="mt-3 mb-6 hover:text-primary text-xs cursor-pointer text-white">
+                <p className={`mt-3 mb-6 text-xs text-${getTextColor(imageIndex)} cursor-pointer hover:text-${getBgColor(imageIndex)}`}>
                     <span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
                       <u>Política de Privacidade</u>
                     </span>
@@ -164,44 +183,7 @@ function Login() {
             </div>
           </div>
         </div>
-          <div id="info-semcomp" className="md:flex flex-col items-center phone:hidden tablet:hidden w-full justify-center">
-            <Card className="max-w-md m-8 px-12 py-12 text-sm font-secondary text-justify bg-white rounded-md">
-              <aside className="max-w-base">
-              Ficamos muito felizes por se interessar em nosso evento!
-              <br />
-              <br />A Semcomp é 100% construída e pensada por alunos dos cursos de<strong> Ciências de Computação</strong>,
-              <strong> Sistemas de Informação</strong> e
-              <strong> Ciência de Dados</strong> do campus
-              <strong> São Carlos da Universidade de São Paulo</strong>. Todo
-              ano realizamos um evento presencial com muitas palestras,
-              minicursos, concursos, interação e muita comida! Ah, e por último
-              mas não menos importante, o nosso Hackathon! Ficou animado?
-              <br />
-              <br />
-              Esperamos que todos se divirtam bastante e tenham o melhor da
-              maior semana de computação do Brasil. Sigam a Semcomp no{" "}
-              <a
-                className="social-links"
-                href="https://instagram.com/semcomp"
-                rel="noopnener"
-              >
-                Instagram (@semcomp)
-              </a>{" "}
-              e no{" "}
-              <a
-                className="social-links"
-                href="https://t.me/semcomp_avisos"
-                rel="noopnener"
-              >
-                Telegram (https://t.me/semcomp_avisos) 
-              </a>
-              {" "} para ficarem ligados em tudo!.
-              <br />
-              <br />
-              Com carinho, equipe Semcomp!
-              </aside>
-            </Card>
-          </div>
+        }
       </main>
       {/* <Footer /> */}
     </div>

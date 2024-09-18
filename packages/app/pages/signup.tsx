@@ -167,11 +167,31 @@ function SignupPage() {
     { start: 0, end: 5, imgIndex: 10 },
   ];
 
+  const getTextColor = (timeIndex: number): string => {
+    if (timeIndex > 7) return "yellow";
+    if (timeIndex === 7) return "white";
+    if (timeIndex > 2) return "blue";
+    if (timeIndex === 2) return "primary";
+    if (timeIndex === 1) return "white";
+    if (timeIndex === 0) return "white";
+  };
+
+  const getBgColor = (timeIndex: number): string => {
+    if (timeIndex > 7) return "yellow";
+    if (timeIndex >= 0) return "primary";
+  };
+
+  const getBgTextColor = (timeIndex: number): string => {
+    if (timeIndex > 7) return "primary";
+    if (timeIndex >= 0) return "white";
+  };
+
+
   useEffect(() => {
     const currentHour = new Date().getHours();
     const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
     setImageIndex(
-      // 0
+      // 9
       matchedImage?.imgIndex ?? 10,
     );
   }, []);
@@ -193,13 +213,13 @@ function SignupPage() {
   }, []);
 
   return (<>
-    <div className="flex flex-col justify-between min-h-screen z-20">
+    <div className="flex flex-col min-h-screen md:h-full">
       <Navbar />
       <Sidebar />
       <AnimatedBG imageIndex={imageIndex} />
-      <main className="flex w-full flex-1 md:text-sm tablet:text-xl phone:text-xs ">
-        <div className="flex flex-col items-center justify-center md:w-[80%] shadow-md mobile:w-full backdrop-brightness-95 backdrop-blur z-20">
-          <div className=" text-white items-center justify-center font-secondary h-fit phone:mt-12 backdrop-brightness-90 backdrop-blur z-20 md:w-[70%] md:p-9 md:pb-2 tablet:p-12 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">
+      <main className={`flex justify-center flex-1 w-full md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs md:items-center`}>
+        <div className="flex flex-col items-center justify-center md:w-[50%] shadow-md phone:w-full backdrop-brightness-95 backdrop-blur z-20 rounded-lg">
+          <div className="h-full items-center justify-center font-secondary phone:mt-12 backdrop-brightness-90 backdrop-blur z-20 md:w-[70%] md:p-9 md:pb-2 tablet:p-12 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">
             { step > 0 && (
               <div className="flex items-center justify-center hover:bg-[#E6E6E6] hover:bg-opacity-50 p-2 rounded-lg h-fit w-fit z-20 cursor-pointer">
                 <ArrowIcon 
@@ -219,22 +239,25 @@ function SignupPage() {
               openSignup?
               (
                 <>
-                  <h1 className="text-2xl font-secondary text-center tablet:text-3xl text-white ">Cadastrar</h1>
+                  <h1 className={`text-2xl text-center text-${getTextColor(imageIndex)} font-secondary tablet:text-3xl `}>Cadastrar</h1>
                   <div className="flex items-center justify-center w-full">
                     <div className="w-full max-w-xs ">
                       <Stepper
                         numberOfSteps={2}
                         activeStep={step}
                         onStepClick={handleStepClick}
+                        activeColor={getBgColor(imageIndex)}
+                        unactiveColor={getBgTextColor(imageIndex)}
                       />
                     </div>
                   </div>
-
-                  {/* Renders the correct form according to the current step */}
-                  {stepComponent}
-                  <section className="text-center md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base z-20 text-white ">
+                  <div className={`text-${getTextColor(imageIndex)}`}>
+                    {/* Renders the correct form according to the current step */}
+                    {stepComponent}
+                  </div>
+                  <section className={`z-20 text-center text-${getTextColor(imageIndex)} md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base`}>
                     <p>© Semcomp 2024. Todos os direitos reservados.</p>
-                    <p className="mt-3 mb-6 hover:text-primary text-xs cursor-pointer">
+                    <p className={`mt-3 mb-6 text-xs cursor-pointer hover:text-${getBgColor(imageIndex)}`}>
                         { step < 1 && (<span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
                           <u>Política de Privacidade</u>
                         </span>
@@ -258,45 +281,6 @@ function SignupPage() {
               )
             }
           </div>
-        </div>
-        <div id="info-semcomp" className="md:flex flex-col items-center phone:hidden tablet:hidden w-full justify-center">
-          <Card className="max-w-md m-8 px-12 py-12 text-sm font-secondary text-justify bg-white rounded-md">
-          <aside className="max-w-base">
-          Ficamos muito felizes por se interessar em nosso evento!
-              <br />
-              <br />A Semcomp é 100% construída e pensada por alunos dos cursos
-              de<strong> Ciências de Computação</strong>,
-              <strong> Sistemas de Informação</strong> e
-              <strong> Ciência de Dados</strong> do campus
-              <strong> São Carlos da Universidade de São Paulo</strong>. Todo
-              ano realizamos um evento presencial com muitas palestras,
-              minicursos, concursos, interação e muita comida! Ah, e por último
-              mas não menos importante, o nosso Hackathon! Ficou animado?
-              <br />
-              <br />
-              Esperamos que todos se divirtam bastante e tenham o melhor da
-              maior semana de computação do Brasil. Sigam a Semcomp no{" "}
-              <a
-                className="social-links"
-                href="https://instagram.com/semcomp"
-                rel="noopnener"
-              >
-                Instagram (@semcomp)
-              </a>{" "}
-              e no{" "}
-              <a
-                className="social-links"
-                href="https://t.me/semcomp_avisos"
-                rel="noopnener"
-              >
-                Telegram (https://t.me/semcomp_avisos) 
-              </a>
-              {" "} para ficarem ligados em tudo!.
-              <br />
-              <br />
-              Com carinho, equipe Semcomp!
-              </aside>
-          </Card>
         </div>
       </main>
       {/* <Footer /> */}

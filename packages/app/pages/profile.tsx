@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 
 import { QRCodeSVG } from "qrcode.react";
-import { Divider, List, ListItem, ListItemText } from "@mui/material";
+import { Divider, List, ListItem, ListItemText, Tooltip } from "@mui/material";
 import Chip from "@mui/material/Chip";
 
 import API from "../api";
@@ -34,6 +34,13 @@ import Sidebar from "../components/sidebar";
 import Navbar from "../components/navbar/index";
 import AnimatedBG from "./animatedBG";
 import { NewFooter } from "./newFooter";
+
+import Symbiosia from "../assets/27-imgs/symbiosia.png"; 
+import Cybertechna from "../assets/27-imgs/cybertechna.png"; 
+import Stormrock from "../assets/27-imgs/stormrock.png"; 
+import Arcadium from "../assets/27-imgs/arcadium.png";  
+import { Info } from "@mui/icons-material";
+
 
 function Profile() {
   const { config } = useAppContext();
@@ -169,6 +176,20 @@ function Profile() {
   
   const userHouseName = userFetched?.house?.name;
   const userHouseTelegram = userFetched?.house?.telegramLink;
+  const houseImageSrc = {
+    "Symbiosia": Symbiosia.src,
+    "Stormrock": Stormrock.src,
+    "Arcadium": Arcadium.src,
+    "Cybertechna": Cybertechna.src,
+  }[userHouseName];
+
+  
+  const backgroundAuthor = {
+    "Symbiosia": " Adam - @adamfergusonart [art, animation] | Prism - @GFLK_pik [art, animation] | Joey - @JalopesTL [music, animation] | Pik - @PictoDev [art, animation]",
+    "Stormrock": "Artstation: kenzee wee",
+    "Arcadium": "Tumblr: @the2dstagesfg",
+    "Cybertechna": "Deviantart: o0mikeking0o",
+  }[userHouseName];
 
   function toPascalCase(str: string) {
     return str
@@ -263,13 +284,13 @@ function Profile() {
 
   return (
     userFetched && <div className="min-h-screen w-full flex flex-col justify-between font-secondary text-sm"
-      // style={{
-      //   // backgroundImage: `url(${userFetched.house.name}.gif)`,
-      //   backgroundImage: `url(Symbiosia.gif)`,
-      //   backgroundSize: "cover",
-      //   backgroundRepeat: "no-repeat",
-      //   backgroundPosition: "center"
-      // }}
+      style={{
+        backgroundImage: `url(${userFetched.house.name}.gif)`,
+        // backgroundImage: `url(Stormrock.gif)`,
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center"
+      }}
     >
     <Navbar />
     <Sidebar />
@@ -335,15 +356,15 @@ function Profile() {
         />
       )}
       <div>
-      <AnimatedBG imageIndex={imageIndex} />
+      {/* <AnimatedBG imageIndex={imageIndex} /> */}
 
-      <main className="p-8 h-full w-full justify-center col-gap-4 md:flex pt-16 sm:pt-20 text-white sm:items-center z-20">
-        <div className="flex flex-col h-full md:w-[70%] md:grid md:grid-cols-2 md:gap-4 z-20">
+      <main className="p-8 h-full w-full justify-center col-gap-4 md:flex text-primary pt-16 sm:pt-20 sm:items-center z-20">
+        <div className="flex flex-col h-full md:w-[60%] md:grid md:grid-cols-2 md:gap-4 z-20 mobile:grid mobile:grid-cols-1 mobile:gap-4">
         <div className="flex flex-col w-full md:grid md:grid-cols-1 gap-4 z-20">
           {userFetched && (
             <>
-              <Card className="flex flex-col items-center p-9 w-full rounded-lg border-solid border justify-center">
-                <div className="border-8 border-solid rounded-lg">
+              <Card className="flex flex-col items-center p-9 w-full bg-white rounded-lg justify-center">
+                <div className="border-8 border-solid rounded-lg border-white">
                   <QRCodeSVG value={userFetched && userFetched.id} />
                 </div>
                 <p className="text-xl text-center my-3">
@@ -373,7 +394,7 @@ function Profile() {
                   </div>
                 }
               </Card>
-              <Card className="flex flex-col items-center p-9 w-full mb-6 rounded-lg border-solid border justify-center">
+              <Card className="flex flex-col items-center p-9 bg-white w-full rounded-lg justify-center">
                 <h1 className="text-xl py-2">
                   Compras
                 </h1>
@@ -424,7 +445,7 @@ function Profile() {
           {/* ABRIR AQUI PARA MOSTRAR INSCRIÇÕES */}
           { eventCount > 0 &&
             (
-            <Card className="flex flex-col items-center p-9 w-full mb-6 text-center rounded-lg border-solid border justify-center">
+            <Card className="flex flex-col items-center p-9 w-full bg-white text-center rounded-lg justify-center">
               <h1 className="text-xl">
                 Inscrições em Eventos
               </h1>
@@ -477,7 +498,7 @@ function Profile() {
           
           { userFetched && config.openAchievement &&
             ( 
-              <Card className="flex flex-col items-center p-9 w-full mb-6 text-center rounded-lg border-solid border justify-center">
+              <Card className="flex flex-col items-center p-9 w-full bg-white text-center rounded-lg justify-center">
                 <div className="flex items-center justify-between w-full">
                   <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Conquistas
@@ -531,12 +552,12 @@ function Profile() {
         </div>
         <div>
           {userFetched && (
-            <Card className="flex flex-col items-center p-9 w-full mb-6 rounded-lg border-solid border">
+            <Card className="flex flex-col items-center p-9 bg-white w-full rounded-lg">
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Overflow
                 </h1>
                 <strong>Sua casa é...</strong>
-                <img className="w-full object-fill max-w-sm" alt="User house" src={userFetched.house.imageBase64} />
+                <img className="w-full object-fill max-w-sm" alt="User house" src={houseImageSrc} />
                 <p className="house-name text-xl">{userFetched.house.name}</p>
                 {/* <a
                   className="bg-[#0088cc] text-white p-2 rounded-lg mt-2 text-center"
@@ -547,14 +568,14 @@ function Profile() {
                   Entrar no grupo
                   <TelegramIcon />
                 </a>  */}
-                <button className="text-sm mt-5 text-white hover:underline" onClick={() => setIsAboutOverflowModalOpen(true)}>
+                <button className="text-sm mt-5 text-primary hover:underline" onClick={() => setIsAboutOverflowModalOpen(true)}>
                     O que é o Overflow?
                 </button>
               </Card>
             )}
         </div>
         </div>
-        {
+        {/* {
           showCalendar ?? (
           <div>
             <Card className="flex flex-col items-center p-9 mb-6 max-w-4xl  rounded-lg">
@@ -562,10 +583,21 @@ function Profile() {
               <EventsCalendar />
             </Card>
           </div>)
-        }
+        } */}
+        
       </main>
       </div>
-      <div>
+      <div className="flex flex-col justify-right">
+        <div className="flex flex-row md:justify-end mobile:justify-center md:pr-6">
+          <Tooltip
+              arrow
+              placement="top-start"
+              title={"Autor da imagem | " + backgroundAuthor}
+              enterTouchDelay={1}
+            >
+            <Info sx={{ color: "#d3d3d3", paddingRight: "2px", opacity: 0.75}} />
+          </Tooltip>
+        </div>
         <NewFooter locale="p"/>
       </div>
       </div>
