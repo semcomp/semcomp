@@ -3,6 +3,7 @@ import { AiOutlineClose } from 'react-icons/ai';
 import Faq from './Faq';
 import Schedule from './Schedule';
 import About from './About';
+import Sponsors from './Sponsors';
 
 interface ModalProps {
   element: string;
@@ -36,6 +37,7 @@ const Modal: React.FC<ModalProps> = ({ element, setButtonSelected }) => {
           {element === 'cronograma' && <Schedule />}
           {element === 'faq' && <Faq />}
           {element === 'sobre' && <About />}
+          {element === 'sponsors' && <Sponsors />}
         </div>
       </div>
 

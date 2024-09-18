@@ -11,6 +11,7 @@ import NewFooter from "./newFooter";
 import Countdown from "../components/home/Countdown";
 import Routes from "../routes";
 import handler from '../api/handlers';
+import Sponsors from "../components/home/Sponsors";
 
 // Array com os intervalos de horas e seus respectivos índices de imagens
 const timeToImage = [
@@ -34,6 +35,7 @@ const Home: React.FC = () => {
   const [ buttonSelected, setButtonSelected ] = useState('');
   const isUserLoggedIn = Boolean(user);
   const [openSignup, setOpenSignup] = useState(true);
+  const [isMobile, setisMobile] = useState(true);
 
   const [imageIndex, setImageIndex] = useState<number>(10);
 
@@ -55,6 +57,7 @@ const Home: React.FC = () => {
   
   useEffect(() => {
       fetchData();
+      setisMobile(window.innerWidth < 1050)
   }, []);
 
   useEffect(() => {
@@ -63,7 +66,6 @@ const Home: React.FC = () => {
     setImageIndex(matchedImage?.imgIndex ?? 10);
   }, []);
 
-  //matchedImage?.imgIndex ?? 10
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -92,6 +94,10 @@ const Home: React.FC = () => {
 
   function handleFaq() {
     setButtonSelected('faq');
+  }
+
+  function handleSponsors() {
+    setButtonSelected('sponsors');
   }
 
   function handlePerfil() {
@@ -137,11 +143,18 @@ const Home: React.FC = () => {
           <ButtonMenuHome label="SOBRE" onClick={handleSobre} />
           <ButtonMenuHome label="CRONOGRAMA" onClick={handleCronograma} />
           <ButtonMenuHome label="FAQ" onClick={handleFaq} />
+          {/* { isMobile &&  */}
+          <ButtonMenuHome label="PATROCINADORES" onClick={handleSponsors} />
+          {/* } */}
         </div>
         <div className="mt-8">
         <Countdown timeIndex={imageIndex} />
         </div>
       </div>
+      {/* {
+        !isMobile &&
+        <Sponsors />
+      } */}
 
       {/* Footer */}
       <NewFooter locale="p" />

@@ -14,6 +14,7 @@ import { useAppContext } from '../../libs/contextLib';
 import { useRouter } from 'next/router';
 import { createTheme } from '@mui/material/styles';
 import Modal from '../home/Modal'; // Importar o Modal
+import Logo from '../home/Logo';
 
 const theme = createTheme({
   palette: {
@@ -92,7 +93,7 @@ function Sidebar(props) {
                 </IconButton>
               </ThemeProvider>
               <Link href={Routes.home}>
-                <img className="w-8 my-auto mr-2" src={SemcompLogo.src} alt="semcomp logo" />
+                <Logo className="my-auto mr-2" height="2rem" width="2rem" fillColor="#2E1B5B"/>
               </Link>
             </Toolbar>
           </AppBar>

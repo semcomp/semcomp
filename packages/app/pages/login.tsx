@@ -99,7 +99,6 @@ function Login() {
     const currentHour = new Date().getHours();
     const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
     setImageIndex(
-      // 2
       matchedImage?.imgIndex ?? 10,
     );
   }, []);
@@ -111,8 +110,8 @@ function Login() {
       <AnimatedBG imageIndex={imageIndex} />
       <main className="flex justify-center flex-1 w-full md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs md:items-center">
         { imageIndex != null &&
-        <div className="flex flex-col items-center justify-center md:w-[50%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20">
-          <div className="items-center justify-center h-fit md:w-[70%] md:p-9 md:pb-2 tablet:p-12 phone:p-9 font-secondary md:rounded-none tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20">
+        <div className="flex flex-col items-center justify-center md:w-[50%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20 rounded-lg">
+          <div className="items-center justify-center h-fit md:w-[70%] md:p-9 md:pb-2 tablet:p-12 phone:p-9 font-secondary tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20">
             <h1 className={`text-2xl text-center text-${getTextColor(imageIndex)} font-secondary tablet:text-3xl`}>Entrar</h1>
             <p className={`my-4 text-center text-${getTextColor(imageIndex)} font-secondary`}>
                 Não tem conta?{" "}
