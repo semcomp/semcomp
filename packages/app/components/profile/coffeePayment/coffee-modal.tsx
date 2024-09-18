@@ -103,7 +103,7 @@ function CoffeePayment({ onRequestClose, userHasPaid }) {
         Pagamento por PIX do Coffee da Semcomp!
       </div>
       <div className="max-h-lg w-full overflow-y-scroll p-6">
-        <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} />
+        <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} activeColor={"primary"} unactiveColor={"white"} />
         {stepComponent}
         <div className="flex justify-between w-full">
           <SemcompButton className="bg-[#F24444]" onClick={onRequestClose}>
