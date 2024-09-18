@@ -130,7 +130,6 @@ function Profile() {
 
   async function fetchUserData() {
     const { data } = await API.auth.me();
-    data.house.name = "Cybertechna"
     setUserFetched(data);
   }
 
