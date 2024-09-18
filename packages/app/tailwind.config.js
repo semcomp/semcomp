@@ -36,7 +36,12 @@ module.exports = {
       white: "#FCFBFF",
       hoverWhite: "rgba(255, 255, 255, 0.3)",
       darkblue: "#2E1B5B",
-      pink: "#FF3184"
+      pink: "#FF3184",
+      backgroundBlue: "#232234ff",
+      Symbiosia: "#6fbe39ff",
+      Stormrock: "#f26f18ff",
+      Cybertechna: "#470787ff",
+      Arcadium: "#0e56cbff"
     },
     fontFamily: {
       primary: ["UPHEAVAL"], //Staatliches
@@ -65,7 +70,7 @@ module.exports = {
   },
   plugins: [],
   safelist: [{
-    pattern: /(bg|text|border)-(blue|yellow|white)/
+    pattern: /(bg|text|border)-(blue|yellow|white|Symbiosia|backgroundBlue|Stormrock|Cybertechna|Arcadium)/
   }
 ]
 };
