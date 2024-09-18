@@ -131,7 +131,7 @@ const Home: React.FC = () => {
         <div className="flex flex-col items-center w-full gap-4 ">
           {isUserLoggedIn ? (
           <>
-            <ButtonMenuHome label="PEFIL" onClick={handlePerfil} />
+            <ButtonMenuHome label="PERFIL" onClick={handlePerfil} />
             <ButtonMenuHome label="SAIR" onClick={handleSair} />
           </>
           ) : (

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Navlink from '../navbar/nav-link';
 import Drawer from '@mui/material/Drawer';
 import { ThemeProvider, styled } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
@@ -92,9 +93,9 @@ function Sidebar(props) {
                   <MenuIcon />
                 </IconButton>
               </ThemeProvider>
-              <Link href={Routes.home}>
+              <Navlink href={Routes.home}>
                 <Logo className="my-auto mr-2" height="2rem" width="2rem" fillColor="#2E1B5B"/>
-              </Link>
+              </Navlink>
             </Toolbar>
           </AppBar>
         </header>
