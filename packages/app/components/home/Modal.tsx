@@ -35,7 +35,7 @@ const Modal: React.FC<ModalProps> = ({ element, setButtonSelected }) => {
             <AiOutlineClose size={20} className="sm:size-24 md:size-30 lg:size-36" />
           </button>
         </div>
-        <div className="flex flex-col items-center justify-center w-full h-full md:mx-32 md:mb-12 px-12 pb-12 text-white custom-scroll">
+        <div className="flex flex-col items-center justify-center w-full h-full md:mx-32 md:mb-12 md:px-12 md:pb-12 mobile:p-4 text-white custom-scroll">
           {element === 'cronograma' && <Schedule />}
           {element === 'faq' && <Faq />}
           {element === 'sobre' && <About />}

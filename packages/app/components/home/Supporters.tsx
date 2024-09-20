@@ -9,7 +9,7 @@ function Supportes() {
   return (
     <>
       <section id="sponsorsBackground" className="flex flex-col items-center text-primary justify-center">
-        <h1 id="sponsors" className="md:text-4xl mobile:text-xl font-bold pt-8 z-20 text-white">
+        <h1 className="text-purple-400 superdesktop:text-title-superlarge desktop:text-title-large tablet:text-title-medium medphone:text-title-small phone:text-title-tiny text stroke font-primary">
           Apoio
         </h1>
         <div className="text-base max-w-6xl">
