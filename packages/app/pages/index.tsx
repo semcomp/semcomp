@@ -99,6 +99,10 @@ const Home: React.FC = () => {
   function handleSponsors() {
     setButtonSelected('sponsors');
   }
+  
+  function handleSupporters() {
+    setButtonSelected('supporters');
+  }
 
   function handlePerfil() {
     router.push(Routes.profile);
@@ -145,6 +149,7 @@ const Home: React.FC = () => {
           <ButtonMenuHome label="FAQ" onClick={handleFaq} />
           {/* { isMobile &&  */}
           <ButtonMenuHome label="PATROCINADORES" onClick={handleSponsors} />
+          <ButtonMenuHome label="APOIADORES" onClick={handleSupporters} />
           {/* } */}
         </div>
         <div className="mt-8">
