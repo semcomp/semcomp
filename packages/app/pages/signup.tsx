@@ -267,8 +267,9 @@ function SignupPage() {
                 </>
               ):
               (
-                <>
-                  <h1 className="text-xl">Inscrições Encerradas! </h1>
+                <div className={`my-12 text-center text-${getTextColor(imageIndex)}`}>
+                  <h1 className="text-4xl">Inscrições Encerradas! </h1>
+                  <div className="text-xl">
                   <p>Caso você tenha uma conta, clique
                   <Link href="/login">
                     <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
@@ -276,7 +277,8 @@ function SignupPage() {
                     </a>
                   </Link>
                   </p>
-                </>
+                  </div>
+                </div>
                 
               )
             }

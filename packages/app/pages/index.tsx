@@ -99,6 +99,10 @@ const Home: React.FC = () => {
   function handleSponsors() {
     setButtonSelected('sponsors');
   }
+  
+  function handleSupporters() {
+    setButtonSelected('supporters');
+  }
 
   function handlePerfil() {
     router.push(Routes.profile);
@@ -131,7 +135,7 @@ const Home: React.FC = () => {
         <div className="flex flex-col items-center w-full gap-4 ">
           {isUserLoggedIn ? (
           <>
-            <ButtonMenuHome label="PEFIL" onClick={handlePerfil} />
+            <ButtonMenuHome label="PERFIL" onClick={handlePerfil} />
             <ButtonMenuHome label="SAIR" onClick={handleSair} />
           </>
           ) : (
@@ -141,10 +145,11 @@ const Home: React.FC = () => {
             </>
           )}
           <ButtonMenuHome label="SOBRE" onClick={handleSobre} />
-          <ButtonMenuHome label="CRONOGRAMA" onClick={handleCronograma} />
+          {/* <ButtonMenuHome label="CRONOGRAMA" onClick={handleCronograma} /> */}
           <ButtonMenuHome label="FAQ" onClick={handleFaq} />
           {/* { isMobile &&  */}
           <ButtonMenuHome label="PATROCINADORES" onClick={handleSponsors} />
+          <ButtonMenuHome label="APOIADORES" onClick={handleSupporters} />
           {/* } */}
         </div>
         <div className="mt-8">

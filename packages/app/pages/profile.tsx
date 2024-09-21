@@ -35,10 +35,10 @@ import Navbar from "../components/navbar/index";
 import AnimatedBG from "./animatedBG";
 import { NewFooter } from "./newFooter";
 
-import Symbiosia from "../assets/27-imgs/symbiosia.png"; 
-import Cybertechna from "../assets/27-imgs/cybertechna.png"; 
-import Stormrock from "../assets/27-imgs/stormrock.png"; 
-import Arcadium from "../assets/27-imgs/arcadium.png";  
+import Symbiosia from "../assets/27-imgs/symbiosia-pixilart.png"; 
+import Cybertechna from "../assets/27-imgs/cybertechna-pixilart.png"; 
+import Stormrock from "../assets/27-imgs/stormrock-pixilart.png"; 
+import Arcadium from "../assets/27-imgs/arcadium-pixilart.png";  
 import { Info } from "@mui/icons-material";
 
 
@@ -358,12 +358,12 @@ function Profile() {
       <div>
       {/* <AnimatedBG imageIndex={imageIndex} /> */}
 
-      <main className="p-8 h-full w-full justify-center col-gap-4 md:flex text-primary pt-16 sm:pt-20 sm:items-center z-20">
+      <main className="p-8 h-full w-full justify-center col-gap-4 md:flex text-white pt-16 sm:pt-20 sm:items-center z-20">
         <div className="flex flex-col h-full md:w-[60%] md:grid md:grid-cols-2 md:gap-4 z-20 mobile:grid mobile:grid-cols-1 mobile:gap-4">
         <div className="flex flex-col w-full md:grid md:grid-cols-1 gap-4 z-20">
           {userFetched && (
             <>
-              <Card className="flex flex-col items-center p-9 w-full bg-white rounded-lg justify-center">
+              <Card className="flex flex-col items-center p-9 w-full bg-[#232234ff] rounded-lg justify-center">
                 <div className="border-8 border-solid rounded-lg border-white">
                   <QRCodeSVG value={userFetched && userFetched.id} />
                 </div>
@@ -378,7 +378,7 @@ function Profile() {
                         setIsEditModalOpen(true);
                         blockBodyScroll();
                       }}
-                      className="bg-primary text-white p-2 rounded-lg"
+                      className={`bg-${userHouseName} text-white hover:bg-white hover:text-primary p-2 rounded-lg`}
                     >
                       Editar
                     </button>
@@ -394,7 +394,7 @@ function Profile() {
                   </div>
                 }
               </Card>
-              <Card className="flex flex-col items-center p-9 bg-white w-full rounded-lg justify-center">
+              <Card className="flex flex-col items-center p-9 bg-[#232234ff] w-full rounded-lg justify-center">
                 <h1 className="text-xl py-2">
                   Compras
                 </h1>
@@ -498,7 +498,7 @@ function Profile() {
           
           { userFetched && config.openAchievement &&
             ( 
-              <Card className="flex flex-col items-center p-9 w-full bg-white text-center rounded-lg justify-center">
+              <Card className="flex flex-col items-center p-9 w-full bg-[#232234ff] text-center rounded-lg justify-center">
                 <div className="flex items-center justify-between w-full">
                   <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Conquistas
@@ -552,13 +552,13 @@ function Profile() {
         </div>
         <div>
           {userFetched && (
-            <Card className="flex flex-col items-center p-9 bg-white w-full rounded-lg">
+            <Card className="flex flex-col items-center p-9 bg-[#232234ff] w-full rounded-lg h-full justify-center">
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Overflow
                 </h1>
                 <strong>Sua casa é...</strong>
                 <img className="w-full object-fill max-w-sm" alt="User house" src={houseImageSrc} />
-                <p className="house-name text-xl">{userFetched.house.name}</p>
+                <p className="house-name text-2xl">{userFetched.house.name}</p>
                 {/* <a
                   className="bg-[#0088cc] text-white p-2 rounded-lg mt-2 text-center"
                   href={userHouseTelegram}
@@ -568,7 +568,7 @@ function Profile() {
                   Entrar no grupo
                   <TelegramIcon />
                 </a>  */}
-                <button className="text-sm mt-5 text-primary hover:underline" onClick={() => setIsAboutOverflowModalOpen(true)}>
+                <button className="text-sm mt-5 text-white hover:underline" onClick={() => setIsAboutOverflowModalOpen(true)}>
                     O que é o Overflow?
                 </button>
               </Card>
