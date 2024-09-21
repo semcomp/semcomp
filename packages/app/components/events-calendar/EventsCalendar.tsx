@@ -28,8 +28,8 @@ function getWeekdayAndDate(dateStr) {
   return `${dayOfWeek} ${formattedDate}`;
 }
 
-function getUniqueDayAndDates(events) {
-  const dayAndDatesSet = new Set();
+function getUniqueDayAndDates(events: { startDate: string }[]) {
+  const dayAndDatesSet = new Set<string>();
   events.forEach((event) => {
     dayAndDatesSet.add(getWeekdayAndDate(event.startDate));
   });
