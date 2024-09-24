@@ -11,15 +11,13 @@ export default class PaymentController {
 
   public async create(req, res, next) {
     try {
-
-
       const payment = await this.paymentService.createPayment(
         req.user?.id,
         req.body?.withSocialBenefit,
         req.body?.socialBenefitFileName,
         req.body?.tShirtSize,
         req.body?.foodOption,
-        req.body?.kitOption,
+        req.body?.saleOption,
         )
       
       return res.status(200).json(payment);
@@ -40,7 +38,7 @@ export default class PaymentController {
 
   public async findByUserId(req, res, next) {
     try {
-      const payment = await await new PaymentServiceImpl(null, null, null, null).findByUserId(req.params.id);
+      const payment = await new PaymentServiceImpl(null, null, null, null).findByUserId(req.params.id);
 
       return res.status(200).json(payment);
     } catch (error) {

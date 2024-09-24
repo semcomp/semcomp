@@ -8,14 +8,6 @@ import { useAppContext } from '../libs/contextLib';
 import RequireAuth from '../libs/RequireAuth';
 import SemcompApi from '../api/semcomp-api';
 import SwitchButton from '../components/SwitchButton';
-
-export enum KitOption {
-    COMPLETE = "COMPLETE", 
-    KIT = "KIT",
-    COFFEE = "COFFEE",
-}
-  
-const kitOption = Object.values(KitOption);
   
 /** Tailwind styles. */
 const style = {
@@ -41,7 +33,6 @@ function Config() {
     
     const [openSales, setOpenSales] = useState(false);
     const [coffeeTotal, setCoffeeTotal] = useState(0);
-    const [saveKitOption, setSaveKitOption] = useState("COFFEE");
     const [openSignup, setSignup] = useState(false);
     const [openAchievement, setOpenAchievement] = useState(false);
 
@@ -50,7 +41,6 @@ function Config() {
         try {
             const config = await semcompApi.getConfig();
 
-            setSaveKitOption(config.kitOption);
             setCoffeeTotal(config.coffeeTotal);
             setOpenSales(config.openSales);
             setSignup(config.openSignup);
@@ -68,13 +58,11 @@ function Config() {
 
     async function handleSubmit() {
         if (coffeeTotal <= 0) return toast.error('Você deve fornecer um tamanho');
-        if (!KitOption[saveKitOption]) return toast.error('Você deve fornecer uma opção de kit válida');
         
         try {
         setIsLoading(true);
         const config = {
             coffeeTotal: coffeeTotal,
-            kitOption: saveKitOption,
             openSales: openSales,
             openAchievement: openAchievement,
         }
@@ -90,27 +78,18 @@ function Config() {
 
     // Função para alternar o status do coffee
     const toggleSales = async () => {
-        const confirmed = window.confirm("Tem certeza de que deseja alterar o status do Coffee?");
+        const confirmed = window.confirm("Tem certeza de que deseja alterar o status das vendas?");
         if (confirmed) {
             setOpenSales(!openSales);
         }
     };
 
-    function handleQuantityChange(event: React.ChangeEvent<HTMLInputElement>) {
-        const value = event.target.value;
-        setCoffeeTotal(Number(value));
-    }
-    
-    function handleKitOptionChange(event: React.ChangeEvent<HTMLInputElement>) {
-        const value = event.target.value;
-        setSaveKitOption(value);
-    }
-
-    //Função para alterar o openSignup do bando de dados usando a SemcompAPI
+    //Função para alterar o openSignup do banco de dados usando a SemcompAPI
     const setConfigSignup = async (setSignup) => {
         try {
             const response = await semcompApi.setConfigSignup(setSignup);
         } catch (error) {
+            toast.error('Erro ao alterar o status das inscrições!');
             console.error('Erro ao alterar openSignup no banco de dados(configuracoes.tsx):', error);
         }
     };
@@ -123,45 +102,11 @@ function Config() {
                 table={
                     <div className={style.main}>
                         <div className={style.card}>
-                            <div className={style.title}>Coffee</div>
+                            <div className={style.title}>Vendas</div>
                             <hr className={style.hr} />
-                            <div>   
-                            <Input
-                                className="my-3"
-                                label="Quantidade"
-                                value={coffeeTotal}
-                                onChange={handleQuantityChange}
-                                type={InputType.Number}
-                            />
                             <button className={style.button} onClick={toggleSales}>
-                                {openSales ? 'Desativar' : 'Ativar'} coffee
+                                {openSales ? 'Desativar' : 'Ativar'} vendas
                             </button>
-                            </div>
-                        </div>
-
-                        <div className={style.card}>
-                            <div className={style.title}>Opções de venda</div>
-                            <hr className={style.hr} />
-                            <div>   
-                                <Input
-                                    className="my-3"
-                                    label="Opções:"
-                                    value={KitOption[saveKitOption]}
-                                    onChange={handleKitOptionChange}
-                                    choices={kitOption}
-                                    type={InputType.Select}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="w-full px-6">
-                            <LoadingButton
-                            isLoading={isLoading}
-                            className="w-full text-white py-3 px-6"
-                            onClick={handleSubmit}
-                            >
-                            Enviar
-                            </LoadingButton>
                         </div>
 
                         <div className={style.card}>
@@ -185,6 +130,16 @@ function Config() {
                                     setIsChecked={setOpenAchievement}
                                 />
                             </div>
+                        </div>
+
+                        <div className="w-full px-6">
+                            <LoadingButton
+                            isLoading={isLoading}
+                            className="w-full text-white py-3 px-6"
+                            onClick={handleSubmit}
+                            >
+                            Enviar
+                            </LoadingButton>
                         </div>
                     </div>
                 }

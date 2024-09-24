@@ -78,16 +78,6 @@ import PaymentServiceImpl from "../../services/payment-impl.service";
       }
     }
 
-    public async getRemainingCoffee(req: Request, res: Response, next: NextFunction) {
-      try {
-        const config = await configService.getOne();
-        const purchasedCoffee = await new PaymentServiceImpl(null,null,null,null).getPurchasedCoffee();
-        return res.status(200).json(config.coffeeTotal-purchasedCoffee);
-      } catch (error) {
-        return handleError(error, next);
-      }
-    }
-
     public async setCoffeeTotal(req: Request, res: Response, next: NextFunction) {
       try {
         const { quantity } = req.body;

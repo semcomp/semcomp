@@ -4,7 +4,8 @@ import Image from "next/image";
 import { QRCodeSVG } from "qrcode.react";
 import { Divider, List, ListItem, ListItemText, Tooltip } from "@mui/material";
 import Chip from "@mui/material/Chip";
-
+import DoneIcon from '@mui/icons-material/Done';
+import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 import API from "../api";
 import Header from "../components/navbar/index";
 import Footer from "../components/Footer";
@@ -29,7 +30,6 @@ import FundEstudarForm from "../components/profile/fundEstudar";
 import MarkAttendanceModal from "../components/profile/MarkAttendanceModal";
 import AddAchievementModal from "../components/profile/AddAchievementModal";
 import { TShirtSize } from "../components/profile/coffeePayment/coffee-step-2";
-import { KitOption } from "../components/profile/coffeePayment/coffee-step-1";
 import Sidebar from "../components/sidebar";
 import Navbar from "../components/navbar/index";
 import AnimatedBG from "./animatedBG";
@@ -40,6 +40,7 @@ import Cybertechna from "../assets/27-imgs/cybertechna-pixilart.png";
 import Stormrock from "../assets/27-imgs/stormrock-pixilart.png"; 
 import Arcadium from "../assets/27-imgs/arcadium-pixilart.png";  
 import { Info } from "@mui/icons-material";
+import { PaymentStatus } from "../libs/constants/payment-status";
 
 
 function Profile() {
@@ -58,27 +59,14 @@ function Profile() {
   const [closeSales, setCloseSales] = useState(false);
   const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] = useState(false);  // OBSERVAÇÃO: está relacionado a casa do stack overflow
   const [isCoffeeModalOpen, setCoffeeModalOpen] = useState(false);
+  const [allSales, setAllSales] = useState([]);
+  const [dataToCoffeeStep3, setDataToCoffeeStep3] = useState(null);
 
   // const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
   //   useState(true);
-
-  useEffect(() => {
-    getRemainingCoffee();
-  }, []);
-  
-  async function getRemainingCoffee() {
-    try {
-      const response = await API.config.checkRemainingCoffee();
-      setCloseSales(response.data <= 0);
-    } catch (e) {
-      console.error(e);
-      return null;
-    }
-  };
   
   async function fetchAchievements() {
     if (!config || !config.openAchievement) {
-      console.log('error');
       return [];
     }
 
@@ -130,7 +118,16 @@ function Profile() {
 
   async function fetchUserData() {
     const { data } = await API.auth.me();
+    const allSales = await API.sales.getSales().then((res) => res.data);
+
+    if (data && data.payments) {
+      data.payments.forEach((payment: { sale: any; saleOption: any[]; }) => {
+        payment.sale = payment.saleOption.map((saleId) => allSales.find((sale: { id: any; }) => sale.id === saleId));
+      });
+    }
+
     setUserFetched(data);
+    setAllSales(allSales);
   }
 
   useEffect(() => {
@@ -283,7 +280,8 @@ function Profile() {
   }, []);
 
   return (
-    userFetched && <div className="min-h-screen w-full flex flex-col justify-between font-secondary text-sm"
+    userFetched && userFetched.house &&
+    <div className="min-h-screen w-full flex flex-col justify-between font-secondary text-sm"
       style={{
         backgroundImage: `url(${userFetched.house.name}.gif)`,
         // backgroundImage: `url(Stormrock.gif)`,
@@ -348,11 +346,14 @@ function Profile() {
 
       {isCoffeeModalOpen && (
         <CoffeePayment
-          userHasPaid={userFetched?.payment?.status === "approved"}
           onRequestClose={() => {
             setCoffeeModalOpen(false);
+            setDataToCoffeeStep3(null);
+            fetchUserData();
             removeBodyStyle();
           }}
+          allSales={allSales}
+          dataOpenStep3={dataToCoffeeStep3}
         />
       )}
       <div>
@@ -398,46 +399,77 @@ function Profile() {
                 <h1 className="text-xl py-2">
                   Compras
                 </h1>
-                {userFetched.payment.status === "approved" ? (
-                  <>
-                    <Chip label="Pago" color="success" />
-                    {/* {userFetched.payment.tShirtSize !== TShirtSize.NONE && (
-                      <Chip
-                        className="mt-3"
-                        label={`Camiseta ${userFetched.payment.tShirtSize}`}
-                      />
-                    )} */}
-                  </>
-                ) : (
-                  <>
-                      {/* <Chip className="mb-4" label="Sem Coffee" disabled={true} /> */}
-                      { config && config.openSales ? (
-                        <>
-                        { !closeSales ? (
-                            <>
-                              <p className="text-sm pb-2">Pague com PIX</p>
-                            <button
-                              onClick={() => {
-                              setCoffeeModalOpen(true);
-                              blockBodyScroll();
+                <div className="flex flex-wrap justify-center my-2">
+                  {userFetched && userFetched.payments && (
+                    userFetched.payments.map((payment: {
+                        sale: any[]; status: string, price: number 
+                    }, index: number) => (
+                      (payment.status === PaymentStatus.APPROVED || payment.status === PaymentStatus.PENDING) && (
+                        <div key={`div-${index}`} className="mr-2 mb-2">
+                          <Tooltip 
+                            key={`tooltip-${index}`}
+                            title={
+                              payment.status === PaymentStatus.APPROVED 
+                                ? "Pagamento confirmado!" 
+                                : "Para acessar o QRCode, clique aqui"
+                            }
+                          >
+                            <Chip
+                              sx={{
+                                height: 'auto',
+                                '& .MuiChip-label': {
+                                  display: 'block',
+                                  whiteSpace: 'normal',
+                                },
                               }}
-                              className="bg-primary text-white p-3 rounded-lg mt-2">
-                              Comprar!
-                            </button>
-                            </>
-                          ) : 
-                          <>
-                            <p className="text-center"> As vendas estão esgotadas! </p>
-                          </>
-                        }
+                              key={`chip-${index}`}
+                              label={`${payment.sale.map(sale => sale.name).join(", ")}`}
+                              color={payment.status === PaymentStatus.APPROVED ? "success" : "warning"}
+                              clickable={payment.status === PaymentStatus.APPROVED ? false : true}
+                              onClick={() => {
+                                if (payment.status === PaymentStatus.PENDING) {
+                                  setDataToCoffeeStep3(payment);
+                                  setCoffeeModalOpen(true);
+                                  blockBodyScroll();
+                                }
+                              }}
+                              icon={payment.status === PaymentStatus.APPROVED ? 
+                                <DoneIcon></DoneIcon>
+                                :
+                                <HourglassTopIcon></HourglassTopIcon>
+                              }
+                            />
+                          </Tooltip>
+                        </div>
+                      )
+                    ))
+                  )}
+                </div>
+                { config && config.openSales ? (
+                    <>
+                    { !closeSales ? (
+                        <>
+                          <p className="text-sm pb-2">Pague com PIX</p>
+                        <button
+                          onClick={() => {
+                          setCoffeeModalOpen(true);
+                          blockBodyScroll();
+                          }}
+                          className="bg-primary text-white p-3 rounded-lg mt-2">
+                          Comprar!
+                        </button>
                         </>
                       ) : 
-                        <>
-                          <p className="text-center"> Não há vendas no momento. </p>
-                        </>
-                      }
-                  </>
-                )}
+                      <>
+                        <p className="text-center"> As vendas estão esgotadas! </p>
+                      </>
+                    }
+                    </>
+                  ) : 
+                    <>
+                      <p className="text-center"> Não há vendas no momento. </p>
+                    </>
+                }
               </Card>
             </>
           )}
@@ -516,14 +548,12 @@ function Profile() {
                 <div className="grid auto-cols-auto auto-rows-auto">
                   {earnedAchievements.slice(0, 6).map((conquista) => {
                     return (
-                      <>
-                        <img
-                          key={conquista.id}
-                          src={conquista.imageBase64}
-                          alt={conquista.title}
-                          style={{ padding: ".3rem", maxHeight: "80px" }}
-                        />
-                      </>
+                      <img
+                        key={conquista.id}
+                        src={conquista.imageBase64}
+                        alt={conquista.title}
+                        style={{ padding: ".3rem", maxHeight: "80px" }}
+                      />
                     );
                   })}
                 </div>
