@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 
 import { QRCodeSVG } from "qrcode.react";
-import { Divider, List, ListItem, ListItemText } from "@mui/material";
+import { Divider, List, ListItem, ListItemText, Tooltip } from "@mui/material";
 import Chip from "@mui/material/Chip";
-
+import DoneIcon from '@mui/icons-material/Done';
+import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 import API from "../api";
 import Header from "../components/navbar/index";
 import Footer from "../components/Footer";
@@ -19,10 +20,6 @@ import CoffeePayment from "../components/profile/coffeePayment/coffee-modal";
 import RequireAuth from "../libs/RequireAuth";
 
 // Casas
-import Indie from "../assets/26-imgs/brasao_indie_complete.png";
-import Rock from "../assets/26-imgs/brasao_rock_complete.png";
-import Funk from "../assets/26-imgs/brasao_funk_complete.png";
-import Pop from "../assets/26-imgs/brasao_pop_complete.png";
 import TelegramIcon from "@mui/icons-material/Telegram";
 import ImgLogo from "../assets/logo-24.png";
 
@@ -33,9 +30,18 @@ import FundEstudarForm from "../components/profile/fundEstudar";
 import MarkAttendanceModal from "../components/profile/MarkAttendanceModal";
 import AddAchievementModal from "../components/profile/AddAchievementModal";
 import { TShirtSize } from "../components/profile/coffeePayment/coffee-step-2";
-import { KitOption } from "../components/profile/coffeePayment/coffee-step-1";
 import Sidebar from "../components/sidebar";
 import Navbar from "../components/navbar/index";
+import AnimatedBG from "./animatedBG";
+import { NewFooter } from "./newFooter";
+
+import Symbiosia from "../assets/27-imgs/symbiosia-pixilart.png"; 
+import Cybertechna from "../assets/27-imgs/cybertechna-pixilart.png"; 
+import Stormrock from "../assets/27-imgs/stormrock-pixilart.png"; 
+import Arcadium from "../assets/27-imgs/arcadium-pixilart.png";  
+import { Info } from "@mui/icons-material";
+import { PaymentStatus } from "../libs/constants/payment-status";
+
 
 function Profile() {
   const { config } = useAppContext();
@@ -47,32 +53,20 @@ function Profile() {
   const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] = useState(false);
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false);
   const [events, setEvents] = useState([]);
+  const [showCalendar, setShowCalendar] = useState(false);
   const [achievements, setAchievements] = useState([]);
   const [earnedAchievements, setEarnedAchievements] = useState([]);
   const [closeSales, setCloseSales] = useState(false);
   const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] = useState(false);  // OBSERVAÇÃO: está relacionado a casa do stack overflow
   const [isCoffeeModalOpen, setCoffeeModalOpen] = useState(false);
+  const [allSales, setAllSales] = useState([]);
+  const [dataToCoffeeStep3, setDataToCoffeeStep3] = useState(null);
 
   // const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
   //   useState(true);
-
-  useEffect(() => {
-    getRemainingCoffee();
-  }, []);
-  
-  async function getRemainingCoffee() {
-    try {
-      const response = await API.config.checkRemainingCoffee();
-      setCloseSales(response.data <= 0);
-    } catch (e) {
-      console.error(e);
-      return null;
-    }
-  };
   
   async function fetchAchievements() {
     if (!config || !config.openAchievement) {
-      console.log('error');
       return [];
     }
 
@@ -104,6 +98,16 @@ function Profile() {
     }
   }
 
+  async function shouldShowCalendar() {
+    try {
+      const response = await API.events.getAll();
+      setShowCalendar(Object.keys(response.data).length > 0);
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  }
+
   useEffect(() => {
     fetchSubscribedEvents();
   }, []);
@@ -114,7 +118,16 @@ function Profile() {
 
   async function fetchUserData() {
     const { data } = await API.auth.me();
+    const allSales = await API.sales.getSales().then((res) => res.data);
+
+    if (data && data.payments) {
+      data.payments.forEach((payment: { sale: any; saleOption: any[]; }) => {
+        payment.sale = payment.saleOption.map((saleId) => allSales.find((sale: { id: any; }) => sale.id === saleId));
+      });
+    }
+
     setUserFetched(data);
+    setAllSales(allSales);
   }
 
   useEffect(() => {
@@ -128,6 +141,7 @@ function Profile() {
 
   useEffect(() => {
     removeEventsWarning();
+    shouldShowCalendar();
   }, [events]);
 
   function printFunction() {
@@ -156,17 +170,22 @@ function Profile() {
       }
     }
   }
-
-// OBERSERVAÇÃO; relacionado as casas do stack overflow
   
   const userHouseName = userFetched?.house?.name;
   const userHouseTelegram = userFetched?.house?.telegramLink;
-
   const houseImageSrc = {
-    "Indie": Indie,
-    "Pop": Pop,
-    "Funk": Funk,
-    "Rock": Rock,
+    "Symbiosia": Symbiosia.src,
+    "Stormrock": Stormrock.src,
+    "Arcadium": Arcadium.src,
+    "Cybertechna": Cybertechna.src,
+  }[userHouseName];
+
+  
+  const backgroundAuthor = {
+    "Symbiosia": " Adam - @adamfergusonart [art, animation] | Prism - @GFLK_pik [art, animation] | Joey - @JalopesTL [music, animation] | Pik - @PictoDev [art, animation]",
+    "Stormrock": "Artstation: kenzee wee",
+    "Arcadium": "Tumblr: @the2dstagesfg",
+    "Cybertechna": "Deviantart: o0mikeking0o",
   }[userHouseName];
 
   function toPascalCase(str: string) {
@@ -235,8 +254,44 @@ function Profile() {
     return `${day} (${dayInNumbers}), ${startTime} às ${endTime}`;
   }
 
+  const [imageIndex, setImageIndex] = useState<number>(10);
+
+  const timeToImage = [
+    { start: 5, end: 7, imgIndex: 0 },
+    { start: 7, end: 8, imgIndex: 1 },
+    { start: 8, end: 10, imgIndex: 2 },
+    { start: 10, end: 12, imgIndex: 3 },
+    { start: 12, end: 14, imgIndex: 4 },
+    { start: 14, end: 16, imgIndex: 5 },
+    { start: 16, end: 17, imgIndex: 6 },
+    { start: 17, end: 18, imgIndex: 7 },
+    { start: 18, end: 19, imgIndex: 8 },
+    { start: 19, end: 22, imgIndex: 9 },
+    { start: 0, end: 5, imgIndex: 10 },
+  ];
+
+  useEffect(() => {
+    const currentHour = new Date().getHours();
+    const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
+    setImageIndex(
+      // 0
+      matchedImage?.imgIndex ?? 10,
+    );
+  }, []);
+
   return (
-    <div className="min-h-screen w-full flex flex-col justify-between bg-[url('../assets/27-imgs/profile-bg.png')] bg-cover font-secondary text-sm">
+    userFetched && userFetched.house &&
+    <div className="min-h-screen w-full flex flex-col justify-between font-secondary text-sm"
+      style={{
+        backgroundImage: `url(${userFetched.house.name}.gif)`,
+        // backgroundImage: `url(Stormrock.gif)`,
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center"
+      }}
+    >
+    <Navbar />
+    <Sidebar />
       { isEditModalOpen && (
         <EditProfile
           onRequestClose={() => {
@@ -291,21 +346,28 @@ function Profile() {
 
       {isCoffeeModalOpen && (
         <CoffeePayment
-          userHasPaid={userFetched?.payment?.status === "approved"}
           onRequestClose={() => {
             setCoffeeModalOpen(false);
+            setDataToCoffeeStep3(null);
+            fetchUserData();
             removeBodyStyle();
           }}
+          allSales={allSales}
+          dataOpenStep3={dataToCoffeeStep3}
         />
       )}
-      <Navbar />
-      <Sidebar />
-      <main className="p-8 h-full w-full justify-center col-gap-4 md:flex pt-16">
-        <div className="flex flex-col self-start w-full md:w-60">
+      <div>
+      {/* <AnimatedBG imageIndex={imageIndex} /> */}
+
+      <main className="p-8 h-full w-full justify-center col-gap-4 md:flex text-white pt-16 sm:pt-20 sm:items-center z-20">
+        <div className="flex flex-col h-full md:w-[60%] md:grid md:grid-cols-2 md:gap-4 z-20 mobile:grid mobile:grid-cols-1 mobile:gap-4">
+        <div className="flex flex-col w-full md:grid md:grid-cols-1 gap-4 z-20">
           {userFetched && (
             <>
-              <Card className="flex flex-col items-center p-9 w-full mb-6 bg-white rounded-lg">
-                <QRCodeSVG value={userFetched && userFetched.id} />
+              <Card className="flex flex-col items-center p-9 w-full bg-[#232234ff] rounded-lg justify-center">
+                <div className="border-8 border-solid rounded-lg border-white">
+                  <QRCodeSVG value={userFetched && userFetched.id} />
+                </div>
                 <p className="text-xl text-center my-3">
                   {userFetched.name}
                 </p>
@@ -317,7 +379,7 @@ function Profile() {
                         setIsEditModalOpen(true);
                         blockBodyScroll();
                       }}
-                      className="bg-primary text-white p-2 rounded-lg"
+                      className={`bg-${userHouseName} text-white hover:bg-white hover:text-primary p-2 rounded-lg`}
                     >
                       Editar
                     </button>
@@ -333,81 +395,89 @@ function Profile() {
                   </div>
                 }
               </Card>
-              <Card className="flex flex-col items-center p-9 w-full mb-6 bg-white rounded-lg">
+              <Card className="flex flex-col items-center p-9 bg-[#232234ff] w-full rounded-lg justify-center">
                 <h1 className="text-xl py-2">
-                  {KitOption[config.kitOption]}
+                  Compras
                 </h1>
-                {userFetched.payment.status === "approved" ? (
-                  <>
-                    <Chip label="Pago" color="success" />
-                    {/* {userFetched.payment.tShirtSize !== TShirtSize.NONE && (
-                      <Chip
-                        className="mt-3"
-                        label={`Camiseta ${userFetched.payment.tShirtSize}`}
-                      />
-                    )} */}
-                  </>
-                ) : (
-                  <>
-                      <Chip className="mb-4" label="Sem Coffee" disabled={true} />
-                      { config.openSales ? (
-                        <>
-                        { !closeSales ? (
-                            <>
-                              <p className="text-sm pb-2">Pague com PIX</p>
-                            <button
-                              onClick={() => {
-                              setCoffeeModalOpen(true);
-                              blockBodyScroll();
+                <div className="flex flex-wrap justify-center my-2">
+                  {userFetched && userFetched.payments && (
+                    userFetched.payments.map((payment: {
+                        sale: any[]; status: string, price: number 
+                    }, index: number) => (
+                      (payment.status === PaymentStatus.APPROVED || payment.status === PaymentStatus.PENDING) && (
+                        <div key={`div-${index}`} className="mr-2 mb-2">
+                          <Tooltip 
+                            key={`tooltip-${index}`}
+                            title={
+                              payment.status === PaymentStatus.APPROVED 
+                                ? "Pagamento confirmado!" 
+                                : "Para acessar o QRCode, clique aqui"
+                            }
+                          >
+                            <Chip
+                              sx={{
+                                height: 'auto',
+                                '& .MuiChip-label': {
+                                  display: 'block',
+                                  whiteSpace: 'normal',
+                                },
                               }}
-                              className="bg-primary text-white p-3 rounded-lg mt-2">
-                              Comprar!
-                            </button>
-                            </>
-                          ) : 
-                          <>
-                            <p className="text-center"> As vendas estão esgotadas! </p>
-                          </>
-                        }
+                              key={`chip-${index}`}
+                              label={`${payment.sale.map(sale => sale.name).join(", ")}`}
+                              color={payment.status === PaymentStatus.APPROVED ? "success" : "warning"}
+                              clickable={payment.status === PaymentStatus.APPROVED ? false : true}
+                              onClick={() => {
+                                if (payment.status === PaymentStatus.PENDING) {
+                                  setDataToCoffeeStep3(payment);
+                                  setCoffeeModalOpen(true);
+                                  blockBodyScroll();
+                                }
+                              }}
+                              icon={payment.status === PaymentStatus.APPROVED ? 
+                                <DoneIcon></DoneIcon>
+                                :
+                                <HourglassTopIcon></HourglassTopIcon>
+                              }
+                            />
+                          </Tooltip>
+                        </div>
+                      )
+                    ))
+                  )}
+                </div>
+                { config && config.openSales ? (
+                    <>
+                    { !closeSales ? (
+                        <>
+                          <p className="text-sm pb-2">Pague com PIX</p>
+                        <button
+                          onClick={() => {
+                          setCoffeeModalOpen(true);
+                          blockBodyScroll();
+                          }}
+                          className="bg-primary text-white p-3 rounded-lg mt-2">
+                          Comprar!
+                        </button>
                         </>
                       ) : 
-                        <>
-                          <p className="text-center"> Não há vendas no momento. </p>
-                        </>
-                      }
-                  </>
-                )}
+                      <>
+                        <p className="text-center"> As vendas estão esgotadas! </p>
+                      </>
+                    }
+                    </>
+                  ) : 
+                    <>
+                      <p className="text-center"> Não há vendas no momento. </p>
+                    </>
+                }
               </Card>
             </>
           )}
-          {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
-          {/* {userFetched && (
-            <Card className="flex flex-col items-center p-9 w-full mb-6">
-              <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-                Overflow
-              </h1>
-              <strong>Sua casa é...</strong>
-              <Image className="w-full" alt="User house" src={houseImageSrc} />
-              <p className="house-name text-lg">{userFetched.house.name}</p>
-              <a
-                className="bg-[#0088cc] text-white p-2 rounded-lg mt-2 text-center"
-                href={userHouseTelegram}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Entrar no grupo
-                <TelegramIcon />
-              </a> 
-              <button className="text-sm mt-5 text-tertiary" onClick={() => setIsAboutOverflowModalOpen(true)}>
-                  O que é o Overflow?
-                </button>
-            </Card>
-          )} */}
 
           {/* ABRIR AQUI PARA MOSTRAR INSCRIÇÕES */}
           { eventCount > 0 &&
             (
-            <Card className="flex flex-col items-center p-9 w-full mb-6 text-center bg-white rounded-lg">
+            <Card className="flex flex-col items-center p-9 w-full bg-white text-center rounded-lg justify-center">
               <h1 className="text-xl">
                 Inscrições em Eventos
               </h1>
@@ -460,7 +530,7 @@ function Profile() {
           
           { userFetched && config.openAchievement &&
             ( 
-              <div className="rounded-lg p-4 mb-4 self-start border-solid border h-full flex flex-col items-center justify-center w-full max-w-md bg-white">
+              <Card className="flex flex-col items-center p-9 w-full bg-[#232234ff] text-center rounded-lg justify-center">
                 <div className="flex items-center justify-between w-full">
                   <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Conquistas
@@ -478,14 +548,12 @@ function Profile() {
                 <div className="grid auto-cols-auto auto-rows-auto">
                   {earnedAchievements.slice(0, 6).map((conquista) => {
                     return (
-                      <>
-                        <img
-                          key={conquista.id}
-                          src={conquista.imageBase64}
-                          alt={conquista.title}
-                          style={{ padding: ".3rem", maxHeight: "80px" }}
-                        />
-                      </>
+                      <img
+                        key={conquista.id}
+                        src={conquista.imageBase64}
+                        alt={conquista.title}
+                        style={{ padding: ".3rem", maxHeight: "80px" }}
+                      />
                     );
                   })}
                 </div>
@@ -500,7 +568,7 @@ function Profile() {
                   </button>
                 }
                 
-              </div>
+              </Card>
             )
           }
           
@@ -513,17 +581,56 @@ function Profile() {
           </Card> */}
         </div>
         <div>
-          {/* <Card className="flex flex-col items-center p-9 mb-6 max-w-4xl bg-white rounded-lg">
-            <EventsOverview />
-          </Card> */}
-          <Card className="flex flex-col items-center p-9 mb-6 max-w-4xl bg-white rounded-lg">
-            <p className="events-overview-component__title text-xl mb-8">Eventos</p>
-            <EventsCalendar />
-          </Card>
+          {userFetched && (
+            <Card className="flex flex-col items-center p-9 bg-[#232234ff] w-full rounded-lg h-full justify-center">
+                <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+                  Overflow
+                </h1>
+                <strong>Sua casa é...</strong>
+                <img className="w-full object-fill max-w-sm" alt="User house" src={houseImageSrc} />
+                <p className="house-name text-2xl">{userFetched.house.name}</p>
+                {/* <a
+                  className="bg-[#0088cc] text-white p-2 rounded-lg mt-2 text-center"
+                  href={userHouseTelegram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >
+                  Entrar no grupo
+                  <TelegramIcon />
+                </a>  */}
+                <button className="text-sm mt-5 text-white hover:underline" onClick={() => setIsAboutOverflowModalOpen(true)}>
+                    O que é o Overflow?
+                </button>
+              </Card>
+            )}
         </div>
+        </div>
+        {/* {
+          showCalendar ?? (
+          <div>
+            <Card className="flex flex-col items-center p-9 mb-6 max-w-4xl  rounded-lg">
+              <p className="events-overview-component__title text-xl mb-8">Eventos</p>
+              <EventsCalendar />
+            </Card>
+          </div>)
+        } */}
+        
       </main>
-      <Footer />
-    </div>
+      </div>
+      <div className="flex flex-col justify-right">
+        <div className="flex flex-row md:justify-end mobile:justify-center md:pr-6">
+          <Tooltip
+              arrow
+              placement="top-start"
+              title={"Autor da imagem | " + backgroundAuthor}
+              enterTouchDelay={1}
+            >
+            <Info sx={{ color: "#d3d3d3", paddingRight: "2px", opacity: 0.75}} />
+          </Tooltip>
+        </div>
+        <NewFooter locale="p"/>
+      </div>
+      </div>
   );
 }
 

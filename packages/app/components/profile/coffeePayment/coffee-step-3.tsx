@@ -7,42 +7,33 @@ import { toast } from "react-toastify";
 
 import API from "../../../api";
 import Image from "next/image";
-import { KitOption } from "./coffee-step-1";
 import { TShirtSize } from "./coffee-step-2";
 
 function CoffeeStep3({data}: {data: CoffeePaymentData}) {
-
-  const calcValuePayment = (kitOptions) => {
-    let value: any;
-    
-    if(kitOptions == "Kit") {
-      value = 18;
-    } else if (kitOptions == "Kit e Coffee"){
-      value = 18;
-    } else if (kitOptions == "Coffee"){
-      value = 18;
-    } else {
-      value = "Nenhuma opção selecionada";
+  const calcValuePayment = () => {
+    let value: number = data.price;
+    if (value === 0) {
+      for (const sale of data.sale) {
+        value += sale.price;
+      }
     }
-    if(data.withSocialBenefit){
-      return value/2;
+
+    if (data.withSocialBenefit){
+      return value / 2;
     }
     
     return value;
   }
 
-  let valuePayment:any = calcValuePayment(data.kitOption);
 
-  if (valuePayment != "Nenhuma opção selecionada"){
-    data.withSocialBenefit ?? (valuePayment = valuePayment/2)
-  }
+  const valuePayment:any = calcValuePayment();
+  const namePayment: string = data.sale?.map((sale) => sale.name).join(", ");
 
   const [qrCodeBase64, setqrCodeBase64] = useState("");
   const [qrCodeCopyPaste, setqrCodeCopyPaste] = useState("");
   
   async function getPayment() {
     try {
-      console.log("CREATE PAYMENT")
       if(!data['id']){
         let fileName: string = null;
         if (data.socialBenefitFile) {
@@ -50,12 +41,12 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
           fileName = uploadResponse.fileName;
         }
 
-        // if(data.kitOption === KitOption.COFFEE){
-        //   data.tShirtSize = TShirtSize.NONE;
-        // }
-
         const { data: paymentResponse } = await API.coffee.createPayment(
-          data.withSocialBenefit, fileName, data.tShirtSize, data.foodOption, data.kitOption
+          data.withSocialBenefit,
+          fileName,
+          data.tShirtSize === '' ? TShirtSize.NONE : (data.tShirtSize as TShirtSize),
+          data.foodOption,
+          data.sale.map((sale) => sale.id)
         );
         setqrCodeBase64(paymentResponse.qrCodeBase64);
         setqrCodeCopyPaste(paymentResponse.qrCode);
@@ -92,13 +83,14 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
             style={{ flexDirection: "column" }}
           >
             <p>Escaneie o QR Code abaixo ou copie e cole o código do PIX</p>
+            <b>Compras: { namePayment }</b>
             <b className="py-3">Valor: R${ valuePayment }</b>
-            <p>Caso seu QR code não carregou, verifique se seu e-mail está correto!</p>
+            <p>Caso seu QR code não tenha carregado, verifique se seu e-mail está correto!</p>
             <p>
               Depois de realizar o pagamento no seu banco, clique em fechar e
               atualize a página.
             </p>
-            <p>Pode ser que demore um tempo para o pagamento ser realizado.</p>
+            <p>Pode ser que demore um tempo até o pagamento ser confirmado.</p>
           </section>
           <div>
             <section className="m-4 flex justify-center items-center flex-col">

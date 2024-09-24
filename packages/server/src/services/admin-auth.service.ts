@@ -106,7 +106,7 @@ class AdminAuthService {
 
   public async authToDelete(adminUser: AdminUser): Promise<void> {
     const adminRoles = (await adminUserService.findById(adminUser.id)).adminRole;
-    if (!adminRoles.includes("delete")) {
+    if (!adminRoles.includes("DELETE")) {
       throw new HttpError(403, ['Você não possui permissão para realizar exclusão.']);
     }
   }

@@ -198,7 +198,7 @@ function Step1(
       />
       <LoadingButton
         type="submit"
-        className="bg-primary disabled:bg-black disabled:opacity-50 transition-all text-white font-bold w-full py-3 shadow"
+        className="bg-primary disabled:bg-black disabled:opacity-50 transition-all text-white font-bold w-full py-3 shadow rounded-lg hover:scale-105"
         disabled={!termsOfUse || isButtonDisabled}
         // Show a cool spinner if a request is already being made
         isLoading={isSigningUp}

@@ -2,6 +2,7 @@ import Input, { InputType } from "../Input";
 import React from "react"
 
 export enum TShirtSize {
+  NONE = "NONE",
   PP = "PP",
   P = "P",
   M = "M",

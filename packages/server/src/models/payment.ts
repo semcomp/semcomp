@@ -3,7 +3,6 @@ import Mongoose from "mongoose";
 import PaymentStatus from "../lib/constants/payment-status-enum";
 import TShirtSize from "../lib/constants/t-shirt-size-enum";
 import FoodOption from "../lib/constants/food-option-enum";
-import KitOption from "../lib/constants/kit-option";
 
 type Payment = {
   id?: string;
@@ -16,7 +15,8 @@ type Payment = {
   socialBenefitFileName: string;
   tShirtSize: TShirtSize;
   foodOption: FoodOption;
-  kitOption: KitOption;
+  salesOption: string[];
+  price?: number;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -61,8 +61,11 @@ const PaymentSchema = new Mongoose.Schema(
     foodOption: {
       type: FoodOption,
     },
-    kitOption: {
-      type: KitOption,
+    salesOption: {
+      type: [String],
+    },
+    price: {
+      type: Number,
     },
     createdAt: {
       type: Number,

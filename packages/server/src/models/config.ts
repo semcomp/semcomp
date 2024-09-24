@@ -1,5 +1,4 @@
 import Mongoose from "mongoose";
-import KitOption from "../lib/constants/kit-option";
 
 export type Config = {
     id?: string;
@@ -7,7 +6,6 @@ export type Config = {
     switchBeta: boolean;
     openSignup: boolean;
     showLogin: boolean;
-    kitOption: KitOption;
     openSales: boolean;
     openAchievement: boolean;
     createdAt?: number;
@@ -39,11 +37,6 @@ const ConfigSchema = new Mongoose.Schema(
     openAchievement: {
       type: Boolean,
       default: false,
-    },
-    kitOption: {
-      type: KitOption,
-      required: true,
-      default: KitOption.COFFEE,
     },
     createdAt: {
       type: Number,

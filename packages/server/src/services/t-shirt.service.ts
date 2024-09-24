@@ -8,7 +8,6 @@ import PaymentServiceImpl from "./payment-impl.service";
 import PaymentStatus from "../lib/constants/payment-status-enum";
 
 const idService = new IdServiceImpl();
-const paymentService = new PaymentServiceImpl(null, null, null, null);
 
 class TShirtService {
   public async find({
@@ -62,7 +61,7 @@ class TShirtService {
   }
 
   public async update(tShirt: TShirt): Promise<TShirt> {
-    const paymentsWithThisTShirtSize = await paymentService.count({ tShirtSize: tShirt.size });
+    const paymentsWithThisTShirtSize = await new PaymentServiceImpl(null, null, null, null).count({ tShirtSize: tShirt.size });
     if (paymentsWithThisTShirtSize > tShirt.quantity) {
       throw new HttpError(400, ["O número de camisetas não pode ser menos que o já utilizado!"]);
     }
@@ -89,8 +88,8 @@ class TShirtService {
     const entities: (TShirt & { usedQuantity: number })[] = [];
     for (const tShirt of tShirts.getEntities()) {
 
-      let countTShirt = await paymentService.count({ tShirtSize: tShirt.size, status: PaymentStatus.APPROVED });
-      countTShirt += await paymentService.count({ tShirtSize: tShirt.size, status: PaymentStatus.PENDING });
+      let countTShirt = await new PaymentServiceImpl(null, null, null, null).count({ tShirtSize: tShirt.size, status: PaymentStatus.APPROVED });
+      countTShirt += await new PaymentServiceImpl(null, null, null, null).count({ tShirtSize: tShirt.size, status: PaymentStatus.PENDING });
       
       entities.push({
         ...tShirt,

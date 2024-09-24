@@ -24,11 +24,6 @@ router.get(
   ConfigController.getCoffeeTotal
 );
 
-router.get(
-  "/coffee-remaining",
-  ConfigController.getRemainingCoffee
-);
-
 router.post(
   "/open-signup",
   [

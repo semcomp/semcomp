@@ -118,7 +118,6 @@ function Countdown({ team, gameConfig, onSubmit }: {gameConfig: GameConfig, team
   const seconds = diff.getUTCSeconds();
 
   function calculateDiff() {
-    // console.log( );
     return new Date(Math.max(gameConfig.getStartDate().getTime() - Date.now(), 0));
   }
 

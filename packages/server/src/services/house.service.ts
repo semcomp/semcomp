@@ -164,6 +164,7 @@ class HouseService {
       description: entity.description,
       telegramLink: entity.telegramLink,
       score: entity.score,
+      imageBase64: entity.imageBase64,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     } : null;

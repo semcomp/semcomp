@@ -1,7 +1,6 @@
-import { KitOption } from "../components/profile/coffeePayment/coffee-step-1";
 import { FoodOption, TShirtSize } from "../components/profile/coffeePayment/coffee-step-2";
-import API from "./base-api";
 import { withCustomError, withNoErrorMessage } from "./error-message";
+import API from "./base-api";
 
 const Handlers = {
   login: withCustomError(
@@ -66,16 +65,20 @@ const Handlers = {
       socialBenefitFileName: string,
       tShirtSize: TShirtSize,
       foodOption: FoodOption,
-      kitOption: KitOption
+      saleOption: string[],
     ) => API.post("/payments", {
       withSocialBenefit,
       socialBenefitFileName,
       tShirtSize,
       foodOption,
-      kitOption
+      saleOption
     }),
     getPaymentInfo: withNoErrorMessage((id: string) => API.get(`payments/user-id/${id}`)),
-    getPurchasedCoffees: withNoErrorMessage(() => API.get("payments/purchased-coffees")),
+  },
+  sales: {
+    getSales: withNoErrorMessage(() => API.get("/sales/get-sales")),
+    getAvailableSales: withNoErrorMessage(() => API.get("/sales/get-availables")),
+    getOneSale: withNoErrorMessage((id: string) => API.get(`/sales/${id}`)),
   },
   upload: {
     single: async (file: File) => {
