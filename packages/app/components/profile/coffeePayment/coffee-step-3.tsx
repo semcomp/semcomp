@@ -41,6 +41,7 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
           fileName = uploadResponse.fileName;
         }
 
+        data.tShirtSize = TShirtSize[data.tShirtSize.split(' ')[0]];
         const { data: paymentResponse } = await API.coffee.createPayment(
           data.withSocialBenefit,
           fileName,
@@ -87,8 +88,7 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
             <b className="py-3">Valor: R${ valuePayment }</b>
             <p>Caso seu QR code não tenha carregado, verifique se seu e-mail está correto!</p>
             <p>
-              Depois de realizar o pagamento no seu banco, clique em fechar e
-              atualize a página.
+              Após realizar o pagamento, atualize a página. Você possui <b>2 horas</b> para realizá-lo.
             </p>
             <p>Pode ser que demore um tempo até o pagamento ser confirmado.</p>
           </section>

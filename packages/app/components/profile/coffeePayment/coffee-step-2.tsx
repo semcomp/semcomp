@@ -1,6 +1,7 @@
 import { ReactHTMLElement, useEffect, useState } from "react";
 import Input, { InputType } from "../../Input";
 import { CoffeePaymentData } from "./coffee-modal";
+import API from "../../../api";
 
 export enum TShirtSize {
   NONE = "NONE",
@@ -37,7 +38,8 @@ function CoffeeStep2({
 }: {
   data: CoffeePaymentData;
   setData: any;
-}) {
+  }) {
+  const [tShirtChoices, setTShirtChoices] = useState<string[]>([]);
   const [hasTShirt, setHasTshirt] = useState(false);
 
   useEffect(() => {
@@ -73,6 +75,26 @@ function CoffeeStep2({
     setData({...data, foodOption: value});
   }
 
+  useEffect(() => {
+    const getAvailableTShirts = async () => {
+      const availableTShirts : Object = await API.coffee.getAvailableTShirts().then((res) => res.data);
+      
+      const choices: string[] = [];
+      Object.keys(availableTShirts).map((tshirt) => {
+        if (availableTShirts[tshirt] > 0) {
+          if (availableTShirts[tshirt] != 1)
+            choices.push(`${tshirt} (${availableTShirts[tshirt]} disponíveis)`);
+          else
+            choices.push(`${tshirt} (${availableTShirts[tshirt]} disponível)`);
+        }
+      })
+
+      setTShirtChoices(choices);
+    }
+
+    getAvailableTShirts();
+  }, [])
+
   return (
     <div className="my-6">
       <Input
@@ -99,11 +121,11 @@ function CoffeeStep2({
       { (hasTShirt) && (
         <>
             <Input
-            className="my-3"
+            className="my-3  font-secondary"
             label="Tamanho da camiseta"
             value={data.tShirtSize}
             onChange={handleTShirtSizeChange}
-            choices={TShirtSizes}
+            choices={tShirtChoices}
             type={InputType.Select}
           />
 

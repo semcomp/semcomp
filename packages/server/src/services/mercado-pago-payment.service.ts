@@ -67,4 +67,58 @@ export default class MercadoPagoPaymentService implements PaymentIntegrationServ
 
     return response;
   }
+
+  public async refund(id: number, amount: number): Promise<Payment> {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.accessToken}`,
+    }
+
+    try {
+      const refund = (await axios.post(
+        `https://api.mercadopago.com/v1/payments/${id}/refunds`,
+        { amount: amount },
+        { headers: headers })).data
+
+      const response = {
+        id: refund.id,
+        createdAt: new Date(refund.date_created).getTime(),
+        approvedAt: new Date(refund.date_approved).getTime(),
+        status: refund.status,
+        payerEmail: refund.payer.email,
+        amount: refund.transaction_amount,
+      };
+
+      return response;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  public async cancel(id: number): Promise<Payment> {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.accessToken}`,
+    }
+
+    try {
+      const cancel = (await axios.put(
+        `https://api.mercadopago.com/v1/payments/${id}`,
+        { status: "cancelled" },
+        { headers: headers })).data
+  
+      const response = {
+        id: cancel.id,
+        createdAt: new Date(cancel.date_created).getTime(),
+        approvedAt: new Date(cancel.date_approved).getTime(),
+        status: cancel.status,
+        payerEmail: cancel.payer.email,
+        amount: cancel.transaction_amount,
+      };
+  
+      return response;
+    } catch (e) {
+      console.error(e);
+    }
+  }
 }

@@ -45,6 +45,16 @@ class TShirtService {
     return entity && this.mapEntity(entity);
   }
 
+  public async findMany(filters?: Partial<TShirt>): Promise<TShirt[]> {
+    const tShirts = await TShirtModel.find(filters);
+    const entities: TShirt[] = [];
+    for (const tShirt of tShirts) {
+      entities.push(this.mapEntity(tShirt));
+    }
+
+    return entities;
+  }
+
   public async count(filters?: Partial<TShirt>): Promise<number> {
     const count = await TShirtModel.count(filters);
 
@@ -84,10 +94,8 @@ class TShirtService {
     pagination: PaginationRequest;
   }): Promise<PaginationResponse<(TShirt & { usedQuantity: number })>> {
     const tShirts = await this.find({ pagination });
-
     const entities: (TShirt & { usedQuantity: number })[] = [];
     for (const tShirt of tShirts.getEntities()) {
-
       let countTShirt = await new PaymentServiceImpl(null, null, null, null).count({ tShirtSize: tShirt.size, status: PaymentStatus.APPROVED });
       countTShirt += await new PaymentServiceImpl(null, null, null, null).count({ tShirtSize: tShirt.size, status: PaymentStatus.PENDING });
       

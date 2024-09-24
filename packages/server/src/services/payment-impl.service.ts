@@ -67,14 +67,15 @@ export default class PaymentServiceImpl implements PaymentService {
         salesOption: { $in: filters.salesOption },
       });
     } else {
-      entity = await PaymentModel.findOne(filters);
+      entity = await PaymentModel.findOne(filters).sort({ _id: -1 });
     }
 
     return entity && this.mapEntity(entity);
   }
 
   public async findByUserId(id: string): Promise<Payment> {
-    const entity = await PaymentModel.find({ userId: id });
+    const entity = await PaymentModel.find({ userId: id }).sort({ _id: -1 });
+
     if (entity && entity.length > 0) {
       return entity.map((payment) => this.mapEntity(payment as Model<Payment> & Payment));
     }
@@ -90,7 +91,7 @@ export default class PaymentServiceImpl implements PaymentService {
         salesOption: { $in: filters.salesOption },
       });
     } else {
-      count = await PaymentModel.countDocuments({filters});
+      count = await PaymentModel.countDocuments(filters);
     }
     
     return count;
@@ -125,6 +126,25 @@ export default class PaymentServiceImpl implements PaymentService {
     });
     return getPurchasedCoffee;
   }
+
+  public async getAvailableTShirts(): Promise<Object> {
+    const availableTShirts: Object = {};
+    Object.keys(TShirtSize).map((key) => {
+      if (key != 'NONE') availableTShirts[key] = 0;
+    });
+
+    const approvedPayments = await this.find({ status: PaymentStatus.APPROVED });
+    const pendingPayments = await this.find({ status: PaymentStatus.PENDING });
+
+    approvedPayments.map((payment) => { availableTShirts[payment.tShirtSize]-- });
+    pendingPayments.map((payment) => { availableTShirts[payment.tShirtSize]-- });
+
+    const allAvailableTShirts = await tShirtService.findMany({});
+    allAvailableTShirts.map((tShirt) => { availableTShirts[tShirt.size] += tShirt.quantity; })
+
+    return availableTShirts;
+  }
+
   
   public findItemsInSales(saleOptionItemsIds: string[], purchasedItemsIds: string[]): boolean {
     const hasRepeatedItem = saleOptionItemsIds.some(saleId => 
@@ -149,10 +169,10 @@ export default class PaymentServiceImpl implements PaymentService {
     foodOption: FoodOption,
     saleOption: string[],
   ): Promise<Payment> {
-    const config = await ConfigService.getOne(); 
-    if(config === undefined){
+    const config = await ConfigService.getOne();
+    if (config === undefined) {
       throw new HttpError(401, ["Erro ao acessar as configurações de ambiente!"]);
-    } else if(!(config.openSales)){
+    } else if (!(config.openSales)) {
       throw new HttpError(503, ["Vendas encerradas!"]);
     }
 
@@ -271,16 +291,28 @@ export default class PaymentServiceImpl implements PaymentService {
     };
     const newPayment = await this.create(newPaymentData);
 
-    const paymentResponse = await this.paymentIntegrationService.create(
-      price,
-      user.email,
-      "Semcomp",
-      `${this.notificationUrl}/${newPayment.id}`
-    );
+    try {
+      const paymentResponse = await this.paymentIntegrationService.create(
+        price,
+        user.email,
+        "Semcomp",
+        `${this.notificationUrl}/${newPayment.id}`
+      );
+      newPayment.paymentIntegrationId = paymentResponse.id;
+      newPayment.qrCode = paymentResponse.qrCode;
+      newPayment.qrCodeBase64 = paymentResponse.qrCodeBase64;
+    } catch {
+      await this.delete(newPayment);
+      throw new HttpError(400, ["Erro no servidor! Tente novamente mais tarde."]);
+    }
 
-    newPayment.paymentIntegrationId = paymentResponse.id;
-    newPayment.qrCode = paymentResponse.qrCode;
-    newPayment.qrCodeBase64 = paymentResponse.qrCodeBase64;
+    const timelimit = 2 * 60 * 60 * 1000; // 2 horas
+    setTimeout(async () => {
+      const expiredPayment = await this.findById(newPayment.id);
+      await this.cancelPayment(expiredPayment);
+    }, timelimit);
+
+    console.log("Created the qrcodes and started the timer for 2 hours!");
 
     return await this.update(newPayment);
   }
@@ -289,9 +321,20 @@ export default class PaymentServiceImpl implements PaymentService {
     const payment = await PaymentModel.findOne({ id });
     const paymentResponse = await this.paymentIntegrationService.find(payment.paymentIntegrationId);
 
-    if (paymentResponse.status === 'approved') {
+    if (payment.status === PaymentStatus.CANCELED) {
+      // caso o pagamento esteja cancelado no banco de dados, então é preciso checar se o pagamento
+      // acabou sendo efetuado posteriormente ao cancelamento. Se sim, devemos fazer um reembolso
+      if (paymentResponse.status === 'approved') {
+        const response = await this.paymentIntegrationService.refund(payment.paymentIntegrationId, payment.amount);
+        if (response) await this.delete(payment);
+      } else {
+        const response = await this.paymentIntegrationService.cancel(payment.paymentIntegrationId);
+        if (response) await this.delete(payment);
+      }
+    } else if (paymentResponse.status === 'approved') {
+      // caso o pagamento não esteja cancelado, e esteja aprovado no mercadopago, então atualizar no
+      // banco de dados
       payment.status = PaymentStatus.APPROVED;
-
       await this.update(payment);
     }
   }
@@ -317,6 +360,15 @@ export default class PaymentServiceImpl implements PaymentService {
     return allPayments;
   }
 
+  public async cancelPayment(payment: Payment) {
+    console.log("canceled on the database!");
+    if (payment.status === PaymentStatus.PENDING) {
+      payment.status = PaymentStatus.CANCELED;
+      payment.tShirtSize = null;
+      await this.update(payment);
+    }
+  }
+
   public async cancelOldPendingPayments(): Promise<void> {
     const maxDate = new Date();
     maxDate.setDate(maxDate.getDate() - 1);
@@ -326,9 +378,7 @@ export default class PaymentServiceImpl implements PaymentService {
 
     for (const payment of pendingPayments) {
       if (payment.updatedAt < new Date(maxDate).getTime()) {
-        payment.status = PaymentStatus.CANCELED;
-        payment.tShirtSize = null;
-        await this.update(payment);
+        await this.cancelPayment(payment);
       }
     }
   }
@@ -338,34 +388,34 @@ export default class PaymentServiceImpl implements PaymentService {
     const payments = await this.find({ status: PaymentStatus.APPROVED });
 
     for (const user of users.getEntities()) {
-    //   if (payments.find((payment) => user.id === payment.userId)) {
-    //     await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
-    //       color: {
-    //         dark: '#000000',
-    //         light: '#0000',
-    //       },
-    //       errorCorrectionLevel: 'H',
-    //       type: "png",
-    //     });
-    //   } else {
-    //     await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
-    //       color: {
-    //         dark: '#000000',
-    //         light: '#0000',
-    //       },
-    //       errorCorrectionLevel: 'H',
-    //       type: "png",
-    //     });
-    //   }
-    // }
-    await QRCode.toFile(`./qr-code/${user.email} - ${user.name}.png`, user.id, {
-      color: {
-        dark: '#000000',
-        light: '#ffffff',
-      },
-      errorCorrectionLevel: 'H',
-      type: "png",
-    });
+      //   if (payments.find((payment) => user.id === payment.userId)) {
+      //     await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
+      //       color: {
+      //         dark: '#000000',
+      //         light: '#0000',
+      //       },
+      //       errorCorrectionLevel: 'H',
+      //       type: "png",
+      //     });
+      //   } else {
+      //     await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
+      //       color: {
+      //         dark: '#000000',
+      //         light: '#0000',
+      //       },
+      //       errorCorrectionLevel: 'H',
+      //       type: "png",
+      //     });
+      //   }
+      // }
+      await QRCode.toFile(`./qr-code/${user.email} - ${user.name}.png`, user.id, {
+        color: {
+          dark: '#000000',
+          light: '#ffffff',
+        },
+        errorCorrectionLevel: 'H',
+        type: "png",
+      });
     }
   }
 
