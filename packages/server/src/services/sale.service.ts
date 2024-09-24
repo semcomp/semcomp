@@ -64,9 +64,26 @@ class SaleService {
   public async update(sale: Sale): Promise<Sale> {
     if (SaleType[sale.type] === SaleType.ITEM) {
       const allSales = (await this.findWithUsedQuantity({ pagination: new PaginationRequest(0, 9999) })).getEntities();
-      const paymentWithItem = allSales.find((s) => s.id === sale.id).usedQuantity;
+      
+      const paymentWithItem = allSales.find((s) => s.id === sale.id)?.usedQuantity;
       if (paymentWithItem > sale.quantity) {
         throw new HttpError(400, [`A quantidade não pode ser menor do que a já comprada (${paymentWithItem})!`]);
+      }
+
+      // Atualiza a quantidade das vendas que usam o item
+      for (const s of allSales.filter((s) => SaleType[s.type] === SaleType.SALE)) {
+        const allQuantities = s.items.filter((item) => item !== sale.id)
+                                     .map((item) => allSales.find((p) => p.id === item).quantity);
+        const least = Math.min(...allQuantities);
+        const bigger = Math.max(...allQuantities);
+
+        if (s.items.includes(sale.id) && (
+              (sale.quantity < least || sale.quantity <= bigger) || (sale.items.length === 1)
+            )
+        ) {
+          s.updatedAt = Date.now();
+          const entity = await SaleModel.findOneAndUpdate({ id: s.id }, {...s, quantity: sale.quantity});
+        }
       }
     }
 
