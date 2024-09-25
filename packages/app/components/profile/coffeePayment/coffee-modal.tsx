@@ -23,20 +23,6 @@ export type CoffeePaymentData = {
   qrCode: string;
 };
 
-function SemcompButton({ onClick, children, className, ...props }: any) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={
-        "rounded bg-primary text-white shadow-md px-6 py-3 " + className
-      }
-      {...props}
-    >
-      {children}
-    </button>
-  );
-}
 
 function CoffeePayment({ onRequestClose, allSales, dataOpenStep3 }) {
   const [coffeeStep, setCoffeeStep] = useState(0);
@@ -51,7 +37,22 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3 }) {
   const [filteredSales, setFilteredSales] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAppContext();
-
+  
+  function SemcompButton({ onClick, children, className, ...props }: any) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={
+          `rounded bg-${user.house.name} text-white shadow-md px-6 py-3 ` + className
+        }
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  }
+  
   function nextCoffeeStep(){
     if (coffeeStep + 1 === 1) {
       if (!data.saleOption || data.saleOption.length === 0) {
@@ -170,6 +171,7 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3 }) {
 
   useEffect(() => {
     fetchAvailableSales();
+    console.log(user)
   }, []);
 
   useEffect(() => {
@@ -186,14 +188,14 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3 }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div className="w-full bg-primary text-white text-center text-xl p-6">
-        Pagamento por PIX do Coffee da Semcomp!
+      <div className={`w-full bg-${user.house.name} text-white text-center text-xl p-6`}>
+        Compra Kit e Coffee da Semcomp!
       </div>
       { !loading ? 
         (
           <div className="max-h-lg w-full overflow-y-scroll p-6">
             { availableSales && availableSales.length > 0 &&
-              <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} activeColor={"primary"} unactiveColor={"white"} />
+              <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} activeColor={user.house.name} unactiveColor={"white"} />
             }
             {stepComponent[coffeeStep]}
             <div className="flex justify-between w-full">

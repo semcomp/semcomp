@@ -449,13 +449,13 @@ function Profile() {
                     <>
                     { !closeSales ? (
                         <>
-                          <p className="text-sm pb-2">Pague com PIX</p>
+                          <p className="text-sm pb-2 text-center">Compre o Coffee e o Kit da Semcomp com Pix!</p>
                         <button
                           onClick={() => {
                           setCoffeeModalOpen(true);
                           blockBodyScroll();
                           }}
-                          className="bg-primary text-white p-3 rounded-lg mt-2">
+                          className={`bg-${userHouseName} text-white p-3 rounded-lg mt-2`}>
                           Comprar!
                         </button>
                         </>

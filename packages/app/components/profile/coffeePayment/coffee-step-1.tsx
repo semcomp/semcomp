@@ -65,7 +65,7 @@ function CoffeeStep1({
           <br/><h1><strong>Vai comprar o coffee e possui alguma restrição alimentar?</strong><br/>Procure a coordenação e indique quais são suas restrições.</h1>
         </>
         ) : (
-          <p><b>Não há vendas disponíveis no momento...</b></p>
+          <p className="h-full w-full text-center py-12"><b>Não há vendas disponíveis no momento...</b></p>
         )
       }
         {/* <br /> */}
