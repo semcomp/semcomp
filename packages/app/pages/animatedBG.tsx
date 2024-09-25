@@ -126,7 +126,7 @@ const AnimatedBG: React.FC<AnimatedBGProps> = ({ imageIndex }) => {
           backgroundRepeat: "no-repeat",
         }}
       >
-        {!isMobile && bottomImage && ( // Não renderiza a imagem inferior em dispositivos móveis
+        {!isMobile && bottomImage && ( // não renderiza o bottom e dipositivos móveis (tava bugando antes)
           <div
             style={{
               backgroundImage: `url(${bottomImage})`,
