@@ -57,7 +57,7 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
     if (timeIndex === 1) return "#FCFBFF";
     if (timeIndex === 2) return "#300E82";
     if (timeIndex <= 5) return "#242D5C";
-    if (timeIndex === 6) return "#242D59";
+    if (timeIndex === 6) return "#FCFBFF";
     if (timeIndex <= 8) return "#F9F004";
     if (timeIndex === 9) return "#F9F004";
 
