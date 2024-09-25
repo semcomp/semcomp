@@ -10,7 +10,7 @@ import Footer from "../components/Footer";
 import NewFooter from "./newFooter";
 import Countdown from "../components/home/Countdown";
 import Routes from "../routes";
-import handler from '../api/handlers';
+import handler from "../api/handlers";
 import Sponsors from "../components/home/Sponsors";
 
 // Array com os intervalos de horas e seus respectivos índices de imagens
@@ -28,11 +28,10 @@ const timeToImage = [
   { start: 0, end: 5, imgIndex: 10 },
 ];
 
-
 const Home: React.FC = () => {
   const { user, setUser, setToken } = useAppContext();
   const router = useRouter();
-  const [ buttonSelected, setButtonSelected ] = useState('');
+  const [buttonSelected, setButtonSelected] = useState("");
   const isUserLoggedIn = Boolean(user);
   const [openSignup, setOpenSignup] = useState(true);
   const [isMobile, setisMobile] = useState(true);
@@ -44,28 +43,29 @@ const Home: React.FC = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
   }
-  
+
   async function fetchData() {
     try {
       const config = await handler.config.getConfig().then((res) => res.data);
       //console.log(config);
-      setOpenSignup(config.openSignup); 
+      setOpenSignup(config.openSignup);
     } catch (error) {
-        console.log(error);
+      console.log(error);
     }
   }
-  
+
   useEffect(() => {
-      fetchData();
-      setisMobile(window.innerWidth < 1050)
+    fetchData();
+    setisMobile(window.innerWidth < 1050);
   }, []);
 
   useEffect(() => {
     const currentHour = new Date().getHours();
-    const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
+    const matchedImage = timeToImage.find(
+      ({ start, end }) => currentHour >= start && currentHour < end
+    );
     setImageIndex(matchedImage?.imgIndex ?? 10);
   }, []);
-
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -85,23 +85,23 @@ const Home: React.FC = () => {
   }
 
   function handleSobre() {
-    setButtonSelected('sobre');
+    setButtonSelected("sobre");
   }
 
   function handleCronograma() {
-    setButtonSelected('cronograma');
+    setButtonSelected("cronograma");
   }
 
   function handleFaq() {
-    setButtonSelected('faq');
+    setButtonSelected("faq");
   }
 
   function handleSponsors() {
-    setButtonSelected('sponsors');
+    setButtonSelected("sponsors");
   }
-  
+
   function handleSupporters() {
-    setButtonSelected('supporters');
+    setButtonSelected("supporters");
   }
 
   function handlePerfil() {
@@ -114,7 +114,7 @@ const Home: React.FC = () => {
   }
 
   function handleEntrar() {
-    router.push(Routes.login)
+    router.push(Routes.login);
   }
 
   return (
@@ -122,22 +122,20 @@ const Home: React.FC = () => {
       {/* Passando o TimeIndex para AnimatedBG */}
       <AnimatedBG imageIndex={imageIndex} />
 
-      {
-        buttonSelected !== '' && (
-          <Modal setButtonSelected={setButtonSelected} element={buttonSelected} />
-        )
-      }
+      {buttonSelected !== "" && (
+        <Modal setButtonSelected={setButtonSelected} element={buttonSelected} />
+      )}
 
       {/* Conteúdo principal */}
-      <div className="relative z-20 flex-grow p-8 flex flex-col items-center justify-center">
-        <TitleHome timeIndex={imageIndex}/>
+      <div className="relative z-20 flex flex-col items-center justify-center flex-grow p-8">
+        <TitleHome timeIndex={imageIndex} />
 
-        <div className="flex flex-col items-center w-full gap-4 ">
+        <div className="flex flex-col items-center w-full gap-2">
           {isUserLoggedIn ? (
-          <>
-            <ButtonMenuHome label="PERFIL" onClick={handlePerfil} />
-            <ButtonMenuHome label="SAIR" onClick={handleSair} />
-          </>
+            <>
+              <ButtonMenuHome label="PERFIL" onClick={handlePerfil} />
+              <ButtonMenuHome label="SAIR" onClick={handleSair} />
+            </>
           ) : (
             <>
               <ButtonMenuHome label="INSCREVA-SE" onClick={handleInscrevase} />
@@ -145,15 +143,13 @@ const Home: React.FC = () => {
             </>
           )}
           <ButtonMenuHome label="SOBRE" onClick={handleSobre} />
-          {/* <ButtonMenuHome label="CRONOGRAMA" onClick={handleCronograma} /> */}
           <ButtonMenuHome label="FAQ" onClick={handleFaq} />
-          {/* { isMobile &&  */}
           <ButtonMenuHome label="PATROCINADORES" onClick={handleSponsors} />
           <ButtonMenuHome label="APOIADORES" onClick={handleSupporters} />
-          {/* } */}
         </div>
+
         <div className="mt-8">
-        <Countdown timeIndex={imageIndex} />
+          <Countdown timeIndex={imageIndex} />
         </div>
       </div>
       {/* {

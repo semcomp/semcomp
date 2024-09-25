@@ -75,12 +75,11 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
         className="relative text-center felz"
         style={{ marginTop: `${noAbsoluteMarginTop}px` }}
       >
-        {/* Usando o componente Image do Next.js */}
         <Image
           src={logoSemcompona}
           alt="Logo Semcompona"
           width={500} // ajuste o valor conforme necessário
-          height={300} // ajuste o valor conforme necessário
+          height={250} // ajuste o valor conforme necessário
           style={{ width: logoSize, marginBottom: "15px"}}
         />
         <p
