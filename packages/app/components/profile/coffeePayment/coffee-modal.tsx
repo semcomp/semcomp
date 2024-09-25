@@ -152,11 +152,6 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3 }) {
               sales.push(sale);
             }
           });
-          
-          if (sales.length === 0) {
-            toast.error("Erro ao buscar vendas disponíveis. Tente novamente.");
-            return paymentInfo;
-          }
 
           // Envia os dados do primeiro pagamento pendente para a etapa 3 (pagamento) 
           setData({...data, ...(pendingPayment[0]), sale: sales, id: 1});
@@ -197,7 +192,9 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3 }) {
       { !loading ? 
         (
           <div className="max-h-lg w-full overflow-y-scroll p-6">
-            <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} activeColor={"primary"} unactiveColor={"white"} />
+            { availableSales && availableSales.length > 0 &&
+              <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} activeColor={"primary"} unactiveColor={"white"} />
+            }
             {stepComponent[coffeeStep]}
             <div className="flex justify-between w-full">
               <SemcompButton className="bg-[#F24444]" onClick={onRequestClose}>

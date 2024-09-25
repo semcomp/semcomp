@@ -168,6 +168,7 @@ class SaleService {
   public async getAvailables(): Promise<(Sale & {usedQuantity: number})[]> {
     const sales = await this.findWithUsedQuantity({ pagination: new PaginationRequest(0, 9999) });
     const withoutItems = sales.getEntities().filter((sale) => SaleType[sale.type] === SaleType.SALE);
+    const items = sales.getEntities().filter((sale) => SaleType[sale.type] === SaleType.ITEM);
 
     if (withoutItems.length === 0) {
       return [];
@@ -175,7 +176,8 @@ class SaleService {
   
     const entities: (Sale & { usedQuantity: number })[] = [];
     for (const sale of withoutItems) {
-      if (sale.quantity > sale.usedQuantity) {
+      const lowestQuantity = Math.min(...items.filter((item) => sale.items.includes(item.id)).map(i => i.quantity - i.usedQuantity));
+      if (lowestQuantity > 0 && sale.quantity > sale.usedQuantity) {
         entities.push(sale);
       }
     }

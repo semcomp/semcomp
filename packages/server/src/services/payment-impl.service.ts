@@ -186,7 +186,7 @@ export default class PaymentServiceImpl implements PaymentService {
     }
 
     const userPayments = await this.find({ userId, status: [PaymentStatus.APPROVED, PaymentStatus.PENDING] });
-    const salesDoc = await SaleService.find({pagination: new PaginationRequest(1, 9999)});
+    const salesDoc = await SaleService.findWithUsedQuantity({pagination: new PaginationRequest(1, 9999)});
     const salesOptionObjects : Sale[] = [];
     const salesPaymentObject: Sale[] = [];
     const needTshrit = false;
@@ -231,6 +231,7 @@ export default class PaymentServiceImpl implements PaymentService {
     })
     price = withSocialBenefit ? price/2 : price;
 
+    // Buscando itens repetidos
     const saleOptionItemsIds = salesOptionObjects.map((sale) => sale.items).flat();
     const duplicates = saleOptionItemsIds.filter((item, index) => saleOptionItemsIds.indexOf(item) !== index);
     const conflictOldPayments = this.findItemsInSales(saleOptionItemsIds, salesPaymentObject.map((sale: Sale) => sale.items).flat());
@@ -238,6 +239,15 @@ export default class PaymentServiceImpl implements PaymentService {
       throw new HttpError(400, ["Você tem itens repetidos!"]);
     } else if (conflictOldPayments) {
       throw new HttpError(400, ["Pelo menos um dos itens já foi adquirido em compras anteriores!"]);
+    }
+
+    // Buscando a disponibilidade dos itens das vendas
+    for (const itemId of saleOptionItemsIds) {
+      const item = salesDoc.getEntities().find((sale) => sale.id === itemId);
+
+      if (!item || item.quantity <= 0 || item.quantity - item.usedQuantity <= 0) {
+        throw new HttpError(400, [`Um dos itens não está mais disponível no momento, tente novamente!`]);
+      }
     }
 
     // const pendingPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.PENDING);
