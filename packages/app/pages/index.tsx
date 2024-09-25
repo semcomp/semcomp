@@ -158,7 +158,7 @@ const Home: React.FC = () => {
       } */}
 
       {/* Footer */}
-      <NewFooter locale="p" />
+      <NewFooter />
     </div>
   );
 };

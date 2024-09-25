@@ -9,14 +9,14 @@ function SocialLinkIcon({ link, icon }: { link: string; icon: any }) {
   return (
     <div className="p-1">
       <a
-        className="bg-white text-primary p-2 rounded-full"
+        className="p-2 bg-white rounded-full text-primary"
         href={link}
         rel="noopener"
       >
         {icon}
       </a>
     </div>
-  );
+  ); 
 }
 
 /*
@@ -33,7 +33,7 @@ const Footer = (props) => {
 
   return (
       <footer className={footerStyle}>
-        <section className="text-center py-2 mobile:hidden">
+        <section className="py-2 text-center mobile:hidden">
           <p>Entre em contato conosco</p>
         <div className="flex flex-col items-center">
           <div className="flex items-center my-1">
@@ -48,10 +48,10 @@ const Footer = (props) => {
           </div>
         </div>
       </section>
-      <section className="text-center py-2 text-sm">
+      <section className="py-2 text-sm text-center">
         <p>© Semcomp 2024. Todos os direitos reservados.</p>
       </section>
-      <section className="text-center py-2 text-sm">
+      <section className="py-2 text-sm text-center">
         <p>Nos siga nas redes sociais</p>
         <div className="flex justify-center p-2">
           <SocialLinkIcon

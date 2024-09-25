@@ -13,10 +13,11 @@ const ButtonMenuHome: React.FC<ButtonProps> = ({ label, onClick }) => {
   const [isClicked, setIsClicked] = useState(false);
 
   const handleClick = () => {
-    setIsClicked(true);
+    setIsClicked(!isClicked); // Alterna entre selecionado e não selecionado
     onClick();
-    setTimeout(() => setIsClicked(false), 200); // Retorna ao estado normal após 200ms
   };
+
+  const currentImage = isClicked || isHovered ? buttonSelected : buttonNormal; // Mostra a imagem selecionada se clicado ou quando o mouse está por cima
 
   return (
     <div 
@@ -35,7 +36,7 @@ const ButtonMenuHome: React.FC<ButtonProps> = ({ label, onClick }) => {
       onClick={handleClick} // Usa a função handleClick
     >
       <Image
-        src={isHovered ? buttonSelected : buttonNormal}
+        src={currentImage} // Muda a imagem com base nos estados
         alt="Botão de fundo"
         layout="fill" 
         objectFit="cover" 
