@@ -1,3 +1,4 @@
+import { CloseRounded } from "@mui/icons-material";
 import { useEffect, useRef, useState } from "react";
 
 interface ModalProps {
@@ -42,11 +43,9 @@ export function Modal({ children, isOpen, hasCloseBtn, onClose }: ModalProps) {
   return (
     <>
       <dialog ref={modalRef} className="backdrop:bg-gray-700 backdrop:opacity-50" onKeyDown={handleKeyDown}>
-        <div className="modal-header">
+        <div className="modal-header flex justify-end">
           {hasCloseBtn && (
-            <button className="bg-red-400" onClick={handleCloseModal}>
-              Close
-            </button>
+            <CloseRounded onClick={handleCloseModal} className="cursor-pointer" />
           )}
         </div>
         {children}

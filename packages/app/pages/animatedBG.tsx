@@ -86,6 +86,7 @@ const AnimatedBG: React.FC<AnimatedBGProps> = ({ imageIndex }) => {
   const [cloudFilter, setCloudFilter] = useState<string>(filters[imageIndex]);
   const [airplaneFilter, setAirplaneFilter] = useState<string>(filtersAirplane[imageIndex]);
   const [showObjects, setShowObjects] = useState(true);
+  const [isMobile, setIsMobile] = useState<boolean>(false); // Estado para verificar se é um dispositivo móvel
 
   useEffect(() => {
     // Atualiza a imagem de fundo e outros estados com base no imageIndex recebido
@@ -97,28 +98,27 @@ const AnimatedBG: React.FC<AnimatedBGProps> = ({ imageIndex }) => {
   }, [imageIndex]);
 
   useEffect(() => {
-    // Função para verificar o nível de zoom da página
-    const checkZoomLevel = () => {
-      const zoom = window.devicePixelRatio * 100; // Calcula o zoom em porcentagem
-      setShowObjects(zoom >= 75); // Se o zoom for menor que 75%, não mostra os objetos
+    // Função para verificar se é um dispositivo móvel
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768); // Se a largura for menor ou igual a 768px, é um dispositivo móvel
     };
 
-    //verifica o zoom inicial ao carregar a página
-    checkZoomLevel();
+    // Verifica ao carregar a página
+    checkIfMobile();
 
-    // adiciona um listener para verificar o zoom quando a janela é redimensionada
-    window.addEventListener("resize", checkZoomLevel);
+    // Adiciona um listener para redimensionar a janela
+    window.addEventListener("resize", checkIfMobile);
 
-    // remove o listener quando o componente é desmontado
+    // Remove o listener quando o componente é desmontado
     return () => {
-      window.removeEventListener("resize", checkZoomLevel);
+      window.removeEventListener("resize", checkIfMobile);
     };
   }, []);
 
   return (
     <main>
       <div
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 z-0 background-container"
         style={{
           backgroundImage: `url(${backgroundImage})`,
           backgroundPosition: backgroundPosition,
@@ -126,7 +126,7 @@ const AnimatedBG: React.FC<AnimatedBGProps> = ({ imageIndex }) => {
           backgroundRepeat: "no-repeat",
         }}
       >
-        {bottomImage && (
+        {!isMobile && bottomImage && ( // não renderiza o bottom e dipositivos móveis (tava bugando antes)
           <div
             style={{
               backgroundImage: `url(${bottomImage})`,
@@ -150,8 +150,8 @@ const AnimatedBG: React.FC<AnimatedBGProps> = ({ imageIndex }) => {
             direction="right"
             image={cloudy.src}
             filter={cloudFilter}
-            minSize={200}
-            maxSize={300}
+            minSize={window.innerWidth <= 768 ? 100 : 200}
+            maxSize={window.innerWidth <= 768 ? 150 : 300}
           />
 
           <ObjectFly
@@ -159,8 +159,8 @@ const AnimatedBG: React.FC<AnimatedBGProps> = ({ imageIndex }) => {
             direction="left"
             image={airplane.src}
             filter={airplaneFilter}
-            minSize={1000}
-            maxSize={1000}
+            minSize={window.innerWidth <= 768 ? 600 : 1000}
+            maxSize={window.innerWidth <= 768 ? 600 : 1000}
           />
         </>
       )}

@@ -132,7 +132,6 @@ function Events() {
   //   for (const user of data) {
   //     let paymentStatus = "";
   //     if (user.payment.status) {
-  //       console.log(user.payment.status);
   //       paymentStatus = user.payment.status === PaymentStatus.APPROVED ? "Aprovado" : "Pendente";
   //     }
   
@@ -145,7 +144,6 @@ function Events() {
   //       "Casa": user.house.name,
   //       "Status do pagamento": paymentStatus,
   //       "Tamanho da camiseta": user.payment.tShirtSize,
-  //       "Opção de compra": user.payment.kitOption,
   //       "Permite divulgação?": user.permission ? "Sim" : "Não",
   //       "Criado em": new Date(user.createdAt).toLocaleString("pt-br", 
   //       {

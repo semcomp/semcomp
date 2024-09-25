@@ -10,10 +10,11 @@ import tShirtService from "./t-shirt.service";
 import PaymentService from "./payment.service";
 import ConfigService from "./config.service";
 import TShirtSize from "../lib/constants/t-shirt-size-enum";
-import KitOption from "../lib/constants/kit-option";
+import SaleService from "./sale.service";
 import FoodOption from "../lib/constants/food-option-enum";
 import PaymentStatus from "../lib/constants/payment-status-enum";
 import { PaginationRequest } from "../lib/pagination";
+import Sale from "../models/sales";
 
 export default class PaymentServiceImpl implements PaymentService {
   private idService: IdService;
@@ -33,9 +34,17 @@ export default class PaymentServiceImpl implements PaymentService {
     this.notificationUrl = notificationUrl;
   }
 
-  public async find(filters?: Partial<Payment>): Promise<Payment[]> {
-    const payments = await PaymentModel.find(filters);
+  public async find(filters?: any): Promise<Payment[]> {
+    let payments = null;
+    if (filters?.salesOption && Array.isArray(filters.salesOption)) {
+      filters = { ...filters, salesOption: { $in: filters.salesOption } };
+    }
 
+    if (filters?.status && Array.isArray(filters.status)) {
+        filters = {...filters, status: { $in: filters.status } };
+    }
+
+    payments = await PaymentModel.find(filters);
     const entities: Payment[] = [];
     for (const payment of payments) {
       entities.push(this.mapEntity(payment));
@@ -51,24 +60,45 @@ export default class PaymentServiceImpl implements PaymentService {
   }
 
   public async findOne(filters?: Partial<Payment>): Promise<Payment> {
-    const entity = await PaymentModel.findOne(filters);
+    let entity = null; 
+    if (filters && filters.salesOption) {
+      entity = await PaymentModel.countDocuments({
+        ...filters,
+        salesOption: { $in: filters.salesOption },
+      });
+    } else {
+      entity = await PaymentModel.findOne(filters).sort({ _id: -1 });
+    }
 
     return entity && this.mapEntity(entity);
   }
 
   public async findByUserId(id: string): Promise<Payment> {
-    const entity = await PaymentModel.findOne({ userId: id });
-    return this.mapEntity(entity);
+    const entity = await PaymentModel.find({ userId: id }).sort({ _id: -1 });
+
+    if (entity && entity.length > 0) {
+      return entity.map((payment) => this.mapEntity(payment as Model<Payment> & Payment));
+    }
+
+    return null;
   }
 
   public async count(filters?: Partial<Payment>): Promise<number> {
-    const count = await PaymentModel.count(filters);
-
+    let count = 0;
+    if (filters && filters.salesOption) {
+      count = await PaymentModel.countDocuments({
+        ...filters,
+        salesOption: { $in: filters.salesOption },
+      });
+    } else {
+      count = await PaymentModel.countDocuments(filters);
+    }
+    
     return count;
   }
 
   public async create(payment: Payment): Promise<Payment> {
-    payment.id = await this.idService.create();
+    payment.id = this.idService.create();
     payment.createdAt = Date.now();
     payment.updatedAt = Date.now();
     const entity = await PaymentModel.create(payment);
@@ -89,26 +119,60 @@ export default class PaymentServiceImpl implements PaymentService {
     return entity && this.mapEntity(entity);
   }
 
-  public async getPurchasedCoffee(): Promise<number> {
+  public async getPurchasedCoffee(): Promise<number> { //DEPRECTED
     const getPurchasedCoffee = await PaymentModel.countDocuments({
       status: { $in: ['approved', 'pending'] },
       kitOption: { $in: ['Coffee', 'Kit e Coffee'] }
     });
     return getPurchasedCoffee;
   }
+
+  public async getAvailableTShirts(): Promise<Object> {
+    const availableTShirts: Object = {};
+    Object.keys(TShirtSize).map((key) => {
+      if (key != 'NONE') availableTShirts[key] = 0;
+    });
+
+    const approvedPayments = await this.find({ status: PaymentStatus.APPROVED });
+    const pendingPayments = await this.find({ status: PaymentStatus.PENDING });
+
+    approvedPayments.map((payment) => { availableTShirts[payment.tShirtSize]-- });
+    pendingPayments.map((payment) => { availableTShirts[payment.tShirtSize]-- });
+
+    const allAvailableTShirts = await tShirtService.findMany({});
+    allAvailableTShirts.map((tShirt) => { availableTShirts[tShirt.size] += tShirt.quantity; })
+
+    return availableTShirts;
+  }
+
   
+  public findItemsInSales(saleOptionItemsIds: string[], purchasedItemsIds: string[]): boolean {
+    const hasRepeatedItem = saleOptionItemsIds.some(saleId => 
+      purchasedItemsIds.some(itemId => {
+        if (saleId === itemId) {
+          return true;
+        }
+        return false;
+      })
+    );
+  
+    return hasRepeatedItem;
+  }
+  
+  
+
   public async createPayment(
     userId: string,
     withSocialBenefit: boolean,
     socialBenefitFileName: string,
     tShirtSize: TShirtSize,
     foodOption: FoodOption,
-    kitOption: KitOption,
+    saleOption: string[],
   ): Promise<Payment> {
-    const config = await ConfigService.getOne(); 
-    if(config === undefined){
-      throw new HttpError(401, ["Erro ao acessar as Configs(auth.service.ts)"]);
-    } else if(!(config.openSales)){
+    const config = await ConfigService.getOne();
+    if (config === undefined) {
+      throw new HttpError(401, ["Erro ao acessar as configurações de ambiente!"]);
+    } else if (!(config.openSales)) {
       throw new HttpError(503, ["Vendas encerradas!"]);
     }
 
@@ -117,92 +181,113 @@ export default class PaymentServiceImpl implements PaymentService {
       throw new HttpError(400, ["Usuário não encontrado"]);
     }
 
-    const tShirt = await tShirtService.findOne({ size: tShirtSize });
-    if (!tShirt) {
-      throw new HttpError(400, ['Camisa não encontrada!']);
+    if (saleOption.length === 0) {
+      throw new HttpError(400, ["Selecione ao menos uma opção de venda!"]);
     }
 
-    let price;
+    const userPayments = await this.find({ userId, status: [PaymentStatus.APPROVED, PaymentStatus.PENDING] });
+    const salesDoc = await SaleService.findWithUsedQuantity({pagination: new PaginationRequest(1, 9999)});
+    const salesOptionObjects : Sale[] = [];
+    const salesPaymentObject: Sale[] = [];
+    const needTshrit = false;
 
-    if (kitOption.includes("Coffee")) {
-      const purchasedCoffee = await this.getPurchasedCoffee();
-      if(config.coffeeTotal - purchasedCoffee <= 0){
-        throw new HttpError(400, ["Coffees esgotados!"]);
+    for (const sale of salesDoc.getEntities()) {
+      // Busca todos os objetos de vendas para a compra atual
+      if (saleOption.includes(sale.id)) {
+        salesOptionObjects.push(sale);
       }
-    }
-    
-    if(kitOption.includes("Kit") && kitOption.includes("Coffee")) {
-      price = 75;
-    } else if (kitOption.includes("Kit")){
-      price = 65;
-    } else {
-      price = 18;
-    } 
 
-    price = withSocialBenefit ? price/2 : price;
-
-    const userPayments = await this.find({ userId });
-    const approvedPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.APPROVED);
-    if (approvedPayment) {
-      throw new HttpError(400, ["Camiseta já comprada!"]);
-    }
-
-    const pendingPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.PENDING);
-    if (pendingPayment) {
-      if (
-        pendingPayment.withSocialBenefit !== withSocialBenefit ||
-        pendingPayment.socialBenefitFileName !== socialBenefitFileName ||
-        pendingPayment.tShirtSize !== tShirtSize ||
-        pendingPayment.kitOption !== kitOption
-      ) {
-
-        
-        pendingPayment.socialBenefitFileName = socialBenefitFileName;
-
-        if (pendingPayment.tShirtSize !== tShirtSize && tShirtSize != TShirtSize.NONE) {
-          pendingPayment.tShirtSize = tShirtSize;
-          let paymentsWithThisTShirtSize = await this.count({ tShirtSize, status: PaymentStatus.APPROVED });
-          paymentsWithThisTShirtSize += await this.count({ tShirtSize, status: PaymentStatus.PENDING });
-          if (paymentsWithThisTShirtSize >= tShirt.quantity) {
-            throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
+      // Busca todos os objetos de vendas anteriores
+      if (userPayments) {
+        for (const userPayment of userPayments) {
+          if (userPayment.salesOption.includes(sale.id)) {
+            salesPaymentObject.push(sale);
           }
         }
-
-        if (pendingPayment.withSocialBenefit !== withSocialBenefit || 
-              pendingPayment.kitOption !== kitOption) {
-
-          const paymentResponse = await this.paymentIntegrationService.create(
-            price,
-            user.email,
-            "Semcomp",
-            `${this.notificationUrl}/${pendingPayment.id}`
-          );
-
-          // if(kitOption === KitOption.COFFEE){
-          //   pendingPayment.tShirtSize = TShirtSize.NONE;
-          // }
-
-          pendingPayment.withSocialBenefit = withSocialBenefit;
-          pendingPayment.paymentIntegrationId = paymentResponse.id;
-          pendingPayment.qrCode = paymentResponse.qrCode;
-          pendingPayment.qrCodeBase64 = paymentResponse.qrCodeBase64;
-        }
-
-        pendingPayment.kitOption = kitOption;
-        await this.update(pendingPayment);
       }
-
-      return pendingPayment;
     }
 
-    if(tShirtSize != TShirtSize.NONE){
+    if (salesOptionObjects.length !== saleOption.length) {
+      throw new HttpError(400, ["Item não encontrado, atualize a página."]);
+    }
+    
+    if (needTshrit && tShirtSize !== TShirtSize.NONE) {
+      const tShirt = await tShirtService.findOne({ size: tShirtSize });
+
+      if (!tShirt) {
+        throw new HttpError(400, ['Camisa não encontrada!']);
+      }
+
       let paymentsWithThisTShirtSize = await this.count({ tShirtSize, status: PaymentStatus.APPROVED });
       paymentsWithThisTShirtSize += await this.count({ tShirtSize, status: PaymentStatus.PENDING });
       if (paymentsWithThisTShirtSize >= tShirt.quantity) {
         throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
       }
-
     }
+
+    let price = 0;
+    salesOptionObjects.forEach((sale) => {
+      price += sale.price;
+    })
+    price = withSocialBenefit ? price/2 : price;
+
+    // Buscando itens repetidos
+    const saleOptionItemsIds = salesOptionObjects.map((sale) => sale.items).flat();
+    const duplicates = saleOptionItemsIds.filter((item, index) => saleOptionItemsIds.indexOf(item) !== index);
+    const conflictOldPayments = this.findItemsInSales(saleOptionItemsIds, salesPaymentObject.map((sale: Sale) => sale.items).flat());
+    if (duplicates.length > 0) {
+      throw new HttpError(400, ["Você tem itens repetidos!"]);
+    } else if (conflictOldPayments) {
+      throw new HttpError(400, ["Pelo menos um dos itens já foi adquirido em compras anteriores!"]);
+    }
+
+    // Buscando a disponibilidade dos itens das vendas
+    for (const itemId of saleOptionItemsIds) {
+      const item = salesDoc.getEntities().find((sale) => sale.id === itemId);
+
+      if (!item || item.quantity <= 0 || item.quantity - item.usedQuantity <= 0) {
+        throw new HttpError(400, [`Um dos itens não está mais disponível no momento, tente novamente!`]);
+      }
+    }
+
+    // const pendingPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.PENDING);
+    // if (pendingPayment) {
+    //   if (
+    //     pendingPayment.withSocialBenefit !== withSocialBenefit ||
+    //     pendingPayment.socialBenefitFileName !== socialBenefitFileName ||
+    //     pendingPayment.tShirtSize !== tShirtSize
+    //   ) {
+    //     pendingPayment.socialBenefitFileName = socialBenefitFileName;
+
+    //     if (pendingPayment.tShirtSize !== tShirtSize && tShirtSize != TShirtSize.NONE) {
+    //       pendingPayment.tShirtSize = tShirtSize;
+    //       let paymentsWithThisTShirtSize = await this.count({ tShirtSize, status: PaymentStatus.APPROVED });
+    //       paymentsWithThisTShirtSize += await this.count({ tShirtSize, status: PaymentStatus.PENDING });
+    //       if (paymentsWithThisTShirtSize >= tShirt.quantity) {
+    //         throw new HttpError(400, ["Camisetas deste tamanho estão esgotadas!"]);
+    //       }
+    //     }
+
+    //     if (pendingPayment.withSocialBenefit !== withSocialBenefit) {
+    //       const paymentResponse = await this.paymentIntegrationService.create(
+    //         price,
+    //         user.email,
+    //         "Semcomp",
+    //         `${this.notificationUrl}/${pendingPayment.id}`
+    //       );
+
+    //       pendingPayment.withSocialBenefit = withSocialBenefit;
+    //       pendingPayment.paymentIntegrationId = paymentResponse.id;
+    //       pendingPayment.qrCode = paymentResponse.qrCode;
+    //       pendingPayment.qrCodeBase64 = paymentResponse.qrCodeBase64;
+    //     }
+
+    //     pendingPayment.salesOption = saleOption;
+    //     await this.update(pendingPayment);
+    //   }
+
+    //   return pendingPayment;
+    // }
 
     const newPaymentData: Payment = {
       userId: user.id,
@@ -211,20 +296,33 @@ export default class PaymentServiceImpl implements PaymentService {
       socialBenefitFileName,
       tShirtSize,
       foodOption,
-      kitOption,
+      price,
+      salesOption: saleOption,
     };
     const newPayment = await this.create(newPaymentData);
 
-    const paymentResponse = await this.paymentIntegrationService.create(
-      price,
-      user.email,
-      "Semcomp",
-      `${this.notificationUrl}/${newPayment.id}`
-    );
+    try {
+      const paymentResponse = await this.paymentIntegrationService.create(
+        price,
+        user.email,
+        "Semcomp",
+        `${this.notificationUrl}/${newPayment.id}`
+      );
+      newPayment.paymentIntegrationId = paymentResponse.id;
+      newPayment.qrCode = paymentResponse.qrCode;
+      newPayment.qrCodeBase64 = paymentResponse.qrCodeBase64;
+    } catch {
+      await this.delete(newPayment);
+      throw new HttpError(400, ["Erro no servidor! Tente novamente mais tarde."]);
+    }
 
-    newPayment.paymentIntegrationId = paymentResponse.id;
-    newPayment.qrCode = paymentResponse.qrCode;
-    newPayment.qrCodeBase64 = paymentResponse.qrCodeBase64;
+    const timelimit = 2 * 60 * 60 * 1000; // 2 horas
+    setTimeout(async () => {
+      const expiredPayment = await this.findById(newPayment.id);
+      await this.cancelPayment(expiredPayment);
+    }, timelimit);
+
+    console.log("Created the qrcodes and started the timer for 2 hours!");
 
     return await this.update(newPayment);
   }
@@ -233,22 +331,52 @@ export default class PaymentServiceImpl implements PaymentService {
     const payment = await PaymentModel.findOne({ id });
     const paymentResponse = await this.paymentIntegrationService.find(payment.paymentIntegrationId);
 
-    if (paymentResponse.status === 'approved') {
+    if (payment.status === PaymentStatus.CANCELED) {
+      // caso o pagamento esteja cancelado no banco de dados, então é preciso checar se o pagamento
+      // acabou sendo efetuado posteriormente ao cancelamento. Se sim, devemos fazer um reembolso
+      if (paymentResponse.status === 'approved') {
+        const response = await this.paymentIntegrationService.refund(payment.paymentIntegrationId, payment.amount);
+        if (response) await this.delete(payment);
+      } else {
+        const response = await this.paymentIntegrationService.cancel(payment.paymentIntegrationId);
+        if (response) await this.delete(payment);
+      }
+    } else if (paymentResponse.status === 'approved') {
+      // caso o pagamento não esteja cancelado, e esteja aprovado no mercadopago, então atualizar no
+      // banco de dados
       payment.status = PaymentStatus.APPROVED;
-
       await this.update(payment);
     }
   }
 
-  public async getUserPayment(userId: string): Promise<Payment> {
+  public async getUserPayment(userId: string): Promise<Payment[]> {
+    const allPayments = [];
     const userPayments = await PaymentModel.find({ userId });
-    const approvedPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.APPROVED);
-    if (approvedPayment) {
-      return this.mapEntity(approvedPayment);
-    }
-    const pendingPayment = userPayments.find((userPayment) => userPayment.status === PaymentStatus.PENDING);
+    const approvedPayment = userPayments.filter((userPayment: Payment) => userPayment.status === PaymentStatus.APPROVED);
 
-    return pendingPayment && this.mapEntity(pendingPayment);
+    if (approvedPayment.length > 0) {
+      approvedPayment.forEach((payment: Payment) => {
+        allPayments.push(this.mapEntity(payment));
+      });
+    }
+    const pendingPayment = userPayments.filter((userPayment: Payment) => userPayment.status === PaymentStatus.PENDING);
+
+    if (pendingPayment.length > 0) {
+      pendingPayment.forEach((payment: Payment) => {
+        allPayments.push(this.mapEntity(payment));
+      });
+    }
+
+    return allPayments;
+  }
+
+  public async cancelPayment(payment: Payment) {
+    console.log("canceled on the database!");
+    if (payment.status === PaymentStatus.PENDING) {
+      payment.status = PaymentStatus.CANCELED;
+      payment.tShirtSize = null;
+      await this.update(payment);
+    }
   }
 
   public async cancelOldPendingPayments(): Promise<void> {
@@ -260,9 +388,7 @@ export default class PaymentServiceImpl implements PaymentService {
 
     for (const payment of pendingPayments) {
       if (payment.updatedAt < new Date(maxDate).getTime()) {
-        payment.status = PaymentStatus.CANCELED;
-        payment.tShirtSize = null;
-        await this.update(payment);
+        await this.cancelPayment(payment);
       }
     }
   }
@@ -272,38 +398,38 @@ export default class PaymentServiceImpl implements PaymentService {
     const payments = await this.find({ status: PaymentStatus.APPROVED });
 
     for (const user of users.getEntities()) {
-    //   if (payments.find((payment) => user.id === payment.userId)) {
-    //     await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
-    //       color: {
-    //         dark: '#000000',
-    //         light: '#0000',
-    //       },
-    //       errorCorrectionLevel: 'H',
-    //       type: "png",
-    //     });
-    //   } else {
-    //     await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
-    //       color: {
-    //         dark: '#000000',
-    //         light: '#0000',
-    //       },
-    //       errorCorrectionLevel: 'H',
-    //       type: "png",
-    //     });
-    //   }
-    // }
-    await QRCode.toFile(`./qr-code/${user.email} - ${user.name}.png`, user.id, {
-      color: {
-        dark: '#000000',
-        light: '#ffffff',
-      },
-      errorCorrectionLevel: 'H',
-      type: "png",
-    });
+      //   if (payments.find((payment) => user.id === payment.userId)) {
+      //     await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
+      //       color: {
+      //         dark: '#000000',
+      //         light: '#0000',
+      //       },
+      //       errorCorrectionLevel: 'H',
+      //       type: "png",
+      //     });
+      //   } else {
+      //     await QRCode.toFile(`./qrcode/${user.email} - ${user.name}.png`, user.id, {
+      //       color: {
+      //         dark: '#000000',
+      //         light: '#0000',
+      //       },
+      //       errorCorrectionLevel: 'H',
+      //       type: "png",
+      //     });
+      //   }
+      // }
+      await QRCode.toFile(`./qr-code/${user.email} - ${user.name}.png`, user.id, {
+        color: {
+          dark: '#000000',
+          light: '#ffffff',
+        },
+        errorCorrectionLevel: 'H',
+        type: "png",
+      });
     }
   }
 
-  private mapEntity(entity: Model<Payment> & Payment): Payment {
+  private mapEntity(entity: Model<Payment> & Payment | Payment): Payment {
     return {
       id: entity.id,
       paymentIntegrationId: entity.paymentIntegrationId,
@@ -314,7 +440,8 @@ export default class PaymentServiceImpl implements PaymentService {
       socialBenefitFileName: entity.socialBenefitFileName,
       tShirtSize: entity.tShirtSize,
       foodOption: entity.foodOption,
-      kitOption: entity.kitOption,
+      salesOption: entity.salesOption,
+      price: entity.price,
       status: entity.status,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
