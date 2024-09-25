@@ -14,6 +14,7 @@ import { PaginationRequest, PaginationResponse } from "../models/Pagination";
 import Game from "../libs/constants/game-enum";
 import VerticalTableRow from "../components/layout/VerticalTableRow";
 
+
 type GameGroupData = {
   ID: string;
   Jogo: Game;
