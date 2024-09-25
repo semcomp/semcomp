@@ -149,7 +149,7 @@ const Home: React.FC = () => {
         </div>
 
         <div className="mt-8">
-          {/* <Countdown timeIndex={imageIndex} /> */}
+          <Countdown timeIndex={imageIndex} />
         </div>
       </div>
       {/* {
