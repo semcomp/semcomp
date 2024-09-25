@@ -16,10 +16,10 @@ import userDisabilityService from "../../services/user-disability.service";
 import Disability from "../../lib/constants/disability-enum";
 import PaymentServiceImpl from "../../services/payment-impl.service";
 import TShirtSize from "../../lib/constants/t-shirt-size-enum";
-import KitOption from "../../lib/constants/kit-option"
 import PaymentStatus from "../../lib/constants/payment-status-enum";
 import { PaginationRequest, PaginationResponse } from "../../lib/pagination";
 import FoodOption from "../../lib/constants/food-option-enum";
+import saleService from "../../services/sale.service";
 
 export default class UserController {
   private paymentService: PaymentServiceImpl;
@@ -29,10 +29,7 @@ export default class UserController {
   }
 
   public async list(req, res, next) {
-    const pagination = new PaginationRequest(
-      +req.query.page,
-      +req.query.items,
-    );
+    const pagination = new PaginationRequest(+req.query.page, +req.query.items);
 
     const usersFound = await userService.find({ pagination });
     const housesFound = await houseService.find({
@@ -41,19 +38,20 @@ export default class UserController {
     const houseMembersFound = await houseMemberService.find();
     const userDisabilities = await userDisabilityService.find();
     const payments = await this.paymentService.find();
+    const sales = await saleService.getSales();
 
-    type ListUser = (User & {
+    type ListUser = User & {
       house: {
-        name: string,
-      },
+        name: string;
+      };
       payment: {
-        status: PaymentStatus,
-        tShirtSize: TShirtSize,
-        foodOption: FoodOption,
-        kitOption: KitOption,
-      },
-      disabilities: Disability[]
-    })
+        status: PaymentStatus[];
+        tShirtSize: TShirtSize;
+        foodOption: FoodOption;
+        saleOption: string[][];
+      };
+      disabilities: Disability[];
+    };
 
     const users: ListUser[] = [];
     for (const user of usersFound.getEntities()) {
@@ -62,20 +60,34 @@ export default class UserController {
         return houseMember.userId === user.id;
       });
 
-      if(userHouseMember) {
+      if (userHouseMember) {
         userHouse = housesFound.getEntities().find((house) => {
           return house.id === userHouseMember.houseId;
         }).name;
       }
 
-      let userPayment = payments.find((payment) => {
-        return payment.userId === user.id && payment.status === PaymentStatus.APPROVED;
+      let userPayments = payments.filter((payment) => {
+        return (
+          payment.userId === user.id &&
+          payment.status !== PaymentStatus.CANCELED
+        );
       });
-      if (!userPayment) {
-        userPayment = payments.find((payment) => {
-          return payment.userId === user.id && payment.status === PaymentStatus.PENDING;
-        });
-      }
+
+      const userPaymentStatus = [];
+      const userPaymentSaleOption = [];
+      let userPaymentTShirtSize = null;
+      let userPaymentFoodOption = null;
+
+      userPayments.forEach((payment) => {
+        userPaymentStatus.push(payment.status);
+        userPaymentSaleOption.push(payment.salesOption);
+        if (payment.tShirtSize) {
+          userPaymentTShirtSize = payment.tShirtSize;
+        }
+        if (payment.foodOption) {
+          userPaymentFoodOption = payment.foodOption;
+        }
+      });
 
       users.push({
         ...user,
@@ -83,10 +95,10 @@ export default class UserController {
           name: userHouse,
         },
         payment: {
-          status: userPayment ? userPayment.status : null,
-          tShirtSize: userPayment ? userPayment.tShirtSize : null,
-          foodOption: userPayment ? userPayment.foodOption : null,
-          kitOption: userPayment ? userPayment.kitOption : null,
+          status: userPayments ? userPaymentStatus : null,
+          tShirtSize: userPaymentTShirtSize,
+          foodOption: userPaymentFoodOption,
+          saleOption: userPayments ? userPaymentSaleOption : null,
         },
         disabilities: userDisabilities
           .filter((userDisability) => userDisability.userId === user.id)
@@ -94,16 +106,18 @@ export default class UserController {
       });
     }
 
-    return res.status(200).json(
-      new PaginationResponse<ListUser>(users, usersFound.getTotalNumberOfItems())
-    );
+    return res
+      .status(200)
+      .json(
+        new PaginationResponse<ListUser>(
+          users,
+          usersFound.getTotalNumberOfItems(),
+        ),
+      );
   }
 
   public async listForEnterprise(req, res, next) {
-    const pagination = new PaginationRequest(
-      +req.query.page,
-      +req.query.items,
-    );
+    const pagination = new PaginationRequest(+req.query.page, +req.query.items);
     const usersFound = await userService.find({
       filters: { permission: true },
       pagination,
@@ -142,11 +156,9 @@ export default class UserController {
         throw new HttpError(404, ["Usuário não encontrado."]);
       }
 
-      const attendedEvents = await attendanceService.find(
-        {
-          userId,
-        }
-      );
+      const attendedEvents = await attendanceService.find({
+        userId,
+      });
 
       const totalNumEvents = await eventService.count();
       let attendancePercent = 100 * (attendedEvents.length / totalNumEvents);
@@ -174,10 +186,11 @@ export default class UserController {
         throw new HttpError(404, ["Conquista não encontrado."]);
       }
 
-      let userAchievement: UserAchievement = await userAchievementService.findOne({
-        userId: user.id,
-        achievementId: achievement.id,
-      });
+      let userAchievement: UserAchievement =
+        await userAchievementService.findOne({
+          userId: user.id,
+          achievementId: achievement.id,
+        });
       if (userAchievement) {
         throw new HttpError(400, [`Conquista já completa por ${user.name}.`]);
       }

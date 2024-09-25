@@ -33,14 +33,13 @@ class AdminAuthMiddleware {
       if (!req.adminUser) {
         return next(new createError.Unauthorized());
       }
-      req.adminUser = await adminAuthService.authToDelete(req.adminUser);
-       
+      adminAuthService.authToDelete(req.adminUser);
+
       next();
     } catch (error) {
       return handleError(error, next);
     }
   }
-
 }
 
 export default new AdminAuthMiddleware();

@@ -8,7 +8,6 @@ import PaymentServiceImpl from "./payment-impl.service";
 import PaymentStatus from "../lib/constants/payment-status-enum";
 
 const idService = new IdServiceImpl();
-const paymentService = new PaymentServiceImpl(null, null, null, null);
 
 class TShirtService {
   public async find({
@@ -18,8 +17,7 @@ class TShirtService {
     filters?: Partial<TShirt>;
     pagination: PaginationRequest;
   }): Promise<PaginationResponse<TShirt>> {
-    const tShirts = await TShirtModel
-      .find(filters)
+    const tShirts = await TShirtModel.find(filters)
       .skip(pagination.getSkip())
       .limit(pagination.getItems());
     const count = await this.count(filters);
@@ -29,7 +27,7 @@ class TShirtService {
       entities.push(this.mapEntity(tShirt));
     }
 
-    const paginatedResponse = new PaginationResponse(entities, count)
+    const paginatedResponse = new PaginationResponse(entities, count);
 
     return paginatedResponse;
   }
@@ -44,6 +42,16 @@ class TShirtService {
     const entity = await TShirtModel.findOne(filters);
 
     return entity && this.mapEntity(entity);
+  }
+
+  public async findMany(filters?: Partial<TShirt>): Promise<TShirt[]> {
+    const tShirts = await TShirtModel.find(filters);
+    const entities: TShirt[] = [];
+    for (const tShirt of tShirts) {
+      entities.push(this.mapEntity(tShirt));
+    }
+
+    return entities;
   }
 
   public async count(filters?: Partial<TShirt>): Promise<number> {
@@ -62,13 +70,23 @@ class TShirtService {
   }
 
   public async update(tShirt: TShirt): Promise<TShirt> {
-    const paymentsWithThisTShirtSize = await paymentService.count({ tShirtSize: tShirt.size });
+    const paymentsWithThisTShirtSize = await new PaymentServiceImpl(
+      null,
+      null,
+      null,
+      null,
+    ).count({ tShirtSize: tShirt.size });
     if (paymentsWithThisTShirtSize > tShirt.quantity) {
-      throw new HttpError(400, ["O número de camisetas não pode ser menos que o já utilizado!"]);
+      throw new HttpError(400, [
+        "O número de camisetas não pode ser menos que o já utilizado!",
+      ]);
     }
 
     tShirt.updatedAt = Date.now();
-    const entity = await TShirtModel.findOneAndUpdate({ id: tShirt.id }, tShirt);
+    const entity = await TShirtModel.findOneAndUpdate(
+      { id: tShirt.id },
+      tShirt,
+    );
 
     return this.findById(entity.id);
   }
@@ -83,22 +101,30 @@ class TShirtService {
     pagination,
   }: {
     pagination: PaginationRequest;
-  }): Promise<PaginationResponse<(TShirt & { usedQuantity: number })>> {
+  }): Promise<PaginationResponse<TShirt & { usedQuantity: number }>> {
     const tShirts = await this.find({ pagination });
-
     const entities: (TShirt & { usedQuantity: number })[] = [];
     for (const tShirt of tShirts.getEntities()) {
+      let countTShirt = await new PaymentServiceImpl(
+        null,
+        null,
+        null,
+        null,
+      ).count({ tShirtSize: tShirt.size, status: PaymentStatus.APPROVED });
+      countTShirt += await new PaymentServiceImpl(null, null, null, null).count(
+        { tShirtSize: tShirt.size, status: PaymentStatus.PENDING },
+      );
 
-      let countTShirt = await paymentService.count({ tShirtSize: tShirt.size, status: PaymentStatus.APPROVED });
-      countTShirt += await paymentService.count({ tShirtSize: tShirt.size, status: PaymentStatus.PENDING });
-      
       entities.push({
         ...tShirt,
         usedQuantity: countTShirt,
       });
     }
 
-    return new PaginationResponse<(TShirt & { usedQuantity: number })>(entities, tShirts.getTotalNumberOfItems());
+    return new PaginationResponse<TShirt & { usedQuantity: number }>(
+      entities,
+      tShirts.getTotalNumberOfItems(),
+    );
   }
 
   private mapEntity(entity: Model<TShirt> & TShirt): TShirt {

@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 import {
   Checkbox,
@@ -13,6 +13,9 @@ import {
   Select,
   TextField,
   Tooltip,
+  SelectChangeEvent,
+  OutlinedInput,
+  ListItemText,
 } from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -22,6 +25,7 @@ import { Info } from "@mui/icons-material";
 
 export enum InputType {
   Select = "select",
+  MultiSelect = "multiSelect",
   Checkbox = "checkbox",
   Text = "text",
   Number = "number",
@@ -121,10 +125,56 @@ function SelectInput({
         value={value}
         labelId="label"
         placeholder="placeholder"
+        displayEmpty
       >
         {choices.map((choice) => (
           <MenuItem key={choice} value={choice}>
             {choice}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+}
+
+function MutipleSelectInput({
+  label,
+  onChange,
+  value,
+  choices,
+  valueLabel,
+}: {
+  label: string;
+  onChange: (event: any) => void;
+  value: string[];
+  choices: object[];
+  valueLabel: string;
+}) {
+  const [selected, setSelected] = useState<string[]>(value);
+  const handleSelectChange = (event: SelectChangeEvent<typeof selected>) => {
+    const {
+      target: { value },
+    } = event;
+    
+    setSelected(typeof value === 'string' ? value.split(',') : value);
+    onChange(typeof value === 'string' ? value.split(',') : value);
+  };
+
+  return (    
+    <FormControl className="my-3 bg-white" fullWidth>
+      <InputLabel id="multiple-checkbox-label">{label}</InputLabel>
+      <Select 
+        onChange={handleSelectChange}
+        value={selected}
+        multiple={true}
+        labelId="multiple-checkbox-label"
+        input={<OutlinedInput label={label} />}
+        renderValue={(selected) => selected.join(', ')}
+      >
+        {choices.map((choice) => (
+          <MenuItem key={choice[valueLabel]} value={choice[valueLabel]}>
+            <Checkbox checked={selected.indexOf(choice[valueLabel]) > -1} />
+            <ListItemText primary={choice[valueLabel]} />
           </MenuItem>
         ))}
       </Select>
@@ -213,17 +263,19 @@ function Input({
   start,
   end,
   className,
+  valueLabel,
 }: {
   label?: any;
   onChange: (event: any) => void;
-  value?: string | number | boolean;
+  value?: string | string[] | number | boolean;
   type: InputType;
-  choices?: string[];
+  choices?: string[] | object[];
   tooltip?: any;
   autofocus?: boolean;
   start?: ReactNode;
   end?: ReactNode;
   className?: string;
+  valueLabel?: string;
 }) {
   let input = (
     <TextInput
@@ -248,13 +300,25 @@ function Input({
         label={label}
         onChange={onChange}
         value={value as string}
-        choices={choices}
+        choices={choices as string[]}
       />
     );
   }
 
   if (type === InputType.File) {
     input = <FileInput onChange={onChange} value={value as string} />;
+  }
+
+  if (type === InputType.MultiSelect) {
+    input = (
+      <MutipleSelectInput
+        label={label}
+        onChange={onChange}
+        value={value as string[]}
+        choices={choices as object[]}
+        valueLabel={valueLabel}
+      />
+    );
   }
 
   if (type === InputType.Date) {

@@ -2,85 +2,85 @@ import { CoffeePaymentData } from "./coffee-modal";
 import Input, { InputType } from "../../Input";
 import handler from '../../../api/handlers';
 import { useEffect, useState } from "react";
-
-export enum KitOption {
-  COMPLETE = "Kit e Coffee", 
-  KIT = "Kit",
-  COFFEE = "Coffee",
-  NONE = "Nenhum",
-}
+import { toast } from "react-toastify";
 
 function CoffeeStep1({
   data,
   setData,
+  availableSales,
 }: {
   data: CoffeePaymentData;
   setData: any;
+  availableSales: any[];
 }) {
-  const [kitOption, setKitOption] = useState(null);
+  const showCoffeeMessage = false;
 
-  async function fetchKitOption () {
-    const config = await handler.config.getConfig().then((res) => res.data);
-    const purchased = await handler.coffee.getPurchasedCoffees().then((res) => res.data);
-    const remainingCoffees = config['coffeeTotal'] - purchased;  
-    if(config['kitOption'] === "COMPLETE" && remainingCoffees > 0) {
-      setKitOption( ["Kit e Coffee", "Kit", "Coffee"] );
-    } else if (config['kitOption'] === "KIT" || (config['kitOption'] === "COMPLETE" && remainingCoffees <= 0)) {
-      setKitOption(["Kit"]);
-    } else if (remainingCoffees > 0) {
-      setKitOption( ["Coffee"] );
+  function handleSaleOptionChange(saleOptions: string[]) {
+    const sales = [];
+    if (saleOptions.length > 0) {
+      saleOptions.forEach((option) => {
+        sales.push(availableSales.find((sale) => sale.name === option));
+      });
     }
-  };
-  
-  useEffect(() => {
-    fetchKitOption();
-  }, []);
 
-  function handleKitOptionChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const value = event.target.value;
-    setData({ ...data, kitOption: value });
+    const salesItems = sales.map((option) => availableSales.find((sale) => sale.name === option.name).items).flat();
+    const newSales = new Set(salesItems);
+    
+    if (salesItems.length !== newSales.size) {
+      toast.error("Você selecionou opções duplicadas!");
+    }
+
+    setData({ ...data, saleOption: saleOptions, sale: sales });
   }
 
   return (
     <div className="my-6">
-      <p>Opções disponíveis para a Semcomp 27 Beta:</p>
-      <br />
-      <ul>
-        {/* <li><b>Kit e Coffee</b>: R$75.00</li> */}
-        {/* <li><b>Kit</b>: R$65.00</li> */}
-        <li><b>Coffee</b>: R$18.00</li>
-      </ul>
-      
-      <br />
-        <p>Estudantes com bolsa <b>PAPFE</b> pagam <b>metade</b> do preço em todas as opções acima, basta apresentar o documento PAFPE na próxima etapa.</p>
-      <br />
-      { kitOption && 
-        <Input
-          className="my-3"
-          label="Opções:"
-          value={data.kitOption}
-          onChange={handleKitOptionChange}
-          choices={kitOption}
-          type={InputType.Select}
-        />
-      } {/* <br /> */}
+      { availableSales && availableSales.length > 0 ?
+        (
+        <>
+          <p>Opções disponíveis para a Semcomp 27 Beta:</p>
+          <br />
+          <ul>
+            { availableSales && availableSales.map((sale) => (
+              <li key={sale.id}>
+                <b>{sale.name}</b>: R${sale.price}
+              </li>
+            ))}
+          </ul>
+          
+          <br />
+            <p>Estudantes com bolsa <b>PAPFE</b> pagam <b>metade</b> do preço em todas as opções acima, basta apresentar o documento PAFPE na próxima etapa.</p>
+          <br />
+
+          <Input
+            className="my-3"
+            label="Opções:"
+            value={data.saleOption ? data.saleOption : []}
+            onChange={handleSaleOptionChange}
+            choices={availableSales as object[]}
+            valueLabel="name"
+            type={InputType.MultiSelect}
+          />
+
+          <br/><h1><strong>Vai comprar o coffee e possui alguma restrição alimentar?</strong><br/>Procure a coordenação e indique quais são suas restrições.</h1>
+        </>
+        ) : (
+          <p><b>Não há vendas disponíveis no momento...</b></p>
+        )
+      }
+        {/* <br /> */}
         {/* <p>Ambas dão direto ao Coffee + Kit</p> */}
         {/* <br /> */}
         {/* <p>Os pacotes são limitados</p> */}
-    { (data.kitOption && (data?.kitOption).includes("Coffee")) ? (
-      <>
-            <br/><h1><strong>Possui alguma restrição alimentar?</strong><br/>Procure a coordenação e indique quais são suas restrições.</h1>
-            </>
-            //   <Input
-            //   className="my-3"
-            //   label="Possui alguma restrição alimentar?"
-            //   value={data.foodOption}
-            //   onChange={handlefoodOptionChange}
-            //   choices={foodOptions}
-            //   type={InputType.Select}
-            // />
-            ):null }
-      </div>
+    {/* <Input
+      className="my-3"
+      label="Possui alguma restrição alimentar?"
+      value={data.foodOption}
+      onChange={handlefoodOptionChange}
+      choices={foodOptions}
+      type={InputType.Select}
+    /> */}
+    </div>
   );
 }
 

@@ -7,27 +7,49 @@ interface TitleHomeProps {
 }
 
 const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
+  const [titleSize, setTitleSize] = useState<string>("6vw");
+  const [subTitleSize, setSubTitleSize] = useState<string>("1.5vw");
+  const [subVisible, setSubVisible] = useState<boolean>(true);
+  const [noAbsoluteMarginTop, setNoAbsoluteMarginTop] = useState<number | undefined>();
+  const [betaMarginTop, setBetaMarginTop] = useState<number | undefined>();
+  const [showAccessorys, setShowAccessorys] = useState<boolean>(true);
   const [subTitleFontSize, setSubTitleFontSize] = useState<string>("3.5vw");
   const [titleFontSize, setTitleFontSize] = useState<string>("12.5vw");
-  const [logoSize, setLogoSize] = useState<string>("10vw"); // Tamanho ajustável do logo
+  const [logoSize, setLogoSize] = useState<string>("12.5vw");
 
   useEffect(() => {
-    const updateFontSize = () => {
+    const updateFontSize  = () => {
       const width = window.innerWidth;
-
-      if (width <= 660) {
+       // Lógica para o subtítulo
+       if (width <= 660) {
         setSubTitleFontSize("3vw");
-        setLogoSize("20vw"); // Tamanho menor para telas pequenas
       } else {
         setSubTitleFontSize("1.5vw");
-        setLogoSize(width > 1050 ? "10vw" : "15vw"); // Tamanhos ajustados para outras larguras de tela
       }
 
-      setTitleFontSize(width > 1050 ? "8vw" : "18vw");
+      // Lógica para o título principal
+      if (width > 1050) {
+        setTitleFontSize("7vw");
+
+      } else if(width > 660){
+        setTitleFontSize("13vw");
+
+      } else {
+        setTitleFontSize("18vw");
+      }
+
+      // Lógica para a logo
+      if (width > 1050) {
+        setLogoSize("12vw");
+      } else if(width > 660){
+        setLogoSize("25vw");
+      }else{
+        setLogoSize("34vw");
+      }
     };
 
     window.addEventListener("resize", updateFontSize);
-    updateFontSize();
+    updateFontSize(); 
 
     return () => window.removeEventListener("resize", updateFontSize);
   }, []);
@@ -46,31 +68,47 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
 
   return (
     <header className="flex flex-col items-center justify-center w-full text-center text-black font-primary">
-      <div className="flex justify-center w-full">
-        <Logo width={logoSize} height={logoSize} fillColor={getTitleColor(timeIndex)} className={undefined} />
+       <div className="w-full z-4"></div>
+      <div style={{ display: showAccessorys ? "block" : "none" }}></div>
+      <div
+        className="relative text-center felz"
+        style={{ marginTop: `${noAbsoluteMarginTop}px` }}
+      >
+        <div>
+
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[100px]"
+            style={{ marginTop: `${betaMarginTop}px` }}
+          ></div>
+          <h1
+            className="relative text-primary flex flex-col items-center justify-center md:mb-6 mobile:mb-8 text-center"
+            style={{
+              fontSize: titleFontSize, // Usando o estado para definir o tamanho do título principal
+              lineHeight: "0.7",
+              color: getTitleColor(timeIndex),
+              // textShadow: "2px 4px 6px rgba(36, 36, 36, 0.6)",
+              zIndex: 1,
+            }}
+          >
+            <Logo className="mobile:mb-6" width={logoSize} height={logoSize} fillColor={getTitleColor(timeIndex)}/>
+            SEMCOMP 27
+          </h1>
+        </div>
+          <p
+            className="relative text-primary mobile:hidden"
+            style={{
+              fontSize: subTitleFontSize, // Usando o estado para definir o tamanho do subtítulo
+              fontWeight: 100,
+              color: getTitleColor(timeIndex),
+              marginTop: "-0.5vw",
+              marginBottom: "1.5vw",
+              // textShadow: "1px 2px 4px rgba(36, 36, 36, 0.6)",
+              zIndex: 1,
+            }}
+          >
+            A maior semana acadêmica de computação do Brasil!
+          </p>
       </div>
-      <h1
-        style={{
-          fontSize: titleFontSize,
-          lineHeight: "0.7",
-          color: getTitleColor(timeIndex),
-          textShadow: "2px 4px 6px rgba(0, 0, 0, 0.2)",
-        }}
-      >
-        SEMCOMP 27
-      </h1>
-      <br />
-      <p
-        style={{
-          fontSize: subTitleFontSize,
-          fontWeight: 100,
-          color: getTitleColor(timeIndex),
-          marginBottom: "1.5vw",
-          textShadow: "1px 2px 4px rgba(0, 0, 0, 0.2)",
-        }}
-      >
-        A maior semana acadêmica de computação do Brasil!
-      </p>
     </header>
   );
 };

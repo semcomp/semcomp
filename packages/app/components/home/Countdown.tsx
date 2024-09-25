@@ -74,7 +74,7 @@ const Countdown = ({timeIndex}: {timeIndex: number}): ReactElement => {
   }
 
   return (
-    <div className="flex flex-wrap justify-center font-secondary font-thin select-none">
+    <div className="flex flex-wrap justify-center font-thin select-none font-secondary">
       <CountdownNumber timeIndex={timeIndex} number={days} label={dayString}></CountdownNumber>
       <CountdownNumber timeIndex={timeIndex} number={hours} label="horas"></CountdownNumber>
       <CountdownNumber timeIndex={timeIndex} number={minutes} label="minutos"></CountdownNumber>

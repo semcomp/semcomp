@@ -3,6 +3,8 @@ import { AiOutlineClose } from 'react-icons/ai';
 import Faq from './Faq';
 import Schedule from './Schedule';
 import About from './About';
+import Sponsors from './Sponsors';
+import Supporters from './Supporters';
 
 interface ModalProps {
   element: string;
@@ -11,12 +13,11 @@ interface ModalProps {
 
 const Modal: React.FC<ModalProps> = ({ element, setButtonSelected }) => {
   return (
-    <div className="fixed inset-0 flex items-center justify-center w-full h-full z-[10000]">
+    <div className="flex flex-col fixed inset-0 flex items-center justify-center w-full h-full z-[10000]">
       <div
-        className="absolute z-50 flex flex-col items-center justify-center p-2 bg-gray-900 shadow-xl"
+        className="z-50 flex flex-col items-center justify-center p-2 bg-gray-900 shadow-xl md:w-[70%] md:w-[70%] mobile:w-[90%]"
         style={{
-          width: 'calc(100% - 4rem)',
-          height: 'calc(100% - 4rem)',
+          // padding: '10rem',
           top: '2rem',
           left: '2rem',
           borderRadius: '1rem',
@@ -26,16 +27,20 @@ const Modal: React.FC<ModalProps> = ({ element, setButtonSelected }) => {
           maxHeight: '100%',
         }}
       >
-        <button
-          onClick={() => setButtonSelected('')}
-          className="absolute px-2 py-1 text-white bg-red-600 border-b-4 border-red-800 rounded-full outline-none focus:outline-none hover:bg-red-500 hover:border-red-700 active:translate-y-1 active:border-b-0 top-2 right-2 sm:px-3 sm:py-2 sm:top-4 sm:right-4 md:px-4 md:py-3 md:top-6 md:right-6 lg:top-8 lg:right-8"
-        >
-          <AiOutlineClose size={20} className="sm:size-24 md:size-30 lg:size-36" />
-        </button>
-        <div className="flex flex-col items-center justify-center w-full h-full p-4 text-white custom-scroll">
+        <div className='flex flex-row h-full w-full justify-end align-end'>
+          <button
+            onClick={() => setButtonSelected('')}
+            className="h-fit w-fit px-2 py-1 mx-6 mt-6 text-white bg-red-600 border-b-4 border-red-800 rounded-full outline-none focus:outline-none hover:bg-red-500 hover:border-red-700 active:translate-y-1 active:border-b-0 top-2 right-2 sm:px-3 sm:py-2 md:px-4 md:py-3"
+          >
+            <AiOutlineClose size={20} className="sm:size-24 md:size-30 lg:size-36" />
+          </button>
+        </div>
+        <div className="flex flex-col items-center justify-center w-full h-full md:mx-32 md:mb-12 md:px-12 md:pb-12 mobile:p-4 text-white custom-scroll">
           {element === 'cronograma' && <Schedule />}
           {element === 'faq' && <Faq />}
           {element === 'sobre' && <About />}
+          {element === 'sponsors' && <Sponsors />}
+          {element === 'supporters' && <Supporters />}
         </div>
       </div>
 

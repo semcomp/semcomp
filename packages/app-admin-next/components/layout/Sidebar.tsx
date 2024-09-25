@@ -90,6 +90,8 @@ function Sidebar() {
               && <NavLink title="Usuários" href={Routes.users}></NavLink> }
             { findRole(adminRole, 'TSHIRTS') 
               && <NavLink title="Camisetas" href={Routes.tShirts}></NavLink>}
+            { findRole(adminRole, 'SALES')
+              && <NavLink title="Vendas" href={Routes.sales}></NavLink>}
             { findRole(adminRole, 'GAMEQUESTIONS') 
               && <NavLink title="Jogo - Perguntas" href={Routes.gameQuestions}></NavLink>}
             { findRole(adminRole, 'GAMEGROUPS') 

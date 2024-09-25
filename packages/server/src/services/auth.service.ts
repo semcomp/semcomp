@@ -1,7 +1,9 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { config } from "dotenv";
-config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env` });
+config({
+  path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env`,
+});
 
 import JsonWebToken from "./json-web-token.service";
 import userService from "./user.service";
@@ -35,12 +37,11 @@ class AuthService {
   }
 
   public async signup(user: User, disabilities: Disability[]): Promise<User> {
-
     const config = await ConfigService.getOne();
-    if(config === undefined){
+    if (config === undefined) {
       throw new HttpError(401, ["Erro ao acessar as Configs(auth.service.ts)"]);
     }
-    if(!(config.openSignup)){
+    if (!config.openSignup) {
       throw new HttpError(503, ["Inscrições encerradas!"]);
     }
 
@@ -65,7 +66,7 @@ class AuthService {
       };
       await userDisabilityService.create(userDisability);
     }
-    try{
+    try {
       await emailService.send(
         createdUser.email,
         "Bem vinde à Semcomp 27!",
@@ -76,11 +77,9 @@ class AuthService {
         <h1>Voc&ecirc; se cadastrou no nosso site e j&aacute; est&aacute; tudo certo!</h1>
         <p>Se prepare para a 27&deg; edi&ccedil;&atilde;o da maior Semana de Computa&ccedil;&atilde;o do Brasil! Aproveite o melhor das nossas palestras, minicursos, concursos e eventos culturais!</p>
         <p>Fique de olho no nosso <a href="https://semcomp.icmc.usp.br/">site</a>, <a href="https://twitter.com/semcomp">Twitter</a>, e <a href="https://www.instagram.com/semcomp/">Instagram</a>&nbsp;para n&atilde;o perder nenhum detalhe da programa&ccedil;&atilde;o incr&iacute;vel que preparamos especialmente para VOC&Ecirc;!</p>
-        </div>`
+        </div>`,
       );
-
-    }catch{
-    }
+    } catch {}
 
     return createdUser;
   }
@@ -92,7 +91,7 @@ class AuthService {
       !foundUser.password ||
       !bcrypt.compareSync(password, foundUser.password)
     ) {
-      throw new HttpError(401, ['Usuário não encontrado']);
+      throw new HttpError(401, ["Usuário não encontrado"]);
     }
 
     return foundUser;
@@ -109,30 +108,30 @@ class AuthService {
     user.resetPasswordCode = code;
     await userService.update(user);
 
-    try{
+    try {
       await emailService.send(
         user.email,
         "Recuperação de Senha",
         `Seu código para recuperação de senha: ${user.resetPasswordCode}`,
         `<div>
         <h1>Seu&nbsp;c&oacute;digo&nbsp;para&nbsp;recupera&ccedil;&atilde;o&nbsp;de&nbsp;senha:&nbsp;${user.resetPasswordCode}</h1>
-        </div>`
+        </div>`,
       );
-
-    }catch{
+    } catch (e) {
+      console.log(e);
       throw new HttpError(503, []);
     }
 
     return user;
   }
 
-  public async resetPassword(email: string, code: string, password: string): Promise<User> {
+  public async resetPassword(
+    email: string,
+    code: string,
+    password: string,
+  ): Promise<User> {
     const user = await userService.findOne({ email });
-    if (
-      !user ||
-      !user.password ||
-      code !== user.resetPasswordCode
-    ) {
+    if (!user || !user.password || code !== user.resetPasswordCode) {
       throw new HttpError(401, []);
     }
 

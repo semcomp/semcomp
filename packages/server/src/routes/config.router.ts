@@ -7,11 +7,7 @@ import adminAuthMiddleware from "../middlewares/admin-auth.middleware";
 
 const router = Router();
 
-router.get(
-  "/",
-  ConfigController.getOne
-);
-
+router.get("/", ConfigController.getOne);
 
 router.put(
   "/",
@@ -19,15 +15,7 @@ router.put(
   body("config", "Invalid field 'config'").not().isEmpty(),
 );
 
-router.get(
-  "/coffee-total",
-  ConfigController.getCoffeeTotal
-);
-
-router.get(
-  "/coffee-remaining",
-  ConfigController.getRemainingCoffee
-);
+router.get("/coffee-total", ConfigController.getCoffeeTotal);
 
 router.post(
   "/open-signup",
@@ -36,7 +24,7 @@ router.post(
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],
-  ConfigController.setOpenSignup
+  ConfigController.setOpenSignup,
 );
 
 router.post(
@@ -46,7 +34,7 @@ router.post(
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],
-  ConfigController.setOpenSales
+  ConfigController.setOpenSales,
 );
 
 router.post(
@@ -56,7 +44,7 @@ router.post(
     adminAuthMiddleware.authenticate,
     adminAuthMiddleware.isAuthenticated,
   ],
-  ConfigController.setOpenAchievement
+  ConfigController.setOpenAchievement,
 );
 
 export default router;

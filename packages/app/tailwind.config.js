@@ -24,18 +24,23 @@ module.exports = {
       primary: "#2E1B5B",
       secondary: "#F5CE00",
       tertiary: "#642712",
-      blue: "#002776",
+      blue: "#242d5c",
       orange: "#EC4E20",
       green: "#009541",
-      yellow: "#FEC409",
+      yellow: "#f9f004",
       black: "#1d1d1b",
       grayDark: "#3d3d3d",
       gray: "#c2c2c2",
       grayLight: "#f0f0f0",
-      white: "#fafafa",
+      white: "#FCFBFF",
       hoverWhite: "rgba(255, 255, 255, 0.3)",
       darkblue: "#2E1B5B",
       pink: "#FF3184",
+      backgroundBlue: "#232234ff",
+      Symbiosia: "#6fbe39ff",
+      Stormrock: "#f26f18ff",
+      Cybertechna: "#470787ff",
+      Arcadium: "#0e56cbff",
     },
     fontFamily: {
       primary: ["UPHEAVAL"], //Staatliches
@@ -63,4 +68,10 @@ module.exports = {
     },
   },
   plugins: [],
+  safelist: [
+    {
+      pattern:
+        /(bg|text|border)-(blue|yellow|white|Symbiosia|backgroundBlue|Stormrock|Cybertechna|Arcadium)/,
+    },
+  ],
 };

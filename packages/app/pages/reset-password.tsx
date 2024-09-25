@@ -141,6 +141,8 @@ function ResetPassword() {
                 numberOfSteps={3}
                 activeStep={step}
                 onStepClick={handleStepClick}
+                activeColor={"primary"} 
+                unactiveColor={"white"}              
               />
             </div>
 

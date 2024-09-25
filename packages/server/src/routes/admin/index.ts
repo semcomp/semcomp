@@ -14,11 +14,13 @@ import subscriptionRouter from "./subscription.router";
 import treasureHuntImageRouter from "./treasure-hunt-image.router";
 import pushNotificationRouter from "./push-notification.router";
 import TShirtRouter from "./t-shirt.router";
+import SaleRouter from "./sale.router";
 import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
 import PaymentServiceImpl from "../../services/payment-impl.service";
 import PaymentRouter from "./payment.router";
 
 const tShirtRouter = new TShirtRouter(adminAuthMiddleware);
+const salesRouter = new SaleRouter(adminAuthMiddleware);
 
 export default class AdminRouter {
   private paymentService: PaymentServiceImpl;
@@ -28,7 +30,10 @@ export default class AdminRouter {
   constructor(paymentService: PaymentServiceImpl) {
     this.paymentService = paymentService;
     this.usersRouter = new UsersRouter(this.paymentService);
-    this.paymentRouter = new PaymentRouter(adminAuthMiddleware, this.paymentService);
+    this.paymentRouter = new PaymentRouter(
+      adminAuthMiddleware,
+      this.paymentService,
+    );
   }
 
   public create(): Router {
@@ -47,6 +52,7 @@ export default class AdminRouter {
     router.use("/email", emailRouter);
     router.use("/push-notification", pushNotificationRouter);
     router.use("/t-shirts", tShirtRouter.create());
+    router.use("/sales", salesRouter.create());
     router.use("/subscription", subscriptionRouter);
     router.use("/treasure-hunt-images", treasureHuntImageRouter);
 

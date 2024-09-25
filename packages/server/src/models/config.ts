@@ -1,17 +1,15 @@
 import Mongoose from "mongoose";
-import KitOption from "../lib/constants/kit-option";
 
 export type Config = {
-    id?: string;
-    coffeeTotal: number;
-    switchBeta: boolean;
-    openSignup: boolean;
-    showLogin: boolean;
-    kitOption: KitOption;
-    openSales: boolean;
-    openAchievement: boolean;
-    createdAt?: number;
-    updatedAt?: number;
+  id?: string;
+  coffeeTotal: number;
+  switchBeta: boolean;
+  openSignup: boolean;
+  showLogin: boolean;
+  openSales: boolean;
+  openAchievement: boolean;
+  createdAt?: number;
+  updatedAt?: number;
 };
 
 const ConfigSchema = new Mongoose.Schema(
@@ -29,8 +27,8 @@ const ConfigSchema = new Mongoose.Schema(
       default: false,
     },
     showLogin: {
-        type: Boolean,
-        default: false,
+      type: Boolean,
+      default: false,
     },
     openSales: {
       type: Boolean,
@@ -40,11 +38,6 @@ const ConfigSchema = new Mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    kitOption: {
-      type: KitOption,
-      required: true,
-      default: KitOption.COFFEE,
-    },
     createdAt: {
       type: Number,
     },
@@ -52,7 +45,7 @@ const ConfigSchema = new Mongoose.Schema(
       type: Number,
     },
   },
-  { collection: "config" }
+  { collection: "config" },
 );
 
 export default Mongoose.model<Config>("config", ConfigSchema);

@@ -28,8 +28,8 @@ function getWeekdayAndDate(dateStr) {
   return `${dayOfWeek} ${formattedDate}`;
 }
 
-function getUniqueDayAndDates(events) {
-  const dayAndDatesSet = new Set();
+function getUniqueDayAndDates(events: { startDate: string }[]) {
+  const dayAndDatesSet = new Set<string>();
   events.forEach((event) => {
     dayAndDatesSet.add(getWeekdayAndDate(event.startDate));
   });
@@ -108,7 +108,7 @@ const EventsCalendar = (props) => {
       {isMobile ? (
         <div className="relative flex items-center justify-center mb-4">
           <div className="relative w-48">
-            <select
+            {/* <select
               value={selectedDay || ""}
               onChange={(e) => setSelectedDay(e.target.value)}
               className={`w-full px-4 py-2 text-white rounded-md outline-none appearance-none transition ${
@@ -120,7 +120,7 @@ const EventsCalendar = (props) => {
                   {dayAndDate}
                 </option>
               ))}
-            </select>
+            </select> */}
 
             {/* Ícone de seta para baixo dentro do select */}
             <AiOutlineDown className="absolute text-white transform -translate-y-1/2 pointer-events-none top-1/2 right-4" />
@@ -128,7 +128,7 @@ const EventsCalendar = (props) => {
         </div>
       ) : (
         <div className="flex justify-center mb-4 space-x-2">
-          {uniqueDayAndDates.map((dayAndDate) => (
+          {/* {uniqueDayAndDates.map((dayAndDate) => (
             <button
               key={dayAndDate}
               className={`px-4 py-2 text-white rounded-md transition transform focus:outline-none ${
@@ -140,7 +140,7 @@ const EventsCalendar = (props) => {
             >
               {dayAndDate}
             </button>
-          ))}
+          ))} */}
         </div>
       )}
 

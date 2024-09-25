@@ -2,13 +2,7 @@
 
 // import FEstudar from "../assets/sponsors/FundacaoEstudar.png";
 import GaneshImage from "../assets/sponsors/ganesh.png";
-import LugoBots from "../assets/sponsors/lugoBots.png";
-import IcaroTech from "../assets/sponsors/icaro.png";
-import Yara from "../assets/sponsors/YaraLogo.png"; 
-import Amdocs from "../assets/sponsors/AmdocsLogo.png"; 
-import Cohere from "../assets/sponsors/cohere.png"
 import IcmcImage from "../assets/sponsors/icmc.png";
-import SMT from "../assets/sponsors/SMTLogo.png";
 import FogImage from "../assets/sponsors/fog.png";
 import CodelabImage from "../assets/sponsors/logo-codelab-sanca.svg";
 import PetImage from "../assets/sponsors/pet.png";
@@ -19,50 +13,7 @@ import Navbar from "../components/navbar";
 import Sidebar from '../components/sidebar';
 import SponsorCard from "../components/sponsor-card";
 
-const companiesInfo = [
-  {
-    name: "LugoBots",
-    links: {
-      homepage: "https://lugobots.dev/"
-    },
-    logo: LugoBots,
-  },
-  {
-    name: "IcaroTech",
-    links: {
-      homepage: "https://icarotech.com/"
-    },
-    logo: IcaroTech,
-  },
-  {
-    name: "Yara",
-    links: {
-      homepage: "https://www.yarabrasil.com.br/"
-    },
-    logo: Yara,
-  },
-  {
-    name: "SMT Soluções",
-    links: {
-      homepage: "https://smtsolucoes.com.br/"
-    },
-    logo: SMT,
-  },
-  {
-    name: "Cohere",
-    links: {
-      homepage: "https://cohere.com/"
-    },
-    logo: Cohere,
-  },
-  {
-    name: "Amdocs",
-    links: {
-      homepage: "https://www.amdocs.com/"
-    },
-    logo: Amdocs,
-  },
-]
+const companiesInfo = []
 
 
 const supportersInfo = [

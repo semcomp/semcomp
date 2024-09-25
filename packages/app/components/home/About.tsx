@@ -15,7 +15,7 @@ function About() {
           Sobre a Semcomp
         </h1>
         <br />
-        <div className="text-gray-300 superdesktop:text-superlarge desktop:text-large tablet:text-medium medphone:text-small phone:text-tiny">
+        <div className="text-gray-300 desktop:text-medium tablet:text-medium medphone:text-xs phone:text-[12px]">
           <p id="aboutText" className="text-gray-300 font-secondary">
             A <strong>Semcomp</strong>, ou <strong>Semana Acadêmica de Computação</strong>, é organizada pelos estudantes dos cursos de <strong>Ciência da Computação</strong>, <strong>Sistemas de Informação</strong> e <strong>Ciência de Dados</strong> do Instituto de Ciências Matemáticas e de Computação (ICMC) da USP, campus São Carlos.
           </p>

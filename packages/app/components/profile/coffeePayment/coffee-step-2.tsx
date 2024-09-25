@@ -1,7 +1,7 @@
-import { ReactHTMLElement } from "react";
+import { ReactHTMLElement, useEffect, useState } from "react";
 import Input, { InputType } from "../../Input";
 import { CoffeePaymentData } from "./coffee-modal";
-import { KitOption } from "./coffee-step-1";
+import API from "../../../api";
 
 export enum TShirtSize {
   NONE = "NONE",
@@ -22,14 +22,13 @@ export enum FoodOption {
 }
 
 const TShirtSizes = Object.values({
-  PP: "PP",
   P: "P",
   M: "M",
   G: "G",
   GG: "GG",
   XGG1: "XGG1",
-  XGG2: "XGG2",
 });
+
 const foodOptions = Object.values(FoodOption);
 
 
@@ -39,7 +38,19 @@ function CoffeeStep2({
 }: {
   data: CoffeePaymentData;
   setData: any;
-}) {
+  }) {
+  const [tShirtChoices, setTShirtChoices] = useState<string[]>([]);
+  const [hasTShirt, setHasTshirt] = useState(false);
+
+  useEffect(() => {
+    for (const sale of data.sale) {
+      if (sale.hasTShirt) {
+        setHasTshirt(true);
+        break;
+      }
+    }
+  }, []);
+
   function handleWithSocialBenefitChange(
     event: React.ChangeEvent<HTMLInputElement>
   ) {
@@ -64,6 +75,26 @@ function CoffeeStep2({
     setData({...data, foodOption: value});
   }
 
+  useEffect(() => {
+    const getAvailableTShirts = async () => {
+      const availableTShirts : Object = await API.coffee.getAvailableTShirts().then((res) => res.data);
+      
+      const choices: string[] = [];
+      Object.keys(availableTShirts).map((tshirt) => {
+        if (availableTShirts[tshirt] > 0) {
+          if (availableTShirts[tshirt] != 1)
+            choices.push(`${tshirt} (${availableTShirts[tshirt]} disponíveis)`);
+          else
+            choices.push(`${tshirt} (${availableTShirts[tshirt]} disponível)`);
+        }
+      })
+
+      setTShirtChoices(choices);
+    }
+
+    getAvailableTShirts();
+  }, [])
+
   return (
     <div className="my-6">
       <Input
@@ -87,36 +118,32 @@ function CoffeeStep2({
         />
       )}
       {}
-      { (data.kitOption && (data?.kitOption).includes("Kit")) && (
-              <Input
-              className="my-3"
-              label="Tamanho da camiseta"
-              value={data.tShirtSize}
-              onChange={handleTShirtSizeChange}
-              choices={TShirtSizes}
-              type={InputType.Select}
-            />
-      )}
-      
-      { (data.kitOption && (data?.kitOption).includes("Kit")) &&
-          (
-            <p>
+      { (hasTShirt) && (
+        <>
+            <Input
+            className="my-3  font-secondary"
+            label="Tamanho da camiseta"
+            value={data.tShirtSize}
+            onChange={handleTShirtSizeChange}
+            choices={tShirtChoices}
+            type={InputType.Select}
+          />
+
+          <p>
             <br/>
             Medidas aproximada da modelagem tradicional <br/>
             LARGURA X COMPRIMENTO <br/><br/>
     
-            PP- 51x66 cm <br/>
-            P - 53x70 cm <br/>
-            M - 56X75 cm <br/>
-            G - 58X77 cm <br/>
-            GG - 64X80 cm <br/>
+            P   - 50x70 cm <br/>
+            M   - 52x72 cm <br/>
+            G   - 54X74 cm <br/>
+            GG  - 57X77 cm <br/>
+            XGG - 60X80 cm <br/><br/>
 
-            </p>
-          )
-        }
-        
-      { (!data.kitOption) ? ( <b>Nenhuma opção seleciona no step 1.</b> ):null }
-
+            <b>Na dúvida entre dois tamanhos, opte pelo maior.</b>
+          </p>
+        </>
+      )}
     </div>
   );
 }

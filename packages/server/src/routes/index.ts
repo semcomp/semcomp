@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { config } from "dotenv";
-config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env` });
+config({
+  path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env`,
+});
 
 import AdminRouter from "./admin";
 import achievementsRouter from "./achievement.router";
@@ -21,23 +23,29 @@ import AuthRouter from "./auth.router";
 import AuthController from "../controllers/auth.controller";
 import treasureHuntImageRouter from "./treasure-hunt.router";
 import configRouter from "./config.router";
+import saleRouter from "./sale.router";
 
 const router = Router();
 
 const idServiceImpl = new IdSeviceImpl();
-const mercadoPagoPaymentService = new MercadoPagoPaymentService(process.env.MERCADO_PAGO_TOKEN);
+const mercadoPagoPaymentService = new MercadoPagoPaymentService(
+  process.env.MERCADO_PAGO_TOKEN,
+);
 const paymentServiceImpl = new PaymentServiceImpl(
   idServiceImpl,
   mercadoPagoPaymentService,
   userServiceImpl,
-  process.env.PAYMENT_BASE_URL
+  process.env.PAYMENT_BASE_URL,
 );
 const paymentController = new PaymentController(paymentServiceImpl);
 
 const paymentRouter = new PaymentRouter(authMiddleware, paymentController);
 router.use("/payments", paymentRouter.create());
 
-const uploadRouter = new UploadRouter(authMiddleware, process.env.FILE_UPLOAD_PATH);
+const uploadRouter = new UploadRouter(
+  authMiddleware,
+  process.env.FILE_UPLOAD_PATH,
+);
 router.use("/upload", uploadRouter.create());
 
 const authController = new AuthController(paymentServiceImpl);
@@ -51,6 +59,7 @@ router.use("/achievements", achievementsRouter);
 router.use("/game", gameRouter);
 router.use("/events", eventsRouter);
 router.use("/users", userRouter);
+router.use("/sales", saleRouter);
 router.use("/houses", houseRouter);
 router.use("/push-notifications", pushNotificationRouter);
 router.use("/treasure-hunt-images", treasureHuntImageRouter);
