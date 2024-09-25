@@ -402,7 +402,7 @@ function Profile() {
                 <div className="flex flex-wrap justify-center my-2">
                   {userFetched && userFetched.payments && (
                     userFetched.payments.map((payment: {
-                        sale: any[]; status: string, price: number 
+                        sale: any[]; status: string, price: number, tShirtSize: string 
                     }, index: number) => (
                       (payment.status === PaymentStatus.APPROVED || payment.status === PaymentStatus.PENDING) && (
                         <div key={`div-${index}`} className="mr-2 mb-2">
@@ -423,7 +423,9 @@ function Profile() {
                                 },
                               }}
                               key={`chip-${index}`}
-                              label={`${payment.sale.map(sale => sale.name).join(", ")}`}
+                              label={`${payment.sale.map(sale => 
+                                sale.hasTShirt ?  `${sale.name} - ${payment.tShirtSize}` : sale.name
+                              ).join(", ")}`}
                               color={payment.status === PaymentStatus.APPROVED ? "success" : "warning"}
                               clickable={payment.status === PaymentStatus.APPROVED ? false : true}
                               onClick={() => {
