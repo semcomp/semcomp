@@ -10,10 +10,7 @@ interface TitleHomeProps {
 const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
   const [titleSize, setTitleSize] = useState<string>("6vw");
   const [subTitleSize, setSubTitleSize] = useState<string>("2vw");
-  const [subVisible, setSubVisible] = useState<boolean>(true);
-  const [noAbsoluteMarginTop, setNoAbsoluteMarginTop] = useState<number | undefined>();
-  const [betaMarginTop, setBetaMarginTop] = useState<number | undefined>();
-  const [showAccessorys, setShowAccessorys] = useState<boolean>(true);
+  const [logoPosition, setLogoPosition] = useState<string>("translateY(-200px)"); // Estado para a posição inicial da logo
   const [subTitleFontSize, setSubTitleFontSize] = useState<string>("3.5vw");
   const [titleFontSize, setTitleFontSize] = useState<string>("12.5vw");
   const [logoSize, setLogoSize] = useState<string>("12.5vw");
@@ -21,36 +18,36 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
   useEffect(() => {
     const updateFontSize  = () => {
       const width = window.innerWidth;
-       // Lógica para o subtítulo
-       if (width <= 660) {
+      if (width <= 660) {
         setSubTitleFontSize("3.0vw");
       } else {
         setSubTitleFontSize("2vw");
       }
 
-      // Lógica para o título principal
+
       if (width > 1050) {
         setTitleFontSize("7vw");
-
-      } else if(width > 660){
+      } else if (width > 660) {
         setTitleFontSize("13vw");
-
       } else {
         setTitleFontSize("18vw");
       }
 
-      // Lógica para a logo
       if (width > 1050) {
         setLogoSize("12vw");
-      } else if(width > 660){
+      } else if (width > 660) {
         setLogoSize("25vw");
-      }else{
+      } else {
         setLogoSize("34vw");
       }
     };
 
     window.addEventListener("resize", updateFontSize);
     updateFontSize(); 
+
+    setTimeout(() => {
+      setLogoPosition("translateY(0)");
+    }, 100); 
 
     return () => window.removeEventListener("resize", updateFontSize);
   }, []);
@@ -70,17 +67,18 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
   return (
     <header className="flex flex-col items-center justify-center w-full text-center text-black font-primary">
       <div className="w-full z-4"></div>
-      <div style={{ display: showAccessorys ? "block" : "none" }}></div>
-      <div
-        className="relative text-center felz"
-        style={{ marginTop: `${noAbsoluteMarginTop}px` }}
-      >
+      <div className="relative text-center felz">
         <Image
           src={logoSemcompona}
           alt="Logo Semcompona"
-          width={500} // ajuste o valor conforme necessário
-          height={250} // ajuste o valor conforme necessário
-          style={{ width: logoSize, marginBottom: "15px"}}
+          width={500} 
+          height={250} 
+          style={{
+            width: logoSize,
+            marginBottom: "15px",
+            transform: logoPosition, 
+            transition: "transform 1s ease-out", 
+          }}
         />
         <p
           className="relative text-primary mobile:hidden"
