@@ -147,8 +147,8 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }
         if (findFilteredSales && findFilteredSales.length === 0 && pendingPayment.length > 0) {
           const sales = [];
 
-          pendingPayment[0].salesOption.forEach((option: string) => {
-            const sale = availableSales.find((sale) => sale.id === option);
+          pendingPayment[0].saleOption.forEach((option: string) => {
+            const sale = availableSales.find((sale: {id: string}) => sale.id === option);
             if (sale) {
               sales.push(sale);
             }
