@@ -354,6 +354,7 @@ function Profile() {
           }}
           allSales={allSales}
           dataOpenStep3={dataToCoffeeStep3}
+          userPayments={userFetched.payments}
         />
       )}
       <div>

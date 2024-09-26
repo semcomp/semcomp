@@ -24,7 +24,7 @@ export type CoffeePaymentData = {
 };
 
 
-function CoffeePayment({ onRequestClose, allSales, dataOpenStep3 }) {
+function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }) {
   const [coffeeStep, setCoffeeStep] = useState(0);
   const [data, setData] = useState({
     withSocialBenefit: false,
@@ -89,10 +89,10 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3 }) {
     setAvailableSales(cloneDeep(sales));
   }
 
-  function removeDuplicatedItems(allSales: {id: string, items: string[]}[], paymentInfo: [], findFilteredSales: {id: string, items: string[]}[]) {
-    const items = paymentInfo.map((payment: { salesOption: string[]; }) => {
-      if (payment.salesOption.length > 0) {
-        return payment.salesOption.map((option: string) => {
+  function removeDuplicatedItems(allSales: {id: string, items: string[]}[], paymentInfo: [], findFilteredSales: {name: string, id: string, items: string[]}[]) {
+    const items = paymentInfo.map((payment: { saleOption: string[]; }) => {
+      if (payment.saleOption.length > 0) {
+        return payment.saleOption.map((option: string) => {
           const sale = allSales.find((sale) => sale.id === option);
 
           if (sale) {
@@ -108,8 +108,8 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3 }) {
 
     // Remove vendas que já foram compradas
     if (paymentInfo.length > 0) {
-      paymentInfo.forEach((payment: { salesOption: string[]; }) => {
-        const indexFiltered = findFilteredSales.findIndex((sale) => payment.salesOption.includes(sale.id));
+      paymentInfo.forEach((payment: { saleOption: string[]; }) => {
+        const indexFiltered = findFilteredSales.findIndex((sale) => payment.saleOption.includes(sale.id));
         if (indexFiltered !== -1) {
           findFilteredSales.splice(indexFiltered, 1);
         }
@@ -117,13 +117,13 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3 }) {
     )}
 
     // Remove vendas que possuem items que já foram comprados
-    paymentSaleItems.forEach((item) => {
-      findFilteredSales.forEach((sale, index) => {
-        if (sale.items.includes(item)) {
-          findFilteredSales.splice(index, 1);
-        }
-      });
+    const itemsToRemove = new Set(paymentSaleItems);
+    const filteredSales = findFilteredSales.filter(sale => {
+      return !sale.items.some(item => itemsToRemove.has(item));
     });
+
+    findFilteredSales.length = 0;
+    findFilteredSales.push(...filteredSales);
   }
 
   async function getInfo() {
@@ -135,7 +135,7 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3 }) {
     }
 
     try {
-      const paymentInfo = await handler.coffee.getPaymentInfo(user.id).then((res) => res.data);
+      const paymentInfo = cloneDeep(userPayments);
       const findFilteredSales = cloneDeep(availableSales);
 
       // Filtra os dados de vendas e redireciona para a etapa de pagamento se não houver mais vendas disponíveis
