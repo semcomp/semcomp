@@ -3,6 +3,7 @@ import { useState } from "react";
 import EventType from "../../libs/constants/event-types-enum";
 import Input, { InputType } from "../Input";
 import DownloadSubscriptions from "./DownloadSubscriptions";
+import DownloadAttendances from "./DownloadAttendances";
 
 export type EventFormData = {
   id: string
@@ -242,7 +243,8 @@ function EventForm({
         value={data.needInfoOnSubscription}
         type={InputType.Checkbox}
       /> */}
-      { data && data.showOnSubscribables && <DownloadSubscriptions eventId={data.id} eventName={data.name}></DownloadSubscriptions>}
+      {data && data.showOnSubscribables && <DownloadSubscriptions eventId={data.id} eventName={data.name}></DownloadSubscriptions>}
+      {data && data.showOnSubscribables && <DownloadAttendances eventId={data.id} eventName={data.name}></DownloadAttendances>}
     </>
   );
 }

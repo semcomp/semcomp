@@ -55,6 +55,15 @@ router.get(
   AdminEventController.listUsersAttendancesInfo
 );
 
+router.get(
+  "/:eventId/attendances-info/",
+  [
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+  ],
+  AdminEventController.listUsersAttendancesInfoByEventId
+);
+
 router.post(
   "/:eventId/mark-attendance/bulk",
   [
