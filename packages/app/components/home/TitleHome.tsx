@@ -81,7 +81,7 @@ const TitleHome: React.FC<TitleHomeProps> = ({ timeIndex }): ReactElement => {
             style={{ marginTop: `${betaMarginTop}px` }}
           ></div>
           <h1
-            className="relative text-primary flex flex-col items-center justify-center md:mb-6 mobile:mb-8 text-center"
+            className="relative flex flex-col items-center justify-center text-center text-primary md:mb-6 mobile:mb-8"
             style={{
               fontSize: titleFontSize, // Usando o estado para definir o tamanho do título principal
               lineHeight: "0.7",

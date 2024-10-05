@@ -119,25 +119,27 @@ const ObjectFly: React.FC<ObjectFlyProps> = ({ maxItems, direction, image, filte
 
   return (
     <div className="relative z-20">
-      {showObjects && objects.map((obj, index) => (
-        <div
-          key={index}
-          className="absolute"
-          style={{
-            top: `${obj.top}px`,
-            left: `${obj.left}px`,
-            width: `${obj.width}px`,
-            height: '200px',
-            backgroundImage: `url(${image})`,
-            backgroundPosition: 'center', 
-            backgroundSize: 'contain', 
-            backgroundRepeat: 'no-repeat', 
-            filter: filter || "none", // aplica o filtro se tiver, senão deixa sem
-          }}
-        />
-      ))}
+      {showObjects &&
+        objects.map((obj, index) => (
+          <div
+            key={index}
+            className="fixed" // Alterado de 'absolute' para 'fixed'
+            style={{
+              top: `${obj.top}px`,
+              left: `${obj.left}px`,
+              width: `${obj.width}px`,
+              height: '200px',
+              backgroundImage: `url(${image})`,
+              backgroundPosition: 'center',
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
+              filter: filter || 'none', // aplica o filtro se tiver, senão deixa sem
+            }}
+          />
+        ))}
     </div>
   );
+  
 };
 
 export default ObjectFly;

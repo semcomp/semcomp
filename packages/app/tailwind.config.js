@@ -10,6 +10,7 @@ module.exports = {
       'desktop': {'min': '1000px', 'max': '1600px'},
       'tablet': {'min': '640px', 'max': '1000px'},
       'phone': {'min': '0px', 'max': '640px'},
+      'below-xl': {'max': '1515px'}, // Media query para telas abaixo de 1515px
       
       
       'medphone': {'min': '430px', 'max': '640px'},
