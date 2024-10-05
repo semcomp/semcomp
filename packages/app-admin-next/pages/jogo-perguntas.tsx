@@ -11,6 +11,7 @@ import DataPage from '../components/DataPage';
 import { GameQuestionFormData } from '../components/game-questions/GameQuestionForm';
 import { PaginationRequest, PaginationResponse } from '../models/Pagination';
 import Game from '../libs/constants/game-enum';
+import util from '../libs/util';
 
 type GameQuestionData = {
   "ID": string,
@@ -34,7 +35,7 @@ function mapData(data: SemcompApiGameQuestion[]): GameQuestionData[] {
       "Pergunta": gameQuestion.question,
       "Dica": gameQuestion.clue,
       "Resposta": gameQuestion.answer,
-      "Criado em": new Date(gameQuestion.createdAt).toISOString(),
+      "Criado em": util.formatDate(gameQuestion.createdAt),
     })
   }
 

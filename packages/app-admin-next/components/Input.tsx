@@ -290,7 +290,7 @@ function Input({
 }: {
   label?: string;
   placeholder?: string;
-  onChange: (event: any) => void;
+  onChange?: (event: any) => void;
   value?: string | string[] | number | boolean;
   type: InputType;
   choices?: string[] | Object[];

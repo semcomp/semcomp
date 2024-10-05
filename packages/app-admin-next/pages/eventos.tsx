@@ -13,6 +13,8 @@ import EditEventModal from "../components/events/EditEventModal";
 import DataPage from "../components/DataPage";
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
 import MarkAttendanceModal from "../components/events/MarkAttendanceModal";
+import Input, { InputType } from "../components/Input";
+import util from "../libs/util";
 
 type EventData = {
   // ID: string;
@@ -21,6 +23,8 @@ type EventData = {
   Ministrante: string;
   // Link: string;
   "Max Inscritos": number;
+  "No cronograma": ReactNode;
+  "Na lista de inscrições": ReactNode;
   "Inscritos": number;
   Tipo: string;
   "Criado em": string;
@@ -52,7 +56,9 @@ function EventsTable({
       "Max Inscritos": event.maxOfSubscriptions,
       "Inscritos": event.numOfSubscriptions,
       Tipo: event.type,
-      "Criado em": new Date(event.createdAt).toISOString(),
+      "No cronograma": <Input value={event.showOnSchedule} type={InputType.Checkbox} />,
+      "Na lista de inscrições": <Input value={event.showOnSubscribables} type={InputType.Checkbox} />,
+      "Criado em": util.formatDate(event.createdAt),
     });
   }
 
