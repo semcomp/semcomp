@@ -265,7 +265,7 @@ const DataTable = forwardRef(({
           type={InputType.Text}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Buscar..."
+          placeholder="Buscar na página atual..."
         />
         <IconButton onClick={handleFilter} aria-label="filter">
           <SearchIcon />
