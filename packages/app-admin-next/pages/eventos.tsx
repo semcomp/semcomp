@@ -56,8 +56,8 @@ function EventsTable({
       "Max Inscritos": event.maxOfSubscriptions,
       "Inscritos": event.numOfSubscriptions,
       Tipo: event.type,
-      "No cronograma": <Input value={event.showOnSchedule} type={InputType.Checkbox} />,
-      "Na lista de inscrições": <Input value={event.showOnSubscribables} type={InputType.Checkbox} />,
+      "No cronograma": <Input value={event.showOnSchedule} type={InputType.Checkbox} disabled={true} />,
+      "Na lista de inscrições": <Input value={event.showOnSubscribables} type={InputType.Checkbox} disabled={true} />,
       "Criado em": util.formatDate(event.createdAt),
     });
   }
