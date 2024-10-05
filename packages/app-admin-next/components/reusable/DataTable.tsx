@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useMemo } from "react";
 
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -28,8 +28,9 @@ function Row({
   onClick,
   onSelectChange,
   moreInfoContainer,
+  isOpen,
   onMoreInfoClick,
-  renderCell, // Adiciona a propriedade renderCell
+  renderCell,
   actions,
 }: {
   index: number;
@@ -37,12 +38,12 @@ function Row({
   onClick: (index: number) => void;
   onSelectChange: (isSelected: boolean) => void;
   moreInfoContainer: ReactNode;
+  isOpen: boolean;
   onMoreInfoClick: (index: number) => void;
-  renderCell?: (column: string, row: any) => ReactNode; // Propriedade opcional renderCell
+  renderCell?: (column: string, row: any) => ReactNode;
   actions: {};
 }) {
   const [isSelected, setIsSelected] = useState(false);
-  const [open, setOpen] = useState(false);
   const { adminRole } = useAppContext();
 
   function handleOnSelect() {
@@ -62,12 +63,9 @@ function Row({
             <IconButton
               aria-label="expand row"
               size="small"
-              onClick={() => {
-                setOpen(!open);
-                onMoreInfoClick(index);
-              }}
+              onClick={() => onMoreInfoClick(index)}
             >
-              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+              {isOpen ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
             </IconButton>
           </TableCell>
         )}
@@ -82,7 +80,6 @@ function Row({
         {Object.keys(row).map((column: string, index: number) => (
           <TableCell key={index} onClick={() => onClick(index)}>
             {renderCell ? renderCell(column, row) : row[column]}{" "}
-            {/* Usa renderCell se definido */}
           </TableCell>
         ))}
         {
@@ -107,7 +104,6 @@ function Row({
                 })}
               </div>
             </TableCell>
-
           ) : (
             null
           )
@@ -120,7 +116,7 @@ function Row({
           className="hover:cursor-pointer"
         >
           <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-            <Collapse in={open} timeout="auto" unmountOnExit>
+            <Collapse in={isOpen} timeout="auto" unmountOnExit>
               <Box sx={{ margin: 1 }}>{moreInfoContainer}</Box>
             </Collapse>
           </TableCell>
@@ -129,8 +125,6 @@ function Row({
     </>
   );
 }
-
-import { useMemo } from "react";
 
 export default function DataTable({
   data,
@@ -155,6 +149,7 @@ export default function DataTable({
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterQuery, setFilterQuery] = useState("");
+  const [openRowIndex, setOpenRowIndex] = useState<number | null>(null);
 
   function handleRowSelect(selectChangeIndex: number, isSelected: boolean) {
     let updatedSelectedRows = [...selectedRows];
@@ -231,6 +226,13 @@ export default function DataTable({
     setFilterQuery(searchQuery);
   };
 
+  const handleMoreInfoClick = (index: number) => {
+    setOpenRowIndex(openRowIndex === index ? null : index);
+    if (onMoreInfoClick) {
+      onMoreInfoClick(index);
+    }
+  };
+
   return (
     <>
       <Box
@@ -289,7 +291,8 @@ export default function DataTable({
                   onClick={() => onRowClick(index)}
                   onSelectChange={(isSelected) => handleRowSelect(index, isSelected)}
                   moreInfoContainer={moreInfoContainer}
-                  onMoreInfoClick={onMoreInfoClick}
+                  isOpen={openRowIndex === index}
+                  onMoreInfoClick={handleMoreInfoClick}
                   renderCell={renderCell}
                   actions={actions}
                 />
