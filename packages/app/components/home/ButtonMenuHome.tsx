@@ -26,7 +26,7 @@ const ButtonMenuHome: React.FC<ButtonProps> = ({ label, onClick }) => {
         display: 'inline-block', 
         zIndex: 2,
         width: '250px',  
-        height: '80px',  
+        height: '60px',  
         maxWidth: '100%', 
         transform: isClicked ? 'scale(0.95)' : 'scale(1)', // Animação de pressão
         transition: 'transform 0.1s ease', // Animação suave
@@ -51,12 +51,11 @@ const ButtonMenuHome: React.FC<ButtonProps> = ({ label, onClick }) => {
           border: 'none',
           width: '100%',  
           height: '100%', 
-          fontSize: '1.3em', 
+          fontSize: '1.1em', 
           cursor: 'pointer',
           color: '#fff', 
           textAlign: 'center', 
           padding: '10px 20px',
-          fontWeight: 'bold', 
           outline: 'none', // Remove o contorno
         }}
       >

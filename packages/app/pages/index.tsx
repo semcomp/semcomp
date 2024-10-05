@@ -130,11 +130,10 @@ const Home: React.FC = () => {
       <div className="relative z-20 flex flex-col items-center justify-center flex-grow p-8">
         <TitleHome timeIndex={imageIndex} />
 
-        <div className="flex flex-col items-center w-full gap-2">
+        <div className="flex flex-col items-center w-full">
           {isUserLoggedIn ? (
             <>
               <ButtonMenuHome label="PERFIL" onClick={handlePerfil} />
-              <ButtonMenuHome label="SAIR" onClick={handleSair} />
             </>
           ) : (
             <>
@@ -146,8 +145,10 @@ const Home: React.FC = () => {
           <ButtonMenuHome label="FAQ" onClick={handleFaq} />
           <ButtonMenuHome label="PATROCINADORES" onClick={handleSponsors} />
           <ButtonMenuHome label="APOIADORES" onClick={handleSupporters} />
+          {isUserLoggedIn && (
+          <ButtonMenuHome label="SAIR" onClick={handleSair} />
+          )}
         </div>
-
         <div className="mt-8">
           <Countdown timeIndex={imageIndex} />
         </div>
