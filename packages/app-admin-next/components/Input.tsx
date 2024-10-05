@@ -208,8 +208,7 @@ function CheckboxInput({
 }) {
   return (
     <FormControl className="my-3 bg-transparent">
-      <Checkbox onChange={onChange} checked={value} disabled={disabled}/>
-    readOnly={!onChange}
+      <Checkbox onChange={onChange} checked={value} disabled={disabled} />
     </FormControl>
   );
 }
