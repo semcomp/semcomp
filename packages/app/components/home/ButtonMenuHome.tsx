@@ -17,7 +17,7 @@ const ButtonMenuHome: React.FC<ButtonProps> = ({ label, onClick }) => {
     onClick();
   };
 
-  const currentImage = isClicked || isHovered ? buttonSelected : buttonNormal; // Mostra a imagem selecionada se clicado ou quando o mouse está por cima
+  const currentImage = isHovered ? buttonSelected : buttonNormal; // Mostra a imagem selecionada se clicado ou quando o mouse está por cima
 
   return (
     <div 
