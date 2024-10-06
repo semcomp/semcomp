@@ -14,7 +14,8 @@ type User = {
   gotKit?: boolean;
   createdAt?: number;
   updatedAt?: number;
-}
+  crachaResposta?: string;
+};
 
 export default User;
 
@@ -74,6 +75,11 @@ const UserSchema = new Mongoose.Schema(
     },
     updatedAt: {
       type: Number,
+    },
+    crachaResposta: {
+      type: String,
+      default: "",
+      trim: true,
     },
   },
   { collection: "user" }

@@ -1,25 +1,41 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../../Modal";
-import Input, { InputType } from "../../Input";
+import Handlers from "../../../api/handlers";
 
-function ConfirmarCracha({ onRequestClose }) {
+function ConfirmarCracha({ onRequestClose, user }) {
   const [open, setOpen] = useState(false);
-  const [querCracha, setQuerCracha] = useState(null); // null: não respondeu, true: quer, false: não quer
+  const [querCracha, setQuerCracha] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    // ve se respondeu
+    // Verifica se já respondeu
     const status = localStorage.getItem("querCracha");
     if (!status) {
-      setOpen(true); // Abriu e ainda não respondeu
+      setOpen(true); // Se não respondeu, abre o modal
     }
   }, []);
 
   if (!open) return null;
 
-  const handleConfirmar = (resposta) => {
+  const handleConfirmar = async (resposta) => {
     setQuerCracha(resposta);
     localStorage.setItem("querCracha", resposta ? "true" : "false");
-    setOpen(false);
+
+    const updatedUser = {
+      ...user,
+      crachaResposta: resposta ? "sim" : "não",
+    };
+
+    try {
+      setIsUpdating(true);
+      const response = await Handlers.updateUserInfo(updatedUser);
+      console.log("Resposta do crachá atualizada com sucesso:", response);
+    } catch (error) {
+      console.error("Erro ao atualizar a resposta do crachá:", error);
+    } finally {
+      setIsUpdating(false);
+      setOpen(false);
+    }
   };
 
   return (
@@ -43,12 +59,14 @@ function ConfirmarCracha({ onRequestClose }) {
           <button
             className="bg-green-500 text-white px-4 py-2 rounded-lg"
             onClick={() => handleConfirmar(true)}
+            disabled={isUpdating}
           >
             Sim, quero o crachá
           </button>
           <button
             className="bg-red-500 text-white px-4 py-2 rounded-lg"
             onClick={() => handleConfirmar(false)}
+            disabled={isUpdating}
           >
             Não, obrigado
           </button>
@@ -57,6 +75,7 @@ function ConfirmarCracha({ onRequestClose }) {
           className="bg-gray-500 text-white p-4 m-2 rounded-xl"
           type="button"
           onClick={onRequestClose}
+          disabled={isUpdating}
         >
           Fechar
         </button>

@@ -54,14 +54,26 @@ function Profile() {
   const [achievements, setAchievements] = useState([]);
   const [earnedAchievements, setEarnedAchievements] = useState([]);
   const [closeSales, setCloseSales] = useState(false);
+  useEffect(() => {
+    getRemainingCoffee();
+    fetchUserData();
+    fetchAchievements();
+    fetchSubscribedEvents();
+  }, [config]); // Adicionado config como dependência
   const [isAboutOverflowModalOpen, setIsAboutOverflowModalOpen] =
     useState(false); // OBSERVAÇÃO: está relacionado a casa do stack overflow
   const [isCoffeeModalOpen, setCoffeeModalOpen] = useState(false);
+  const [isCrachaModalOpen, setIsCrachaModalOpen] = useState(false);
+  const openCrachaModal = () => {
+    setIsCrachaModalOpen(true);
+  };
+
+  const closeCrachaModal = () => {
+    setIsCrachaModalOpen(false);
+  };
 
   //const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
   //   useState(true);
-  const [isConfirmarCrachaModalOpen, setIsConfirmarCrachaModalOpen] =
-    useState(true);
 
   useEffect(() => {
     getRemainingCoffee();
@@ -387,9 +399,10 @@ function Profile() {
               </Card>
             </>
           )}
-          {isConfirmarCrachaModalOpen && (
+          {isCrachaModalOpen && (
             <ConfirmarCracha
-              onRequestClose={() => setIsConfirmarCrachaModalOpen(false)}
+              user={userFetched}
+              onRequestClose={closeCrachaModal}
             />
           )}
 
