@@ -202,13 +202,13 @@ function CheckboxInput({
   value,
   disabled,
 }: {
-  onChange: (event: any) => void;
+  onChange?: (event: any) => void;
   value: boolean;
   disabled?: boolean;
 }) {
   return (
     <FormControl className="my-3 bg-transparent">
-      <Checkbox onChange={onChange} checked={value} disabled={disabled}/>
+      <Checkbox onChange={onChange} checked={value} disabled={disabled} />
     </FormControl>
   );
 }
