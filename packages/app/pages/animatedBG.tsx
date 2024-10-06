@@ -62,7 +62,7 @@ const filtersAirplane = [
   "brightness(1.2) hue-rotate(-20deg)",
   "brightness(1.2) contrast(1.0)",
   "brightness(1.1) sepia(0.3)",
-  "brightness(1.0) contrast(1.3)",
+  "brightness(1.0) contrast(1.3)", 
   "brightness(1.0) hue-rotate(40deg)",
   "brightness(0.9) contrast(1.3)",
   "brightness(0.7) sepia(0.3)",

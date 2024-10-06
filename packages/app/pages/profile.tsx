@@ -354,6 +354,7 @@ function Profile() {
           }}
           allSales={allSales}
           dataOpenStep3={dataToCoffeeStep3}
+          userPayments={userFetched.payments}
         />
       )}
       <div>
@@ -630,7 +631,7 @@ function Profile() {
             <Info sx={{ color: "#d3d3d3", paddingRight: "2px", opacity: 0.75}} />
           </Tooltip>
         </div>
-        <NewFooter locale="p"/>
+        <NewFooter/>
       </div>
       </div>
   );

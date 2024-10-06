@@ -3,10 +3,11 @@ import Desktop from "../../assets/sponsors/desktop.svg";
 import PortoSeguros from "../../assets/sponsors/Porto Seguros.svg";
 import Goldman from "../../assets/sponsors/goldman.svg";
 import Venturus from "../../assets/sponsors/venturus.svg";
+import Alliage from "../../assets/sponsors/alliage.png";
 import Image, { StaticImageData } from "next/image";
 
 function Sponsors() {
-  const sponsorsLogos = [Elo, Desktop, PortoSeguros, Goldman, Venturus];
+  const sponsorsLogos = [Elo, Desktop, PortoSeguros, Goldman, Venturus, Alliage];
 
   return (
     <>

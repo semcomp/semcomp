@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
+import buttonNormal from "../../assets/27-imgs/button.png";
+import buttonSelected from "../../assets/27-imgs/buttonSelected.png";
 
 interface ButtonProps {
   label: string;
@@ -6,34 +9,58 @@ interface ButtonProps {
 }
 
 const ButtonMenuHome: React.FC<ButtonProps> = ({ label, onClick }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isClicked, setIsClicked] = useState(false);
+
+  const handleClick = () => {
+    setIsClicked(!isClicked); // Alterna entre selecionado e não selecionado
+    onClick();
+  };
+
+  const currentImage = isHovered ? buttonSelected : buttonNormal; // Mostra a imagem selecionada se clicado ou quando o mouse está por cima
+
   return (
-    <div style={{ position: 'relative', display: 'inline-block', zIndex: 2 }}>
-      <div className="md:hover:scale-110">
-        <button
-          className={`pixelbutton transition-all max-w-full text-black text-xl font-bold py-2 flex justify-center w-72`}
-          onClick={onClick}
-          style={{
-            boxShadow: `
-              inset -2px 2px 1px 1px grey,
-              inset -2px -2px 1px 1px lightgray,
-              inset 2px 0px 1px 1px lightgray
-            `,
-            outline: 'none' // Adiciona essa propriedade para remover o contorno
-          }}
-          onMouseDown={(e) => {
-            e.currentTarget.style.boxShadow = 'inset 2px 2px 4px rgba(0,0,0,0.2)';
-          }}
-          onMouseUp={(e) => {
-            e.currentTarget.style.boxShadow = `
-              inset -2px 2px 1px 1px grey,
-              inset -2px -2px 1px 1px lightgray,
-              inset 2px 0px 1px 1px lightgray
-            `;
-          }}
-        >
-          {label}
-        </button>
-      </div>
+    <div 
+      style={{ 
+        position: 'relative', 
+        display: 'inline-block', 
+        zIndex: 2,
+        width: '250px',  
+        height: '60px',  
+        maxWidth: '100%', 
+        transform: isClicked ? 'scale(0.95)' : 'scale(1)', // Animação de pressão
+        transition: 'transform 0.1s ease', // Animação suave
+      }} 
+      onMouseEnter={() => setIsHovered(true)} 
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={handleClick} // Usa a função handleClick
+    >
+      <Image
+        src={currentImage} // Muda a imagem com base nos estados
+        alt="Botão de fundo"
+        layout="fill" 
+        objectFit="cover" 
+        style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
+      />
+
+      <button
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          backgroundColor: 'transparent', 
+          border: 'none',
+          width: '100%',  
+          height: '100%', 
+          fontSize: '1.1em', 
+          cursor: 'pointer',
+          color: '#fff', 
+          textAlign: 'center', 
+          padding: '10px 20px',
+          outline: 'none', // Remove o contorno
+        }}
+      >
+        {label}
+      </button>
     </div>
   );
 };
