@@ -87,6 +87,8 @@ const EventsTable = forwardRef(({
   );
 });
 
+EventsTable.displayName = "EventsTable";
+
 function Events() {
   const { semcompApi }: { semcompApi: SemcompApi } = useAppContext();
   const { adminRole } = useAppContext();
