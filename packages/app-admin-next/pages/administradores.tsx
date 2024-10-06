@@ -9,6 +9,7 @@ import AdminRoles from '../libs/constants/admin-roles';
 import EditAdminRoleModal from '../components/adminList/EditAdminRoleModal';
 import DataPage from '../components/DataPage';
 import { PaginationRequest, PaginationResponse } from '../models/Pagination';
+import util from '../libs/util';
 
 type AdminData = {
   "ID": string,
@@ -37,8 +38,8 @@ function AdminUsersTable({
       "ID": admin.id,
       "Email": admin.email,
       "Permissões": admin.adminRole.map(role => AdminRoles[role.toUpperCase()]).join(', '),
-      "Criado em": new Date(admin.createdAt).toISOString(),
-      "Atualizado em": new Date(admin.updatedAt).toISOString(),
+      "Criado em": util.formatDate(admin.createdAt),
+      "Atualizado em": util.formatDate(admin.updatedAt),
 
     })
   }

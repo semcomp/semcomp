@@ -16,10 +16,11 @@ import exportToCsv from "../libs/DownloadCsv";
 import InfoCards from "../components/reusable/InfoCards";
 import Input, { InputType } from '../components/Input';
 import { Modal } from '../components/reusable/Modal';
-import { SaleFormData } from "../components/sales/SaleForm";
 import util from "../libs/util";
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import { toast } from "react-toastify";
+import { InputAdornment, TextField } from "@mui/material";
+import { Search } from "@mui/icons-material";
 
 
 type UserData = {
@@ -407,13 +408,23 @@ function Users() {
               isLoading={isLoading}
               table={
                 <>
-                  <input
-                    type="text"
-                    placeholder="Pesquisar por nome..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="mb-4 p-2 border border-gray-300 rounded w-full"
-                  />
+                  <div className="mb-4 w-full">
+                    <TextField
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Search />
+                          </InputAdornment>
+                        ),
+                      }}
+                      type="text"
+                      placeholder="Pesquisar por nome (todos)..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="mb-4 p-2 border border-gray-300 rounded w-full"
+                    />
+                  </div>
+
                   <UsersTable
                     data={
                       new PaginationResponse<SemcompApiUser>(

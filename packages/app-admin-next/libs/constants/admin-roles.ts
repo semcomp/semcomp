@@ -2,6 +2,7 @@ const AdminRoles = {
     USERS: "Usuários",
     TSHIRTS: "Camisas",
     SALES: "Vendas",
+    PAYMENTS: "Pagamentos",
     HOUSES: "Casas",
     GAMEQUESTIONS: "Jogo - Perguntas",
     GAMEGROUPS: "Jogo - Grupos",

@@ -314,6 +314,18 @@ class SemcompApi {
   public async setConfigSales(setSales): Promise<any> {
     return this.http.post('/config/open-sales', { openSales: setSales });
   }
+
+  // PAYMENT
+  public async getPaymentComplete(pagination: PaginationRequest): Promise<SemcompApiGetUsersResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/payments/get-payment-complete", semcompApiPagination);
+    console.log('todos', response);
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
 }
 
 export default SemcompApi;

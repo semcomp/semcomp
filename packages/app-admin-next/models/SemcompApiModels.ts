@@ -302,3 +302,19 @@ export type SemcompApiConfigs = {
   createdAt?: number;
   updatedAt?: number;
 };
+
+export type SemcompApiPaymentUser = {
+  userId: string;
+  status: PaymentStatus;
+  qrCode?: string;
+  qrCodeBase64?: string;
+  withSocialBenefit: boolean;
+  socialBenefitFileName: string;
+  tShirtSize: TShirtSize;
+  userName: string,
+  userEmail: string,
+  salesOption: string[];
+  price?: number;
+  createdAt?: number;
+  updatedAt?: number;
+}
