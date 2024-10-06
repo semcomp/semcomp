@@ -340,4 +340,5 @@ const DataTable = forwardRef(({
   );
 });
 
+DataTable.displayName = 'DataTable';
 export default DataTable;
