@@ -61,14 +61,14 @@ function ConfirmarCracha({ onRequestClose, user }) {
             onClick={() => handleConfirmar(true)}
             disabled={isUpdating}
           >
-            Sim, quero o crachá
+            Sim, eu quero o crachá!
           </button>
           <button
             className="bg-red-500 text-white px-4 py-2 rounded-lg"
             onClick={() => handleConfirmar(false)}
             disabled={isUpdating}
           >
-            Não, obrigado
+            Não, obrigado.
           </button>
         </div>
         <button
