@@ -12,7 +12,7 @@ module.exports = {
       'phone': {'min': '0px', 'max': '640px'},
       'below-xl': {'max': '1515px'}, // Media query para telas abaixo de 1515px
       
-      
+      'not-phone': {'min': '640px'},
       'medphone': {'min': '430px', 'max': '640px'},
       'mobile': {'min': '0px', 'max': '1050px'},
       ee: "400px",

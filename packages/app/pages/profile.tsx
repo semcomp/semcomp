@@ -634,7 +634,7 @@ function Profile() {
       </main>
       </div>
       <div className="flex flex-col justify-right">
-        <div className="flex flex-row md:justify-end mobile:justify-center md:pr-6">
+        <div className="flex flex-row md:justify-end mobile:justify-center md:pr-6 not-phone:absolute not-phone:bottom-12 not-phone:right-0">
           <Tooltip
               arrow
               placement="top-start"
