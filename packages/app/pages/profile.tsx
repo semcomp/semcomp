@@ -368,7 +368,7 @@ function Profile() {
         <div className="flex flex-col w-full md:grid md:grid-cols-1 gap-4 z-20">
           {userFetched && (
             <>
-              <Card className="flex flex-col items-center p-9 w-full bg-[#232234ff] rounded-lg justify-center">
+              <Card className="flex flex-col items-center p-9 w-full bg-[#212032] rounded-lg justify-center">
                 <div className="border-8 border-solid rounded-lg border-white">
                   <QRCodeSVG value={userFetched && userFetched.id} />
                 </div>
@@ -399,7 +399,7 @@ function Profile() {
                   </div>
                 }
               </Card>
-              <Card className="flex flex-col items-center p-9 bg-[#232234ff] w-full rounded-lg justify-center">
+              <Card className="flex flex-col items-center p-9 bg-[#212032] w-full rounded-lg justify-center">
                 <h1 className="text-xl py-2">
                   Compras
                 </h1>
@@ -546,7 +546,7 @@ function Profile() {
       )}
 
 {userFetched && config.openAchievement && (
-  <Card className="flex flex-col items-center p-9 w-full bg-[#232234ff] text-center rounded-lg justify-center">
+  <Card className="flex flex-col items-center p-9 w-full bg-[#212032] text-center rounded-lg justify-center">
     <div className="flex items-center justify-between w-full">
       <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
         Conquistas
@@ -598,7 +598,7 @@ function Profile() {
         </div>
         <div>
           {userFetched && (
-            <Card className="flex flex-col items-center p-9 bg-[#232234ff] w-full rounded-lg h-full justify-center">
+            <Card className="flex flex-col items-center p-9 bg-[#212032] w-full rounded-lg h-full justify-center">
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Overflow
                 </h1>

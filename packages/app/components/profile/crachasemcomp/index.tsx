@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../../Modal";
 import Handlers from "../../../api/handlers";
+import { toast } from "react-toastify";
 
 function ConfirmarCracha({ onRequestClose, user }) {
   const [open, setOpen] = useState(false);
@@ -39,8 +40,10 @@ function ConfirmarCracha({ onRequestClose, user }) {
       console.log(updatedUser)
       const response = await Handlers.updateUserInfo(updatedUser);
       console.log("Resposta do crachá atualizada com sucesso:", response);
+      toast.success("Resposta salva com sucesso!")
     } catch (error) {
       console.error("Erro ao atualizar a resposta do crachá:", error);
+      toast.error("Erro ao salvar resposta")
     } finally {
       setIsUpdating(false);
       setOpen(false);
