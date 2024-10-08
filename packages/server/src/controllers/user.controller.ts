@@ -11,7 +11,7 @@ class UserController {
       handleValidationResult(req);
 
       const { course } = req.user;
-      const { name, email, telegram, permission } = req.body;
+      const { name, email, telegram, permission, wantNameTag } = req.body;
 
       if (name) {
         req.user.name = name;
@@ -27,6 +27,9 @@ class UserController {
       }
       if (email) {
         req.user.email = email;
+      }
+      if(wantNameTag != null){
+        req.user.wantNameTag = wantNameTag;
       }
 
       const editedUser = await userService.update(req.user);
@@ -52,6 +55,7 @@ class UserController {
         description: house.description,
         telegramLink: house.telegramLink,
       } : null,
+      wantNameTag: user.wantNameTag,
     };
   }
 }

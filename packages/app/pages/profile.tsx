@@ -18,7 +18,7 @@ import HouseScores from "../components/house-scores";
 import AboutOverflow from "../components/profile/about-overflow";
 import CoffeePayment from "../components/profile/coffeePayment/coffee-modal";
 import RequireAuth from "../libs/RequireAuth";
-
+import Handlers from "../../app/api/handlers";
 // Casas
 import TelegramIcon from "@mui/icons-material/Telegram";
 import ImgLogo from "../assets/logo-24.png";
@@ -41,7 +41,8 @@ import Stormrock from "../assets/27-imgs/stormrock-pixilart.png";
 import Arcadium from "../assets/27-imgs/arcadium-pixilart.png";  
 import { Info } from "@mui/icons-material";
 import { PaymentStatus } from "../libs/constants/payment-status";
-
+import ConfirmarCracha from "../components/profile/crachasemcomp/index";
+import FundacaoEstudarLogo from "../components/profile/fundEstudar/index"
 
 function Profile() {
   const { config } = useAppContext();
@@ -62,9 +63,11 @@ function Profile() {
   const [allSales, setAllSales] = useState([]);
   const [dataToCoffeeStep3, setDataToCoffeeStep3] = useState(null);
 
-  // const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
-  //   useState(true);
-  
+  //const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
+  //  useState(true);
+  const [isConfirmarCrachaModalOpen, setIsConfirmarCrachaModalOpen] = useState(true);
+
+
   async function fetchAchievements() {
     if (!config || !config.openAchievement) {
       return [];
@@ -530,58 +533,68 @@ function Profile() {
               }
             </Card>
           )}
-          
-          { userFetched && config.openAchievement &&
-            ( 
-              <Card className="flex flex-col items-center p-9 w-full bg-[#232234ff] text-center rounded-lg justify-center">
-                <div className="flex items-center justify-between w-full">
-                  <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-                  Conquistas
-                  </h1>       
-                  <CameraAltIcon 
-                    className="mb-4 ml-auto"
-                    onClick={() => {
-                      setIsAddAchievementModalOpen(true);
-                      blockBodyScroll();
-                    }}
-                    cursor="pointer"
-                    titleAccess="Escanear Conquista"
-                  />
-                </div>
-                <div className="grid auto-cols-auto auto-rows-auto">
-                  {earnedAchievements.slice(0, 6).map((conquista) => {
-                    return (
-                      <img
-                        key={conquista.id}
-                        src={conquista.imageBase64}
-                        alt={conquista.title}
-                        style={{ padding: ".3rem", maxHeight: "80px" }}
-                      />
-                    );
-                  })}
-                </div>
-                {
-                  <button
-                    onClick={() => {
-                      setIsAchievementsModalOpen(true);
-                      blockBodyScroll();
-                    }}
-                  >
-                    Ver mais
-                  </button>
-                }
-                
-              </Card>
-            )
-          }
-          
-          {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
-          {/* <Card className="flex flex-col items-center p-9 w-full mb-6">
-            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-              Pontuações
-            </h1>
-            <HouseScores />
-          </Card> */}
+          {/*isFundacaoEstudarFormModalOpen && (
+  <FundEstudarForm
+    onRequestClose={() => setIsFundacaoEstudarFormModalOpen(false)}
+  />
+)*/}
+{isConfirmarCrachaModalOpen && (
+        <ConfirmarCracha
+          onRequestClose={() => setIsConfirmarCrachaModalOpen(false)}
+          user={userFetched}
+        />
+      )}
+
+{userFetched && config.openAchievement && (
+  <Card className="flex flex-col items-center p-9 w-full bg-[#232234ff] text-center rounded-lg justify-center">
+    <div className="flex items-center justify-between w-full">
+      <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+        Conquistas
+      </h1>       
+      <CameraAltIcon 
+        className="mb-4 ml-auto"
+        onClick={() => {
+          setIsAddAchievementModalOpen(true);
+          blockBodyScroll();
+        }}
+        cursor="pointer"
+        titleAccess="Escanear Conquista"
+      />
+    </div>
+    <div className="grid auto-cols-auto auto-rows-auto">
+      {earnedAchievements.slice(0, 6).map((conquista) => (
+        <img
+          key={conquista.id}
+          src={conquista.imageBase64}
+          alt={conquista.title}
+          style={{ padding: ".3rem", maxHeight: "80px" }}
+        />
+      ))}
+    </div>
+    <button
+      onClick={() => {
+        setIsAchievementsModalOpen(true);
+        blockBodyScroll();
+      }}
+    >
+      Ver mais
+    </button>
+  </Card>
+)}
+
+    
+    {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
+    {/* 
+    <Card className="flex flex-col items-center p-9 w-full mb-6">
+      <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+        Pontuações
+      </h1>
+      <HouseScores />
+    </Card> 
+    */}
+
+
+
         </div>
         <div>
           {userFetched && (
@@ -621,7 +634,7 @@ function Profile() {
       </main>
       </div>
       <div className="flex flex-col justify-right">
-        <div className="flex flex-row md:justify-end mobile:justify-center md:pr-6">
+        <div className="flex flex-row md:justify-end mobile:justify-center md:pr-6 not-phone:absolute not-phone:bottom-12 not-phone:right-0">
           <Tooltip
               arrow
               placement="top-start"
