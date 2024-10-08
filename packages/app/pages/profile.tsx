@@ -369,11 +369,20 @@ function Profile() {
           {userFetched && (
             <>
               <Card className="flex flex-col items-center p-9 w-full bg-[#212032] rounded-lg justify-center">
-                <div className="border-8 border-solid rounded-lg border-white">
-                  <QRCodeSVG value={userFetched && userFetched.id} />
-                </div>
-                <p className="text-xl text-center my-3">
-                  {userFetched.name}
+                <div className="ml-2">
+                    <Tooltip
+                      arrow
+                      placement="top-start"
+                      title={userFetched.wantNameTag != null ? userFetched.wantNameTag ? "Você optou por receber o crachá físico!" : "Você optou por não receber o crachá físico" : ""}
+                      enterTouchDelay={1}
+                    >
+                      <div className="border-8 border-solid rounded-lg border-white">
+                        <QRCodeSVG value={userFetched && userFetched.id} />
+                      </div>
+                  </Tooltip>
+                  </div>
+                <p className="flex flex-row text-xl text-center my-3">
+                  {userFetched.name} 
                 </p>
                 <p className="text-center">{userFetched.course}</p>
                 {
