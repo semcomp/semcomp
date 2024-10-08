@@ -9,8 +9,9 @@ function ConfirmarCracha({ onRequestClose, user }) {
 
   useEffect(() => {
     // Verifica se já respondeu
-    const status = localStorage.getItem("querCracha");
-    if (!status) {
+    let status = user.wantNameTag;
+
+    if (status == null) {
       setOpen(true); // Se não respondeu, abre o modal
     }
   }, []);
@@ -19,15 +20,23 @@ function ConfirmarCracha({ onRequestClose, user }) {
 
   const handleConfirmar = async (resposta) => {
     setQuerCracha(resposta);
-    localStorage.setItem("querCracha", resposta ? "true" : "false");
+    
+    let localUser = JSON.parse(localStorage.getItem("user"))
 
-    const updatedUser = {
-      ...user,
-      crachaResposta: resposta ? "sim" : "não",
-    };
+    if (!localUser) {
+      localUser = {};
+    }
 
+    localUser.wantNameTag = resposta;
+    localStorage.setItem("user", JSON.stringify(localUser));
+    
     try {
       setIsUpdating(true);
+      const updatedUser = {
+        ...user,
+        wantNameTag: resposta,
+      };
+      console.log(updatedUser)
       const response = await Handlers.updateUserInfo(updatedUser);
       console.log("Resposta do crachá atualizada com sucesso:", response);
     } catch (error) {
@@ -40,44 +49,49 @@ function ConfirmarCracha({ onRequestClose, user }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div className="flex flex-col items-center p-4">
-        <h1 className="text-center pb-2">Confirmação de Crachá</h1>
+      <div className="flex flex-col items-center p-10 text-primary">
+        <h1 className="text-center text-lg pb-2 font-bold">Confirmação de Crachá Físico</h1>
         <p className="text-sm xxs:text-base">
-          Durante os últimos anos, muitas pessoas não retiraram seus crachás,
-          resultando em desperdício de material.
+        Durante os últimos anos, diversos participantes não retiraram seus
+          crachás, resultando em desperdício de material.
           <br />
-          Sabemos que você não quer isso, certo? Por isso, queremos saber se
-          você vai querer seu crachá físico ou utilizará o online durante o
-          evento.
           <br />
-          Atenção: depois de feita essa escolha, ela não poderá ser alterada.
+          Sabemos que você não quer isso, certo? Por isso, gostaríamos de confirmar se você deseja seu crachá físico impresso ou utilizará o QR Code online disponibilizado neste site durante o evento.
+          O QR Code presente no site ou crachás são utilizados para contabilização de presença.
           <br />
-          Responder até dia 12/10.
+          <br />
+          Atenção: uma vez feita essa escolha, ela não poderá ser
+          alterada.
+          <br />
+          <br />
+          <p className="font-bold underline w-full text-center">
+             Responder até dia 14/10.
+          </p>
           <br />
         </p>
         <div className="flex items-center justify-center space-x-4 mt-4">
           <button
-            className="bg-green-500 text-white px-4 py-2 rounded-lg"
+            className="bg-green-500 text-white p-4 rounded-lg"
             onClick={() => handleConfirmar(true)}
             disabled={isUpdating}
           >
             Sim, eu quero o crachá!
           </button>
           <button
-            className="bg-red-500 text-white px-4 py-2 rounded-lg"
+            className="bg-red-500 text-white p-4 rounded-lg"
             onClick={() => handleConfirmar(false)}
             disabled={isUpdating}
           >
-            Não, obrigado.
+            Não, eu não quero o crachá.
           </button>
         </div>
         <button
-          className="bg-gray-500 text-white p-4 m-2 rounded-xl"
+          className="bg-gray text-white px-4 py-2 m-2 rounded-xl"
           type="button"
           onClick={onRequestClose}
           disabled={isUpdating}
         >
-          Fechar
+          Responder depois
         </button>
       </div>
     </Modal>

@@ -123,6 +123,7 @@ class AuthController {
         qrCode: payment.qrCode || null,
         qrCodeBase64: payment.qrCodeBase64 || null,
       })) : [],
+      wantNameTag: user.wantNameTag,
     };
   }
 }
