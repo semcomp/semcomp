@@ -253,29 +253,47 @@ const DataTable = forwardRef(({
 
   return (
     <>
-      <Box
-        sx={{ marginBottom: 2, display: 'flex' }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            handleFilter();
-          }
-        }}
-      >
-        <Input
-          type={InputType.Text}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Buscar na página atual..."
-        />
-        <IconButton onClick={handleFilter} aria-label="filter">
+      <Box className="w-full flex flex-wrap content-end flex-col">
+        <Box
+          sx={{
+            marginBottom: 2,
+            display: "flex",
+            justifyContent: { xs: "center", sm: "end" },
+            width: { xs: "100%", sm: "30em" },
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleFilter();
+            }
+          }}
+        >
+          <Input
+            className="w-9/12"
+            type={InputType.Text}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar na página atual..."
+          />
+          <IconButton onClick={handleFilter} aria-label="filter">
           <SearchIcon />
-        </IconButton>
+            </IconButton>
+          </Box>
+
+          {filterQuery && (
+            <Box 
+              sx={{
+                marginBottom: 2,
+                display: "flex",
+                justifyContent: "center",
+                width: { xs: "100%", sm: "30em" },
+                paddingLeft: { xs: "0em", sm: "2.5em" },
+              }}
+            >
+              {filteredData.length} items filtrados nessa página
+            </Box>
+          )}
       </Box>
-      {filterQuery && (
-        <Box sx={{ marginBottom: 2 }}>
-          {filteredData.length} items filtrados nessa página
-        </Box>
-      )}
+
       {data.getEntities()[0] && (
         <TableContainer component={Paper}>
           <Table aria-label="collapsible table">
