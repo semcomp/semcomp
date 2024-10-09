@@ -206,8 +206,8 @@ const DataTable = forwardRef(({
   const sortedData = useMemo(() => {
     return [...data.getEntities()].sort((a, b) => {
       if (!sortConfig) return 0;
-      const { key, direction } = sortConfig;
 
+      const { key, direction } = sortConfig;
       const isDate = (dateString: string) => {
         return /^\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}$/.test(dateString);
       };
@@ -219,8 +219,15 @@ const DataTable = forwardRef(({
         return new Date(year, month - 1, day, hours, minutes);
       };
 
-      const valueA = isDate(a[key]) ? parseDate(a[key]) : a[key]?.toString().toLowerCase();
-      const valueB = isDate(b[key]) ? parseDate(b[key]) : b[key]?.toString().toLowerCase();
+      const isNumber = (value: any) => {
+        return !isNaN(value);
+      };
+
+      const valueA = isDate(a[key]) ? parseDate(a[key]) : isNumber(a[key]) ? parseFloat(a[key]) : a[key]?.toString().toLowerCase();
+      const valueB = isDate(b[key]) ? parseDate(b[key]) : isNumber(b[key]) ? parseFloat(b[key]) : b[key]?.toString().toLowerCase();
+      
+      if (valueA === "" || valueA === null || valueA === undefined || Number.isNaN(valueA)) return 1;
+      if (valueB === "" || valueB === null || valueB === undefined || Number.isNaN(valueB)) return -1;
 
       if (valueA < valueB) {
         return direction === 'asc' ? -1 : 1;
@@ -228,6 +235,7 @@ const DataTable = forwardRef(({
       if (valueA > valueB) {
         return direction === 'asc' ? 1 : -1;
       }
+
       return 0;
     });
   }, [data, sortConfig]);
