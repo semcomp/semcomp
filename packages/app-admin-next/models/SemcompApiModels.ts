@@ -59,6 +59,7 @@ export type SemcompApiUser = {
   telegram: string;
   disabilities: string[];
   permission: boolean;
+  wantNameTag: boolean;
   createdAt: number;
   updatedAt: number;
 };

@@ -24,13 +24,13 @@ import { Search } from "@mui/icons-material";
 
 
 type UserData = {
-  ID: string;
   "E-mail": string;
   Nome: string;
   Curso: string;
   Telegram: string;
   Casa: string;
   "Retirou Kit": ReactElement | string;
+  "Quer crachá": ReactElement | string;
   "Tamanho da camiseta": TShirtSize;
   "Compras": ReactElement | string;
   "Permite divulgação?": string;
@@ -116,7 +116,6 @@ function mapData(
     <RemoveRedEyeIcon onClick={() => handleOpenSaleModal(saleOption, paymentStatus)}/> : <></>;
   
     newData.push({
-      ID: user.id,
       "E-mail": user.email,
       Nome: user.name,
       Curso: user.course,
@@ -125,6 +124,7 @@ function mapData(
       "Tamanho da camiseta": tShirtSize,
       "Compras": openSales && saleOption.length > 0 ? openSales : saleOption.join(", "),
       "Retirou Kit": handleOpenKitModal ? gotKit : (user.gotKit ? "Sim" : "Não"),
+      "Quer crachá": <Input type={InputType.Checkbox} disabled={true} value={user.wantNameTag}></Input>,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
       "Criado em": util.formatDate(user.createdAt),
     });
@@ -136,13 +136,14 @@ function getInfoData(data: SemcompApiUser[], allSales: (SemcompApiSale & { usedQ
   const infoData: InfoData[] = [];
   infoData.push({ infoTitle: "Inscritos", infoValue: data.length });
 
-  let numKitStatus = data.filter(function (item) {
-    return item.gotKit;
-  }).length;
+  const numKitStatus = data.reduce((count, item) => count + (item.gotKit ? 1 : 0), 0);
+  const numWantNameTag = data.reduce((count, item) => count + (item.wantNameTag ? 1 : 0), 0);
+
   infoData.push({
     "infoTitle": "Kits Retirados",
     "infoValue": numKitStatus,
   })
+
 
   let total = 0;
   for (const sale of allSales) {
@@ -161,6 +162,11 @@ function getInfoData(data: SemcompApiUser[], allSales: (SemcompApiSale & { usedQ
   }
 
   infoData.push({ infoTitle: "Total", infoValue: total });
+
+  infoData.push({
+    "infoTitle": "Crachás solicitados",
+    "infoValue": numWantNameTag,
+  })
 
   return infoData;
 }
