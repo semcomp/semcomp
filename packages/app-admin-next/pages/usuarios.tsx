@@ -47,6 +47,7 @@ function mapData(
   allSales: (SemcompApiSale & {usedQuantity:number})[],
   handleOpenKitModal?: () => void,
   handleOpenSaleModal?: (saleOption: string[], paymentStatus: string[]) => void,
+  exportToCsv?: boolean,
 ): UserData[] {
   const newData: UserData[] = [];
   for (const user of data) {
@@ -109,11 +110,25 @@ function mapData(
         onChange={handleOpenKitModal ? handleOpenKitModal : () => { }}
         value={user.gotKit}
         type={InputType.Checkbox}
-      /> : <></>
+      /> : <></>;
 
     const openSales = handleOpenSaleModal ? 
-    <RemoveRedEyeIcon onClick={() => handleOpenSaleModal(saleOption, paymentStatus)}/> : <></>;
+    <RemoveRedEyeIcon onClick={() => handleOpenSaleModal(saleOption, paymentStatus)}/> : null;
   
+    let newDataSales = undefined;
+    let newDataGetItems = undefined;
+    let newDataWantTagName = undefined;
+
+    if (exportToCsv) {
+      newDataSales = saleOption.length > 0 ? saleOption.join(" - ") : "Nenhuma";
+      newDataGetItems = user.gotKit ? "Sim" : "Não";
+      newDataWantTagName = user.wantNameTag ? "Sim" : "Não";
+    } else {
+      newDataSales = openSales && saleOption.length > 0 ? openSales : saleOption.join(", ");
+      newDataGetItems = handleOpenKitModal ? gotKit : (user.gotKit ? "Sim" : "Não");
+      newDataWantTagName = <Input type={InputType.Checkbox} disabled={true} value={user.wantNameTag}></Input>;
+    }
+
     newData.push({
       "E-mail": user.email,
       Nome: user.name,
@@ -121,9 +136,9 @@ function mapData(
       Telegram: user.telegram,
       Casa: user.house.name,
       "Tamanho da camiseta": tShirtSize,
-      "Compras": openSales && saleOption.length > 0 ? openSales : saleOption.join(", "),
-      "Retirou itens": handleOpenKitModal ? gotKit : (user.gotKit ? "Sim" : "Não"),
-      "Quer crachá": <Input type={InputType.Checkbox} disabled={true} value={user.wantNameTag}></Input>,
+      "Compras": newDataSales,
+      "Retirou itens": newDataGetItems,
+      "Quer crachá": newDataWantTagName,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
       "Criado em": util.formatDate(user.createdAt),
     });
@@ -349,7 +364,7 @@ function Users() {
       const response = await semcompApi.getUsers(
         new PaginationRequest(null, 1, 9999)
       );
-      exportToCsv(mapData(response.getEntities(), allSales));
+      exportToCsv(mapData(response.getEntities(), allSales, undefined, undefined, true));
     } catch (error) {
       console.error(error);
     } finally {
