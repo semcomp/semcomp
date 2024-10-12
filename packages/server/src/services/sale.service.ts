@@ -194,6 +194,7 @@ class SaleService {
       items: entity.items,
       hasTShirt: entity.hasTShirt,
       hasKit: entity.hasKit,
+      hasCoffee: entity.hasCoffee,
       price: entity.price,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,

@@ -140,6 +140,7 @@ export type SemcompApiSale = {
   price: number;
   hasTShirt: boolean;
   hasKit: boolean;
+  hasCoffee: boolean;
   items: string[];
   createdAt: number;
   updatedAt: number;
