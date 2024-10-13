@@ -78,6 +78,18 @@ router.post(
 );
 
 router.post(
+  "/:eventId/get-coffee-permission",
+  [
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+    param("eventId", "Invalid field 'eventId'").not().isEmpty(),
+    body("userId", "Invalid field 'userId'").not().isEmpty(),
+    body("coffeeItemId", "Invalid field 'coffeeItemId'").not().isEmpty(),
+  ],
+  AdminEventController.getCoffeePermission
+);
+
+router.post(
   "/:eventId/qr-code",
   [
     adminAuthMiddleware.authenticate,

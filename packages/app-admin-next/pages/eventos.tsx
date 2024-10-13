@@ -97,6 +97,7 @@ function Events() {
     new PaginationRequest(() => fetchData())
   );
   const [selectedData, setSelectedData] = useState(null as SemcompApiEvent);
+  const [selectedCoffeeItem, setSelectedCoffeeItem] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
 
@@ -204,13 +205,60 @@ function Events() {
     );
   }
 
-  function moreInfoContent(selectedData) {
+  const MoreInfoContent = ({selectedData}) => {
+    const [coffeeOptions, setCoffeeOptions] = useState([]);
+    const eventType = selectedData?.type;
+    
+    //Verifica se o tipo de evento não é "Coffee" e reseta o estado de coffeeItem
+    useEffect(() => {
+      if (eventType !== "Coffee") {
+        // console.log('Item é nulo')
+        setSelectedCoffeeItem(null);
+      }
+    }, [eventType, setSelectedCoffeeItem]);
+      
+    // TODO: pegar os dados reais
+    // Simulando a requisição para buscar as opções de café
+    useEffect(() => {
+      const fetchCoffeeOptions = async () => {
+        const data = [
+          { id: 1, name: 'Coffee Normal' },
+          { id: 2, name: 'Coffee Minicurso 1' },
+          { id: 3, name: 'Coffee Minicurso 2' }
+        ];
+        setCoffeeOptions(data);
+      };
+  
+      fetchCoffeeOptions();
+    }, []);
+  
+    const handleSelectChange = (event) => {
+      const selectedId = event.target.value;
+      if(selectedId !== ""){
+        setSelectedCoffeeItem(selectedId);
+      }
+    };
+  
     return (
       <>
-        <MarkAttendance></MarkAttendance>
+        <MarkAttendance />
+
+        {/* TODO: Melhorar design, fazer com que não feche ao clicar no dropbox */}
+        {eventType === 'Coffee' && (
+          <div>
+            <select id="coffee-select" onChange={handleSelectChange}>
+              <option value="">--Qual Coffee é?--</option>
+              {coffeeOptions.map((coffee) => (
+                <option key={coffee.id} value={coffee.id}>
+                  {coffee.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </>
     );
-  }
+  };
 
   async function updateEvent(status: boolean, option: string) {
     if(selectedIndexes && selectedIndexes.length > 0){
@@ -265,6 +313,7 @@ function Events() {
           onRequestClose={() => {
             setIsMarkAttendanceModalOpen(false);
           }}
+          {...(selectedCoffeeItem && { coffeeItemId: selectedCoffeeItem })}
         />
       )}
       {!isLoading && (
@@ -328,7 +377,11 @@ function Events() {
               onRowClick={handleRowClick}
               onRowSelect={handleSelectedIndexesChange}
               onMoreInfoClick={handleMoreInfoClick}
-              moreInfoContainer={moreInfoContent(selectedData)}
+              moreInfoContainer={
+                <MoreInfoContent 
+                  selectedData={selectedData}
+                />
+              }
               ref={eventTableRef}
             />
           }

@@ -196,6 +196,15 @@ class SemcompApi {
     return this.http.post(`/admin/events/${eventId}/mark-attendance`, { userId: userId });
   }
 
+  public async getCoffeePermission(eventId: string, userId: string, coffeeItemId: string): Promise<boolean>{
+    const response = await this.http.post(
+      `/admin/events/${eventId}/get-coffee-permission`, 
+      { userId: userId, coffeeItemId: coffeeItemId }
+    );
+    console.log(response);
+    return response;
+  }
+
   // GAME 
   public async getGameQuestions(pagination: PaginationRequest): Promise<SemcompApiGetGameQuestionsResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(

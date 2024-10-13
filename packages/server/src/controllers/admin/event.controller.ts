@@ -120,6 +120,23 @@ class EventController {
     }
   }
 
+  public async getCoffeePermission(req, res, next) {
+    try {
+      // TODO: fazer logica para pegar permissao do coffee
+      const { eventId } = req.params;
+      const { userId, coffeeItemId } = req.body;
+
+      console.log(coffeeItemId);
+      return res.status(200).json(true);
+
+      /* const attendance = await eventService.markAttendance(eventId, userId);
+
+      return res.status(200).json(attendance); */
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
   public async createAttendanceQrCode(req, res, next) {
     try {
       const { eventId } = req.params;
