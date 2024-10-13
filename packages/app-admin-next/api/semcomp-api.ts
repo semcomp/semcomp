@@ -21,7 +21,8 @@ import {
   SemcompApiEditTreasureHuntImageRequest,
   SemcompApiGetAchievementsResponse,
   SemcompApiCreateAchievementRequest,
-  SemcompApiEditAchievementRequest
+  SemcompApiEditAchievementRequest,
+  SemcompApiGetSalesResponse
 
 } from "../models/SemcompApiModels";
 import Http from "./http";
@@ -151,6 +152,26 @@ class SemcompApi {
   public async editTShirt(id: string, data: any): Promise<any> {
     return this.http.put(`/admin/t-shirts/${id}`, data);
   }
+
+  // SALES
+  public async getSales(pagination: PaginationRequest): Promise<SemcompApiGetSalesResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/sales", semcompApiPagination);
+
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  public async createSale(data: any): Promise<any> {
+    return this.http.post("/admin/sales", data);
+  }
+
+  public async editSale(id: string, data: any): Promise<any> {
+    return this.http.put(`/admin/sales/${id}`, data);
+  } 
 
   // SUBSCRIPTIONS
   public async getSubscriptions(eventId: string): Promise<any> {
@@ -306,6 +327,18 @@ class SemcompApi {
 
   public async setConfigSales(setSales): Promise<any> {
     return this.http.post('/config/open-sales', { openSales: setSales });
+  }
+
+  // PAYMENT
+  public async getPaymentComplete(pagination: PaginationRequest): Promise<SemcompApiGetUsersResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/payments/get-payment-complete", semcompApiPagination);
+    console.log('todos', response);
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 }
 

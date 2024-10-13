@@ -21,6 +21,7 @@ import AuthRouter from "./auth.router";
 import AuthController from "../controllers/auth.controller";
 import treasureHuntImageRouter from "./treasure-hunt.router";
 import configRouter from "./config.router";
+import saleRouter from "./sale.router";
 
 const router = Router();
 
@@ -51,6 +52,7 @@ router.use("/achievements", achievementsRouter);
 router.use("/game", gameRouter);
 router.use("/events", eventsRouter);
 router.use("/users", userRouter);
+router.use("/sales", saleRouter);
 router.use("/houses", houseRouter);
 router.use("/push-notifications", pushNotificationRouter);
 router.use("/treasure-hunt-images", treasureHuntImageRouter);

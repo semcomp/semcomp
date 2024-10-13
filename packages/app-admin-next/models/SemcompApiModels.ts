@@ -6,11 +6,6 @@ import Game from "../libs/constants/game-enum";
 import Status from "../libs/constants/status-treasure-hunt-enum";
 import { PaginationResponse } from "./Pagination";
 
-export enum KitOption {
-  COMPLETE = "Kit e Coffee",
-  KIT = "Kit",
-  COFFEE = "Coffee",
-}
 export class SemcompApiPaginationRequest {
   private page: number;
   private items: number;
@@ -56,14 +51,15 @@ export type SemcompApiUser = {
     name: string;
   };
   payment: {
-    status: PaymentStatus;
+    status: PaymentStatus[];
     tShirtSize: TShirtSize;
-    kitOption: KitOption;
+    saleOption: string[][];
   };
   gotKit: boolean;
   telegram: string;
   disabilities: string[];
   permission: boolean;
+  wantNameTag: boolean;
   createdAt: number;
   updatedAt: number;
 };
@@ -78,7 +74,6 @@ export type UserData = {
   "Status do pagamento": string,
   "Retirou Kit": boolean,
   "Tamanho da camiseta": TShirtSize,
-  "Opção de compra": KitOption,
   "Permite divulgação?": string,
   "Criado em": string,
 }
@@ -117,6 +112,7 @@ export type SemcompApiCreateHouseRequest = {
   name: string;
   description: string;
   telegramLink: string;
+  imageBase64: string;
 };
 
 export type SemcompApiTShirt = {
@@ -129,6 +125,27 @@ export type SemcompApiTShirt = {
 };
 
 export type SemcompApiGetTShirtsResponse = PaginationResponse<SemcompApiTShirt>;
+
+export enum SaleType {
+  ITEM = "Item",
+  SALE = "Venda",
+};
+
+export type SemcompApiSale = {
+  id: string;
+  name: string;
+  type: SaleType;
+  quantity: number;
+  usedQuantity: number;
+  price: number;
+  hasTShirt: boolean;
+  hasKit: boolean;
+  items: string[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type SemcompApiGetSalesResponse = PaginationResponse<SemcompApiSale>;
 
 export type SemcompApiEvent = {
   id: string;
@@ -282,8 +299,23 @@ export type SemcompApiConfigs = {
   switchBeta: boolean;
   openSignup: boolean;
   showLogin: boolean;
-  kitOption: KitOption;
   openSales: boolean;
   createdAt?: number;
   updatedAt?: number;
 };
+
+export type SemcompApiPaymentUser = {
+  userId: string;
+  status: PaymentStatus;
+  qrCode?: string;
+  qrCodeBase64?: string;
+  withSocialBenefit: boolean;
+  socialBenefitFileName: string;
+  tShirtSize: TShirtSize;
+  userName: string,
+  userEmail: string,
+  salesOption: string[];
+  price?: number;
+  createdAt?: number;
+  updatedAt?: number;
+}

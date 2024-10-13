@@ -1,57 +1,36 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {toast} from 'react-toastify';
 
 import DataPage from "../components/DataPage";
-import Input, { InputType } from "../components/Input";
 import LoadingButton from '../components/reusable/LoadingButton';
 import { useAppContext } from '../libs/contextLib';
 import RequireAuth from '../libs/RequireAuth';
 import SemcompApi from '../api/semcomp-api';
-import SwitchButton from '../components/SwitchButton';
-
-export enum KitOption {
-    COMPLETE = "COMPLETE", 
-    KIT = "KIT",
-    COFFEE = "COFFEE",
-}
-  
-const kitOption = Object.values(KitOption);
-  
-/** Tailwind styles. */
-const style = {
-  main: 'h-full flex justify-center items-center p-4',
-  card: 'rounded-lg p-4 bg-white shadow-lg w-full max-w-md flex flex-col items-center mx-2',
-  title: 'text-2xl font-bold',
-  form: 'w-full flex flex-col justify-center items-center',
-  input: 'my-2 py-2 px-4 border rounded-lg w-full',
-  button: 'bg-gray-600 text-white px-4 py-2 mt-2 mb-4 rounded-lg w-full',
-  hr: 'w-full border-b',
-  createAccountLink: 'text-sm mt-2',
-  link: 'text-blue-500',
-  switchInput: 'opacity-0 w-0 h-0',
-};
+import { Accordion, AccordionDetails, AccordionSummary, FormControlLabel, FormGroup, Switch } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CircleIcon from '@mui/icons-material/Circle';
 
 function Config() {
     const [isLoading, setIsLoading] = useState(false);
     const {
-        setUser, semcompApi
+        semcompApi
     }: {
-        setUser: any, semcompApi: SemcompApi
+        semcompApi: SemcompApi
     } = useAppContext();
     
     const [openSales, setOpenSales] = useState(false);
-    const [coffeeTotal, setCoffeeTotal] = useState(0);
-    const [saveKitOption, setSaveKitOption] = useState("COFFEE");
     const [openSignup, setSignup] = useState(false);
     const [openAchievement, setOpenAchievement] = useState(false);
+
+    const [isSalesModified, setIsSalesModified] = useState(false);
+    const [isSignupModified, setIsSignupModified] = useState(false);
+    const [isAchievementModified, setIsAchievementModified] = useState(false);
 
     async function fetchData() {
         setIsLoading(true);
         try {
             const config = await semcompApi.getConfig();
 
-            setSaveKitOption(config.kitOption);
-            setCoffeeTotal(config.coffeeTotal);
             setOpenSales(config.openSales);
             setSignup(config.openSignup);
             setOpenAchievement(config.openAchievement);
@@ -67,125 +46,110 @@ function Config() {
     }, []);
 
     async function handleSubmit() {
-        if (coffeeTotal <= 0) return toast.error('Você deve fornecer um tamanho');
-        if (!KitOption[saveKitOption]) return toast.error('Você deve fornecer uma opção de kit válida');
-        
         try {
-        setIsLoading(true);
-        const config = {
-            coffeeTotal: coffeeTotal,
-            kitOption: saveKitOption,
-            openSales: openSales,
-            openAchievement: openAchievement,
-        }
-        const response = await semcompApi.updateConfig(config);
-        toast.success('Salvo com sucesso!');
+            setIsLoading(true);
+            const config = {
+                openSales: openSales,
+                openAchievement: openAchievement,
+                openSignup: openSignup,
+            }
+            const response = await semcompApi.updateConfig(config);
+            toast.success('Salvo com sucesso!');
+            setIsSalesModified(false);
+            setIsSignupModified(false);
+            setIsAchievementModified(false);
         } catch (error) {
-        console.error(error);
-        toast.error('Erro no servidor!');
+            console.error(error);
+            toast.error('Erro no servidor!');
         } finally {
-        setIsLoading(false);
+            setIsLoading(false);
         }
     }
 
-    // Função para alternar o status do coffee
-    const toggleSales = async () => {
-        const confirmed = window.confirm("Tem certeza de que deseja alterar o status do Coffee?");
-        if (confirmed) {
-            setOpenSales(!openSales);
-        }
-    };
-
-    function handleQuantityChange(event: React.ChangeEvent<HTMLInputElement>) {
-        const value = event.target.value;
-        setCoffeeTotal(Number(value));
+    const AccordionTitle: React.FC<{ title: string; modified: boolean }> = ({ title, modified }) => {
+        return (
+            <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1-content"
+                id={`accordion${title}-header`}
+            >
+                {title} {modified && <CircleIcon fontSize='small' style={{ color: 'lightblue', marginLeft: '8px' }} />}
+            </AccordionSummary>
+        );
     }
-    
-    function handleKitOptionChange(event: React.ChangeEvent<HTMLInputElement>) {
-        const value = event.target.value;
-        setSaveKitOption(value);
-    }
-
-    //Função para alterar o openSignup do bando de dados usando a SemcompAPI
-    const setConfigSignup = async (setSignup) => {
-        try {
-            const response = await semcompApi.setConfigSignup(setSignup);
-        } catch (error) {
-            console.error('Erro ao alterar openSignup no banco de dados(configuracoes.tsx):', error);
-        }
-    };
-
     return (
         <>
             <DataPage
                 title="Configurações"
                 isLoading={isLoading}
                 table={
-                    <div className={style.main}>
-                        <div className={style.card}>
-                            <div className={style.title}>Coffee</div>
-                            <hr className={style.hr} />
-                            <div>   
-                            <Input
-                                className="my-3"
-                                label="Quantidade"
-                                value={coffeeTotal}
-                                onChange={handleQuantityChange}
-                                type={InputType.Number}
+                    <div className='w-full flex flex-col items-center'>
+                        <Accordion style={{ width: '50%' }}>
+                            <AccordionTitle
+                                title="Vendas e Inscrições"
+                                modified={isSalesModified || isSignupModified}
                             />
-                            <button className={style.button} onClick={toggleSales}>
-                                {openSales ? 'Desativar' : 'Ativar'} coffee
-                            </button>
-                            </div>
-                        </div>
 
-                        <div className={style.card}>
-                            <div className={style.title}>Opções de venda</div>
-                            <hr className={style.hr} />
-                            <div>   
-                                <Input
-                                    className="my-3"
-                                    label="Opções:"
-                                    value={KitOption[saveKitOption]}
-                                    onChange={handleKitOptionChange}
-                                    choices={kitOption}
-                                    type={InputType.Select}
-                                />
-                            </div>
-                        </div>
+                            <AccordionDetails>
+                                <FormGroup>
+                                    <FormControlLabel 
+                                        control = {
+                                            <Switch 
+                                                checked={openSales}
+                                                onChange={() => {
+                                                    setOpenSales(!openSales);
+                                                    setIsSalesModified(!isSalesModified);
+                                                }}
+                                            />
+                                        }
+                                        label="Vendas abertas"
+                                    />
+                                    <FormControlLabel 
+                                        control = {
+                                            <Switch 
+                                                checked={openSignup} 
+                                                onChange={() => {
+                                                    setSignup(!openSignup);
+                                                    setIsSignupModified(!isSignupModified);
+                                                }}
+                                            />
+                                        }
+                                        label="Inscrições abertas"
+                                    />
+                                </FormGroup>
+                            </AccordionDetails>
+                        </Accordion>
 
-                        <div className="w-full px-6">
-                            <LoadingButton
+                        <Accordion style={{ width: '50%' }}>
+                            <AccordionTitle
+                                title="Conquistas"
+                                modified={isAchievementModified}
+                            />
+
+                            <AccordionDetails>
+                                <FormGroup>
+                                    <FormControlLabel 
+                                        control = {
+                                            <Switch 
+                                                checked={openAchievement}
+                                                onChange={() => {
+                                                    setOpenAchievement(!openAchievement);
+                                                    setIsAchievementModified(!isAchievementModified);
+                                                }}
+                                            />
+                                        } 
+                                        label="Abrir Conquistas" />
+                                </FormGroup>
+                            </AccordionDetails>
+                        </Accordion>
+
+                        <LoadingButton
                             isLoading={isLoading}
-                            className="w-full text-white py-3 px-6"
+                            style={{ marginTop: '1rem', backgroundColor: '#4CAF50', color: 'white' }}
                             onClick={handleSubmit}
-                            >
-                            Enviar
-                            </LoadingButton>
-                        </div>
-
-                        <div className={style.card}>
-                            <div className={style.title}>Abrir Inscrições</div>
-                            <hr className={style.hr} />
-                            <div className='p-2'>   
-                                <SwitchButton 
-                                    isChecked={openSignup} 
-                                    setIsChecked={setSignup} 
-                                    setIsCheckedDataBase={setConfigSignup}
-                                />
-                            </div>
-                        </div>
-
-                        <div className={style.card}>
-                            <div className={style.title}>Abrir Conquistas</div>
-                            <hr className={style.hr} />
-                            <div className='p-2'>   
-                                <SwitchButton 
-                                    isChecked={openAchievement} 
-                                    setIsChecked={setOpenAchievement}
-                                />
-                            </div>
-                        </div>
+                        >
+                            Salvar alterações
+                        </LoadingButton>
                     </div>
                 }
             ></DataPage>

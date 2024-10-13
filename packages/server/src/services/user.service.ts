@@ -32,6 +32,7 @@ type Filters = User | {
   telegram: string[];
   permission: boolean[];
   resetPasswordCode: string[];
+  wantNameTag: boolean[];
   paid: boolean[];
   gotKit: boolean[];
   createdAt: number[];
@@ -299,6 +300,7 @@ class UserServiceImpl implements UserService {
       telegram: entity.telegram,
       permission: entity.permission,
       resetPasswordCode: entity.resetPasswordCode,
+      wantNameTag: entity.wantNameTag,
       paid: entity.paid,
       gotKit: entity.gotKit,
       createdAt: entity.createdAt,

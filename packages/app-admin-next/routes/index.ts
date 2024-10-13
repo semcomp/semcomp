@@ -4,6 +4,8 @@ const Routes = {
   signup: '/cadastro',
   users: '/usuarios',
   tShirts: '/camisetas',
+  payments: '/pagamentos',
+  sales: '/vendas',
   adminUsers: '/administradores',
   achievements: '/conquistas',
   events: '/eventos',

@@ -10,10 +10,11 @@ module.exports = {
       'desktop': {'min': '1000px', 'max': '1600px'},
       'tablet': {'min': '640px', 'max': '1000px'},
       'phone': {'min': '0px', 'max': '640px'},
+      'below-xl': {'max': '1515px'}, // Media query para telas abaixo de 1515px
       
-      
+      'not-phone': {'min': '640px'},
       'medphone': {'min': '430px', 'max': '640px'},
-      'mobile': {'min': '0px', 'max': '1000px'},
+      'mobile': {'min': '0px', 'max': '1050px'},
       ee: "400px",
       dd: "520px",
       sm: "640px",
@@ -25,18 +26,23 @@ module.exports = {
       primary: "#2E1B5B", 
       secondary: "#F5CE00",
       tertiary: "#642712",
-      blue: "#002776",
+      blue: "#242d5c",
       orange: "#EC4E20",
       green: "#009541",
-      yellow: "#FEC409",
+      yellow: "#f9f004",
       black: "#1d1d1b",
       grayDark: "#3d3d3d",
       gray: "#c2c2c2",
       grayLight: "#f0f0f0",
-      white: "#fafafa",
+      white: "#FCFBFF",
       hoverWhite: "rgba(255, 255, 255, 0.3)",
       darkblue: "#2E1B5B",
-      pink: "#FF3184"
+      pink: "#FF3184",
+      backgroundBlue: "#232234ff",
+      Symbiosia: "#6fbe39ff",
+      Stormrock: "#f26f18ff",
+      Cybertechna: "#470787ff",
+      Arcadium: "#0e56cbff"
     },
     fontFamily: {
       primary: ["UPHEAVAL"], //Staatliches
@@ -64,4 +70,8 @@ module.exports = {
     },
   },
   plugins: [],
+  safelist: [{
+    pattern: /(bg|text|border)-(blue|yellow|white|Symbiosia|backgroundBlue|Stormrock|Cybertechna|Arcadium)/
+  }
+]
 };

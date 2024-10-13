@@ -10,6 +10,9 @@ import {
   TextField,
   Tooltip,
   Autocomplete,
+  ListItemText,
+  SelectChangeEvent,
+  OutlinedInput,
 } from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -19,6 +22,7 @@ import { Info } from "@mui/icons-material";
 
 export enum InputType {
   Select = "select",
+  MultipleSelect = "multipleSelect",
   Autocomplete = "autocomplete",
   Checkbox = "checkbox",
   Text = "text",
@@ -106,6 +110,50 @@ function SelectInput({
   );
 }
 
+function MutipleSelectInput({
+  label,
+  onChange,
+  value,
+  choices,
+  valueLabel,
+}: {
+  label: string;
+  onChange: (event: any) => void;
+  value: string[];
+  choices: object[];
+  valueLabel: string;
+}) {
+  const [selected, setSelected] = useState<string[]>(value);
+  const handleSelectChange = (event: SelectChangeEvent<typeof selected>) => {
+    const {
+      target: { value },
+    } = event;
+    
+    setSelected(typeof value === 'string' ? value.split(',') : value);
+    onChange(typeof value === 'string' ? value.split(',') : value);
+  };
+
+  return (    
+    <FormControl className="my-3 bg-white" fullWidth>
+      <InputLabel id="multiple-checkbox-label">{label}</InputLabel>
+      <Select 
+        onChange={handleSelectChange}
+        value={selected} multiple={true}
+        labelId="multiple-checkbox-label"
+        input={<OutlinedInput label={label} />}
+        renderValue={(selected) => selected.join(', ')}
+      >
+        {choices.map((choice) => (
+          <MenuItem key={choice[valueLabel]} value={choice[valueLabel]}>
+            <Checkbox checked={selected.indexOf(choice[valueLabel]) > -1} />
+            <ListItemText primary={choice[valueLabel]} />
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+}
+
 function AutoCompleteInput({
   label,
   onChange,
@@ -152,13 +200,15 @@ function AutoCompleteInput({
 function CheckboxInput({
   onChange,
   value,
+  disabled,
 }: {
-  onChange: (event: any) => void;
+  onChange?: (event: any) => void;
   value: boolean;
+  disabled?: boolean;
 }) {
   return (
     <FormControl className="my-3 bg-transparent">
-      <Checkbox onChange={onChange} checked={value} />
+      <Checkbox onChange={onChange} checked={value} disabled={disabled} />
     </FormControl>
   );
 }
@@ -223,11 +273,11 @@ function DateInput({
 }
 
 function Input({
-  label,
-  placeholder, // Adiciona placeholder
-  onChange,
-  value,
   type,
+  onChange,
+  label,
+  placeholder,
+  value,
   choices,
   tooltip,
   autofocus,
@@ -236,11 +286,12 @@ function Input({
   className,
   labelKey,
   valueKey,
+  disabled,
 }: {
   label?: string;
-  placeholder?: string; // Define o tipo para placeholder
-  onChange: (event: any) => void;
-  value?: string | number | boolean;
+  placeholder?: string;
+  onChange?: (event: any) => void;
+  value?: string | string[] | number | boolean;
   type: InputType;
   choices?: string[] | Object[];
   tooltip?: string;
@@ -250,6 +301,7 @@ function Input({
   className?: string;
   labelKey?: string;
   valueKey?: string;
+  disabled?: boolean;
 }) {
   let input = (
     <TextInput
@@ -266,7 +318,7 @@ function Input({
   );
 
   if (type === InputType.Checkbox) {
-    input = <CheckboxInput onChange={onChange} value={value as boolean} />;
+    input = <CheckboxInput onChange={onChange} disabled={disabled} value={value as boolean} />;
   }
 
   if (type === InputType.Select) {
@@ -276,6 +328,18 @@ function Input({
         onChange={onChange}
         value={value as string}
         choices={choices as string[]}
+      />
+    );
+  }
+
+  if (type === InputType.MultipleSelect && Array.isArray(value)) {
+    input = (
+      <MutipleSelectInput
+        label={label}
+        onChange={onChange}
+        value={value as string[]}
+        choices={choices as object[]}
+        valueLabel={labelKey}
       />
     );
   }
@@ -307,7 +371,7 @@ function Input({
 
   return (
     <div className={className}>
-      <label>
+      <label className="flex items-center">
         {input}
         {(type === InputType.Checkbox || type === InputType.File) && label}
       </label>

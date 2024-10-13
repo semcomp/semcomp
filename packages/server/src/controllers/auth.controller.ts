@@ -99,7 +99,7 @@ class AuthController {
     }
   }
 
-  private mapUserResponse(user: User, house?: House, payment?: Payment) {
+  private mapUserResponse(user: User, house?: House, payments?: Payment[]) {
     return {
       email: user.email,
       name: user.name,
@@ -112,13 +112,18 @@ class AuthController {
         name: house.name,
         description: house.description,
         telegramLink: house.telegramLink,
+        imageBase64: house.imageBase64
       } : null,
-      payment: {
-        status: payment?.status || null,
-        tShirtSize: payment?.tShirtSize || null,
-        foodOption: payment?.foodOption || null,
-        kitOption: payment?.kitOption || null,
-      }
+      payments: payments ? payments.map(payment => ({
+        status: payment.status || null,
+        tShirtSize: payment.tShirtSize || null,
+        foodOption: payment.foodOption || null,
+        saleOption: payment.salesOption || null,
+        price: payment.price || null,
+        qrCode: payment.qrCode || null,
+        qrCodeBase64: payment.qrCodeBase64 || null,
+      })) : [],
+      wantNameTag: user.wantNameTag,
     };
   }
 }

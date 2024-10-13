@@ -1,11 +1,13 @@
 import Step from "./Step";
 
 function Stepper(
-  { numberOfSteps, activeStep, onStepClick }:
+  { numberOfSteps, activeStep, onStepClick, activeColor, unactiveColor}:
   {
     numberOfSteps: number,
     activeStep: number,
     onStepClick: Function,
+    activeColor: string,
+    unactiveColor: string
   }
 ) {
   function renderSteps() {
@@ -18,6 +20,8 @@ function Stepper(
           isActive={index === activeStep}
           onClick={() => onStepClick && onStepClick(index)}
           key={index}
+          activeColor={activeColor}
+          unactiveColor={unactiveColor}
         />
       );
     }
@@ -25,9 +29,9 @@ function Stepper(
   }
 
   return (
-    <div className="flex justify-between relative">
+    <div className={"flex justify-between relative"}>
       {/* This is the thin line that "connects" the steps */}
-      <div className="w-full h-px top-1/2 absolute bg-black" />
+      <div className={"w-full h-px top-1/2 absolute bg-white"}/>
 
       {renderSteps()}
     </div>

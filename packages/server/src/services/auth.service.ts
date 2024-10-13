@@ -119,7 +119,8 @@ class AuthService {
         </div>`
       );
 
-    }catch{
+    }catch(e){
+      console.log(e);
       throw new HttpError(503, []);
     }
 

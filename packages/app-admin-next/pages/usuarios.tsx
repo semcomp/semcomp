@@ -6,7 +6,8 @@ import { useAppContext } from "../libs/contextLib";
 import {
   PaymentStatus,
   SemcompApiUser,
-  KitOption as BaseKitOption,
+  SemcompApiSale,
+  SaleType,
 } from "../models/SemcompApiModels";
 import DataPage from "../components/DataPage";
 import { TShirtSize } from "../components/t-shirt/TShirtForm";
@@ -15,26 +16,23 @@ import exportToCsv from "../libs/DownloadCsv";
 import InfoCards from "../components/reusable/InfoCards";
 import Input, { InputType } from '../components/Input';
 import { Modal } from '../components/reusable/Modal';
+import util from "../libs/util";
+import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
+import { toast } from "react-toastify";
+import { InputAdornment, TextField } from "@mui/material";
+import { Search } from "@mui/icons-material";
 
-//modifiquei aqui pra n mudar o arquivo original
-enum KitOption {
-  COMPLETE = BaseKitOption.COMPLETE,
-  KIT = BaseKitOption.KIT,
-  COFFEE = BaseKitOption.COFFEE,
-  NONE = "None",
-}
 
 type UserData = {
-  ID: string;
   "E-mail": string;
   Nome: string;
   Curso: string;
   Telegram: string;
   Casa: string;
-  "Status do pagamento": string;
   "Retirou Kit": ReactElement | string;
+  "Quer crachá": ReactElement | string;
   "Tamanho da camiseta": TShirtSize;
-  "Opção de compra": KitOption;
+  "Compras": ReactElement | string;
   "Permite divulgação?": string;
   "Criado em": string;
 };
@@ -44,110 +42,131 @@ type InfoData = {
   infoValue: number;
 };
 
-function mapData(data: SemcompApiUser[], handleOpenKitModal?: () => void): UserData[] {
+function mapData(
+  data: SemcompApiUser[],
+  allSales: (SemcompApiSale & {usedQuantity:number})[],
+  handleOpenKitModal?: () => void,
+  handleOpenSaleModal?: (saleOption: string[], paymentStatus: string[]) => void,
+): UserData[] {
   const newData: UserData[] = [];
   for (const user of data) {
-    let paymentStatus = "";
-    let kitOption = KitOption.NONE;
+    const paymentStatus = [];
+    const allSalesObj = {};
+    allSales.forEach((sale) => {
+      allSalesObj[sale.id] = sale;
+    });
+    let saleOption = [];
+    let hasKit = false;
+    let tShirtSize = null;
 
-    if (user.payment && user.payment.status) {
-      paymentStatus =
-        user.payment.status === PaymentStatus.APPROVED
-          ? "Aprovado"
-          : "Pendente";
-      kitOption = user.payment.kitOption as KitOption;
+    // TODO: CRIAR HAS_KIT
+    for (let i = 0; i < user.payment.status.length; i++) {
+      let name = '';
+      if (TShirtSize[user.payment.tShirtSize] !== TShirtSize.NONE) {
+        tShirtSize = TShirtSize[user.payment.tShirtSize];
+      }
+      if (user.payment.status[i] === PaymentStatus.APPROVED) {
+        user.payment.saleOption[i].forEach(saleId => {
+          if (allSalesObj.hasOwnProperty(saleId)) {
+            const sale = allSalesObj[saleId];
+            if (sale) {
+              if (sale.hasKit) {
+                hasKit = true;
+              }
+              name = name.concat(sale.name, ', ');
+            }
+          }  else {
+            toast.error(`Venda ${saleId} não encontrada para usuário ${user.name}`);
+          }
+        });
+
+        if (name !== '') { // TODO: Arrumar um jeito melhor de exibir esses dados
+          name = name.slice(0, -2);
+          saleOption.push(name);
+          paymentStatus.push("Aprovado");
+        }
+      } else {
+        user.payment.saleOption[i].forEach(saleId => {
+          if (allSalesObj.hasOwnProperty(saleId)) {
+            const sale = allSalesObj[saleId];
+            if (sale) {
+              name = name.concat(sale.name, ', ');
+            }
+          }  else {
+            console.log('Venda', saleId, ' não encontrada para usuário', user.name);
+          }
+        });
+
+        if (name !== '') {
+          name = name.slice(0, -2);
+          saleOption.push(name);
+          paymentStatus.push("Pendente");
+        }
+      }
     }
-    const gotKit = (user.payment.kitOption === "Kit" || user.payment.kitOption === "Kit e Coffee") && paymentStatus === "Aprovado" ?
+
+    const gotKit = hasKit ?
       <Input
         onChange={handleOpenKitModal ? handleOpenKitModal : () => { }}
         value={user.gotKit}
         type={InputType.Checkbox}
       /> : <></>
 
-    console.log(handleOpenKitModal);
+    const openSales = handleOpenSaleModal ? 
+    <RemoveRedEyeIcon onClick={() => handleOpenSaleModal(saleOption, paymentStatus)}/> : <></>;
+  
     newData.push({
-      ID: user.id,
       "E-mail": user.email,
       Nome: user.name,
       Curso: user.course,
       Telegram: user.telegram,
       Casa: user.house.name,
-      "Status do pagamento": paymentStatus,
-      "Tamanho da camiseta": user.payment
-        ? user.payment.tShirtSize
-        : TShirtSize.M,
-      "Opção de compra": kitOption,
+      "Tamanho da camiseta": tShirtSize,
+      "Compras": openSales && saleOption.length > 0 ? openSales : saleOption.join(", "),
       "Retirou Kit": handleOpenKitModal ? gotKit : (user.gotKit ? "Sim" : "Não"),
+      "Quer crachá": <Input type={InputType.Checkbox} disabled={true} value={user.wantNameTag}></Input>,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
-      "Criado em": new Date(user.createdAt).toLocaleString("pt-br", {
-        day: "numeric",
-        month: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-      }),
+      "Criado em": util.formatDate(user.createdAt),
     });
   }
   return newData;
 }
 
-function countKitOption(kitOption: KitOption, data: SemcompApiUser[]): number {
-  let count: number = 0;
-  for (const user of data) {
-    if (user.payment && user.payment.status) {
-      if (kitOption === KitOption.COMPLETE || kitOption === KitOption.KIT) {
-        if (
-          user.payment.status === PaymentStatus.APPROVED ||
-          user.payment.status === PaymentStatus.PENDING
-        ) {
-          if (user.payment.kitOption === kitOption) {
-            count++;
-          }
-        }
-      } else if (kitOption === KitOption.COFFEE) {
-        if (user.payment.status === PaymentStatus.APPROVED) {
-          if (user.payment.kitOption === kitOption) {
-            count++;
-          }
-        }
-      }
-    }
-  }
-  return count;
-}
-
-function getInfoData(data: SemcompApiUser[]): InfoData[] {
+function getInfoData(data: SemcompApiUser[], allSales: (SemcompApiSale & { usedQuantity: number })[]): InfoData[] {
   const infoData: InfoData[] = [];
   infoData.push({ infoTitle: "Inscritos", infoValue: data.length });
 
-  let coffees = countKitOption(KitOption.COFFEE, data);
-  infoData.push({ infoTitle: "Coffee", infoValue: coffees });
+  const numKitStatus = data.reduce((count, item) => count + (item.gotKit ? 1 : 0), 0);
+  const numWantNameTag = data.reduce((count, item) => count + (item.wantNameTag ? 1 : 0), 0);
 
-  let kits = countKitOption(KitOption.KIT, data);
-  infoData.push({ infoTitle: "Kit", infoValue: kits });
-
-  infoData.push({
-    "infoTitle": "Kit",
-    "infoValue": kits,
-  })
-
-  let numKitStatus = data.filter(function (item) {
-    return item.gotKit;
-  }).length;
   infoData.push({
     "infoTitle": "Kits Retirados",
     "infoValue": numKitStatus,
   })
 
-  let complete = countKitOption(KitOption.COMPLETE, data);
-  infoData.push({ infoTitle: "Kits + Coffee", infoValue: complete });
+
+  let total = 0;
+  for (const sale of allSales) {
+    if (SaleType[sale.type] === SaleType.ITEM) {
+      infoData.push({
+        infoTitle: sale.name,
+        infoValue: sale.usedQuantity,
+      });
+      total += sale.usedQuantity;
+    } else if (SaleType[sale.type] === SaleType.SALE && sale.items.length > 1) {
+      infoData.push({
+        infoTitle: sale.name,
+        infoValue: sale.usedQuantity,
+      });
+    }
+  }
+
+  infoData.push({ infoTitle: "Total", infoValue: total });
 
   infoData.push({
-    infoTitle: "Coffees Vendidos",
-    infoValue: complete + coffees,
-  });
-
-  infoData.push({ infoTitle: "Total", infoValue: complete + coffees + kits });
+    "infoTitle": "Crachás solicitados",
+    "infoValue": numWantNameTag,
+  })
 
   return infoData;
 }
@@ -160,6 +179,7 @@ function UsersTable({
   handleKitChange,
   handleCoffeeChange,
   updateKitStatus,
+  allSales,
 }: {
   data: PaginationResponse<SemcompApiUser>;
   pagination: PaginationRequest;
@@ -167,12 +187,16 @@ function UsersTable({
   allData: PaginationResponse<SemcompApiUser>;
   handleKitChange: (id: string, hasKit: boolean) => void;
   handleCoffeeChange: (id: string, hasCoffee: boolean) => void;
-  updateKitStatus: (id: string, status: boolean) => any,
+  updateKitStatus: (id: string, status: boolean, index: number) => any,
+  allSales?: (SemcompApiSale & { usedQuantity: number })[];
 }) {
-  const [infoData, setInfoData] = useState<InfoData[]>(getInfoData(allData.getEntities()));
+  const [infoData, setInfoData] = useState<InfoData[]>(getInfoData(allData.getEntities(), allSales));
 
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
+  const [isSaleModalOpen, setSaleModalOpen] = useState<boolean>(false);
   const [selected, setSelected] = useState(null);
+  const [userSaleOption, setUserSaleOption] = useState([]);
+  const [userStatusPayment, setUserStatusPayment] = useState([]);
 
   const handleOpenKitModal = () => {
     setModalOpen(true);
@@ -181,17 +205,28 @@ function UsersTable({
     setModalOpen(false);
   }
 
-  const handleSubmit = async (index: number) => {
+  function handleOpenSaleModal (saleOption: string[], paymentStatus: string[]) {
+    setUserSaleOption(saleOption);
+    setUserStatusPayment(paymentStatus);
+    setTimeout(() => {
+      setSaleModalOpen(true);
+    }, 500);
+  }
+  const handleCloseSaleModal = () => {
+    setSaleModalOpen(false);
+  }
+
+  const handleGotKit = async (index: number) => {
     // caso o usuário clique em "Sim", roda essa função para mudar se o usuário retirou ou não o kit
     data.getEntities()[index].gotKit = !data.getEntities()[index].gotKit;
-    const response = await updateKitStatus(data.getEntities()[index].id, data.getEntities()[index].gotKit);
+    const response = await updateKitStatus(data.getEntities()[index].id, data.getEntities()[index].gotKit, index);
     
     // fazer update do valor dos kits retirados.
     const updatedInfoData = infoData.map((item, idx) => {
       if (item.infoTitle === "Kits Retirados") {
         return {
           ...item, 
-          infoValue: item.infoValue + (response.gotKit ? 1 : -1)
+          infoValue: item.infoValue + (response?.gotKit ? 1 : -1)
         };
       }
       return item; 
@@ -212,7 +247,7 @@ function UsersTable({
         Confirmar mudança?
         <div className="flex justify-between">
           <button className="bg-green-600 text-white py-2 px-4 hover:bg-green-800"
-            onClick={() => handleSubmit(selected)}>
+            onClick={() => handleGotKit(selected)}>
             Sim
           </button>
           <button className="bg-red-600 text-white py-2 px-4 hover:bg-red-800" onClick={handleCloseKitModal}>
@@ -222,11 +257,36 @@ function UsersTable({
       </div>
     </Modal>
 
+    {isSaleModalOpen &&
+      <Modal
+        isOpen={isSaleModalOpen}
+        hasCloseBtn={true}
+        onClose={handleCloseSaleModal}>
+        <div className="flex flex-col gap-5 p-4">
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Opções de Compra</h3>
+            <ul className="list-disc list-inside">
+              {userSaleOption.map((saleName, index) => {  
+                return (
+                  <li key={index} className="flex justify-between items-center py-1">
+                    <span>{saleName}</span>
+                    <span className={`ml-2 px-2 py-1 rounded ${userStatusPayment[index] === "Aprovado" ? "bg-green-200 text-green-800" : "bg-yellow-200 text-yellow-800"}`}>
+                      {userStatusPayment[index]}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+      </Modal>
+    }
+
     <InfoCards
       infoData={infoData}
     />
     <DataTable
-      data={new PaginationResponse<UserData>(mapData(data.getEntities(), handleOpenKitModal), data.getTotalNumberOfItems())}
+      data={new PaginationResponse<UserData>(mapData(data.getEntities(), allSales, handleOpenKitModal, handleOpenSaleModal), data.getTotalNumberOfItems())}
       pagination={pagination}
       onRowClick={(index: number) => {
         setSelected(index);
@@ -243,11 +303,14 @@ function Users() {
   );
   const [allData, setAllData] =
     useState<PaginationResponse<SemcompApiUser> | null>(null);
-
   const [pagination, setPagination] = useState(
     new PaginationRequest(() => fetchTableData())
   );
-
+  const [paginationComplete, setPaginationComplete] = useState(
+    new PaginationRequest(() => fetchAllData(), 1, 9999)
+  );
+  const [allSales, setAllSales] = useState<SemcompApiSale[]>([]);
+  
   async function fetchAllData() {
     try {
       const response = await fetchAllDataParse(paginationComplete);
@@ -257,9 +320,10 @@ function Users() {
     }
   }
 
-  const [paginationComplete, setPaginationComplete] = useState(
-    new PaginationRequest(() => fetchAllData(), 1, 9999)
-  );
+  async function getSales() {
+    const sales = await semcompApi.getSales(new PaginationRequest(null, 0, 9999));
+    setAllSales(sales ? sales.getEntities() : []);
+  }
 
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState<number[]>([]);
@@ -291,7 +355,7 @@ function Users() {
       const response = await semcompApi.getUsers(
         new PaginationRequest(null, 1, 9999)
       );
-      exportToCsv(mapData(response.getEntities()));
+      exportToCsv(mapData(response.getEntities(), allSales));
     } catch (error) {
       console.error(error);
     } finally {
@@ -299,13 +363,15 @@ function Users() {
     }
   }
 
-
-
-  async function updateKitStatus(id: string, status: boolean) {
+  async function updateKitStatus(id: string, status: boolean, index: number) {
     try {
       const response = await semcompApi.updateKitStatus(id, status);
+      data.getEntities()[index].gotKit = response.gotKit;
+      allData.getEntities().find(user => user.id === id)!.gotKit = response.gotKit;
+      toast.success(`Status do kit de ${data.getEntities()[index].name} atualizado com sucesso`);
       return response;
     } catch (error) {
+      toast.error('Erro ao atualizar status do kit, atualize a página e tente novamente');
       console.error(error);
     }
   }
@@ -315,6 +381,7 @@ function Users() {
     setIsLoading(true);
     fetchAllData();
     fetchTableData();
+    getSales();
   }, []);
 
   useEffect(() => {
@@ -337,54 +404,6 @@ function Users() {
     setSelectedIndexes(updatedSelectedIndexes);
   }
 
-  const handleKitChange = (id: string, hasKit: boolean) => {
-    updateUserPayment(id, hasKit, KitOption.KIT);
-  };
-
-  const handleCoffeeChange = (id: string, hasCoffee: boolean) => {
-    updateUserPayment(id, hasCoffee, KitOption.COFFEE);
-  };
-
-  const updateUserPayment = (
-    id: string,
-    hasItem: boolean,
-    optionType: KitOption
-  ) => {
-    setData((prevData) => {
-      if (!prevData) return prevData;
-
-      const updatedUsers: SemcompApiUser[] = prevData
-        .getEntities()
-        .map((user) => {
-          if (user.id === id) {
-            const newKitOption = hasItem
-              ? user.payment.kitOption === KitOption.KIT &&
-                optionType === KitOption.COFFEE
-                ? KitOption.COMPLETE
-                : optionType
-              : user.payment.kitOption === KitOption.COMPLETE
-              ? optionType === KitOption.KIT
-                ? KitOption.COFFEE
-                : KitOption.NONE
-              : KitOption.NONE;
-            return {
-              ...user,
-              payment: {
-                ...user.payment,
-                kitOption: newKitOption as BaseKitOption,
-              },
-            };
-          }
-          return user;
-        });
-
-      return new PaginationResponse<SemcompApiUser>(
-        updatedUsers,
-        prevData.getTotalNumberOfItems()
-      );
-    });
-  };
-
   return (
     <>
       {!isLoading && (
@@ -395,13 +414,23 @@ function Users() {
               isLoading={isLoading}
               table={
                 <>
-                  <input
-                    type="text"
-                    placeholder="Pesquisar por nome..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="mb-4 p-2 border border-gray-300 rounded w-full"
-                  />
+                  <div className="mb-4 w-full">
+                    <TextField
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Search />
+                          </InputAdornment>
+                        ),
+                      }}
+                      type="text"
+                      placeholder="Pesquisar por nome (todos)..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="mb-4 p-2 border border-gray-300 rounded w-full"
+                    />
+                  </div>
+
                   <UsersTable
                     data={
                       new PaginationResponse<SemcompApiUser>(
@@ -412,9 +441,10 @@ function Users() {
                     pagination={pagination}
                     onRowSelect={handleSelectedIndexesChange}
                     allData={allData!}
-                    handleKitChange={handleKitChange}
-                    handleCoffeeChange={handleCoffeeChange}
+                    handleKitChange={() => { }}
+                    handleCoffeeChange={() => {}}
                     updateKitStatus={updateKitStatus}
+                    allSales={allSales}
                   />
                 </>
               }

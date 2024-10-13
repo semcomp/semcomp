@@ -6,6 +6,7 @@ type House = {
   description: string;
   telegramLink: string;
   score: number;
+  imageBase64: string;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -36,6 +37,10 @@ const HouseSchema = new Mongoose.Schema(
       type: Number,
       default: 0,
       min: 0,
+    },
+    imageBase64: {
+      type: String,
+      required: true,
     },
     createdAt: {
       type: Number,
