@@ -41,6 +41,8 @@ function CreateSaleModal({
     let quantity = data.quantity;
     let hasKit = false;
     let hasTShirt = false;
+    let hasCoffee = false;
+
     if (data.type === SaleType.ITEM) {
       data.items = [];
     } else if (data.type === SaleType.SALE) {
@@ -53,6 +55,10 @@ function CreateSaleModal({
 
         if (item.hasTShirt) {
           hasTShirt = true;
+        }
+
+        if (item.hasCoffee) {
+          hasCoffee = true;
         }
 
         if (item.quantity < quantity) {
@@ -74,11 +80,20 @@ function CreateSaleModal({
       quantity: 0,
       hasTShirt: false,
       hasKit: false,
+      hasCoffee: false,
       items: [],
       price: 0
     };
     
-    newData = { ...data, items: items, type: type, quantity: quantity, hasKit: hasKit, hasTShirt: hasTShirt };
+    newData = { 
+      ...data, 
+      items: items,
+      type: type,
+      quantity: quantity,
+      hasKit: hasKit,
+      hasTShirt: hasTShirt,
+      hasCoffee: hasCoffee
+    };
 
     try {
       setIsLoading(true);

@@ -21,10 +21,11 @@ function Config() {
     const [openSales, setOpenSales] = useState(false);
     const [openSignup, setSignup] = useState(false);
     const [openAchievement, setOpenAchievement] = useState(false);
-
-    const [isSalesModified, setIsSalesModified] = useState(false);
-    const [isSignupModified, setIsSignupModified] = useState(false);
-    const [isAchievementModified, setIsAchievementModified] = useState(false);
+    const [status, setStatus] = useState({
+        openSales: false,
+        openSignup: false,
+        openAchievement: false
+    });
 
     async function fetchData() {
         setIsLoading(true);
@@ -35,7 +36,7 @@ function Config() {
             setSignup(config.openSignup);
             setOpenAchievement(config.openAchievement);
         } catch (error) {
-            toast.error('Erro ao buscar dados do coffee');
+            toast.error('Erro ao buscar dados de configuração :(');
         } finally {
             setIsLoading(false);
         }
@@ -53,11 +54,9 @@ function Config() {
                 openAchievement: openAchievement,
                 openSignup: openSignup,
             }
-            const response = await semcompApi.updateConfig(config);
+            
+            await semcompApi.updateConfig(config);
             toast.success('Salvo com sucesso!');
-            setIsSalesModified(false);
-            setIsSignupModified(false);
-            setIsAchievementModified(false);
         } catch (error) {
             console.error(error);
             toast.error('Erro no servidor!');
@@ -87,7 +86,7 @@ function Config() {
                         <Accordion style={{ width: '50%' }}>
                             <AccordionTitle
                                 title="Vendas e Inscrições"
-                                modified={isSalesModified || isSignupModified}
+                                modified={status.openSales || status.openSignup}
                             />
 
                             <AccordionDetails>
@@ -98,7 +97,7 @@ function Config() {
                                                 checked={openSales}
                                                 onChange={() => {
                                                     setOpenSales(!openSales);
-                                                    setIsSalesModified(!isSalesModified);
+                                                    setStatus({ ...status, openSales: !status.openSales });
                                                 }}
                                             />
                                         }
@@ -110,7 +109,7 @@ function Config() {
                                                 checked={openSignup} 
                                                 onChange={() => {
                                                     setSignup(!openSignup);
-                                                    setIsSignupModified(!isSignupModified);
+                                                    setStatus({ ...status, openSignup: !status.openSignup });
                                                 }}
                                             />
                                         }
@@ -123,7 +122,7 @@ function Config() {
                         <Accordion style={{ width: '50%' }}>
                             <AccordionTitle
                                 title="Conquistas"
-                                modified={isAchievementModified}
+                                modified={status.openAchievement}
                             />
 
                             <AccordionDetails>
@@ -134,7 +133,7 @@ function Config() {
                                                 checked={openAchievement}
                                                 onChange={() => {
                                                     setOpenAchievement(!openAchievement);
-                                                    setIsAchievementModified(!isAchievementModified);
+                                                    setStatus({ ...status, openAchievement: !status.openAchievement });
                                                 }}
                                             />
                                         } 
