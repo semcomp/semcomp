@@ -207,7 +207,25 @@ function Events() {
 
   const MoreInfoContent = ({selectedData}) => {
     const [coffeeOptions, setCoffeeOptions] = useState([]);
+    const [isCoffeeLoading, setIsCoffeeLoading] = useState(false);
     const eventType = selectedData?.type;
+
+
+    async function fetchCoffeeData(){
+      try{
+        setIsCoffeeLoading(true);
+        if(eventType === 'Coffee'){
+          const response = await semcompApi.getCoffeeOptions();
+          console.log(response);
+          setCoffeeOptions(response);
+        }
+      }catch (error) {
+        console.error(error);
+      }finally{
+        setIsCoffeeLoading(false);
+      }
+    }
+    
     
     //Verifica se o tipo de evento não é "Coffee" e reseta o estado de coffeeItem
     useEffect(() => {
@@ -218,18 +236,8 @@ function Events() {
     }, [eventType, setSelectedCoffeeItem]);
       
     // TODO: pegar os dados reais
-    // Simulando a requisição para buscar as opções de café
-    useEffect(() => {
-      const fetchCoffeeOptions = async () => {
-        const data = [
-          { id: 1, name: 'Coffee Normal' },
-          { id: 2, name: 'Coffee Minicurso 1' },
-          { id: 3, name: 'Coffee Minicurso 2' }
-        ];
-        setCoffeeOptions(data);
-      };
-  
-      fetchCoffeeOptions();
+    useEffect(() => {  
+      fetchCoffeeData();
     }, []);
   
     const handleSelectChange = (event) => {
@@ -241,21 +249,30 @@ function Events() {
   
     return (
       <>
-        <MarkAttendance />
+        { !isCoffeeLoading && 
+          (
+            <>
+              <MarkAttendance />
 
-        {/* TODO: Melhorar design, fazer com que não feche ao clicar no dropbox */}
-        {eventType === 'Coffee' && (
-          <div>
-            <select id="coffee-select" onChange={handleSelectChange}>
-              <option value="">--Qual Coffee é?--</option>
-              {coffeeOptions.map((coffee) => (
-                <option key={coffee.id} value={coffee.id}>
-                  {coffee.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+              {/* TODO: Melhorar design, fazer com que não feche ao clicar no dropbox */}
+              {
+                eventType === 'Coffee' && 
+                (
+                  <div>
+                    <select id="coffee-select" onChange={handleSelectChange}>
+                      <option value="">--Qual Coffee é?--</option>
+                      {coffeeOptions.map((coffee) => (
+                        <option key={coffee.id} value={coffee.id}>
+                          {coffee.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )
+              }
+            </>
+          )
+        }
       </>
     );
   };

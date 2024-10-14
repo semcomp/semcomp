@@ -73,7 +73,8 @@ export default class PaymentServiceImpl implements PaymentService {
     return entity && this.mapEntity(entity);
   }
 
-  public async findByUserId(id: string): Promise<Payment> {
+  //TODO: ter certeza que a mudança nn quebra nada
+  public async findByUserId(id: string): Promise<Payment[]> {
     const entity = await PaymentModel.find({ userId: id }).sort({ _id: -1 });
 
     if (entity && entity.length > 0) {

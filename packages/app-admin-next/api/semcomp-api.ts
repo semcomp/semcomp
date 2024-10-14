@@ -196,12 +196,17 @@ class SemcompApi {
     return this.http.post(`/admin/events/${eventId}/mark-attendance`, { userId: userId });
   }
 
-  public async getCoffeePermission(eventId: string, userId: string, coffeeItemId: string): Promise<boolean>{
+  public async getCoffeePermission(userId: string, coffeeItemId: string): Promise<boolean>{
     const response = await this.http.post(
-      `/admin/events/${eventId}/get-coffee-permission`, 
+      `/admin/events/get-coffee-permission`, 
       { userId: userId, coffeeItemId: coffeeItemId }
     );
-    console.log(response);
+    return response;
+  }
+
+  //TODO: arrumar tipos
+  public async getCoffeeOptions(): Promise<any> {
+    const response = await this.http.get("/admin/events/get-coffee-options");
     return response;
   }
 
