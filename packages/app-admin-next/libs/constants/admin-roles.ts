@@ -4,6 +4,7 @@ const AdminRoles = {
     SALES: "Vendas",
     PAYMENTS: "Pagamentos",
     HOUSES: "Casas",
+    GAMECONFIG: "Jogo - Configurações",
     GAMEQUESTIONS: "Jogo - Perguntas",
     GAMEGROUPS: "Jogo - Grupos",
     EVENTS: "Eventos",
