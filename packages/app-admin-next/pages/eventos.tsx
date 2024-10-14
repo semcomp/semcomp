@@ -180,8 +180,9 @@ function Events() {
         "Nome": user.name,
         "E-mail": user.email,
         "Curso": user.course,
-        "Presença(palestra/roda)": user.percentage,
-        "Horas": user.hours,
+        "Horas totais": user.hours,
+        "Presença[%]": user.percentage,
+        ">70%": user.percentage > 70 ? "Sim" : "Não",
       })
     }
   
