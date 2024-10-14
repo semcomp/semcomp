@@ -543,68 +543,67 @@ function Profile() {
             </Card>
           )}
           {/*isFundacaoEstudarFormModalOpen && (
-  <FundEstudarForm
-    onRequestClose={() => setIsFundacaoEstudarFormModalOpen(false)}
-  />
-)*/}
-{isConfirmarCrachaModalOpen && (
-        <ConfirmarCracha
-          onRequestClose={() => setIsConfirmarCrachaModalOpen(false)}
-          user={userFetched}
-        />
-      )}
+            <FundEstudarForm
+              onRequestClose={() => setIsFundacaoEstudarFormModalOpen(false)}
+            />
+          )*/}
 
-{userFetched && config.openAchievement && (
-  <Card className="flex flex-col items-center p-9 w-full bg-[#212032] text-center rounded-lg justify-center">
-    <div className="flex items-center justify-between w-full">
-      <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-        Conquistas
-      </h1>       
-      <CameraAltIcon 
-        className="mb-4 ml-auto"
-        onClick={() => {
-          setIsAddAchievementModalOpen(true);
-          blockBodyScroll();
-        }}
-        cursor="pointer"
-        titleAccess="Escanear Conquista"
-      />
-    </div>
-    <div className="grid auto-cols-auto auto-rows-auto">
-      {earnedAchievements.slice(0, 6).map((conquista) => (
-        <img
-          key={conquista.id}
-          src={conquista.imageBase64}
-          alt={conquista.title}
-          style={{ padding: ".3rem", maxHeight: "80px" }}
-        />
-      ))}
-    </div>
-    <button
-      onClick={() => {
-        setIsAchievementsModalOpen(true);
-        blockBodyScroll();
-      }}
-    >
-      Ver mais
-    </button>
-  </Card>
-)}
+          {userFetched && config && config.enableWantNameTag && isConfirmarCrachaModalOpen && (
+            <ConfirmarCracha
+              onRequestClose={() => setIsConfirmarCrachaModalOpen(false)}
+              user={userFetched}
+            />
+          )}
 
-    
-    {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
-    {/* 
-    <Card className="flex flex-col items-center p-9 w-full mb-6">
-      <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-        Pontuações
-      </h1>
-      <HouseScores />
-    </Card> 
-    */}
+          {userFetched && config.openAchievement && (
+            <Card className="flex flex-col items-center p-9 w-full bg-[#212032] text-center rounded-lg justify-center">
+              <div className="flex items-center justify-between w-full">
+                <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+                  Conquistas
+                </h1>       
+                <CameraAltIcon 
+                  className="mb-4 ml-auto"
+                  onClick={() => {
+                    setIsAddAchievementModalOpen(true);
+                    blockBodyScroll();
+                  }}
+                  cursor="pointer"
+                  titleAccess="Escanear Conquista"
+                />
+              </div>
+              <div className="grid auto-cols-auto auto-rows-auto">
+                {earnedAchievements.slice(0, 6).map((conquista) => (
+                  <img
+                    key={conquista.id}
+                    src={conquista.imageBase64}
+                    alt={conquista.title}
+                    style={{ padding: ".3rem", maxHeight: "80px" }}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  setIsAchievementsModalOpen(true);
+                  blockBodyScroll();
+                }}
+              >
+                Ver mais
+              </button>
+            </Card>
+          )}
 
-
-
+          
+          {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
+          {/* 
+          <Card className="flex flex-col items-center p-9 w-full mb-6">
+            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+              Pontuações
+            </h1>
+            <HouseScores />
+          </Card> 
+          */}
         </div>
+
         <div>
           {userFetched && (
             <Card className="flex flex-col items-center p-9 bg-[#212032] w-full rounded-lg h-full justify-center">
