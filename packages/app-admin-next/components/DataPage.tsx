@@ -28,6 +28,7 @@ function DataPage({
             {buttons}
           </div>
         </div>
+        <hr className="w-full mb-8" />
         {isLoading ? <Spinner /> : table}
       </main>
     </div>
