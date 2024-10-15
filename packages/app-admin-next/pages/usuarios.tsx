@@ -29,7 +29,7 @@ type UserData = {
   Curso: string;
   Telegram: string;
   Casa: string;
-  "Retirou Kit": ReactElement | string;
+  "Retirou itens": ReactElement | string;
   "Quer crachá": ReactElement | string;
   "Tamanho da camiseta": TShirtSize;
   "Compras": ReactElement | string;
@@ -47,6 +47,7 @@ function mapData(
   allSales: (SemcompApiSale & {usedQuantity:number})[],
   handleOpenKitModal?: () => void,
   handleOpenSaleModal?: (saleOption: string[], paymentStatus: string[]) => void,
+  exportToCsv?: boolean,
 ): UserData[] {
   const newData: UserData[] = [];
   for (const user of data) {
@@ -59,7 +60,6 @@ function mapData(
     let hasKit = false;
     let tShirtSize = null;
 
-    // TODO: CRIAR HAS_KIT
     for (let i = 0; i < user.payment.status.length; i++) {
       let name = '';
       if (TShirtSize[user.payment.tShirtSize] !== TShirtSize.NONE) {
@@ -110,11 +110,25 @@ function mapData(
         onChange={handleOpenKitModal ? handleOpenKitModal : () => { }}
         value={user.gotKit}
         type={InputType.Checkbox}
-      /> : <></>
+      /> : <></>;
 
     const openSales = handleOpenSaleModal ? 
-    <RemoveRedEyeIcon onClick={() => handleOpenSaleModal(saleOption, paymentStatus)}/> : <></>;
+    <RemoveRedEyeIcon onClick={() => handleOpenSaleModal(saleOption, paymentStatus)}/> : null;
   
+    let newDataSales = undefined;
+    let newDataGetItems = undefined;
+    let newDataWantTagName = undefined;
+
+    if (exportToCsv) {
+      newDataSales = saleOption.length > 0 ? saleOption.join(" - ") : "Nenhuma";
+      newDataGetItems = user.gotKit ? "Sim" : "Não";
+      newDataWantTagName = user.wantNameTag ? "Sim" : "Não";
+    } else {
+      newDataSales = openSales && saleOption.length > 0 ? openSales : saleOption.join(", ");
+      newDataGetItems = handleOpenKitModal ? gotKit : (user.gotKit ? "Sim" : "Não");
+      newDataWantTagName = <Input type={InputType.Checkbox} disabled={true} value={user.wantNameTag}></Input>;
+    }
+
     newData.push({
       "E-mail": user.email,
       Nome: user.name,
@@ -122,9 +136,9 @@ function mapData(
       Telegram: user.telegram,
       Casa: user.house.name,
       "Tamanho da camiseta": tShirtSize,
-      "Compras": openSales && saleOption.length > 0 ? openSales : saleOption.join(", "),
-      "Retirou Kit": handleOpenKitModal ? gotKit : (user.gotKit ? "Sim" : "Não"),
-      "Quer crachá": <Input type={InputType.Checkbox} disabled={true} value={user.wantNameTag}></Input>,
+      "Compras": newDataSales,
+      "Retirou itens": newDataGetItems,
+      "Quer crachá": newDataWantTagName,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
       "Criado em": util.formatDate(user.createdAt),
     });
@@ -176,8 +190,6 @@ function UsersTable({
   pagination,
   onRowSelect,
   allData,
-  handleKitChange,
-  handleCoffeeChange,
   updateKitStatus,
   allSales,
 }: {
@@ -185,8 +197,6 @@ function UsersTable({
   pagination: PaginationRequest;
   onRowSelect: (selectedIndexes: number[]) => void;
   allData: PaginationResponse<SemcompApiUser>;
-  handleKitChange: (id: string, hasKit: boolean) => void;
-  handleCoffeeChange: (id: string, hasCoffee: boolean) => void;
   updateKitStatus: (id: string, status: boolean, index: number) => any,
   allSales?: (SemcompApiSale & { usedQuantity: number })[];
 }) {
@@ -217,7 +227,6 @@ function UsersTable({
   }
 
   const handleGotKit = async (index: number) => {
-    // caso o usuário clique em "Sim", roda essa função para mudar se o usuário retirou ou não o kit
     data.getEntities()[index].gotKit = !data.getEntities()[index].gotKit;
     const response = await updateKitStatus(data.getEntities()[index].id, data.getEntities()[index].gotKit, index);
     
@@ -355,7 +364,7 @@ function Users() {
       const response = await semcompApi.getUsers(
         new PaginationRequest(null, 1, 9999)
       );
-      exportToCsv(mapData(response.getEntities(), allSales));
+      exportToCsv(mapData(response.getEntities(), allSales, undefined, undefined, true));
     } catch (error) {
       console.error(error);
     } finally {
@@ -441,8 +450,6 @@ function Users() {
                     pagination={pagination}
                     onRowSelect={handleSelectedIndexesChange}
                     allData={allData!}
-                    handleKitChange={() => { }}
-                    handleCoffeeChange={() => {}}
                     updateKitStatus={updateKitStatus}
                     allSales={allSales}
                   />
