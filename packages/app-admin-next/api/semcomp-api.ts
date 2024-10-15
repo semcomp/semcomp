@@ -23,8 +23,8 @@ import {
   SemcompApiCreateAchievementRequest,
   SemcompApiEditAchievementRequest,
   SemcompApiGetSalesResponse,
-  SemcompApiSale
-
+  SemcompApiSale,
+  SemcompApiGetGameConfigResponse,
 } from "../models/SemcompApiModels";
 import Http from "./http";
 
@@ -337,8 +337,31 @@ class SemcompApi {
     );
 
     const response = await this.http.get("/admin/payments/get-payment-complete", semcompApiPagination);
-    console.log('todos', response);
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  // GAME-CONFIG
+  public async getGameConfig(pagination: PaginationRequest): Promise<SemcompApiGetGameConfigResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/games-config", semcompApiPagination);
+
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  public async createGameConfig(data: any): Promise<any> {
+    return this.http.post("/admin/games-config", data);
+  }
+
+  public async editGameConfig(id: string, data: any): Promise<any> {
+    return this.http.put(`/admin/games-config/${id}`, data);
+  }
+
+  public async deleteGameConfig(id: string): Promise<any> {
+    return this.http.delete(`/admin/games-config/${id}`);
   }
 }
 

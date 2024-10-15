@@ -21,10 +21,12 @@ function Config() {
     const [openSales, setOpenSales] = useState(false);
     const [openSignup, setSignup] = useState(false);
     const [openAchievement, setOpenAchievement] = useState(false);
+    const [enableWantNameTag, setEnableWantNameTag] = useState(false);
     const [status, setStatus] = useState({
         openSales: false,
         openSignup: false,
-        openAchievement: false
+        openAchievement: false,
+        enableWantNameTag: false,
     });
 
     async function fetchData() {
@@ -35,6 +37,7 @@ function Config() {
             setOpenSales(config.openSales);
             setSignup(config.openSignup);
             setOpenAchievement(config.openAchievement);
+            setEnableWantNameTag(config.enableWantNameTag);
         } catch (error) {
             toast.error('Erro ao buscar dados de configuração :(');
         } finally {
@@ -53,7 +56,15 @@ function Config() {
                 openSales: openSales,
                 openAchievement: openAchievement,
                 openSignup: openSignup,
+                enableWantNameTag: enableWantNameTag,
             }
+
+            setStatus({
+                openSales: false,
+                openAchievement: false,
+                openSignup: false,
+                enableWantNameTag: false,
+            });
             
             await semcompApi.updateConfig(config);
             toast.success('Salvo com sucesso!');
@@ -86,7 +97,7 @@ function Config() {
                         <Accordion style={{ width: '50%' }}>
                             <AccordionTitle
                                 title="Vendas e Inscrições"
-                                modified={status.openSales || status.openSignup}
+                                modified={status.openSales || status.openSignup || status.enableWantNameTag}
                             />
 
                             <AccordionDetails>
@@ -116,6 +127,18 @@ function Config() {
                                         label="Inscrições abertas"
                                     />
                                 </FormGroup>
+                                <FormControlLabel 
+                                        control = {
+                                            <Switch 
+                                                checked={enableWantNameTag} 
+                                                onChange={() => {
+                                                    setEnableWantNameTag(!enableWantNameTag);
+                                                    setStatus({ ...status, enableWantNameTag: !status.enableWantNameTag });
+                                                }}
+                                            />
+                                        }
+                                        label="Exibir modal para requisição dos crachás"
+                                    />
                             </AccordionDetails>
                         </Accordion>
 

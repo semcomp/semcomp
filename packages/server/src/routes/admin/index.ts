@@ -18,6 +18,7 @@ import SaleRouter from "./sale.router";
 import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
 import PaymentServiceImpl from "../../services/payment-impl.service";
 import PaymentRouter from "./payment.router";
+import GameConfigRouter from "./game-config.router";
 
 const tShirtRouter = new TShirtRouter(adminAuthMiddleware);
 const salesRouter = new SaleRouter(adminAuthMiddleware);
@@ -44,6 +45,7 @@ export default class AdminRouter {
     router.use("/logs", logsRouter);
     router.use("/payments", this.paymentRouter.create());
     router.use("/achievements", achievementsRouter);
+    router.use("/games-config", GameConfigRouter);
     router.use("/events", eventsRouter);
     router.use("/houses", housesRouter);
     router.use("/email", emailRouter);

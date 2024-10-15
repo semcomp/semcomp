@@ -148,6 +148,23 @@ export type SemcompApiSale = {
 
 export type SemcompApiGetSalesResponse = PaginationResponse<SemcompApiSale>;
 
+
+export type SemcompApiGameConfig = {
+  id: string;
+  game: Game;
+  description: string;
+  rules: string;
+  eventPrefix: string;
+  startDate: number;
+  endDate: number;
+  hasGroups: boolean;
+  maximumNumberOfMembersInGroup: number;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type SemcompApiGetGameConfigResponse = PaginationResponse<SemcompApiGameConfig>;
+
 export type SemcompApiEvent = {
   id: string;
   name: string;
