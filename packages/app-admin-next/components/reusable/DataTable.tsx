@@ -115,10 +115,9 @@ function Row({
         }
       </TableRow>
       {moreInfoContainer && (
-        //TODO: FAZER NN FECHAR SEM MEXER NESSE ARQUIVO
         <TableRow
           hover={true}
-          //onClick={() => onMoreInfoClick(index)}
+          onClick={() => onMoreInfoClick(index)}
           className="hover:cursor-pointer"
         >
           <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>

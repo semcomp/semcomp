@@ -27,7 +27,6 @@ function MarkAttendanceModal({
 
   let lastScannedUserId = "";
 
-  //TODO: ajustar comentários, tirar consoles e testar com outros casos
   async function handleSubmit(userId) {
     if (lastScannedUserId !== userId) {
       //console.log(userId);
@@ -36,13 +35,14 @@ function MarkAttendanceModal({
           const permission = await semcompApi.getCoffeePermission(userId, coffeeItemId);
           //console.log(permission);
           if(permission){
-            //await semcompApi.markAttendance(data.id, userId);
+            await semcompApi.markAttendance(data.id, userId);
             toast.success("Presença cadastrada");
           }else{
             toast.error("Usuário não tem acesso à esse Coffee");
           }
         }else{
-          // await semcompApi.markAttendance(data.id, userId);
+          //console.log("SEM COFFEE")
+          await semcompApi.markAttendance(data.id, userId);
           toast.success("Presença cadastrada");
         }
       } catch (e) {
