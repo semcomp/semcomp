@@ -28,6 +28,13 @@ function About() {
             Queremos que todos aproveitem ao máximo a <strong>maior semana de computação do Brasil</strong>. Não perca nada! Siga a <strong>Semcomp</strong> nas redes sociais para ficar por dentro de todas as novidades.
           </p>
           <br />
+          
+          <p id="aboutText" className="text-gray-300 font-secondary">
+            Ela acontecerá dos dias <strong>21 a 25 de Outubro</strong>, estamos esperando por você!
+          </p>
+          
+
+          <br/>
           <div className="flex justify-center mt-4 space-x-4 text-primary">
             <a href="https://www.instagram.com/semcomp" target="_blank" rel="noopener noreferrer" className="text-pink-500 hover:text-pink-400">
               <FaInstagram size={32} />
