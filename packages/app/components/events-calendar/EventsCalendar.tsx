@@ -106,13 +106,13 @@ const EventsCalendar = (props) => {
 <div className="w-full">
       {/* Seletor de dias */}
       {isMobile ? (
-        <div className="relative flex items-center justify-center mb-4">
+        <div className="relative flex items-center justify-center mb-4 w-full">
           <div className="relative w-48">
-            {/* <select
+            <select
               value={selectedDay || ""}
               onChange={(e) => setSelectedDay(e.target.value)}
-              className={`w-full px-4 py-2 text-white rounded-md outline-none appearance-none transition ${
-                selectedDay ? "bg-[rgb(233,30,99)]" : "bg-blue-600"
+              className={`w-full px-4 py-2 text-white rounded-md font-secondary outline-none appearance-none transition ${
+                selectedDay ? "bg-purple-400" : "bg-secondary"
               }`}
             >
               {uniqueDayAndDates.map((dayAndDate) => (
@@ -120,7 +120,7 @@ const EventsCalendar = (props) => {
                   {dayAndDate}
                 </option>
               ))}
-            </select> */}
+            </select>
 
             {/* Ícone de seta para baixo dentro do select */}
             <AiOutlineDown className="absolute text-white transform -translate-y-1/2 pointer-events-none top-1/2 right-4" />
@@ -128,19 +128,19 @@ const EventsCalendar = (props) => {
         </div>
       ) : (
         <div className="flex justify-center mb-4 space-x-2">
-          {/* {uniqueDayAndDates.map((dayAndDate) => (
+          {uniqueDayAndDates.map((dayAndDate) => (
             <button
               key={dayAndDate}
-              className={`px-4 py-2 text-white rounded-md transition transform focus:outline-none ${
+              className={`px-4 py-2 rounded-md transition transform focus:outline-none ${
                 selectedDay === dayAndDate
-                  ? "bg-[rgb(233,30,99)] shadow-inner scale-95"
-                  : "bg-blue-400 hover:bg-[rgb(233,30,99)] active:scale-95 active:shadow-inner"
+                  ? "bg-purple-400 text-gray-900 shadow-inner scale-95"
+                  : "bg-secondary text-gray-900 hover:bg-purple-400 active:scale-95 active:shadow-inner"
               }`}
               onClick={() => setSelectedDay(dayAndDate)}
             >
               {dayAndDate}
             </button>
-          ))} */}
+          ))}
         </div>
       )}
 
@@ -170,7 +170,7 @@ const EventsCalendar = (props) => {
               iconStyle={
                 isMobile
                   ? { display: "none" }
-                  : { background: "rgb(233, 30, 99)", color: "#fff" }
+                  : { background: "rgb(192 132 252)", color: "#fff" }
               }
               contentStyle={
                 isMobile
@@ -194,12 +194,17 @@ const EventsCalendar = (props) => {
                   ? { display: "none" }
                   : { borderRight: "7px solid  #1f2937" }
               }
-              className={`${isMobile ? "hidden-icon" : ""}`}
+              className={`${isMobile ? "hidden-icon" : ""} font-secondary`}
             >
               <div onClick={() => toggleExpandEvent(index)}>
-                <h3 className="vertical-timeline-element-title">
-                  {event.name}
-                </h3>
+                <div className="flex flex-row align-left justify-left w-full">
+                  <h4 className="text-purple-500 text-left pr-2 whitespace-nowrap">
+                      {event.type + " |"}
+                  </h4>
+                  <h3 className="text-left">
+                    {event.name}
+                  </h3>
+                </div>
                 <p className="flex items-center text-yellow-400">
                   <AiOutlineClockCircle className="mr-2" />
                   {startTimeStr} - {endTimeStr}
@@ -211,10 +216,22 @@ const EventsCalendar = (props) => {
                 }`}
               >
                 <div className="p-4">
-                  <h4 className="text-purple-500 vertical-timeline-element-subtitle">
-                    {event.type}
-                  </h4>
-                  <p>{event.description}</p>
+                  {event.speaker && event.speaker.length > 0 && 
+                    <div className="w-full flex flex-row items-center justify-left">
+                      <p className="text-purple-400 pr-2">Ministrante: </p> 
+                      <p>{event.speaker}</p>
+                    </div>
+                  }
+                  {event.location && event.location.length > 0 && 
+                    <div className="w-full flex flex-row items-center justify-left">
+                        <p className="text-purple-400 pr-2">Local: </p>
+                        <p>{event.location}</p>
+                    </div>
+                  }
+
+                  <p className="text-left">{event.description}</p>
+
+
                   {event.type === "Contest" && event.isSubscribed && (
                     <button
                       className="p-2 mt-2 text-white bg-red-600 shadow-md hover:bg-red-500"
