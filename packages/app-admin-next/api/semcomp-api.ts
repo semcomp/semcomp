@@ -22,7 +22,8 @@ import {
   SemcompApiGetAchievementsResponse,
   SemcompApiCreateAchievementRequest,
   SemcompApiEditAchievementRequest,
-  SemcompApiGetSalesResponse
+  SemcompApiGetSalesResponse,
+  SemcompApiSale
 
 } from "../models/SemcompApiModels";
 import Http from "./http";
@@ -204,8 +205,7 @@ class SemcompApi {
     return response;
   }
 
-  //TODO: arrumar tipos
-  public async getCoffeeOptions(): Promise<any> {
+  public async getCoffeeOptions(): Promise<SemcompApiSale[]> {
     const response = await this.http.get("/admin/events/get-coffee-options");
     return response;
   }

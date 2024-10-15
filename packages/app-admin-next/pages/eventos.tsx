@@ -97,7 +97,7 @@ function Events() {
     new PaginationRequest(() => fetchData())
   );
   const [selectedData, setSelectedData] = useState(null as SemcompApiEvent);
-  const [selectedCoffeeItem, setSelectedCoffeeItem] = useState(null);
+  const [selectedCoffeeItem, setSelectedCoffeeItem] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
 
@@ -191,13 +191,22 @@ function Events() {
     getSubs();
   }, [data]);
 
-  function MarkAttendance() {
+  function MarkAttendance({eventType}) {
     return (
       <>
         <button
           className="w-full bg-black text-white py-3 px-6"
           type="button"
-          onClick={() => setIsMarkAttendanceModalOpen(true)}
+          onClick={() => { 
+              if(eventType !== "Coffee"){
+                setIsMarkAttendanceModalOpen(true)
+              }else{
+                selectedCoffeeItem === "" ? 
+                toast.error("Selecione um item do Coffee") : 
+                setIsMarkAttendanceModalOpen(true)
+              }
+            }
+          }
         >
           Marcar presença
         </button>
@@ -231,9 +240,9 @@ function Events() {
     useEffect(() => {
       if (eventType !== "Coffee") {
         // console.log('Item é nulo')
-        setSelectedCoffeeItem(null);
+        setSelectedCoffeeItem("");
       }
-    }, [eventType, setSelectedCoffeeItem]);
+    }, [eventType]);
       
     // TODO: pegar os dados reais
     useEffect(() => {  
@@ -248,32 +257,33 @@ function Events() {
     };
   
     return (
-      <>
-        { !isCoffeeLoading && 
-          (
-            <>
-              <MarkAttendance />
+      <div className="flex justify-between">    
+          <MarkAttendance 
+            eventType={eventType}
+          />
 
-              {/* TODO: Melhorar design, fazer com que não feche ao clicar no dropbox */}
-              {
-                eventType === 'Coffee' && 
-                (
-                  <div>
-                    <select id="coffee-select" onChange={handleSelectChange}>
-                      <option value="">--Qual Coffee é?--</option>
-                      {coffeeOptions.map((coffee) => (
-                        <option key={coffee.id} value={coffee.id}>
-                          {coffee.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )
-              }
-            </>
-          )
-        }
-      </>
+          {/* TODO: Melhorar design, fazer com que não feche ao clicar no dropbox */}
+          {
+            !isCoffeeLoading && eventType === 'Coffee' && 
+            (
+              <div className="px-5 py-2">
+                <select 
+                  id="coffee-select" 
+                  onChange={handleSelectChange} 
+                  value={selectedCoffeeItem}
+                  className="w-60 h-8 text-base"
+                >
+                  <option value="">--Qual Coffee é?--</option>
+                  {coffeeOptions.map((coffee) => (
+                    <option key={coffee.id} value={coffee.id}>
+                      {coffee.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )
+          }
+      </div>
     );
   };
 

@@ -30,11 +30,11 @@ function MarkAttendanceModal({
   //TODO: ajustar comentários, tirar consoles e testar com outros casos
   async function handleSubmit(userId) {
     if (lastScannedUserId !== userId) {
-      console.log(userId);
+      //console.log(userId);
       try {
         if(data.type === 'Coffee'){
           const permission = await semcompApi.getCoffeePermission(userId, coffeeItemId);
-          console.log(permission);
+          //console.log(permission);
           if(permission){
             //await semcompApi.markAttendance(data.id, userId);
             toast.success("Presença cadastrada");

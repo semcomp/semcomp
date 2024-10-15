@@ -123,7 +123,6 @@ class EventController {
     }
   }
 
-  //TODO: arrumar comentarios e testar outros casos
   public async getCoffeePermission(req, res, next) {
     try {
       // Pega o userId e coffeeItemId do corpo da requisição
