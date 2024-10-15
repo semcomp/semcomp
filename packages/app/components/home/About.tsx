@@ -5,7 +5,7 @@ function About() {
     <>
       <section
         id="schedule"
-        className="flex flex-col items-center overflow-auto text-center text-secondary custom-scroll"
+        className="flex flex-col items-center overflow-hidden text-center text-secondary"
         style={{ maxWidth: '100%' }}  // Garantir que não ultrapasse a largura da tela
       > 
         <h1
