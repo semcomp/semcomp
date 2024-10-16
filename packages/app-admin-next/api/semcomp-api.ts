@@ -22,8 +22,9 @@ import {
   SemcompApiGetAchievementsResponse,
   SemcompApiCreateAchievementRequest,
   SemcompApiEditAchievementRequest,
-  SemcompApiGetSalesResponse
-
+  SemcompApiGetSalesResponse,
+  SemcompApiSale,
+  SemcompApiGetGameConfigResponse,
 } from "../models/SemcompApiModels";
 import Http from "./http";
 
@@ -58,6 +59,16 @@ class SemcompApi {
     const response = await this.http.get("/admin/users", semcompApiPagination);
 
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  public async getAllAttendance(): Promise<any> {
+    const pagination = new PaginationRequest(null, 1, 9999);
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    return this.http.get("/admin/users/attendance-stats", semcompApiPagination);
   }
 
   public async updateKitStatus(id: string, status: boolean): Promise<any> {
@@ -196,6 +207,23 @@ class SemcompApi {
     return this.http.post(`/admin/events/${eventId}/mark-attendance`, { userId: userId });
   }
 
+  public async getAttendance(eventId: string): Promise<any> {
+    return this.http.get(`/admin/events/${eventId}/attendances-info`);
+  }
+  
+  public async getCoffeePermission(userId: string, coffeeItemId: string): Promise<boolean>{
+    const response = await this.http.post(
+      `/admin/events/get-coffee-permission`, 
+      { userId: userId, coffeeItemId: coffeeItemId }
+    );
+    return response;
+  }
+
+  public async getCoffeeOptions(): Promise<SemcompApiSale[]> {
+    const response = await this.http.get("/admin/events/get-coffee-options");
+    return response;
+  }
+
   // GAME 
   public async getGameQuestions(pagination: PaginationRequest): Promise<SemcompApiGetGameQuestionsResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
@@ -323,8 +351,31 @@ class SemcompApi {
     );
 
     const response = await this.http.get("/admin/payments/get-payment-complete", semcompApiPagination);
-    console.log('todos', response);
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  // GAME-CONFIG
+  public async getGameConfig(pagination: PaginationRequest): Promise<SemcompApiGetGameConfigResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/games-config", semcompApiPagination);
+
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  public async createGameConfig(data: any): Promise<any> {
+    return this.http.post("/admin/games-config", data);
+  }
+
+  public async editGameConfig(id: string, data: any): Promise<any> {
+    return this.http.put(`/admin/games-config/${id}`, data);
+  }
+
+  public async deleteGameConfig(id: string): Promise<any> {
+    return this.http.delete(`/admin/games-config/${id}`);
   }
 }
 

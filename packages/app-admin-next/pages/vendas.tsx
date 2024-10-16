@@ -24,6 +24,7 @@ type SalesData = {
   "Quantidade comprada": number,
   "Tem camisa": ReactNode,
   "Tem kit": ReactNode,
+  "Tem coffee": ReactNode,
   "Criado em": string,
   "Editado em": string,
   "Preço": number,
@@ -55,6 +56,7 @@ function SalesTable({
       "Preço": product.price,
       "Tem camisa": <Input onChange={() => {}} disabled={true} value={product.hasTShirt} type={InputType.Checkbox}></Input>,
       "Tem kit": <Input onChange={() => {}} disabled={true} value={product.hasKit} type={InputType.Checkbox}></Input>,
+      "Tem coffee": <Input onChange={() => {}} disabled={true} value={product.hasCoffee} type={InputType.Checkbox}></Input>,
       "Criado em": util.formatDate(product.createdAt),
       "Editado em": util.formatDate(product.updatedAt),
     })
@@ -81,6 +83,7 @@ function Sales() {
     quantity: 0,
     hasKit: false,
     hasTShirt: false,
+    hasCoffee: false,
     items: [],
     price: 0,
   } as SaleFormData);
@@ -110,9 +113,10 @@ function Sales() {
       type: SaleType[sales[index].type],
       items: items,
       hasTShirt: sales[index].hasTShirt,
+      hasKit: sales[index].hasKit,
+      hasCoffee: sales[index].hasCoffee,
       quantity: sales[index].quantity,
       price: sales[index].price,
-      hasKit: sales[index].hasKit,
   });
     setIsEditModalOpen(true);
   }
@@ -131,6 +135,7 @@ function Sales() {
       items: [],
       hasTShirt: false,
       hasKit: false,
+      hasCoffee: false,
       quantity: 0,
       price: 0,
     });

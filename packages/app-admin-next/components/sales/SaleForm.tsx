@@ -14,6 +14,7 @@ export type SaleFormData = {
   quantity: number;
   hasTShirt: boolean;
   hasKit: boolean;
+  hasCoffee: boolean;
   items: string[];
   price: number;
 };
@@ -58,6 +59,11 @@ function SaleForm({
   function handleHasKitChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.checked;
     setData({...data, hasKit: value});
+  }
+
+  function handleHasCoffeeChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.checked;
+    setData({...data, hasCoffee: value});
   }
 
   return (
@@ -113,6 +119,14 @@ function SaleForm({
             label="O item é um kit?"
             value={data.hasKit}
             onChange={handleHasKitChange}
+            type={InputType.Checkbox}
+          />
+
+          <Input
+            className="my-3"
+            label="O item é um coffee?"
+            value={data.hasCoffee}
+            onChange={handleHasCoffeeChange}
             type={InputType.Checkbox}
           />
 

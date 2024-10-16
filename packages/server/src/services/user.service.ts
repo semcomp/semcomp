@@ -18,6 +18,7 @@ import userDisabilityService from "./user-disability.service";
 import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 import EventTypes from "../lib/constants/event-types-enum";
 import configService from "./config.service";
+import subscriptionService from "./subscription.service";
 
 const idService = new IdServiceImpl();
 
@@ -53,7 +54,7 @@ type UserStats = {
   name: string;
   email: string;
   hours: number;
-  percentage: string;
+  percentage: number;
 };
 
 class UserServiceImpl implements UserService {
@@ -233,16 +234,33 @@ class UserServiceImpl implements UserService {
   }
 
   public async stats(): Promise<UserStats[]> {
+    // Para cada usuário, calcular a porcentagem de horas de eventos que ele participou
+    // as Horas serão o total de horas em TOODS os eventos que participou (palestras, minicursos, etc)
+    // a porcentagem contará apenas os eventos do tipo palestra e roda
+
     const users = await this.find({ pagination: new PaginationRequest(1, 9999) });
+
+    // pegando quase todos os eventos (menos coffee)
     const events = await eventService.find({
-      filters: { type: EventTypes.PALESTRA },
+      filters: {
+        type: [
+          EventTypes.PALESTRA,
+          EventTypes.RODA,
+          EventTypes.CULTURAL,
+          EventTypes.CONCURSO,
+          EventTypes.FEIRA
+        ]
+      },
       pagination: new PaginationRequest(1, 9999),
     });
 
+    // pegando a duração apenas dos eventos do tipo palestra e roda
     let allEventsDurationInMilliseconds = events.getEntities().reduce(
       (previousDuration, event) => {
+        if (event.type !== EventTypes.PALESTRA && event.type !== EventTypes.RODA) {
+          return previousDuration;
+        }
         const eventDuration = event.endDate - event.startDate;
-
         return previousDuration + eventDuration;
       },
       0,
@@ -255,7 +273,7 @@ class UserServiceImpl implements UserService {
         email: user.email,
         course: user.course,
         hours: 0,
-        percentage: "0%"
+        percentage: 0,
       };
 
       const attendedEvents = await attendanceService.find(
@@ -264,6 +282,9 @@ class UserServiceImpl implements UserService {
         }
       );
 
+      // pegando a duração dos eventos do tipo palestra e roda que o usuário participou
+      // e a duração de todos os eventos que o usuário participou
+      let attendedPalestraAndRodaEventsDurationInMilliseconds = 0;
       let attendedEventsDurationInMilliseconds = 0;
       for (const attendedEvent of attendedEvents) {
         const event = events.getEntities().find((event) => event.id === attendedEvent.eventId);
@@ -273,13 +294,14 @@ class UserServiceImpl implements UserService {
 
         const eventDuration = event.endDate - event.startDate;
 
+        if (event.type === EventTypes.PALESTRA || event.type === EventTypes.RODA) {
+          attendedPalestraAndRodaEventsDurationInMilliseconds += eventDuration;
+        }
         attendedEventsDurationInMilliseconds += eventDuration;
       }
 
-      userStats.hours = attendedEventsDurationInMilliseconds / (60 * 60 * 1000);
-      userStats.percentage = `${(
-        attendedEventsDurationInMilliseconds / allEventsDurationInMilliseconds * 100
-      ).toFixed(2)}%`;
+      userStats.hours = Math.round(attendedEventsDurationInMilliseconds / (60 * 60 * 1000) * 100) / 100;
+      userStats.percentage = Math.round(attendedPalestraAndRodaEventsDurationInMilliseconds / allEventsDurationInMilliseconds * 100 * 100) / 100;
 
       entities.push(userStats);
     }

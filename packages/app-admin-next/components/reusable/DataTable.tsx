@@ -82,8 +82,8 @@ function Row({
             type={InputType.Checkbox}
           />
         </TableCell>
-        {Object.keys(row).map((column: string, index: number) => (
-          <TableCell key={index} onClick={() => onClick(index)}>
+        {Object.keys(row).map((column: string, indexColumn: number) => (
+          <TableCell key={indexColumn} onClick={() => onClick(index)}>
             {renderCell ? renderCell(column, row) : row[column]}{" "}
           </TableCell>
         ))}
@@ -98,7 +98,7 @@ function Row({
                         <EditOutlined />
                       </IconButton>
                     );
-                  } else if (action === 'delete' && adminRole.includes('DELETE')) {
+                  } else if (action.toLowerCase() === 'delete' && adminRole.includes('DELETE')) {
                     return (
                       <IconButton key={index} onClick={() => actions[action](row)}>
                         <DeleteOutlineOutlined />
@@ -252,10 +252,21 @@ const DataTable = forwardRef(({
     setFilterQuery(searchQuery);
   };
 
-  const handleMoreInfoClick = (index: number) => {
-    setOpenRowIndex(openRowIndex === index ? null : index);
+  const findOriginalIndex = (filteredIndex: number) => {
+    const filteredRow = filteredData[filteredIndex];
+    return data.getEntities().findIndex(row => row === filteredRow);
+  };
+
+  const handleOnRowClick = (filteredIndex: number) => {
+    const originalIndex = findOriginalIndex(filteredIndex);
+    onRowClick(originalIndex);
+  }
+
+  const handleMoreInfoClick = (filteredIndex: number) => {
+    const originalIndex = findOriginalIndex(filteredIndex);
+    setOpenRowIndex(openRowIndex === filteredIndex ? null : filteredIndex);
     if (onMoreInfoClick) {
-      onMoreInfoClick(index);
+      onMoreInfoClick(originalIndex);
     }
   };
 
@@ -338,7 +349,7 @@ const DataTable = forwardRef(({
                   key={index}
                   index={index}
                   row={row}
-                  onClick={() => { onRowClick(index); }}
+                  onClick={handleOnRowClick}
                   onSelectChange={(isSelected) => handleRowSelect(index, isSelected)}
                   _isSelected={selectedRows.includes(index)}
                   moreInfoContainer={moreInfoContainer}

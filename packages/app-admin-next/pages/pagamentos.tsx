@@ -88,7 +88,6 @@ function Payments() {
     try {
       setIsLoading(true);
       const response = await semcompApi.getPaymentComplete(pagination);
-      console.log(response);
       const allSales = await semcompApi.getSales(new PaginationRequest(() => fetchData(), 1, 9999));
       setData(response);
       setSales(allSales);

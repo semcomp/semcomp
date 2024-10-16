@@ -201,7 +201,6 @@ function SignupPage() {
   async function fetchData() {
     try {
       const config = await handler.config.getConfig().then((res) => res.data);
-      //console.log(config);
       setOpenSignup(config.openSignup); 
     } catch (error) {
         toast.error('Erro ao buscar dados de configuração');

@@ -555,13 +555,18 @@ function Profile() {
               }
             </Card>
           )}
- 
-{isConfirmarCrachaModalOpen && (
-        <ConfirmarCracha
-          onRequestClose={() => setIsConfirmarCrachaModalOpen(false)}
-          user={userFetched}
-        />
-      )}
+          {/*isFundacaoEstudarFormModalOpen && (
+            <FundEstudarForm
+              onRequestClose={() => setIsFundacaoEstudarFormModalOpen(false)}
+            />
+          )*/}
+
+          {userFetched && config && config.enableWantNameTag && isConfirmarCrachaModalOpen && (
+            <ConfirmarCracha
+              onRequestClose={() => setIsConfirmarCrachaModalOpen(false)}
+              user={userFetched}
+            />
+          )}
 
 {userFetched && config.openAchievement && (
   <Card className="flex flex-col items-center p-9 w-full bg-[#222333] text-center rounded-lg justify-center">
@@ -600,19 +605,15 @@ function Profile() {
   </Card>
 )}
 
-    
-    {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
-    {/* 
-    <Card className="flex flex-col items-center p-9 w-full mb-6">
-      <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
-        Pontuações
-      </h1>
-      <HouseScores />
-    </Card> 
-    */}
-
-
-
+          {/* ABRIR AQUI QUANDO FOR PARA MOSTRAR A CASA */}
+          {/* 
+          <Card className="flex flex-col items-center p-9 w-full mb-6">
+            <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+              Pontuações
+            </h1>
+            <HouseScores />
+          </Card> 
+          */}
         </div>
         <div className="flex flex-col w-full md:grid md:grid-cols-1 gap-4 ">
           {userFetched && (

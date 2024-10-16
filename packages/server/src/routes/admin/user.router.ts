@@ -29,15 +29,9 @@ export default class UserAdminRouter {
     );
 
     router.get(
-      "/stats",
+      "/attendance-stats",
       [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
       (req, res, next) => this.userAdminController.stats(req, res, next),
-    );
-
-    router.get(
-      "/attendance/:id",
-      [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-      (req, res, next) => this.userAdminController.getAttendance(req, res, next),
     );
 
     router.post(

@@ -16,6 +16,9 @@ import MarkAttendanceModal from "../components/events/MarkAttendanceModal";
 import { toast } from "react-toastify";
 import Input, { InputType } from "../components/Input";
 import util from "../libs/util";
+import exportToCsv from "../libs/DownloadCsv";
+import { CircularProgress } from "@mui/material";
+import EventType from "../libs/constants/event-types-enum";
 
 type EventData = {
   // ID: string;
@@ -30,6 +33,16 @@ type EventData = {
   Tipo: string;
   "Criado em": string;
 };
+
+
+type AttendedEventsApiData = {
+  name: string;
+  email: string;
+  course: string;
+  hours: number;
+  percentage: number;
+};
+
 
 const EventsTable = forwardRef(({
   data,
@@ -96,7 +109,10 @@ function Events() {
   const [pagination, setPagination] = useState(
     new PaginationRequest(() => fetchData())
   );
+  const [isMobile, setIsMobile] = useState(false);
   const [selectedData, setSelectedData] = useState(null as SemcompApiEvent);
+  const [selectedCoffeeItem, setSelectedCoffeeItem] = useState("");
+  const [selectedCoffeeItemId, setSelectedCoffeeItemId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
 
@@ -148,39 +164,46 @@ function Events() {
     setSelectedIndexes(updatedSelectedIndexes);
   }
 
-  // function mapData(data: String[]): UserData[] {
-  //   const newData: UserData[] = [];
-  //   for (const user of data) {
-  //     let paymentStatus = "";
-  //     if (user.payment.status) {
-  //       paymentStatus = user.payment.status === PaymentStatus.APPROVED ? "Aprovado" : "Pendente";
-  //     }
-  
-  //     newData.push({
-  //       "ID": user.id,
-  //       "E-mail": user.email,
-  //       "Nome": user.name,
-  //       "Curso": user.course,
-  //       "Telegram": user.telegram,
-  //       "Casa": user.house.name,
-  //       "Status do pagamento": paymentStatus,
-  //       "Tamanho da camiseta": user.payment.tShirtSize,
-  //       "Permite divulgação?": user.permission ? "Sim" : "Não",
-  //       "Criado em": new Date(user.createdAt).toLocaleString("pt-br", 
-  //       {
-  //         day: 'numeric',
-  //         month: 'numeric',
-  //         year: 'numeric',
-  //         hour: 'numeric',
-  //         minute: 'numeric',
-  //       }),
-  //     })
-  //   }
-  
-  //   return newData;
-  // }
+  async function fetchDownloadData() {
+    try {
+      setIsLoading(true);
+      const response = await semcompApi.getAllAttendance();
+      console.log(response);
+      exportToCsv(mapData(response));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
+  function mapData(data: any[]): any[] {
+    const newData: any[] = [];
+    for (const response of data) {
+      const user: AttendedEventsApiData = response;
+      newData.push({
+        "Nome": user.name,
+        "E-mail": user.email,
+        "Curso": user.course,
+        "Horas totais": user.hours,
+        "Presença[%]": user.percentage,
+        ">70%": user.percentage > 70 ? "Sim" : "Não",
+      })
+    }
   
+    return newData;
+  }
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 620);
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -190,13 +213,22 @@ function Events() {
     getSubs();
   }, [data]);
 
-  function MarkAttendance() {
+  function MarkAttendance({eventType}) {
     return (
       <>
         <button
           className="w-full bg-black text-white py-3 px-6"
           type="button"
-          onClick={() => setIsMarkAttendanceModalOpen(true)}
+          onClick={() => { 
+              if(eventType !== "Coffee"){
+                setIsMarkAttendanceModalOpen(true);
+              }else{
+                selectedCoffeeItem === "" ? 
+                  toast.error("Selecione um item do Coffee") : 
+                  setIsMarkAttendanceModalOpen(true)
+              }
+            }
+          }
         >
           Marcar presença
         </button>
@@ -204,13 +236,90 @@ function Events() {
     );
   }
 
-  function moreInfoContent(selectedData) {
+  const MoreInfoContent = ({selectedData}) => {
+    const [coffeeOptions, setCoffeeOptions] = useState([]);
+    const [isCoffeeLoading, setIsCoffeeLoading] = useState(false);
+    const eventType = selectedData?.type;
+
+    async function fetchCoffeeData(){
+      try{
+        setIsCoffeeLoading(true);
+        if(eventType === EventType.COFFEE){
+          const response = await semcompApi.getCoffeeOptions();
+          setCoffeeOptions(response);
+        }
+      }catch (error) {
+        console.error(error);
+      }finally{
+        setIsCoffeeLoading(false);
+      }
+    }
+    
+    
+    //Verifica se o tipo de evento não é "Coffee" e reseta o estado de coffeeItem
+    useEffect(() => {
+      if (eventType !== "Coffee") {
+        setSelectedCoffeeItem("");
+        setSelectedCoffeeItemId("");
+      }
+    }, [eventType]);
+      
+    useEffect(() => {  
+      fetchCoffeeData();
+    }, []);
+  
+    const handleSelectChange = (event) => {
+      const selectedName = event.target.value;
+      const coffeeId = coffeeOptions.find((coffee) => coffee.name === selectedName)?.id;
+      if(coffeeId !== ""){
+        setSelectedCoffeeItem(selectedName);
+        setSelectedCoffeeItemId(coffeeId);
+      } else {
+        toast.error("Coffee não encontrado!");
+      }
+    };
+  
     return (
-      <>
-        <MarkAttendance></MarkAttendance>
-      </>
+      <div className={`flex justify-between ${isMobile ? "flex-col" : ""}`}>    
+          <MarkAttendance 
+            eventType={eventType}
+          />
+          {
+            isCoffeeLoading ? 
+              <div className={`${isMobile ? "py-5 w-6/12" : "px-5 w-8/12"}`} style={{height: "55px"}} >
+                <CircularProgress size="2rem"/>
+              </div>
+              :
+              (
+                eventType === EventType.COFFEE && 
+                <div className={`h-9/12 ${isMobile ? "py-5 w-6/12" : "px-5 w-10/12"}`} style={{height: isMobile ? "80px" : "55px"}}>
+                  <Input 
+                    type={InputType.Select}
+                    label="Qual coffee será buscado?"
+                    choices={coffeeOptions.map((coffee) => (coffee.name))}
+                    onChange={handleSelectChange}
+                    value={selectedCoffeeItem}
+                  />
+                  {/* <select 
+                    id="coffee-select" 
+                    onChange={handleSelectChange} 
+                    value={selectedCoffeeItem}
+                    onClick={(e)=> {e.stopPropagation()}}
+                    className="w-52 h-8 text-base border-2 border-black rounded-md"
+                  >
+                    <option value="">--Qual Coffee é?--</option>
+                    {coffeeOptions.map((coffee) => (
+                      <option key={coffee.id} value={coffee.id}>
+                        {coffee.name}
+                      </option>
+                    ))}
+                  </select> */}
+                </div>
+              )
+          }
+      </div>
     );
-  }
+  };
 
   async function updateEvent(status: boolean, option: string) {
     if(selectedIndexes && selectedIndexes.length > 0){
@@ -265,6 +374,8 @@ function Events() {
           onRequestClose={() => {
             setIsMarkAttendanceModalOpen(false);
           }}
+          //So passa coffeeItemId se selectedCoffeeItem existir, ou seja, evento do tipo coffee
+          {...(selectedCoffeeItemId !== ""? { coffeeItemId: selectedCoffeeItemId }: {})}
         />
       )}
       {!isLoading && (
@@ -328,12 +439,25 @@ function Events() {
               onRowClick={handleRowClick}
               onRowSelect={handleSelectedIndexesChange}
               onMoreInfoClick={handleMoreInfoClick}
-              moreInfoContainer={moreInfoContent(selectedData)}
+              moreInfoContainer={
+                <MoreInfoContent 
+                  selectedData={selectedData}
+                />
+              }
               ref={eventTableRef}
             />
           }
         ></DataPage>
       )}
+
+      <button
+        className="w-full bg-black text-white py-3 px-6"
+        type="button"
+        style={{ height: '48px' }}
+        onClick={fetchDownloadData}
+      >
+        Baixar Planilha de Presenças
+      </button>
     </>
   );
 }

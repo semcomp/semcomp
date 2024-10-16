@@ -171,7 +171,6 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }
 
   useEffect(() => {
     fetchAvailableSales();
-    console.log(user)
   }, []);
 
   useEffect(() => {
