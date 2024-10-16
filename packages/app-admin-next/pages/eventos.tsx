@@ -21,7 +21,7 @@ import { CircularProgress } from "@mui/material";
 import EventType from "../libs/constants/event-types-enum";
 
 type EventData = {
-  // ID: string;
+  ID: string;
   Nome: string;
   // "Descrição": string,
   Ministrante: string;
@@ -51,6 +51,7 @@ const EventsTable = forwardRef(({
   onRowSelect,
   moreInfoContainer,
   onMoreInfoClick,
+  deleteEvent,
 }: {
   data: PaginationResponse<SemcompApiEvent>;
   pagination: PaginationRequest;
@@ -58,11 +59,12 @@ const EventsTable = forwardRef(({
   onRowSelect: (selectedIndexes: number[]) => void;
   moreInfoContainer: ReactNode;
   onMoreInfoClick: (selectedIndex: number) => void;
+  deleteEvent: (row) => void;
 }, eventTableRef?) => {
   const newData: EventData[] = [];
   for (const event of data.getEntities()) {
     newData.push({
-      // ID: event.id,
+      ID: event.id,
       Nome: event.name,
       // "Descrição": event.description,
       Ministrante: event.speaker,
@@ -96,6 +98,7 @@ const EventsTable = forwardRef(({
       moreInfoContainer={moreInfoContainer}
       onMoreInfoClick={onMoreInfoClick}
       ref={dataTableRef}
+      actions={{"delete": deleteEvent}}
     ></DataTable>
   );
 });
@@ -354,6 +357,23 @@ function Events() {
     eventTableRef.current.unsetSelectAll();
   }
 
+  async function deleteEvent(row) {
+    if (adminRole.includes('DELETE')) {
+      const confirmed = window.confirm("Tem certeza de que deseja excluir '" + row.Nome + "'?");
+      if (confirmed) {
+        try {
+          const deleted = await semcompApi.deleteEvent(row.ID);
+          fetchData();
+          toast.success(`Evento <${row.Nome}> excluído com sucesso`);
+        } catch (e) {
+          toast.error(`Erro ao excluir o evento <${row.Nome}>`);
+        }
+      }
+    } else {
+      toast.error("Você não tem permissão para excluir eventos!");
+    }
+  }
+
   return (
     <>
       {isCreateModalOpen && (
@@ -445,6 +465,7 @@ function Events() {
                 />
               }
               ref={eventTableRef}
+              deleteEvent={deleteEvent}
             />
           }
         ></DataPage>

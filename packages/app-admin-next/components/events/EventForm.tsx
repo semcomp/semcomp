@@ -163,7 +163,7 @@ function EventForm({
         label="Descrição"
         value={data.description}
         onChange={handleDescriptionChange}
-        type={InputType.Text}
+        type={InputType.TextArea}
       />
       <Input
         className="my-3"

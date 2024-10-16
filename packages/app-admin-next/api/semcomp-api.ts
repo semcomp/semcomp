@@ -224,6 +224,11 @@ class SemcompApi {
     return response;
   }
 
+  public async deleteEvent(eventId: string): Promise<any> {
+    const response = await this.http.delete(`/admin/events/${eventId}`);
+    return response;
+  }
+
   // GAME 
   public async getGameQuestions(pagination: PaginationRequest): Promise<SemcompApiGetGameQuestionsResponse> {
     const semcompApiPagination = new SemcompApiPaginationRequest(
