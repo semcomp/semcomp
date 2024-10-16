@@ -110,6 +110,17 @@ class EventController {
     }
   }
 
+  public async listUsersAttendancesInfoByEventId(req, res, next) {
+    try {
+      const { eventId } = req.params;
+      const usersAttendancesInfo = await eventService.listUsersAttendancesInfoByEvent(eventId);
+
+      return res.status(200).json(usersAttendancesInfo);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
   public async markUserAttendance(req, res, next) {
     try {
       const { eventId } = req.params;

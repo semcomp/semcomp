@@ -16,6 +16,7 @@ import MarkAttendanceModal from "../components/events/MarkAttendanceModal";
 import { toast } from "react-toastify";
 import Input, { InputType } from "../components/Input";
 import util from "../libs/util";
+import exportToCsv from "../libs/DownloadCsv";
 import { CircularProgress } from "@mui/material";
 import EventType from "../libs/constants/event-types-enum";
 
@@ -32,6 +33,16 @@ type EventData = {
   Tipo: string;
   "Criado em": string;
 };
+
+
+type AttendedEventsApiData = {
+  name: string;
+  email: string;
+  course: string;
+  hours: number;
+  percentage: number;
+};
+
 
 const EventsTable = forwardRef(({
   data,
@@ -153,37 +164,35 @@ function Events() {
     setSelectedIndexes(updatedSelectedIndexes);
   }
 
-  // function mapData(data: String[]): UserData[] {
-  //   const newData: UserData[] = [];
-  //   for (const user of data) {
-  //     let paymentStatus = "";
-  //     if (user.payment.status) {
-  //       paymentStatus = user.payment.status === PaymentStatus.APPROVED ? "Aprovado" : "Pendente";
-  //     }
+  async function fetchDownloadData() {
+    try {
+      setIsLoading(true);
+      const response = await semcompApi.getAllAttendance();
+      console.log(response);
+      exportToCsv(mapData(response));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function mapData(data: any[]): any[] {
+    const newData: any[] = [];
+    for (const response of data) {
+      const user: AttendedEventsApiData = response;
+      newData.push({
+        "Nome": user.name,
+        "E-mail": user.email,
+        "Curso": user.course,
+        "Horas totais": user.hours,
+        "Presença[%]": user.percentage,
+        ">70%": user.percentage > 70 ? "Sim" : "Não",
+      })
+    }
   
-  //     newData.push({
-  //       "ID": user.id,
-  //       "E-mail": user.email,
-  //       "Nome": user.name,
-  //       "Curso": user.course,
-  //       "Telegram": user.telegram,
-  //       "Casa": user.house.name,
-  //       "Status do pagamento": paymentStatus,
-  //       "Tamanho da camiseta": user.payment.tShirtSize,
-  //       "Permite divulgação?": user.permission ? "Sim" : "Não",
-  //       "Criado em": new Date(user.createdAt).toLocaleString("pt-br", 
-  //       {
-  //         day: 'numeric',
-  //         month: 'numeric',
-  //         year: 'numeric',
-  //         hour: 'numeric',
-  //         minute: 'numeric',
-  //       }),
-  //     })
-  //   }
-  
-  //   return newData;
-  // }
+    return newData;
+  }
 
   useEffect(() => {
     const handleResize = () => {
@@ -440,6 +449,15 @@ function Events() {
           }
         ></DataPage>
       )}
+
+      <button
+        className="w-full bg-black text-white py-3 px-6"
+        type="button"
+        style={{ height: '48px' }}
+        onClick={fetchDownloadData}
+      >
+        Baixar Planilha de Presenças
+      </button>
     </>
   );
 }

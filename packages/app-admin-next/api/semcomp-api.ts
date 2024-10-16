@@ -61,6 +61,16 @@ class SemcompApi {
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
+  public async getAllAttendance(): Promise<any> {
+    const pagination = new PaginationRequest(null, 1, 9999);
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    return this.http.get("/admin/users/attendance-stats", semcompApiPagination);
+  }
+
   public async updateKitStatus(id: string, status: boolean): Promise<any> {
     const data = { gotKit: status };
     return this.http.put(`/admin/users/${id}`, data);
@@ -196,6 +206,9 @@ class SemcompApi {
   public async markAttendance(eventId: string, userId: string): Promise<any> {
     return this.http.post(`/admin/events/${eventId}/mark-attendance`, { userId: userId });
   }
+
+  public async getAttendance(eventId: string): Promise<any> {
+    return this.http.get(`/admin/events/${eventId}/attendances-info`);
 
   public async getCoffeePermission(userId: string, coffeeItemId: string): Promise<boolean>{
     const response = await this.http.post(
