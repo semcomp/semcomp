@@ -127,10 +127,9 @@ class EventController {
     try {
       // Pega o userId e coffeeItemId do corpo da requisição
       const { userId, coffeeItemId } = req.body;
-
+      
       // Busca os pagamentos do usuário
       const userPayments = await new PaymentServiceImpl(null, null, null, null).findByUserId(userId);
-
       if (!userPayments || userPayments.length === 0) {
         // Se não houver pagamentos, retorne a resposta que o acesso ao coffee não é permitido
         return res.status(200).json(false);
@@ -138,34 +137,27 @@ class EventController {
 
       // Filtra os pagamentos aprovados
       const approvedPayments = userPayments.filter(payment => payment.status === PaymentStatus.APPROVED);
-
       if (approvedPayments.length === 0) {
         return res.status(200).json(false);
       }
 
       // Para cada pagamento
       for (const payment of approvedPayments) {
-        let hasCoffeeItem = false; // Variável para controlar se encontrou o item
-
         // Para cada saleOption, busque a venda correspondente
         for (const saleId of payment.salesOption) {
           try {
             const sale = await saleService.findById(saleId);
-            
             // Verifica se algum dos itens é igual ao coffeeItemId
-            if (sale.items.some(item => item === coffeeItemId)) {
-              hasCoffeeItem = true;
+            if (sale && sale.items.some(item => item === coffeeItemId)) {
               return res.status(200).json(true); 
             }
           } catch (error) {
             console.log(`Venda não encontrada para o ID: ${saleId}, Error: ${error}`);
           }
         }
-
-        if (!hasCoffeeItem) {
-          return res.status(200).json(false);
-        } 
       }
+
+      return res.status(200).json(false);
     } catch (error) {
       return handleError(error, next);
     }

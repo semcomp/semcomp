@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import Input, { InputType } from "../components/Input";
 import util from "../libs/util";
 import { CircularProgress } from "@mui/material";
+import EventType from "../libs/constants/event-types-enum";
 
 type EventData = {
   // ID: string;
@@ -97,8 +98,10 @@ function Events() {
   const [pagination, setPagination] = useState(
     new PaginationRequest(() => fetchData())
   );
+  const [isMobile, setIsMobile] = useState(false);
   const [selectedData, setSelectedData] = useState(null as SemcompApiEvent);
   const [selectedCoffeeItem, setSelectedCoffeeItem] = useState("");
+  const [selectedCoffeeItemId, setSelectedCoffeeItemId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
 
@@ -182,7 +185,16 @@ function Events() {
   //   return newData;
   // }
 
-  
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 620);
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -200,11 +212,11 @@ function Events() {
           type="button"
           onClick={() => { 
               if(eventType !== "Coffee"){
-                setIsMarkAttendanceModalOpen(true)
+                setIsMarkAttendanceModalOpen(true);
               }else{
                 selectedCoffeeItem === "" ? 
-                toast.error("Selecione um item do Coffee") : 
-                setIsMarkAttendanceModalOpen(true)
+                  toast.error("Selecione um item do Coffee") : 
+                  setIsMarkAttendanceModalOpen(true)
               }
             }
           }
@@ -220,11 +232,10 @@ function Events() {
     const [isCoffeeLoading, setIsCoffeeLoading] = useState(false);
     const eventType = selectedData?.type;
 
-
     async function fetchCoffeeData(){
       try{
         setIsCoffeeLoading(true);
-        if(eventType === 'Coffee'){
+        if(eventType === EventType.COFFEE){
           const response = await semcompApi.getCoffeeOptions();
           setCoffeeOptions(response);
         }
@@ -240,6 +251,7 @@ function Events() {
     useEffect(() => {
       if (eventType !== "Coffee") {
         setSelectedCoffeeItem("");
+        setSelectedCoffeeItemId("");
       }
     }, [eventType]);
       
@@ -248,25 +260,38 @@ function Events() {
     }, []);
   
     const handleSelectChange = (event) => {
-      const selectedId = event.target.value;
-      if(selectedId !== ""){
-        setSelectedCoffeeItem(selectedId);
+      const selectedName = event.target.value;
+      const coffeeId = coffeeOptions.find((coffee) => coffee.name === selectedName)?.id;
+      if(coffeeId !== ""){
+        setSelectedCoffeeItem(selectedName);
+        setSelectedCoffeeItemId(coffeeId);
+      } else {
+        toast.error("Coffee não encontrado!");
       }
     };
   
     return (
-      <div className="flex justify-between">    
+      <div className={`flex justify-between ${isMobile ? "flex-col" : ""}`}>    
           <MarkAttendance 
             eventType={eventType}
           />
           {
             isCoffeeLoading ? 
-              <CircularProgress size="3rem"/>
+              <div className={`${isMobile ? "py-5 w-6/12" : "px-5 w-8/12"}`} style={{height: "55px"}} >
+                <CircularProgress size="2rem"/>
+              </div>
               :
               (
-                eventType === 'Coffee' && 
-                <div className="px-5 py-2">
-                  <select 
+                eventType === EventType.COFFEE && 
+                <div className={`h-9/12 ${isMobile ? "py-5 w-6/12" : "px-5 w-10/12"}`} style={{height: isMobile ? "80px" : "55px"}}>
+                  <Input 
+                    type={InputType.Select}
+                    label="Qual coffee será buscado?"
+                    choices={coffeeOptions.map((coffee) => (coffee.name))}
+                    onChange={handleSelectChange}
+                    value={selectedCoffeeItem}
+                  />
+                  {/* <select 
                     id="coffee-select" 
                     onChange={handleSelectChange} 
                     value={selectedCoffeeItem}
@@ -279,7 +304,7 @@ function Events() {
                         {coffee.name}
                       </option>
                     ))}
-                  </select>
+                  </select> */}
                 </div>
               )
           }
@@ -341,7 +366,7 @@ function Events() {
             setIsMarkAttendanceModalOpen(false);
           }}
           //So passa coffeeItemId se selectedCoffeeItem existir, ou seja, evento do tipo coffee
-          {...(selectedCoffeeItem !== ""? { coffeeItemId: selectedCoffeeItem }: {})}
+          {...(selectedCoffeeItemId !== ""? { coffeeItemId: selectedCoffeeItemId }: {})}
         />
       )}
       {!isLoading && (

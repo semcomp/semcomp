@@ -1,11 +1,12 @@
 import { toast } from "react-toastify";
 import { QrReader } from "react-qr-reader";
+import { useCallback, useState } from "react";
 
-import { useAppContext } from "../../libs/contextLib";
 import Modal from "../Modal";
+import EventType from "../../libs/constants/event-types-enum";
+import { useAppContext } from "../../libs/contextLib";
 import SemcompApi from "../../api/semcomp-api";
 import { SemcompApiEvent } from "../../models/SemcompApiModels";
-import { useCallback, useState } from "react";
 
 function MarkAttendanceModal({
   data,
@@ -27,31 +28,31 @@ function MarkAttendanceModal({
 
   let lastScannedUserId = "";
 
-  async function handleSubmit(userId) {
+  async function handleSubmit(userId: string) {
     if (lastScannedUserId !== userId) {
-      //console.log(userId);
       try {
-        if(data.type === 'Coffee'){
+        if(data.type === EventType.COFFEE){
           const permission = await semcompApi.getCoffeePermission(userId, coffeeItemId);
-          //console.log(permission);
           if(permission){
             await semcompApi.markAttendance(data.id, userId);
-            toast.success("Presença cadastrada");
+            lastScannedUserId = userId;
+            toast.success("Presença cadastrada!");
           }else{
-            toast.error("Usuário não tem acesso à esse Coffee");
+            toast.error("Usuário não tem acesso à esse Coffee 'o'");
           }
         }else{
-          //console.log("SEM COFFEE")
           await semcompApi.markAttendance(data.id, userId);
-          toast.success("Presença cadastrada");
+          lastScannedUserId = userId;
+          toast.success("Presença cadastrada!");
         }
       } catch (e) {
-        toast.error(e?.response?.data?.message[0]);
+        toast.error("Erro ao marcar presença :(");
         console.error(e);
-        console.log(e.response.data.message);
+        console.log(e?.response?.data?.message[0]);
       }
+    } else {
+      toast.error("Usuário já teve presença marcada");
     }
-    lastScannedUserId = userId;
   }
 
   return (
@@ -64,15 +65,9 @@ function MarkAttendanceModal({
           videoId="video"
           scanDelay={500}
           onResult={(result: any, error) => {
-            // console.log(result);
-            // console.log(error);
             if (result) {
               handleSubmit(result?.text);
             }
-
-            // if (error) {
-            //   console.info(error);
-            // }
 
             setTimeout(forceUpdate, 500);
           }}
