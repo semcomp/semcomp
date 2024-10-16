@@ -368,7 +368,7 @@ function Profile() {
         <div className="flex flex-col w-full md:grid md:grid-cols-1 gap-4 z-20">
           {userFetched && (
             <>
-              <Card className="flex flex-col items-center p-9 w-full bg-[#212032] rounded-lg justify-center">
+              <Card className="flex flex-col items-center p-9 w-full bg-[#222333] rounded-lg justify-center">
                 <div className="ml-2">
                     <Tooltip
                       arrow
@@ -408,17 +408,21 @@ function Profile() {
                   </div>
                 }
               </Card>
-              <Card className="flex flex-col items-center p-9 bg-[#212032] w-full rounded-lg justify-center">
-                <h1 className="text-xl py-2">
+            </>
+          )}
+
+          { eventCount == 0 &&
+            <Card className="flex flex-col items-center p-9 bg-[#222333] w-full rounded-lg justify-center">
+                <h1 className="text-xl">
                   Compras
                 </h1>
-                <div className="flex flex-wrap justify-center my-2">
+                <div className="flex flex-wrap justify-center">
                   {userFetched && userFetched.payments && (
                     userFetched.payments.map((payment: {
                         sale: any[]; status: string, price: number, tShirtSize: string 
                     }, index: number) => (
                       (payment.status === PaymentStatus.APPROVED || payment.status === PaymentStatus.PENDING) && (
-                        <div key={`div-${index}`} className="mr-2 mb-2">
+                        <div key={`div-${index}`} className="mr-2 my-2">
                           <Tooltip 
                             key={`tooltip-${index}`}
                             title={
@@ -464,7 +468,7 @@ function Profile() {
                     <>
                     { !closeSales ? (
                         <>
-                          <p className="text-sm pb-2 text-center">Compre o Coffee e o Kit da Semcomp com Pix!</p>
+                          <p className="text-sm pb-2 text-center text-[#A4A4A4]">Compre o Coffee e o Kit da Semcomp com Pix!</p>
                         <button
                           onClick={() => {
                           setCoffeeModalOpen(true);
@@ -485,38 +489,47 @@ function Profile() {
                       <p className="text-center"> Não há vendas no momento. </p>
                     </>
                 }
-              </Card>
-            </>
-          )}
+              </Card>}
 
           {/* ABRIR AQUI PARA MOSTRAR INSCRIÇÕES */}
           { eventCount > 0 &&
             (
-            <Card className="flex flex-col items-center p-9 w-full bg-white text-center rounded-lg justify-center">
+            <Card className="flex flex-col items-center p-9 w-full bg-[#222333] text-white text-center rounded-lg justify-center">
               <h1 className="text-xl">
                 Inscrições em Eventos
               </h1>
-              <List className="events-list text-center">
+              <List className="events-list text-center grid grid-cols-1 gap-4">
                 {Object.keys(events).map((type) =>
                   events[type].map((e) =>
                     e.events.map((item) => {
                       if (item.isSubscribed === true) {
                         return (
-                          <div key={item.name}>
+                          <div key={item.name} className="bg-[#2f2e46] rounded-lg">
                             <ListItem>
                               <ListItemText
-                                primary={`${type}:  ${item.name}`}
+                                primary={
+                                  <div className="flex flex-row">
+                                    <div className="text-secondary mr-2">
+                                      {`${type} |`}
+                                    </div>
+                                    <div className="text-white">
+                                      {`${item.name}`}
+                                    </div>
+                                  </div>
+                                }
                                 secondary={
                                   item.link ? (
                                     <a
                                       target="_blank"
-                                      className="underline text-tertiary text-center pb-4"
+                                      className="underline text-center pb-4"
                                       href={item.link}
                                     >
                                       Acesse aqui
                                     </a>
                                   ) : (
-                                    formatTime(item.startDate, item.endDate)
+                                    <div className="text-[#c1c1c1]">
+                                      {formatTime(item.startDate, item.endDate)}
+                                    </div>
                                   )
                                 }
                               />
@@ -535,18 +548,14 @@ function Profile() {
                     setIsRegistrationsModalOpen(true);
                     blockBodyScroll();
                   }}
-                  className="bg-primary text-white p-2 rounded-lg mt-2"
+                  className={`bg-${userHouseName} text-white p-3 rounded-lg mt-2`}
                 >
-                  Inscrever
+                  Inscreva-se!
                 </button>
               }
             </Card>
           )}
-          {/*isFundacaoEstudarFormModalOpen && (
-  <FundEstudarForm
-    onRequestClose={() => setIsFundacaoEstudarFormModalOpen(false)}
-  />
-)*/}
+ 
 {isConfirmarCrachaModalOpen && (
         <ConfirmarCracha
           onRequestClose={() => setIsConfirmarCrachaModalOpen(false)}
@@ -555,7 +564,7 @@ function Profile() {
       )}
 
 {userFetched && config.openAchievement && (
-  <Card className="flex flex-col items-center p-9 w-full bg-[#212032] text-center rounded-lg justify-center">
+  <Card className="flex flex-col items-center p-9 w-full bg-[#222333] text-center rounded-lg justify-center">
     <div className="flex items-center justify-between w-full">
       <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
         Conquistas
@@ -605,9 +614,9 @@ function Profile() {
 
 
         </div>
-        <div>
+        <div className="flex flex-col w-full md:grid md:grid-cols-1 gap-4 ">
           {userFetched && (
-            <Card className="flex flex-col items-center p-9 bg-[#212032] w-full rounded-lg h-full justify-center">
+            <Card className="flex flex-col items-center p-9 bg-[#222333] w-full rounded-lg h-full justify-center">
                 <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
                   Overflow
                 </h1>
@@ -628,6 +637,86 @@ function Profile() {
                 </button>
               </Card>
             )}
+
+         { eventCount > 0 &&
+            <Card className="flex flex-col items-center p-9 bg-[#222333] w-full rounded-lg justify-center">
+                <h1 className="text-xl">
+                  Compras
+                </h1>
+                <div className="flex flex-wrap justify-center">
+                  {userFetched && userFetched.payments && (
+                    userFetched.payments.map((payment: {
+                        sale: any[]; status: string, price: number, tShirtSize: string 
+                    }, index: number) => (
+                      (payment.status === PaymentStatus.APPROVED || payment.status === PaymentStatus.PENDING) && (
+                        <div key={`div-${index}`} className="mr-2 my-2">
+                          <Tooltip 
+                            key={`tooltip-${index}`}
+                            title={
+                              payment.status === PaymentStatus.APPROVED 
+                                ? "Pagamento confirmado!" 
+                                : "Para acessar o QRCode, clique aqui"
+                            }
+                          >
+                            <Chip
+                              sx={{
+                                height: 'auto',
+                                '& .MuiChip-label': {
+                                  display: 'block',
+                                  whiteSpace: 'normal',
+                                },
+                              }}
+                              key={`chip-${index}`}
+                              label={`${payment.sale.map(sale => 
+                                sale.hasTShirt ?  `${sale.name} - ${payment.tShirtSize}` : sale.name
+                              ).join(", ")}`}
+                              color={payment.status === PaymentStatus.APPROVED ? "success" : "warning"}
+                              clickable={payment.status === PaymentStatus.APPROVED ? false : true}
+                              onClick={() => {
+                                if (payment.status === PaymentStatus.PENDING) {
+                                  setDataToCoffeeStep3(payment);
+                                  setCoffeeModalOpen(true);
+                                  blockBodyScroll();
+                                }
+                              }}
+                              icon={payment.status === PaymentStatus.APPROVED ? 
+                                <DoneIcon></DoneIcon>
+                                :
+                                <HourglassTopIcon></HourglassTopIcon>
+                              }
+                            />
+                          </Tooltip>
+                        </div>
+                      )
+                    ))
+                  )}
+                </div>
+                { config && config.openSales ? (
+                    <>
+                    { !closeSales ? (
+                        <>
+                          <p className="text-sm pb-2 text-center text-[#A4A4A4]">Compre o Coffee e o Kit da Semcomp com Pix!</p>
+                        <button
+                          onClick={() => {
+                          setCoffeeModalOpen(true);
+                          blockBodyScroll();
+                          }}
+                          className={`bg-${userHouseName} text-white p-3 rounded-lg mt-2`}>
+                          Comprar!
+                        </button>
+                        </>
+                      ) : 
+                      <>
+                        <p className="text-center"> As vendas estão esgotadas! </p>
+                      </>
+                    }
+                    </>
+                  ) : 
+                    <>
+                      <p className="text-center"> Não há vendas no momento. </p>
+                    </>
+                }
+              </Card>}
         </div>
         </div>
         {/* {

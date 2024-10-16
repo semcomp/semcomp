@@ -24,7 +24,7 @@ const Modal: React.FC<ModalProps> = ({ element, setButtonSelected }) => {
           overflowY: 'hidden',
           overflowX: 'hidden',
           maxWidth: '100%',
-          maxHeight: '90%',
+          maxHeight: '95%',
         }}
       >
         <div className='flex flex-row w-full justify-end align-end max-h-fit'>
