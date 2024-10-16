@@ -1,4 +1,6 @@
 import { ReactElement, useEffect, useState } from "react";
+import jszip from 'jszip';
+import QRCode from "qrcode";
 import DataTable from "../components/reusable/DataTable";
 import RequireAuth from "../libs/RequireAuth";
 import SemcompApi from "../api/semcomp-api";
@@ -372,6 +374,50 @@ function Users() {
     }
   }
 
+  async function fetchDownloadUserQrCode() {
+    try {
+      setIsLoading(true);
+      const response = await semcompApi.getUsers(new PaginationRequest(() => {}, 1, 9999));
+      const users = response.getEntities().filter(user => user.wantNameTag);
+      const zip = new jszip();
+      let content = null;
+
+      try {
+        for (const user of users) {
+            const qrCodeText = user.id;
+            const qrCodeDataUrl = await QRCode.toDataURL(qrCodeText);
+
+            const imgData = qrCodeDataUrl.replace(/^data:image\/png;base64,/, '');
+            zip.file(`${user.name}-${user.house.name}.png`, imgData, { base64: true });
+        }
+
+        // Gera o zip e envia como resposta para download
+        zip.generateAsync({ type: 'nodebuffer' }).then((content) => {
+          const url = window.URL.createObjectURL(new Blob([content]));
+
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'qrcodes.zip');
+
+          document.body.appendChild(link);
+          setTimeout(() => {
+            link.click();
+          }, 1000);
+
+          link.parentNode.removeChild(link);
+        });
+    } catch (error) {
+        console.error('Erro ao gerar QR Codes ou ZIP:', error);
+        return null;
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setIsLoading(false);
+  }
+}
+  
+
   async function updateKitStatus(id: string, status: boolean, index: number) {
     try {
       const response = await semcompApi.updateKitStatus(id, status);
@@ -463,6 +509,14 @@ function Users() {
               onClick={fetchDownloadData}
             >
               Baixar Planilha
+            </button>
+            <button
+              className="w-full bg-black text-white py-3 px-6"
+              type="button"
+              style={{ height: downloadBtnHeight }}
+              onClick={fetchDownloadUserQrCode}
+            >
+              Baixar QR Codes
             </button>
           </div>
         </>
