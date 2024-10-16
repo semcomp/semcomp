@@ -60,7 +60,6 @@ function FundEstudarForm({ onRequestClose }) {
                 localStorage.setItem("checkbox", "false");
               }
               if (checked === false) {
-                console.log(checked);
                 setChecked(true);
                 localStorage.setItem("checkbox", "true");
               }

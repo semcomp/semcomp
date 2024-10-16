@@ -36,7 +36,6 @@ function EditProfile({ onRequestClose }) {
     if (!email) return toast.error("Você deve fornecer um email");
 
     const newUser = { ...user, name, email, telegram };
-    console.log(newUser);
     setIsUpdating(true);
     try {
       const response = await API.updateUserInfo(newUser);

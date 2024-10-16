@@ -100,7 +100,7 @@ function SelectInput({
   return (
     <FormControl className="my-3 bg-white" fullWidth>
       <InputLabel id="label">{label}</InputLabel>
-      <Select onChange={onChange} value={value} label={label} labelId="label">
+      <Select onChange={onChange} value={value} label={label} labelId="label" onClick={(e) => e.stopPropagation()}>
         {choices.map((choice) => (
           <MenuItem key={choice} value={choice}>
             {choice}

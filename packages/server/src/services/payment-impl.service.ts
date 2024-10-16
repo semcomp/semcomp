@@ -73,7 +73,7 @@ export default class PaymentServiceImpl implements PaymentService {
     return entity && this.mapEntity(entity);
   }
 
-  public async findByUserId(id: string): Promise<Payment> {
+  public async findByUserId(id: string): Promise<Payment[]> {
     const entity = await PaymentModel.find({ userId: id }).sort({ _id: -1 });
 
     if (entity && entity.length > 0) {
@@ -322,8 +322,6 @@ export default class PaymentServiceImpl implements PaymentService {
       await this.cancelPayment(expiredPayment);
     }, timelimit);
 
-    console.log("Created the qrcodes and started the timer for 2 hours!");
-
     return await this.update(newPayment);
   }
 
@@ -371,7 +369,6 @@ export default class PaymentServiceImpl implements PaymentService {
   }
 
   public async cancelPayment(payment: Payment) {
-    console.log("canceled on the database!");
     if (payment.status === PaymentStatus.PENDING) {
       payment.status = PaymentStatus.CANCELED;
       payment.tShirtSize = null;

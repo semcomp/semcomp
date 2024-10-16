@@ -159,6 +159,20 @@ class SaleService {
     return null;
   }
 
+  public async getItemsCoffee(): Promise<Sale[]>{
+    const sales = await this.find({ pagination: new PaginationRequest(0, 9999) });
+  
+    if (sales) {
+      // Filtrando os itens que possuem type 'ITEM' e hasCoffee true
+      const items = sales.getEntities().filter((sale) => 
+        SaleType[sale.type] === SaleType.ITEM && sale.hasCoffee === true
+      );
+      return items;
+    }
+  
+    return null;
+  }
+
   public async getSales(): Promise<Sale[]> {
     const sales = await this.find({ pagination: new PaginationRequest(0, 9999) });
   
