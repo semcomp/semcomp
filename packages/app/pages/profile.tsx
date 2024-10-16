@@ -43,6 +43,7 @@ import { Info } from "@mui/icons-material";
 import { PaymentStatus } from "../libs/constants/payment-status";
 import ConfirmarCracha from "../components/profile/crachasemcomp/index";
 import FundacaoEstudarLogo from "../components/profile/fundEstudar/index"
+import ModalKitSemcomp from "../components/profile/getkitconfirm"
 
 function Profile() {
   const { config } = useAppContext();
@@ -62,10 +63,18 @@ function Profile() {
   const [isCoffeeModalOpen, setCoffeeModalOpen] = useState(false);
   const [allSales, setAllSales] = useState([]);
   const [dataToCoffeeStep3, setDataToCoffeeStep3] = useState(null);
-
+  
   //const [isFundacaoEstudarFormModalOpen, setIsFundacaoEstudarFormModalOpen] =
   //  useState(true);
   const [isConfirmarCrachaModalOpen, setIsConfirmarCrachaModalOpen] = useState(true);
+  const [isKitModalOpen, setIsKitModalOpen] = useState(false);
+  useEffect(() => {
+    // Se o usuário pagou e ainda não retirou o kit, abre o modal
+    console.log(userFetched); 
+    if (userFetched && userFetched.paid && !userFetched.gotKit) {
+      setIsKitModalOpen(true);
+    }
+  }, [userFetched]);
 
 
   async function fetchAchievements() {
@@ -281,6 +290,9 @@ function Profile() {
       matchedImage?.imgIndex ?? 10,
     );
   }, []);
+
+  
+  
 
   return (
     userFetched && userFetched.house &&
@@ -567,6 +579,12 @@ function Profile() {
               user={userFetched}
             />
           )}
+          {isKitModalOpen && (
+          <ModalKitSemcomp
+            user={userFetched}
+            onRequestClose={() => setIsKitModalOpen(false)}
+          />
+        )}
 
 {userFetched && config.openAchievement && (
   <Card className="flex flex-col items-center p-9 w-full bg-[#222333] text-center rounded-lg justify-center">
