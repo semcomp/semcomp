@@ -209,7 +209,8 @@ class SemcompApi {
 
   public async getAttendance(eventId: string): Promise<any> {
     return this.http.get(`/admin/events/${eventId}/attendances-info`);
-
+  }
+  
   public async getCoffeePermission(userId: string, coffeeItemId: string): Promise<boolean>{
     const response = await this.http.post(
       `/admin/events/get-coffee-permission`, 
