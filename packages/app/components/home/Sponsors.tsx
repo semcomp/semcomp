@@ -18,7 +18,7 @@ function Sponsors() {
         <div className="text-base max-w-6xl">
           <div className="grid md:grid-cols-3 md:gap-12 phone:grid-cols-2 phone:gap-4 tablet:grid-cols-3 tablet:gap-8">
             {sponsorsLogos.map((sponsorsLogo: StaticImageData, index) => (
-              <div className="relative md:h-48 md:w-48 tablet:h-32 tablet:w-32 phone:h-28 phone:w-28 lg:w-60">
+              <div className="relative md:h-44 md:w-44 tablet:h-32 tablet:w-32 phone:h-28 phone:w-28 lg:w-60">
                 <Image
                   alt={"Logo " + sponsorsLogos[index].toString()}
                   src={sponsorsLogo}

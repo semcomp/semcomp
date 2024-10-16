@@ -26,6 +26,7 @@ export enum InputType {
   Autocomplete = "autocomplete",
   Checkbox = "checkbox",
   Text = "text",
+  TextArea = "textarea",
   Number = "number",
   Password = "password",
   File = "file",
@@ -99,7 +100,7 @@ function SelectInput({
   return (
     <FormControl className="my-3 bg-white" fullWidth>
       <InputLabel id="label">{label}</InputLabel>
-      <Select onChange={onChange} value={value} label={label} labelId="label">
+      <Select onChange={onChange} value={value} label={label} labelId="label" onClick={(e) => e.stopPropagation()}>
         {choices.map((choice) => (
           <MenuItem key={choice} value={choice}>
             {choice}
@@ -249,6 +250,29 @@ function ImageInput({
   </FormControl>;
 }
 
+function TextAreaInput({
+  label,
+  onChange,
+  value,
+}: {
+  label: string;
+  onChange: any;
+  value: string;
+}) {
+  return (
+    <FormControl className="my-3 bg-white" fullWidth>
+      <TextField
+        label={label}
+        onChange={onChange}
+        value={value}
+        multiline
+        minRows={1}
+        variant="outlined"
+      />
+    </FormControl>
+  );
+};
+
 function DateInput({
   label,
   onChange,
@@ -367,6 +391,10 @@ function Input({
 
   if (type === InputType.Image) {
     input = <ImageInput label={label} onChange={onChange} value={value as string} />;
+  }
+
+  if (type === InputType.TextArea) {
+    input = <TextAreaInput label={label} onChange={onChange} value={value as string} />;
   }
 
   return (

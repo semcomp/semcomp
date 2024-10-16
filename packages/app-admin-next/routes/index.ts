@@ -9,6 +9,7 @@ const Routes = {
   adminUsers: '/administradores',
   achievements: '/conquistas',
   events: '/eventos',
+  games: '/jogos',
   gameQuestions: '/jogo-perguntas',
   gameGroups: '/jogo-grupos',
   logs: '/logs',

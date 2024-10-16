@@ -5,6 +5,9 @@ import { handleError } from "../../lib/handle-error";
 import eventService from "../../services/event.service";
 import userService from "../../services/user.service";
 import { PaginationRequest } from "../../lib/pagination";
+import saleService from "../../services/sale.service";
+import PaymentServiceImpl from "../../services/payment-impl.service";
+import PaymentStatus from "../../lib/constants/payment-status-enum";
 
 class EventController {
   public async list(req, res, next) {
@@ -126,6 +129,56 @@ class EventController {
       const attendance = await eventService.markAttendance(eventId, userId);
 
       return res.status(200).json(attendance);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
+  public async getCoffeePermission(req, res, next) {
+    try {
+      // Pega o userId e coffeeItemId do corpo da requisição
+      const { userId, coffeeItemId } = req.body;
+      
+      // Busca os pagamentos do usuário
+      const userPayments = await new PaymentServiceImpl(null, null, null, null).findByUserId(userId);
+      if (!userPayments || userPayments.length === 0) {
+        // Se não houver pagamentos, retorne a resposta que o acesso ao coffee não é permitido
+        return res.status(200).json(false);
+      }
+
+      // Filtra os pagamentos aprovados
+      const approvedPayments = userPayments.filter(payment => payment.status === PaymentStatus.APPROVED);
+      if (approvedPayments.length === 0) {
+        return res.status(200).json(false);
+      }
+
+      // Para cada pagamento
+      for (const payment of approvedPayments) {
+        // Para cada saleOption, busque a venda correspondente
+        for (const saleId of payment.salesOption) {
+          try {
+            const sale = await saleService.findById(saleId);
+            // Verifica se algum dos itens é igual ao coffeeItemId
+            if (sale && sale.items.some(item => item === coffeeItemId)) {
+              return res.status(200).json(true); 
+            }
+          } catch (error) {
+            console.log(`Venda não encontrada para o ID: ${saleId}, Error: ${error}`);
+          }
+        }
+      }
+
+      return res.status(200).json(false);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
+
+  public async getCoffeeOptions(req, res, next) {
+    try {
+      const options = await saleService.getItemsCoffee();
+      return res.status(200).json(options);
     } catch (error) {
       return handleError(error, next);
     }
