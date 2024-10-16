@@ -82,8 +82,8 @@ function Row({
             type={InputType.Checkbox}
           />
         </TableCell>
-        {Object.keys(row).map((column: string, index: number) => (
-          <TableCell key={index} onClick={() => onClick(index)}>
+        {Object.keys(row).map((column: string, indexColumn: number) => (
+          <TableCell key={indexColumn} onClick={() => onClick(index)}>
             {renderCell ? renderCell(column, row) : row[column]}{" "}
           </TableCell>
         ))}
