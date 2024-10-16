@@ -246,9 +246,6 @@ class UserServiceImpl implements UserService {
         type: [
           EventTypes.PALESTRA,
           EventTypes.RODA,
-          EventTypes.MINICURSO,
-          EventTypes.HACKATHON,
-          EventTypes.ABERTURA,
           EventTypes.CULTURAL,
           EventTypes.CONCURSO,
           EventTypes.FEIRA
@@ -269,8 +266,6 @@ class UserServiceImpl implements UserService {
       0,
     );
 
-    // console.log("allEventsDuration (hours): ", allEventsDurationInMilliseconds / (60 * 60 * 1000));
-
     const entities: UserStats[] = [];
     for (const user of users.getEntities()) {
       const userStats = {
@@ -286,8 +281,6 @@ class UserServiceImpl implements UserService {
           userId: user.id,
         }
       );
-
-      // console.log(user.name, attendedEvents);
 
       // pegando a duração dos eventos do tipo palestra e roda que o usuário participou
       // e a duração de todos os eventos que o usuário participou
@@ -309,8 +302,6 @@ class UserServiceImpl implements UserService {
 
       userStats.hours = Math.round(attendedEventsDurationInMilliseconds / (60 * 60 * 1000) * 100) / 100;
       userStats.percentage = Math.round(attendedPalestraAndRodaEventsDurationInMilliseconds / allEventsDurationInMilliseconds * 100 * 100) / 100;
-
-      // console.log(userStats.hours, attendedPalestraAndRodaEventsDurationInMilliseconds/ (60 * 60 * 1000), userStats.percentage);
 
       entities.push(userStats);
     }
