@@ -10,9 +10,11 @@ import { useCallback, useState } from "react";
 function MarkAttendanceModal({
   data,
   onRequestClose,
+  coffeeItemId,
 }: {
   data: SemcompApiEvent;
   onRequestClose: () => void;
+  coffeeItemId?: string;
 }) {
   const {
     semcompApi,
@@ -27,9 +29,22 @@ function MarkAttendanceModal({
 
   async function handleSubmit(userId) {
     if (lastScannedUserId !== userId) {
+      //console.log(userId);
       try {
-        await semcompApi.markAttendance(data.id, userId);
-        toast.success("Presença cadastrada");
+        if(data.type === 'Coffee'){
+          const permission = await semcompApi.getCoffeePermission(userId, coffeeItemId);
+          //console.log(permission);
+          if(permission){
+            await semcompApi.markAttendance(data.id, userId);
+            toast.success("Presença cadastrada");
+          }else{
+            toast.error("Usuário não tem acesso à esse Coffee");
+          }
+        }else{
+          //console.log("SEM COFFEE")
+          await semcompApi.markAttendance(data.id, userId);
+          toast.success("Presença cadastrada");
+        }
       } catch (e) {
         toast.error(e?.response?.data?.message[0]);
         console.error(e);

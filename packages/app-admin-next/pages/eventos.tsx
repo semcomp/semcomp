@@ -16,6 +16,7 @@ import MarkAttendanceModal from "../components/events/MarkAttendanceModal";
 import { toast } from "react-toastify";
 import Input, { InputType } from "../components/Input";
 import util from "../libs/util";
+import { CircularProgress } from "@mui/material";
 
 type EventData = {
   // ID: string;
@@ -97,6 +98,7 @@ function Events() {
     new PaginationRequest(() => fetchData())
   );
   const [selectedData, setSelectedData] = useState(null as SemcompApiEvent);
+  const [selectedCoffeeItem, setSelectedCoffeeItem] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
 
@@ -190,13 +192,22 @@ function Events() {
     getSubs();
   }, [data]);
 
-  function MarkAttendance() {
+  function MarkAttendance({eventType}) {
     return (
       <>
         <button
           className="w-full bg-black text-white py-3 px-6"
           type="button"
-          onClick={() => setIsMarkAttendanceModalOpen(true)}
+          onClick={() => { 
+              if(eventType !== "Coffee"){
+                setIsMarkAttendanceModalOpen(true)
+              }else{
+                selectedCoffeeItem === "" ? 
+                toast.error("Selecione um item do Coffee") : 
+                setIsMarkAttendanceModalOpen(true)
+              }
+            }
+          }
         >
           Marcar presença
         </button>
@@ -204,13 +215,77 @@ function Events() {
     );
   }
 
-  function moreInfoContent(selectedData) {
+  const MoreInfoContent = ({selectedData}) => {
+    const [coffeeOptions, setCoffeeOptions] = useState([]);
+    const [isCoffeeLoading, setIsCoffeeLoading] = useState(false);
+    const eventType = selectedData?.type;
+
+
+    async function fetchCoffeeData(){
+      try{
+        setIsCoffeeLoading(true);
+        if(eventType === 'Coffee'){
+          const response = await semcompApi.getCoffeeOptions();
+          setCoffeeOptions(response);
+        }
+      }catch (error) {
+        console.error(error);
+      }finally{
+        setIsCoffeeLoading(false);
+      }
+    }
+    
+    
+    //Verifica se o tipo de evento não é "Coffee" e reseta o estado de coffeeItem
+    useEffect(() => {
+      if (eventType !== "Coffee") {
+        setSelectedCoffeeItem("");
+      }
+    }, [eventType]);
+      
+    useEffect(() => {  
+      fetchCoffeeData();
+    }, []);
+  
+    const handleSelectChange = (event) => {
+      const selectedId = event.target.value;
+      if(selectedId !== ""){
+        setSelectedCoffeeItem(selectedId);
+      }
+    };
+  
     return (
-      <>
-        <MarkAttendance></MarkAttendance>
-      </>
+      <div className="flex justify-between">    
+          <MarkAttendance 
+            eventType={eventType}
+          />
+          {
+            isCoffeeLoading ? 
+              <CircularProgress size="3rem"/>
+              :
+              (
+                eventType === 'Coffee' && 
+                <div className="px-5 py-2">
+                  <select 
+                    id="coffee-select" 
+                    onChange={handleSelectChange} 
+                    value={selectedCoffeeItem}
+                    onClick={(e)=> {e.stopPropagation()}}
+                    className="w-52 h-8 text-base border-2 border-black rounded-md"
+                  >
+                    <option value="">--Qual Coffee é?--</option>
+                    {coffeeOptions.map((coffee) => (
+                      <option key={coffee.id} value={coffee.id}>
+                        {coffee.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )
+          }
+      </div>
     );
-  }
+  };
 
   async function updateEvent(status: boolean, option: string) {
     if(selectedIndexes && selectedIndexes.length > 0){
@@ -265,6 +340,8 @@ function Events() {
           onRequestClose={() => {
             setIsMarkAttendanceModalOpen(false);
           }}
+          //So passa coffeeItemId se selectedCoffeeItem existir, ou seja, evento do tipo coffee
+          {...(selectedCoffeeItem !== ""? { coffeeItemId: selectedCoffeeItem }: {})}
         />
       )}
       {!isLoading && (
@@ -328,7 +405,11 @@ function Events() {
               onRowClick={handleRowClick}
               onRowSelect={handleSelectedIndexesChange}
               onMoreInfoClick={handleMoreInfoClick}
-              moreInfoContainer={moreInfoContent(selectedData)}
+              moreInfoContainer={
+                <MoreInfoContent 
+                  selectedData={selectedData}
+                />
+              }
               ref={eventTableRef}
             />
           }

@@ -23,8 +23,8 @@ import {
   SemcompApiCreateAchievementRequest,
   SemcompApiEditAchievementRequest,
   SemcompApiGetSalesResponse,
-  SemcompApiGetGameConfigResponse
-
+  SemcompApiSale,
+  SemcompApiGetGameConfigResponse,
 } from "../models/SemcompApiModels";
 import Http from "./http";
 
@@ -195,6 +195,19 @@ class SemcompApi {
 
   public async markAttendance(eventId: string, userId: string): Promise<any> {
     return this.http.post(`/admin/events/${eventId}/mark-attendance`, { userId: userId });
+  }
+
+  public async getCoffeePermission(userId: string, coffeeItemId: string): Promise<boolean>{
+    const response = await this.http.post(
+      `/admin/events/get-coffee-permission`, 
+      { userId: userId, coffeeItemId: coffeeItemId }
+    );
+    return response;
+  }
+
+  public async getCoffeeOptions(): Promise<SemcompApiSale[]> {
+    const response = await this.http.get("/admin/events/get-coffee-options");
+    return response;
   }
 
   // GAME 
