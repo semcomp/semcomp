@@ -8,6 +8,7 @@ export type Config = {
     showLogin: boolean;
     openSales: boolean;
     openAchievement: boolean;
+    enableWantNameTag: boolean;
     createdAt?: number;
     updatedAt?: number;
 };
@@ -35,6 +36,10 @@ const ConfigSchema = new Mongoose.Schema(
       default: false,
     },
     openAchievement: {
+      type: Boolean,
+      default: false,
+    },
+    enableWantNameTag: {
       type: Boolean,
       default: false,
     },

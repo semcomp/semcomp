@@ -1,5 +1,6 @@
 import { handleError } from "../../lib/handle-error";
 import { handleValidationResult } from "../../lib/handle-validation-result";
+import { PaginationRequest } from "../../lib/pagination";
 import PaymentServiceImpl from "../../services/payment-impl.service";
 
 export default class PaymentController {
@@ -28,6 +29,21 @@ export default class PaymentController {
       await this.paymentService.generateQrCodes();
 
       return res.status(200).json();
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
+  public async getPaymentWithUser(req, res, next) {
+    const pagination = new PaginationRequest(
+      +req.query.page,
+      +req.query.items,
+    );
+    
+    try {
+      const payments = await this.paymentService.getPaymentWithUsers(pagination);
+
+      return res.status(200).json(payments);
     } catch (error) {
       return handleError(error, next);
     }

@@ -31,6 +31,7 @@ import NickRegistration, {
 import TeamRegistration, {
   TeamRegistrationInfo,
 } from "./additional-values-accordion/TeamRegistration";
+import { useAppContext } from "../../../libs/contextLib";
 
 const zeroPad = (num, places) => String(num).padStart(places, "0");
 
@@ -99,6 +100,7 @@ TabPanel.propTypes = {
 
 function Options({ item, fetchEvents }) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const { user } = useAppContext();
 
   const [selectedEventIndex, setSelectedEventIndex] = useState(0);
   const handleSelectEvent = (event) => {
@@ -179,8 +181,8 @@ function Options({ item, fetchEvents }) {
       fetchEvents();
       toast.success("Inscrição realizada com sucesso!");
     } catch (e) {
-      console.error(e);
-      return toast.error("Vagas esgotadas!");
+      console.error(e.data.message[0]);
+      return toast.error(e.data.message[0]);
     } finally {
       setIsUpdating(false);
     }
@@ -240,9 +242,9 @@ function Options({ item, fetchEvents }) {
           )}
         </AccordionSummary>
         <AccordionDetails>
-          <Typography component={"span"}>
+          <div className="h-full w-full grid grid-cols-1 gap-2">
             {item.events.map((occasion, index) => (
-              <FormControl component="fieldset">
+              <div className="w-full p-4">
                 <RadioGroup
                   aria-label="topico"
                   name="topico"
@@ -256,7 +258,7 @@ function Options({ item, fetchEvents }) {
                           value={`${index}`}
                           control={<Radio />}
                           label={occasion.name}
-                          className={index >= 1 ? "mt-8" : ""}
+                          className="mx-2"
                         />
                         {occasion.type === "Game Night" && (
                           <Chip
@@ -287,7 +289,7 @@ function Options({ item, fetchEvents }) {
                           value={`${index}`}
                           control={<Radio />}
                           label={occasion.name}
-                          className={index >= 1 ? "mt-8" : ""}
+                          className="mx-2"
                         />
                         {occasion.type === "Game Night" && (
                           <Chip
@@ -300,22 +302,28 @@ function Options({ item, fetchEvents }) {
                       </div>
                     )}
                     <div>
-                      {occasion.type === "Minicurso" && (
-                        <>
-                          <br />
-                          <strong>Horário: </strong>
-                          {formatTime(occasion.startDate, occasion.endDate)}
-                          <br />
-                          <br />
-                          <strong>Ministrante: </strong>
-                          {occasion.speaker}
-                          <br />
-                          <br />
-                        </>
-                      )}
-                      <ReactLinkify className="mb-4">
-                        {occasion.description}
-                      </ReactLinkify>
+                      <div className="mt-4">
+                          {
+                            occasion.speaker &&
+                            <div> 
+                              <strong>Ministrante: </strong>
+                              {occasion.speaker}
+                            </div>
+                          }
+                          { occasion.startDate && occasion.endDate &&
+                            <div>
+                              <strong>Horário: </strong>
+                              {formatTime(occasion.startDate, occasion.endDate)}  
+                            </div>
+                          }
+                          { occasion.description &&
+                            <div className="mt-4">
+                            <ReactLinkify>
+                              {occasion.description}
+                            </ReactLinkify>
+                          </div>
+                          }
+                      </div>
                     </div>
                     {occasion.needInfoOnSubscription && (
                       <AdditionalValuesAccordion
@@ -328,14 +336,14 @@ function Options({ item, fetchEvents }) {
                     )}
                   </div>
                 </RadioGroup>
-              </FormControl>
+              </div>
             ))}
-          </Typography>
+          </div>
         </AccordionDetails>
         {item.events.find((event) => !event.isSubscribed) && (
           <AccordionActions>
             <LoadingButton
-              className="bg-primary hover:bg-[#251647] text-white w-full py-3 shadow"
+              className={`bg-${user.house.name} hover:bg-[#a9a9a9] text-white w-full py-3 shadow rounded-lg`}
               type="submit"
               isLoading={isUpdating}
             >

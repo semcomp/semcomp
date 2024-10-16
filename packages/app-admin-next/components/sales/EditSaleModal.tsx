@@ -42,6 +42,8 @@ function CreateSaleModal({
     let quantity = data.quantity;
     let hasKit = data.hasKit;
     let hasTShirt = data.hasTShirt;
+    let hasCoffee = data.hasCoffee;
+
     if (data.type === SaleType.ITEM) {
       data.items = [];
     } else if (data.type === SaleType.SALE) {
@@ -53,6 +55,10 @@ function CreateSaleModal({
         if (item.hasTShirt) {
           hasTShirt = true;
         }
+
+        if (item.hasCoffee) {
+          hasCoffee = true;
+        } 
 
         if (item.quantity < quantity) {
           quantity = item.quantity;
@@ -73,6 +79,7 @@ function CreateSaleModal({
       quantity: 0,
       hasTShirt: false,
       hasKit: false,
+      hasCoffee: false,
       items: [],
       price: 0
     };
@@ -80,7 +87,15 @@ function CreateSaleModal({
     if (data.type === SaleType.ITEM) {
       newData = { ...data, items: items, type: type, quantity: quantity };
     } else {
-      newData = { ...data, items: items, type: type, quantity: quantity, hasKit: hasKit, hasTShirt: hasTShirt };
+      newData = { 
+        ...data,
+        items: items,
+        type: type,
+        quantity: quantity,
+        hasKit: hasKit,
+        hasTShirt: hasTShirt,
+        hasCoffee: hasCoffee,
+      };
     }
     
     try {

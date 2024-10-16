@@ -95,7 +95,6 @@ function Step1(
   
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    console.log("handleSubmit")
     event.preventDefault(); // Stops the page from reloading
     
     if (!termsOfUse) {

@@ -11,7 +11,7 @@ export class PaginationRequest {
       this.page = page
     }
 
-    this.items = 5;
+    this.items = 10;
     if (items) {
       this.items = items
     }

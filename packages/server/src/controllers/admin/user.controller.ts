@@ -63,7 +63,7 @@ export default class UserController {
         return houseMember.userId === user.id;
       });
 
-      if(userHouseMember) {
+      if (userHouseMember) {
         userHouse = housesFound.getEntities().find((house) => {
           return house.id === userHouseMember.houseId;
         }).name;
@@ -140,31 +140,6 @@ export default class UserController {
       }
 
       return res.status(200).json(userFound);
-    } catch (error) {
-      return handleError(error, next);
-    }
-  }
-
-  public async getAttendance(req, res, next) {
-    try {
-      const userId = req.params.id;
-
-      const user = await userService.findById(userId);
-      if (!user) {
-        throw new HttpError(404, ["Usuário não encontrado."]);
-      }
-
-      const attendedEvents = await attendanceService.find(
-        {
-          userId,
-        }
-      );
-
-      const totalNumEvents = await eventService.count();
-      let attendancePercent = 100 * (attendedEvents.length / totalNumEvents);
-      attendancePercent = Math.round(attendancePercent * 100) / 100; // truncate to precision 2
-
-      return res.status(200).json({ attendancePercent, attendedEvents, user });
     } catch (error) {
       return handleError(error, next);
     }

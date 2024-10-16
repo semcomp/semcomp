@@ -55,6 +55,15 @@ router.get(
   AdminEventController.listUsersAttendancesInfo
 );
 
+router.get(
+  "/:eventId/attendances-info/",
+  [
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+  ],
+  AdminEventController.listUsersAttendancesInfoByEventId
+);
+
 router.post(
   "/:eventId/mark-attendance/bulk",
   [
@@ -75,6 +84,26 @@ router.post(
     body("userId", "Invalid field 'userId'").not().isEmpty(),
   ],
   AdminEventController.markUserAttendance
+);
+
+router.post(
+  "/get-coffee-permission",
+  [
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+    body("userId", "Invalid field 'userId'").not().isEmpty(),
+    body("coffeeItemId", "Invalid field 'coffeeItemId'").not().isEmpty(),
+  ],
+  AdminEventController.getCoffeePermission
+);
+
+router.get(
+  "/get-coffee-options",
+  [
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+  ],
+  AdminEventController.getCoffeeOptions
 );
 
 router.post(

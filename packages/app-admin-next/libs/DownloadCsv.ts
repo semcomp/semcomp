@@ -15,16 +15,15 @@ function downloadFile({ data, fileName, fileType }) {
 
 export default function exportToCsv(data: any[], fileName: string = 'data') {
   let headers = Object.keys(data[0]);
-  console.log(headers)
 
   let dataCsv = data.reduce((acc, row) => {
-    acc.push(Object.values(row).join(','))
-    return acc
+    acc.push(Object.values(row).join(','));
+    return acc;
   }, [])
 
   downloadFile({
     data: [headers, ...dataCsv].join('\n'),
     fileName: fileName + '.csv',
-    fileType: 'text/csv',
+    fileType: 'text/csv', 
   })
 }

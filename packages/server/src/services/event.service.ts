@@ -316,23 +316,19 @@ class EventService {
   }
 
   public async markAttendanceByQrCode(token: string, userId: string) {
-      console.log(token);
       const { eventId } = this.tokenService.decode(token);
-      console.log("ID: ", eventId);
       return await this.markAttendance(eventId, userId);
-
   }
 
   public async markAttendance(eventId: string, userId: string) {
     const event = await this.findById(eventId);
 
     if (await attendanceService.findOne({ userId, eventId })) {
-      return { message: "Presença salva com sucesso!" };
+      return { message: "Presença já cadastrada!" };
     }
 
     if(event.type === EventTypes.MINICURSO){
       const subscription = await subscriptionService.findOne({ userId: userId, eventId: eventId});
-      console.log(subscription);
       if(!subscription){
         throw new HttpError(400, ["Usuário não está inscrito nesse minicurso!"]);
       }
@@ -443,6 +439,44 @@ class EventService {
     const usersAttendancesInfo: UserAttendanceInfo[] = [];
     for (const user of users.getEntities()) {
       const userAttendances = attendances.filter(attendance => attendance.userId === user.id);
+
+      let hours = 0;
+      for (const userAttendance of userAttendances) {
+        const event = events.getEntities().find(event => event.id === userAttendance.eventId);
+
+        const startDate = new Date(event.startDate);
+        const endDate = new Date(event.endDate);
+        hours += endDate.getHours() - startDate.getHours();
+      }
+      usersAttendancesInfo.push({
+        email: user.email,
+        name: user.name,
+        hours,
+      });
+    }
+
+    return usersAttendancesInfo;
+  }
+
+  public async listUsersAttendancesInfoByEvent(eventId: string): Promise<UserAttendanceInfo[]> {
+    // pega todos os usuários
+    const users = await userService.find({
+      pagination: new PaginationRequest(1, 9999),
+    });
+
+    // pega todas as presenças daquele evento
+    const attendances = await attendanceService.find({ eventId: eventId });
+
+    const events = await this.find({
+      pagination: new PaginationRequest(1, 9999),
+    });
+
+    // cria um array de objetos com as informações de presença de cada usuário
+    const usersAttendancesInfo: UserAttendanceInfo[] = [];
+    for (const user of users.getEntities()) {
+      const userAttendances = attendances.filter(attendance => attendance.userId === user.id);
+
+      if (userAttendances.length === 0) continue;
 
       let hours = 0;
       for (const userAttendance of userAttendances) {

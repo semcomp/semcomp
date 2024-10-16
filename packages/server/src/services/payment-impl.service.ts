@@ -13,7 +13,7 @@ import TShirtSize from "../lib/constants/t-shirt-size-enum";
 import SaleService from "./sale.service";
 import FoodOption from "../lib/constants/food-option-enum";
 import PaymentStatus from "../lib/constants/payment-status-enum";
-import { PaginationRequest } from "../lib/pagination";
+import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 import Sale from "../models/sales";
 
 export default class PaymentServiceImpl implements PaymentService {
@@ -73,7 +73,7 @@ export default class PaymentServiceImpl implements PaymentService {
     return entity && this.mapEntity(entity);
   }
 
-  public async findByUserId(id: string): Promise<Payment> {
+  public async findByUserId(id: string): Promise<Payment[]> {
     const entity = await PaymentModel.find({ userId: id }).sort({ _id: -1 });
 
     if (entity && entity.length > 0) {
@@ -322,8 +322,6 @@ export default class PaymentServiceImpl implements PaymentService {
       await this.cancelPayment(expiredPayment);
     }, timelimit);
 
-    console.log("Created the qrcodes and started the timer for 2 hours!");
-
     return await this.update(newPayment);
   }
 
@@ -371,7 +369,6 @@ export default class PaymentServiceImpl implements PaymentService {
   }
 
   public async cancelPayment(payment: Payment) {
-    console.log("canceled on the database!");
     if (payment.status === PaymentStatus.PENDING) {
       payment.status = PaymentStatus.CANCELED;
       payment.tShirtSize = null;
@@ -429,6 +426,27 @@ export default class PaymentServiceImpl implements PaymentService {
     }
   }
 
+  public async getPaymentWithUsers(pagination: PaginationRequest) : Promise<PaginationResponse<Payment>> {
+    const entity = await PaymentModel.aggregate([
+      {
+        $lookup: {
+          from: 'user',
+          localField: 'userId',
+          foreignField: 'id',
+          as: 'user'
+        }
+      }, { $unwind: "$user" }
+    ]).limit(pagination.getItems());
+    
+    if (entity && entity.length > 0) {
+      const entities = entity.map((payment) => this.mapEntityWithUser(payment));
+      const paginatedResponse = new PaginationResponse(entities, entities.length);
+      return paginatedResponse;
+    }
+    
+    return null;
+  }
+
   private mapEntity(entity: Model<Payment> & Payment | Payment): Payment {
     return {
       id: entity.id,
@@ -436,6 +454,28 @@ export default class PaymentServiceImpl implements PaymentService {
       userId: entity.userId,
       qrCode: entity.qrCode,
       qrCodeBase64: entity.qrCodeBase64,
+      withSocialBenefit: entity.withSocialBenefit,
+      socialBenefitFileName: entity.socialBenefitFileName,
+      tShirtSize: entity.tShirtSize,
+      foodOption: entity.foodOption,
+      salesOption: entity.salesOption,
+      price: entity.price,
+      status: entity.status,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    };
+  }
+
+  private mapEntityWithUser(entity: Payment & {user: {name: string, email: string}}
+  ): Payment & {userName: string, userEmail: string} {
+    return {
+      id: entity.id,
+      paymentIntegrationId: entity.paymentIntegrationId,
+      userId: entity.userId,
+      userName: entity.user.name,
+      userEmail: entity.user.email,
+      qrCode: '',
+      qrCodeBase64: '',
       withSocialBenefit: entity.withSocialBenefit,
       socialBenefitFileName: entity.socialBenefitFileName,
       tShirtSize: entity.tShirtSize,

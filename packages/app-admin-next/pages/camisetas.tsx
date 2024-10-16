@@ -10,6 +10,7 @@ import EditTShirtModal from '../components/t-shirt/EditTShirtModal';
 import { TShirtFormData, TShirtSize } from '../components/t-shirt/TShirtForm';
 import DataPage from '../components/DataPage';
 import { PaginationRequest, PaginationResponse } from '../models/Pagination';
+import util from '../libs/util';
 
 type TShirtData = {
   "ID": string,
@@ -37,7 +38,7 @@ function TShirtsTable({
       "Tamanho": tShirt.size,
       "Quantidade": tShirt.quantity,
       "Quantidade Utilizada": tShirt.usedQuantity,
-      "Criado em": new Date(tShirt.createdAt).toISOString(),
+      "Criado em": util.formatDate(tShirt.createdAt),
     })
   }
 

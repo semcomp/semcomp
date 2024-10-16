@@ -24,8 +24,11 @@ function DataPage({
           <Toolbar>
             <h1 className='my-10 text-3xl font-bold text-gray-700'>{title}</h1>
           </Toolbar>
-          {buttons}
+          <div className="flex items-center">
+            {buttons}
+          </div>
         </div>
+        <hr className="w-full mb-8" />
         {isLoading ? <Spinner /> : table}
       </main>
     </div>

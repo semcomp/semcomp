@@ -100,6 +100,10 @@ const Home: React.FC = () => {
     setButtonSelected("sponsors");
   }
 
+  function handleRiddle() {
+    router.push(Routes.riddle);
+  }
+
   function handleSupporters() {
     setButtonSelected("supporters");
   }
@@ -134,6 +138,7 @@ const Home: React.FC = () => {
           {isUserLoggedIn ? (
             <>
               <ButtonMenuHome label="PERFIL" onClick={handlePerfil} />
+              {/* <ButtonMenuHome label="RIDDLE" onClick={handleRiddle} /> */}
             </>
           ) : (
             <>
@@ -142,6 +147,7 @@ const Home: React.FC = () => {
             </>
           )}
           <ButtonMenuHome label="SOBRE" onClick={handleSobre} />
+          <ButtonMenuHome label="CRONOGRAMA" onClick={handleCronograma} />
           <ButtonMenuHome label="FAQ" onClick={handleFaq} />
           <ButtonMenuHome label="PATROCINADORES" onClick={handleSponsors} />
           <ButtonMenuHome label="APOIADORES" onClick={handleSupporters} />

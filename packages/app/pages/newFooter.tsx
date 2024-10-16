@@ -5,7 +5,7 @@ import { FC } from "react";
 
 export const NewFooter: FC = () => {
   return (
-    <footer className="phone:relative absolute bottom-0 left-0 w-full px-6 pb-4 z-170 bg-background-secondary font-secondary">
+    <footer className="phone:relative absolute bottom-0 left-0 w-full px-6 pb-4 z-50 bg-background-secondary font-secondary">
       <div className="flex flex-col items-center justify-between sm:flex-row">
         <span className="hidden text-lg font-bold text-white sm:inline">
           © 2024 <a href={``} className="hover:underline">SEMCOMP</a>

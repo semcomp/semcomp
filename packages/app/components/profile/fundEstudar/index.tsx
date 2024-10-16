@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Input, { InputType } from "../../Input";
 import Modal from "../../Modal";
 import Image from "next/image";
-import FundacaoEstudarLogo from "../../../assets/sponsors/FundacaoEstudar.png";
+import FundacaoEstudarLogo from "../../../assets/FundacaoEstudar.png"
 
 function FundEstudarForm({ onRequestClose }) {
   const [open, setOpen] = useState(false);
@@ -60,7 +60,6 @@ function FundEstudarForm({ onRequestClose }) {
                 localStorage.setItem("checkbox", "false");
               }
               if (checked === false) {
-                console.log(checked);
                 setChecked(true);
                 localStorage.setItem("checkbox", "true");
               }

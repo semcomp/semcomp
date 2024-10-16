@@ -30,6 +30,12 @@ export default class PaymentRouter {
       (req, res, next) => this.paymentController.generateQrCodes(req, res, next),
     );
 
+    router.get(
+      "/get-payment-complete",
+      [this.adminAuthMiddleware.authenticate, this.adminAuthMiddleware.isAuthenticated],
+      (req, res, next) => this.paymentController.getPaymentWithUser(req, res, next),
+    );
+
     router.post(
       "/",
       [
@@ -41,7 +47,7 @@ export default class PaymentRouter {
       ],
       (req, res, next) => this.paymentController.create(req, res, next),
     );
-
+    
     return router;
   }
 }

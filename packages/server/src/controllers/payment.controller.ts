@@ -39,9 +39,9 @@ export default class PaymentController {
 
   public async findByUserId(req, res, next) {
     try {
-      const payment = await new PaymentServiceImpl(null, null, null, null).findByUserId(req.params.id);
+      const payments = await new PaymentServiceImpl(null, null, null, null).findByUserId(req.params.id);
 
-      return res.status(200).json(payment);
+      return res.status(200).json(payments);
     } catch (error) {
       return handleError(error, next);
     }

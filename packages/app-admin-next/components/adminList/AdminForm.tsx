@@ -2,20 +2,6 @@ import Input, { InputType } from "../Input";
 import adminRoles from "../../libs/constants/admin-roles";
 import React from "react"
 
-export enum adminRole {
-  USER = "Users", 
-  TSHIRT = "TShirts", 
-  HOUSE = "Houses", 
-  GAMEQUESTION = "GameQuestions", 
-  GAMEGROUP = "GameGroups", 
-  EVENT = "Events",
-  EDITEVENTS = "EditEvents",
-  TREASUREHUNTIMAGE = "TreasureHuntImages",
-  CONFIG = "Config",
-  ACHIEVEMENTS = "Achievements",
-  DELETE = "Delete",
-}
-
 export type AdminFormData = {
   id: string;
   adminRole: Object;

@@ -11,6 +11,7 @@ import EditScore from '../components/houses/EditScore';
 import { HouseFormData } from '../components/houses/HouseForm';
 import DataPage from '../components/DataPage';
 import { PaginationRequest, PaginationResponse } from '../models/Pagination';
+import util from '../libs/util';
 
 type HouseData = {
   "ID": string,
@@ -44,7 +45,7 @@ function HousesTable({
       "Descrição": house.description,
       "Link do Telegram": house.telegramLink,
       "Pontuação": house.score,
-      "Criado em": new Date(house.createdAt).toISOString(),
+      "Criado em": util.formatDate(house.createdAt),
     })
   }
 

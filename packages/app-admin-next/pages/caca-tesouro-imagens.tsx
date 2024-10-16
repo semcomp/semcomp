@@ -11,6 +11,7 @@ import DataPage from '../components/DataPage';
 import { TreasureHuntImageFormData } from '../components/treasure-hunt-images/TreasureHuntImageForm';
 import { PaginationRequest, PaginationResponse } from '../models/Pagination';
 import Status from '../libs/constants/status-treasure-hunt-enum';
+import util from '../libs/util';
 
 type TreasureHuntData = {
   "ID": string,
@@ -28,7 +29,7 @@ function mapData(data: SemcompApiTreasureHuntImage[]): TreasureHuntData[] {
       "Local": treasureHunt.place,
       "Status": treasureHunt.status,
       "Imagem": treasureHunt.imgUrl,
-      "Criado em": new Date(treasureHunt.createdAt).toISOString(),
+      "Criado em": util.formatDate(treasureHunt.createdAt),
     })
   }
 

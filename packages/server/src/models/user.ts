@@ -10,6 +10,7 @@ type User = {
   telegram?: string;
   permission?: boolean;
   resetPasswordCode?: string;
+  wantNameTag?: boolean; 
   paid?: boolean;
   gotKit?: boolean;
   createdAt?: number;
@@ -59,6 +60,9 @@ const UserSchema = new Mongoose.Schema(
     },
     resetPasswordCode: {
       type: String,
+    },
+    wantNameTag: {
+      type: Boolean,
     },
     paid: {
       type: Boolean,

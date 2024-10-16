@@ -14,8 +14,8 @@ type Filters = {
 };
 
 class AttendanceService {
-  public async find(filters?: Partial<Filters>): Promise<Attendance[]> {
-    const attendances = await AttendanceModel.find(filters);
+  public async find(filters?: Partial<Filters>, optional?: string): Promise<Attendance[]> {
+    const attendances = await AttendanceModel.find(filters, optional);
 
     const entities: Attendance[] = [];
     for (const attendance of attendances) {

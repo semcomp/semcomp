@@ -16,6 +16,7 @@
     "@mui/x-date-pickers": "^5.0.2",
     "axios": "^0.27.2",
     "dayjs": "^1.11.5",
+    "jszip": "^3.10.1",
     "next": "12.2.5",
     "qrcode": "^1.5.4",
     "qrcode.react": "^3.1.0",

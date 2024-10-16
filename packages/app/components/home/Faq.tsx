@@ -109,11 +109,11 @@ const FAQ = () => {
     >
       <h1
         id="titulo"
-        className="text-purple-400 superdesktop:text-title-superlarge desktop:text-title-large tablet:text-title-medium medphone:text-title-small phone:text-title-tiny text stroke"
+        className="text-purple-400 superdesktop:text-title-large desktop:text-title-large tablet:text-title-medium medphone:text-title-small phone:text-title-tiny text stroke"
       >
         FAQ
       </h1>
-      <div className="superdesktop:text-superlarge desktop:text-medium tablet:text-medium medphone:text-small phone:text-tiny">
+      <div className="superdesktop:text-large desktop:text-medium tablet:text-medium medphone:text-small phone:text-tiny">
         {questions.map((item, index) => (
           <Question
             key={index}

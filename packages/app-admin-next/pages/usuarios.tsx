@@ -1,4 +1,6 @@
 import { ReactElement, useEffect, useState } from "react";
+import jszip from 'jszip';
+import QRCode from "qrcode";
 import DataTable from "../components/reusable/DataTable";
 import RequireAuth from "../libs/RequireAuth";
 import SemcompApi from "../api/semcomp-api";
@@ -16,20 +18,21 @@ import exportToCsv from "../libs/DownloadCsv";
 import InfoCards from "../components/reusable/InfoCards";
 import Input, { InputType } from '../components/Input';
 import { Modal } from '../components/reusable/Modal';
-import { SaleFormData } from "../components/sales/SaleForm";
 import util from "../libs/util";
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import { toast } from "react-toastify";
+import { InputAdornment, TextField } from "@mui/material";
+import { Search } from "@mui/icons-material";
 
 
 type UserData = {
-  ID: string;
   "E-mail": string;
   Nome: string;
   Curso: string;
   Telegram: string;
   Casa: string;
-  "Retirou Kit": ReactElement | string;
+  "Retirou itens": ReactElement | string;
+  "Quer crachá": ReactElement | string;
   "Tamanho da camiseta": TShirtSize;
   "Compras": ReactElement | string;
   "Permite divulgação?": string;
@@ -46,6 +49,7 @@ function mapData(
   allSales: (SemcompApiSale & {usedQuantity:number})[],
   handleOpenKitModal?: () => void,
   handleOpenSaleModal?: (saleOption: string[], paymentStatus: string[]) => void,
+  exportToCsv?: boolean,
 ): UserData[] {
   const newData: UserData[] = [];
   for (const user of data) {
@@ -58,7 +62,6 @@ function mapData(
     let hasKit = false;
     let tShirtSize = null;
 
-    // TODO: CRIAR HAS_KIT
     for (let i = 0; i < user.payment.status.length; i++) {
       let name = '';
       if (TShirtSize[user.payment.tShirtSize] !== TShirtSize.NONE) {
@@ -109,21 +112,35 @@ function mapData(
         onChange={handleOpenKitModal ? handleOpenKitModal : () => { }}
         value={user.gotKit}
         type={InputType.Checkbox}
-      /> : <></>
+      /> : <></>;
 
     const openSales = handleOpenSaleModal ? 
-    <RemoveRedEyeIcon onClick={() => handleOpenSaleModal(saleOption, paymentStatus)}/> : <></>;
+    <RemoveRedEyeIcon onClick={() => handleOpenSaleModal(saleOption, paymentStatus)}/> : null;
   
+    let newDataSales = undefined;
+    let newDataGetItems = undefined;
+    let newDataWantTagName = undefined;
+
+    if (exportToCsv) {
+      newDataSales = saleOption.length > 0 ? saleOption.join(" - ") : "Nenhuma";
+      newDataGetItems = user.gotKit ? "Sim" : "Não";
+      newDataWantTagName = user.wantNameTag ? "Sim" : "Não";
+    } else {
+      newDataSales = openSales && saleOption.length > 0 ? openSales : saleOption.join(", ");
+      newDataGetItems = handleOpenKitModal ? gotKit : (user.gotKit ? "Sim" : "Não");
+      newDataWantTagName = <Input type={InputType.Checkbox} disabled={true} value={user.wantNameTag}></Input>;
+    }
+
     newData.push({
-      ID: user.id,
       "E-mail": user.email,
       Nome: user.name,
       Curso: user.course,
       Telegram: user.telegram,
       Casa: user.house.name,
       "Tamanho da camiseta": tShirtSize,
-      "Compras": openSales && saleOption.length > 0 ? openSales : saleOption.join(", "),
-      "Retirou Kit": handleOpenKitModal ? gotKit : (user.gotKit ? "Sim" : "Não"),
+      "Compras": newDataSales,
+      "Retirou itens": newDataGetItems,
+      "Quer crachá": newDataWantTagName,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
       "Criado em": util.formatDate(user.createdAt),
     });
@@ -135,13 +152,14 @@ function getInfoData(data: SemcompApiUser[], allSales: (SemcompApiSale & { usedQ
   const infoData: InfoData[] = [];
   infoData.push({ infoTitle: "Inscritos", infoValue: data.length });
 
-  let numKitStatus = data.filter(function (item) {
-    return item.gotKit;
-  }).length;
+  const numKitStatus = data.reduce((count, item) => count + (item.gotKit ? 1 : 0), 0);
+  const numWantNameTag = data.reduce((count, item) => count + (item.wantNameTag ? 1 : 0), 0);
+
   infoData.push({
     "infoTitle": "Kits Retirados",
     "infoValue": numKitStatus,
   })
+
 
   let total = 0;
   for (const sale of allSales) {
@@ -161,6 +179,11 @@ function getInfoData(data: SemcompApiUser[], allSales: (SemcompApiSale & { usedQ
 
   infoData.push({ infoTitle: "Total", infoValue: total });
 
+  infoData.push({
+    "infoTitle": "Crachás solicitados",
+    "infoValue": numWantNameTag,
+  })
+
   return infoData;
 }
 
@@ -169,8 +192,6 @@ function UsersTable({
   pagination,
   onRowSelect,
   allData,
-  handleKitChange,
-  handleCoffeeChange,
   updateKitStatus,
   allSales,
 }: {
@@ -178,8 +199,6 @@ function UsersTable({
   pagination: PaginationRequest;
   onRowSelect: (selectedIndexes: number[]) => void;
   allData: PaginationResponse<SemcompApiUser>;
-  handleKitChange: (id: string, hasKit: boolean) => void;
-  handleCoffeeChange: (id: string, hasCoffee: boolean) => void;
   updateKitStatus: (id: string, status: boolean, index: number) => any,
   allSales?: (SemcompApiSale & { usedQuantity: number })[];
 }) {
@@ -210,7 +229,6 @@ function UsersTable({
   }
 
   const handleGotKit = async (index: number) => {
-    // caso o usuário clique em "Sim", roda essa função para mudar se o usuário retirou ou não o kit
     data.getEntities()[index].gotKit = !data.getEntities()[index].gotKit;
     const response = await updateKitStatus(data.getEntities()[index].id, data.getEntities()[index].gotKit, index);
     
@@ -348,13 +366,57 @@ function Users() {
       const response = await semcompApi.getUsers(
         new PaginationRequest(null, 1, 9999)
       );
-      exportToCsv(mapData(response.getEntities(), allSales));
+      exportToCsv(mapData(response.getEntities(), allSales, undefined, undefined, true));
     } catch (error) {
       console.error(error);
     } finally {
       setIsLoading(false);
     }
   }
+
+  async function fetchDownloadUserQrCode() {
+    try {
+      setIsLoading(true);
+      const response = await semcompApi.getUsers(new PaginationRequest(() => {}, 1, 9999));
+      const users = response.getEntities().filter(user => user.wantNameTag);
+      const zip = new jszip();
+      let content = null;
+
+      try {
+        for (const user of users) {
+            const qrCodeText = user.id;
+            const qrCodeDataUrl = await QRCode.toDataURL(qrCodeText);
+
+            const imgData = qrCodeDataUrl.replace(/^data:image\/png;base64,/, '');
+            zip.file(`${user.name}-${user.house.name}.png`, imgData, { base64: true });
+        }
+
+        // Gera o zip e envia como resposta para download
+        zip.generateAsync({ type: 'nodebuffer' }).then((content) => {
+          const url = window.URL.createObjectURL(new Blob([content]));
+
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'qrcodes.zip');
+
+          document.body.appendChild(link);
+          setTimeout(() => {
+            link.click();
+          }, 1000);
+
+          link.parentNode.removeChild(link);
+        });
+    } catch (error) {
+        console.error('Erro ao gerar QR Codes ou ZIP:', error);
+        return null;
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setIsLoading(false);
+  }
+}
+  
 
   async function updateKitStatus(id: string, status: boolean, index: number) {
     try {
@@ -407,13 +469,23 @@ function Users() {
               isLoading={isLoading}
               table={
                 <>
-                  <input
-                    type="text"
-                    placeholder="Pesquisar por nome..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="mb-4 p-2 border border-gray-300 rounded w-full"
-                  />
+                  <div className="mb-4 w-full">
+                    <TextField
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Search />
+                          </InputAdornment>
+                        ),
+                      }}
+                      type="text"
+                      placeholder="Pesquisar por nome (todos)..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="mb-4 p-2 border border-gray-300 rounded w-full"
+                    />
+                  </div>
+
                   <UsersTable
                     data={
                       new PaginationResponse<SemcompApiUser>(
@@ -424,8 +496,6 @@ function Users() {
                     pagination={pagination}
                     onRowSelect={handleSelectedIndexesChange}
                     allData={allData!}
-                    handleKitChange={() => { }}
-                    handleCoffeeChange={() => {}}
                     updateKitStatus={updateKitStatus}
                     allSales={allSales}
                   />
@@ -439,6 +509,14 @@ function Users() {
               onClick={fetchDownloadData}
             >
               Baixar Planilha
+            </button>
+            <button
+              className="w-full bg-black text-white py-3 px-6"
+              type="button"
+              style={{ height: downloadBtnHeight }}
+              onClick={fetchDownloadUserQrCode}
+            >
+              Baixar QR Codes
             </button>
           </div>
         </>

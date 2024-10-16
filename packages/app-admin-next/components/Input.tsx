@@ -26,6 +26,7 @@ export enum InputType {
   Autocomplete = "autocomplete",
   Checkbox = "checkbox",
   Text = "text",
+  TextArea = "textarea",
   Number = "number",
   Password = "password",
   File = "file",
@@ -99,7 +100,7 @@ function SelectInput({
   return (
     <FormControl className="my-3 bg-white" fullWidth>
       <InputLabel id="label">{label}</InputLabel>
-      <Select onChange={onChange} value={value} label={label} labelId="label">
+      <Select onChange={onChange} value={value} label={label} labelId="label" onClick={(e) => e.stopPropagation()}>
         {choices.map((choice) => (
           <MenuItem key={choice} value={choice}>
             {choice}
@@ -202,13 +203,13 @@ function CheckboxInput({
   value,
   disabled,
 }: {
-  onChange: (event: any) => void;
+  onChange?: (event: any) => void;
   value: boolean;
   disabled?: boolean;
 }) {
   return (
     <FormControl className="my-3 bg-transparent">
-      <Checkbox onChange={onChange} checked={value} disabled={disabled}/>
+      <Checkbox onChange={onChange} checked={value} disabled={disabled} />
     </FormControl>
   );
 }
@@ -248,6 +249,29 @@ function ImageInput({
     />
   </FormControl>;
 }
+
+function TextAreaInput({
+  label,
+  onChange,
+  value,
+}: {
+  label: string;
+  onChange: any;
+  value: string;
+}) {
+  return (
+    <FormControl className="my-3 bg-white" fullWidth>
+      <TextField
+        label={label}
+        onChange={onChange}
+        value={value}
+        multiline
+        minRows={1}
+        variant="outlined"
+      />
+    </FormControl>
+  );
+};
 
 function DateInput({
   label,
@@ -290,7 +314,7 @@ function Input({
 }: {
   label?: string;
   placeholder?: string;
-  onChange: (event: any) => void;
+  onChange?: (event: any) => void;
   value?: string | string[] | number | boolean;
   type: InputType;
   choices?: string[] | Object[];
@@ -367,6 +391,10 @@ function Input({
 
   if (type === InputType.Image) {
     input = <ImageInput label={label} onChange={onChange} value={value as string} />;
+  }
+
+  if (type === InputType.TextArea) {
+    input = <TextAreaInput label={label} onChange={onChange} value={value as string} />;
   }
 
   return (
