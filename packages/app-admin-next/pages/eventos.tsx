@@ -358,7 +358,8 @@ function Events() {
   }
 
   async function deleteEvent(row) {
-    const confirmed = window.confirm("Tem certeza de que deseja excluir '" + row.Nome + "'?");
+    if (adminRole.includes('DELETE')) {
+      const confirmed = window.confirm("Tem certeza de que deseja excluir '" + row.Nome + "'?");
       if (confirmed) {
         try {
           const deleted = await semcompApi.deleteEvent(row.ID);
@@ -368,6 +369,9 @@ function Events() {
           toast.error(`Erro ao excluir o evento <${row.Nome}>`);
         }
       }
+    } else {
+      toast.error("Você não tem permissão para excluir eventos!");
+    }
   }
 
   return (
