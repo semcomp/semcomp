@@ -15,7 +15,6 @@ function downloadFile({ data, fileName, fileType }) {
 
 export default function exportToCsv(data: any[]) {
   let headers = Object.keys(data[0]);
-  console.log(headers)
 
   let dataCsv = data.reduce((acc, row) => {
     acc.push(Object.values(row).join(','))

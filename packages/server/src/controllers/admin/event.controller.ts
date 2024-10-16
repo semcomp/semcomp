@@ -83,10 +83,8 @@ class EventController {
         filters: { email: emails },
         pagination: new PaginationRequest(1, 9999),
       });
-      console.log(users);
 
       for (const user of users.getEntities()) {
-        console.log(user.id);
         try {
           await eventService.markAttendance(eventId, user.id);
         } catch (markAttendanceError) {

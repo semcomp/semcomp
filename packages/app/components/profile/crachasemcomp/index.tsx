@@ -37,9 +37,8 @@ function ConfirmarCracha({ onRequestClose, user }) {
         ...user,
         wantNameTag: resposta,
       };
-      console.log(updatedUser)
+
       const response = await Handlers.updateUserInfo(updatedUser);
-      console.log("Resposta do crachá atualizada com sucesso:", response);
       toast.success("Resposta salva com sucesso!")
     } catch (error) {
       console.error("Erro ao atualizar a resposta do crachá:", error);

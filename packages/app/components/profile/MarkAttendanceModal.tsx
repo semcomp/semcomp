@@ -17,7 +17,6 @@ function MarkAttendanceModal({
   async function handleSubmit(eventId) {
     if (lastScannedEventId !== eventId) {
       try {
-        console.log(eventId);
         await API.events.markAttendanceByQrCode(eventId);
         toast.success('Presença cadastrada');
       } catch (error) {

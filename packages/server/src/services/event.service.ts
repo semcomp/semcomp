@@ -316,11 +316,8 @@ class EventService {
   }
 
   public async markAttendanceByQrCode(token: string, userId: string) {
-      console.log(token);
       const { eventId } = this.tokenService.decode(token);
-      console.log("ID: ", eventId);
       return await this.markAttendance(eventId, userId);
-
   }
 
   public async markAttendance(eventId: string, userId: string) {
