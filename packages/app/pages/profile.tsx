@@ -624,15 +624,24 @@ function Profile() {
                 <strong>Sua casa é...</strong>
                 <img className="w-full object-fill max-w-sm" alt="User house" src={houseImageSrc} />
                 <p className="house-name text-2xl">{userFetched.house.name}</p>
-                {/* <a
-                  className="bg-[#0088cc] text-white p-2 rounded-lg mt-2 text-center"
+                <a
+                  className={`bg-${userHouseName} text-white p-2 rounded-lg mt-2 text-center text-xs`}
                   href={userHouseTelegram}
                   target="_blank"
                   rel="noopener noreferrer"
                   >
-                  Entrar no grupo
+                  Entrar no grupo da casa 
                   <TelegramIcon />
-                </a>  */}
+                </a> 
+                <a
+                  className={`bg-${userHouseName} text-white p-2 rounded-lg mt-2 text-center text-xs `}
+                  href="https://t.me/+XszTILsnIoAyYjEx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >
+                  Entrar no grupo do Overflow 
+                  <TelegramIcon />
+                </a> 
                 <button className="text-sm mt-5 text-white hover:underline" onClick={() => setIsAboutOverflowModalOpen(true)}>
                     O que é o Overflow?
                 </button>
