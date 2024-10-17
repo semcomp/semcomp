@@ -4,6 +4,7 @@ import { body } from "express-validator";
 import authMiddleware from "../middlewares/auth.middleware";
 import GameGroupController from "../controllers/game/game-group.controller";
 import GameQuestionController from "../controllers/game/game-question.controller";
+import GameConfigController from "../controllers/game/game-config.controller";
 
 const router = Router();
 
@@ -34,5 +35,12 @@ router.get(
   [authMiddleware.authenticate, authMiddleware.isAuthenticated],
   GameQuestionController.getQuestion
 );
+
+router.get(
+  "/:game/config",
+  [authMiddleware.authenticate, authMiddleware.isAuthenticated],
+  GameConfigController.getConfig
+);
+
 
 export default router;

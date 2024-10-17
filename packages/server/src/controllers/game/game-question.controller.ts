@@ -12,7 +12,7 @@ class GameQuestionController {
       const { game, index } = req.params;
       const { user } = req;
 
-      const foundQuestion = await gameQuestionService.getCompletedQuestion(game, user.id, parseInt(index));
+      const foundQuestion = await gameQuestionService.getGroupCompletedQuestion(game, user.id, parseInt(index));
 
       return res.status(200).json(foundQuestion);
     } catch (error) {

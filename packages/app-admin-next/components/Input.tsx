@@ -44,6 +44,7 @@ function TextInput({
   autofocus,
   start,
   end,
+  disabled
 }: {
   label: string;
   placeholder?: string; // Define o tipo para placeholder
@@ -54,6 +55,7 @@ function TextInput({
   autofocus?: boolean;
   start?: ReactNode;
   end?: ReactNode;
+  disabled?: boolean
 }) {
   return (
     <>
@@ -81,6 +83,7 @@ function TextInput({
           startAdornment: start,
           endAdornment: end,
         }}
+        disabled={disabled}
       />
     </>
   );
@@ -338,11 +341,12 @@ function Input({
       autofocus={autofocus}
       start={start}
       end={end}
+      disabled={disabled}
     />
   );
 
   if (type === InputType.Checkbox) {
-    input = <CheckboxInput onChange={onChange} disabled={disabled} value={value as boolean} />;
+    input = <CheckboxInput onChange={onChange}  value={value as boolean} />;
   }
 
   if (type === InputType.Select) {

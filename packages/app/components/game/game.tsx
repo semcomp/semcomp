@@ -10,6 +10,8 @@ import API from "../../api";
 import Spinner from "../spinner";
 import GameConfig from "../../libs/game-config";
 import End from "./end";
+import { Button } from "@mui/material";
+import LoadingButton from "../loading-button";
 
 const styles = {
   root: "w-full h-full flex justify-center text-center",
@@ -20,8 +22,8 @@ const styles = {
   toolbar: "flex justify-center items-center",
 
   questionRoot:
-    "w-full bg-white shadow p-4 rounded-lg text-justify flex flex-col items-center",
-  questionForm: "flex items-end mt-4 w-full",
+    "w-full backdrop-brightness-95 backdrop-blur rounded-lg shadow p-4 rounded-lg text-justify flex flex-col items-center font-secondary",
+  questionForm: "flex flex-col items-end mt-4 w-full",
   questionButton: "",
 };
 
@@ -51,6 +53,7 @@ function Question({
       setIsFetchingQuestion(true);
       setInputValue("");
       try {
+        console.log(gameConfig.getEventPrefix(), questionIndex);
         const { data: question } = await API.game.getQuestion(
           gameConfig.getEventPrefix(),
           questionIndex + 1
@@ -66,7 +69,7 @@ function Question({
     fetchQuestion();
   }, [questionIndex]);
 
-  async function submit(event) {
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
     if (isSubmitting) return;
     event.preventDefault();
 
@@ -135,7 +138,15 @@ function Question({
             disabled={wasCorrectlyAnswered}
             value={question.answer || inputValue}
             InputProps={{ startAdornment: renderTextFieldAdornment() }}
+            style={{backgroundColor: "white", borderRadius: "0.5rem"}}
           />
+          <LoadingButton
+          isLoading={isSubmitting}
+          className="w-full text-white py-3 px-6 bg-primary rounded-lg my-6"
+          type="submit"
+        >
+         Enviar!
+        </LoadingButton>
         </form>
       </>
     );
@@ -149,20 +160,20 @@ export default function Game({
 }: {
   team: any, setTeam: any, socket: any, token: string, gameConfig: GameConfig
 }) {
-  if (!team) {
-    return <></>;
-  }
-
+  
   const completedQuestions = team.completedQuestions;
+  console.log(completedQuestions);
 
   return (
     <div className={styles.root}>
       <div className={styles.container}>
         <>
-        {   
-            completedQuestions.length >= gameConfig.getNumberOfQuestions() ?
-              <End gameConfig={gameConfig}/>
-            : gameConfig.verifyIfIsHappening()  ?
+        {  
+            gameConfig &&
+            // completedQuestions.length >= gameConfig.getNumberOfQuestions() ?
+            //   <End gameConfig={gameConfig}/>
+            // : 
+            gameConfig.verifyIfIsHappening() ?
             <Question
               setTeam={setTeam}
               socket={socket}
