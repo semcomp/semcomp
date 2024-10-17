@@ -70,7 +70,6 @@ export default function GamePage({children}) {
       const result = await API.game.getConfig(game as string);
       
       if(result.data){
-        // Mapeia o resultado da API na classe GameConfig
         const gameConfigInstance = new GameConfig(result.data);
         setGameConfig(gameConfigInstance);  // Agora você passa a instância da classe
       }
