@@ -229,7 +229,7 @@ const EventsCalendar = (props) => {
                     </div>
                   }
 
-                  <p className="text-left">{event.description}</p>
+                  <p className="text-left whitespace-pre-line">{event.description}</p>
 
 
                   {event.type === "Contest" && event.isSubscribed && (
