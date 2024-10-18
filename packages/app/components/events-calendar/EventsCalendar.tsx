@@ -210,7 +210,7 @@ const EventsCalendar = (props) => {
                   }
                   className={`${isMobile ? "hidden-icon" : ""} font-secondary`}
                 >
-                  <div onClick={() => toggleExpandEvent(index)}>
+                  <div onClick={() => toggleExpandEvent(index)} className="cursor-pointer">
                     <div className="flex flex-row align-left justify-left w-full">
                       <h4 className="text-purple-500 text-left pr-2 whitespace-nowrap">
                           {event.type + " |"}

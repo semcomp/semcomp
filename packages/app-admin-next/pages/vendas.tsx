@@ -25,6 +25,7 @@ type SalesData = {
   "Tem camisa": ReactNode,
   "Tem kit": ReactNode,
   "Tem coffee": ReactNode,
+  "Permite meia": ReactNode,
   "Criado em": string,
   "Editado em": string,
   "Preço": number,
@@ -57,6 +58,7 @@ function SalesTable({
       "Tem camisa": <Input onChange={() => {}} disabled={true} value={product.hasTShirt} type={InputType.Checkbox}></Input>,
       "Tem kit": <Input onChange={() => {}} disabled={true} value={product.hasKit} type={InputType.Checkbox}></Input>,
       "Tem coffee": <Input onChange={() => {}} disabled={true} value={product.hasCoffee} type={InputType.Checkbox}></Input>,
+      "Permite meia": <Input onChange={() => {}} disabled={true} value={product.allowHalfPayment} type={InputType.Checkbox}></Input>,
       "Criado em": util.formatDate(product.createdAt),
       "Editado em": util.formatDate(product.updatedAt),
     })
@@ -116,6 +118,7 @@ function Sales() {
       hasKit: sales[index].hasKit,
       hasCoffee: sales[index].hasCoffee,
       quantity: sales[index].quantity,
+      allowHalfPayment: sales[index].allowHalfPayment,
       price: sales[index].price,
   });
     setIsEditModalOpen(true);
@@ -136,6 +139,7 @@ function Sales() {
       hasTShirt: false,
       hasKit: false,
       hasCoffee: false,
+      allowHalfPayment: false,
       quantity: 0,
       price: 0,
     });

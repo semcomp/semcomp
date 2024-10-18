@@ -142,6 +142,7 @@ export type SemcompApiSale = {
   hasKit: boolean;
   hasCoffee: boolean;
   items: string[];
+  allowHalfPayment: boolean;
   createdAt: number;
   updatedAt: number;
 }

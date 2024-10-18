@@ -80,12 +80,13 @@ function CreateSaleModal({
       hasTShirt: false,
       hasKit: false,
       hasCoffee: false,
+      allowHalfPayment: false,
       items: [],
       price: 0
     };
 
     if (data.type === SaleType.ITEM) {
-      newData = { ...data, items: items, type: type, quantity: quantity };
+      newData = { ...data, items: items, type: type, quantity: quantity, allowHalfPayment: false };
     } else {
       newData = { 
         ...data,

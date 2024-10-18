@@ -35,21 +35,15 @@ const foodOptions = Object.values(FoodOption);
 function CoffeeStep2({
   data,
   setData,
+  showHandleSocialBenefit,
+  showTshirtChoices,
 }: {
   data: CoffeePaymentData;
   setData: any;
-  }) {
+  showHandleSocialBenefit: boolean;
+  showTshirtChoices: boolean;
+}) {
   const [tShirtChoices, setTShirtChoices] = useState<string[]>([]);
-  const [hasTShirt, setHasTshirt] = useState(false);
-
-  useEffect(() => {
-    for (const sale of data.sale) {
-      if (sale.hasTShirt) {
-        setHasTshirt(true);
-        break;
-      }
-    }
-  }, []);
 
   function handleWithSocialBenefitChange(
     event: React.ChangeEvent<HTMLInputElement>
@@ -97,13 +91,15 @@ function CoffeeStep2({
 
   return (
     <div className="my-6">
-      <Input
-        className="my-3"
-        label="Entrada social?"
-        onChange={handleWithSocialBenefitChange}
-        value={data.withSocialBenefit}
-        type={InputType.Checkbox}
-      />
+      {showHandleSocialBenefit &&
+        <Input
+          className="my-3"
+          label="Entrada social?"
+          onChange={handleWithSocialBenefitChange}
+          value={data.withSocialBenefit}
+          type={InputType.Checkbox}
+        />
+      }
       {data.withSocialBenefit && (
         // <Input
         //   className="my-3"
@@ -117,8 +113,7 @@ function CoffeeStep2({
           type={InputType.File}
         />
       )}
-      {}
-      { (hasTShirt) && (
+      {showTshirtChoices && (
         <>
             <Input
             className="my-3  font-secondary"
