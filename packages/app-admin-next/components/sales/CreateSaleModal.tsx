@@ -42,6 +42,7 @@ function CreateSaleModal({
     let hasKit = false;
     let hasTShirt = false;
     let hasCoffee = false;
+    let allowHalfPayment = false;
 
     if (data.type === SaleType.ITEM) {
       data.items = [];
@@ -65,6 +66,8 @@ function CreateSaleModal({
           quantity = item.quantity;
         }
       });
+
+      allowHalfPayment = data.allowHalfPayment;
     }
 
     const type = Object.entries(SaleType).find(([_, val]) => val === data.type)[0];
@@ -81,6 +84,7 @@ function CreateSaleModal({
       hasTShirt: false,
       hasKit: false,
       hasCoffee: false,
+      allowHalfPayment: allowHalfPayment,
       items: [],
       price: 0
     };

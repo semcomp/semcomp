@@ -1,10 +1,6 @@
 import React from "react"
-import { toast } from "react-toastify";
-
-import ProductsItems from "../../libs/constants/products-items-enum";
 
 import { SaleType } from "../../models/SemcompApiModels";
-
 import Input, { InputType } from "../Input";
 
 export type SaleFormData = {
@@ -15,6 +11,7 @@ export type SaleFormData = {
   hasTShirt: boolean;
   hasKit: boolean;
   hasCoffee: boolean;
+  allowHalfPayment: boolean;
   items: string[];
   price: number;
 };
@@ -66,6 +63,11 @@ function SaleForm({
     setData({...data, hasCoffee: value});
   }
 
+  function handleAllowHalfPaymentChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.checked;
+    setData({...data, allowHalfPayment: value});
+  }
+
   return (
     <>
       <Input
@@ -101,6 +103,14 @@ function SaleForm({
             value={data.price}
             onChange={handlePriceChange}
             type={InputType.Number}
+          />
+
+          <Input
+            className="my-3"
+            label="Permitir pagamento de meia com apresentação do auxílio?"
+            value={data.allowHalfPayment}
+            onChange={handleAllowHalfPaymentChange}
+            type={InputType.Checkbox}
           />
         </>
       )}

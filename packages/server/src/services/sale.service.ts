@@ -210,6 +210,7 @@ class SaleService {
       hasKit: entity.hasKit,
       hasCoffee: entity.hasCoffee,
       price: entity.price,
+      allowHalfPayment: entity.allowHalfPayment,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };
