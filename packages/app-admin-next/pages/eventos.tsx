@@ -19,6 +19,7 @@ import util from "../libs/util";
 import exportToCsv from "../libs/DownloadCsv";
 import { CircularProgress } from "@mui/material";
 import EventType from "../libs/constants/event-types-enum";
+import Spinner from "../components/reusable/Spinner";
 
 type EventData = {
   ID: string;
@@ -117,6 +118,7 @@ function Events() {
   const [selectedCoffeeItem, setSelectedCoffeeItem] = useState("");
   const [selectedCoffeeItemId, setSelectedCoffeeItemId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [downloadAttendances, setDownloadAttendances] = useState(false);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -170,13 +172,14 @@ function Events() {
   async function fetchDownloadData() {
     try {
       setIsLoading(true);
+      setDownloadAttendances(true);
       const response = await semcompApi.getAllAttendance();
-      console.log(response);
       exportToCsv(mapData(response));
     } catch (error) {
       console.error(error);
     } finally {
       setIsLoading(false);
+      setDownloadAttendances(false);
     }
   }
 
@@ -383,8 +386,8 @@ function Events() {
         <EditEventModal
           initialValue={selectedData}
           onRequestClose={() => {
-            fetchData();
-            setIsEditModalOpen(false);
+          fetchData();
+          setIsEditModalOpen(false);
           }}
         />
       )}
@@ -392,54 +395,59 @@ function Events() {
         <MarkAttendanceModal
           data={selectedData}
           onRequestClose={() => {
-            setIsMarkAttendanceModalOpen(false);
+          setIsMarkAttendanceModalOpen(false);
           }}
           //So passa coffeeItemId se selectedCoffeeItem existir, ou seja, evento do tipo coffee
           {...(selectedCoffeeItemId !== ""? { coffeeItemId: selectedCoffeeItemId }: {})}
         />
       )}
-      {!isLoading && (
-        <DataPage
-          title="Eventos"
-          isLoading={isLoading}
-          buttons={
-              (
+      {downloadAttendances && (
+        <div className="fixed inset-0 flex items-center justify-center">
+          <Spinner size="large"/>
+        </div>
+      )}
+      {!isLoading && !downloadAttendances && (
+        <>
+          <DataPage
+            title="Eventos"
+            isLoading={isLoading}
+            buttons={(
               <>
               { selectedIndexes && selectedIndexes.length > 0 &&
-                  ( <>
-                    <button
-                      className="bg-black text-white py-3 px-6 mx-2"
-                      style={{ height: btnHeight }}
-                      type="button"
-                      onClick={() => updateEvent(true, "schedule")}
-                    >
-                      Exibir no cronograma
-                    </button>
-                    <button
-                      className="bg-black text-white py-3 px-6 mx-2"
-                      style={{ height: btnHeight }}
-                      type="button"
-                      onClick={() => updateEvent(false, "schedule")}
-                    >
-                      Remover do cronograma
-                    </button> 
-                    <button
-                      className="bg-black text-white py-3 px-6 mx-2"
-                      style={{ height: btnHeight }}
-                      type="button"
-                      onClick={() => updateEvent(true, "subscribables")}
-                    >
-                      Exibir na lista de inscrições
-                    </button>
-                   <button
-                      className="bg-black text-white py-3 px-6 mx-2"
-                      style={{ height: btnHeight }}
-                      type="button"
-                      onClick={() => updateEvent(false, "subscribables")}
-                    >
+                ( <>
+                  <button
+                    className="bg-black text-white py-3 px-6 mx-2"
+                    style={{ height: btnHeight }}
+                    type="button"
+                    onClick={() => updateEvent(true, "schedule")}
+                  >
+                    Exibir no cronograma
+                  </button>
+                  <button
+                    className="bg-black text-white py-3 px-6 mx-2"
+                    style={{ height: btnHeight }}
+                    type="button"
+                    onClick={() => updateEvent(false, "schedule")}
+                  >
+                    Remover do cronograma
+                  </button> 
+                  <button
+                    className="bg-black text-white py-3 px-6 mx-2"
+                    style={{ height: btnHeight }}
+                    type="button"
+                    onClick={() => updateEvent(true, "subscribables")}
+                  >
+                    Exibir na lista de inscrições
+                  </button>
+                  <button
+                    className="bg-black text-white py-3 px-6 mx-2"
+                    style={{ height: btnHeight }}
+                    type="button"
+                    onClick={() => updateEvent(false, "subscribables")}
+                  >
                       Remover da lista de inscrições
-                    </button>
-                  </> )
+                  </button>
+                </> )
                 }
                 <button
                   className="bg-black text-white py-3 px-6 mx-2"
@@ -450,35 +458,36 @@ function Events() {
                   Criar
                 </button>
               </>
-            )
-          }
-          table={
-            <EventsTable
-              data={data}
-              pagination={pagination}
-              onRowClick={handleRowClick}
-              onRowSelect={handleSelectedIndexesChange}
-              onMoreInfoClick={handleMoreInfoClick}
-              moreInfoContainer={
-                <MoreInfoContent 
+              )
+            }
+            table={
+              <EventsTable
+                data={data}
+                pagination={pagination}
+                onRowClick={handleRowClick}
+                onRowSelect={handleSelectedIndexesChange}
+                onMoreInfoClick={handleMoreInfoClick}
+                moreInfoContainer={
+                  <MoreInfoContent 
                   selectedData={selectedData}
-                />
-              }
-              ref={eventTableRef}
-              deleteEvent={deleteEvent}
-            />
-          }
-        ></DataPage>
+                  />
+                }
+                ref={eventTableRef}
+                deleteEvent={deleteEvent}
+              />
+            }
+          />
+        
+          <button
+            className="w-full bg-black text-white py-3 px-6"
+            type="button"
+            style={{ height: '48px' }}
+            onClick={fetchDownloadData}
+          >
+            Baixar Planilha de Presenças
+          </button>
+        </>
       )}
-
-      <button
-        className="w-full bg-black text-white py-3 px-6"
-        type="button"
-        style={{ height: '48px' }}
-        onClick={fetchDownloadData}
-      >
-        Baixar Planilha de Presenças
-      </button>
     </>
   );
 }

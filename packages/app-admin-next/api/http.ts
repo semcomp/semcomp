@@ -17,7 +17,7 @@ class Http {
   ) {
     this.instance = axios.create({
       baseURL: url,
-      timeout: 5000,
+      timeout: 20000,
     });
     this.token = token;
     this.callbackOnTokenRefresh = callbackOnTokenRefresh;
