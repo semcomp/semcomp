@@ -292,7 +292,7 @@ function Events() {
           />
           {
             isCoffeeLoading ? 
-              <div className={`${isMobile ? "py-5 w-6/12" : "px-5 w-8/12"}`} style={{height: "55px"}} >
+              <div className={`flex justify-center items-center ${isMobile ? "py-5 w-6/12" : "px-5 w-8/12"}`} style={{height: "55px"}} >
                 <CircularProgress size="2rem"/>
               </div>
               :
@@ -306,20 +306,6 @@ function Events() {
                     onChange={handleSelectChange}
                     value={selectedCoffeeItem}
                   />
-                  {/* <select 
-                    id="coffee-select" 
-                    onChange={handleSelectChange} 
-                    value={selectedCoffeeItem}
-                    onClick={(e)=> {e.stopPropagation()}}
-                    className="w-52 h-8 text-base border-2 border-black rounded-md"
-                  >
-                    <option value="">--Qual Coffee é?--</option>
-                    {coffeeOptions.map((coffee) => (
-                      <option key={coffee.id} value={coffee.id}>
-                        {coffee.name}
-                      </option>
-                    ))}
-                  </select> */}
                 </div>
               )
           }
