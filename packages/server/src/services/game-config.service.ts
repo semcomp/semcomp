@@ -84,6 +84,7 @@ class GameConfigService {
     return {
       id: entity.id,
       game: entity.game,
+      title: entity.title,
       description: entity.description,
       rules: entity.rules,
       eventPrefix: entity.eventPrefix,

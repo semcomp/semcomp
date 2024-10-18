@@ -89,7 +89,8 @@ class GameQuestionService {
     return entity && this.mapEntity(entity);
   }
 
-  public async getCompletedQuestion(game: string, userId: string, questionIndex: number) {
+  public async getGroupCompletedQuestion(game: string, userId: string, questionIndex: number) {
+    
     const group = await gameGroupService.findUserGroup(userId);
     if (!group) {
       throw new HttpError(400, []);
@@ -98,6 +99,7 @@ class GameQuestionService {
     const gameGroupCompletedQuestions = await gameGroupCompletedQuestionService.find({
       gameGroupId: group.id,
     });
+
     const completedQuestions = await this.find({
       pagination: new PaginationRequest(1, 9999),
       filters: {

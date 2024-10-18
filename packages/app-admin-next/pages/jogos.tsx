@@ -14,10 +14,12 @@ import CreateGameConfigModal from '../components/games/CreateGameConfigModal';
 import { GameConfigFormData } from '../components/games/GameConfigForm';
 import { SemcompApiGameConfig } from '../models/SemcompApiModels';
 import { PaginationRequest, PaginationResponse } from '../models/Pagination';
+import GameTitle from '../libs/constants/game-title-enum';
 
 type GameConfigData = {
   "ID": string,
   "Jogo": string,
+  "Titulo": string,
   "Descrição": string,
   "Regras": string,
   "Data de início": string,
@@ -57,6 +59,7 @@ function GameConfigTable({
     newData.push({
       "ID": game.id,
       "Jogo": game.game,
+      "Titulo": game.title,
       "Descrição": description,
       "Regras": rules,
       "Data de início": util.formatDate(game.startDate),
@@ -86,6 +89,7 @@ function GameConfigs() {
   const [formData, setFormData] = useState({
     id: null,
     game: Game.HARD_TO_CLICK,
+    title: GameTitle.HARD_TO_CLICK,
     description: "",
     rules: "",
     startDate: Date.now(),
@@ -116,6 +120,7 @@ function GameConfigs() {
     setFormData({
       id: games[index].id,
       game: games[index].game,
+      title: games[index].title,
       description: games[index].description,
       rules: games[index].rules,
       startDate: games[index].startDate,
@@ -135,6 +140,7 @@ function GameConfigs() {
     setFormData({
       id: null,
       game: Game.HARD_TO_CLICK,
+      title: GameTitle.HARD_TO_CLICK,
       description: "",
       rules: "",
       eventPrefix: "",

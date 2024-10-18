@@ -50,6 +50,7 @@ const Handlers = {
     useClue: (game) => API.post(`/game/${game}/group/use-clue`),
     useSkip: (game) => API.post(`/game/${game}/group/use-skip`),
     getQuestion: (game, questionIndex) => API.get(`/game/${game}/question/${questionIndex}`),
+    getConfig: (game) => API.get(`/game/${game}/config`)
   },
   achievements: {
     getAchievements: withNoErrorMessage(() => API.get("/achievements")),

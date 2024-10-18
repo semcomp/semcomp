@@ -12,13 +12,26 @@ import Footer from '../../../components/Footer';
 import { baseURL } from "../../../constants/api-url";
 import { useAppContext } from "../../../libs/contextLib";
 import CreateGroup from '../../../components/game/create-group';
+import API from "../../../api";
 
 export default function GamePage({children}) {
   const router = useRouter();
 
-  const { game } = router.query;
-
-  const gameConfig = new GameConfig(game as string);
+  const [gameConfig, setGameConfig] = useState(null);
+  const { game } =  router.query;
+  async function fetchGameConfig() {
+    try {
+      const result = await API.game.getConfig(game as string);
+      
+      if(result.data){
+        const gameConfigInstance = new GameConfig(result.data);
+        setGameConfig(gameConfigInstance);  // Agora você passa a instância da classe
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+    }
+  }
 
   const [isFetchingTeam, setIsFetchingTeam] = useState(true);
   const [team, setTeam] = useState(null);

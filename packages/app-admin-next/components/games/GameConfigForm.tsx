@@ -2,10 +2,12 @@ import React from "react"
 
 import Input, { InputType } from "../Input";
 import Game from "../../libs/constants/game-enum";
+import GameTitle from "../../libs/constants/game-title-enum";
 
 export type GameConfigFormData = {
     id?: string;
     game: string;
+    title: string;  
     description: string;
     rules: string;
     eventPrefix: string;
@@ -23,9 +25,23 @@ function GameConfigForm({
   setData: (data: GameConfigFormData) => void;
 }) {
   function handleGameChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const selectedGame = event.target.value;
+
+    // Obtendo o título correspondente ao jogo selecionado
+    const newTitle = GameTitle[selectedGame.replaceAll("-", "_").toUpperCase() as keyof typeof GameTitle] || "";
+    console.log(selectedGame.replaceAll("-", "_").toUpperCase())
+
+    setData({
+      ...data,
+      game: selectedGame,
+      title: newTitle,  
+    });
+  }
+
+  function handleGameTitleChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
-    setData({...data, game: value});
-    }
+    setData({...data, title: value});
+  }
 
   function handleDescriptionChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
@@ -64,6 +80,13 @@ function GameConfigForm({
         onChange={handleGameChange}
         choices={Object.values(Game)}
         type={InputType.Select}
+      />
+       <Input
+        className="my-3"
+        value={data.title}
+        onChange={handleGameTitleChange}
+        type={InputType.Text}
+        disabled
       />
       <Input
         className="my-3"

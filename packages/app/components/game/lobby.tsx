@@ -126,9 +126,9 @@ function Countdown({ team, gameConfig, onSubmit }: {gameConfig: GameConfig, team
     return () => clearInterval(handler);
   }, [targetMilliseconds]);
 
-  if (team && team.completedQuestions.length === 80) {
-    return <div>Riddle já completo</div>;
-  }
+  useEffect(() => {
+    if(team) console.log(team);
+  }, [team]);
   
   return (
     <div className="countdown-component">
@@ -147,7 +147,7 @@ function Countdown({ team, gameConfig, onSubmit }: {gameConfig: GameConfig, team
       )
       : (
         <>
-          <div>{gameConfig.getName()} já disponível!</div>
+          <div className="py-4">{gameConfig.getName()} já disponível!</div>
           <Button
             variant="contained"
             onClick={onSubmit}
@@ -178,9 +178,6 @@ function Lobby({
 
   function createInviteLink() {
     return (
-      // window.location.origin +
-      // gameConfig.getRoutes()[GameRoutes.LINK] +
-      // "?teamid=" +
       team.id
     );
   }
@@ -200,90 +197,107 @@ function Lobby({
 
     const { token } = useAppContext();
 
-
-
-    function createTeam(){
+    function enterGame(){
+        console.log(team);
         if (!team) {
             // Criar o time quando não houver um
             //Verificar se a pessoa já está em um
+
             const name = me.email;
+            
             socket.emit(`${gameConfig.getEventPrefix()}-create-group`, { token, name });
             socket.on(`${gameConfig.getEventPrefix()}-group-info`, (info)=> {
                 setTeam(info)
             });
         }
+
         router.push(gameConfig.getRoutes()[GameRoutes.PLAY]);
     }
 
-      return (
-        <div className="w-full flex justify-center items-center">
-            <div className="w-[1200px]">{gameConfig.getDescription()}
-            <Countdown
-            gameConfig={gameConfig}
-            team={team}
-            onSubmit={createTeam}
-        />
+    return (
+        <div className="w-full flex flex-col justify-center items-center p-6 select-none">
+            <div className="w-full text-center">
+              <h1 className="font-primary text-6xl">{gameConfig.getTitle()}</h1>
             </div>
-        
-        </div>
-      );
-//   if (!team)
-//     return (
-//       <div>
-//         {/* Você ainda não está numa equipe. Crie uma equipe para jogar. Caso você queira entrar em um grupo já existente peça para o criador do grupo enviar o link do grupo para você.
-//         <div className="flex w-full justify-center mt-4">
-//           <Button
-//             onClick={goToCreateTeam}
-//             style={{
-//               backgroundColor: "#045079",
-//               color: "white",
-//               margin: "0 8px",
-//             }}
-//             variant="contained"
-//           >
-//             Criar
-//           </Button>
-//           <Button
-//             onClick={goToJoinTeam}
-//             style={{
-//               backgroundColor: "#045079",
-//               color: "white",
-//               margin: "0 8px",
-//             }}
-//             variant="contained"
-//           >
-//             Entrar
-//           </Button>
-//         </div> */}
-//       </div>
-//     );
+            <div className="w-full font-secondary whitespace-pre-wrap">
+              <div className="text-center mb-6">
+                {gameConfig.getDescription()}
+              </div>
+              <h2 className="w-full text-center font-bold">Como Jogar</h2>
+              <div className="flex felx-row items-center justify-center h-fit w-full text-left mb-6">
+                <div>
+                  {gameConfig.getRules()}
+                </div>
+              </div>
+              {
+                gameConfig.hasGroups() ?
+                !team ?
+                <div>
+                  Você ainda não está numa equipe. Crie uma equipe para jogar. Caso você queira entrar em um grupo já existente peça para o criador do grupo enviar o link do grupo para você.
+                  <div className="flex w-full justify-center mt-4">
+                    <Button
+                      onClick={goToCreateTeam}
+                      style={{
+                        backgroundColor: "#045079",
+                        color: "white",
+                        margin: "0 8px",
+                      }}
+                      variant="contained"
+                    >
+                      Criar
+                    </Button>
+                    <Button
+                      onClick={goToJoinTeam}
+                      style={{
+                        backgroundColor: "#045079",
+                        color: "white",
+                        margin: "0 8px",
+                      }}
+                      variant="contained"
+                    >
+                      Entrar
+                    </Button>
+                  </div>
+                </div>
+                :
+                  <div>
+                     Sua equipe:
+                     <div style={{ height: 144 }} className={styles.teammatesContainer}>
+                       {renderTeammates()}
+                     </div>
+                     <div>
+                       {canAddTeammates() ? (
+                         <div className="mb-8">
+                           Envie este id para adicionar mais pessoas à sua equipe. (máximo de
+                           até {gameConfig.getMaximumNumberOfMembersInGroup()} membros)
+                           <CopyableLink text={createInviteLink()} />
+                         </div>
+                       ) : (
+                         <div className="mb-8">
+                           Sua equipe já atingiu o máximo de {gameConfig.getMaximumNumberOfMembersInGroup()} membros
+                         </div>
+                       )}
+                     </div>
+                     <Countdown
+                       gameConfig={gameConfig}
+                       team={team}
+                       onSubmit={goToGame}
+                     />
+                   </div>
+                :
+                <Countdown
+                gameConfig={gameConfig}
+                team={team}
+                onSubmit={enterGame}
+                />
 
-//   return (
-//     <div>
-//       Sua equipe:
-//       <div style={{ height: 144 }} className={styles.teammatesContainer}>
-//         {renderTeammates()}
-//       </div>
-//       <div>
-//         {canAddTeammates() ? (
-//           <div className="mb-8">
-//             Envie este id para adicionar mais pessoas à sua equipe. (máximo de
-//             até {gameConfig.getMaximumNumberOfMembersInGroup()} membros)
-//             <CopyableLink text={createInviteLink()} />
-//           </div>
-//         ) : (
-//           <div className="mb-8">
-//             Sua equipe já atingiu o máximo de {gameConfig.getMaximumNumberOfMembersInGroup()} membros
-//           </div>
-//         )}
-//       </div>
-//       <Countdown
-//         gameConfig={gameConfig}
-//         team={team}
-//         onSubmit={goToGame}
-//       />
-//     </div>
-//   );
+              }
+            </div>
+        </div>
+    );
+
+  // return (
+  //   
 }
 
 export default Lobby;

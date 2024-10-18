@@ -5,6 +5,7 @@ import Game from "../lib/constants/game-enum";
 type GameConfig = {
     id?: string;
     game: Game;
+    title: string;
     description: string;
     rules: string;
     eventPrefix: string;
@@ -28,6 +29,10 @@ const GameConfigSchema = new Mongoose.Schema(
     },
     game: {
       type: Game,
+      required: true,
+    },
+    title: {
+      type: String,
       required: true,
     },
     description: {

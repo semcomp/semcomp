@@ -1,14 +1,30 @@
 import { Button, TextField } from "@mui/material";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
 import GameConfig, { GameRoutes } from "../../libs/game-config";
+import API from "../../api";
 
 function JoinTeam() {
 
   const teamIdRef: any = useRef();
   const router = useRouter();
   
+  const [gameConfig, setGameConfig] = useState(null);
+  const { game } =  router.query;
+  async function fetchGameConfig() {
+    try {
+      const result = await API.game.getConfig(game as string);
+      
+      if(result.data){
+        const gameConfigInstance = new GameConfig(result.data);
+        setGameConfig(gameConfigInstance);  // Agora você passa a instância da classe
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+    }
+  }
   
   async function submit(event) {
     event.preventDefault();
@@ -16,9 +32,7 @@ function JoinTeam() {
     const teamid = teamIdRef.current.value.trim();
     
     if (!teamid) return toast.error("Você deve fornecer um id não vazio");
-    
-    const { game } =  router.query;
-    const gameConfig = new GameConfig(game as string);
+  
     router.push(gameConfig.getRoutes()[GameRoutes.LINK] + '?teamid=' + teamid);
   }
 

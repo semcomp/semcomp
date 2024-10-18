@@ -1,4 +1,5 @@
-import Game, { HARD_TO_CLICK, RIDDLE, RIDDLETHON } from "./constants/games";
+import Game from "./constants/games";
+import API from "../api";
 
 export enum GameRoutes {
   BASE = "base",
@@ -14,34 +15,28 @@ export enum GameRoutes {
 
 export default class GameConfig {
   private game: Game;
+  private numberOfQuestions: number;
 
-  constructor(gameSlug: string) {
-    // if (gameSlug === HARD_TO_CLICK.slug) {
-      this.game = RIDDLE;
-      return;
-    // }
-    // if (gameSlug === RIDDLETHON.slug) {
-    //   this.game = RIDDLETHON;
-    //   return;
-    // }
-    // if (gameSlug === RIDDLE.slug) {
-    //   this.game = RIDDLE;
-    //   return;
-    // }
-
-    // throw Error('Jogo não existente');
+  constructor(game: Game) {
+    this.game = game;
+    this.game.startDate = new Date(game.startDate)
+    this.game.endDate = new Date(game.endDate)
   }
 
   public getName(): string {
-    return this.game.name;
+    return this.game.game;
   }
 
-  public getDescription(): JSX.Element {
+  public getTitle(): string {
+    return this.game.title;
+  }
+
+  public getDescription(): string {
     return this.game.description;
   }
 
-  public getSlug(): string {
-    return this.game.slug;
+  public getRules(): string {
+    return this.game.rules;
   }
 
   public getEventPrefix(): string {
@@ -56,8 +51,8 @@ export default class GameConfig {
     return this.game.endDate;
   }
 
-  public getNumberOfQuestions(): number {
-    return this.game.numberOfQuestions;
+  public hasGroups(): Boolean {
+    return this.game.hasGroups;
   }
 
   public getMaximumNumberOfMembersInGroup(): number {
@@ -72,15 +67,15 @@ export default class GameConfig {
 
   public getRoutes(): { [key: string]: string } {
     return {
-      [GameRoutes.BASE]: `/game/${this.game.slug}`,
-      [GameRoutes.PLAY]: `/game/${this.game.slug}/play`,
-      [GameRoutes.LOBBY]: `/game/${this.game.slug}/lobby`,
-      [GameRoutes.START]: `/game/${this.game.slug}/start`,
-      [GameRoutes.JOIN_TEAM]: `/game/${this.game.slug}/join-team`,
-      [GameRoutes.CREATE_TEAM]: `/game/${this.game.slug}/create-team`,
-      [GameRoutes.LINK]: `/game/${this.game.slug}/link`,
-      [GameRoutes.GAME]: `/game/${this.game.slug}/game`,
-      [GameRoutes.GAME_OVER]: `/game/${this.game.slug}/game-over`,
+      [GameRoutes.BASE]: `/game/${this.getName()}`,
+      [GameRoutes.PLAY]: `/game/${this.getName()}/play`,
+      [GameRoutes.LOBBY]: `/game/${this.getName()}/lobby`,
+      [GameRoutes.START]: `/game/${this.getName()}/start`,
+      [GameRoutes.JOIN_TEAM]: `/game/${this.getName()}/join-team`,
+      [GameRoutes.CREATE_TEAM]: `/game/${this.getName()}/create-team`,
+      [GameRoutes.LINK]: `/game/${this.getName()}/link`,
+      [GameRoutes.GAME]: `/game/${this.getName()}/game`,
+      [GameRoutes.GAME_OVER]: `/game/${this.getName()}/game-over`,
     };
   }
 }
