@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { body } from "express-validator";
+import { body, param } from "express-validator";
 
 import authMiddleware from "../middlewares/auth.middleware";
 import UserController from "../controllers/user.controller";
@@ -15,6 +15,15 @@ router.put(
     authMiddleware.isAuthenticated,
   ],
   UserController.update
+);
+
+router.get(
+  "/get-attendance",
+  [
+    authMiddleware.authenticate,
+    authMiddleware.isAuthenticated,
+  ],
+  UserController.getAttendance
 );
 
 export default router;

@@ -1,5 +1,5 @@
 import userService from "../services/user.service";
-
+import attendanceService from "../services/attendance.service";
 import { handleValidationResult } from "../lib/handle-validation-result";
 import { handleError } from "../lib/handle-error";
 import User from "../models/user";
@@ -36,6 +36,17 @@ class UserController {
       const userHouse = await userService.getUserHouse(req.user.id);
 
       return res.status(200).json(UserController.mapUserResponse(editedUser, userHouse));
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
+  public async getAttendance(req, res, next) {
+    try {
+      handleValidationResult(req);
+      
+      const userAttendances = await attendanceService.findByUserId(req.user.id);
+      return res.status(200).send(userAttendances);
     } catch (error) {
       return handleError(error, next);
     }

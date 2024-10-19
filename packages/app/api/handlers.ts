@@ -41,6 +41,9 @@ const Handlers = {
     markAttendance: withNoErrorMessage((eventId: string) => API.get(`/events/${eventId}`)),
     markAttendanceByQrCode: withNoErrorMessage((token: string) => API.post(`/events/mark-attendance`, { token })),
   },
+  user: {
+    getAllAtendancesByUser: withNoErrorMessage(() => API.get(`/users/get-attendance`)),
+  },
   game: {
     joinTeam: withCustomError(
       (game, teamId) => API.put(`/game/${game}/group/join?id=${teamId}`),
