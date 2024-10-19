@@ -237,7 +237,6 @@ class UserServiceImpl implements UserService {
     // Para cada usuário, calcular a porcentagem de horas de eventos que ele participou
     // as Horas serão o total de horas em TOODS os eventos que participou (palestras, minicursos, etc)
     // a porcentagem contará apenas os eventos do tipo palestra e roda
-
     const users = await this.find({ pagination: new PaginationRequest(1, 9999) });
 
     // pegando quase todos os eventos (menos coffee)
@@ -266,6 +265,7 @@ class UserServiceImpl implements UserService {
       0,
     );
 
+    const allAttendances = await attendanceService.find();
     const entities: UserStats[] = [];
     for (const user of users.getEntities()) {
       const userStats = {
@@ -276,11 +276,7 @@ class UserServiceImpl implements UserService {
         percentage: 0,
       };
 
-      const attendedEvents = await attendanceService.find(
-        {
-          userId: user.id,
-        }
-      );
+      const attendedEvents = allAttendances.filter((attendance) => attendance.userId === user.id);
 
       // pegando a duração dos eventos do tipo palestra e roda que o usuário participou
       // e a duração de todos os eventos que o usuário participou

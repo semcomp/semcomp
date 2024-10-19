@@ -228,9 +228,13 @@ function UsersTable({
     setSaleModalOpen(false);
   }
 
+  useEffect(() => {
+    console.log(selected);
+  }, [selected]);
+
   const handleGotKit = async (index: number) => {
-    data.getEntities()[index].gotKit = !data.getEntities()[index].gotKit;
-    const response = await updateKitStatus(data.getEntities()[index].id, data.getEntities()[index].gotKit, index);
+    allData.getEntities()[index].gotKit = !allData.getEntities()[index].gotKit;
+    const response = await updateKitStatus(allData.getEntities()[index].id, allData.getEntities()[index].gotKit, index);
     
     // fazer update do valor dos kits retirados.
     const updatedInfoData = infoData.map((item, idx) => {
@@ -298,6 +302,7 @@ function UsersTable({
     />
     <DataTable
       data={new PaginationResponse<UserData>(mapData(data.getEntities(), allSales, handleOpenKitModal, handleOpenSaleModal), data.getTotalNumberOfItems())}
+      allData={allData}
       pagination={pagination}
       onRowClick={(index: number) => {
         setSelected(index);

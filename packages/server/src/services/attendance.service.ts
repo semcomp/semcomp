@@ -52,6 +52,10 @@ class AttendanceService {
     return this.findById(entity.id);
   }
 
+  public async findByUserId(userId: string): Promise<Attendance[]> {
+    return this.find({ userId });
+  }
+
   public async update(attendance: Attendance): Promise<Attendance> {
     attendance.updatedAt = Date.now();
     const entity = await AttendanceModel.findOneAndUpdate({ id: attendance.id }, attendance);

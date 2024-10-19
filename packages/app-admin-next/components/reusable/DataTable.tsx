@@ -133,6 +133,7 @@ function Row({
 
 const DataTable = forwardRef(({
   data,
+  allData,
   pagination,
   onRowClick,
   onRowSelect,
@@ -142,6 +143,7 @@ const DataTable = forwardRef(({
   actions,
 }: {
   data: PaginationResponse<any>;
+  allData?: PaginationResponse<any>;
   pagination: PaginationRequest;
   onRowClick: (index: number) => void;
   onRowSelect: (indexes: number[]) => void;
@@ -254,7 +256,11 @@ const DataTable = forwardRef(({
 
   const findOriginalIndex = (filteredIndex: number) => {
     const filteredRow = filteredData[filteredIndex];
-    return data.getEntities().findIndex(row => row === filteredRow);
+    if (allData && allData.getEntities().length > 0) {
+      return allData.getEntities().findIndex(row => row.name === filteredRow.Nome);
+    } else {
+      return data.getEntities().findIndex(row => row === filteredRow);
+    }
   };
 
   const handleOnRowClick = (filteredIndex: number) => {
