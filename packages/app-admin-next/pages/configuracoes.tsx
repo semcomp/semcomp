@@ -102,98 +102,96 @@ function Config() {
         );
     }
     return (
-        <>
-            <DataPage
-                title="Configurações"
-                isLoading={isLoading}
-                table={
-                    <div className='w-full flex flex-col items-center'>
-                        <InfoCards
-                            infoData={infoData}
+        <DataPage
+            title="Configurações"
+            isLoading={isLoading}
+            table={
+                <div className='w-full flex flex-col items-center'>
+                    <InfoCards
+                        infoData={infoData}
+                    />
+                    <Accordion style={{ width: '50%' }}>
+                        <AccordionTitle
+                            title="Vendas e Inscrições"
+                            modified={status.openSales || status.openSignup || status.enableWantNameTag}
                         />
-                        <Accordion style={{ width: '50%' }}>
-                            <AccordionTitle
-                                title="Vendas e Inscrições"
-                                modified={status.openSales || status.openSignup || status.enableWantNameTag}
-                            />
 
-                            <AccordionDetails>
-                                <FormGroup>
-                                    <FormControlLabel 
-                                        control = {
-                                            <Switch 
-                                                checked={openSales}
-                                                onChange={() => {
-                                                    setOpenSales(!openSales);
-                                                    setStatus({ ...status, openSales: !status.openSales });
-                                                }}
-                                            />
-                                        }
-                                        label="Vendas abertas"
-                                    />
-                                    <FormControlLabel 
-                                        control = {
-                                            <Switch 
-                                                checked={openSignup} 
-                                                onChange={() => {
-                                                    setSignup(!openSignup);
-                                                    setStatus({ ...status, openSignup: !status.openSignup });
-                                                }}
-                                            />
-                                        }
-                                        label="Inscrições abertas"
-                                    />
-                                </FormGroup>
+                        <AccordionDetails>
+                            <FormGroup>
                                 <FormControlLabel 
-                                        control = {
-                                            <Switch 
-                                                checked={enableWantNameTag} 
-                                                onChange={() => {
-                                                    setEnableWantNameTag(!enableWantNameTag);
-                                                    setStatus({ ...status, enableWantNameTag: !status.enableWantNameTag });
-                                                }}
-                                            />
-                                        }
-                                        label="Exibir modal para requisição dos crachás"
-                                    />
-                            </AccordionDetails>
-                        </Accordion>
+                                    control = {
+                                        <Switch 
+                                            checked={openSales}
+                                            onChange={() => {
+                                                setOpenSales(!openSales);
+                                                setStatus({ ...status, openSales: !status.openSales });
+                                            }}
+                                        />
+                                    }
+                                    label="Vendas abertas"
+                                />
+                                <FormControlLabel 
+                                    control = {
+                                        <Switch 
+                                            checked={openSignup} 
+                                            onChange={() => {
+                                                setSignup(!openSignup);
+                                                setStatus({ ...status, openSignup: !status.openSignup });
+                                            }}
+                                        />
+                                    }
+                                    label="Inscrições abertas"
+                                />
+                            </FormGroup>
+                            <FormControlLabel 
+                                    control = {
+                                        <Switch 
+                                            checked={enableWantNameTag} 
+                                            onChange={() => {
+                                                setEnableWantNameTag(!enableWantNameTag);
+                                                setStatus({ ...status, enableWantNameTag: !status.enableWantNameTag });
+                                            }}
+                                        />
+                                    }
+                                    label="Exibir modal para requisição dos crachás"
+                                />
+                        </AccordionDetails>
+                    </Accordion>
 
-                        <Accordion style={{ width: '50%' }}>
-                            <AccordionTitle
-                                title="Conquistas"
-                                modified={status.openAchievement}
-                            />
+                    <Accordion style={{ width: '50%' }}>
+                        <AccordionTitle
+                            title="Conquistas"
+                            modified={status.openAchievement}
+                        />
 
-                            <AccordionDetails>
-                                <FormGroup>
-                                    <FormControlLabel 
-                                        control = {
-                                            <Switch 
-                                                checked={openAchievement}
-                                                onChange={() => {
-                                                    setOpenAchievement(!openAchievement);
-                                                    setStatus({ ...status, openAchievement: !status.openAchievement });
-                                                }}
-                                            />
-                                        } 
-                                        label="Abrir Conquistas" />
-                                </FormGroup>
-                            </AccordionDetails>
-                        </Accordion>
+                        <AccordionDetails>
+                            <FormGroup>
+                                <FormControlLabel 
+                                    control = {
+                                        <Switch 
+                                            checked={openAchievement}
+                                            onChange={() => {
+                                                setOpenAchievement(!openAchievement);
+                                                setStatus({ ...status, openAchievement: !status.openAchievement });
+                                            }}
+                                        />
+                                    } 
+                                    label="Abrir Conquistas" />
+                            </FormGroup>
+                        </AccordionDetails>
+                    </Accordion>
 
-                        <LoadingButton
-                            isLoading={isLoading}
-                            style={{ marginTop: '1rem', backgroundColor: '#4CAF50', color: 'white' }}
-                            onClick={handleSubmit}
-                        >
-                            Salvar alterações
-                        </LoadingButton>
-                    </div>
-                }
-            >
-            </DataPage>
-        </>
+                    <LoadingButton
+                        isLoading={isLoading}
+                        style={{ marginTop: '1rem', backgroundColor: '#4CAF50', color: 'white' }}
+                        onClick={handleSubmit}
+                    >
+                        Salvar alterações
+                    </LoadingButton>
+                </div>
+            }
+        >
+        </DataPage>
     );
 }
 
