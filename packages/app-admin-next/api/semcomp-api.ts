@@ -72,9 +72,8 @@ class SemcompApi {
     return this.http.get("/admin/users/attendance-stats", semcompApiPagination);
   }
 
-  public async updateKitStatus(id: string, status: boolean): Promise<any> {
-    const data = { gotKit: status };
-    return this.http.put(`/admin/users/${id}`, data);
+  public async updateKitStatus(id: string, changedData: object): Promise<any> {
+    return this.http.put(`/admin/users/${id}`, changedData);
   }
 
   public async addUserAchievement(userId: string, achievementId: string): Promise<any> {

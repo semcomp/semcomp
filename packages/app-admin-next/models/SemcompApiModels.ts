@@ -56,6 +56,7 @@ export type SemcompApiUser = {
     saleOption: string[][];
   };
   gotKit: boolean;
+  gotTagName: boolean;
   telegram: string;
   disabilities: string[];
   permission: boolean;

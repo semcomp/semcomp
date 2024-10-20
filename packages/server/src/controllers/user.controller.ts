@@ -66,7 +66,7 @@ class UserController {
         description: house.description,
         telegramLink: house.telegramLink,
       } : null,
-      wantNameTag: user.wantNameTag,
+      wantNameTag: user.wantNameTag
     };
   }
 }
