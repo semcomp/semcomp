@@ -1,28 +1,34 @@
-import { ReactElement, useEffect, useState } from "react";
 import jszip from 'jszip';
 import QRCode from "qrcode";
+import { toast } from "react-toastify";
+import { ReactElement, useEffect, useState } from "react";
+
+import DataPage from "../components/DataPage";
+import { Modal } from '../components/reusable/Modal';
 import DataTable from "../components/reusable/DataTable";
+import InfoCards from "../components/reusable/InfoCards";
+import { TShirtSize } from "../components/t-shirt/TShirtForm";
+import Input, { InputType } from '../components/Input';
+import util from "../libs/util";
 import RequireAuth from "../libs/RequireAuth";
-import SemcompApi from "../api/semcomp-api";
+import exportToCsv from "../libs/DownloadCsv";
 import { useAppContext } from "../libs/contextLib";
+import SemcompApi from "../api/semcomp-api";
 import {
   PaymentStatus,
   SemcompApiUser,
   SemcompApiSale,
   SaleType,
 } from "../models/SemcompApiModels";
-import DataPage from "../components/DataPage";
-import { TShirtSize } from "../components/t-shirt/TShirtForm";
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
-import exportToCsv from "../libs/DownloadCsv";
-import InfoCards from "../components/reusable/InfoCards";
-import Input, { InputType } from '../components/Input';
-import { Modal } from '../components/reusable/Modal';
-import util from "../libs/util";
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
-import { toast } from "react-toastify";
-import { InputAdornment, TextField } from "@mui/material";
 import { Search } from "@mui/icons-material";
+import {
+  Accordion, AccordionDetails,
+  AccordionSummary, InputAdornment,
+  TextField 
+} from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 
 type UserData = {
@@ -31,7 +37,8 @@ type UserData = {
   Curso: string;
   Telegram: string;
   Casa: string;
-  "Retirou itens": ReactElement | string;
+  "Retirou kit": ReactElement | string;
+  "Retirou crachá": ReactElement | string;
   "Quer crachá": ReactElement | string;
   "Tamanho da camiseta": TShirtSize;
   "Compras": ReactElement | string;
@@ -49,10 +56,13 @@ function mapData(
   allSales: (SemcompApiSale & {usedQuantity:number})[],
   handleOpenKitModal?: () => void,
   handleOpenSaleModal?: (saleOption: string[], paymentStatus: string[]) => void,
+  updateUser?: (id: string, gotKit: boolean, gotTagName: boolean) => any,
   exportToCsv?: boolean,
 ): UserData[] {
   const newData: UserData[] = [];
-  for (const user of data) {
+  for (let index = 0; index < data.length; index++) {
+    const user = data[index];
+
     const paymentStatus = [];
     const allSalesObj = {};
     allSales.forEach((sale) => {
@@ -107,27 +117,36 @@ function mapData(
       }
     }
 
-    const gotKit = hasKit ?
+    const gotKitInput = hasKit ?
       <Input
         onChange={handleOpenKitModal ? handleOpenKitModal : () => { }}
         value={user.gotKit}
         type={InputType.Checkbox}
       /> : <></>;
 
+    const gotTagNameInput = <Input
+        onChange={updateUser ? () => updateUser(user.id, user.gotKit, !user.gotTagName) : () => { }}
+        value={user.gotTagName}
+        type={InputType.Checkbox}
+      />;
+
     const openSales = handleOpenSaleModal ? 
     <RemoveRedEyeIcon onClick={() => handleOpenSaleModal(saleOption, paymentStatus)}/> : null;
   
     let newDataSales = undefined;
-    let newDataGetItems = undefined;
+    let newDataGotKit = undefined;
+    let newDataGotTagName = undefined;
     let newDataWantTagName = undefined;
 
     if (exportToCsv) {
       newDataSales = saleOption.length > 0 ? saleOption.join(" - ") : "Nenhuma";
-      newDataGetItems = user.gotKit ? "Sim" : "Não";
+      newDataGotKit = user.gotKit ? "Sim" : "Não";
+      newDataGotTagName = user.gotTagName ? "Sim" : "Não";
       newDataWantTagName = user.wantNameTag ? "Sim" : "Não";
     } else {
       newDataSales = openSales && saleOption.length > 0 ? openSales : saleOption.join(", ");
-      newDataGetItems = handleOpenKitModal ? gotKit : (user.gotKit ? "Sim" : "Não");
+      newDataGotKit = handleOpenKitModal ? gotKitInput : (user.gotKit ? "Sim" : "Não");
+      newDataGotTagName = gotTagNameInput;
       newDataWantTagName = <Input type={InputType.Checkbox} disabled={true} value={user.wantNameTag}></Input>;
     }
 
@@ -139,7 +158,8 @@ function mapData(
       Casa: user.house.name,
       "Tamanho da camiseta": tShirtSize,
       "Compras": newDataSales,
-      "Retirou itens": newDataGetItems,
+      "Retirou kit": newDataGotKit,
+      "Retirou crachá": newDataGotTagName,
       "Quer crachá": newDataWantTagName,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
       "Criado em": util.formatDate(user.createdAt),
@@ -192,14 +212,14 @@ function UsersTable({
   pagination,
   onRowSelect,
   allData,
-  updateKitStatus,
+  updateUser,
   allSales,
 }: {
   data: PaginationResponse<SemcompApiUser>;
   pagination: PaginationRequest;
   onRowSelect: (selectedIndexes: number[]) => void;
   allData: PaginationResponse<SemcompApiUser>;
-  updateKitStatus: (id: string, status: boolean, index: number) => any,
+  updateUser: (id: string, gotKit: boolean, gotTagName: boolean) => any,
   allSales?: (SemcompApiSale & { usedQuantity: number })[];
 }) {
   const [infoData, setInfoData] = useState<InfoData[]>(getInfoData(allData.getEntities(), allSales));
@@ -209,7 +229,8 @@ function UsersTable({
   const [selected, setSelected] = useState(null);
   const [userSaleOption, setUserSaleOption] = useState([]);
   const [userStatusPayment, setUserStatusPayment] = useState([]);
-
+  const [gotTagName, setGotTagName] = useState(false);
+  
   const handleOpenKitModal = () => {
     setModalOpen(true);
   }
@@ -228,13 +249,14 @@ function UsersTable({
     setSaleModalOpen(false);
   }
 
-  useEffect(() => {
-    console.log(selected);
-  }, [selected]);
+  const handleGotItems = async (index: number, gotTagName: boolean) => {
+    const gotKit = !allData.getEntities()[index].gotKit;
+    const userGotTagName = allData.getEntities()[index].gotTagName;
 
-  const handleGotKit = async (index: number) => {
-    allData.getEntities()[index].gotKit = !allData.getEntities()[index].gotKit;
-    const response = await updateKitStatus(allData.getEntities()[index].id, allData.getEntities()[index].gotKit, index);
+    allData.getEntities()[index].gotKit = gotKit;
+    allData.getEntities()[index].gotTagName = gotTagName;
+
+    const response = await updateUser(allData.getEntities()[index].id, gotKit, gotTagName);
     
     // fazer update do valor dos kits retirados.
     const updatedInfoData = infoData.map((item, idx) => {
@@ -247,25 +269,40 @@ function UsersTable({
       return item; 
     });
     setInfoData(updatedInfoData);
-    
+    setGotTagName(response.gotTagName);
+    setSelected(-1);
+
     // fechar o modal
     handleCloseKitModal();
   }
 
+  useEffect(() => {
+    setGotTagName(allData.getEntities()[selected]?.gotTagName);
+  }, [selected]);
 
   return (<>
     <Modal
       isOpen={isModalOpen}
       hasCloseBtn={false}
-      onClose={handleCloseKitModal}>
-      <div className="flex flex-col gap-5">
-        Confirmar mudança?
+      onClose={handleCloseKitModal}
+    >
+      <div className="flex flex-col gap-5 p-5 border border-gray-300">
+        {!allData.getEntities()[selected]?.gotTagName &&
+          <Input className='pr-4'
+            value={gotTagName}
+            label='Retirou crachá?'
+            type={InputType.Checkbox}
+            onChange={() => setGotTagName(!gotTagName)}
+          />
+        }
+
+        <div className="text-lg font-semibold mb-2"> Confirmar mudança? </div>
         <div className="flex justify-between">
-          <button className="bg-green-600 text-white py-2 px-4 hover:bg-green-800"
-            onClick={() => handleGotKit(selected)}>
+          <button className="bg-green-600 text-black py-2 px-4 rounded hover:bg-green-700"
+            onClick={() => handleGotItems(selected, gotTagName)}>
             Sim
           </button>
-          <button className="bg-red-600 text-white py-2 px-4 hover:bg-red-800" onClick={handleCloseKitModal}>
+          <button className="bg-red-600 text-black py-2 px-4 rounded hover:bg-red-700" onClick={handleCloseKitModal}>
             Não
           </button>
         </div>
@@ -297,11 +334,24 @@ function UsersTable({
       </Modal>
     }
 
-    <InfoCards
-      infoData={infoData}
-    />
+    <Accordion className="mb-5" style={{ width: '100%' }}>
+      <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel1-content"
+          id={`accordion-header`}
+      >
+        Informações detalhadas
+      </AccordionSummary>
+
+      <AccordionDetails>
+        <InfoCards infoData={infoData} />
+      </AccordionDetails>
+    </Accordion>
+            
+
+    
     <DataTable
-      data={new PaginationResponse<UserData>(mapData(data.getEntities(), allSales, handleOpenKitModal, handleOpenSaleModal), data.getTotalNumberOfItems())}
+      data={new PaginationResponse<UserData>(mapData(data.getEntities(), allSales, handleOpenKitModal, handleOpenSaleModal, updateUser), data.getTotalNumberOfItems())}
       allData={allData}
       pagination={pagination}
       onRowClick={(index: number) => {
@@ -371,7 +421,7 @@ function Users() {
       const response = await semcompApi.getUsers(
         new PaginationRequest(null, 1, 9999)
       );
-      exportToCsv(mapData(response.getEntities(), allSales, undefined, undefined, true));
+      exportToCsv(mapData(response.getEntities(), allSales, undefined, undefined, undefined, true));
     } catch (error) {
       console.error(error);
     } finally {
@@ -411,24 +461,26 @@ function Users() {
 
           link.parentNode.removeChild(link);
         });
+      } catch (error) {
+          console.error('Erro ao gerar QR Codes ou ZIP:', error);
+          return null;
+      }
     } catch (error) {
-        console.error('Erro ao gerar QR Codes ou ZIP:', error);
-        return null;
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setIsLoading(false);
   }
-}
   
-
-  async function updateKitStatus(id: string, status: boolean, index: number) {
+  async function updateUser(id: string, gotKit: boolean, gotTagName: boolean) {
     try {
-      const response = await semcompApi.updateKitStatus(id, status);
-      data.getEntities()[index].gotKit = response.gotKit;
-      allData.getEntities().find(user => user.id === id)!.gotKit = response.gotKit;
-      toast.success(`Status do kit de ${data.getEntities()[index].name} atualizado com sucesso`);
+      const index = data.getEntities().findIndex(user => user.id === id);
+
+      const response = await semcompApi.updateKitStatus(id, {gotKit: gotKit, gotTagName: gotTagName});
+      fetchAllData();
+      fetchTableData();
+
+      toast.success(`Status de ${response.name} atualizado com sucesso`);
       return response;
     } catch (error) {
       toast.error('Erro ao atualizar status do kit, atualize a página e tente novamente');
@@ -444,21 +496,25 @@ function Users() {
     getSales();
   }, []);
 
+  function findUsers(searchTerm: string) {
+    const mappedData = allData.getEntities();
+    if (searchTerm) {
+      setFilteredUsers(
+        mappedData.filter((user) =>
+          user.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    } else {
+      setFilteredUsers((data?.getEntities() || []));
+    }
+  }
+
   useEffect(() => {
     if (allData != null) {
-      const mappedData = allData.getEntities();
-      if (searchTerm) {
-        setFilteredUsers(
-          mappedData.filter((user) =>
-            user.name.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-        );
-      } else {
-        setFilteredUsers((data?.getEntities() || []));
-      }
+      findUsers(searchTerm);
       setIsLoading(false);
     }
-  }, [searchTerm, allData, data]);
+  }, [allData, data]);
 
   async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
     setSelectedIndexes(updatedSelectedIndexes);
@@ -484,9 +540,14 @@ function Users() {
                         ),
                       }}
                       type="text"
-                      placeholder="Pesquisar por nome (todos)..."
+                      placeholder="Digite o nome e pressione Enter..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          findUsers(searchTerm);
+                        }
+                      }}
                       className="mb-4 p-2 border border-gray-300 rounded w-full"
                     />
                   </div>
@@ -501,7 +562,7 @@ function Users() {
                     pagination={pagination}
                     onRowSelect={handleSelectedIndexesChange}
                     allData={allData!}
-                    updateKitStatus={updateKitStatus}
+                    updateUser={updateUser}
                     allSales={allSales}
                   />
                 </>

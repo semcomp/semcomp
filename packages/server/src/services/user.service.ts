@@ -319,6 +319,7 @@ class UserServiceImpl implements UserService {
       wantNameTag: entity.wantNameTag,
       paid: entity.paid,
       gotKit: entity.gotKit,
+      gotTagName: entity.gotTagName,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };

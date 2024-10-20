@@ -25,6 +25,7 @@ import {
   SemcompApiGetSalesResponse,
   SemcompApiSale,
   SemcompApiGetGameConfigResponse,
+  SemcompApiGetPaymentsResponse,
 } from "../models/SemcompApiModels";
 import Http from "./http";
 
@@ -71,9 +72,8 @@ class SemcompApi {
     return this.http.get("/admin/users/attendance-stats", semcompApiPagination);
   }
 
-  public async updateKitStatus(id: string, status: boolean): Promise<any> {
-    const data = { gotKit: status };
-    return this.http.put(`/admin/users/${id}`, data);
+  public async updateKitStatus(id: string, changedData: object): Promise<any> {
+    return this.http.put(`/admin/users/${id}`, changedData);
   }
 
   public async addUserAchievement(userId: string, achievementId: string): Promise<any> {
@@ -357,6 +357,11 @@ class SemcompApi {
 
     const response = await this.http.get("/admin/payments/get-payment-complete", semcompApiPagination);
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  public async getPayments(): Promise<SemcompApiGetPaymentsResponse> {
+    const response = await this.http.get("/admin/payments");
+    return response;
   }
 
   // GAME-CONFIG

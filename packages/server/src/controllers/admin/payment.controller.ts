@@ -10,6 +10,16 @@ export default class PaymentController {
     this.paymentService = paymentService;
   }
 
+  public async find(req, res, next) {
+    try {
+      const payments = await this.paymentService.find();
+
+      return res.status(200).json(payments);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
   public async create(req, res, next) {
     try {
       handleValidationResult(req);

@@ -13,6 +13,7 @@ type User = {
   wantNameTag?: boolean; 
   paid?: boolean;
   gotKit?: boolean;
+  gotTagName?: boolean;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -69,6 +70,11 @@ const UserSchema = new Mongoose.Schema(
       required: true,
     },
     gotKit: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
+    gotTagName: {
       type: Boolean,
       default: false,
       required: true,

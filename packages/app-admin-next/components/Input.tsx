@@ -346,7 +346,7 @@ function Input({
   );
 
   if (type === InputType.Checkbox) {
-    input = <CheckboxInput onChange={onChange}  value={value as boolean} />;
+    input = <CheckboxInput onChange={onChange} value={value as boolean} disabled={disabled} />;
   }
 
   if (type === InputType.Select) {
