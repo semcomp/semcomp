@@ -25,6 +25,7 @@ import {
   SemcompApiGetSalesResponse,
   SemcompApiSale,
   SemcompApiGetGameConfigResponse,
+  SemcompApiGetPaymentsResponse,
 } from "../models/SemcompApiModels";
 import Http from "./http";
 
@@ -357,6 +358,11 @@ class SemcompApi {
 
     const response = await this.http.get("/admin/payments/get-payment-complete", semcompApiPagination);
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  public async getPayments(): Promise<SemcompApiGetPaymentsResponse> {
+    const response = await this.http.get("/admin/payments");
+    return response;
   }
 
   // GAME-CONFIG

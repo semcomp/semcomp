@@ -9,6 +9,9 @@ import SemcompApi from '../api/semcomp-api';
 import { Accordion, AccordionDetails, AccordionSummary, FormControlLabel, FormGroup, Switch } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CircleIcon from '@mui/icons-material/Circle';
+import { PaginationRequest } from '../models/Pagination';
+import { PaymentStatus } from '../models/SemcompApiModels';
+import InfoCards from '../components/reusable/InfoCards';
 
 function Config() {
     const [isLoading, setIsLoading] = useState(false);
@@ -28,16 +31,27 @@ function Config() {
         openAchievement: false,
         enableWantNameTag: false,
     });
+    const [totalPaid, setTotalPaid] = useState(0);
+    const [infoData, setInfoData] = useState([]);
 
     async function fetchData() {
         setIsLoading(true);
         try {
             const config = await semcompApi.getConfig();
-
             setOpenSales(config.openSales);
             setSignup(config.openSignup);
             setOpenAchievement(config.openAchievement);
             setEnableWantNameTag(config.enableWantNameTag);
+
+            const payments = await semcompApi.getPayments();
+            const total = Array.isArray(payments) ? payments.reduce((count, cur) =>
+                count + ((cur.status === PaymentStatus.APPROVED && cur.price) ? cur.price : 0)
+            , 0) : 0;
+            
+            setInfoData([{
+                infoTitle: "Total arrecadado",
+                infoValue: total
+            }])
         } catch (error) {
             toast.error('Erro ao buscar dados de configuração :(');
         } finally {
@@ -94,6 +108,9 @@ function Config() {
                 isLoading={isLoading}
                 table={
                     <div className='w-full flex flex-col items-center'>
+                        <InfoCards
+                            infoData={infoData}
+                        />
                         <Accordion style={{ width: '50%' }}>
                             <AccordionTitle
                                 title="Vendas e Inscrições"
@@ -174,7 +191,8 @@ function Config() {
                         </LoadingButton>
                     </div>
                 }
-            ></DataPage>
+            >
+            </DataPage>
         </>
     );
 }

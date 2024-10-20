@@ -339,3 +339,19 @@ export type SemcompApiPaymentUser = {
   createdAt?: number;
   updatedAt?: number;
 }
+
+export type SemcompApiPayment = {
+  userId: string;
+  status: PaymentStatus;
+  qrCode?: string;
+  qrCodeBase64?: string;
+  withSocialBenefit: boolean;
+  socialBenefitFileName: string;
+  tShirtSize: TShirtSize;
+  salesOption: string[];
+  price?: number;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export type SemcompApiGetPaymentsResponse = PaginationResponse<SemcompApiPayment>;
