@@ -1,28 +1,34 @@
-import { ReactElement, useEffect, useState } from "react";
 import jszip from 'jszip';
 import QRCode from "qrcode";
+import { toast } from "react-toastify";
+import { ReactElement, useEffect, useState } from "react";
+
+import DataPage from "../components/DataPage";
+import { Modal } from '../components/reusable/Modal';
 import DataTable from "../components/reusable/DataTable";
+import InfoCards from "../components/reusable/InfoCards";
+import { TShirtSize } from "../components/t-shirt/TShirtForm";
+import Input, { InputType } from '../components/Input';
+import util from "../libs/util";
 import RequireAuth from "../libs/RequireAuth";
-import SemcompApi from "../api/semcomp-api";
+import exportToCsv from "../libs/DownloadCsv";
 import { useAppContext } from "../libs/contextLib";
+import SemcompApi from "../api/semcomp-api";
 import {
   PaymentStatus,
   SemcompApiUser,
   SemcompApiSale,
   SaleType,
 } from "../models/SemcompApiModels";
-import DataPage from "../components/DataPage";
-import { TShirtSize } from "../components/t-shirt/TShirtForm";
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
-import exportToCsv from "../libs/DownloadCsv";
-import InfoCards from "../components/reusable/InfoCards";
-import Input, { InputType } from '../components/Input';
-import { Modal } from '../components/reusable/Modal';
-import util from "../libs/util";
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
-import { toast } from "react-toastify";
-import { InputAdornment, TextField } from "@mui/material";
 import { Search } from "@mui/icons-material";
+import {
+  Accordion, AccordionDetails,
+  AccordionSummary, InputAdornment,
+  TextField 
+} from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 
 type UserData = {
@@ -258,7 +264,7 @@ function UsersTable({
       isOpen={isModalOpen}
       hasCloseBtn={false}
       onClose={handleCloseKitModal}>
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-5 p-5">
         Confirmar mudança?
         <div className="flex justify-between">
           <button className="bg-green-600 text-white py-2 px-4 hover:bg-green-800"
@@ -297,9 +303,22 @@ function UsersTable({
       </Modal>
     }
 
-    <InfoCards
-      infoData={infoData}
-    />
+    <Accordion className="mb-5" style={{ width: '100%' }}>
+      <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel1-content"
+          id={`accordion-header`}
+      >
+        Informações detalhadas
+      </AccordionSummary>
+
+      <AccordionDetails>
+        <InfoCards infoData={infoData} />
+      </AccordionDetails>
+    </Accordion>
+            
+
+    
     <DataTable
       data={new PaginationResponse<UserData>(mapData(data.getEntities(), allSales, handleOpenKitModal, handleOpenSaleModal), data.getTotalNumberOfItems())}
       allData={allData}
@@ -444,21 +463,25 @@ function Users() {
     getSales();
   }, []);
 
+  function findUsers(searchTerm: string) {
+    const mappedData = allData.getEntities();
+    if (searchTerm) {
+      setFilteredUsers(
+        mappedData.filter((user) =>
+          user.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    } else {
+      setFilteredUsers((data?.getEntities() || []));
+    }
+  }
+
   useEffect(() => {
     if (allData != null) {
-      const mappedData = allData.getEntities();
-      if (searchTerm) {
-        setFilteredUsers(
-          mappedData.filter((user) =>
-            user.name.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-        );
-      } else {
-        setFilteredUsers((data?.getEntities() || []));
-      }
+      findUsers(searchTerm);
       setIsLoading(false);
     }
-  }, [searchTerm, allData, data]);
+  }, [allData, data]);
 
   async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
     setSelectedIndexes(updatedSelectedIndexes);
@@ -484,9 +507,14 @@ function Users() {
                         ),
                       }}
                       type="text"
-                      placeholder="Pesquisar por nome (todos)..."
+                      placeholder="Digite o nome e pressione Enter..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          findUsers(searchTerm);
+                        }
+                      }}
                       className="mb-4 p-2 border border-gray-300 rounded w-full"
                     />
                   </div>
