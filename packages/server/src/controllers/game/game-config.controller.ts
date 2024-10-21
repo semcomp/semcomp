@@ -38,7 +38,8 @@ class GameConfigController {
       for (const game of foundGames) {
         const isHappening = now >= new Date(game.startDate) && now <= new Date(game.endDate);
         isHappeningGames.push({
-          "game": game.title,
+          "title": game.title,
+          "prefix": game.eventPrefix,
           "isHappening": isHappening
         });
       }

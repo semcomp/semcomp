@@ -6,6 +6,8 @@ import { useAppContext } from "../../libs/contextLib";
 import handler from '../../api/handlers';
 import { useEffect, useState } from "react";
 import Modal from "../home/Modal"; // Importação do modal
+import API from "../../api";
+import GameIsHappening from "../../libs/constants/is-happening-game";
 
 const Navbar = (props) => {
   const { user } = useAppContext();
@@ -13,6 +15,8 @@ const Navbar = (props) => {
   const isUserLoggedIn = Boolean(user);
   const [openSignup, setOpenSignup] = useState(true);
   const [buttonSelected, setButtonSelected] = useState(''); // Estado para controlar o modal
+  const [loadingGames, setLoadingGame] = useState(true);
+  const [happeningGames, setHappeningGames] = useState([]);
 
   const tShirtsFormLink =
     "https://docs.google.com/forms/d/e/1FAIpQLSdBUY4gf8-CKhoXEmZ_bIvovprtGi7KOwNuo2WFcfsejl6a5w/viewform";
@@ -32,8 +36,31 @@ const Navbar = (props) => {
     }
   }
 
+  async function fetchGameHappening() {
+    try {
+      setLoadingGame(true);
+      const result = await API.game.getIsHappening();
+            
+      if (result.data) {
+        const data = result.data;
+        const parsedData: GameIsHappening[] = data.isHappeningGames.map((item: any) => ({
+          title: item.title,
+          prefix: item.prefix,
+          isHappening: item.isHappening
+        }));
+        
+        setHappeningGames(parsedData); 
+      }
+    } catch (e) {
+      console.error(e);
+    } finally{
+      setLoadingGame(false);
+    }
+  }
+
   useEffect(() => {
-      fetchData();
+    fetchData();
+    fetchGameHappening();
   }, []);
 
   let logoSize;
@@ -85,6 +112,17 @@ const Navbar = (props) => {
           {isUserLoggedIn ? (
             <>
               <Navlink href={Routes.profile} className="text-lg font-secondary">Perfil</Navlink>
+              {
+                !loadingGames && 
+                happeningGames.length > 0 &&
+                happeningGames.map((game, index) => (
+                  game.isHappening &&
+                  <Navlink 
+                    key={index} 
+                    href={`/game/${game.prefix}/lobby`}
+                    className="text-lg font-secondary" >{game.title}</Navlink>
+                ))
+              }
               <button onClick={logUserOut} className="text-lg nav font-secondary">
                 <a
                   className="flex items-center justify-center px-2 text-lg duration-200 rounded-lg hover:bg-hoverWhite"

@@ -125,10 +125,6 @@ function Countdown({ team, gameConfig, onSubmit }: {gameConfig: GameConfig, team
     const handler = setInterval(() => setDiff(calculateDiff()), 1000);
     return () => clearInterval(handler);
   }, [targetMilliseconds]);
-
-  useEffect(() => {
-    if(team) console.log(team);
-  }, [team]);
   
   return (
     <div className="countdown-component">
@@ -151,7 +147,7 @@ function Countdown({ team, gameConfig, onSubmit }: {gameConfig: GameConfig, team
           <Button
             variant="contained"
             onClick={onSubmit}
-            style={{ backgroundColor: "#171214", color: "white" }}
+            className="bg-primary text-white"
           >
             Jogar
           </Button>
@@ -183,7 +179,6 @@ function Lobby({
   }
 
   function renderTeammates() {
-    console.log("Render :",team)
     return team.members.map((mate) => (
       <Teammate gameConfig={gameConfig} setTeam={setTeam} name={mate.name} key={mate.id} thisIsMe={mate.id === me.id} />
     ));
@@ -198,7 +193,6 @@ function Lobby({
     const { token } = useAppContext();
 
     function enterGame(){
-        console.log(team);
         if (!team) {
             // Criar o time quando não houver um
             //Verificar se a pessoa já está em um
@@ -295,9 +289,6 @@ function Lobby({
             </div>
         </div>
     );
-
-  // return (
-  //   
 }
 
 export default Lobby;

@@ -14,6 +14,7 @@ import GameCard from '../../../components/game/game';
 import API from "../../../api";
 import AnimatedBG from '../../animatedBG';
 import NewFooter from '../../newFooter';
+import Spinner from '../../../components/spinner';
 
 export default function GamePage({children}) {
   const router = useRouter();
@@ -113,9 +114,16 @@ export default function GamePage({children}) {
               token={token}
             ></GameCard>
             :
-            <div className='flex content-center'>
-              <p>Tentando encontrar grupo</p>
+            <div className='z-20 h-full py-12 phone:pt-16 tablet:pt-34 w-full flex flex-col items-center justify-center'>
+              <div className='flex flex-col h-full items-center justify-center w-[50%] mobile:w-full text-primary static rounded-lg z-20 bg-white'>      
+                <div className='flex content-center'>
+                <div className='flex flex-col items-center justify-center text-xl font-secondary py-16'>
+                  <p className='pb-4'>Tentando encontrar grupo</p>
+                  <Spinner size="large"/>
+                </div>
+              </div>
             </div>
+        </div>
           }
         </div>
       </div>

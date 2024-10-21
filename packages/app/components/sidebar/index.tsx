@@ -16,6 +16,8 @@ import { useRouter } from 'next/router';
 import { createTheme } from '@mui/material/styles';
 import Modal from '../home/Modal'; // Importar o Modal
 import Logo from '../home/Logo';
+import API from "../../api";
+import GameIsHappening from "../../libs/constants/is-happening-game";
 
 const theme = createTheme({
   palette: {
@@ -60,12 +62,41 @@ function Sidebar(props) {
 
   const [isOpen, setIsOpen] = useState(false);
   const [buttonSelected, setButtonSelected] = useState(''); // Estado para controlar o modal
+  
+  const [loadingGames, setLoadingGame] = useState(true);
+  const [happeningGames, setHappeningGames] = useState([]);
 
   function logUserOut() {
     router.push(Routes.home);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   }
+
+  async function fetchGameHappening() {
+    try {
+      setLoadingGame(true);
+      const result = await API.game.getIsHappening();
+            
+      if (result.data) {
+        const data = result.data;
+        const parsedData: GameIsHappening[] = data.isHappeningGames.map((item: any) => ({
+          title: item.title,
+          prefix: item.prefix,
+          isHappening: item.isHappening
+        }));
+        
+        setHappeningGames(parsedData); 
+      }
+    } catch (e) {
+      console.error(e);
+    } finally{
+      setLoadingGame(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchGameHappening();
+  }, []);
 
   // Funções para abrir o modal de "Sobre nós" e "Cronograma"
   function handleSobre() {
@@ -129,7 +160,18 @@ function Sidebar(props) {
               Cronograma
             </button>
             {isUserLoggedIn ? (
-              <>
+              <>  
+                {
+                  !loadingGames && 
+                  happeningGames.length > 0 &&
+                  happeningGames.map((game, index) => (
+                    game.isHappening &&
+                    <Navlink 
+                      key={index} 
+                      href={`/game/${game.prefix}/lobby`}
+                      className="text-lg font-secondary" >{game.title}</Navlink>
+                  ))
+                }
                 <NavLink title="Perfil" href={Routes.profile + '#about'} />
                 <button className="w-full py-3 text-center text-white bg-primary" onClick={logUserOut}>
                   Sair
