@@ -44,6 +44,7 @@ class GameConfigController {
         });
       }
 
+      
       // Retorna o resultado como um booleano
       return res.status(200).json({ isHappeningGames });
     } catch (error) {

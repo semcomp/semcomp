@@ -31,6 +31,7 @@ function getWeekdayAndDate(dateStr) {
 
 function getUniqueDayAndDates(events: { startDate: string }[]) {
   const dayAndDatesSet = new Set<string>();
+  const sortedEvents = events.sort(sortEvents);
   events.forEach((event) => {
     dayAndDatesSet.add(getWeekdayAndDate(event.startDate));
   });
@@ -65,8 +66,6 @@ const EventsCalendar = (props) => {
       } catch (e) {
         console.error(e);
         return [];
-      } finally {
-        setLoading(false);
       }
     }
 
@@ -87,8 +86,11 @@ const EventsCalendar = (props) => {
   
           setEvents(newEvents);
         })
-      };
+      } else {
+        setEvents(eventList);
+      }
 
+      setLoading(false);
       setExpandedEvents(new Array(eventList.length).fill(false));
       if (eventList.length > 0) {
         const firstEventDay = getWeekdayAndDate(eventList[0].startDate);
@@ -101,10 +103,10 @@ const EventsCalendar = (props) => {
 
   const uniqueDayAndDates = getUniqueDayAndDates(events);
   const filteredEvents = selectedDay
-    ? events.filter(
-        (event) => getWeekdayAndDate(event.startDate) === selectedDay
-      )
-    : events;
+    ? events
+        .filter((event) => getWeekdayAndDate(event.startDate) === selectedDay)
+        .sort(sortEvents)
+    : events.sort(sortEvents);
 
   const toggleExpandEvent = (index) => {
     setExpandedEvents((prevExpandedEvents) => {
@@ -119,20 +121,13 @@ const EventsCalendar = (props) => {
     setSelectedDay(day);
   }
 
-  if (!loading && events.length === 0) {
-    return (
-      <p className="p-3 mt-8 mb-32 bg-white text-primary font-secondary rounded-xl bg-opacity-70">
-        Por enquanto não temos nenhum evento divulgado!
-      </p>
-    );
-  }
-
   return (
     <div className="w-full">
       {/* Seletor de dias */}
       { loading ?
         <p>CARREGANDO</p>
         : 
+        events.length > 0 ? 
         <>
           {isMobile ? (
             <>
@@ -285,6 +280,9 @@ const EventsCalendar = (props) => {
             })}
           </VerticalTimeline>
         </>
+        : <p className="p-3 mt-8 mb-32 bg-white text-primary font-secondary rounded-xl bg-opacity-70">
+            Por enquanto não temos nenhum evento divulgado!
+          </p>
       }
       </div>
   ); 
