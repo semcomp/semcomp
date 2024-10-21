@@ -152,10 +152,10 @@ export default function GamePage({ children }) {
       <Navbar className="z-20"/>
       <Sidebar />
       <AnimatedBG imageIndex={imageIndex} />
-      <div className='p-6 z-20 pt-12 w-full flex flex-col items-center justify-center'>
+      <div className='z-20 pt-12 w-full flex flex-col items-center justify-center'>
       {
       !isFetchingConfig ?
-        <div className='flex flex-col items-center justify-center md:w-[50%] mobile:w-full backdrop-brightness-95 backdrop-blur rounded-lg z-20'>
+        <div className='flex flex-col items-center justify-center w-[50%] phone:w-full text-primary static rounded-lg z-20 bg-white'>
           {gameConfig && gameConfig.hasGroups() ? (  
             !isFetchingTeam ? (
               <Lobby
@@ -172,7 +172,7 @@ export default function GamePage({ children }) {
               </div>
             )
           ) : (
-            gameConfig && <Lobby
+            gameConfig && !isFetchingTeam && <Lobby
                 gameConfig={gameConfig}
                 setTeam={setTeam}
                 team={team}

@@ -28,7 +28,7 @@ type GameGroupData = {
 function getMaxQuestion(completedQuestions) {
   let max;
   for(const question of completedQuestions){
-    if(question.index == completedQuestions.length){
+    if(question.index == completedQuestions.length - 1){
       return question;
     }
   }
@@ -59,14 +59,8 @@ function mapData(data: SemcompApiGameGroup[]): GameGroupData[] {
       // "Dicas disponíveis": gameQuestion.availableClues,
       // "Pulos disponíveis": gameQuestion.availableSkips,
       "Data e hora da última questão": 
-        new Date(gameQuestion.createdAt)
-        .toLocaleString("pt-br", 
-        {
-          day: 'numeric',
-          month: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric',
-        }),
+      new Date(new Date(gameQuestion.createdAt).setHours(new Date(gameQuestion.createdAt).getHours() + 3)).toLocaleString("pt-BR", { day: 'numeric', month: 'numeric', hour: 'numeric', minute: 'numeric' }),
+
     });
   }
 
@@ -101,13 +95,14 @@ function GameGroupsTable({
 
 function ShowWinner({dataWinner} : {dataWinner: SemcompApiGetGameWinnersResponse}){
   return (
-    <div className="w-2/4 flex flex-col items-center mb-4">
+    <div className="flex flex-col items-center mb-4 mr-8">
       <h3 className="mt-8 text-3xl font-bold text-gray-700">Vencedores: </h3>
       {
         
         Object.keys(dataWinner).map((key) => (
-          <div key={key}>
-            <strong>{key}:</strong> {String(dataWinner[key].name)}
+          <div className="flex flex-col items-start justify-start w-full text-primary" key={key}>
+            <strong className="w-full">{key.toUpperCase()}:</strong> {String(dataWinner[key].name) }
+            <strong className="w-full">Questão atual:</strong> {String(dataWinner[key].completedQuestions.length) }
           </div>
         ))
       

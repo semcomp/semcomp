@@ -22,7 +22,7 @@ const styles = {
   toolbar: "flex justify-center items-center",
 
   questionRoot:
-    "w-full backdrop-brightness-95 backdrop-blur rounded-lg shadow p-4 rounded-lg text-justify flex flex-col items-center font-secondary",
+    "w-full bg-white text-primary mt-24 rounded-lg shadow p-4 rounded-lg text-justify flex flex-col items-center font-secondary",
   questionForm: "flex flex-col items-end mt-4 w-full",
   questionButton: "",
 };
@@ -46,8 +46,6 @@ function Question({
   const [question, setQuestion] = useState(null);
   const [inputValue, setInputValue] = useState("");
 
-  const wasCorrectlyAnswered = question && Boolean(question.answer);
-
   useEffect(() => {
     async function fetchQuestion() {
       setIsFetchingQuestion(true);
@@ -56,7 +54,7 @@ function Question({
         console.log(gameConfig.getEventPrefix(), questionIndex);
         const { data: question } = await API.game.getQuestion(
           gameConfig.getEventPrefix(),
-          questionIndex + 1
+          questionIndex
         );
         setQuestion(question);
       } catch (e) {
@@ -104,13 +102,10 @@ function Question({
           className="mr-2"
         />
       );
-    else if (wasCorrectlyAnswered) {
-      return <Done className="mr-2" htmlColor="#28a745" />;
-    } else return null;
+    else return null;
   }
 
   function handleChange(event) {
-    if (wasCorrectlyAnswered) return;
     setInputValue(event.target.value);
   }
 
@@ -135,8 +130,7 @@ function Question({
             fullWidth
             onChange={handleChange}
             label="Resposta"
-            disabled={wasCorrectlyAnswered}
-            value={question.answer || inputValue}
+            value={inputValue}
             InputProps={{ startAdornment: renderTextFieldAdornment() }}
             style={{backgroundColor: "white", borderRadius: "0.5rem"}}
           />
@@ -161,20 +155,49 @@ export default function Game({
   team: any, setTeam: any, socket: any, token: string, gameConfig: GameConfig
 }) {
   
-  const completedQuestions = team.completedQuestions;
-  console.log(completedQuestions);
+  
+  const [numberOfQuestions, setNumberOfQuestions] = useState(0);
+  const [completedQuestions, setCompletedQuestions] = useState(null);
+  
+  async function getNumberOfQuestions(){
+    try {
+      const result = await API.game.getNumberOfQuestions(gameConfig.getName());
+      
+      console.log(result.data);
+      if(result.data){
+        console.log(result.data);
+        setNumberOfQuestions(result.data);  
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  
+  useEffect(() => {
+    getNumberOfQuestions();
+  }, [])
+
+  useEffect(() => {
+    if(team){
+      console.log(team.completedQuestions)
+      setCompletedQuestions(team.completedQuestions);
+    }
+  }, [team])
 
   return (
     <div className={styles.root}>
       <div className={styles.container}>
         <>
-        {  
+        {   team &&
             gameConfig &&
-            // completedQuestions.length >= gameConfig.getNumberOfQuestions() ?
-            //   <End gameConfig={gameConfig}/>
-            // : 
+            numberOfQuestions && 
+            completedQuestions &&
+            completedQuestions.length == numberOfQuestions ?
+              <End gameConfig={gameConfig}/>
+            : 
             gameConfig.verifyIfIsHappening() ?
-            <Question
+            
+            completedQuestions && <Question
               setTeam={setTeam}
               socket={socket}
               gameConfig={gameConfig}

@@ -6,12 +6,13 @@ import AnimatedBG from "./animatedBG";
 import ButtonMenuHome from "../components/home/ButtonMenuHome";
 import Modal from "../components/home/Modal";
 import TitleHome from "../components/home/TitleHome";
-import Footer from "../components/Footer";
 import NewFooter from "./newFooter";
 import Countdown from "../components/home/Countdown";
 import Routes from "../routes";
 import handler from "../api/handlers";
-import Sponsors from "../components/home/Sponsors";
+
+import GameIsHappening from "../libs/constants/is-happening-game";
+import API from "../api";
 
 // Array com os intervalos de horas e seus respectivos índices de imagens
 const timeToImage = [
@@ -35,6 +36,8 @@ const Home: React.FC = () => {
   const isUserLoggedIn = Boolean(user);
   const [openSignup, setOpenSignup] = useState(true);
   const [isMobile, setisMobile] = useState(true);
+  const [happeningGames, setHappeningGames] = useState([]);
+  const [loadingGames, setLoadingGame] = useState(true);
 
   const [imageIndex, setImageIndex] = useState<number>(10);
 
@@ -54,8 +57,34 @@ const Home: React.FC = () => {
     }
   }
 
+  async function fetchGameHappening() {
+    try {
+      setLoadingGame(true);
+      const result = await API.game.getIsHappening();
+      
+      console.log(result.data);
+      
+      if (result.data) {
+        const data = result.data;
+        const parsedData: GameIsHappening[] = data.isHappeningGames.map((item: any) => ({
+          game: item.game,
+          isHappening: item.isHappening
+        }));
+        
+        console.log(parsedData);
+        setHappeningGames(parsedData); 
+      }
+    } catch (e) {
+      console.error(e);
+    } finally{
+      console.log(happeningGames);
+      setLoadingGame(false);
+    }
+  }
+
   useEffect(() => {
     fetchData();
+    fetchGameHappening();
     setisMobile(window.innerWidth < 1050);
   }, []);
 
@@ -100,8 +129,8 @@ const Home: React.FC = () => {
     setButtonSelected("sponsors");
   }
 
-  function handleRiddle() {
-    router.push(Routes.riddle);
+  function handleGame(game) {
+    router.push("/game/riddle/lobby");
   }
 
   function handleSupporters() {
@@ -138,7 +167,18 @@ const Home: React.FC = () => {
           {isUserLoggedIn ? (
             <>
               <ButtonMenuHome label="PERFIL" onClick={handlePerfil} />
-              {/* <ButtonMenuHome label="RIDDLE" onClick={handleRiddle} /> */}
+              {
+                !loadingGames && 
+                happeningGames.length > 0 &&
+                happeningGames.map((game, index) => (
+                  game.isHappening &&
+                  // <p>{game.Game}aaa</p>
+                  <ButtonMenuHome 
+                    key={index} 
+                    label={game.game.toUpperCase()}
+                    onClick={() => handleGame(game.Game)} />
+                ))
+              }
             </>
           ) : (
             <>

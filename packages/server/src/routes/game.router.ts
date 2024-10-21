@@ -37,10 +37,21 @@ router.get(
 );
 
 router.get(
+  "/:game/numberOfQuestions",
+  [authMiddleware.authenticate, authMiddleware.isAuthenticated],
+  GameQuestionController.getNumberOfQuestions
+);
+
+router.get(
   "/:game/config",
   [authMiddleware.authenticate, authMiddleware.isAuthenticated],
   GameConfigController.getConfig
 );
 
+router.get(
+  "/isHappening",
+  [authMiddleware.authenticate, authMiddleware.isAuthenticated],
+  GameConfigController.getIsHappening
+);
 
 export default router;
