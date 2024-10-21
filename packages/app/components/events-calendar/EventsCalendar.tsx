@@ -31,6 +31,7 @@ function getWeekdayAndDate(dateStr) {
 
 function getUniqueDayAndDates(events: { startDate: string }[]) {
   const dayAndDatesSet = new Set<string>();
+  const sortedEvents = events.sort(sortEvents);
   events.forEach((event) => {
     dayAndDatesSet.add(getWeekdayAndDate(event.startDate));
   });
@@ -101,10 +102,10 @@ const EventsCalendar = (props) => {
 
   const uniqueDayAndDates = getUniqueDayAndDates(events);
   const filteredEvents = selectedDay
-    ? events.filter(
-        (event) => getWeekdayAndDate(event.startDate) === selectedDay
-      )
-    : events;
+    ? events
+        .filter((event) => getWeekdayAndDate(event.startDate) === selectedDay)
+        .sort(sortEvents)
+    : events.sort(sortEvents);
 
   const toggleExpandEvent = (index) => {
     setExpandedEvents((prevExpandedEvents) => {
