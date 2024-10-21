@@ -43,9 +43,9 @@ function AchievementsContainer({ data }) {
             enterTouchDelay={0}
             title={
               <button className="tootip">
-                <h3>{conquista.title}</h3>
-                <p>{conquista.description}</p>
-              </button>
+              <h3>{conquista.title}</h3>
+              {conquista.isEarned && conquista.description.length > 1 && <a href={conquista.description} className="underline text-lg">veja mais detalhes sobre essa conquista.</a>}
+            </button>
             }
           >
             <img
@@ -87,7 +87,7 @@ export default function AchievementsModal({ onRequestClose, conquistasLista }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <h1 className="title">Conquistas</h1>
+        <h1 className={`bg-black text-white w-full h-fit text-xl text-white py-8 flex items-center justify-center text-center`}>Conquistas</h1>
       <AppBar style={{ backgroundColor: "transparent" }} position="static">
         <Tabs
           className="tab-events"
@@ -95,16 +95,16 @@ export default function AchievementsModal({ onRequestClose, conquistasLista }) {
           onChange={handleChange}
           variant="fullWidth"
         >
-          <Tab className="event" label="Individual" {...a11yProps(0)} />
-          <Tab className="event" label="Casa" {...a11yProps(1)} />
+        { conquistasIndividual.length > 0 && <Tab className="event" label="Individual" {...a11yProps(0)} /> }
+        { conquistaCasa.length > 0 && <Tab className="event" label="Casa" {...a11yProps(1)} />}
         </Tabs>
       </AppBar>
-      <TabPanel value={tab} index={0}>
+      {conquistasIndividual.length > 0 && <TabPanel className="phone:overflow-y-scroll items-center justify-center" value={tab} index={0}>
         <AchievementsContainer data={conquistasIndividual} />
-      </TabPanel>
-      <TabPanel value={tab} index={1}>
+      </TabPanel>}
+      {conquistaCasa.length > 0 && <TabPanel className="phone:overflow-y-scroll items-center justify-center" value={tab} index={1}> 
         <AchievementsContainer data={conquistaCasa} />
-      </TabPanel>
+      </TabPanel>}
       <button className="cancel" type="button" onClick={onRequestClose}>
         Fechar
       </button>
