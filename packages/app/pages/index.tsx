@@ -50,7 +50,6 @@ const Home: React.FC = () => {
   async function fetchData() {
     try {
       const config = await handler.config.getConfig().then((res) => res.data);
-      //console.log(config);
       setOpenSignup(config.openSignup);
     } catch (error) {
       console.log(error);
@@ -62,22 +61,19 @@ const Home: React.FC = () => {
       setLoadingGame(true);
       const result = await API.game.getIsHappening();
       
-      console.log(result.data);
-      
       if (result.data) {
         const data = result.data;
         const parsedData: GameIsHappening[] = data.isHappeningGames.map((item: any) => ({
-          game: item.game,
+          title: item.title,
+          prefix: item.prefix,
           isHappening: item.isHappening
         }));
         
-        console.log(parsedData);
         setHappeningGames(parsedData); 
       }
     } catch (e) {
       console.error(e);
     } finally{
-      console.log(happeningGames);
       setLoadingGame(false);
     }
   }
@@ -130,7 +126,7 @@ const Home: React.FC = () => {
   }
 
   function handleGame(game) {
-    router.push("/game/riddle/lobby");
+    router.push(`/game/${game}/lobby`);
   }
 
   function handleSupporters() {
@@ -175,8 +171,8 @@ const Home: React.FC = () => {
                   // <p>{game.Game}aaa</p>
                   <ButtonMenuHome 
                     key={index} 
-                    label={game.game.toUpperCase()}
-                    onClick={() => handleGame(game.Game)} />
+                    label={game.title.toUpperCase()}
+                    onClick={() => handleGame(game.title)} />
                 ))
               }
             </>

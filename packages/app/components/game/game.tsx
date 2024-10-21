@@ -51,7 +51,6 @@ function Question({
       setIsFetchingQuestion(true);
       setInputValue("");
       try {
-        console.log(gameConfig.getEventPrefix(), questionIndex);
         const { data: question } = await API.game.getQuestion(
           gameConfig.getEventPrefix(),
           questionIndex
@@ -96,7 +95,7 @@ function Question({
     if (isSubmitting)
       return (
         <Spinner
-          size="small"
+          size="large"
           strokeWidth={2}
           color="#115079"
           className="mr-2"
@@ -110,7 +109,7 @@ function Question({
   }
 
   function renderQuestion() {
-    if (isFetchingQuestion) return <Spinner size="large" className="pt-4" />;
+    if (isFetchingQuestion) return <Spinner size="large" />;
 
     if (!question) return <div>Houve um erro buscando a pergunta</div>;
 
@@ -163,9 +162,7 @@ export default function Game({
     try {
       const result = await API.game.getNumberOfQuestions(gameConfig.getName());
       
-      console.log(result.data);
       if(result.data){
-        console.log(result.data);
         setNumberOfQuestions(result.data);  
       }
     } catch (e) {
@@ -179,7 +176,6 @@ export default function Game({
 
   useEffect(() => {
     if(team){
-      console.log(team.completedQuestions)
       setCompletedQuestions(team.completedQuestions);
     }
   }, [team])
@@ -196,7 +192,6 @@ export default function Game({
               <End gameConfig={gameConfig}/>
             : 
             gameConfig.verifyIfIsHappening() ?
-            
             completedQuestions && <Question
               setTeam={setTeam}
               socket={socket}
@@ -204,7 +199,12 @@ export default function Game({
               token={token}
               questionIndex={completedQuestions.length}
             />
-            : <p>Fora do tempo!</p>
+            : 
+            <div className='flex content-center'>
+            <div className='flex flex-col items-center justify-center text-xl font-secondary py-16'>
+              <p className='pb-4'>Fora do tempo!</p>
+            </div>
+          </div>
           }
         </>
       </div>
