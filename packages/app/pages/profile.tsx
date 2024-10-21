@@ -548,7 +548,7 @@ function Profile() {
                     setIsRegistrationsModalOpen(true);
                     blockBodyScroll();
                   }}
-                  className={`bg-${userHouseName} text-white p-3 rounded-lg mt-2`}
+                  className={`bg-${userHouseName} text-white p-3 rounded-lg mt-2 hover:bg-white hover:text-primary`}
                 >
                   Inscreva-se!
                 </button>
@@ -574,34 +574,44 @@ function Profile() {
       <h1 className="flex-1 text-center" style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
         Conquistas
       </h1>       
-      <CameraAltIcon 
-        className="mb-4 ml-auto"
-        onClick={() => {
-          setIsAddAchievementModalOpen(true);
-          blockBodyScroll();
-        }}
-        cursor="pointer"
-        titleAccess="Escanear Conquista"
-      />
     </div>
-    <div className="grid auto-cols-auto auto-rows-auto">
+    {/* <div className="grid auto-cols-auto auto-rows-auto">
       {earnedAchievements.slice(0, 6).map((conquista) => (
         <img
           key={conquista.id}
           src={conquista.imageBase64}
           alt={conquista.title}
           style={{ padding: ".3rem", maxHeight: "80px" }}
+          className="rounded-lg"
         />
       ))}
+    </div> */}
+    <div className="grid gap-4 grid-cols-2 phone:grid-cols-1">
+      <button
+        onClick={() => {
+          setIsAchievementsModalOpen(true);
+          blockBodyScroll();
+        }}
+        className={`bg-${userHouseName} text-white p-3 rounded-lg mt-2 hover:bg-white hover:text-primary`}
+      >
+        Ver conquistas
+      </button>
+      <button
+        onClick={() => {
+          setIsAddAchievementModalOpen(true);
+          blockBodyScroll();
+        }}
+        className={`bg-${userHouseName} text-white p-3 rounded-lg mt-2 flex flex-row items-center justify-center hover:bg-white hover:text-primary`}
+      >
+        <p className="mr-2">Escanear conquista</p>
+        <CameraAltIcon 
+          className=""
+          cursor="pointer"
+          titleAccess="Escanear Conquista"
+        />
+      </button>
     </div>
-    <button
-      onClick={() => {
-        setIsAchievementsModalOpen(true);
-        blockBodyScroll();
-      }}
-    >
-      Ver mais
-    </button>
+    
   </Card>
 )}
 
@@ -622,10 +632,10 @@ function Profile() {
                   Overflow
                 </h1>
                 <strong>Sua casa é...</strong>
-                <img className="w-full object-fill max-w-sm" alt="User house" src={houseImageSrc} />
+                <img className="w-full object-fill max-w-sm m-2 rounded-lg" alt="User house" src={houseImageSrc} />
                 <p className="house-name text-2xl">{userFetched.house.name}</p>
                 <a
-                  className={`bg-${userHouseName} text-white p-2 rounded-lg mt-2 text-center text-xs`}
+                  className={`bg-${userHouseName} text-white p-2 rounded-lg mt-2 text-center text-xs hover:bg-white hover:text-primary`}
                   href={userHouseTelegram}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -634,7 +644,7 @@ function Profile() {
                   <TelegramIcon />
                 </a> 
                 <a
-                  className={`bg-${userHouseName} text-white p-2 rounded-lg mt-2 text-center text-xs `}
+                  className={`bg-${userHouseName} text-white p-2 rounded-lg mt-2 text-center text-xs hover:bg-white hover:text-primary`}
                   href="https://t.me/+XszTILsnIoAyYjEx"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -711,7 +721,7 @@ function Profile() {
                           setCoffeeModalOpen(true);
                           blockBodyScroll();
                           }}
-                          className={`bg-${userHouseName} text-white p-3 rounded-lg mt-2`}>
+                          className={`bg-${userHouseName} text-white p-3 rounded-lg mt-2 hover:bg-white hover:text-primary`}>
                           Comprar!
                         </button>
                         </>
