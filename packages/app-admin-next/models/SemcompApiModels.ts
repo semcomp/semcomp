@@ -56,6 +56,7 @@ export type SemcompApiUser = {
     saleOption: string[][];
   };
   gotKit: boolean;
+  gotTagName: boolean;
   telegram: string;
   disabilities: string[];
   permission: boolean;
@@ -142,6 +143,7 @@ export type SemcompApiSale = {
   hasKit: boolean;
   hasCoffee: boolean;
   items: string[];
+  allowHalfPayment: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -338,3 +340,19 @@ export type SemcompApiPaymentUser = {
   createdAt?: number;
   updatedAt?: number;
 }
+
+export type SemcompApiPayment = {
+  userId: string;
+  status: PaymentStatus;
+  qrCode?: string;
+  qrCodeBase64?: string;
+  withSocialBenefit: boolean;
+  socialBenefitFileName: string;
+  tShirtSize: TShirtSize;
+  salesOption: string[];
+  price?: number;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export type SemcompApiGetPaymentsResponse = PaginationResponse<SemcompApiPayment>;

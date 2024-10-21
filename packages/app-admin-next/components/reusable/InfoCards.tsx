@@ -26,13 +26,15 @@ type InfoData = {
 }
 
 export default function InfoCards({
+  className,
   infoData,
 }: {
-  infoData: InfoData[]
+  infoData: InfoData[],
+  className?: string
 }) {
   return(
     <>
-      <div className={'grid lg:grid-cols-4 mb-10 gap-5 w-full sm:grid-cols-2'}>
+      <div className={`grid lg:grid-cols-4 mb-10 gap-5 w-full sm:grid-cols-2 ${className}`}>
     {
       infoData.map((info) => (
         <div key={info.infoTitle} className="p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100">

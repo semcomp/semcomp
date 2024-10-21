@@ -25,6 +25,12 @@ export default class PaymentRouter {
     });
 
     router.get(
+      "/",
+      [this.adminAuthMiddleware.authenticate, this.adminAuthMiddleware.isAuthenticated],
+      (req, res, next) => this.paymentController.find(req, res, next),
+    )
+
+    router.get(
       "/generate-qr-codes",
       [this.adminAuthMiddleware.authenticate, this.adminAuthMiddleware.isAuthenticated],
       (req, res, next) => this.paymentController.generateQrCodes(req, res, next),

@@ -27,31 +27,51 @@ function MarkAttendanceModal({
   const forceUpdate = useCallback(() => updateState({} as any), []);
 
   let lastScannedUserId = "";
+  // Loading para evitar que o usuário escaneie o mesmo QR code várias vezes
+  // antes da requisição ser finalizada
+  let loading = false;
+  
+  function showToastMessage(message: string, userId: string) {
+    if (message) {
+      if (message === "Presença já cadastrada!") {
+        toast.info(message);
+      } else {
+        lastScannedUserId = userId;
+        toast.success(message);
+      }
+    } else {
+      toast.success("Presença cadastrada!");
+    }
+  }
 
   async function handleSubmit(userId: string) {
-    if (lastScannedUserId !== userId) {
+    if (!loading && lastScannedUserId !== userId) {
+      loading = true;
+      
       try {
-        if(data.type === EventType.COFFEE){
+        if (data.type === EventType.COFFEE) {
           const permission = await semcompApi.getCoffeePermission(userId, coffeeItemId);
-          if(permission){
-            await semcompApi.markAttendance(data.id, userId);
-            lastScannedUserId = userId;
-            toast.success("Presença cadastrada!");
-          }else{
+          
+          if (permission) {
+            const response = await semcompApi.markAttendance(data.id, userId);
+
+            showToastMessage(response.message, userId);
+          } else {
             toast.error("Usuário não tem acesso à esse Coffee 'o'");
           }
-        }else{
-          await semcompApi.markAttendance(data.id, userId);
-          lastScannedUserId = userId;
-          toast.success("Presença cadastrada!");
+        } else {
+          const response = await semcompApi.markAttendance(data.id, userId);
+          showToastMessage(response.message, userId);
         }
       } catch (e) {
         toast.error("Erro ao marcar presença :(");
         console.error(e);
         console.log(e?.response?.data?.message[0]);
+      } finally {
+        loading = false;
       }
-    } else {
-      toast.error("Usuário já teve presença marcada");
+    } else if (!loading && lastScannedUserId === userId) {
+      toast.warning("Usuário já teve a presença cadastrada!");
     }
   }
 

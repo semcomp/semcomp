@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { CoffeePaymentData } from "./coffee-modal";
 
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import { Button, Input, Modal, Skeleton } from "@mui/material";
+import { Button, Input, Skeleton } from "@mui/material";
 import { toast } from "react-toastify";
 
 import API from "../../../api";
@@ -14,12 +14,12 @@ function CoffeeStep3({data}: {data: CoffeePaymentData}) {
     let value: number = data.price;
     if (value === 0) {
       for (const sale of data.sale) {
-        value += sale.price;
+        if (data.withSocialBenefit && sale.allowHalfPayment) {
+          value += sale.price / 2;
+        } else {
+          value += sale.price;
+        }
       }
-    }
-
-    if (data.withSocialBenefit){
-      return value / 2;
     }
     
     return value;

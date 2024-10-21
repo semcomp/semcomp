@@ -8,6 +8,7 @@ import { AiOutlineClockCircle, AiOutlineDown } from "react-icons/ai";
 import EventIcon from "@mui/icons-material/Event";
 import API from "../../api";
 import { useAppContext } from "../../libs/contextLib";
+import { Chip } from "@mui/material";
 
 function getWeekdayAndDate(dateStr) {
   const daysOfWeek = [
@@ -71,7 +72,23 @@ const EventsCalendar = (props) => {
 
     async function fetchAndSetEvents() {
       const eventList = await fetchEvents();
-      setEvents(eventList.sort(sortEvents));
+
+      if (eventList.length > 0 && isUserLoggedIn) {
+        await API.user.getAllAtendancesByUser().then((response) => {
+          const newEvents = eventList.map((event) => {
+            const index = response.data.findIndex((e) => e.eventId === event.id);
+  
+            if (index !== -1) {
+              return { ...event, wasPresent: true };
+            } else {
+              return event;
+            }
+          });
+  
+          setEvents(newEvents);
+        })
+      };
+
       setExpandedEvents(new Array(eventList.length).fill(false));
       if (eventList.length > 0) {
         const firstEventDay = getWeekdayAndDate(eventList[0].startDate);
@@ -81,14 +98,6 @@ const EventsCalendar = (props) => {
 
     fetchAndSetEvents();
   }, []);
-
-  if (!loading && events.length === 0) {
-    return (
-      <p className="p-3 mt-8 mb-32 bg-white text-primary font-secondary rounded-xl bg-opacity-70">
-        Por enquanto não temos nenhum evento divulgado!
-      </p>
-    );
-  }
 
   const uniqueDayAndDates = getUniqueDayAndDates(events);
   const filteredEvents = selectedDay
@@ -108,6 +117,14 @@ const EventsCalendar = (props) => {
   const changeDay = (day) => {
     setExpandedEvents(new Array(events.length).fill(false));
     setSelectedDay(day);
+  }
+
+  if (!loading && events.length === 0) {
+    return (
+      <p className="p-3 mt-8 mb-32 bg-white text-primary font-secondary rounded-xl bg-opacity-70">
+        Por enquanto não temos nenhum evento divulgado!
+      </p>
+    );
   }
 
   return (
@@ -210,13 +227,13 @@ const EventsCalendar = (props) => {
                   }
                   className={`${isMobile ? "hidden-icon" : ""} font-secondary`}
                 >
-                  <div onClick={() => toggleExpandEvent(index)}>
+                  <div onClick={() => toggleExpandEvent(index)} className="cursor-pointer">
                     <div className="flex flex-row align-left justify-left w-full">
                       <h4 className="text-purple-500 text-left pr-2 whitespace-nowrap">
                           {event.type + " |"}
                       </h4>
                       <h3 className="text-left">
-                        {event.name}
+                        {event.name} { event.wasPresent ? <Chip label="Presente" color="primary" size="small" /> : ""}
                       </h3>
                     </div>
                     <p className="flex items-center text-yellow-400">

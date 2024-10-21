@@ -12,6 +12,7 @@ type Sale = {
   hasTShirt: boolean;
   hasKit: boolean;
   hasCoffee: boolean;
+  allowHalfPayment: boolean;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -55,6 +56,10 @@ const SaleSchema = new Mongoose.Schema(
       required: true,
     },
     hasCoffee: {
+      type: Boolean,
+      required: true,
+    },
+    allowHalfPayment: {
       type: Boolean,
       required: true,
     },

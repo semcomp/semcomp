@@ -1,8 +1,8 @@
+import { toast } from "react-toastify";
+
 import { CoffeePaymentData } from "./coffee-modal";
 import Input, { InputType } from "../../Input";
-import handler from '../../../api/handlers';
-import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 function CoffeeStep1({
   data,
@@ -43,13 +43,15 @@ function CoffeeStep1({
           <ul>
             { availableSales && availableSales.map((sale) => (
               <li key={sale.id}>
-                <b>{sale.name}</b>: R${sale.price}
+                {sale.allowHalfPayment && <LocalOfferIcon fontSize="small"/>}
+                <b> {sale.name}</b>: R${sale.price}
               </li>
             ))}
           </ul>
           
           <br />
-            <p>Estudantes com bolsa <b>PAPFE</b> pagam <b>metade</b> do preço em todas as opções acima, basta apresentar o documento PAFPE na próxima etapa.</p>
+            <p>Estudantes com bolsa <b>PAPFE</b> pagam <b>metade</b> do preço em todas as opções 
+            exibidas com o ícone <LocalOfferIcon fontSize="small"/>, basta apresentar o documento PAFPE na próxima etapa.</p>
           <br />
 
           <Input

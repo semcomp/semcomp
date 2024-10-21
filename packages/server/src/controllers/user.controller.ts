@@ -1,5 +1,5 @@
 import userService from "../services/user.service";
-
+import attendanceService from "../services/attendance.service";
 import { handleValidationResult } from "../lib/handle-validation-result";
 import { handleError } from "../lib/handle-error";
 import User from "../models/user";
@@ -41,6 +41,17 @@ class UserController {
     }
   }
 
+  public async getAttendance(req, res, next) {
+    try {
+      handleValidationResult(req);
+      
+      const userAttendances = await attendanceService.findByUserId(req.user.id);
+      return res.status(200).send(userAttendances);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
   public static mapUserResponse(user: User, house?: House) {
     return {
       email: user.email,
@@ -55,7 +66,7 @@ class UserController {
         description: house.description,
         telegramLink: house.telegramLink,
       } : null,
-      wantNameTag: user.wantNameTag,
+      wantNameTag: user.wantNameTag
     };
   }
 }

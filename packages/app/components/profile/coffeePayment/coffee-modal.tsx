@@ -18,7 +18,14 @@ export type CoffeePaymentData = {
   foodOption: FoodOption;
   saleOption: string[];
   price: number;
-  sale: {id: string, name: string, price: number, hasTShirt: boolean, items: string[]}[];
+  sale: {
+    id: string,
+    name: string,
+    price: number,
+    hasTShirt: boolean,
+    items: string[],
+    allowHalfPayment: boolean
+  }[];
   qrCodeBase64: string;
   qrCode: string;
 };
@@ -36,6 +43,8 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }
   const [availableSales, setAvailableSales] = useState(null);
   const [filteredSales, setFilteredSales] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showHandleSocialBenefit, setShowHandleSocialBenefit] = useState(false);
+  const [showTshirtChoices, setShowTshirtChoices] = useState(false);
   const { user } = useAppContext();
   
   function SemcompButton({ onClick, children, className, ...props }: any) {
@@ -66,6 +75,26 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }
           return;
         }
       }
+
+      let tShirt = false;
+      let halfPayment = false;
+      for (const sale of data.sale) {
+        if (sale.hasTShirt) {
+          tShirt = true;
+        }
+  
+        if (sale.allowHalfPayment) {
+          halfPayment = true;
+        }
+      }
+
+      if (!tShirt && !halfPayment) {
+        setCoffeeStep(coffeeStep + 2);
+        return;
+      }
+
+      setShowHandleSocialBenefit(halfPayment);
+      setShowTshirtChoices(tShirt);
     } else if (coffeeStep + 1 === 2) {
       if (data.withSocialBenefit && !data.socialBenefitFile) {
         toast.error("Informe um arquivo!");
@@ -181,7 +210,13 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }
 
   const stepComponent = [
     <CoffeeStep1 key={0} data={data} setData={setData} availableSales={filteredSales}/>,
-    <CoffeeStep2 key={1} data={data} setData={setData} />,
+    <CoffeeStep2
+      key={1}
+      data={data}
+      setData={setData}
+      showHandleSocialBenefit={showHandleSocialBenefit}
+      showTshirtChoices={showTshirtChoices}
+    />,
     <CoffeeStep3 key={2} data={data}/>,
   ];
 
