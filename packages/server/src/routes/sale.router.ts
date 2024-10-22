@@ -7,10 +7,10 @@ import authMiddleware from "../middlewares/auth.middleware";
 const router = Router();
 
 router.get(
-    "/get-items",
-    [authMiddleware.authenticate, authMiddleware.isAuthenticated],
-    SaleController.getItems
-  );
+  "/get-items",
+  [authMiddleware.authenticate, authMiddleware.isAuthenticated],
+  SaleController.getItems
+);
 
 router.get(
   "/get-availables",
