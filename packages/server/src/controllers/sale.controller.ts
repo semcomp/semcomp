@@ -13,6 +13,7 @@ const SaleController = {
       return handleError(error, next);
     }
   },
+
   getItems: async (req, res, next) => {
     try {
       const result = await saleService.getItems();
@@ -22,6 +23,7 @@ const SaleController = {
       return handleError(error, next);
     }
   },
+
   getAvailables: async (req, res, next) => {
     try {
       const result = await saleService.getAvailables();
@@ -30,6 +32,7 @@ const SaleController = {
       return handleError(error, next);
     }
   },
+  
   getOne: async (req, res, next) => {
     try {
       handleValidationResult(req);
