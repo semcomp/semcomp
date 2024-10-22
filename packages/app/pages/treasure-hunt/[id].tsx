@@ -15,9 +15,7 @@ const TreasureHuntPage = () => {
     const [hasEnded, setHasEnded] = useState(false);
     
     async function fetchTreasureHuntData() {
-        console.log(router.query?.id);
         const { data } = await API.treasureHunt.getImage(router.query?.id);
-        console.log(data);
     
         setImageFetched(data);
     }

@@ -18,8 +18,8 @@ export default class JsonWebToken implements TokenService {
   }
 
   public decode(token: string) {
-    console.log(this.key);
-    console.log(token);
+    // console.log(this.key);
+    // console.log(token);
     return jwt.verify(token, this.key).data;
   }
 }

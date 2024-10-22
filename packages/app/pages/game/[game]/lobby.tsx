@@ -55,7 +55,6 @@ export default function GamePage({ children }) {
     try {
       const result = await API.game.getConfig(game as string);
       
-      console.log(result.data);
       if(result.data){
         // Mapeia o resultado da API na classe GameConfig
         const gameConfigInstance = new GameConfig(result.data);
@@ -77,7 +76,6 @@ export default function GamePage({ children }) {
 
   useEffect(() => {
     if(gameConfig){
-      console.log(gameConfig)
       setIsHappening(gameConfig.verifyIfIsHappening());
     }
   }, [gameConfig])
@@ -108,7 +106,6 @@ export default function GamePage({ children }) {
   function handleNewGroupInfo(info) {
     if (info) {
       setTeam(info);
-      console.log(info);
     }
     setIsFetchingTeam(false);
   }
