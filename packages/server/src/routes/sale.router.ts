@@ -3,6 +3,7 @@ import { body, param } from "express-validator";
 
 import SaleController from "../controllers/sale.controller";
 import authMiddleware from "../middlewares/auth.middleware";
+
 const router = Router();
 
 router.get(
