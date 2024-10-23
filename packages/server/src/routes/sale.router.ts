@@ -33,5 +33,4 @@ router.get(
   SaleController.getOne
 );
 
-
 export default router;
