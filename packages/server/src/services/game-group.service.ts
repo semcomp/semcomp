@@ -243,12 +243,12 @@ class GameGroupService {
       }
       games[entity.game].push(entity);
     }
-
+    console.log('filtrei jogos');
     const bestGroups: Record<string, GameGroupWithInfo> = {};
 
     for (const game in games) {
       const groups = games[game];
-      
+      console.log('jogo', game);
       // Encontra o grupo com mais completedQuestions
       groups.sort((a, b) => {
         const diff = b.completedQuestions.length - a.completedQuestions.length;
@@ -291,15 +291,15 @@ class GameGroupService {
   }): Promise<PaginationResponse<GameGroupWithInfo>> {
     const groups = await this.find({ pagination });
     const groupIds = groups.getEntities().map((group) => group.id);
-    const completedQuestions = await gameGroupCompletedQuestionService.find({ gameGroupId: groupIds });
-    const questions = await gameQuestionService.find({ pagination: new PaginationRequest(1, 9999) });
+
+    // Fetch all necessary data in parallel
     const memberships = await gameGroupMemberService.find({ gameGroupId: groupIds });
-    const membershipsUserIds = memberships.map((membership) => membership.userId);
-    const users = await userService.minimalFind({ id: membershipsUserIds });
+    const [completedQuestions, users] = await Promise.all([
+      gameGroupCompletedQuestionService.find({ gameGroupId: groupIds }),
+      userService.minimalFind({ id: memberships.map((membership) => membership.userId) }),
+    ]);
 
-
-    const entities: GameGroupWithInfo[] = [];
-    for (const group of groups.getEntities()) {
+    const entities: GameGroupWithInfo[] = groups.getEntities().map((group) => {
       const groupMemberships = memberships.filter((membership) => membership.gameGroupId === group.id);
       const groupMembers = groupMemberships.map(
         (groupMembership) => users.find((user) => user.id === groupMembership.userId)
@@ -308,28 +308,25 @@ class GameGroupService {
       const groupCompletedQuestions = completedQuestions.filter(
         (completedQuestion) => completedQuestion.gameGroupId === group.id
       );
-      const groupCompletedQuestionsInfo = groupCompletedQuestions.map((groupCompletedQuestion) => {
-        const question = questions.getEntities().find(
-          (question) => question.id === groupCompletedQuestion.gameQuestionId
-        );
 
-        return {
-          index: question.index,
-          createdAt: groupCompletedQuestion.createdAt,
-        };
-      });
+      // Find the question with the highest index
+      const maxIndexQuestion = groupCompletedQuestions.reduce<{ index: number; createdAt: number }>((max, question) => {
+        return question.index !== undefined && question.index > max.index ? { index: question.index, createdAt: question.createdAt } : max;
+      }, { index: -1, createdAt: 0 });
 
+      const groupCompletedQuestionsInfo = maxIndexQuestion.index !== -1 ? [{
+        index: maxIndexQuestion.index,
+        createdAt: maxIndexQuestion.createdAt,
+      }] : [];
 
-      entities.push({
+      return {
         ...group,
         members: groupMembers,
         completedQuestions: groupCompletedQuestionsInfo,
-      });
-    }
+      };
+    });
 
-    const paginatedResponse = new PaginationResponse(entities, groups.getTotalNumberOfItems())
-
-    return paginatedResponse;
+    return new PaginationResponse(entities, groups.getTotalNumberOfItems());
   }
 
   private mapEntity(entity: Model<GameGroup> & GameGroup): GameGroup {
