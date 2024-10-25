@@ -21,9 +21,9 @@ export default class GameController {
     this.game = game;
 
     ioServer.on("connection", (socket) => {
-      console.log(`${socket.id} connected`);
+      // console.log(`${socket.id} connected`);
       socket.on("disconnect", () => {
-        console.log(`${socket.id} disconnected`);
+        // console.log(`${socket.id} disconnected`);
       });
 
       socket.on(`${this.game}-join-group-room`, async ({ token }) => {

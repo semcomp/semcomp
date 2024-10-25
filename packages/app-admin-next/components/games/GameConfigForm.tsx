@@ -29,7 +29,6 @@ function GameConfigForm({
 
     // Obtendo o título correspondente ao jogo selecionado
     const newTitle = GameTitle[selectedGame.replaceAll("-", "_").toUpperCase() as keyof typeof GameTitle] || "";
-    console.log(selectedGame.replaceAll("-", "_").toUpperCase())
 
     setData({
       ...data,

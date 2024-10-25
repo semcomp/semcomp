@@ -92,7 +92,7 @@ function mapData(
           }
         });
 
-        if (name !== '') { // TODO: Arrumar um jeito melhor de exibir esses dados
+        if (name !== '') {
           name = name.slice(0, -2);
           saleOption.push(name);
           paymentStatus.push("Aprovado");
@@ -105,7 +105,7 @@ function mapData(
               name = name.concat(sale.name, ', ');
             }
           }  else {
-            console.log('Venda', saleId, ' não encontrada para usuário', user.name);
+            // console.log('Venda', saleId, ' não encontrada para usuário', user.name);
           }
         });
 

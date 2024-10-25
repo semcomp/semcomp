@@ -88,6 +88,7 @@ const connectWithRetry = () =>
       useCreateIndex: true,
       useFindAndModify: false,
       useUnifiedTopology: true,
+      monitorCommands: true,
     },
     (err) => {
       if (err) {
@@ -111,4 +112,15 @@ mongoose.connection.on("open", () => {
   httpServer.listen(port, () => {
     console.log(`Now listening at port ${port} for requests!`);
   });
+});
+
+mongoose.connection.on("commandFailed", (e) => {
+  console.log("Mongo command failed!");
+  console.log(e);
+});
+
+
+mongoose.connection.on("commandSucceeded", (e) => {
+  console.log("Mongo command success-------------");
+  console.log(e);
 });

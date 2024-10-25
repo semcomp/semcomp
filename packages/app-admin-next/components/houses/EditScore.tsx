@@ -26,7 +26,6 @@ function EditScore({ eventId }) {
   async function handleSubmit(){
     try {
         setIsLoading(true);
-        console.log(score);
         await semcompApi.addPoints(eventId, score);
         toast.success('Pontuação editada com sucesso');
       } catch (error) {

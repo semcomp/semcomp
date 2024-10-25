@@ -15,6 +15,7 @@ router.get(
   AchievementController.getUserAchievements
 );
 
+
 router.post(
   "/:achievementId/qrcode",
   [

@@ -172,7 +172,7 @@ const Home: React.FC = () => {
                   <ButtonMenuHome 
                     key={index} 
                     label={game.title.toUpperCase()}
-                    onClick={() => handleGame(game.title)} />
+                    onClick={() => handleGame(game.prefix)} />
                 ))
               }
             </>

@@ -111,7 +111,6 @@ const HomeHeader = (): ReactElement => {
     setImageWidth(tempImageWidth);
     setNoAbsoluteMarginTop(tempNoAbsoluteMarginTop);
 
-    console.log(tempNoAbsoluteMarginTop);
     setBetaMarginTop(tempBetaMarginTop);
   };
 
