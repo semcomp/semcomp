@@ -328,7 +328,6 @@ class GameGroupService {
     }
 
     const paginatedResponse = new PaginationResponse(entities, groups.getTotalNumberOfItems())
-
     return paginatedResponse;
   }
 
