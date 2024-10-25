@@ -255,15 +255,12 @@ class SemcompApi {
       pagination.getItems(),
     );
 
-    const response = await this.http.get("/admin/game/groups", semcompApiPagination);
-
+    const response = await this.http.get("/admin/game/groups/get-last-index", semcompApiPagination);
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
-  public async getGameWinner(): Promise<SemcompApiGetGameWinnersResponse> {
-    
+  public async getGameWinner(): Promise<SemcompApiGetGameGroupsResponse> {
     const response = await this.http.get("/admin/game/groups/winner");
-
     return response;
   }
 

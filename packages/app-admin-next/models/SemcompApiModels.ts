@@ -244,18 +244,15 @@ export type SemcompApiEditGameQuestionRequest =
   SemcompApiCreateGameQuestionRequest;
 
 export type SemcompApiGameGroup = {
-  id: string;
-  game: Game;
-  name: string;
-  completedQuestions: any[];
-  availableClues: number;
-  availableSkips: number;
+  groupName: string;
+  game: string;
+  questionIndex: number;
+  availableClues?: number;
+  availableSkips?: number;
   createdAt: number;
-  updatedAt: number;
 };
 
-export type SemcompApiGetGameGroupsResponse =
-  PaginationResponse<SemcompApiGameGroup>;
+export type SemcompApiGetGameGroupsResponse = PaginationResponse<SemcompApiGameGroup>;
 export type SemcompApiGetGameWinnersResponse = Record<string, SemcompApiGameGroup>
 
 export type SemcompApiTreasureHuntImage = {
