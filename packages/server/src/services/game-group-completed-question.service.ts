@@ -139,6 +139,7 @@ class GameGroupCompletedQuestionService {
       {
         $sort: {
           questionIndex: -1,
+          createdAt: -1
         },
       },
       {
@@ -203,6 +204,7 @@ class GameGroupCompletedQuestionService {
       {
         $sort: {
           questionIndex: -1,
+          createdAt: -1
         },
       },
       {
