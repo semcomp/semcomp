@@ -2,6 +2,8 @@ import { Model } from "mongoose";
 
 import GameGroupCompletedQuestion, { GameGroupCompletedQuestionModel } from "../models/game-group-completed-question";
 import IdServiceImpl from "./id-impl.service";
+import { PaginationRequest, PaginationResponse } from "../lib/pagination";
+import { GameGroupModel } from "../models/game-group";
 
 const idService = new IdServiceImpl();
 
@@ -73,7 +75,164 @@ class GameGroupCompletedQuestionService {
 
     return entity && this.mapEntity(entity);
   }
+  public async getLastQuestionByGroup({
+    filters,
+    pagination,
+  }: {
+    filters?: Partial<GameGroupCompletedQuestion>;
+    pagination: PaginationRequest;
+  }): Promise<PaginationResponse<GameGroupCompletedQuestion>> {
+    const totalItems = await GameGroupModel.countDocuments();
 
+    const entities = await GameGroupCompletedQuestionModel.aggregate([
+      {
+      $match: filters || {},
+      },
+      {
+        $sort: {
+          updatedAt: -1,
+        },
+      },
+      {
+        $group: {
+          _id: "$gameGroupId",
+          mostRecentDocument: {
+          $first: "$$ROOT",
+          },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$mostRecentDocument",
+        },
+      },
+      {
+        $lookup: {
+          from: "game-question",
+          localField: "gameQuestionId",
+          foreignField: "id",
+          as: "question",
+        },
+      },
+      {
+        $unwind: "$question",
+      },
+      {
+        $lookup: {
+          from: "game-group",
+          localField: "gameGroupId",
+          foreignField: "id",
+          as: "group",
+        },
+      },
+      {
+        $unwind: "$group",
+      },
+      {
+        $project: {
+          questionIndex: "$question.index",
+          groupName: "$group.name",
+          game: "$group.game",
+          createdAt: "$createdAt",
+        },
+      },
+      {
+        $sort: {
+          questionIndex: -1,
+        },
+      },
+      {
+        $limit: pagination.getItems(),
+      },
+    ]);
+
+    const paginatedResponse = new PaginationResponse(entities, totalItems);
+
+    return paginatedResponse;
+  }
+
+  public async getWinnersByGame() {
+    const entity = await GameGroupCompletedQuestionModel.aggregate([
+      {
+        $sort: {
+          updatedAt: -1,
+        },
+      },
+      {
+        $group: {
+          _id: "$gameGroupId",
+          mostRecentDocument: {
+            $first: "$$ROOT",
+          },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$mostRecentDocument",
+        },
+      },
+      {
+        $lookup: {
+          from: "game-question",
+          localField: "gameQuestionId",
+          foreignField: "id",
+          as: "question",
+        },
+      },
+      {
+        $unwind: "$question",
+      },
+      {
+        $lookup: {
+          from: "game-group",
+          localField: "gameGroupId",
+          foreignField: "id",
+          as: "group",
+        },
+      },
+      {
+        $unwind: "$group",
+      },
+      {
+        $project: {
+          questionIndex: "$question.index",
+          groupName: "$group.name",
+          game: "$group.game",
+        },
+      },
+      {
+        $sort: {
+          questionIndex: -1,
+        },
+      },
+      {
+        $group: {
+          _id: "$game",
+          maxIndexDocument: { $first: "$$ROOT" },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$maxIndexDocument", 
+        },
+      },
+      {
+        $limit: 3,
+      }
+    ]);
+
+    const games: Record<string, any[]> = {};
+    for (const game of entity) {
+      if (!games[game.game]) {
+        games[game.game] = [];
+      }
+
+      games[game.game].push(game);
+    }
+    
+    return games;
+  }
+  
   private mapEntity(entity: Model<GameGroupCompletedQuestion> & GameGroupCompletedQuestion): GameGroupCompletedQuestion {
     return {
       id: entity.id,

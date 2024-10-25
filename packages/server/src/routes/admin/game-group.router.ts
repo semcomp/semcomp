@@ -28,4 +28,13 @@ router.delete(
   adminGameGroupsController.deleteById
 );
 
+router.get(
+  "/get-last-index",
+  [
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+  ],
+  adminGameGroupsController.getLastQuestionByGroup
+)
+
 export default router;

@@ -4,6 +4,7 @@ import { handleError } from "../../lib/handle-error";
 import HttpError from "../../lib/http-error";
 import adminLogService from "../../services/admin-log.service";
 import gameGroupService from "../../services/game-group.service";
+import gameGroupCompletedQuestionService from "../../services/game-group-completed-question.service";
 import { PaginationRequest } from "../../lib/pagination";
 
 const RESOURCE = 'game-group';
@@ -26,12 +27,7 @@ class GameGroupController {
 
   public async listWinner(req, res, next) {
     try {
-
-      // Usar uma pagination com (1, 9999) para evitar criar outro .findWithInfo()
-      // Estou considerando que não haverá mais que 9999 grupos somando todos os games
-      const entities = await gameGroupService.findWithInfo({ pagination: new PaginationRequest(1, 9999)});
-
-      const winner = await gameGroupService.findBestGroupForEachGame(entities);
+      const winner = await gameGroupCompletedQuestionService.getWinnersByGame();
       
       return res.status(200).json(winner);
     } catch (error) {
@@ -63,6 +59,20 @@ class GameGroupController {
       return handleError(error, next);
     }
   };
+
+  public async getLastQuestionByGroup(req, res, next) {
+    const pagination = new PaginationRequest(
+      +req.query.page,
+      +req.query.items,
+    );
+
+    try {
+      const lastIndex = await gameGroupCompletedQuestionService.getLastQuestionByGroup({ pagination });
+      return res.status(200).json(lastIndex);
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
 }
 
 export default new GameGroupController();

@@ -12,28 +12,17 @@ import {
 import DataPage from "../components/DataPage";
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
 import Game from "../libs/constants/game-enum";
-import VerticalTableRow from "../components/layout/VerticalTableRow";
+import util from "../libs/util";
 
 
 type GameGroupData = {
-  ID: string;
-  Jogo: Game;
+  Jogo: string;
   Nome: string;
   "Questao atual": any;
   // "Dicas disponíveis": number;
   // "Pulos disponíveis": number;
   "Data e hora da última questão": string;
 };
-
-function getMaxQuestion(completedQuestions) {
-  let max;
-  for(const question of completedQuestions){
-    if(question.index == completedQuestions.length - 1){
-      return question;
-    }
-  }
-  return;
-}
 
 function mapData(data: SemcompApiGameGroup[]): GameGroupData[] {
   const newData: GameGroupData[] = [];
@@ -44,23 +33,14 @@ function mapData(data: SemcompApiGameGroup[]): GameGroupData[] {
     minute: 'numeric',
   }
   for (const gameQuestion of data) {
-    // console.log(" || \n");
-    if(gameQuestion.completedQuestions.length >= 1){
-      
-      gameQuestion.createdAt = getMaxQuestion(gameQuestion.completedQuestions)?.createdAt;
-    }
-     
-
+    const game = Object.keys(Game).find((key) => Game[key] === gameQuestion.game);
     newData.push({
-      ID: gameQuestion.id,
-      Jogo: gameQuestion.game,
-      Nome: gameQuestion.name,
-      "Questao atual": gameQuestion.completedQuestions.length,
+      Jogo: game,
+      Nome: gameQuestion.groupName,
+      "Questao atual": gameQuestion.questionIndex,
       // "Dicas disponíveis": gameQuestion.availableClues,
       // "Pulos disponíveis": gameQuestion.availableSkips,
-      "Data e hora da última questão": 
-      new Date(new Date(gameQuestion.createdAt).setHours(new Date(gameQuestion.createdAt).getHours() + 3)).toLocaleString("pt-BR", { day: 'numeric', month: 'numeric', hour: 'numeric', minute: 'numeric' }),
-
+      "Data e hora da última questão": util.formatDate(gameQuestion.createdAt)
     });
   }
 
@@ -98,14 +78,12 @@ function ShowWinner({dataWinner} : {dataWinner: SemcompApiGetGameWinnersResponse
     <div className="flex flex-col items-center mb-4 mr-8">
       <h3 className="mt-8 text-3xl font-bold text-gray-700">Vencedores: </h3>
       {
-        
         Object.keys(dataWinner).map((key) => (
           <div className="flex flex-col items-start justify-start w-full text-primary" key={key}>
-            <strong className="w-full">{key.toUpperCase()}:</strong> {String(dataWinner[key].name) }
-            <strong className="w-full">Questão atual:</strong> {String(dataWinner[key].completedQuestions.length) }
+            <strong className="w-full">{key.toUpperCase()}:</strong> {String(dataWinner[key][0].groupName) }
+            <strong className="w-full">Questão atual:</strong> {String(dataWinner[key][0].questionIndex) }
           </div>
         ))
-      
       }
     </div>
   );
@@ -115,9 +93,12 @@ function GameGroups() {
   const { semcompApi }: { semcompApi: SemcompApi } = useAppContext();
 
   const [data, setData] = useState(null as SemcompApiGetGameGroupsResponse);
-  const [dataWinner, setDataWinner] = useState(null as SemcompApiGetGameWinnersResponse);
+  const [dataWinner, setDataWinner] = useState(null);
   const [pagination, setPagination] = useState(
-    new PaginationRequest(() => fetchData())
+    new PaginationRequest(() => fetchData(), 1, 10)
+  );
+  const [paginationWinner,  ] = useState(
+    new PaginationRequest(() => fetchData(), 1, 10)
   );
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState([]);
