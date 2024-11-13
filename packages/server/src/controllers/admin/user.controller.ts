@@ -81,10 +81,11 @@ export default class UserController {
       userPayments.forEach((payment) => {
         userPaymentStatus.push(payment.status);
         userPaymentSaleOption.push(payment.salesOption);
-        if (payment.tShirtSize) {
+
+        if (payment.tShirtSize !== TShirtSize.NONE) {
           userPaymentTShirtSize = payment.tShirtSize;
         }
-        if (payment.foodOption) {
+        if (payment.foodOption !== FoodOption.NONE) {
           userPaymentFoodOption = payment.foodOption;
         }
       });
