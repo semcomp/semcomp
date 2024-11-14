@@ -2,6 +2,8 @@ import { Model } from "mongoose";
 
 import Attendance, { AttendanceModel } from "../models/attendance";
 import IdServiceImpl from "./id-impl.service";
+import eventService from "./event.service";
+import EventTypes from "../lib/constants/event-types-enum";
 
 const idService = new IdServiceImpl();
 
@@ -67,6 +69,79 @@ class AttendanceService {
     const entity = await AttendanceModel.findOneAndDelete({ id: attendance.id });
 
     return entity && this.mapEntity(entity);
+  }
+
+  public async listAttendanceInfoWithEventTypeRate(eventType: EventTypes): Promise<Attendance[]> {
+    const totalPalestraHours = await eventService.calcTotalTimeByEventType(eventType);
+    const allEvents = [EventTypes.CONCURSO, EventTypes.RODA, EventTypes.CULTURAL, EventTypes.FEIRA, EventTypes.PALESTRA];
+    
+    // Calcula a proporcao das horas de eventos do tipo "eventType"
+    // para cada usuario com presenca em Attendance
+    const userAttendancePipeline = [
+      {
+        $lookup: {
+          from: "event",
+          localField: "eventId",
+          foreignField: "id",
+          as: "eventDetails"
+        }
+      },
+      {
+        $unwind: "$eventDetails"
+      },
+      {
+        $match: {
+          "eventDetails.type": { $in: allEvents }
+        }
+      },
+      {
+        $addFields: {
+          eventDurationHours: {
+            $divide: [{ $subtract: ["$eventDetails.endDate", "$eventDetails.startDate"] }, 3600000]
+          },
+          isPalestra: {
+            $cond: { if: { $eq: ["$eventDetails.type", "Palestra"] }, then: true, else: false }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$userId",
+          hours: { $sum: "$eventDurationHours" },
+          palestraHours: {
+            $sum: { $cond: [{ $eq: ["$isPalestra", true] }, "$eventDurationHours", 0] }
+          }
+        }
+      },
+  		{
+        $lookup: {
+          from: "user",
+          localField: "_id",
+          foreignField: "id",
+          as: "userDetails"
+        } 
+      },
+  		{
+        $unwind: "$userDetails"
+      },
+      {
+        $addFields: {
+          percentage: { $multiply: [{ $divide: ["$palestraHours", totalPalestraHours] }, 100] }
+        }
+      },
+      {
+        $project: {
+          hours: { $round: ["$hours", 2] },
+          percentage: { $round: ["$percentage", 2] },
+          name: "$userDetails.name",
+          email: "$userDetails.email",
+          course: "$userDetails.course"
+        }
+      }
+    ];
+
+    const result = await AttendanceModel.aggregate(userAttendancePipeline);
+    return result;
   }
 
   private mapEntity(entity: Model<Attendance> & Attendance): Attendance {

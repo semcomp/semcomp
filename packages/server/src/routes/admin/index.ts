@@ -19,6 +19,7 @@ import adminAuthMiddleware from "../../middlewares/admin-auth.middleware";
 import PaymentServiceImpl from "../../services/payment-impl.service";
 import PaymentRouter from "./payment.router";
 import GameConfigRouter from "./game-config.router";
+import attendanceRouter from "./attendance.router";
 
 const tShirtRouter = new TShirtRouter(adminAuthMiddleware);
 const salesRouter = new SaleRouter(adminAuthMiddleware);
@@ -54,6 +55,7 @@ export default class AdminRouter {
     router.use("/sales", salesRouter.create());
     router.use("/subscription", subscriptionRouter);
     router.use("/treasure-hunt-images", treasureHuntImageRouter);
+    router.use("/attendances", attendanceRouter);
 
     return router;
   }

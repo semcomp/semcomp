@@ -123,6 +123,30 @@ class EventService {
     return entity && this.mapEntity(entity);
   }
 
+  public async calcTotalTimeByEventType(eventType: EventTypes): Promise<Number> {
+    const totalEventHoursPipeline = [
+      {
+        $match: { type: "Palestra" }
+      },
+      {
+        $addFields: {
+          eventDurationHours: {
+            $divide: [{ $subtract: ["$endDate", "$startDate"] }, 3600000]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalEventHours: { $sum: "$eventDurationHours" }
+        }
+      }
+    ];
+
+    const totalEventHoursResult = await EventModel.aggregate(totalEventHoursPipeline);
+    return totalEventHoursResult[0].totalEventHours;
+  }
+
   public async getInfo(userId: string) {
     const events = await this.find({
       filters: { showOnSchedule: true },

@@ -175,7 +175,7 @@ function Events() {
     try {
       setIsLoading(true);
       setDownloadAttendances(true);
-      const response = await semcompApi.getAllAttendance();
+      const response = await semcompApi.getDetailedAttendances({ eventType: EventType.PALESTRA });
       exportToCsv(mapData(response));
     } catch (error) {
       console.error(error);

@@ -28,12 +28,6 @@ export default class UserAdminRouter {
       (req, res, next) => this.userAdminController.listForEnterprise(req, res, next),
     );
 
-    router.get(
-      "/attendance-stats",
-      [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
-      (req, res, next) => this.userAdminController.stats(req, res, next),
-    );
-
     router.post(
       "/:userId/achievements/:achievementId",
       [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
