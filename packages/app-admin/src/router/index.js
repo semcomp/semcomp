@@ -9,6 +9,8 @@ import Users from '../pages/users';
 import AdminUsers from '../pages/admins';
 import Achievements from '../pages/achievements';
 import Events from '../pages/events';
+import Donations from '../pages/donations';
+import Points from '../pages/points';
 import RiddleQuestions from '../pages/riddle-questions';
 import RiddleGroups from '../pages/riddle-groups';
 import RiddlethonQuestions from '../pages/riddlethon-questions';
@@ -47,6 +49,8 @@ export const Routes = {
   logs: '/logs',
   houses: '/casas',
   broadcastEmail: '/enviar-email',
+  donations: '/doacoes',
+  points: '/pontuacao',
 };
 
 /**
@@ -82,6 +86,8 @@ function Router() {
         <Route exact path={Routes.houses} component={withAuth(Houses)} />
         <Route exact path={Routes.broadcastEmail} component={withAuth(BroadcastEmail)} />
         <Route exact path={Routes.login} component={withNoAuth(Login)} />
+        <Route exact path={Routes.donations} component={withAuth(Donations)} />
+        <Route exact path={Routes.points} component={withAuth(Points)} />
 
         {/* Since the `Switch` only renders a single component, if all of the `Route`
         components above fail to render, this `Redirect` component will be rendered,
