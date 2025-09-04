@@ -66,9 +66,9 @@ function ConfirmarCracha({ onRequestClose, user }) {
           alterada.
           <br />
           <br />
-          <p className="font-bold underline w-full text-center">
+          <span className="font-bold underline w-full text-center block">
              Responder até dia 14/10.
-          </p>
+          </span>
           <br />
         </p>
         <div className="flex items-center justify-center space-x-4 mt-4">
@@ -84,7 +84,7 @@ function ConfirmarCracha({ onRequestClose, user }) {
             onClick={() => handleConfirmar(false)}
             disabled={isUpdating}
           >
-            Não, eu não quero o crachá.
+            Não, eu não quero o crachá
           </button>
         </div>
         <button

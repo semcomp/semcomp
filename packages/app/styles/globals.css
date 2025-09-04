@@ -108,8 +108,8 @@ html,
   scroll-behavior: smooth;
   font-family: Roboto, sans-serif;
 
-  /* The whole page is not a perfect white so it goes a bit easier on the reader's eyes */
-  background-color: #fafafa;
+  /* Background removido para permitir o componente SimpleBackground */
+  background-color: transparent;
 }
 
 body::-webkit-scrollbar {
@@ -142,7 +142,7 @@ a {
 }
 
 button{
-  font-family: VideoType;
+  font-family: "Roboto";
   font-weight: 300;
 }
 

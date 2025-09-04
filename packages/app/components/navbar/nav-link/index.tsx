@@ -49,7 +49,7 @@ const NavLink = ({
       ) : (
         <Link href={href} title={title} {...props}>
           <button onClick={handleClick} style={{ outline: "none" }} className="nav">
-            <a className="flex justify-center items-center px-2 py-2 mx-2 my-2 text-lg rounded-lg hover:bg-hoverWhite duration-200">
+            <a className="flex justify-center font-bold items-center px-2 py-2 mx-2 my-2 text-lg rounded-lg hover:bg-hoverWhite duration-200">
               {LinkText}
             </a>
           </button>

@@ -2,7 +2,7 @@
 
 @media (min-width: 769px) and (max-width: 1960px) {
   #titulo {
-    font-family: UPHEAVAL;
+    font-family: Inter, system-ui, sans-serif;
     
     width: 80%;
     border-radius: 200px;

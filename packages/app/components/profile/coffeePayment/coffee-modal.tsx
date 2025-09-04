@@ -52,9 +52,7 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }
       <button
         type="button"
         onClick={onClick}
-        className={
-          `rounded bg-${user.house.name} text-white shadow-md px-6 py-3 ` + className
-        }
+        className={`rounded bg-primary text-white shadow-md px-6 py-3 ${className}`}
         {...props}
       >
         {children}
@@ -222,27 +220,38 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div className={`w-full bg-${user.house.name} text-white text-center text-xl p-6`}>
+      <div className="w-full bg-primary text-white text-center text-xl p-6">
         Compra Kit e Coffee da Semcomp!
       </div>
       { !loading ? 
         (
-          <div className="max-h-lg w-full overflow-y-scroll p-6">
-            { availableSales && availableSales.length > 0 &&
-              <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} activeColor={user.house.name} unactiveColor={"white"} />
-            }
-            {stepComponent[coffeeStep]}
-            <div className="flex justify-between w-full">
-              <SemcompButton className="bg-[#F24444]" onClick={onRequestClose}>
-                Fechar
-              </SemcompButton>
-              {coffeeStep < 2 && (filteredSales && filteredSales.length > 0) ? (
-                <SemcompButton onClick={nextCoffeeStep}>
-                  Próximo
-                </SemcompButton>
-              ) : <></>}
-            </div>
-          </div>
+          <>
+            { availableSales && availableSales.length > 0 ? (
+              <div className="w-full p-6 max-h-[60vh] overflow-y-auto">
+                <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} activeColor="#2840BD" unactiveColor="#E8E8E8" />
+                {stepComponent[coffeeStep]}
+                <div className="flex justify-between w-full">
+                  {coffeeStep > 0 && (
+                    <SemcompButton 
+                      onClick={() => setCoffeeStep(coffeeStep - 1)}
+                      className="bg-gray-500 hover:bg-gray-600"
+                    >
+                      Voltar
+                    </SemcompButton>
+                  )}
+                  {coffeeStep < 2 && (filteredSales && filteredSales.length > 0) ? (
+                    <SemcompButton onClick={nextCoffeeStep}>
+                      Próximo
+                    </SemcompButton>
+                  ) : <></>}
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 text-center">
+                <p className="text-black text-base font-bold mb-0">Não há vendas disponíveis no momento :(</p>
+              </div>
+            )}
+          </>
         ) : (
           <div className="my-5">
             <Spinner />

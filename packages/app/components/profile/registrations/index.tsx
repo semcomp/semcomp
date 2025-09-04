@@ -65,7 +65,7 @@ function Registrations({ onRequestClose }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div className={`w-full bg-${user.house.name} text-white text-center text-xl p-6`}>
+      <div className="w-full bg-primary text-white text-center text-xl p-6">
         Inscrições
       </div>
       <div className="h-96 overflow-y-scroll p-6 w-full custom-scroll">
@@ -93,13 +93,6 @@ function Registrations({ onRequestClose }) {
           </TabPanel>
         ))}
       </div>
-      <button
-        className="bg-[#F24444] hover:bg-[#B63A3A] text-white py-3 px-6 m-4 rounded-xl"
-        type="button"
-        onClick={onRequestClose}
-      >
-        Fechar
-      </button>
 
       {/* CSS Inline para ocultar a barra de rolagem */}
       <style jsx>{`
