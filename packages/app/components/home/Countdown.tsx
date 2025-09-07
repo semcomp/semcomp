@@ -8,11 +8,11 @@ interface CountdownNumberProps {
 }
 
 function textColor() {
-  return 'text-white' // Cor branca consistente para o novo design
+  return 'text-white';
 }
 
 function borderColor() {
-  return 'border-white' // Borda branca consistente para o novo design
+  return 'border-white';
 }
 
 function CountdownNumber({ number, label }: CountdownNumberProps) {
