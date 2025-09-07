@@ -18,7 +18,7 @@ const styles = {
   teammatesContainer: "mb-8 border border-white/30 rounded-lg p-4 overflow-y-auto bg-white/10 backdrop-blur-sm",
 };
 
-function Teammate({ gameConfig, setTeam, name, thisIsMe }: {gameConfig: GameConfig, setTeam: any, name: any, thisIsMe: any}) {
+function Teammate({ gameConfig, setTeam, name, thisIsMe }: { gameConfig: GameConfig, setTeam: any, name: any, thisIsMe: any }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
@@ -51,8 +51,8 @@ function Teammate({ gameConfig, setTeam, name, thisIsMe }: {gameConfig: GameConf
         {thisIsMe && " (você)"}
       </span>
       {thisIsMe && (
-        <button 
-          onClick={open} 
+        <button
+          onClick={open}
           className="text-white/70 hover:text-white p-1 rounded-full hover:bg-white/20 transition-colors"
         >
           <CloseIcon fontSize="small" />
@@ -98,7 +98,7 @@ function CopyableLink({ text }) {
   return (
     <div className="mt-4">
       <div className="text-white/80 text-sm mb-2">ID da Equipe:</div>
-      <div 
+      <div
         onClick={clipboardCopy}
         className="flex items-center justify-between p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 hover:bg-white/20 transition-colors cursor-pointer"
       >
@@ -111,7 +111,7 @@ function CopyableLink({ text }) {
   );
 }
 
-function Countdown({ team, gameConfig, onSubmit }: {gameConfig: GameConfig, team: any, onSubmit: any}) {
+function Countdown({ team, gameConfig, onSubmit }: { gameConfig: GameConfig, team: any, onSubmit: any }) {
   const targetMilliseconds = gameConfig.getStartDate().getTime();
   const [diff, setDiff] = useState(calculateDiff());
 
@@ -128,7 +128,7 @@ function Countdown({ team, gameConfig, onSubmit }: {gameConfig: GameConfig, team
     const handler = setInterval(() => setDiff(calculateDiff()), 1000);
     return () => clearInterval(handler);
   }, [targetMilliseconds]);
-  
+
   return (
     <div className="mt-6 p-6 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 text-center">
       {diff.getTime() > 0 ? (
@@ -185,7 +185,7 @@ function Lobby({
 }: { gameConfig: GameConfig } & any) {
   const { user: me } = useAppContext();
   const router = useRouter();
-  
+
   function canAddTeammates() {
     if (team.members.length >= gameConfig.getMaximumNumberOfMembersInGroup()) return false;
     return true;
@@ -197,12 +197,12 @@ function Lobby({
 
   function renderTeammates() {
     return team.members.map((mate) => (
-      <Teammate 
-        gameConfig={gameConfig} 
-        setTeam={setTeam} 
-        name={mate.name} 
-        key={mate.id} 
-        thisIsMe={mate.id === me.id} 
+      <Teammate
+        gameConfig={gameConfig}
+        setTeam={setTeam}
+        name={mate.name}
+        key={mate.id}
+        thisIsMe={mate.id === me.id}
       />
     ));
   }
@@ -215,11 +215,11 @@ function Lobby({
 
   const { token } = useAppContext();
 
-  function enterGame(){
+  function enterGame() {
     if (!team) {
       const name = me.email;
       socket.emit(`${gameConfig.getEventPrefix()}-create-group`, { token, name });
-      socket.on(`${gameConfig.getEventPrefix()}-group-info`, (info)=> {
+      socket.on(`${gameConfig.getEventPrefix()}-group-info`, (info) => {
         setTeam(info)
       });
     }
@@ -234,19 +234,19 @@ function Lobby({
         </h1>
         <div className="w-16 h-1 bg-white mx-auto rounded-full"></div>
       </div>
-      
+
       <div className="w-full font-secondary whitespace-pre-wrap text-white">
         <div className="text-center mb-8 text-lg">
           {gameConfig.getDescription()}
         </div>
-        
+
         <div className="mb-8 p-6 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
           <h2 className="w-full text-center font-bold text-xl mb-4">Como Jogar</h2>
           <div className="text-white/90 leading-relaxed">
             {gameConfig.getRules()}
           </div>
         </div>
-        
+
         {gameConfig.hasGroups() ? (
           !team ? (
             <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
@@ -280,12 +280,12 @@ function Lobby({
                 <div className="space-y-3 max-h-48 overflow-y-auto">
                   {renderTeammates()}
                 </div>
-                
+
                 <div className="mt-6">
                   {canAddTeammates() ? (
                     <div>
                       <div className="text-white/80 mb-2">
-                        Compartilhe o ID da equipe para adicionar mais membros 
+                        Compartilhe o ID da equipe para adicionar mais membros
                         (máximo de {gameConfig.getMaximumNumberOfMembersInGroup()} membros)
                       </div>
                       <CopyableLink text={createInviteLink()} />
