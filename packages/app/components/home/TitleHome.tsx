@@ -74,13 +74,13 @@ const TitleHome: React.FC<TitleHomeProps> = (): ReactElement => {
             className="relative flex flex-col items-center justify-center text-center text-primary md:mb-6 mobile:mb-8"
             style={{
               fontSize: titleFontSize,
-              lineHeight: "0.7",
+              lineHeight: "0.9",
               color: getTitleColor(),
               textShadow: "2px 4px 6px rgba(36, 36, 36, 0.6)",
               zIndex: 1,
             }}
           >
-            <Logo className="mobile:mb-6" width={logoSize} height={logoSize} fillColor={getTitleColor()}/>
+            <Logo className="mobile:mb-6" fillColor={getTitleColor()}/>
             <span style={{ marginTop: "1vw" }}></span>
             SEMCOMP 27
           </h1>

@@ -130,14 +130,13 @@ const Navbar = (props) => {
                     className="text-lg font-secondary" >{game.title}</Navlink>
                 ))
               }
-              <button onClick={logUserOut} className="text-lg nav font-secondary">
-                <a
-                  className="flex items-center justify-center px-2 text-lg duration-200 rounded-lg hover:bg-hoverWhite"
+              <Navlink 
                   href="/"
+                className="text-lg font-secondary"
+                onClick={logUserOut}
                 >
                   Sair
-                </a>
-              </button>
+              </Navlink>
             </>
           ) : (
             <>
