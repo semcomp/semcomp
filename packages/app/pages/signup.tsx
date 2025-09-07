@@ -215,7 +215,7 @@ function SignupPage() {
                     {stepComponent}
                   </div>
                   <section className="z-20 text-center text-white md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base">
-                    <p>© Semcomp 2024. Todos os direitos reservados.</p>
+                    <p>© Semcomp {new Date().getFullYear()}. Todos os direitos reservados.</p>
                     <p className="mt-3 mb-6 text-xs cursor-pointer hover:text-secondary">
                         { step < 1 && (<span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
                           <u>Política de Privacidade</u>

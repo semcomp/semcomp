@@ -9,7 +9,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
         Política de Privacidade - Semcomp USP
         <br />
         <span className="text-lg">
-          <em>Esta política é válida a partir de Agosto de 2021.</em>
+          <em>Esta política é válida a partir de Agosto de {new Date().getFullYear()}.</em>
         </span>
       </div>
       <div className="max-h-96 overflow-y-scroll p-6">

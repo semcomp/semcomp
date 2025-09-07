@@ -49,7 +49,7 @@ const Footer = (props) => {
         </div>
       </section>
       <section className="py-2 text-sm text-center">
-        <p>© Semcomp 2024. Todos os direitos reservados.</p>
+        <p>© Semcomp {new Date().getFullYear()}. Todos os direitos reservados.</p>
       </section>
       <section className="py-2 text-sm text-center">
         <p>Nos siga nas redes sociais</p>

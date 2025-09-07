@@ -129,7 +129,7 @@ function Login() {
             </form>
             <div>
               <section className="text-center text-white md:pt-12 tablet:pt-20 phone:pt-8">
-                <p>© Semcomp 2024. Todos os direitos reservados.</p>
+                <p>© Semcomp {new Date().getFullYear()}. Todos os direitos reservados.</p>
                 <p className="mt-3 mb-6 text-xs text-white cursor-pointer hover:text-primary">
                     <span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
                       <u>Política de Privacidade</u>
