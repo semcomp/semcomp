@@ -80,7 +80,7 @@ const TitleHome: React.FC<TitleHomeProps> = (): ReactElement => {
               zIndex: 1,
             }}
           >
-            <Logo className="mobile:mb-6" fillColor={getTitleColor()}/>
+            <Logo className="mobile:mb-6" width={logoSize} height={logoSize} fillColor={getTitleColor()}/>
             <span style={{ marginTop: "1vw" }}></span>
             SEMCOMP 27
           </h1>
