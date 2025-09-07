@@ -65,7 +65,7 @@ const Countdown = (): ReactElement => {
   }
 
   return (
-    <div className="flex flex-wrap justify-center font-thin select-none font-secondary">
+    <div className="flex flex-wrap justify-center select-none font-secondary">
       <CountdownNumber number={days} label={dayString}></CountdownNumber>
       <CountdownNumber number={hours} label="horas"></CountdownNumber>
       <CountdownNumber number={minutes} label="minutos"></CountdownNumber>
