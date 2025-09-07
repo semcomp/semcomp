@@ -7,14 +7,13 @@ import { Card } from '@mui/material';
 import GameConfig, { GameRoutes } from "../../../libs/game-config";
 import Navbar from '../../../components/navbar';
 import Sidebar from '../../../components/sidebar';
-import Footer from '../../../components/Footer';
 import { baseURL } from "../../../constants/api-url";
 import { useAppContext } from "../../../libs/contextLib";
 import Lobby from '../../../components/game/lobby';
-import AnimatedBG from '../../animatedBG';
+import SimpleBackground from '../../../components/home/SimpleBackground';
 import NewFooter from '../../newFooter';
 import API from "../../../api";
-import Spinner from '../../../components/spinner';
+import GameLoadingState from '../../../components/game/GameLoadingState';
 
 export default function GamePage({ children }) {
   const router = useRouter();
@@ -26,30 +25,6 @@ export default function GamePage({ children }) {
   const [isFetchingConfig, setIsFetchingConfig] = useState(true);
   const [gameConfig, setGameConfig] = useState(null);
   
-  // TIRAR ISSO DEPOIS DA SEMCOMP 27
-  const [imageIndex, setImageIndex] = useState<number>(10);
-  const timeToImage = [
-    { start: 5, end: 7, imgIndex: 0 },
-    { start: 7, end: 8, imgIndex: 1 },
-    { start: 8, end: 10, imgIndex: 2 },
-    { start: 10, end: 12, imgIndex: 3 },
-    { start: 12, end: 14, imgIndex: 4 },
-    { start: 14, end: 16, imgIndex: 5 },
-    { start: 16, end: 17, imgIndex: 6 },
-    { start: 17, end: 18, imgIndex: 7 },
-    { start: 18, end: 19, imgIndex: 8 },
-    { start: 19, end: 22, imgIndex: 9 },
-    { start: 0, end: 5, imgIndex: 10 },
-  ];
-  useEffect(() => {
-    const currentHour = new Date().getHours();
-    const matchedImage = timeToImage.find(
-      ({ start, end }) => currentHour >= start && currentHour < end
-    );
-    setImageIndex(matchedImage?.imgIndex ?? 10);
-  }, []);
-
-
   async function fetchGameConfig() {
     setIsFetchingConfig(true);
     try {
@@ -72,13 +47,6 @@ export default function GamePage({ children }) {
       fetchGameConfig();
     }
   }, [game])
-
-
-  useEffect(() => {
-    if(gameConfig){
-      setIsHappening(gameConfig.verifyIfIsHappening());
-    }
-  }, [gameConfig])
 
   const [socket] = useState(() =>
     IOSocket(baseURL, {
@@ -134,10 +102,15 @@ export default function GamePage({ children }) {
 
   // Verificar se o jogo já começou
   useEffect(() => {
+    console.log(gameConfig);
+    console.log(gameConfig?.verifyIfIsHappening());
     if(gameConfig){
         const handler = setInterval(() => {
           if (!gameConfig.verifyIfIsHappening()) {
             setIsHappening(false);
+            clearInterval(handler);
+          } else {
+            setIsHappening(true);
             clearInterval(handler);
           }
         }, 1000);
@@ -146,54 +119,51 @@ export default function GamePage({ children }) {
   }, [gameConfig]);
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-blue">
+    <div className="flex flex-col min-h-screen md:h-full">
       <Navbar className="z-20"/>
       <Sidebar />
-      <AnimatedBG imageIndex={imageIndex} />
-      <div className='z-20 h-full py-12 phone:pt-16 tablet:pt-34 w-full flex flex-col items-center justify-center'>
-      <div className='flex flex-col h-full items-center justify-center w-[50%] mobile:w-full text-primary static rounded-lg z-20 bg-white'>
-      {
-      !isFetchingConfig ?
-        <>
-          {gameConfig && gameConfig.hasGroups() ? (  
-            !isFetchingTeam ? (
-              <Lobby
-              gameConfig={gameConfig}
-              setTeam={setTeam}
-              team={team}
-              goToGame={handleGoToGame}
-              goToCreateTeam={handleGoToCreateTeam}
-              goToJoinTeam={handleGoToJoinTeam}
-              />
-            ) : (
-              <div className='flex content-center'>
-            <div className='flex flex-col items-center justify-center text-xl font-secondary py-16'>
-              <p className='pb-4'>Tentando encontrar grupo</p>
-              <Spinner size="large"/>
-            </div>
+      <SimpleBackground />
+      <main className="flex justify-center flex-1 w-full md:h-full md:text-sm tablet:text-xl phone:text-xs md:items-center relative z-10">
+        <div className='flex flex-col items-center justify-center md:w-[50%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20 rounded-lg'>
+          <div className='flex justify-center h-fit md:w-[70%] md:p-9 tablet:p-12 phone:p-9 font-secondary tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20 text-white'>
+            {
+              !isFetchingConfig ? (
+                <>
+                  {gameConfig && gameConfig.hasGroups() ? (  
+                    !isFetchingTeam ? (
+                      <Lobby
+                        gameConfig={gameConfig}
+                        setTeam={setTeam}
+                        team={team}
+                        goToGame={handleGoToGame}
+                        goToCreateTeam={handleGoToCreateTeam}
+                        goToJoinTeam={handleGoToJoinTeam}
+                      />
+                    ) : (
+                      <GameLoadingState message="Tentando encontrar grupo" />
+                    )
+                  ) : (
+                    gameConfig && !isFetchingTeam ? (
+                      <Lobby
+                        gameConfig={gameConfig}
+                        setTeam={setTeam}
+                        team={team}
+                        goToGame={handleGoToGame}
+                        goToCreateTeam={handleGoToCreateTeam}
+                        goToJoinTeam={handleGoToJoinTeam}
+                      />
+                    ) : (
+                      <GameLoadingState message="Tentando encontrar grupo" />
+                    )
+                  )}
+                </>
+              ) : (
+                <GameLoadingState message="Tentando encontrar Jogo" />
+              )
+            }
+          </div>
         </div>
-            )
-          ) : (
-            gameConfig && !isFetchingTeam && <Lobby
-            gameConfig={gameConfig}
-            setTeam={setTeam}
-            team={team}
-            goToGame={handleGoToGame}
-            goToCreateTeam={handleGoToCreateTeam}
-            goToJoinTeam={handleGoToJoinTeam}
-              />
-            )}
-        </>
-        :
-        <div className='flex content-center'>
-            <div className='flex flex-col items-center justify-center text-xl font-secondary py-16'>
-              <p className='pb-4'>Tentando encontrar Jogo</p>
-              <Spinner size="large"/>
-            </div>
-        </div>
-        }
-        </div>
-      </div>
+      </main>
       <NewFooter />
     </div>
   );

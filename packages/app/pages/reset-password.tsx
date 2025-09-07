@@ -137,19 +137,19 @@ function ResetPassword() {
           <div className="items-center justify-center h-fit md:w-[70%] md:p-9 tablet:p-12 phone:p-9 font-secondary tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20">
             <h1 className="text-2xl text-center text-white font-secondary tablet:text-3xl">Recuperar senha</h1>
             <div className="w-full flex justify-center">
-              <div className="w-full max-w-xs">
-                <Stepper
-                  numberOfSteps={3}
-                  activeStep={step}
-                  onStepClick={handleStepClick}
+            <div className="w-full max-w-xs">
+              <Stepper
+                numberOfSteps={3}
+                activeStep={step}
+                onStepClick={handleStepClick}
                   activeColor="#2840BD"
                   unactiveColor="#E8E8E8"
-                />
+              />
               </div>
             </div>
             {/* Renders the correct form according to the current step */}
             <div className="text-white">
-              {stepComponent}
+            {stepComponent}
             </div>
           </div>
         </div>
