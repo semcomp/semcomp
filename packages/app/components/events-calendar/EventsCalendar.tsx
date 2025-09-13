@@ -196,7 +196,7 @@ const EventsCalendar = (props) => {
                   iconStyle={
                     isMobile
                       ? { display: "none" }
-                      : { background: "#3b00c5ff", color: "#fff" }
+                      : { background: "#006789ff", color: "#fff" }
                   }
                   contentStyle={
                     isMobile
@@ -231,7 +231,7 @@ const EventsCalendar = (props) => {
                         {event.name} { event.wasPresent ? <Chip label="Presente" color="primary" size="small" /> : ""}
                       </h3>
                     </div>
-                    <p className="flex items-center text-yellow-400">
+                    <p className="flex items-center text-yellow-600">
                       <AiOutlineClockCircle className="mr-2" />
                       {startTimeStr} - {endTimeStr}
                     </p>
