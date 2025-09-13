@@ -8,7 +8,7 @@ function Stepper(
     onStepClick: Function,
     activeColor: string,
     unactiveColor: string,
-    connectorColor: string,
+    connectorColor?: string,
   }
 ) {
   function renderSteps() {

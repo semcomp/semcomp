@@ -228,17 +228,17 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }
           <>
             { availableSales && availableSales.length > 0 ? (
               <div className="w-full p-6 max-h-[60vh] overflow-y-auto">
-                <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} activeColor="#2840BD" unactiveColor="#E8E8E8" />
+                <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} activeColor="#2840BD" unactiveColor="#E8E8E8" connectorColor="#2840BD" />
                 {stepComponent[coffeeStep]}
                 <div className="flex justify-between w-full">
-                  {coffeeStep > 0 && (
+                  {coffeeStep > 0 && coffeeStep < 2 ? (
                     <SemcompButton 
                       onClick={() => setCoffeeStep(coffeeStep - 1)}
                       className="bg-gray-500 hover:bg-gray-600"
                     >
                       Voltar
                     </SemcompButton>
-                  )}
+                  ) : <div/>}
                   {coffeeStep < 2 && (filteredSales && filteredSales.length > 0) ? (
                     <SemcompButton onClick={nextCoffeeStep}>
                       Próximo
