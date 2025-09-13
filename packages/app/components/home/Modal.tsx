@@ -61,7 +61,7 @@ const Modal: React.FC<ModalProps> = ({ element, setButtonSelected }) => {
 
         .custom-scroll::-webkit-scrollbar-thumb {
           border-radius: 10px;
-          background-color:  rgb(192 132 252);
+          background-color:  #00B4D8;
         }
 
       `}</style>

@@ -109,7 +109,7 @@ const FAQ = () => {
     >
       <h1
         id="titulo"
-        className="text-purple-400 superdesktop:text-title-large desktop:text-title-large tablet:text-title-medium medphone:text-title-small phone:text-title-tiny text stroke"
+        className="text-modalTitleColor superdesktop:text-title-large desktop:text-title-large tablet:text-title-medium medphone:text-title-small phone:text-title-tiny text stroke"
       >
         FAQ
       </h1>
@@ -119,8 +119,8 @@ const FAQ = () => {
             key={index}
             question={item.question}
             answer={item.answer}
-            isFirst={index === 0} // Passa true se for a primeira pergunta
-            isLast={index === questions.length - 1} // Passa true se for a última pergunta
+            isFirst={index === 0}
+            isLast={index === questions.length - 1}
           />
         ))}
       </div>
