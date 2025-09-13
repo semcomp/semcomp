@@ -1,16 +1,18 @@
 import Step from "./Step";
 
 function Stepper(
-  { numberOfSteps, activeStep, onStepClick, activeColor, unactiveColor}:
+  { numberOfSteps, activeStep, onStepClick, activeColor, unactiveColor, connectorColor }:
   {
     numberOfSteps: number,
     activeStep: number,
     onStepClick: Function,
     activeColor: string,
-    unactiveColor: string
+    unactiveColor: string,
+    connectorColor: string,
   }
 ) {
   function renderSteps() {
+    console.log(connectorColor);
     if (!numberOfSteps) throw new Error("Stepper must have at least one step");
     const stepElements = [];
     for (let index = 0; index < numberOfSteps; index++) {
@@ -31,7 +33,10 @@ function Stepper(
   return (
     <div className={"flex justify-between relative"}>
       {/* This is the thin line that "connects" the steps */}
-      <div className={"w-full h-px top-1/2 absolute bg-white"}/>
+      <div
+        className={`w-full h-px top-1/2 absolute`}
+        style={{ backgroundColor: connectorColor || '#E8E8E8' }}
+      />
 
       {renderSteps()}
     </div>
