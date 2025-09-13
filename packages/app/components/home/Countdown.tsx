@@ -1,6 +1,7 @@
 import { ReactElement, useEffect, useState } from "react";
 
 import Card from "../Card";
+import { config } from "../../config";
 
 interface CountdownNumberProps {
   number: number;
@@ -37,7 +38,7 @@ const Countdown = (): ReactElement => {
 
   useEffect(() => {
     setInterval(() => {
-      let eventDate = new Date(2025, 10, 16, 8).getTime();
+      let eventDate = new Date(config.START_DATE).getTime();
       let difference = eventDate - new Date().getTime();
       if (difference < 1) {
         setTimeUp(true);
