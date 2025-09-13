@@ -11,7 +11,6 @@ import Sidebar from '../components/sidebar';
 import Stepper from "../components/stepper/Stepper";
 import Step0 from "../components/signup/Step0";
 import Step1 from "../components/signup/Step1";
-import Card from "../components/Card";
 import Routes from "../routes";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
@@ -19,6 +18,7 @@ import Link from "next/link";
 import PrivacyPolicyModal from "../components/signup/PrivacyPolicyModal";
 import handler from '../api/handlers';
 import SimpleBackground from "../components/home/SimpleBackground";
+import { config } from "../config";
 
 function SignupPage() {
   const router = useRouter();
@@ -215,7 +215,7 @@ function SignupPage() {
                     {stepComponent}
                   </div>
                   <section className="z-20 text-center text-white md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base">
-                    <p>© Semcomp {new Date().getFullYear()}. Todos os direitos reservados.</p>
+                    <p>© Semcomp {config.YEAR}. Todos os direitos reservados.</p>
                     <p className="mt-3 mb-6 text-xs cursor-pointer hover:text-secondary">
                         { step < 1 && (<span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
                           <u>Política de Privacidade</u>

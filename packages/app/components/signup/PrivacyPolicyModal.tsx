@@ -1,4 +1,5 @@
 import Modal from "../Modal";
+import { config } from "../../config";
 
 function PrivacyPolicyModal({ onRequestClose }) {
   return (
@@ -9,7 +10,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
         Política de Privacidade - Semcomp USP
         <br />
         <span className="text-lg">
-          <em>Esta política é válida a partir de Agosto de {new Date().getFullYear()}.</em>
+          <em>Esta política é válida a partir de Agosto de {config.YEAR}.</em>
         </span>
       </div>
       <div className="max-h-96 overflow-y-scroll p-6">

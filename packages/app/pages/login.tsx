@@ -7,17 +7,15 @@ import { toast } from "react-toastify";
 
 import API from "../api";
 import LoadingButton from "../components/loading-button";
-import Footer from "../components/Footer";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
 import Navbar from "../components/navbar";
 import Sidebar from '../components/sidebar';
-import SemcompLogo from "../assets/27-imgs/logo.png";
-import Card from "../components/Card";
 import Input, { InputType } from "../components/Input";
-import NavLink from "../components/navbar/nav-link";
 import PrivacyPolicyModal from "../components/signup/PrivacyPolicyModal";
 import SimpleBackground from "../components/home/SimpleBackground";
+import { config } from "../config";
+
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -129,7 +127,7 @@ function Login() {
             </form>
             <div>
               <section className="text-center text-white md:pt-12 tablet:pt-20 phone:pt-8">
-                <p>© Semcomp {new Date().getFullYear()}. Todos os direitos reservados.</p>
+                <p>© Semcomp {config.YEAR}. Todos os direitos reservados.</p>
                 <p className="mt-3 mb-6 text-xs text-white cursor-pointer hover:text-primary">
                     <span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
                       <u>Política de Privacidade</u>

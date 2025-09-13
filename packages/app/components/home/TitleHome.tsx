@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { ReactElement } from "react";
+
 import Logo from "../../components/home/Logo";
+import { config } from "../../config";
 
 interface TitleHomeProps {}
 
@@ -82,7 +84,7 @@ const TitleHome: React.FC<TitleHomeProps> = (): ReactElement => {
           >
             <Logo className="mobile:mb-6" width={logoSize} height={logoSize} fillColor={getTitleColor()}/>
             <span style={{ marginTop: "1vw" }}></span>
-            SEMCOMP 27
+            SEMCOMP {config.EDITION}
           </h1>
         </div>
           <p
