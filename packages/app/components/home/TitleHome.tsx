@@ -35,14 +35,14 @@ const TitleHome: React.FC<TitleHomeProps> = (): ReactElement => {
         setTitleFontSize("13vw");
 
       } else {
-        setTitleFontSize("18vw");
+        setTitleFontSize("16vw");
       }
 
       // Lógica para a logo
       if (width > 1050) {
-        setLogoSize("12vw");
+        setLogoSize("10vw");
       } else if(width > 660){
-        setLogoSize("25vw");
+        setLogoSize("20vw");
       }else{
         setLogoSize("34vw");
       }
@@ -76,6 +76,7 @@ const TitleHome: React.FC<TitleHomeProps> = (): ReactElement => {
             className="relative flex flex-col items-center justify-center text-center text-primary md:mb-6 mobile:mb-8"
             style={{
               fontSize: titleFontSize,
+              fontFamily: "Windsor",
               lineHeight: "0.9",
               color: getTitleColor(),
               textShadow: "2px 4px 6px rgba(36, 36, 36, 0.6)",

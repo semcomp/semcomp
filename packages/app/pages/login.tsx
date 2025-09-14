@@ -70,7 +70,7 @@ function Login() {
             <p className="my-4 text-center text-white font-secondary">
                 Não tem conta?{" "}
                 <Link href="/signup">
-                  <a className="text-white underline cursor-pointer hover:text-primary visited:bg-none">
+                  <a className="text-white underline cursor-pointer hover:text-secondary visited:bg-none">
                     {" "}
                     Crie uma agora!
                   </a>
@@ -113,29 +113,29 @@ function Login() {
                 }
               />
               <LoadingButton
-                className="w-full py-3 text-white rounded-lg shadow bg-primary font-primary hover:scale-105"
+                className="w-full py-3 text-white rounded-lg shadow bg-primary font-secondary hover:scale-105"
                 isLoading={isLoggingIn}
                 type="submit"
               >
                 Entrar
               </LoadingButton> 
               <Link href="/reset-password">
-                <div className="w-full my-3 text-center text-white underline cursor-pointer hover:text-primary decoration-solid">
+                <div className="w-full my-3 text-center text-white underline cursor-pointer hover:text-secondary decoration-solid">
                   Esqueceu sua senha?
                 </div>
               </Link>
             </form>
-            <div>
-              <section className="text-center text-white md:pt-12 tablet:pt-20 phone:pt-8">
+          </div>
+          <div>
+              <section className="fixed bottom-0 left-0 md:static md:pt-12 tablet:static tablet:pt-10 w-full text-center text-white">
                 <p>© Semcomp {config.YEAR}. Todos os direitos reservados.</p>
-                <p className="mt-3 mb-6 text-xs text-white cursor-pointer hover:text-primary">
+                <p className="mt-3 mb-6 text-xs text-white cursor-pointer hover:text-secondary">
                     <span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
                       <u>Política de Privacidade</u>
                     </span>
                 </p>
               </section>
             </div>
-          </div>
         </div>
       </main>
       {/* <Footer /> */}

@@ -1,44 +1,23 @@
 import { useEffect, useState } from "react";
-import Image from "next/image";
 
-import { QRCodeSVG } from "qrcode.react";
-import { Divider, List, ListItem, ListItemText, Tooltip } from "@mui/material";
-import Chip from "@mui/material/Chip";
-import DoneIcon from '@mui/icons-material/Done';
-import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 import API from "../api";
-import Header from "../components/navbar/index";
-import Footer from "../components/Footer";
-import EventsCalendar from "../components/events-calendar/EventsCalendar";
 import EditProfile from "../components/profile/edit-profile";
 import Registrations from "../components/profile/registrations";
 import Achievements from "../components/profile/achievements";
-import EventsOverview from "../components/events-overview";
-import HouseScores from "../components/house-scores";
 import AboutOverflow from "../components/profile/about-overflow";
 import CoffeePayment from "../components/profile/coffeePayment/coffee-modal";
 import RequireAuth from "../libs/RequireAuth";
-import Handlers from "../../app/api/handlers";
-// Casas
-import TelegramIcon from "@mui/icons-material/Telegram";
-import ImgLogo from "../assets/logo-24.png";
 
-import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import { useAppContext } from "../libs/contextLib";
-import Card from "../components/Card";
-import FundEstudarForm from "../components/profile/fundEstudar";
 import MarkAttendanceModal from "../components/profile/MarkAttendanceModal";
 import AddAchievementModal from "../components/profile/AddAchievementModal";
-import { TShirtSize } from "../components/profile/coffeePayment/coffee-step-2";
 import Sidebar from "../components/sidebar";
 import Navbar from "../components/navbar/index";
 import SimpleBackground from "../components/home/SimpleBackground";
 import { NewFooter } from "./newFooter";
 
-import { Info } from "@mui/icons-material";
-import { PaymentStatus } from "../libs/constants/payment-status";
 import ConfirmarCracha from "../components/profile/crachasemcomp/index";
-import FundacaoEstudarLogo from "../components/profile/fundEstudar/index"
+import FundacaoEstudarLogo from "../components/profile/fundEstudar/index";
 
 // Componentes de cards
 import ProfileCard from "../components/profile/ProfileCard";
@@ -49,7 +28,7 @@ import OverflowCard from "../components/profile/OverflowCard";
 
 function Profile() {
   const { config } = useAppContext();
-  const [eventCount, setEventCount] = useState(null);
+  const [SubscribableEventCount, setSubscribableEventCount] = useState(null);
   const [userFetched, setUserFetched] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] = useState(false);
@@ -94,7 +73,7 @@ function Profile() {
     try {
       const response = await API.events.getSubscribables();
       setEvents(response.data);
-      setEventCount(Object.keys(response.data).length);
+      setSubscribableEventCount(Object.keys(response.data).length);
     } catch (e) {
       console.error(e);
       return [];
@@ -184,7 +163,7 @@ function Profile() {
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col justify-between font-secondary text-sm">
+    <div className="min-h-screen w-full flex flex-col justify-between font-secondary text-sm phone:mt-10">
       <Navbar />
       <Sidebar />
       <SimpleBackground />
@@ -267,7 +246,7 @@ function Profile() {
                 />
               )}
 
-              { eventCount == 0 && (
+              { SubscribableEventCount == 0 && (
                 <PurchasesCard
                   user={userFetched}
                   config={config}
@@ -284,7 +263,7 @@ function Profile() {
                 />
               )}
 
-              { eventCount > 0 && (
+              { SubscribableEventCount > 0 && (
                 <EventsCard
                   events={events}
                   onRegisterClick={() => {
@@ -322,7 +301,7 @@ function Profile() {
                 />
               )}
 
-              { eventCount > 0 && (
+              { SubscribableEventCount > 0 && (
                 <PurchasesCard
                   user={userFetched}
                   config={config}

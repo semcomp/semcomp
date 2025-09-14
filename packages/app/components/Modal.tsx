@@ -27,7 +27,7 @@ function Modal({ children, onRequestClose }) {
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center w-full h-full bg-black/25 z-50"
+      className="fixed inset-0 flex items-center justify-center w-full h-full bg-black/25 z-50 mobile:mt-9 mobile:mx-2"
       onClick={handleRootClick}
       role="dialog"
       aria-modal="true"

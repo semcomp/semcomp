@@ -104,12 +104,12 @@ const FAQ = () => {
   return (
     <section
       id="schedule"
-      className="flex flex-col items-center overflow-auto text-center text-secondary custom-scroll"
+      className="pb-4 flex flex-col items-center overflow-auto text-center text-secondary custom-scroll"
       style={{ maxWidth: '100%' }}  // Garantir que não ultrapasse a largura da tela
     >
       <h1
         id="titulo"
-        className="text-modalTitleColor superdesktop:text-title-large desktop:text-title-large tablet:text-title-medium medphone:text-title-small phone:text-title-tiny text stroke"
+        className="text-modalTitleColor superdesktop:text-title-large desktop:text-title-large tablet:text-title-medium medphone:text-title-small phone:text-title-tiny text stroke mb-2"
       >
         FAQ
       </h1>

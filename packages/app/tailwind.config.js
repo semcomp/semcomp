@@ -44,12 +44,13 @@ module.exports = {
       Stormrock: "#f26f18ff",
       Cybertechna: "#470787ff",
       Arcadium: "#0e56cbff",
-      cardDarkBackground: "#222333"
+      cardDarkBackground: "#222333",
+      modalTitleColor: "#00B4D8",
     },
     fontFamily: {
-      primary: ["Inter", "system-ui", "sans-serif"],
-      secondary: ["Roboto"], //Poppins
-      tertiary: ["Roboto"]
+      primary: ["Cinzel", "system-ui", "sans-serif"],
+      secondary: ["Poppins"],
+      tertiary: ["BebasNeue"]
     },
     fontSize: {
       'superlarge': '25px',

@@ -65,7 +65,7 @@ function TextInput({
               title={tooltip ? tooltip : ""}
               enterTouchDelay={1}
             >
-              <Info sx={{ color: "#fffff", paddingX: "2px"}} />
+              <Info sx={{ color: "#fffff", paddingX: "2px", marginY: "-1px" }} />
             </Tooltip>
           </div>
           <TextField

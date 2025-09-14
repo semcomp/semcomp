@@ -97,7 +97,7 @@ function EditProfile({ onRequestClose }) {
             type={InputType.Text}
           /> */}
           <LoadingButton
-            className={`w-full py-4 px-8 rounded-xl text-white bg-primary hover:bg-[#aeaeae] mb-2`}
+            className={`w-full py-4 px-8 rounded-xl text-white bg-primary hover:bg-hoverPrimary mb-2`}
             type="submit"
             isLoading={isUpdating}
           >

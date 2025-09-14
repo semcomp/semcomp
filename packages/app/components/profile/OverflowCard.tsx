@@ -13,10 +13,10 @@ function OverflowCard({ user, onAboutOverflowClick }: OverflowCardProps) {
         Overflow
       </h1>
       <strong>Sua casa é...</strong>
-      <p className="house-name text-2xl">{user.house.name}</p>
+      <p className="house-name text-2xl">{user.house?.name}</p>
       <a
         className="bg-primary text-white p-2 rounded-lg mt-2 text-center text-xs hover:bg-white hover:text-primary"
-        href={user.house.telegramLink}
+        href={user.house?.telegramLink}
         target="_blank"
         rel="noopener noreferrer"
       >

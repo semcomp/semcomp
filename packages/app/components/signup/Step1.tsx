@@ -113,7 +113,7 @@ function Step1(
   };
 
   return (
-    <form className="w-full" onSubmit={handleSubmit}>
+    <form className="w-full mobile:pb-16" onSubmit={handleSubmit}>
       {isPrivacyPolicyModalOpen && (
         <PrivacyPolicyModal
           onRequestClose={() => setIsPrivacyPolicyModalOpen(false)}

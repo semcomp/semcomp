@@ -210,11 +210,12 @@ function SignupPage() {
                       />
                     </div>
                   </div>
-                  <div className="text-white">
+                  <div className="text-white pb-6">
                     {/* Renders the correct form according to the current step */}
                     {stepComponent}
                   </div>
-                  <section className="z-20 text-center text-white md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base">
+                  {/* <section className="z-20 text-center text-white md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base"> */}
+                  <section className="fixed bottom-0 left-0 md:static md:pt-12 tablet:static tablet:pt-10 w-full text-center text-white">
                     <p>© Semcomp {config.YEAR}. Todos os direitos reservados.</p>
                     <p className="mt-3 mb-6 text-xs cursor-pointer hover:text-secondary">
                         { step < 1 && (<span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
