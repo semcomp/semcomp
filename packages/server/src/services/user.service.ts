@@ -105,7 +105,7 @@ class UserServiceImpl implements UserService {
   }
 
   public async count(filters?: Partial<Filters>): Promise<number> {
-    const count = await UserModel.count(filters);
+    const count = await UserModel.countDocuments(filters);
 
     return count;
   }

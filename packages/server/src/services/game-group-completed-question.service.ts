@@ -40,7 +40,7 @@ class GameGroupCompletedQuestionService {
   }
 
   public async count(filters?: Partial<Filters>): Promise<number> {
-    const count = await GameGroupCompletedQuestionModel.count(filters);
+    const count = await GameGroupCompletedQuestionModel.countDocuments(filters);
 
     return count;
   }

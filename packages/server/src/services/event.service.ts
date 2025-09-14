@@ -86,7 +86,7 @@ class EventService {
   }
 
   public async count(filters?: Partial<Filters>): Promise<number> {
-    const count = await EventModel.count(filters);
+    const count = await EventModel.countDocuments(filters);
 
     return count;
   }

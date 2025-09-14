@@ -45,7 +45,7 @@ class AdminUserService {
   }
 
   public async count(filters?: Partial<AdminUser>): Promise<number> {
-    const count = await AdminUserModel.count(filters);
+    const count = await AdminUserModel.countDocuments(filters);
 
     return count;
   }

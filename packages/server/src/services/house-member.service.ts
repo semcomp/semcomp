@@ -33,7 +33,7 @@ class HouseMemberService {
   }
 
   public async count(filters?: Partial<HouseMember>): Promise<number> {
-    const count = await HouseMemberModel.count(filters);
+    const count = await HouseMemberModel.countDocuments(filters);
 
     return count;
   }

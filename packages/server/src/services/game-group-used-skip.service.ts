@@ -30,7 +30,7 @@ class GameGroupUsedSkipService {
   }
 
   public async count(filters?: Partial<GameGroupUsedSkip>): Promise<number> {
-    const count = await GameGroupUsedSkipModel.count(filters);
+    const count = await GameGroupUsedSkipModel.countDocuments(filters);
     
     return count;
   }
