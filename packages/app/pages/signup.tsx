@@ -178,7 +178,7 @@ function SignupPage() {
       <SimpleBackground />
       <main className={`flex justify-center flex-1 w-full md:h-full md:text-sm tablet:text-xl phone:text-xs md:items-center relative z-10`}>
         <div className="flex flex-col items-center justify-center md:w-[50%] shadow-md phone:w-full backdrop-brightness-95 backdrop-blur z-20 rounded-lg">
-          <div className="h-full items-center justify-center font-secondary phone:mt-12 backdrop-brightness-90 backdrop-blur z-20 md:w-[70%] md:p-9 md:pb-2 tablet:p-12 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">
+          <div className="h-full items-center justify-center font-secondary phone:mt-16 backdrop-brightness-90 backdrop-blur z-20 md:w-[70%] md:p-9 md:pb-2 tablet:p-20 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">
             { step > 0 && (
               <div className="flex items-center justify-center hover:bg-[#E6E6E6] hover:bg-opacity-50 p-2 rounded-lg h-fit w-fit z-20 cursor-pointer">
                 <ArrowIcon 
@@ -215,7 +215,7 @@ function SignupPage() {
                     {stepComponent}
                   </div>
                   {/* <section className="z-20 text-center text-white md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base"> */}
-                  <section className="fixed bottom-0 left-0 md:static md:pt-12 tablet:static tablet:pt-10 w-full text-center text-white">
+                  <section className="fixed bottom-0 left-0 md:static md:pt-6 tablet:static tablet:pt-6 w-full text-center text-white">
                     <p>© Semcomp {config.YEAR}. Todos os direitos reservados.</p>
                     <p className="mt-3 mb-6 text-xs cursor-pointer hover:text-secondary">
                         { step < 1 && (<span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>

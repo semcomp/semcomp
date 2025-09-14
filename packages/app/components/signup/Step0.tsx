@@ -44,7 +44,7 @@ function Step0({
   }
 
   return (
-    <form className="w-full font-secondary mobile:pb-16" onSubmit={handleSubmit}>
+    <form className="w-full font-secondary phone:pb-16 tablet:pb-4" onSubmit={handleSubmit}>
       <Input
         tooltip={
           <div style={{ fontSize: "14px" }}>
