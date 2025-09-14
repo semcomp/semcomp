@@ -4,13 +4,11 @@ import { config } from "../../config";
 function PrivacyPolicyModal({ onRequestClose }) {
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div
-        className="w-full bg-tertiary text-white text-center text-xl font-bold p-6"
-      >
+      <div className="w-full bg-primary text-white text-center text-xl font-bold p-6">
         Política de Privacidade - Semcomp USP
         <br />
         <span className="text-lg">
-          <em>Esta política é válida a partir de Agosto de {config.YEAR}.</em>
+          <em>Esta política é válida a partir de Agosto de 2021.</em>
         </span>
       </div>
       <div className="max-h-96 overflow-y-scroll p-6">
@@ -463,7 +461,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
           .
         </p>
       </div>
-      <button className="bg-orange text-white py-3 px-6 m-4" type="button" onClick={onRequestClose}>
+      <button className="bg-primary text-white py-3 px-6 m-4" type="button" onClick={onRequestClose}>
         Fechar
       </button>
     </Modal>

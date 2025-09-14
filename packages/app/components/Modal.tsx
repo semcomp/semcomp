@@ -27,13 +27,13 @@ function Modal({ children, onRequestClose }) {
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center w-full h-full bg-black/25 z-50 mobile:mt-9 mobile:mx-2"
+      className="fixed inset-0 flex items-center justify-center w-full h-full bg-black/25 z-50 mobile:mt-9"
       onClick={handleRootClick}
       role="dialog"
       aria-modal="true"
     >
       <div
-        className="flex flex-col items-center w-full max-w-xl max-h-[90%] bg-white rounded-lg shadow-2xl relative"
+        className="flex flex-col items-center w-full max-w-xl max-h-[100%] bg-white rounded-lg shadow-2xl relative"
         onClick={handleCardClick}
       >
         <button
