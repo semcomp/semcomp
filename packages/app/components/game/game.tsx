@@ -22,7 +22,7 @@ const styles = {
   toolbar: "flex justify-center items-center",
 
   questionRoot:
-    "w-full bg-white text-primary mt-24 rounded-lg shadow p-4 rounded-lg text-justify flex flex-col items-center font-secondary",
+    "w-full bg-white text-primary phone:mt-24 mobile:mt-10 rounded-lg shadow p-4 rounded-lg text-justify flex flex-col items-center font-secondary",
   questionForm: "flex flex-col items-end mt-4 w-full",
   questionButton: "",
 };
@@ -111,10 +111,10 @@ function Question({
   function renderQuestion() {
     if (isFetchingQuestion) return <Spinner size="large" />;
 
-    if (!question) return <div>Houve um erro buscando a pergunta</div>;
+    if (!question) return <div >Houve um erro buscando a pergunta</div>;
 
     return (
-      <>
+      <div className={styles.questionRoot}>
         <h1 className="text-2xl text-center mb-4">{question.title}</h1>
         {question.imgUrl && (
           <img
@@ -141,11 +141,11 @@ function Question({
          Enviar!
         </LoadingButton>
         </form>
-      </>
+      </div>
     );
   }
 
-  return <div className={styles.questionRoot}>{renderQuestion()}</div>;
+  return <>{renderQuestion()}</>;
 }
 
 export default function Game({

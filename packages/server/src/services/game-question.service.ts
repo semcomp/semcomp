@@ -132,7 +132,7 @@ class GameQuestionService {
       question: question.question,
       imgUrl: !question.isLegendary ? question.imgUrl : null,
       isLegendary: question.isLegendary,
-      answer: isQuestionCompleted ? question.answer : null,
+      answer: (isQuestionCompleted && !isFirstQuestion) ? question.answer : null,
       clue: isClueUsedInQuestion ? question.clue : null,
     };
   }
