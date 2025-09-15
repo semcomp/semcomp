@@ -64,6 +64,11 @@ function Login() {
       <Sidebar />
       <SimpleBackground />
       <main className="flex justify-center flex-1 w-full md:h-full md:text-sm tablet:text-xl phone:text-xs md:items-center relative z-10">
+        {isPrivacyPolicyModalOpen && (
+          <PrivacyPolicyModal
+            onRequestClose={() => setIsPrivacyPolicyModalOpen(false)}
+          />
+        )}
         <div className="flex flex-col items-center justify-center md:w-[50%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20 rounded-lg">
           <div className="items-center justify-center h-fit md:w-[70%] md:p-9 md:pb-2 tablet:p-12 phone:p-9 font-secondary tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20">
             <h1 className="text-2xl text-center text-white font-secondary tablet:text-3xl">Entrar</h1>
@@ -77,11 +82,6 @@ function Login() {
                 </Link>
               </p>
             <form className="w-full font-secondary" onSubmit={handleSubmit}>
-              {isPrivacyPolicyModalOpen && (
-                <PrivacyPolicyModal
-                  onRequestClose={() => setIsPrivacyPolicyModalOpen(false)}
-                />
-              )}
               <Input
                 tooltip={
                   <div style={{ fontSize: "14px" }}>

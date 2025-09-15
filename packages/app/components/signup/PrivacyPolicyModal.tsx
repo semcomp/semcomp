@@ -1,9 +1,8 @@
 import Modal from "../Modal";
-import { config } from "../../config";
 
 function PrivacyPolicyModal({ onRequestClose }) {
   return (
-    <Modal onRequestClose={onRequestClose}>
+    <Modal onRequestClose={onRequestClose} hideCloseButton={true} maxHeight="70vh">
       <div className="w-full bg-primary text-white text-center text-xl font-bold p-6">
         Política de Privacidade - Semcomp USP
         <br />

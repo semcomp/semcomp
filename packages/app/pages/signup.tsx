@@ -177,6 +177,12 @@ function SignupPage() {
       <Sidebar />
       <SimpleBackground />
       <main className={`flex justify-center flex-1 w-full md:h-full md:text-sm tablet:text-xl phone:text-xs md:items-center relative z-10`}>
+        {isPrivacyPolicyModalOpen && (
+          <PrivacyPolicyModal
+            onRequestClose={() => setIsPrivacyPolicyModalOpen(false)}
+          />
+        )}
+        
         <div className="flex flex-col items-center justify-center md:w-[50%] shadow-md phone:w-full backdrop-brightness-95 backdrop-blur z-20 rounded-lg">
           <div className="h-full items-center justify-center font-secondary phone:mt-16 backdrop-brightness-90 backdrop-blur z-20 md:w-[70%] md:p-9 md:pb-2 tablet:p-20 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">
             { step > 0 && (
@@ -187,11 +193,6 @@ function SignupPage() {
                 />
               </div>
             )}
-            {isPrivacyPolicyModalOpen && (
-                <PrivacyPolicyModal
-                  onRequestClose={() => setIsPrivacyPolicyModalOpen(false)}
-                />
-              )}
             
             {
               /* What appears on the screen depends on whether signup is enabled */
