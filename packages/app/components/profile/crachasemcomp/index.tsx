@@ -51,7 +51,7 @@ function ConfirmarCracha({ onRequestClose, user }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div className="flex flex-col items-center p-10 text-primary">
+      <div className="flex flex-col items-center p-10 pb-8 max-h-[70vh] overflow-y-auto text-primary">
         <h1 className="text-center text-lg pb-2 font-bold">Confirmação de Crachá Físico</h1>
         <p className="text-sm xxs:text-base">
         Durante os últimos anos, diversos participantes não retiraram seus
@@ -66,29 +66,29 @@ function ConfirmarCracha({ onRequestClose, user }) {
           alterada.
           <br />
           <br />
-          <p className="font-bold underline w-full text-center">
+          <span className="font-bold underline w-full text-center block">
              Responder até dia 14/10.
-          </p>
+          </span>
           <br />
         </p>
         <div className="flex items-center justify-center space-x-4 mt-4">
           <button
-            className="bg-green-500 text-white p-4 rounded-lg"
+            className="bg-green-500 text-white p-3 rounded-lg hover:scale-105"
             onClick={() => handleConfirmar(true)}
             disabled={isUpdating}
           >
             Sim, eu quero o crachá!
           </button>
           <button
-            className="bg-red-500 text-white p-4 rounded-lg"
+            className="bg-red-500 text-white p-3 rounded-lg hover:scale-105"
             onClick={() => handleConfirmar(false)}
             disabled={isUpdating}
           >
-            Não, eu não quero o crachá.
+            Não, eu não quero o crachá
           </button>
         </div>
         <button
-          className="bg-gray text-white px-4 py-2 m-2 rounded-xl"
+          className="bg-gray text-white px-4 py-2 mt-5 m-2 rounded-xl hover:scale-105"
           type="button"
           onClick={onRequestClose}
           disabled={isUpdating}

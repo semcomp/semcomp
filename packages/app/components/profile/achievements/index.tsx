@@ -87,7 +87,7 @@ export default function AchievementsModal({ onRequestClose, conquistasLista }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-        <h1 className={`bg-black text-white w-full h-fit text-xl text-white py-8 flex items-center justify-center text-center`}>Conquistas</h1>
+        <h1 className={`bg-primary text-white w-full h-fit text-xl text-white py-6 flex items-center justify-center text-center`}>Conquistas</h1>
       <AppBar style={{ backgroundColor: "transparent" }} position="static">
         <Tabs
           className="tab-events"
@@ -105,9 +105,6 @@ export default function AchievementsModal({ onRequestClose, conquistasLista }) {
       {conquistaCasa.length > 0 && <TabPanel className="phone:overflow-y-scroll items-center justify-center" value={tab} index={1}> 
         <AchievementsContainer data={conquistaCasa} />
       </TabPanel>}
-      <button className="cancel" type="button" onClick={onRequestClose}>
-        Fechar
-      </button>
     </Modal>
   );
 }

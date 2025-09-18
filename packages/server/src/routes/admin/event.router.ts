@@ -13,6 +13,16 @@ router.get(
 );
 
 router.post(
+  "/calc-total-time-by-event-type",
+  [
+    adminAuthMiddleware.authenticate,
+    adminAuthMiddleware.isAuthenticated,
+    body("eventType", "Invalid field 'eventType'").not().isEmpty(),
+  ],
+  AdminEventController.calcTotalTimeByEventType
+)
+
+router.post(
   "/",
   [
     body("name", "Invalid field 'name'").not().isEmpty(),

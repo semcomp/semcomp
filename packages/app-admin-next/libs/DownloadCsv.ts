@@ -17,7 +17,9 @@ export default function exportToCsv(data: any[], fileName: string = 'data') {
   let headers = Object.keys(data[0]);
 
   let dataCsv = data.reduce((acc, row) => {
-    acc.push(Object.values(row).join(','));
+    acc.push(Object.values(row).map(value =>
+      typeof value === 'number' ? `"${value.toString().replace('.', ',')}"` : value
+    ).join(','));
     return acc;
   }, [])
 

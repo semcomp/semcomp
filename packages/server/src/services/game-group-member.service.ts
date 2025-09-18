@@ -38,7 +38,7 @@ class GameGroupMemberService {
   }
 
   public async count(filters?: Partial<Filters>): Promise<number> {
-    const count = await GameGroupMemberModel.count(filters);
+    const count = await GameGroupMemberModel.countDocuments(filters);
 
     return count;
   }

@@ -96,19 +96,26 @@ const Navbar = (props) => {
         </Navlink>
 
         <div className="text-lg text-center md:flex md:flex-row font-secondary"> {/* Aumenta o tamanho da fonte */}
-          {/* Transformando "Sobre nós" e "Cronograma" em botões */}
-          <button 
-            onClick={handleSobre} 
-            className="mx-4 text-lg cursor-pointer nav-link font-secondary focus:outline-none" // Adicionando espaçamento e removendo outline
+          <Navlink
+            href="#"
+            onClick={e => {
+              e.preventDefault();
+              handleSobre();
+            }}
+            className="mx-4 text-lg cursor-pointer nav-link font-secondary focus:outline-none"
           >
             Sobre nós
-          </button>
-          <button 
-            onClick={handleCronograma} 
-            className="mx-4 text-lg cursor-pointer nav-link font-secondary focus:outline-none" // Adicionando espaçamento e removendo outline
+          </Navlink>
+          <Navlink
+            href="#"
+            onClick={e => {
+              e.preventDefault();
+              handleCronograma();
+            }}
+            className="mx-4 text-lg cursor-pointer nav-link font-secondary focus:outline-none"
           >
             Cronograma
-          </button>
+          </Navlink>
           {isUserLoggedIn ? (
             <>
               <Navlink href={Routes.profile} className="text-lg font-secondary">Perfil</Navlink>
@@ -123,14 +130,13 @@ const Navbar = (props) => {
                     className="text-lg font-secondary" >{game.title}</Navlink>
                 ))
               }
-              <button onClick={logUserOut} className="text-lg nav font-secondary">
-                <a
-                  className="flex items-center justify-center px-2 text-lg duration-200 rounded-lg hover:bg-hoverWhite"
+              <Navlink 
                   href="/"
+                className="text-lg font-secondary"
+                onClick={logUserOut}
                 >
                   Sair
-                </a>
-              </button>
+              </Navlink>
             </>
           ) : (
             <>

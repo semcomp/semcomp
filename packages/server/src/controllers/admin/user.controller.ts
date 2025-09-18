@@ -81,10 +81,11 @@ export default class UserController {
       userPayments.forEach((payment) => {
         userPaymentStatus.push(payment.status);
         userPaymentSaleOption.push(payment.salesOption);
-        if (payment.tShirtSize) {
+
+        if (payment.tShirtSize !== TShirtSize.NONE) {
           userPaymentTShirtSize = payment.tShirtSize;
         }
-        if (payment.foodOption) {
+        if (payment.foodOption !== FoodOption.NONE) {
           userPaymentFoodOption = payment.foodOption;
         }
       });
@@ -122,12 +123,6 @@ export default class UserController {
     });
 
     return res.status(200).json(usersFound);
-  }
-
-  public async stats(req, res, next) {
-    const usersStats = await userService.stats();
-
-    return res.status(200).json(usersStats);
   }
 
   public async get(req, res, next) {

@@ -11,14 +11,14 @@ import Sidebar from '../components/sidebar';
 import Stepper from "../components/stepper/Stepper";
 import Step0 from "../components/signup/Step0";
 import Step1 from "../components/signup/Step1";
-import Card from "../components/Card";
 import Routes from "../routes";
 import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
 import Link from "next/link";
 import PrivacyPolicyModal from "../components/signup/PrivacyPolicyModal";
 import handler from '../api/handlers';
-import AnimatedBG from "./animatedBG";
+import SimpleBackground from "../components/home/SimpleBackground";
+import { config } from "../config";
 
 function SignupPage() {
   const router = useRouter();
@@ -151,50 +151,10 @@ function SignupPage() {
     />,
   ][step];
 
-  const [imageIndex, setImageIndex] = useState<number>(10);
-
-  const timeToImage = [
-    { start: 5, end: 7, imgIndex: 0 },
-    { start: 7, end: 8, imgIndex: 1 },
-    { start: 8, end: 10, imgIndex: 2 },
-    { start: 10, end: 12, imgIndex: 3 },
-    { start: 12, end: 14, imgIndex: 4 },
-    { start: 14, end: 16, imgIndex: 5 },
-    { start: 16, end: 17, imgIndex: 6 },
-    { start: 17, end: 18, imgIndex: 7 },
-    { start: 18, end: 19, imgIndex: 8 },
-    { start: 19, end: 22, imgIndex: 9 },
-    { start: 0, end: 5, imgIndex: 10 },
-  ];
-
-  const getTextColor = (timeIndex: number): string => {
-    if (timeIndex > 7) return "yellow";
-    if (timeIndex === 7) return "white";
-    if (timeIndex > 2) return "blue";
-    if (timeIndex === 2) return "primary";
-    if (timeIndex === 1) return "white";
-    if (timeIndex === 0) return "white";
-  };
-
-  const getBgColor = (timeIndex: number): string => {
-    if (timeIndex > 7) return "yellow";
-    if (timeIndex >= 0) return "primary";
-  };
-
-  const getBgTextColor = (timeIndex: number): string => {
-    if (timeIndex > 7) return "primary";
-    if (timeIndex >= 0) return "white";
-  };
 
 
-  useEffect(() => {
-    const currentHour = new Date().getHours();
-    const matchedImage = timeToImage.find(({ start, end }) => currentHour >= start && currentHour < end);
-    setImageIndex(
-      // 9
-      matchedImage?.imgIndex ?? 10,
-    );
-  }, []);
+
+
 
   //Get the information from 'config' to check if signup is enabled
   const [openSignup, setOpenSignup] = useState(true);
@@ -215,10 +175,16 @@ function SignupPage() {
     <div className="flex flex-col min-h-screen md:h-full">
       <Navbar />
       <Sidebar />
-      <AnimatedBG imageIndex={imageIndex} />
-      <main className={`flex justify-center flex-1 w-full md:h-full md:bg-white md:text-sm tablet:text-xl phone:text-xs md:items-center`}>
+      <SimpleBackground />
+      <main className={`flex justify-center flex-1 w-full md:h-full md:text-sm tablet:text-xl phone:text-xs md:items-center relative z-10`}>
+        {isPrivacyPolicyModalOpen && (
+          <PrivacyPolicyModal
+            onRequestClose={() => setIsPrivacyPolicyModalOpen(false)}
+          />
+        )}
+        
         <div className="flex flex-col items-center justify-center md:w-[50%] shadow-md phone:w-full backdrop-brightness-95 backdrop-blur z-20 rounded-lg">
-          <div className="h-full items-center justify-center font-secondary phone:mt-12 backdrop-brightness-90 backdrop-blur z-20 md:w-[70%] md:p-9 md:pb-2 tablet:p-12 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">
+          <div className="h-full items-center justify-center font-secondary phone:mt-16 backdrop-brightness-90 backdrop-blur z-20 md:w-[70%] md:p-9 md:pb-2 tablet:p-20 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">
             { step > 0 && (
               <div className="flex items-center justify-center hover:bg-[#E6E6E6] hover:bg-opacity-50 p-2 rounded-lg h-fit w-fit z-20 cursor-pointer">
                 <ArrowIcon 
@@ -227,36 +193,32 @@ function SignupPage() {
                 />
               </div>
             )}
-            {isPrivacyPolicyModalOpen && (
-                <PrivacyPolicyModal
-                  onRequestClose={() => setIsPrivacyPolicyModalOpen(false)}
-                />
-              )}
             
             {
               /* What appears on the screen depends on whether signup is enabled */
               openSignup?
               (
                 <>
-                  <h1 className={`text-2xl text-center text-${getTextColor(imageIndex)} font-secondary tablet:text-3xl `}>Cadastrar</h1>
+                  <h1 className="text-2xl text-center text-white font-secondary tablet:text-3xl">Cadastrar</h1>
                   <div className="flex items-center justify-center w-full">
                     <div className="w-full max-w-xs ">
                       <Stepper
                         numberOfSteps={2}
                         activeStep={step}
                         onStepClick={handleStepClick}
-                        activeColor={getBgColor(imageIndex)}
-                        unactiveColor={getBgTextColor(imageIndex)}
+                        activeColor="#2840BD"
+                        unactiveColor="#E8E8E8"
                       />
                     </div>
                   </div>
-                  <div className={`text-${getTextColor(imageIndex)}`}>
+                  <div className="text-white pb-6">
                     {/* Renders the correct form according to the current step */}
                     {stepComponent}
                   </div>
-                  <section className={`z-20 text-center text-${getTextColor(imageIndex)} md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base`}>
-                    <p>© Semcomp 2024. Todos os direitos reservados.</p>
-                    <p className={`mt-3 mb-6 text-xs cursor-pointer hover:text-${getBgColor(imageIndex)}`}>
+                  {/* <section className="z-20 text-center text-white md:pt-12 tablet:pt-20 phone:pt-8 tablet:text-base"> */}
+                  <section className="fixed bottom-0 left-0 md:static md:pt-6 tablet:static tablet:pt-6 w-full text-center text-white">
+                    <p>© Semcomp {config.YEAR}. Todos os direitos reservados.</p>
+                    <p className="mt-3 mb-6 text-xs cursor-pointer hover:text-secondary">
                         { step < 1 && (<span tabIndex={0} onClick={() => setIsPrivacyPolicyModalOpen(true)}>
                           <u>Política de Privacidade</u>
                         </span>
@@ -266,7 +228,7 @@ function SignupPage() {
                 </>
               ):
               (
-                <div className={`my-12 text-center text-${getTextColor(imageIndex)}`}>
+                <div className="my-12 text-center text-white">
                   <h1 className="text-4xl">Inscrições Encerradas! </h1>
                   <div className="text-xl">
                   <p>Caso você tenha uma conta, clique

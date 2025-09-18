@@ -4,8 +4,8 @@ import { ReactElement } from "react";
 import NavBar from "../navbar";
 import Image from "next/image";
 import pixelButton from "../../assets/27-imgs/pixel_button.png";
-import Countdown from "./Countdown";
 import Sidebar from "../sidebar";
+import { config } from "../../config";
 
 const HomeHeader = (): ReactElement => {
   const [imageHeight, setImageHeight] = useState<number | undefined>();
@@ -173,7 +173,7 @@ const HomeHeader = (): ReactElement => {
               phone:text-[70px] 
               phone:leading-[50px]"
             >
-            SEMCOMP 27
+            SEMCOMP {config.EDITION}
           </h1>
         </div>
 

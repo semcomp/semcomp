@@ -53,7 +53,7 @@ class GameConfigService {
   }
 
   public async count(filters?: Partial<GameConfig>): Promise<number> {
-    const count = await GameConfigModel.count(filters);
+    const count = await GameConfigModel.countDocuments(filters);
 
     return count;
   }

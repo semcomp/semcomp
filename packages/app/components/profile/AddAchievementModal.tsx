@@ -33,7 +33,7 @@ function AddAchievementModal({
   return (
     <Modal onRequestClose={onRequestClose}>
       <div
-        className="w-full bg-black text-white text-center text-xl font-bold p-6"
+        className="w-full bg-primary text-white text-center text-xl font-bold p-6"
       >
         Scanear Conquista
       </div>
@@ -55,11 +55,6 @@ function AddAchievementModal({
           constraints={{
             facingMode: 'environment',
           }}/>
-      </div>
-      <div className="w-full px-6">
-        <button className="w-full bg-red-500 text-white py-3 px-6 my-6" type="button" onClick={onRequestClose}>
-          Fechar
-        </button>
       </div>
     </Modal>
   );

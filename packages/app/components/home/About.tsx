@@ -10,7 +10,7 @@ function About() {
       > 
         <h1
           id="titulo"
-          className="text-purple-400 superdesktop:text-title-superlarge desktop:text-title-large tablet:text-title-medium medphone:text-title-small phone:text-title-tiny text stroke"
+          className="text-modalTitleColor superdesktop:text-title-superlarge desktop:text-title-large tablet:text-title-medium medphone:text-title-small phone:text-title-tiny text stroke"
         >
           Sobre a Semcomp
         </h1>

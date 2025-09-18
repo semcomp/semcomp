@@ -28,11 +28,12 @@ type EventData = {
   Ministrante: string;
   // Link: string;
   "Max Inscritos": number;
+  "Inicio": string;
+  "Fim": string;
   "No cronograma": ReactNode;
   "Na lista de inscrições": ReactNode;
   "Inscritos": number;
   Tipo: string;
-  "Criado em": string;
 };
 
 
@@ -73,9 +74,10 @@ const EventsTable = forwardRef(({
       "Max Inscritos": event.maxOfSubscriptions,
       "Inscritos": event.numOfSubscriptions,
       Tipo: event.type,
+      "Inicio": util.formatDate(event.startDate),
+      "Fim": util.formatDate(event.endDate),
       "No cronograma": <Input value={event.showOnSchedule} type={InputType.Checkbox} disabled={true} />,
       "Na lista de inscrições": <Input value={event.showOnSubscribables} type={InputType.Checkbox} disabled={true} />,
-      "Criado em": util.formatDate(event.createdAt),
     });
   }
   const dataTableRef = useRef(null);
@@ -173,7 +175,7 @@ function Events() {
     try {
       setIsLoading(true);
       setDownloadAttendances(true);
-      const response = await semcompApi.getAllAttendance();
+      const response = await semcompApi.getDetailedAttendances({ eventType: EventType.PALESTRA });
       exportToCsv(mapData(response));
     } catch (error) {
       console.error(error);

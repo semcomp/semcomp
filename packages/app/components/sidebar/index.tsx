@@ -10,7 +10,6 @@ import Toolbar from '@mui/material/Toolbar';
 import { Box, Divider } from '@mui/material'; // Importar Divider
 
 import Routes from '../../routes';
-import SemcompLogo from '../../assets/27-imgs/logo.svg';
 import { useAppContext } from '../../libs/contextLib';
 import { useRouter } from 'next/router';
 import { createTheme } from '@mui/material/styles';

@@ -44,7 +44,7 @@ function Step0({
   }
 
   return (
-    <form className="w-full font-secondary" onSubmit={handleSubmit}>
+    <form className="w-full font-secondary phone:pb-16 tablet:pb-4" onSubmit={handleSubmit}>
       <Input
         tooltip={
           <div style={{ fontSize: "14px" }}>
@@ -100,7 +100,7 @@ function Step0({
       </button>
       <div className="mt-3">
         <Link href="/login">
-          <a className="visited:bg-none font-secondary hover:text-primary cursor-pointer underline">
+          <a className="visited:bg-none font-secondary hover:text-secondary cursor-pointer underline">
             Já tem uma conta?
           </a>
         </Link>

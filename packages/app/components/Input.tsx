@@ -65,7 +65,7 @@ function TextInput({
               title={tooltip ? tooltip : ""}
               enterTouchDelay={1}
             >
-              <Info sx={{ color: "#fffff", paddingX: "2px"}} />
+              <Info sx={{ color: "#fffff", paddingX: "2px", marginY: "-1px" }} />
             </Tooltip>
           </div>
           <TextField
@@ -212,7 +212,19 @@ function RadioInput({
 
 function CheckboxInput({ onChange, value }: { onChange: any; value: boolean }) {
   return (
-    <Checkbox onChange={onChange} checked={value} className="my-3 bg-white" />
+    <Checkbox 
+      onChange={onChange} 
+      checked={value} 
+      className="my-3 bg-white" 
+      sx={{
+        '&.Mui-checked': {
+          color: '#00B4D8',
+        },
+        '&.MuiCheckbox-root': {
+          color: '#242d5c',
+        }
+      }}
+    />
   );
 }
 

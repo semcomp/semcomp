@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { CoffeePaymentData } from "./coffee-modal";
 import Input, { InputType } from "../../Input";
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import { config } from "../../../config";
 
 function CoffeeStep1({
   data,
@@ -38,7 +39,7 @@ function CoffeeStep1({
       { availableSales && availableSales.length > 0 ?
         (
         <>
-          <p>Opções disponíveis para a Semcomp 27 Beta:</p>
+          <p>Opções disponíveis para a Semcomp {config.EDITION}:</p>
           <br />
           <ul>
             { availableSales && availableSales.map((sale) => (

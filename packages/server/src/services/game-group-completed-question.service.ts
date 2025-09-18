@@ -40,7 +40,7 @@ class GameGroupCompletedQuestionService {
   }
 
   public async count(filters?: Partial<Filters>): Promise<number> {
-    const count = await GameGroupCompletedQuestionModel.count(filters);
+    const count = await GameGroupCompletedQuestionModel.countDocuments(filters);
 
     return count;
   }
@@ -139,6 +139,7 @@ class GameGroupCompletedQuestionService {
       {
         $sort: {
           questionIndex: -1,
+          createdAt: -1
         },
       },
       {
@@ -203,6 +204,7 @@ class GameGroupCompletedQuestionService {
       {
         $sort: {
           questionIndex: -1,
+          createdAt: -1
         },
       },
       {

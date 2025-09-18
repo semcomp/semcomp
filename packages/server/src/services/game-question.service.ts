@@ -62,7 +62,7 @@ class GameQuestionService {
   }
 
   public async count(filters?: Partial<Filters>): Promise<number> {
-    const count = await GameQuestionModel.count(filters);
+    const count = await GameQuestionModel.countDocuments(filters);
 
     return count;
   }
@@ -132,7 +132,7 @@ class GameQuestionService {
       question: question.question,
       imgUrl: !question.isLegendary ? question.imgUrl : null,
       isLegendary: question.isLegendary,
-      answer: isQuestionCompleted ? question.answer : null,
+      answer: (isQuestionCompleted && !isFirstQuestion) ? question.answer : null,
       clue: isClueUsedInQuestion ? question.clue : null,
     };
   }

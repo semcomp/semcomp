@@ -51,7 +51,7 @@ class HouseService {
   }
 
   public async count(filters?: Partial<House>): Promise<number> {
-    const count = await HouseModel.count(filters);
+    const count = await HouseModel.countDocuments(filters);
 
     return count;
   }

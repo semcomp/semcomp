@@ -59,6 +59,19 @@ class EventController {
     }
   }
 
+  public async calcTotalTimeByEventType(req, res, next) {
+    try {
+      handleValidationResult(req);
+
+      const { eventType } = req.body;
+      const totalTime = await eventService.calcTotalTimeByEventType(eventType);
+
+      return res.status(200).json({ totalTime: totalTime });
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
   public async delete(req, res, next) {
     try {
       handleValidationResult(req);

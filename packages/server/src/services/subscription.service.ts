@@ -40,7 +40,7 @@ class SubscriptionService {
   }
 
   public async count(filters?: Partial<Subscription>): Promise<number> {
-    const count = await SubscriptionModel.count(filters);
+    const count = await SubscriptionModel.countDocuments(filters);
 
     return count;
   }

@@ -9,7 +9,8 @@ const Schedule = (props) => {
         // style={{ maxWidth: '100%' }}  // Garantir que não ultrapasse a largura da tela
       > 
         <h1
-          className="text-purple-400 font-primary superdesktop:text-title-superlarge desktop:text-title-large tablet:text-title-medium medphone:text-title-small phone:text-title-tiny text stroke"
+          id="titulo"
+          className="text-modalTitleColor font-primary superdesktop:text-title-superlarge desktop:text-title-large tablet:text-title-medium medphone:text-title-small phone:text-title-tiny text stroke"
         >
           Cronograma
         </h1>

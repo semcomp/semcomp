@@ -51,7 +51,7 @@ function EditProfile({ onRequestClose }) {
 
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div className={`w-full bg-${user.house.name} text-white text-center text-xl p-6`}>
+      <div className={`w-full bg-primary text-white text-center text-xl p-6 relative flex items-center justify-center`}>
         Editar Cadastro
       </div>
       <div className="max-h-96 p-6">
@@ -66,7 +66,7 @@ function EditProfile({ onRequestClose }) {
                 2. Seu crachá.
                 <br />
                 <strong>
-                  Você poderá alterá-lo posteriormente na sua página de perfil.
+                  Você poderá alterá-lo posteriormente.
                 </strong>
               </div>
             }
@@ -97,7 +97,7 @@ function EditProfile({ onRequestClose }) {
             type={InputType.Text}
           /> */}
           <LoadingButton
-            className={`w-full py-4 px-8 rounded-xl text-white bg-${user.house.name} hover:bg-[#aeaeae] mb-2`}
+            className={`w-full py-4 px-8 rounded-xl text-white bg-primary hover:bg-hoverPrimary mb-2`}
             type="submit"
             isLoading={isUpdating}
           >
@@ -105,13 +105,6 @@ function EditProfile({ onRequestClose }) {
           </LoadingButton>
         </form>
       </div>
-      <button
-        className="bg-[#F24444] hover:bg-[#aeaeae] text-white p-3 px-6 mt-8 mb-6 rounded-xl"
-        type="button"
-        onClick={onRequestClose}
-      >
-        Fechar
-      </button>
     </Modal>
   );
 }

@@ -2,10 +2,8 @@ import Modal from "../Modal";
 
 function PrivacyPolicyModal({ onRequestClose }) {
   return (
-    <Modal onRequestClose={onRequestClose}>
-      <div
-        className="w-full bg-tertiary text-white text-center text-xl font-bold p-6"
-      >
+    <Modal onRequestClose={onRequestClose} hideCloseButton={true} maxHeight="70vh">
+      <div className="w-full bg-primary text-white text-center text-xl font-bold p-6">
         Política de Privacidade - Semcomp USP
         <br />
         <span className="text-lg">
@@ -462,7 +460,7 @@ function PrivacyPolicyModal({ onRequestClose }) {
           .
         </p>
       </div>
-      <button className="bg-orange text-white py-3 px-6 m-4" type="button" onClick={onRequestClose}>
+      <button className="bg-primary text-white py-3 px-6 m-4" type="button" onClick={onRequestClose}>
         Fechar
       </button>
     </Modal>
