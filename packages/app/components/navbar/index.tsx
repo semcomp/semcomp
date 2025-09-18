@@ -1,13 +1,14 @@
 import { useRouter } from "next/router";
 import Navlink from "./nav-link"; // a link reference 'a' with the appearance of a button
 import Routes from "../../routes";
-import SemcompLogo from "../../assets/27-imgs/logo.png";
+import themeColors from "../../styles/themeColors";
 import { useAppContext } from "../../libs/contextLib";
 import handler from '../../api/handlers';
 import { useEffect, useState } from "react";
 import Modal from "../home/Modal"; // Importação do modal
 import API from "../../api";
 import GameIsHappening from "../../libs/constants/is-happening-game";
+import Logo from "../home/Logo";
 
 const Navbar = (props) => {
   const { user } = useAppContext();
@@ -85,13 +86,7 @@ const Navbar = (props) => {
       <nav className={navStyles}>
         <Navlink href={Routes.home}>
           <div id="logo-img">
-            <img
-              alt="Semcomp logo"
-              src={SemcompLogo.src}
-              className="flex items-center justify-center"
-              height={logoSize}
-              width={logoSize}
-            />
+            <Logo height={logoSize} width={logoSize} fillColor={themeColors.primary}/>
           </div>
         </Navlink>
 

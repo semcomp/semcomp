@@ -38,12 +38,12 @@ function EventsCard({ events, onRegisterClick }: EventsCardProps) {
       </h1>
       <List className="events-list text-center grid grid-cols-1 gap-4">
         {Object.keys(events).map((type) =>
-          events[type].map((e: any) =>
-            e.events.map((item: any) => {
+          events[type].map((eventType: any, index: number) =>
+            eventType.events.map((item: any) => {
               if (item.isSubscribed === true) {
                 return (
                   <div key={item.name} className="bg-[#2f2e46] rounded-lg">
-                    <ListItem>
+                    <ListItem key={`${item.name}-${index}`} className="text-center">
                       <ListItemText
                         primary={
                           <div className="flex flex-row">
