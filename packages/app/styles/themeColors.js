@@ -1,0 +1,27 @@
+const themeColors = {
+    primary: "#242D5C", 
+    secondary: "#00B4D8",
+    tertiary: "#E8E8E8",
+    accent: "#4A90E2",
+    neutral: "#F8F9FA",
+    text: "#2C3E50",
+    blue: "#242D5C",
+    black: "#1d1d1b",
+    grayDark: "#3d3d3d",
+    gray: "#c2c2c2",
+    grayLight: "#f0f0f0",
+    white: "#FCFBFF",
+    hoverWhite: "rgba(255, 255, 255, 0.3)",
+    hoverPrimary: "#051FAB",
+    darkblue: "#242D5C",
+    pink: "#FF3184",
+    backgroundBlue: "#232234ff",
+    Symbiosia: "#6fbe39ff",
+    Stormrock: "#f26f18ff",
+    Cybertechna: "#470787ff",
+    Arcadium: "#0e56cbff",
+    cardDarkBackground: "#222333",
+    modalTitleColor: "#00B4D8",
+}
+
+module.exports = themeColors;
