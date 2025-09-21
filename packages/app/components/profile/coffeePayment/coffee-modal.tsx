@@ -23,6 +23,8 @@ export type CoffeePaymentData = {
     name: string,
     price: number,
     hasTShirt: boolean,
+    hasCoffee: boolean,
+    hasKit: boolean,
     items: string[],
     allowHalfPayment: boolean
   }[];
@@ -217,11 +219,13 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }
     />,
     <CoffeeStep3 key={2} data={data}/>,
   ];
-
+  const headerSales = filteredSales?.length ? filteredSales : data.sale;
   return (
     <Modal onRequestClose={onRequestClose}>
       <div className="w-full bg-primary text-white text-center text-xl p-6">
-        Compra Kit e Coffee da Semcomp!
+        {headerSales?.some(headerSales => headerSales.hasCoffee) && !headerSales?.some(headerSales => headerSales.hasKit) && <p>Compre o Coffee da Semcomp!</p>}
+        {!headerSales?.some(headerSales => headerSales.hasCoffee) && headerSales?.some(headerSales => headerSales.hasKit) && <p>Compre o Kit da Semcomp!</p>}
+        {headerSales?.some(headerSales => headerSales.hasCoffee) && headerSales?.some(headerSales => headerSales.hasKit) && <p>Compre o Coffee e o Kit da Semcomp!</p>}
       </div>
       { !loading ? 
         (

@@ -251,6 +251,7 @@ function Profile() {
                   user={userFetched}
                   config={config}
                   closeSales={closeSales}
+                  sales={allSales}
                   onPurchaseClick={() => {
                     setCoffeeModalOpen(true);
                     blockBodyScroll();
@@ -306,6 +307,7 @@ function Profile() {
                   user={userFetched}
                   config={config}
                   closeSales={closeSales}
+                  sales={allSales}
                   onPurchaseClick={() => {
                     setCoffeeModalOpen(true);
                     blockBodyScroll();

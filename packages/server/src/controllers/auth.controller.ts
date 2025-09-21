@@ -122,6 +122,7 @@ class AuthController {
         price: payment.price || null,
         qrCode: payment.qrCode || null,
         qrCodeBase64: payment.qrCodeBase64 || null,
+        createdAt: payment.createdAt,
       })) : [],
       wantNameTag: user.wantNameTag
     };
