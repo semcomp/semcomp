@@ -3,7 +3,7 @@ import HttpError from "../lib/http-error";
 import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 
 import GameGroup, { GameGroupModel } from "../models/game-group";
-import GameGroupMember from "../models/game-group-member";
+import GameGroupMember, { GameGroupMemberModel } from "../models/game-group-member";
 import User from "../models/user";
 import IdServiceImpl from "./id-impl.service";
 import gameGroupCompletedQuestionService from "./game-group-completed-question.service";
@@ -11,6 +11,7 @@ import gameGroupMemberService from "./game-group-member.service";
 import gameQuestionService from "./game-question.service";
 import userService from "./user.service";
 import Game from "../lib/constants/game-enum";
+import gameGroupUsedClueService from "./game-group-used-clue.service";
 
 const idService = new IdServiceImpl();
 
@@ -133,27 +134,52 @@ class GameGroupService {
     return group;
   }
 
-  public async findUserGroupWithMembers(userId: string): Promise<GameGroupWithInfo> {
-    const userMembership = await gameGroupMemberService.findOne({ userId });
-    if (!userMembership) {
+  public async findUserGroupWithMembers(userId: string, game?: Game): Promise<GameGroupWithInfo> {    
+    if (game) {
+      const groupsInGame = await this.find({ filters: { game }, pagination: new PaginationRequest(1, 9999) });
+      
+      // Para cada grupo do jogo, verificar se o usuário é membro
+      for (const group of groupsInGame.getEntities()) {
+        const membership = await gameGroupMemberService.findOne({ 
+          userId, 
+          gameGroupId: group.id 
+        });
+        
+        if (membership) {
+          return await this.findGroupWithInfo(group.id);
+        }
+      }
+      
       return null;
     }
 
-    return await this.findGroupWithInfo(userMembership.gameGroupId);
+    // Lógica para quando não há jogo específico
+    const userMemberships = await gameGroupMemberService.find({ userId });    
+    if (userMemberships.length === 0) {
+      return null;
+    }
+
+    const firstMembership = userMemberships[0];
+    return await this.findGroupWithInfo(firstMembership.gameGroupId);
   }
 
   public async join(userId: string, gameGroupId: string): Promise<GameGroupWithInfo> {
     const group = await this.findOne({ id: gameGroupId });
+
+    if (!group) {
+        throw new HttpError(404, ["Grupo não encontrado"]);
+    }
+
     await this.verifyMaxMembers(group.game);
 
     const groupMembers = await gameGroupMemberService.find({ gameGroupId });
     
     if(groupMembers.length >= MAX_MEMBERS_IN_GROUP[group.game]){
-      throw new HttpError(418, []);
+      throw new HttpError(418, ["O limite de jogadores já foi atingido"]);
     }
 
     if (groupMembers.find((groupMember) => groupMember.id === userId)) {
-      throw new HttpError(400, []);
+      throw new HttpError(400, ["Você já está em um grupo neste jogo"]);
     }
     
 
@@ -180,6 +206,41 @@ class GameGroupService {
     }
 
     return groupMembership;
+  }
+
+  public async useClue(userId: string, game: Game): Promise<GameGroupWithInfo> {
+    const group = await this.findUserGroupWithMembers(userId, game);
+    if (!group) {
+      throw new HttpError(404, ["Grupo não encontrado"]);
+    }
+
+    const completedQuestions = await gameGroupCompletedQuestionService.find({ gameGroupId: group.id });
+    const currentIndex = completedQuestions.length;
+
+    const currentQuestion = await gameQuestionService.findOne({ index: currentIndex, game });
+    if (!currentQuestion) {
+      throw new HttpError(404, ["Questão não encontrada para o grupo"]);
+    }
+
+    const alreadyUsed = await gameGroupUsedClueService.findOne({ gameQuestionId: currentQuestion.id });
+    if (alreadyUsed) {
+      return await this.findGroupWithInfo(group.id);
+    }
+
+    if ((group.availableClues ?? 0) <= 0) {
+      throw new HttpError(403, ["Grupo não tem dicas disponíveis"]);
+    }
+
+    await gameGroupUsedClueService.create({
+      gameGroupId: group.id,
+      gameQuestionId: currentQuestion.id,
+    } as any);
+
+    const updatedGroup: GameGroup = { ...group } as any;
+    updatedGroup.availableClues = (updatedGroup.availableClues ?? 0) - 1;
+    await this.update(updatedGroup);
+
+    return await this.findGroupWithInfo(group.id);
   }
 
   private async verifyMaxMembers(game: Game): Promise<void> {

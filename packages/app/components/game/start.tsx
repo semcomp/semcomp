@@ -6,7 +6,7 @@ function GameStart({ gameConfig }: { gameConfig: GameConfig }) {
   return (
     <>
       <div className="flex flex-col">
-        <h1 className="text-4xl text-center pb-4">{gameConfig.getName()}</h1>
+        <h1 className="text-4xl text-center pb-4">{gameConfig.getTitle()}</h1>
         {gameConfig.getDescription()}
         <div className="flex justify-center">
             <Link href={gameConfig.getRoutes()[GameRoutes.LOBBY]}>

@@ -29,7 +29,6 @@ const GameGroupSchema = new Mongoose.Schema(
     },
     name: {
       type: String,
-      unique: true,
       required: true,
       trim: true,
     },
@@ -50,6 +49,8 @@ const GameGroupSchema = new Mongoose.Schema(
   },
   { collection: "game-group" }
 );
+
+GameGroupSchema.index({ name: 1, game: 1 }, { unique: true });
 
 export const GameGroupModel = Mongoose.model(
   "game-group",

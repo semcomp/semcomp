@@ -45,12 +45,22 @@ const Handlers = {
     getAllAtendancesByUser: withNoErrorMessage(() => API.get(`/users/get-attendance`)),
   },
   game: {
+    getGroupByUserIdAndGame: withNoErrorMessage((userId: string, game: string) => API.get(`/game/${game}/group/user/${userId}`)),
     joinTeam: withCustomError(
-      (game, teamId) => API.put(`/game/${game}/group/join?id=${teamId}`),
-      { 418: `O limite de jogadores já foi atingido` },
+      (game, teamId) => API.post(`/game/${game}/group/join?id=${teamId}`),
+      { 
+        418: `O limite de jogadores já foi atingido`,
+        404: `Grupo não encontrado`
+       },
     ),
-    leaveTeam: (game) => API.put(`/game/${game}/group/leave`),
-    useClue: (game) => API.post(`/game/${game}/group/use-clue`),
+    leaveTeam: withCustomError((game: string) => API.put(`/game/${game}/group/leave`), {
+      404: `Grupo não encontrado`
+    }),
+    useClue: withCustomError((game: string) => API.post(`/game/${game}/group/use-clue`), {
+      403: `Grupo não tem dicas disponíveis`,
+      404: `Grupo/Questão não encontrado`
+    }
+    ),
     useSkip: (game) => API.post(`/game/${game}/group/use-skip`),
     getQuestion: (game, questionIndex) => API.get(`/game/${game}/question/${questionIndex}`),
     getConfig: (game) => API.get(`/game/${game}/config`),

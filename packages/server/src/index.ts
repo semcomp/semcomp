@@ -13,6 +13,7 @@ import GameController from './controllers/game/game.controller';
 import houseService from "./services/house.service";
 import userService from "./services/user.service";
 import Routes from "./routes";
+import cacheManagerService from './services/cache-manager.service';
 
 import { config } from "dotenv";
 import Game from "./lib/constants/game-enum";
@@ -50,7 +51,20 @@ const io = new Server(httpServer, {
   cors: corsConfig,
 });
 
-new GameController(io, Game.RIDDLE);
+// Instanciar todos os jogos disponíveis
+const gameControllers = [
+  new GameController(io, Game.RIDDLE),
+  new GameController(io, Game.RIDDLETHON),
+  new GameController(io, Game.HARD_TO_CLICK),
+];
+
+// Registrar controllers no cache manager
+gameControllers.forEach(controller => {
+  cacheManagerService.registerGameController(controller);
+});
+
+// Log para debug
+console.log(`Initialized ${gameControllers.length} game controllers`);
 
 app.use(cors(corsConfig));
 

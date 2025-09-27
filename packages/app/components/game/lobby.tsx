@@ -1,24 +1,29 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Link from "next/link";
 
 import { Button, Dialog } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { toast } from "react-toastify";
 
-import IOSocket from "socket.io-client";
-import { baseURL } from "../../constants/api-url";
-
 import API from "../../api";
 import Spinner from "../spinner";
 import { useAppContext } from "../../libs/contextLib";
 import GameConfig, { GameRoutes } from "../../libs/game-config";
+import { useSocket } from "../../libs/hooks/useSocket";
+import { Group } from "@mui/icons-material";
 
 const styles = {
   teammatesContainer: "mb-8 border border-white/30 rounded-lg p-4 overflow-y-auto bg-white/10 backdrop-blur-sm",
 };
 
-function Teammate({ gameConfig, setTeam, name, thisIsMe }: { gameConfig: GameConfig, setTeam: any, name: any, thisIsMe: any }) {
+function Teammate({ gameConfig, setTeam, name, thisIsMe, emit, token }: { 
+  gameConfig: GameConfig, 
+  setTeam: any, 
+  name: any, 
+  thisIsMe: any,
+  emit: any,
+  token: string
+}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
@@ -32,11 +37,11 @@ function Teammate({ gameConfig, setTeam, name, thisIsMe }: { gameConfig: GameCon
 
   async function remove() {
     if (isRemoving) return;
-
     setIsRemoving(true);
     try {
-      await API.game.leaveTeam(gameConfig.getEventPrefix);
+      await API.game.leaveTeam(gameConfig.getEventPrefix());
       setTeam(null);
+      // Cache já foi limpo no backend, não precisa do timeout
     } catch (e) {
       console.error(e);
     } finally {
@@ -185,9 +190,14 @@ function Lobby({
 }: { gameConfig: GameConfig } & any) {
   const { user: me } = useAppContext();
   const router = useRouter();
+  const { emit, on, off } = useSocket();
+  const { token } = useAppContext();
 
   function canAddTeammates() {
-    if (team.members.length >= gameConfig.getMaximumNumberOfMembersInGroup()) return false;
+    if (team?.game !== gameConfig.getName()) {
+      setTeam(null);
+    }
+    if (team?.members?.length >= gameConfig.getMaximumNumberOfMembersInGroup()) return false;
     return true;
   }
 
@@ -203,24 +213,18 @@ function Lobby({
         name={mate.name}
         key={mate.id}
         thisIsMe={mate.id === me.id}
+        emit={emit}
+        token={token}
       />
     ));
   }
 
-  const [socket] = useState(() =>
-    IOSocket(baseURL, {
-      withCredentials: true,
-      transports: ["websocket"],
-    }));
-
-  const { token } = useAppContext();
-
   function enterGame() {
     if (!team) {
       const name = me.email;
-      socket.emit(`${gameConfig.getEventPrefix()}-create-group`, { token, name });
-      socket.on(`${gameConfig.getEventPrefix()}-group-info`, (info) => {
-        setTeam(info)
+      emit(`${gameConfig.getEventPrefix()}-create-group`, { token, name });
+      on(`${gameConfig.getEventPrefix()}-group-info`, (info) => {
+        setTeam(info);
       });
     }
     router.push(gameConfig.getRoutes()[GameRoutes.PLAY]);
@@ -229,7 +233,7 @@ function Lobby({
   return (
     <div className="w-full flex flex-col justify-center items-center p-6 select-none">
       <div className="w-full text-center mb-8">
-        <h1 className="font-primary text-5xl md:text-6xl text-white mb-4">
+        <h1 className="font-primary text-4xl md:text-5xl text-white mb-4">
           {gameConfig.getTitle()}
         </h1>
         <div className="w-16 h-1 bg-white mx-auto rounded-full"></div>
@@ -250,7 +254,7 @@ function Lobby({
         {gameConfig.hasGroups() ? (
           !team ? (
             <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-              <div className="text-4xl mb-4">👥</div>
+              <div className="text-4xl mb-4"><Group /></div>
               <div className="text-lg mb-6">
                 Você ainda não está numa equipe. Crie uma equipe para jogar ou entre em uma equipe existente.
               </div>
@@ -267,7 +271,16 @@ function Lobby({
                   onClick={goToJoinTeam}
                   variant="outlined"
                   size="large"
-                  className="border-white text-white hover:bg-white/10 px-8 py-3 rounded-lg font-bold"
+                  sx={{
+                    color: 'white !important',
+                    borderColor: 'white',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      color: 'white !important',
+                      borderColor: 'white',
+                    }
+                  }}
+                  className="px-8 py-3 rounded-lg font-bold shadow-lg backdrop-blur-sm bg-white/10"
                 >
                   Entrar em Equipe
                 </Button>
@@ -276,7 +289,7 @@ function Lobby({
           ) : (
             <div className="space-y-6">
               <div className="p-6 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                <h3 className="text-center font-bold text-xl mb-6">👥 Sua Equipe</h3>
+                <h3 className="text-center font-bold text-xl mb-6">👥 {team.name}</h3>
                 <div className="space-y-3 max-h-48 overflow-y-auto">
                   {renderTeammates()}
                 </div>

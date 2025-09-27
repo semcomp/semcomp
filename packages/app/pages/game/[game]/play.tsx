@@ -1,19 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 
-import IOSocket from "socket.io-client";
 import { Card } from '@mui/material';
 
 import GameConfig from "../../../libs/game-config";
 import Navbar from '../../../components/navbar';
 import Sidebar from '../../../components/sidebar';
-import { baseURL } from "../../../constants/api-url";
 import { useAppContext } from "../../../libs/contextLib";
 import GameCard from '../../../components/game/game';
 import API from "../../../api";
 import SimpleBackground from '../../../components/home/SimpleBackground';
 import NewFooter from '../../newFooter';
 import Spinner from '../../../components/spinner';
+import { useSocket } from '../../../libs/hooks/useSocket';
 
 export default function GamePage({children}) {
   const router = useRouter();
@@ -24,15 +23,19 @@ export default function GamePage({children}) {
   const [gameConfig, setGameConfig] = useState(null);
   const [team, setTeam] = useState(null);
 
-  const socket = IOSocket(baseURL, {
-    withCredentials: true,
-    transports: ["websocket"],
-  });
+  const { emit, on, off, isConnected } = useSocket();
   const { token } = useAppContext();
 
   function handleNewGroupInfo(info) {
     setTeam(info);
     setIsFetchingTeam(false);
+  }
+
+  function handleGroupUpdate(updateData) {
+    if (updateData.type === 'question-completed') {
+      // Atualizar o estado do grupo quando uma pergunta é completada
+      setTeam(updateData.data.group);
+    }
   }
 
   useEffect(() => {
@@ -48,7 +51,7 @@ export default function GamePage({children}) {
       
       if(result.data){
         const gameConfigInstance = new GameConfig(result.data);
-        setGameConfig(gameConfigInstance);  // Agora você passa a instância da classe
+        setGameConfig(gameConfigInstance);
       }
     } catch (e) {
       console.error(e);
@@ -59,20 +62,22 @@ export default function GamePage({children}) {
 
   useEffect(() => {
     if (gameConfig) {
-      socket.on(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
+      on(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
+      on(`${gameConfig.getEventPrefix()}-group-update`, handleGroupUpdate);
 
       return () => {
-        socket.off(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
+        off(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
+        off(`${gameConfig.getEventPrefix()}-group-update`, handleGroupUpdate);
       };
     }
-  }, [gameConfig]);
+  }, [gameConfig, on, off]);
 
   useEffect(() => {
-    if (!gameConfig || !token) {
+    if (!gameConfig || !token || !isConnected) {
       return;
     }
-    socket.emit(`${gameConfig.getEventPrefix()}-join-group-room`, {token});
-  }, [gameConfig]);
+    emit(`${gameConfig.getEventPrefix()}-join-group-room`, {token});
+  }, [gameConfig, token, isConnected, emit]);
 
   return (
   <div className="flex flex-col min-h-screen md:h-full">
@@ -87,14 +92,15 @@ export default function GamePage({children}) {
                 <GameCard
               team={team}
               setTeam={setTeam}
-              socket={socket}
               gameConfig={gameConfig}
               token={token}
                 />
               ) : (
                 <div className='z-20 h-full w-full flex flex-col items-center justify-center'>
                 <div className='flex flex-col items-center justify-center text-xl font-secondary py-16'>
-                  <p className='pb-4'>Tentando encontrar grupo</p>
+                  <p className='pb-4'>
+                    {isConnected ? 'Tentando encontrar grupo' : 'Conectando...'}
+                  </p>
                   <Spinner size="large"/>
                 </div>
               </div>

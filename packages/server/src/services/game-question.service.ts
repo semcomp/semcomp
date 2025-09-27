@@ -89,9 +89,8 @@ class GameQuestionService {
     return entity && this.mapEntity(entity);
   }
 
-  public async getGroupCompletedQuestion(game: string, userId: string, questionIndex: number) {
-    
-    const group = await gameGroupService.findUserGroup(userId);
+  public async getGroupCompletedQuestion(game: Game, userId: string, questionIndex: number) {
+    const group = await gameGroupService.findUserGroupWithMembers(userId, game);
     if (!group) {
       throw new HttpError(400, []);
     }
@@ -113,9 +112,10 @@ class GameQuestionService {
     }
 
     const isFirstQuestion = questionIndex === 0;
-    const currentQuestionIndex = completedQuestions.getEntities().length > 0 ? (completedQuestions.getEntities().reduce((a, b) =>
-      a.index > b.index ? a : b
-    ).index + 1) : 1;
+    const currentQuestionIndex = completedQuestions.getEntities().length > 0
+      ? completedQuestions.getEntities()
+        .sort((a, b) => a.index - b.index)[completedQuestions.getEntities().length - 1].index + 1
+      : 1;
     const isQuestionCompleted = currentQuestionIndex > questionIndex;
     const isQuestionInProgress = currentQuestionIndex === questionIndex;
     if (!isQuestionCompleted && !isQuestionInProgress && !isFirstQuestion) {
@@ -134,6 +134,7 @@ class GameQuestionService {
       isLegendary: question.isLegendary,
       answer: (isQuestionCompleted && !isFirstQuestion) ? question.answer : null,
       clue: isClueUsedInQuestion ? question.clue : null,
+      hasClue: question.clue && question.clue != ""
     };
   }
 

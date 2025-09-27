@@ -10,8 +10,7 @@ class GameConfigController {
     try {
       handleValidationResult(req);
 
-      const { game, index } = req.params;
-
+      const { game } = req.params;
       const foundConfig = await gameConfigService.findOne({ game });
 
       return res.status(200).json(foundConfig);

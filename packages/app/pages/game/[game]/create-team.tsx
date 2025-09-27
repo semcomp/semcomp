@@ -1,80 +1,100 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
-import IOSocket from "socket.io-client";
-import { Card } from '@mui/material';
-
 import GameConfig, { GameRoutes } from "../../../libs/game-config";
-import Game from "../../../libs/constants/games";
 import Navbar from '../../../components/navbar';
 import Sidebar from '../../../components/sidebar';
-import Footer from '../../../components/Footer';
-import { baseURL } from "../../../constants/api-url";
-import { useAppContext } from "../../../libs/contextLib";
 import CreateGroup from '../../../components/game/create-group';
+import SimpleBackground from '../../../components/home/SimpleBackground';
+import NewFooter from '../../newFooter';
 import API from "../../../api";
+import { useSocket } from '../../../libs/hooks/useSocket';
+import GameLoadingState from '../../../components/game/GameLoadingState';
+import GameConfigError from '../../../components/game/GameConfigError';
+import { useAppContext } from "../../../libs/contextLib";
 
 export default function GamePage({children}) {
   const router = useRouter();
 
+  const [isFetchingConfig, setIsFetchingConfig] = useState(true);
   const [gameConfig, setGameConfig] = useState(null);
-  const { game } =  router.query;
+  const { game } = router.query;
+  
   async function fetchGameConfig() {
+    setIsFetchingConfig(true);
     try {
       const result = await API.game.getConfig(game as string);
       
       if(result.data){
         const gameConfigInstance = new GameConfig(result.data);
-        setGameConfig(gameConfigInstance);  // Agora você passa a instância da classe
+        setGameConfig(gameConfigInstance);
       }
     } catch (e) {
       console.error(e);
     } finally {
+      setIsFetchingConfig(false);
     }
   }
 
   const [isFetchingTeam, setIsFetchingTeam] = useState(true);
   const [team, setTeam] = useState(null);
 
-  const [socket] = useState(() =>
-    IOSocket(baseURL, {
-      withCredentials: true,
-      transports: ["websocket"],
-    }));
+  const { on, off } = useSocket();
   const { token } = useAppContext();
 
-  function handleCreateGroup(name: string) {
-    setIsFetchingTeam(true);
-    socket.emit(`${gameConfig.getEventPrefix()}-create-group`, {token, name});
-  }
-
-  function handleNewGroupInfo(info) {
-    if (info) {
+  function handleNewGroupCreated(group) {
+    if (group) {
       router.push(gameConfig.getRoutes()[GameRoutes.LOBBY]);
     }
     setIsFetchingTeam(false);
   }
 
   useEffect(() => {
-    if (!gameConfig) {
-      return;
+    if(game){
+      fetchGameConfig();
+    }
+  }, [game])
+
+  useEffect(() => {
+    if (gameConfig) {
+      on(`${gameConfig.getEventPrefix()}-group-created`, handleNewGroupCreated);
+
+      return () => {
+        off(`${gameConfig.getEventPrefix()}-group-created`, handleNewGroupCreated);
+      };
+    }
+  }, [gameConfig, on, off]);
+
+  function renderContent() {
+    if (isFetchingConfig) {
+      return <GameLoadingState message="Carregando configuração do jogo..." />;
     }
 
-    socket.on(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
+    if (!gameConfig) {
+      return <GameConfigError onRetry={fetchGameConfig} />;
+    }
 
-    return () => {
-      socket.off(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
-    };
-  }, [team, gameConfig]);
+    return (
+      <div className="w-full max-w-md">
+        <CreateGroup gameConfig={gameConfig} />
+      </div>
+    );
+  }
 
-  return (<>
+  return (
+    <div className="h-screen w-full flex flex-col justify-between font-secondary text-sm mobile:mt-10 tablet:mt-0">
     <Navbar />
     <Sidebar />
-      <div className='p-6'>
-        <Card className='p-6'>
-          <CreateGroup gameConfig={gameConfig} socket={socket} handleCreateGroup={handleCreateGroup}></CreateGroup>
-        </Card>
+      
+      <div className="flex-1 relative">
+        <SimpleBackground />
+        
+        <div className="relative z-10 flex items-center justify-center h-full p-6">
+          {renderContent()}
+        </div>
       </div>
-    <Footer />
-  </>);
+      
+      <NewFooter />
+    </div>
+  );
 }

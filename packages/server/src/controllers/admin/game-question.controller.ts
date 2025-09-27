@@ -31,7 +31,10 @@ class GameQuestionController {
     try {
       handleValidationResult(req);
 
-      const entity = await gameQuestionService.findOne({ index: req.body.index });
+      const entity = await gameQuestionService.findOne({ 
+        index: req.body.index, 
+        game: req.body.game 
+      });
       if (entity) {
         throw new HttpError(401, []);
       }
