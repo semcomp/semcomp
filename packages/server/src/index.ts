@@ -58,6 +58,9 @@ cron.schedule("*/15 * * * *", () => {
   houseService.checkAchievements();
   userService.checkAchievements();
 });
+cron.schedule("*/30 * * * *", () => {
+  userService.deleteAllCron();
+})
 
 // create a rotating write stream
 const accessLogStream = rfs.createStream("access.log", {

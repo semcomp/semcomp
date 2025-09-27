@@ -65,16 +65,22 @@ class AuthService {
       };
       await userDisabilityService.create(userDisability);
     }
+
+
+
+
     try{
       await emailService.send(
         createdUser.email,
-        "Bem vinde à Semcomp 27!",
-        `Você se cadastrou no nosso site e já está tudo certo!
-        Se prepare para a 27° edição da maior Semana de Computação do Brasil! Aproveite o melhor das nossas palestras, minicursos, concursos e eventos culturais!
+        "Bem vinde à Semcomp 28!",
+        `Você se cadastrou no nosso site, não se esqueça de confirmar sua conta!
+        Se prepare para a 28° edição da maior Semana de Computação do Brasil! Aproveite o melhor das nossas palestras, minicursos, concursos e eventos culturais!
         Fique de olho no nosso site (https://semcomp.icmc.usp.br/), Twitter (https://twitter.com/semcomp), e Instagram (https://www.instagram.com/semcomp/) para não perder nenhum detalhe da programação incrível que preparamos especialmente para VOCÊ!`,
         `<div>
-        <h1>Voc&ecirc; se cadastrou no nosso site e j&aacute; est&aacute; tudo certo!</h1>
-        <p>Se prepare para a 27&deg; edi&ccedil;&atilde;o da maior Semana de Computa&ccedil;&atilde;o do Brasil! Aproveite o melhor das nossas palestras, minicursos, concursos e eventos culturais!</p>
+        <h1>Voc&ecirc; se cadastrou no nosso site, não se esqueça de confirmar sua conta!</h1>
+        <h3>Seu código para confirmação de conta:${user?.verificationCode}</h3>
+        <h3>Acesse a página de verificação <a  href="http://localhost:3000/signup?email=${user.email}&step=2"> aqui </a></h3>
+        <p>Se prepare para a 28&deg; edi&ccedil;&atilde;o da maior Semana de Computa&ccedil;&atilde;o do Brasil! Aproveite o melhor das nossas palestras, minicursos, concursos e eventos culturais!</p>
         <p>Fique de olho no nosso <a href="https://semcomp.icmc.usp.br/">site</a>, <a href="https://twitter.com/semcomp">Twitter</a>, e <a href="https://www.instagram.com/semcomp/">Instagram</a>&nbsp;para n&atilde;o perder nenhum detalhe da programa&ccedil;&atilde;o incr&iacute;vel que preparamos especialmente para VOC&Ecirc;!</p>
         </div>`
       );
@@ -83,6 +89,54 @@ class AuthService {
     }
 
     return createdUser;
+  }
+  //Optional code if you want another email only for the verification
+  public async sendVerificationCode(email: string): Promise<User> {
+    const user = await userService.findOne({ email });
+    if (!user || !user.password) {
+      throw new HttpError(401, []);
+    }
+
+    try {
+      await emailService.send(
+        email,
+        "Confirmação de email",
+        `Seu código de verificação: ->: ${user?.verificationCode}`,
+        `<div>
+        <h1>Seu código para confirmação de conta:${user?.verificationCode}</h1>
+        <h2>Acesse a página de verificação <a  href="http://localhost:3000/signup?email=${user.email}&step=2"> aqui </a>
+        </div>`
+      );
+
+    } catch (e) {
+      console.log(e);
+      throw new HttpError(503, []);
+    }
+
+    return user;
+  }
+
+
+  
+  public async confirmVerificationCode(email: string, code: string): Promise<User> {
+    const user = await userService.findOne({ email });
+    console.log("email do inputado " + email + " email do user " + user.email);
+    console.log("codigo inputado: ", code);
+    console.log("verification code: ", user.resetPasswordCode);
+    console.log("PORQUE RAIOS VC TA ERRADO ", user.verificationCode);
+    if (
+      !user ||
+      code !== user.verificationCode
+    ) {
+      throw new HttpError(401, []);
+    }
+
+    user.verified = true;
+    
+    await userService.update(user);
+
+    
+    return user;
   }
 
   public async login(email: string, password: string): Promise<User> {

@@ -88,6 +88,42 @@ class AuthController {
     }
   }
 
+  //Optional code if you want another email only for the verification
+  public async sendVerificationCode(req, res, next) {
+    try {
+      handleValidationResult(req);
+
+      const { email } = req.body;
+
+      await authService.sendVerificationCode(email);
+
+      return res.status(200).json();
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
+  public async confirmVerificationCode(req, res, next) {
+    try {
+      handleValidationResult(req);
+
+      const { email, code } = req.body;
+
+      const foundUser = await authService.confirmVerificationCode(email, code);
+
+      const token = await authService.createToken(foundUser);
+
+      res.setHeader("Authorization", `Bearer ${token}`);
+
+      const userHouse = await userService.getUserHouse(foundUser.id);
+      const userPayment = await this.paymentService.getUserPayment(foundUser.id);
+
+      return res.status(200).json(this.mapUserResponse(foundUser, userHouse, userPayment));
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
   public async getLoggedUser(req, res, next) {
     try {
       const userHouse = await userService.getUserHouse(req.user.id);

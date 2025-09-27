@@ -22,6 +22,14 @@ const Handlers = {
       401: "Este e-mail não está cadastrado.",
     }
   ),
+  sendVerificationCode: withCustomError(
+    (email) => API.post("/auth/send-verification-code", { email }),
+    {
+      401: "Este e-mail não está cadastrado.",
+    }
+  ),
+  confirmVerificationCode: (email, code) =>
+    API.post("/auth/confirm-verification-code", { email, code }),
   resetPassword: (email, code, password) =>
     API.post("/auth/reset-password", { email, code, password }),
   getHouseScores: () => API.get("/houses/scores"),
@@ -64,7 +72,8 @@ const Handlers = {
   config: {
     getConfig: withNoErrorMessage(() => API.get("/config")),
     checkCoffeeTotal: withNoErrorMessage(() => API.get("/config/coffee-total")),
-    checkRemainingCoffee: withNoErrorMessage(() => API.get("/config/coffee-remaining")), },
+    checkRemainingCoffee: withNoErrorMessage(() => API.get("/config/coffee-remaining")),
+  },
   coffee: {
     createPayment: (
       withSocialBenefit: boolean,
@@ -100,7 +109,7 @@ const Handlers = {
       });
     },
   },
-  treasureHunt : {
+  treasureHunt: {
     getImage: withNoErrorMessage((imageId: string) => API.get(`/treasure-hunt-images/${imageId}`))
   }
 };
