@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import API from "../api";
 import ArrowIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import Navbar from "../components/navbar";
-import Sidebar from '../components/sidebar';
+import Sidebar from "../components/sidebar";
 import Stepper from "../components/stepper/Stepper";
 import Step0 from "../components/signup/Step0";
 import Step1 from "../components/signup/Step1";
@@ -15,7 +15,7 @@ import RequireNoAuth from "../libs/RequireNoAuth";
 import { useAppContext } from "../libs/contextLib";
 import Link from "next/link";
 import PrivacyPolicyModal from "../components/signup/PrivacyPolicyModal";
-import handler from '../api/handlers';
+import handler from "../api/handlers";
 import SimpleBackground from "../components/home/SimpleBackground";
 import { config } from "../config";
 import Step2 from "../components/signup/Step2";
@@ -68,6 +68,13 @@ function SignupPage() {
     course: "",
     disabilities: [],
     permission: false,
+    admissionYear: "",
+    expectedGraduationYear: "",
+    expectedGraduationSemester: "",
+    institute: "",
+    customCourse: "",
+    customInstitute: "",
+    extensionGroups: [],
   });
 
   //new form value for the last step of the signup.
@@ -121,13 +128,108 @@ function SignupPage() {
     // Don't let the user do anything if it's sending a request.
     if (isSigningUp) return;
 
-    const { telegram, course, isStudent } = formValue;
+    const {
+      telegram,
+      course,
+      isStudent,
+      admissionYear,
+      expectedGraduationYear,
+      expectedGraduationSemester,
+      institute,
+      customCourse,
+      customInstitute,
+      extensionGroups,
+    } = formValue;
 
     // Some validation
     // TODO - move validation to a different file. Validation logic should be
     // separated from form logic
     if (isStudent && !course)
       return toast.error("Você deve fornecer um curso se for estudante!");
+
+    if (isStudent && !admissionYear)
+      return toast.error(
+        "Você deve fornecer o ano de ingresso se for estudante!"
+      );
+
+    if (isStudent && !expectedGraduationYear)
+      return toast.error(
+        "Você deve fornecer o ano de formação esperado se for estudante!"
+      );
+
+    if (isStudent && !expectedGraduationSemester) {
+      return toast.error(
+        "Você deve selecionar o semestre de formação esperado!"
+      );
+    }
+
+    if (isStudent && !institute)
+      return toast.error("Você deve selecionar o instituto se for estudante!");
+
+    if (isStudent && admissionYear) {
+      const currentYear = new Date().getFullYear();
+      const year = parseInt(admissionYear);
+
+      if (year < 1900 || year > currentYear + 1) {
+        return toast.error("Por favor, forneça um ano de ingresso válido!");
+      }
+    }
+
+    if (isStudent && expectedGraduationYear) {
+      const currentYear = new Date().getFullYear();
+      const year = parseInt(expectedGraduationYear);
+
+      if (year < currentYear || year > currentYear + 10) {
+        return toast.error("Por favor, forneça um ano de formação válido!");
+      }
+    }
+
+    if (isStudent && admissionYear && expectedGraduationYear) {
+      const admission = parseInt(admissionYear);
+      const graduation = parseInt(expectedGraduationYear);
+
+      if (graduation < admission) {
+        return toast.error(
+          "O ano de formação não pode ser anterior ao ano de ingresso!"
+        );
+      }
+
+      if (graduation - admission < 2) {
+        return toast.error(
+          "O período de formação deve ser de pelo menos 2 anos!"
+        );
+      }
+
+      if (graduation - admission > 10) {
+        return toast.error(
+          "O período de formação parece muito longo. Verifique os anos novamente!"
+        );
+      }
+
+      if (isStudent && course === "Outro" && !customCourse) {
+        return toast.error("Por favor, especifique o nome do curso!");
+      }
+
+      if (isStudent && institute === "Outro" && !customInstitute) {
+        return toast.error("Por favor, especifique o nome do instituto!");
+      }
+
+      if (isStudent && course === "Outro" && customCourse) {
+        if (customCourse.length < 3) {
+          return toast.error(
+            "O nome do curso deve ter pelo menos 3 caracteres!"
+          );
+        }
+      }
+
+      if (isStudent && institute === "Outro" && customInstitute) {
+        if (customInstitute.length < 4) {
+          return toast.error(
+            "O nome do instituto deve ter pelo menos 4 caracteres!"
+          );
+        }
+      }
+    }
 
     // Extract values from the formValue state. They should've been set in the steps components.
     const { name, email, password, disabilities, permission } = formValue;
@@ -136,15 +238,26 @@ function SignupPage() {
       // Show spinner
       setIsSigningUp(true);
 
+      const finalCourse = course === "Outro" ? customCourse : course;
+      const finalInstitute =
+        institute === "Outro" ? customInstitute : institute;
+
       const userInfo = {
         name,
         email,
         password,
         permission,
         telegram,
-        course,
+        course: isStudent ? finalCourse : null,
         disabilities,
         isStudent,
+        admissionYear: isStudent ? admissionYear : null,
+        expectedGraduationYear: isStudent ? expectedGraduationYear : null,
+        expectedGraduationSemester: isStudent
+          ? expectedGraduationSemester
+          : null,
+        institute: isStudent ? finalInstitute : null,
+        extensionGroups: extensionGroups || [],
       };
 
       const { data } = await API.signup(userInfo);
@@ -227,11 +340,6 @@ function SignupPage() {
 
   ][step];
 
-
-
-
-
-
   //Get the information from 'config' to check if signup is enabled
   const [openSignup, setOpenSignup] = useState(true);
   async function fetchData() {
@@ -239,7 +347,7 @@ function SignupPage() {
       const config = await handler.config.getConfig().then((res) => res.data);
       setOpenSignup(config.openSignup);
     } catch (error) {
-      toast.error('Erro ao buscar dados de configuração');
+      toast.error("Erro ao buscar dados de configuração");
     }
   }
 

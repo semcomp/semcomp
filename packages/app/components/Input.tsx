@@ -43,6 +43,7 @@ function TextInput({
   autofocus,
   start,
   end,
+  disabled = false,
 }: {
   label: string;
   onChange: any;
@@ -52,6 +53,7 @@ function TextInput({
   autofocus: boolean;
   start?: ReactNode;
   end?: ReactNode;
+  disabled?: boolean;
 }) {
   return (
     <>
@@ -65,7 +67,9 @@ function TextInput({
               title={tooltip ? tooltip : ""}
               enterTouchDelay={1}
             >
-              <Info sx={{ color: "#fffff", paddingX: "2px", marginY: "-1px" }} />
+              <Info
+                sx={{ color: "#fffff", paddingX: "2px", marginY: "-1px" }}
+              />
             </Tooltip>
           </div>
           <TextField
@@ -76,6 +80,7 @@ function TextInput({
             type={type}
             variant="outlined"
             className="my-3 bg-white rounded-lg"
+            disabled={disabled}
             InputProps={{
               startAdornment: start,
               endAdornment: end,
@@ -93,6 +98,7 @@ function TextInput({
             type={type}
             variant="outlined"
             className="my-3 bg-white rounded-lg"
+            disabled={disabled}
             InputProps={{
               startAdornment: start,
               endAdornment: end,
@@ -109,24 +115,46 @@ function SelectInput({
   onChange,
   value,
   choices,
+  disabled = false,
+  placeholder = "Selecione uma opção",
 }: {
   label: string;
   onChange: any;
   value: string;
   choices: string[];
+  disabled?: boolean;
+  placeholder?: string;
 }) {
   return (
     <FormControl className="my-3" fullWidth>
-      {/* <InputLabel id="label">{label}</InputLabel> */}
       <p className="pb-4">{label}</p>
       <Select
         className="bg-white"
         onChange={onChange}
         value={value}
         labelId="label"
-        placeholder="placeholder"
         displayEmpty
+        disabled={disabled}
+        renderValue={(selected) => {
+          if (selected === "") {
+            return <span className="text-gray-400">{placeholder}</span>;
+          }
+          return (
+            <span className={disabled ? "text-gray-500" : ""}>{selected}</span>
+          );
+        }}
+        sx={{
+          "&.Mui-disabled": {
+            backgroundColor: "#f5f5f5",
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#e0e0e0",
+            },
+          },
+        }}
       >
+        <MenuItem value="" disabled>
+          <em>{placeholder}</em>
+        </MenuItem>
         {choices.map((choice) => (
           <MenuItem key={choice} value={choice}>
             {choice}
@@ -137,46 +165,61 @@ function SelectInput({
   );
 }
 
-function MutipleSelectInput({
+function MultipleSelectInput({
   label,
   onChange,
   value,
   choices,
   valueLabel,
+  disabled = false,
 }: {
   label: string;
   onChange: (event: any) => void;
   value: string[];
-  choices: object[];
-  valueLabel: string;
+  choices: any[];
+  valueLabel?: string;
+  disabled?: boolean;
 }) {
   const [selected, setSelected] = useState<string[]>(value);
   const handleSelectChange = (event: SelectChangeEvent<typeof selected>) => {
     const {
       target: { value },
     } = event;
-    
-    setSelected(typeof value === 'string' ? value.split(',') : value);
-    onChange(typeof value === 'string' ? value.split(',') : value);
+
+    const newValue = typeof value === "string" ? value.split(",") : value;
+    setSelected(newValue);
+    onChange(event);
   };
 
-  return (    
+  return (
     <FormControl className="my-3 bg-white" fullWidth>
       <InputLabel id="multiple-checkbox-label">{label}</InputLabel>
-      <Select 
+      <Select
         onChange={handleSelectChange}
         value={selected}
         multiple={true}
         labelId="multiple-checkbox-label"
         input={<OutlinedInput label={label} />}
-        renderValue={(selected) => selected.join(', ')}
+        renderValue={(selected) => selected.join(", ")}
+        disabled={disabled}
       >
-        {choices.map((choice) => (
-          <MenuItem key={choice[valueLabel]} value={choice[valueLabel]}>
-            <Checkbox checked={selected.indexOf(choice[valueLabel]) > -1} />
-            <ListItemText primary={choice[valueLabel]} />
-          </MenuItem>
-        ))}
+        {choices.map((choice) => {
+          const itemValue =
+            typeof choice === "string"
+              ? choice
+              : choice[valueLabel || "name" || "label" || "id"];
+          const itemLabel =
+            typeof choice === "string"
+              ? choice
+              : choice[valueLabel || "name" || "label" || "id"];
+
+          return (
+            <MenuItem key={itemValue} value={itemValue}>
+              <Checkbox checked={selected.indexOf(itemValue) > -1} />
+              <ListItemText primary={itemLabel} />
+            </MenuItem>
+          );
+        })}
       </Select>
     </FormControl>
   );
@@ -187,11 +230,13 @@ function RadioInput({
   onChange,
   value,
   choices,
+  disabled = false,
 }: {
   label: string;
   onChange: any;
   value: string;
   choices: string[];
+  disabled?: boolean;
 }) {
   return (
     <FormControl>
@@ -203,6 +248,7 @@ function RadioInput({
             value={choice}
             control={<Radio />}
             label={choice}
+            disabled={disabled}
           />
         ))}
       </RadioGroup>
@@ -210,25 +256,42 @@ function RadioInput({
   );
 }
 
-function CheckboxInput({ onChange, value }: { onChange: any; value: boolean }) {
+function CheckboxInput({
+  onChange,
+  value,
+  disabled = false,
+}: {
+  onChange: any;
+  value: boolean;
+  disabled?: boolean;
+}) {
   return (
-    <Checkbox 
-      onChange={onChange} 
-      checked={value} 
-      className="my-3 bg-white" 
+    <Checkbox
+      onChange={onChange}
+      checked={value}
+      className="my-3 bg-white"
+      disabled={disabled}
       sx={{
-        '&.Mui-checked': {
-          color: '#00B4D8',
+        "&.Mui-checked": {
+          color: "#00B4D8",
         },
-        '&.MuiCheckbox-root': {
-          color: '#242d5c',
-        }
+        "&.MuiCheckbox-root": {
+          color: "#242d5c",
+        },
       }}
     />
   );
 }
 
-function FileInput({ onChange, value }: { onChange: any; value: string }) {
+function FileInput({
+  onChange,
+  value,
+  disabled = false,
+}: {
+  onChange: any;
+  value: string;
+  disabled?: boolean;
+}) {
   return (
     <FormControl className="my-3 bg-white" fullWidth>
       <MaterialInput
@@ -236,6 +299,7 @@ function FileInput({ onChange, value }: { onChange: any; value: string }) {
         onChange={onChange}
         value={value}
         inputProps={{ accept: ".pdf" }}
+        disabled={disabled}
       />
     </FormControl>
   );
@@ -245,10 +309,12 @@ function DateInput({
   label,
   onChange,
   value,
+  disabled = false,
 }: {
   label: string;
   onChange: any;
   value: number;
+  disabled?: boolean;
 }) {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -258,6 +324,7 @@ function DateInput({
           value={dayjs(value)}
           onChange={(day: Dayjs) => onChange(day.valueOf())}
           renderInput={(params) => <TextField {...params} />}
+          disabled={disabled}
         />
       </FormControl>
     </LocalizationProvider>
@@ -276,18 +343,22 @@ function Input({
   end,
   className,
   valueLabel,
+  placeholder,
+  disabled = false,
 }: {
   label?: any;
   onChange: (event: any) => void;
   value?: string | string[] | number | boolean;
   type: InputType;
-  choices?: string[] | object[];
+  choices?: any[];
   tooltip?: any;
   autofocus?: boolean;
   start?: ReactNode;
   end?: ReactNode;
   className?: string;
   valueLabel?: string;
+  placeholder?: string;
+  disabled?: boolean;
 }) {
   let input = (
     <TextInput
@@ -299,11 +370,18 @@ function Input({
       autofocus={autofocus}
       start={start}
       end={end}
+      disabled={disabled}
     />
   );
 
   if (type === InputType.Checkbox) {
-    input = <CheckboxInput onChange={onChange} value={value as boolean} />;
+    input = (
+      <CheckboxInput
+        onChange={onChange}
+        value={value as boolean}
+        disabled={disabled}
+      />
+    );
   }
 
   if (type === InputType.Select) {
@@ -313,29 +391,43 @@ function Input({
         onChange={onChange}
         value={value as string}
         choices={choices as string[]}
+        placeholder={placeholder}
+        disabled={disabled}
       />
     );
   }
 
   if (type === InputType.File) {
-    input = <FileInput onChange={onChange} value={value as string} />;
+    input = (
+      <FileInput
+        onChange={onChange}
+        value={value as string}
+        disabled={disabled}
+      />
+    );
   }
 
   if (type === InputType.MultiSelect) {
     input = (
-      <MutipleSelectInput
+      <MultipleSelectInput
         label={label}
         onChange={onChange}
         value={value as string[]}
-        choices={choices as object[]}
+        choices={choices as any[]}
         valueLabel={valueLabel}
+        disabled={disabled}
       />
     );
   }
 
   if (type === InputType.Date) {
     input = (
-      <DateInput label={label} onChange={onChange} value={value as number} />
+      <DateInput
+        label={label}
+        onChange={onChange}
+        value={value as number}
+        disabled={disabled}
+      />
     );
   }
 
