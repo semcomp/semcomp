@@ -7,6 +7,7 @@ const Handlers = {
     (email, password) => API.post(`/auth/login`, { email, password }),
     {
       401: "Usuário ou senha inválidos",
+      403: "Usuário precisa confirmar email"
     }
   ),
   signup: withCustomError((userInfo) => API.post(`/auth/signup`, userInfo), {
@@ -22,6 +23,17 @@ const Handlers = {
       401: "Este e-mail não está cadastrado.",
     }
   ),
+  sendVerificationCode: withCustomError( // TODO: remover fluxo inutilizado (confirmar)
+    (email) => API.post("/auth/send-verification-code", { email }),
+    {
+      401: "Este e-mail não está cadastrado.",
+    }
+  ),
+  confirmVerificationCode: withCustomError((email, code) =>
+    API.post("/auth/confirm-verification-code", { email, code }), {
+      400: "Código/email inválido",
+      401: "Código digitado está incorreto",
+    }),
   resetPassword: (email, code, password) =>
     API.post("/auth/reset-password", { email, code, password }),
   getHouseScores: () => API.get("/houses/scores"),
@@ -74,7 +86,8 @@ const Handlers = {
   config: {
     getConfig: withNoErrorMessage(() => API.get("/config")),
     checkCoffeeTotal: withNoErrorMessage(() => API.get("/config/coffee-total")),
-    checkRemainingCoffee: withNoErrorMessage(() => API.get("/config/coffee-remaining")), },
+    checkRemainingCoffee: withNoErrorMessage(() => API.get("/config/coffee-remaining")),
+  },
   coffee: {
     createPayment: (
       withSocialBenefit: boolean,
@@ -110,7 +123,7 @@ const Handlers = {
       });
     },
   },
-  treasureHunt : {
+  treasureHunt: {
     getImage: withNoErrorMessage((imageId: string) => API.get(`/treasure-hunt-images/${imageId}`))
   }
 };
