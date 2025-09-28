@@ -12,7 +12,6 @@ function Stepper(
   }
 ) {
   function renderSteps() {
-    console.log(connectorColor);
     if (!numberOfSteps) throw new Error("Stepper must have at least one step");
     const stepElements = [];
     for (let index = 0; index < numberOfSteps; index++) {

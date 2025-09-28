@@ -44,6 +44,7 @@ function CoffeeStep2({
   showTshirtChoices: boolean;
 }) {
   const [tShirtChoices, setTShirtChoices] = useState<string[]>([]);
+  const [hasCoffee, setHasCoffee] = useState<boolean>(false);
 
   function handleWithSocialBenefitChange(
     event: React.ChangeEvent<HTMLInputElement>
@@ -87,6 +88,7 @@ function CoffeeStep2({
     }
 
     getAvailableTShirts();
+    setHasCoffee(data.sale?.some(sale => sale.hasCoffee));
   }, [])
 
   return (
@@ -94,7 +96,7 @@ function CoffeeStep2({
       {showHandleSocialBenefit &&
         <Input
           className="my-3"
-          label="Entrada social?"
+          label="Entrada social? Pode ser solicitado caso possua acesso ao programa de bolsas da PAPFE"
           onChange={handleWithSocialBenefitChange}
           value={data.withSocialBenefit}
           type={InputType.Checkbox}
@@ -113,11 +115,34 @@ function CoffeeStep2({
           type={InputType.File}
         />
       )}
+
+      {hasCoffee &&
+        <>
+          <Input
+            className="pt-3 my-3"
+            label={<strong>Possui alguma restrição alimentar?</strong>}
+            value={data.foodOption}
+            onChange={handlefoodOptionChange}
+            choices={foodOptions}
+            type={InputType.Select}
+          />
+        
+          <div className="text-sm text-gray-700 mt-2">
+            <p>
+              <strong>Vai comprar o coffee e possui alguma outra restrição alimentar?</strong><br />
+              Procure a coordenação e indique quais são suas restrições.
+            </p>
+          </div>
+        </>
+      
+      }
+
       {showTshirtChoices && (
         <>
-            <Input
+          <br/>
+          <Input
             className="my-3  font-secondary"
-            label="Tamanho da camiseta"
+            label={<b>Tamanho da camiseta</b>}
             value={data.tShirtSize}
             onChange={handleTShirtSizeChange}
             choices={tShirtChoices}
@@ -125,7 +150,6 @@ function CoffeeStep2({
           />
 
           <p>
-            <br/>
             Medidas aproximada da modelagem tradicional <br/>
             LARGURA X COMPRIMENTO <br/><br/>
     

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 import API from "../api";
 import EditProfile from "../components/profile/edit-profile";
@@ -25,6 +26,7 @@ import PurchasesCard from "../components/profile/PurchasesCard";
 import EventsCard from "../components/profile/EventsCard";
 import AchievementsCard from "../components/profile/AchievementsCard";
 import OverflowCard from "../components/profile/OverflowCard";
+import { EXPIRATION_TIME, PaymentStatus } from "../libs/constants/payment-status";
 
 function Profile() {
   const { config } = useAppContext();
@@ -162,6 +164,31 @@ function Profile() {
     );
   }
 
+  async function onPaymentClick(payment) {
+    if (!payment) {
+      toast.error("Compra não encontrada");
+      await fetchUserData();
+      return;
+    }
+
+    const durationHours = EXPIRATION_TIME;
+    const start = payment.createdAt;
+    const end = start + durationHours;
+
+    const now = Date.now();
+    const diff = Math.max(0, Math.floor((end-now)/1000));
+
+    if (payment.status === PaymentStatus.PENDING && diff <= 0) {
+      toast.error("Compra expirada");
+      await fetchUserData();
+      return;
+    }
+
+    setDataToCoffeeStep3(payment);
+    setCoffeeModalOpen(true);
+    blockBodyScroll();
+  }
+
   return (
     <div className="min-h-screen w-full flex flex-col justify-between font-secondary text-sm phone:mt-10">
       <Navbar />
@@ -251,14 +278,13 @@ function Profile() {
                   user={userFetched}
                   config={config}
                   closeSales={closeSales}
+                  sales={allSales}
                   onPurchaseClick={() => {
                     setCoffeeModalOpen(true);
                     blockBodyScroll();
                   }}
                   onPaymentClick={(payment) => {
-                    setDataToCoffeeStep3(payment);
-                    setCoffeeModalOpen(true);
-                    blockBodyScroll();
+                    onPaymentClick(payment);
                   }}
                 />
               )}
@@ -306,14 +332,13 @@ function Profile() {
                   user={userFetched}
                   config={config}
                   closeSales={closeSales}
+                  sales={allSales}
                   onPurchaseClick={() => {
                     setCoffeeModalOpen(true);
                     blockBodyScroll();
                   }}
                   onPaymentClick={(payment) => {
-                    setDataToCoffeeStep3(payment);
-                    setCoffeeModalOpen(true);
-                    blockBodyScroll();
+                    onPaymentClick(payment);
                   }}
                 />
               )}

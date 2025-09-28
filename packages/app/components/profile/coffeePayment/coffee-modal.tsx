@@ -23,6 +23,8 @@ export type CoffeePaymentData = {
     name: string,
     price: number,
     hasTShirt: boolean,
+    hasCoffee: boolean,
+    hasKit: boolean,
     items: string[],
     allowHalfPayment: boolean
   }[];
@@ -217,11 +219,25 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }
     />,
     <CoffeeStep3 key={2} data={data}/>,
   ];
-
+  const headerSales = filteredSales?.length ? filteredSales : data.sale;
   return (
     <Modal onRequestClose={onRequestClose}>
       <div className="w-full bg-primary text-white text-center text-xl p-6">
-        Compra Kit e Coffee da Semcomp!
+        {(() => {
+          const hasCoffee = headerSales?.some(item => item.hasCoffee);
+          const hasKit = headerSales?.some(item => item.hasKit);
+
+          if (hasCoffee && hasKit) {
+            return <p>Compre o Coffee e o Kit da Semcomp!</p>;
+          }
+          if (hasCoffee) {
+            return <p>Compre o Coffee da Semcomp!</p>;
+          }
+          if (hasKit) {
+            return <p>Compre o Kit da Semcomp!</p>;
+          }
+          return <p>{filteredSales ? "Garanta" : "Confira"} as ofertas da Semcomp!</p>;
+        })()}
       </div>
       { !loading ? 
         (
