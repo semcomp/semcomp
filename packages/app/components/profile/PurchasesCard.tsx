@@ -47,12 +47,15 @@ function usePixCountdown(createdAt: number){
 function PixCountdownTimer({ createdAt }: { createdAt: number }) {
   const { hours, minutes, seconds } = usePixCountdown(createdAt);
 
-  return ( 
-    <span className="ml-1 text-xs font-bold"> 
-      {hours.toString().padStart(2, '0')}: 
-      {minutes.toString().padStart(2, '0')}: 
-      {seconds.toString().padStart(2, '0')} 
-    </span> 
+  return (
+    <>
+      <HourglassTopIcon className="m-1"/>
+      <span className="ml-1 text-xs font-bold"> 
+        {hours.toString().padStart(2, '0')}: 
+        {minutes.toString().padStart(2, '0')}: 
+        {seconds.toString().padStart(2, '0')} 
+      </span> 
+    </>
   );
 }
 function PurchasesCard({ user, config, closeSales, sales, onPurchaseClick, onPaymentClick }: PurchasesCardProps) {
@@ -95,7 +98,7 @@ function PurchasesCard({ user, config, closeSales, sales, onPurchaseClick, onPay
                         onPaymentClick(payment);
                       }
                     }}
-                    icon={payment.status === PaymentStatus.APPROVED ? 
+                    icon={payment.status === PaymentStatus.APPROVED ?
                       <DoneIcon></DoneIcon>
                       :
                       <PixCountdownTimer createdAt={payment.createdAt} />
