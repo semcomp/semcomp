@@ -223,9 +223,21 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }
   return (
     <Modal onRequestClose={onRequestClose}>
       <div className="w-full bg-primary text-white text-center text-xl p-6">
-        {headerSales?.some(headerSales => headerSales.hasCoffee) && !headerSales?.some(headerSales => headerSales.hasKit) && <p>Compre o Coffee da Semcomp!</p>}
-        {!headerSales?.some(headerSales => headerSales.hasCoffee) && headerSales?.some(headerSales => headerSales.hasKit) && <p>Compre o Kit da Semcomp!</p>}
-        {headerSales?.some(headerSales => headerSales.hasCoffee) && headerSales?.some(headerSales => headerSales.hasKit) && <p>Compre o Coffee e o Kit da Semcomp!</p>}
+        {(() => {
+          const hasCoffee = headerSales?.some(item => item.hasCoffee);
+          const hasKit = headerSales?.some(item => item.hasKit);
+
+          if (hasCoffee && hasKit) {
+            return <p>Compre o Coffee e o Kit da Semcomp!</p>;
+          }
+          if (hasCoffee) {
+            return <p>Compre o Coffee da Semcomp!</p>;
+          }
+          if (hasKit) {
+            return <p>Compre o Kit da Semcomp!</p>;
+          }
+          return <p>{filteredSales ? "Garanta" : "Confira"} as ofertas da Semcomp!</p>;
+        })()}
       </div>
       { !loading ? 
         (

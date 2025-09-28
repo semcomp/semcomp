@@ -64,25 +64,15 @@ function CoffeeStep1({
             valueLabel="name"
             type={InputType.MultiSelect}
           />
-
-          <br/><h1><strong>Vai comprar o coffee e possui alguma restrição alimentar?</strong><br/>Procure a coordenação e indique quais são suas restrições.</h1>
         </>
         ) : (
-          <p className="h-full w-full text-center py-12"><b>Não há vendas disponíveis no momento...</b></p>
+          <p className="h-full w-full text-center py-6"><b>Não há vendas disponíveis no momento...</b></p>
         )
       }
         {/* <br /> */}
         {/* <p>Ambas dão direto ao Coffee + Kit</p> */}
         {/* <br /> */}
         {/* <p>Os pacotes são limitados</p> */}
-    {/* <Input
-      className="my-3"
-      label="Possui alguma restrição alimentar?"
-      value={data.foodOption}
-      onChange={handlefoodOptionChange}
-      choices={foodOptions}
-      type={InputType.Select}
-    /> */}
     </div>
   );
 }
