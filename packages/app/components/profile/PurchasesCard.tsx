@@ -3,7 +3,7 @@ import Chip from "@mui/material/Chip";
 import DoneIcon from '@mui/icons-material/Done';
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 import Card from "../Card";
-import { PaymentStatus } from "../../libs/constants/payment-status";
+import { EXPIRATION_TIME, PaymentStatus } from "../../libs/constants/payment-status";
 import { useEffect, useState } from "react";
 
 interface PurchasesCardProps {
@@ -19,8 +19,7 @@ function usePixCountdown(createdAt: number){
   const [timeLeft, setTimeLeft] =  useState(0);
 
   useEffect(()=>{
-
-      const durationHours = 2 * 60 * 60 * 1000;
+      const durationHours = EXPIRATION_TIME;
       const start = createdAt;
       const end = start + durationHours;
 

@@ -26,7 +26,7 @@ import PurchasesCard from "../components/profile/PurchasesCard";
 import EventsCard from "../components/profile/EventsCard";
 import AchievementsCard from "../components/profile/AchievementsCard";
 import OverflowCard from "../components/profile/OverflowCard";
-import { PaymentStatus } from "../libs/constants/payment-status";
+import { EXPIRATION_TIME, PaymentStatus } from "../libs/constants/payment-status";
 
 function Profile() {
   const { config } = useAppContext();
@@ -171,7 +171,7 @@ function Profile() {
       return;
     }
 
-    const durationHours = 60 * 1000;
+    const durationHours = EXPIRATION_TIME;
     const start = payment.createdAt;
     const end = start + durationHours;
 
