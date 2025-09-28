@@ -64,7 +64,7 @@ const Handlers = {
     useSkip: (game) => API.post(`/game/${game}/group/use-skip`),
     getQuestion: (game, questionIndex) => API.get(`/game/${game}/question/${questionIndex}`),
     getConfig: (game) => API.get(`/game/${game}/config`),
-    getIsHappening: () => API.get(`/game/isHappening`),
+    getIsHappening: withNoErrorMessage(() => API.get(`/game/isHappening`)),
     getNumberOfQuestions: (game) => API.get(`/game/${game}/numberOfQuestions`)
   },
   achievements: {

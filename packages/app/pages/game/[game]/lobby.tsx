@@ -16,10 +16,15 @@ import NewFooter from '../../newFooter';
 import API from "../../../api";
 import GameLoadingState from '../../../components/game/GameLoadingState';
 import Spinner from '../../../components/spinner';
+import { useGameAccess } from '../../../libs/hooks/useGameAccess';
+import GameAccessLoader from '../../../components/game/GameAccessLoader';
 
 export default function GamePage({ children }) {
   const router = useRouter();
   const { game } = router.query;
+
+  // Verifica se os jogos estão abertos
+  const { isGameOpen, isLoading: isCheckingAccess } = useGameAccess();
 
   const [isFetchingTeam, setIsFetchingTeam] = useState(true);
   const [team, setTeam] = useState(null);
@@ -173,6 +178,10 @@ export default function GamePage({ children }) {
       return () => clearInterval(handler);
     }
   }, [gameConfig]);
+
+  if (isCheckingAccess || !isGameOpen) {
+    return <GameAccessLoader isCheckingAccess={isCheckingAccess} isGameOpen={isGameOpen} />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen md:h-full">

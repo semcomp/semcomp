@@ -33,12 +33,12 @@ class GameConfigController {
 
       // Se não encontrar nenhum jogo
       if (!foundGames || foundGames.length === 0) {
-        return res.status(400).json({ message: 'No games for now' });
+        return res.status(200).json({ message: 'Não há jogos ativos' });
       }
 
       //Se os jogos não estiverem ativos
       if(!isActive){
-        return res.status(400).json({ message: 'Games are inactive' });
+        return res.status(200).json({ message: 'Os jogos estão desativados' });
       }
 
       let isHappeningGames = [];

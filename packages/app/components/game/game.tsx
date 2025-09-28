@@ -52,6 +52,7 @@ function Question({
   const [inputValue, setInputValue] = useState("");
   const [isUsingClue, setIsUsingClue] = useState(false);
   const [showClue, setShowClue] = useState(false);
+  const [isGameActive, setIsGameActive] = useState(true);
 
   const { emit, once, isConnected } = useSocket();
 
@@ -72,6 +73,21 @@ function Question({
       setIsFetchingQuestion(false);
     }
   }
+
+  // Verifica se o jogo ainda está ativo
+  useEffect(() => {
+    const checkGameStatus = async () => {
+      const isHappening = await gameConfig.verifyIfIsHappening();
+      console.log(isHappening);
+      setIsGameActive(isHappening);
+    };
+
+    checkGameStatus();
+
+    // Verifica a cada 30 segundos
+    const interval = setInterval(checkGameStatus, 30000);
+    return () => clearInterval(interval);
+  }, [gameConfig]);
 
   useEffect(() => {
     async function init() {
@@ -120,6 +136,12 @@ function Question({
   }
 
   const handleSubmit = useCallback(async (value: string) => {
+    // Bloqueia envio se o jogo não está mais ativo
+    if (!isGameActive) {
+      toast.error("O jogo não está mais ativo!");
+      return;
+    }
+
     if (isSubmitting || !isConnected) return;
 
     const trimmedValue = value.trim().toLowerCase();
@@ -165,7 +187,7 @@ function Question({
     } finally {
       setIsSubmitting(false);
     }
-  }, [isSubmitting, isConnected, emit, once, gameConfig, token, question, setTeam]);
+  }, [isSubmitting, isConnected, emit, once, gameConfig, token, question, setTeam, isGameActive]);
 
   const debouncedSubmit = useDebounce(handleSubmit, { delay: 1000, maxWait: 5000 });
 
@@ -225,23 +247,44 @@ function Question({
 
     if (!question) return <div className="text-red-500 text-center p-8">Houve um erro buscando a pergunta</div>;
 
+    // Se o jogo não está mais ativo, mostra mensagem
+    if (!isGameActive) {
+      return (
+        <div className={styles.questionRoot}>
+          <div className="text-center p-8">
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">
+              ⏰ Jogo pausado
+            </h1>
+            <p className="text-lg text-gray-600 mb-6">
+              O jogo não está mais ativo. Você não pode mais enviar respostas.
+            </p>
+            <p className="text-sm text-gray-500">
+              O jogo estará inativo durante alguns eventos da semana.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={styles.questionRoot}>
         {/* Header com título e botão de dica */}
         <div className="relative w-full flex items-center justify-center mb-6">
-          <h1 className="text-3xl font-bold text-center px-10 text-gray-800 leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-center px-4 sm:px-10 text-gray-800 leading-tight max-w-full">
             {question.title}
           </h1>
           {question?.hasClue && (
             <Tooltip title="Usar dica" placement="left" arrow>
-              <IconButton
-                onClick={useClue}
-                disabled={isUsingClue || !isConnected}
-                className="!absolute right-0 top-1/2 -translate-y-1/2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-100 transition-all duration-200"
-                size="small"
-              >
-                <Lightbulb />
-              </IconButton>
+              <span>
+                <IconButton
+                  onClick={useClue}
+                  disabled={isUsingClue || !isConnected || !isGameActive}
+                  className="!absolute right-0 top-1/2 -translate-y-1/2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-100 transition-all duration-200 flex-shrink-0"
+                  size="small"
+                >
+                  <Lightbulb />
+                </IconButton>
+              </span>
             </Tooltip>
           )}
         </div>
@@ -275,19 +318,7 @@ function Question({
               endAdornment: renderTextFieldAdornment(),
             }}
             className="mb-4"
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
-                backgroundColor: 'white',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                '&:hover': {
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                },
-                '&.Mui-focused': {
-                  boxShadow: '0 4px 16px rgba(59, 130, 246, 0.3)',
-                }
-              }
-            }}
+            disabled={!isGameActive}
           />
         </form>
       </div>

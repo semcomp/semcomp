@@ -14,6 +14,7 @@ import { PaginationRequest } from "../../lib/pagination";
 import Game from "../../lib/constants/game-enum";
 import GameQuestion from "../../models/game-question";
 import cacheManagerService from "../../services/cache-manager.service";
+import ConfigService from "../../services/config.service";
 
 interface CacheEntry<T> {
   data: T;
@@ -211,6 +212,12 @@ export default class GameController {
     answer: string,
   ) {
     try {
+      const config = await ConfigService.getOne();
+
+      if (!config || !config.openGames) {
+        throw new SocketError("O jogo está bloqueado");
+      }
+
       const validatedToken = this.validateToken(token);
       const { group } = await this.getUserAndGroup(socket, validatedToken);
       const groupId = group.id;

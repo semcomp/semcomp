@@ -11,10 +11,15 @@ import NewFooter from '../../newFooter';
 import API from "../../../api";
 import GameLoadingState from '../../../components/game/GameLoadingState';
 import GameConfigError from '../../../components/game/GameConfigError';
+import { useGameAccess } from '../../../libs/hooks/useGameAccess';
+import GameAccessLoader from '../../../components/game/GameAccessLoader';
 
 export default function JoinTeamPage() {
   const router = useRouter();
   const { game } = router.query;
+
+  // Verifica se os jogos estão abertos
+  const { isGameOpen, isLoading: isCheckingAccess } = useGameAccess();
 
   const [isFetchingConfig, setIsFetchingConfig] = useState(true);
   const [gameConfig, setGameConfig] = useState(null);
@@ -40,6 +45,11 @@ export default function JoinTeamPage() {
       fetchGameConfig();
     }
   }, [game])
+
+  // Se está verificando acesso ou os jogos não estão abertos, mostra loading
+  if (isCheckingAccess || !isGameOpen) {
+    return <GameAccessLoader isCheckingAccess={isCheckingAccess} isGameOpen={isGameOpen} />;
+  }
 
   function renderContent() {
     if (isFetchingConfig) {

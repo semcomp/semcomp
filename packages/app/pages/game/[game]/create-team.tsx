@@ -12,9 +12,14 @@ import { useSocket } from '../../../libs/hooks/useSocket';
 import GameLoadingState from '../../../components/game/GameLoadingState';
 import GameConfigError from '../../../components/game/GameConfigError';
 import { useAppContext } from "../../../libs/contextLib";
+import { useGameAccess } from '../../../libs/hooks/useGameAccess';
+import GameAccessLoader from '../../../components/game/GameAccessLoader';
 
 export default function GamePage({children}) {
   const router = useRouter();
+
+  // Verifica se os jogos estão abertos
+  const { isGameOpen, isLoading: isCheckingAccess } = useGameAccess();
 
   const [isFetchingConfig, setIsFetchingConfig] = useState(true);
   const [gameConfig, setGameConfig] = useState(null);
@@ -64,6 +69,11 @@ export default function GamePage({children}) {
       };
     }
   }, [gameConfig, on, off]);
+
+  // Se está verificando acesso ou os jogos não estão abertos, mostra loading
+  if (isCheckingAccess || !isGameOpen) {
+    return <GameAccessLoader isCheckingAccess={isCheckingAccess} isGameOpen={isGameOpen} />;
+  }
 
   function renderContent() {
     if (isFetchingConfig) {

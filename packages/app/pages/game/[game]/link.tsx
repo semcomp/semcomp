@@ -13,9 +13,7 @@ import NewFooter from '../../newFooter';
 import GameLoadingState from '../../../components/game/GameLoadingState';
 import GameConfigError from '../../../components/game/GameConfigError';
 import { useSocket } from '../../../libs/hooks/useSocket';
-import { useAppContext } from '../../../libs/contextLib';
 import themeColors from '../../../styles/themeColors';
-import { toast } from "react-toastify";
 
 export default function JoinLinkPage() {
   const [isFetchingTeam, setIsFetchingTeam] = useState(true);

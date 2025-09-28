@@ -12,11 +12,16 @@ import CreateGroup from '../../../components/game/create-group';
 import Lobby from '../../../components/game/lobby';
 import API from "../../../api";
 import { useSocket } from '../../../libs/hooks/useSocket';
+import { useGameAccess } from '../../../libs/hooks/useGameAccess';
+import GameAccessLoader from '../../../components/game/GameAccessLoader';
 
 export default function GamePage({children}) {
   const router = useRouter();
   const [gameConfig, setGameConfig] = useState(null);
   const { game } =  router.query;
+  
+  // Verifica se os jogos estão abertos
+  const { isGameOpen, isLoading: isCheckingAccess } = useGameAccess();
   
   async function fetchGameConfig() {
     try {
@@ -99,16 +104,22 @@ export default function GamePage({children}) {
     />);
   }, [gameConfig, token, isConnected, emit]);
 
-  return (<>
-    <Navbar />
-    <Sidebar />
-      <div className='p-6'>
-        <Card className='p-6'>
-          {
-            !isFetchingTeam && component
-          }
-        </Card>
-      </div>
-    <Footer />
-  </>);
+  if (isCheckingAccess || !isGameOpen) {
+    return <GameAccessLoader isCheckingAccess={isCheckingAccess} isGameOpen={isGameOpen} />;
+  }
+
+  return (
+    <>
+      <Navbar />
+      <Sidebar />
+        <div className='p-6'>
+          <Card className='p-6'>
+            {
+              !isFetchingTeam && component
+            }
+          </Card>
+        </div>
+      <Footer />
+    </>
+  );
 }
