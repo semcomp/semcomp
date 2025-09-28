@@ -152,13 +152,31 @@ class UserServiceImpl implements UserService {
   }
 
   public async deleteAllCron(){
-    //If verified is false and 30minutes has passed since the account has been created then
+    //If user.verified is false and 30minutes has passed since the account has been created then
     //delete that account
-    const users = await UserModel.find({verified: false , createdAt: { $lt: new Date(Date.now() - 30 * 60 * 1000) }});
-    users.forEach(user => {
-      console.log("usuario a ser deletado", user)
-      // this.delete(user);
+    const now = new Date();
+    const formattedNow = now.toLocaleString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+    console.log(`[CRON] (${formattedNow}) Removendo contas...`);
+
+    const users = await UserModel.find({
+      verified: false,
+      createdAt: { $lt: new Date(Date.now() - 30 * 60 * 1000) }
+    });
+
+    users.forEach((user: User) => {
+      console.log("Usuário excluído: ", user.email)
+      this.delete(user);
     })
+    
+    console.log("[CRON] Fluxo finalizado");
   }
 
   async getUserHouse(userId: string): Promise<House> {

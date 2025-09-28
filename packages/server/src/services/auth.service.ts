@@ -66,9 +66,6 @@ class AuthService {
       await userDisabilityService.create(userDisability);
     }
 
-
-
-
     try{
       await emailService.send(
         createdUser.email,
@@ -90,7 +87,7 @@ class AuthService {
 
     return createdUser;
   }
-  //Optional code if you want another email only for the verification
+
   public async sendVerificationCode(email: string): Promise<User> {
     const user = await userService.findOne({ email });
     if (!user || !user.password) {
@@ -115,8 +112,6 @@ class AuthService {
 
     return user;
   }
-
-
   
   public async confirmVerificationCode(email: string, code: string): Promise<User> {
     const user = await userService.findOne({ email });

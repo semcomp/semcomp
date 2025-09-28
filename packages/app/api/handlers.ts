@@ -23,7 +23,7 @@ const Handlers = {
       401: "Este e-mail não está cadastrado.",
     }
   ),
-  sendVerificationCode: withCustomError(
+  sendVerificationCode: withCustomError( // TODO: remover fluxo inutilizado (confirmar)
     (email) => API.post("/auth/send-verification-code", { email }),
     {
       401: "Este e-mail não está cadastrado.",

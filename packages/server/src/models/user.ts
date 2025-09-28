@@ -11,7 +11,6 @@ type User = {
   permission?: boolean;
   resetPasswordCode?: string;
   verificationCode?: string;
-
   wantNameTag?: boolean;
   paid?: boolean;
   gotKit?: boolean;

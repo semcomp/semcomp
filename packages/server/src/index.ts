@@ -58,7 +58,7 @@ cron.schedule("*/15 * * * *", () => {
   houseService.checkAchievements();
   userService.checkAchievements();
 });
-cron.schedule("*/30 * * * *", () => {
+cron.schedule("*/5 * * * *", () => {
   userService.deleteAllCron();
 })
 

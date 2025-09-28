@@ -159,25 +159,6 @@ function SignupPage() {
       // Hide spinner
       setIsSigningUp(false);
     }
-
-    //Send email confirmation
-    //Why we need it to the user to be signed up before it actually sends the verication code?
-    //Because of how it is implemented the verication code logic. 
-    //For a user to receive a code only related to him, he first needs to exist.
-    //See "forgotPassword" function in "auth.service.ts"
-    // try {
-    //   setIsSigningUp(true);// Sets the state to show the spinner
-    //   await API.sendVerificationCode(email);
-    //   setStep(2); // If successful, go to next step
-    // } catch (e) {
-    //   console.error(e);
-    //   toast.error("O serviço de e-mail está indisponível no momento. Tente novamente mais tarde");
-    // }
-    // finally {
-    //   setIsSigningUp(false);
-    // }
-
-
   }
 
   async function handleStep2Submit() {

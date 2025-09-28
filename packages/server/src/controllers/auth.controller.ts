@@ -83,7 +83,6 @@ class AuthController {
     }
   }
 
-  //Optional code if you want another email only for the verification
   public async sendVerificationCode(req, res, next) {
     try {
       handleValidationResult(req);

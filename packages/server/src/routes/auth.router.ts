@@ -40,8 +40,7 @@ export default class AuthRouter {
       [body("email", "Invalid field 'email'").isEmail()],
       (req, res, next) => this.authController.forgotPassword(req, res, next),
     );
-    
-    //Optional code if you want another email only for the verification
+
     router.post(
       "/send-verification-code",
       [body("email", "Invalid field 'email'").isEmail()],
