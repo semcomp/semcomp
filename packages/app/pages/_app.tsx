@@ -42,7 +42,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     const token = localStorage.getItem("token");
     fetchConfig();
 
-    if (user && token) {
+    if (user && user.verified && token) {
       setUser(user);
       setToken(token);
     }

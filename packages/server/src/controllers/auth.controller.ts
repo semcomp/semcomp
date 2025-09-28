@@ -19,11 +19,6 @@ class AuthController {
       handleValidationResult(req);
 
       const createdUser = await authService.signup(req.body, req.body.disabilities);
-
-      const token = await authService.createToken(createdUser);
-
-      res.setHeader("Authorization", `Bearer ${token}`);
-
       const userHouse = await userService.getUserHouse(createdUser.id);
 
       return res.status(200).json(this.mapUserResponse(createdUser, userHouse));
@@ -144,6 +139,7 @@ class AuthController {
       permission: user.permission,
       discord: user.discord,
       telegram: user.telegram,
+      verified: user.verified,
       house: house ? {
         name: house.name,
         description: house.description,

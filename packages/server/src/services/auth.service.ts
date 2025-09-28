@@ -120,15 +120,12 @@ class AuthService {
   
   public async confirmVerificationCode(email: string, code: string): Promise<User> {
     const user = await userService.findOne({ email });
-    console.log("email do inputado " + email + " email do user " + user.email);
-    console.log("codigo inputado: ", code);
-    console.log("verification code: ", user.resetPasswordCode);
-    console.log("PORQUE RAIOS VC TA ERRADO ", user.verificationCode);
+
     if (
       !user ||
       code !== user.verificationCode
     ) {
-      throw new HttpError(401, []);
+      throw new HttpError(401, ['Usuário não encontrado/inválido']);
     }
 
     user.verified = true;
@@ -147,6 +144,10 @@ class AuthService {
       !bcrypt.compareSync(password, foundUser.password)
     ) {
       throw new HttpError(401, ['Usuário não encontrado']);
+    }
+
+    if (!foundUser.verified) {
+      throw new HttpError(403, ['Email do usuário não confirmado']);
     }
 
     return foundUser;

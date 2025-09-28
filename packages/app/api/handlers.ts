@@ -7,6 +7,7 @@ const Handlers = {
     (email, password) => API.post(`/auth/login`, { email, password }),
     {
       401: "Usuário ou senha inválidos",
+      403: "Usuário precisa confirmar email"
     }
   ),
   signup: withCustomError((userInfo) => API.post(`/auth/signup`, userInfo), {
@@ -28,8 +29,11 @@ const Handlers = {
       401: "Este e-mail não está cadastrado.",
     }
   ),
-  confirmVerificationCode: (email, code) =>
-    API.post("/auth/confirm-verification-code", { email, code }),
+  confirmVerificationCode: withCustomError((email, code) =>
+    API.post("/auth/confirm-verification-code", { email, code }), {
+      400: "Código/email inválido",
+      401: "Código digitado está incorreto",
+    }),
   resetPassword: (email, code, password) =>
     API.post("/auth/reset-password", { email, code, password }),
   getHouseScores: () => API.get("/houses/scores"),
