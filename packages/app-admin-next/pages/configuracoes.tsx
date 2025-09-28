@@ -19,16 +19,18 @@ function Config() {
         semcompApi
     }: {
         semcompApi: SemcompApi
-    } = useAppContext();
+    } = useAppContext(); 
     
     const [openSales, setOpenSales] = useState(false);
     const [openSignup, setSignup] = useState(false);
     const [openAchievement, setOpenAchievement] = useState(false);
+    const [openGames, setOpenGames] = useState(false);
     const [enableWantNameTag, setEnableWantNameTag] = useState(false);
     const [status, setStatus] = useState({
         openSales: false,
         openSignup: false,
         openAchievement: false,
+        openGames: false,
         enableWantNameTag: false,
     });
     const [totalPaid, setTotalPaid] = useState(0);
@@ -70,6 +72,7 @@ function Config() {
                 openSales: openSales,
                 openAchievement: openAchievement,
                 openSignup: openSignup,
+                openGames: openGames,
                 enableWantNameTag: enableWantNameTag,
             }
 
@@ -77,6 +80,7 @@ function Config() {
                 openSales: false,
                 openAchievement: false,
                 openSignup: false,
+                openGames: false,
                 enableWantNameTag: false,
             });
             
@@ -178,6 +182,29 @@ function Config() {
                                             />
                                         } 
                                         label="Abrir Conquistas" />
+                                </FormGroup>
+                            </AccordionDetails>
+                        </Accordion>
+
+                        <Accordion style={{ width: '50%' }}>
+                            <AccordionTitle
+                                title="Jogos"
+                                modified={status.openGames}
+                            />
+
+                            <AccordionDetails>
+                                <FormGroup>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={openGames}
+                                                onChange={() => {
+                                                    setOpenGames(!openGames);
+                                                    setStatus({ ...status,openGames: !status.openGames});
+                                                }}
+                                            />
+                                        }
+                                        label="Habilitar Jogos" />
                                 </FormGroup>
                             </AccordionDetails>
                         </Accordion>
