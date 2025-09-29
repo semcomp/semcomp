@@ -29,10 +29,10 @@ const Handlers = {
       401: "Este e-mail não está cadastrado.",
     }
   ),
-  confirmVerificationCode: withCustomError((email, code) =>
+  confirmVerificationCode: withCustomError((email: string, code: string) =>
     API.post("/auth/confirm-verification-code", { email, code }), {
       400: "Código/email inválido",
-      401: "Código digitado está incorreto",
+      401: "Usuário não encontrado/inválido",
     }),
   resetPassword: (email, code, password) =>
     API.post("/auth/reset-password", { email, code, password }),
