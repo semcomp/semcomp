@@ -1,5 +1,15 @@
 import Mongoose from "mongoose";
 
+type AdditionalInfos = {
+  phone: string,
+  linkedin: string,
+  admissionYear: string,
+  expectedGraduationYear: string,
+  expectedGraduationSemester: string,
+  institute: string,
+  extensionGroups: Object,
+};
+
 type User = {
   id?: string;
   email: string;
@@ -15,12 +25,14 @@ type User = {
   paid?: boolean;
   gotKit?: boolean;
   gotTagName?: boolean;
+  additionalInfos?: AdditionalInfos;
   createdAt?: number;
   updatedAt?: number;
   verified?: boolean;
 }
 
 export default User;
+export type { AdditionalInfos };
 
 const UserSchema = new Mongoose.Schema(
   {
@@ -83,6 +95,11 @@ const UserSchema = new Mongoose.Schema(
       type: Boolean,
       default: false,
       required: true,
+    },
+    additionalInfos: {
+      type: Object,
+      default: null,
+      required: false,
     },
     createdAt: {
       type: Number,

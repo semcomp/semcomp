@@ -32,6 +32,7 @@ export enum InputType {
   Password = "password",
   File = "file",
   Date = "date",
+  MultiCheckbox = "MultiCheckbox",
 }
 
 function TextInput({
@@ -41,6 +42,7 @@ function TextInput({
   type,
   tooltip,
   autofocus,
+  placeholder,
   start,
   end,
   disabled = false,
@@ -51,6 +53,7 @@ function TextInput({
   type: InputType;
   tooltip: any;
   autofocus: boolean;
+  placeholder: string,
   start?: ReactNode;
   end?: ReactNode;
   disabled?: boolean;
@@ -76,6 +79,7 @@ function TextInput({
             fullWidth
             autoFocus={autofocus}
             onChange={onChange}
+            placeholder={placeholder}
             value={value}
             type={type}
             variant="outlined"
@@ -94,6 +98,7 @@ function TextInput({
             fullWidth
             autoFocus={autofocus}
             onChange={onChange}
+            placeholder={placeholder}
             value={value}
             type={type}
             variant="outlined"
@@ -365,6 +370,7 @@ function Input({
       label={label}
       onChange={onChange}
       value={value as string}
+      placeholder={placeholder}
       type={type}
       tooltip={tooltip}
       autofocus={autofocus}

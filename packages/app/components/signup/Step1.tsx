@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import {
   Divider,
@@ -85,6 +85,8 @@ function Step1({
     email: string;
     password: string;
     telegram: string;
+    phone: string;
+    linkedin: string;
     isStudent: boolean;
     course: string;
     disabilities: string[];
@@ -107,12 +109,65 @@ function Step1({
     setTelegram(value);
     updateFormValue({ telegram: value });
   }
+
+  const [phone, setPhone] = useState(formValue.phone);
+  function handlePhoneChange(event: React.ChangeEvent<HTMLInputElement>) {
+    let value = event.target.value.replace(/\D/g, "");
+  
+    if (value.length > 11) value = value.substring(0, 11);
+  
+    if (value.length > 6) {
+      value = value.replace(/^(\d{2})(\d{5})(\d{0,4})$/, "($1) $2-$3");
+    } else if (value.length > 2) {
+      value = value.replace(/^(\d{2})(\d{0,5})$/, "($1) $2");
+    } else if (value.length > 0) {
+      value = value.replace(/^(\d*)$/, "($1");
+    }
+
+    if (value.endsWith("-")) {
+      value = value.slice(0, -1);
+    }
+  
+    setPhone(value);
+    updateFormValue({ phone: value });
+  }
+
+  const [linkedin, setLinkedin] = useState(formValue.linkedin);
+  const handleLinkedinChange = useDebouncedLinkedin(setLinkedin, updateFormValue);
+  function useDebouncedLinkedin(setLinkedin: Function, updateFormValue: Function) {
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    return (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value.trim();
+        setLinkedin(value);
+
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+
+        timeoutRef.current = setTimeout(() => {
+            const linkedinRegex = /^https?:\/\/(www\.)?linkedin\.com\/.*$/i;
+
+            if (value && !linkedinRegex.test(value)) {
+                toast.error(
+                    'Insira um link válido do LinkedIn, começando com https://www.linkedin.com/'
+                );
+                return;
+            }
+
+            updateFormValue({ linkedin: value });
+        }, 2000); // 2s de debounce
+    };
+}
+
+  
   const [isStudent, setIsStudent] = useState(formValue.isStudent);
   function handleIsStudentChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.checked;
     setIsStudent(value);
     updateFormValue({ isStudent: value });
   }
+  
   const [course, setCourse] = useState(formValue.course);
   const isICMCCourse = (courseName: string) => {
     return ICMCCourses.includes(courseName) && courseName !== "Outro";
@@ -136,6 +191,7 @@ function Step1({
 
     updateFormValue(updates);
   }
+
   const [customCourse, setCustomCourse] = useState(formValue.customCourse);
   function handleCustomCourseChange(
     event: React.ChangeEvent<HTMLInputElement>
@@ -144,6 +200,7 @@ function Step1({
     setCustomCourse(value);
     updateFormValue({ customCourse: value });
   }
+
   const [admissionYear, setAdmissionYear] = useState(formValue.admissionYear);
   function handleAdmissionYearChange(
     event: React.ChangeEvent<HTMLInputElement>
@@ -152,6 +209,7 @@ function Step1({
     setAdmissionYear(value);
     updateFormValue({ admissionYear: value });
   }
+
   const [expectedGraduationYear, setExpectedGraduationYear] = useState(
     formValue.expectedGraduationYear
   );
@@ -162,6 +220,7 @@ function Step1({
     setExpectedGraduationYear(value);
     updateFormValue({ expectedGraduationYear: value });
   }
+
   const [expectedGraduationSemester, setExpectedGraduationSemester] = useState(
     formValue.expectedGraduationSemester
   );
@@ -172,6 +231,7 @@ function Step1({
     setExpectedGraduationSemester(value);
     updateFormValue({ expectedGraduationSemester: value });
   }
+
   const [institute, setInstitute] = useState(formValue.institute);
   function handleInstituteChange(event: React.ChangeEvent<HTMLInputElement>) {
     if (isICMCCourse(course)) {
@@ -182,6 +242,7 @@ function Step1({
     setInstitute(value);
     updateFormValue({ institute: value });
   }
+
   const [customInstitute, setCustomInstitute] = useState(
     formValue.customInstitute
   );
@@ -192,6 +253,7 @@ function Step1({
     setCustomInstitute(value);
     updateFormValue({ customInstitute: value });
   }
+
   const [extensionGroups, setExtensionGroups] = useState(
     formValue.extensionGroups
   );
@@ -225,17 +287,20 @@ function Step1({
     setDisabilities(updatedDisabilities);
     updateFormValue({ disabilities: updatedDisabilities });
   }
+
   const [permission, setPermission] = useState(formValue.permission);
   function handlePermissionChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.checked;
     setPermission(value);
     updateFormValue({ permission: value });
   }
+
   const [termsOfUse, setTermsOfUse] = useState(false);
   function handleTermsOfUseChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.checked;
     setTermsOfUse(value);
   }
+
   const [isPrivacyPolicyModalOpen, setIsPrivacyPolicyModalOpen] =
     useState(false);
 
@@ -339,7 +404,24 @@ function Step1({
       />
       <Input
         className="my-3"
-        label="Você é estudante da Universidade de São Paulo?"
+        label="Telefone (opcional)"
+        value={phone}
+        onChange={handlePhoneChange}
+        type={InputType.Text}
+        placeholder="(99) 99999-9999"
+      />
+
+      <Input
+        className="my-3"
+        label="LinkedIn (opcional)"
+        value={linkedin}
+        onChange={handleLinkedinChange}
+        type={InputType.Text}
+        placeholder="Cole o link do seu perfil"
+      />
+      <Input
+        className="my-3"
+        label="Você é estudante?"
         onChange={handleIsStudentChange}
         type={InputType.Checkbox}
       />
@@ -347,7 +429,7 @@ function Step1({
         <>
           <Input
             className="my-3"
-            label="Curso"
+            label="Curso*"
             value={course}
             onChange={handleCourseChange}
             choices={ICMCCourses}
@@ -357,7 +439,7 @@ function Step1({
           {course === "Outro" && (
             <Input
               className="my-3"
-              label="Nome do Curso"
+              label="Nome do Curso*"
               value={customCourse}
               onChange={handleCustomCourseChange}
               type={InputType.Text}
@@ -366,7 +448,7 @@ function Step1({
           )}
           <Input
             className="my-3"
-            label="Instituto"
+            label="Instituto*"
             value={institute}
             onChange={handleInstituteChange}
             choices={USPInstitutes}
@@ -377,34 +459,36 @@ function Step1({
           {institute === "Outro" && (
             <Input
               className="my-3"
-              label="Nome do Instituto"
+              label="Nome do Instituto*"
               value={customInstitute}
               onChange={handleCustomInstituteChange}
               type={InputType.Text}
               placeholder="Selecione o instituto"
             />
           )}
+          <div className="flex mobile:flex-col">
+            <Input
+              className="my-3 mr-1 w-1/2 mobile:w-full"
+              label="Ano de Ingresso*"
+              value={admissionYear}
+              onChange={handleAdmissionYearChange}
+              choices={ADMISSION_YEARS.map((year) => year.toString())}
+              type={InputType.Select}
+              placeholder="Selecione o ano"
+            />
+            <Input
+              className="my-3 w-1/2 mobile:w-full"
+              label="Ano de Formação*"
+              value={expectedGraduationYear}
+              onChange={handleExpectedGraduationYearChange}
+              choices={GRADUATION_YEARS.map((year) => year.toString())}
+              type={InputType.Select}
+              placeholder="Selecione o ano"
+            />
+          </div>
           <Input
             className="my-3"
-            label="Ano de Ingresso"
-            value={admissionYear}
-            onChange={handleAdmissionYearChange}
-            choices={ADMISSION_YEARS.map((year) => year.toString())}
-            type={InputType.Select}
-            placeholder="Selecione o ano"
-          />
-          <Input
-            className="my-3"
-            label="Ano de Formação Esperado"
-            value={expectedGraduationYear}
-            onChange={handleExpectedGraduationYearChange}
-            choices={GRADUATION_YEARS.map((year) => year.toString())}
-            type={InputType.Select}
-            placeholder="Selecione o ano"
-          />
-          <Input
-            className="my-3"
-            label="Semestre de Formação Esperado"
+            label="Semestre de Formação (esperado)*"
             value={expectedGraduationSemester}
             onChange={handleExpectedGraduationSemesterChange}
             choices={SemesterOptions}

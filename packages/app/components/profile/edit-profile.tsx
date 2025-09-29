@@ -84,18 +84,6 @@ function EditProfile({ onRequestClose }) {
             onChange={handleTelegramChange}
             type={InputType.Text}
           />
-          {/* <Input
-            tooltip={
-              <div style={{ fontSize: "14px" }}>
-                Por favor, cadastre um e-mail que você tem acesso e que seja válido.
-              </div>
-            }
-            className="my-3"
-            label="E-mail"
-            value={email}
-            onChange={handleEmailChange}
-            type={InputType.Text}
-          /> */}
           <LoadingButton
             className={`w-full py-4 px-8 rounded-xl text-white bg-primary hover:bg-hoverPrimary mb-2`}
             type="submit"
