@@ -21,7 +21,7 @@ const themeColors = {
     Cybertechna: "#470787ff",
     Arcadium: "#0e56cbff",
     cardDarkBackground: "#222333",
-    modalTitleColor: "#00B4D8",
+    modalTitleColor: "#FFFFFF",
 }
 
 module.exports = themeColors;
