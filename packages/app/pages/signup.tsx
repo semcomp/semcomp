@@ -95,7 +95,7 @@ function SignupPage() {
 
     // Execute validation if the user is trying to go the the next step
     if (step === STEPS.BASIC_INFO && newStep === STEPS.PERSONAL_INFO) handleStep0Submit();
-    console.log(step === STEPS.PERSONAL_INFO && newStep === STEPS.CONFIRMATION_CODE);
+
     if (step === STEPS.PERSONAL_INFO && newStep === STEPS.CONFIRMATION_CODE) handleStep1Submit();
     else setStep(newStep);
   }
@@ -131,11 +131,6 @@ function SignupPage() {
   async function handleStep1Submit() {
     // Don't let the user do anything if it's sending a request.
     if (isSigningUp) return;
-
-    if (!isPrivacyPolicyModalOpen) {
-      toast.error("Você deve aceitar os termos de privacidade");
-      return;
-    }
 
     const {
       telegram,
@@ -342,6 +337,7 @@ function SignupPage() {
       updateFormValue={updateFormValue}
       // This is sent so the step can display a cool spinner on it's button.
       isSigningUp={isSigningUp}
+      openPrivacyPolicyModal={setIsPrivacyPolicyModalOpen}
     />,
     <Step2
       key={STEPS.CONFIRMATION_CODE}

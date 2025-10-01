@@ -75,7 +75,6 @@ export default function GamePage({ children }) {
         };
       
         timeout = setTimeout(() => {
-          console.log('Timeout na criação de grupo');
           socket.off(`${gameConfigInstance.getEventPrefix()}-group-created`, handleGroupCreated);
           reject(new Error('Timeout creating auto group'));
         }, 10000);

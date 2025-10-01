@@ -18,7 +18,6 @@ export function useGameAccess(): GameAccessReturn {
     async function checkGameAccess() {
       try {
         const result = await API.config.getConfig();
-        console.log(result.data);
         if (result.data) {
           setIsGameOpen(result.data.openGames || false);
           

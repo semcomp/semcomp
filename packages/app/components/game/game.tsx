@@ -78,7 +78,6 @@ function Question({
   useEffect(() => {
     const checkGameStatus = async () => {
       const isHappening = await gameConfig.verifyIfIsHappening();
-      console.log(isHappening);
       setIsGameActive(isHappening);
     };
 

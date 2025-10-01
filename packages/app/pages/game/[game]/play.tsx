@@ -87,7 +87,6 @@ export default function GamePage({children}) {
   // Verifica se o usuário tem equipe após carregar tudo
   useEffect(() => {
     if (hasCheckedTeam && !team && gameConfig) {
-      console.log('Usuário sem equipe, redirecionando para lobby');
       toast.error('Você precisa estar em uma equipe para jogar!');
       router.push(`/game/${game}/lobby`);
     }

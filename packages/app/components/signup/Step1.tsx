@@ -1,14 +1,12 @@
-import { useRef, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import {
   Divider,
   InputAdornment,
   SelectChangeEvent,
-  Checkbox,
 } from "@mui/material";
 
 import LoadingButton from "../loading-button";
-import PrivacyPolicyModal from "./PrivacyPolicyModal";
 import Input, { InputType } from "../Input";
 
 const ICMCCourses = [
@@ -79,6 +77,7 @@ function Step1({
   updateFormValue,
   onSubmit,
   isSigningUp,
+  openPrivacyPolicyModal
 }: {
   formValue: {
     name: string;
@@ -102,6 +101,7 @@ function Step1({
   updateFormValue: Function;
   onSubmit: Function;
   isSigningUp: boolean;
+  openPrivacyPolicyModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const [telegram, setTelegram] = useState(formValue.telegram);
   function handleTelegramChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -389,11 +389,6 @@ function Step1({
 
   return (
     <form className="w-full phone:pb-16 tablet:pb-4" onSubmit={handleSubmit}>
-      {isPrivacyPolicyModalOpen && (
-        <PrivacyPolicyModal
-          onRequestClose={() => setIsPrivacyPolicyModalOpen(false)}
-        />
-      )}
       <Input
         className="my-3"
         label="Usuário do Telegram (opcional)"
@@ -483,7 +478,7 @@ function Step1({
               onChange={handleExpectedGraduationYearChange}
               choices={GRADUATION_YEARS.map((year) => year.toString())}
               type={InputType.Select}
-              placeholder="Selecione o ano"
+              placeholder="Ano de expectativa"
             />
           </div>
           <Input
@@ -551,7 +546,7 @@ function Step1({
             Ao aceitar, você concorda com a nossa{" "}
             <span
               tabIndex={0}
-              onClick={() => setIsPrivacyPolicyModalOpen(true)}
+              onClick={() => openPrivacyPolicyModal(true)}
             >
               <u>política de privacidade</u>
             </span>
