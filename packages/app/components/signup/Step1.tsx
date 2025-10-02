@@ -4,6 +4,11 @@ import {
   Divider,
   InputAdornment,
   SelectChangeEvent,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from "@mui/material";
 
 import LoadingButton from "../loading-button";
@@ -87,6 +92,7 @@ function Step1({
     phone: string;
     linkedin: string;
     isStudent: boolean;
+    position: string;
     course: string;
     disabilities: string[];
     permission: boolean;
@@ -161,11 +167,19 @@ function Step1({
 }
 
   
-  const [isStudent, setIsStudent] = useState(formValue.isStudent);
+  const [isStudent, setIsStudent] = useState("");
   function handleIsStudentChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const value = event.target.checked;
+    const value = event.target.value;
+    const isStudentValue = value === "Sim";
     setIsStudent(value);
-    updateFormValue({ isStudent: value });
+    updateFormValue({ isStudent: isStudentValue });
+  }
+
+  const [position, setPosition] = useState(formValue.position);
+  function handlePositionChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value;
+    setPosition(value);
+    updateFormValue({ position: value });
   }
   
   const [course, setCourse] = useState(formValue.course);
@@ -306,75 +320,52 @@ function Step1({
 
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Stops the page from reloading
+    event.preventDefault();
 
-    // Validação de estudante USP
-    if (formValue.isStudent && !institute) {
-      return toast.error(
-        "Você deve selecionar o instituto/faculdade se for estudante!"
-      );
+    // Validação de seleção de estudante
+    if (!isStudent) {
+      return toast.error("Por favor, selecione se você é estudante ou não!");
     }
 
-    if (
-      formValue.isStudent &&
-      institute === "Outro" &&
-      !formValue.customInstitute
-    ) {
-      return toast.error(
-        "Por favor, especifique o nome do instituto/faculdade!"
-      );
-    }
+    if (isStudent === "Sim") {
+      if (!institute) {
+        return toast.error("Você deve selecionar o instituto/faculdade!");
+      }
+      
+      if (institute === "Outro" && !formValue.customInstitute) {
+        return toast.error("Por favor, especifique o nome do instituto/faculdade!");
+      }
 
-    // Validação de curso
-    if (formValue.isStudent && !course) {
-      return toast.error("Você deve fornecer um curso se for estudante!");
-    }
+      if (!course) {
+        return toast.error("Você deve fornecer um curso!");
+      }
+      
+      if (course === "Outro" && !formValue.customCourse) {
+        return toast.error("Por favor, especifique o nome do curso!");
+      }
 
-    if (formValue.isStudent && course === "Outro" && !formValue.customCourse) {
-      return toast.error("Por favor, especifique o nome do curso!");
-    }
+      if (!admissionYear || !expectedGraduationYear || !expectedGraduationSemester) {
+        return toast.error("Você deve preencher todos os campos de ano e semestre!");
+      }
 
-    // Validação de anos
-    if (formValue.isStudent && !admissionYear) {
-      return toast.error(
-        "Você deve fornecer o ano de ingresso se for estudante!"
-      );
-    }
-
-    if (formValue.isStudent && !expectedGraduationYear) {
-      return toast.error(
-        "Você deve fornecer o ano de formação esperado se for estudante!"
-      );
-    }
-
-    if (formValue.isStudent && !expectedGraduationSemester) {
-      return toast.error(
-        "Você deve selecionar o semestre de formação esperado!"
-      );
-    }
-
-    // Validação de consistência entre anos
-    if (formValue.isStudent && admissionYear && expectedGraduationYear) {
       const admission = parseInt(admissionYear);
       const graduation = parseInt(expectedGraduationYear);
 
       if (graduation < admission) {
-        return toast.error(
-          "O ano de formação não pode ser anterior ao ano de ingresso!"
-        );
+        return toast.error("O ano de formação não pode ser anterior ao ano de ingresso!");
       }
 
       if (graduation - admission < 2) {
-        return toast.error(
-          "O período de formação deve ser de pelo menos 2 anos!"
-        );
+        return toast.error("O período de formação deve ser de pelo menos 2 anos!");
+      }
+    } else if (isStudent === "Não") {
+      if (!position) {
+        return toast.error("Você deve fornecer uma ocupação!");
       }
     }
 
     if (!termsOfUse) {
-      return toast.error(
-        "Você deve aceitar os termos de uso para realizar o cadastro!"
-      );
+      return toast.error("Você deve aceitar os termos de uso para realizar o cadastro!");
     }
 
     setIsButtonDisabled(true);
@@ -382,8 +373,6 @@ function Step1({
       setIsButtonDisabled(false);
     }, 10000);
 
-    // Alerts the parent component that the user want to move to the next step.
-    // (which in this case, since it's the last step, a request to the server will be made).
     if (onSubmit) onSubmit(event);
   };
 
@@ -414,13 +403,80 @@ function Step1({
         type={InputType.Text}
         placeholder="Cole o link do seu perfil"
       />
-      <Input
-        className="my-3"
-        label="Você é estudante?"
-        onChange={handleIsStudentChange}
-        type={InputType.Checkbox}
-      />
-      {formValue.isStudent && (
+      <FormControl className="my-3">
+        <FormLabel 
+          id="student-label" 
+          sx={{ 
+            color: 'white', 
+            marginBottom: '8px',
+            '&.Mui-focused': {
+              color: 'white'
+            }
+          }}
+        >
+          Você é estudante?
+        </FormLabel>
+        <RadioGroup
+          aria-labelledby="student-label"
+          value={isStudent}
+          onChange={handleIsStudentChange}
+          sx={{ flexDirection: 'row', gap: '16px' }}
+        >
+          <FormControlLabel
+            value="Sim"
+            control={
+              <Radio 
+                sx={{ 
+                  color: 'white',
+                  '&.Mui-checked': {
+                    color: 'white'
+                  },
+                  '&.Mui-focusVisible': {
+                    color: 'white'
+                  }
+                }} 
+              />
+            }
+            label="Sim"
+            sx={{ 
+              color: 'white',
+              '&.Mui-focused': {
+                color: 'white'
+              },
+              '&:hover': {
+                color: 'white'
+              }
+            }}
+          />
+          <FormControlLabel
+            value="Não"
+            control={
+              <Radio 
+                sx={{ 
+                  color: 'white',
+                  '&.Mui-checked': {
+                    color: 'white'
+                  },
+                  '&.Mui-focusVisible': {
+                    color: 'white'
+                  }
+                }} 
+              />
+            }
+            label="Não"
+            sx={{ 
+              color: 'white',
+              '&.Mui-focused': {
+                color: 'white'
+              },
+              '&:hover': {
+                color: 'white'
+              }
+            }}
+          />
+        </RadioGroup>
+      </FormControl>
+      {isStudent === "Sim" && (
         <>
           <Input
             className="my-3"
@@ -499,6 +555,15 @@ function Step1({
             type={InputType.MultiSelect}
           />
         </>
+      )}
+      {isStudent === "Não" && (
+        <Input
+          className="my-3"
+          label="Qual a sua ocupação atual?"
+          value={position}
+          onChange={handlePositionChange}
+          type={InputType.Text}
+        />
       )}
       <Divider />
       <div className="pt-4">

@@ -1,6 +1,7 @@
 import Mongoose from "mongoose";
 
 type AdditionalInfos = {
+  position: string,
   phone: string,
   linkedin: string,
   admissionYear: string,

@@ -67,6 +67,7 @@ function SignupPage() {
     phone: "",
     linkedin: "",
     isStudent: false,
+    position: "",
     course: "",
     disabilities: [],
     permission: false,
@@ -141,6 +142,7 @@ function SignupPage() {
       expectedGraduationSemester,
       institute,
       customCourse,
+      position,
       phone,
       linkedin,
       customInstitute,
@@ -257,15 +259,16 @@ function SignupPage() {
         course: isStudent ? finalCourse : null,
         disabilities,
         isStudent,
-        additionalInfos: isStudent ? {
-          phone: phone,
-          linkedin: linkedin,
-          admissionYear: admissionYear,
-          expectedGraduationYear: expectedGraduationYear,
-          expectedGraduationSemester: expectedGraduationSemester,
-          institute: finalInstitute,
-          extensionGroups: extensionGroups || [],
-        } : null,
+        additionalInfos: {
+          position: !isStudent ? position : null,
+          phone: isStudent ? phone : null,
+          linkedin: isStudent ? linkedin : null,
+          admissionYear: isStudent ? admissionYear : null,
+          expectedGraduationYear: isStudent ? expectedGraduationYear : null,
+          expectedGraduationSemester: isStudent ? expectedGraduationSemester : null,
+          institute: isStudent ? finalInstitute : null,
+          extensionGroups: isStudent ? extensionGroups : null,
+        },
       };
 
       const { data } = await API.signup(userInfo);
