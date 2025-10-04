@@ -16,6 +16,9 @@ const RequireAuth = (WrappedComponent) => {
       if (!user) {
         toast.error("Sua sessão expirou. Por favor, faça login novamente");
         router.push(Routes.home);
+      } else if (!user.verified) {
+        toast.error("Você precisa confirmar seu email!");
+        router.push(Routes.home);
       }
       return <WrappedComponent {...props} />;
     }

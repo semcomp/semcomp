@@ -18,6 +18,6 @@
     "strictNullChecks": false,                         /* When type checking, take into account `null` and `undefined`. */
     "useUnknownInCatchVariables": false                /* Type catch clause variables as 'unknown' instead of 'any'. */
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "styles/themeColors.js"],
   "exclude": ["node_modules"]
 }

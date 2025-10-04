@@ -27,8 +27,15 @@ class GameQuestionController {
       const { game} = req.params;
 
       const questionCount = await gameQuestionService.count({ game });
+      const randomKey = Math.floor(Math.random() * 10000) + 1000; // Chave numérica entre 1000-10999
+      
+      const encryptedValue = (questionCount * 7 + randomKey) * 3 + 42;
+      const encoded = Buffer.from(String(encryptedValue)).toString('base64');
 
-      return res.status(200).json(questionCount);
+      return res.status(200).json({
+        encrypted: encoded,
+        key: randomKey
+      });
     } catch (error) {
       return handleError(error, next);
     }

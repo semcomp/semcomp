@@ -76,7 +76,7 @@ class AchievementService {
   }
 
   public async count(filters?: Partial<Achievement>): Promise<number> {
-    const count = await AchievementModel.count(filters);
+    const count = await AchievementModel.countDocuments(filters);
 
     return count;
   }

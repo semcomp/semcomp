@@ -19,11 +19,6 @@ class AuthController {
       handleValidationResult(req);
 
       const createdUser = await authService.signup(req.body, req.body.disabilities);
-
-      const token = await authService.createToken(createdUser);
-
-      res.setHeader("Authorization", `Bearer ${token}`);
-
       const userHouse = await userService.getUserHouse(createdUser.id);
 
       return res.status(200).json(this.mapUserResponse(createdUser, userHouse));
@@ -88,6 +83,41 @@ class AuthController {
     }
   }
 
+  public async sendVerificationCode(req, res, next) {
+    try {
+      handleValidationResult(req);
+
+      const { email } = req.body;
+
+      await authService.sendVerificationCode(email);
+
+      return res.status(200).json();
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
+  public async confirmVerificationCode(req, res, next) {
+    try {
+      handleValidationResult(req);
+
+      const { email, code } = req.body;
+
+      const foundUser = await authService.confirmVerificationCode(email, code);
+
+      const token = await authService.createToken(foundUser);
+
+      res.setHeader("Authorization", `Bearer ${token}`);
+
+      const userHouse = await userService.getUserHouse(foundUser.id);
+      const userPayment = await this.paymentService.getUserPayment(foundUser.id);
+
+      return res.status(200).json(this.mapUserResponse(foundUser, userHouse, userPayment));
+    } catch (error) {
+      return handleError(error, next);
+    }
+  }
+
   public async getLoggedUser(req, res, next) {
     try {
       const userHouse = await userService.getUserHouse(req.user.id);
@@ -108,6 +138,7 @@ class AuthController {
       permission: user.permission,
       discord: user.discord,
       telegram: user.telegram,
+      verified: user.verified,
       house: house ? {
         name: house.name,
         description: house.description,
@@ -122,6 +153,7 @@ class AuthController {
         price: payment.price || null,
         qrCode: payment.qrCode || null,
         qrCodeBase64: payment.qrCodeBase64 || null,
+        createdAt: payment.createdAt,
       })) : [],
       wantNameTag: user.wantNameTag
     };

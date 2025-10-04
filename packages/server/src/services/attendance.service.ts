@@ -40,7 +40,7 @@ class AttendanceService {
   }
 
   public async count(filters?: Partial<Attendance>): Promise<number> {
-    const count = await AttendanceModel.count(filters);
+    const count = await AttendanceModel.countDocuments(filters);
 
     return count;
   }

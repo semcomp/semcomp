@@ -3,83 +3,37 @@ import { useRouter } from 'next/router';
 
 import IOSocket from "socket.io-client";
 import { Card } from '@mui/material';
+import { toast } from 'react-toastify';
 
 import GameConfig, { GameRoutes } from "../../../libs/game-config";
 import Navbar from '../../../components/navbar';
 import Sidebar from '../../../components/sidebar';
-import Footer from '../../../components/Footer';
 import { baseURL } from "../../../constants/api-url";
 import { useAppContext } from "../../../libs/contextLib";
 import Lobby from '../../../components/game/lobby';
-import AnimatedBG from '../../animatedBG';
+import SimpleBackground from '../../../components/home/SimpleBackground';
 import NewFooter from '../../newFooter';
 import API from "../../../api";
+import GameLoadingState from '../../../components/game/GameLoadingState';
 import Spinner from '../../../components/spinner';
+import { useGameAccess } from '../../../libs/hooks/useGameAccess';
+import GameAccessLoader from '../../../components/game/GameAccessLoader';
 
 export default function GamePage({ children }) {
   const router = useRouter();
   const { game } = router.query;
+
+  // Verifica se os jogos estão abertos
+  const { isGameOpen, isLoading: isCheckingAccess } = useGameAccess();
 
   const [isFetchingTeam, setIsFetchingTeam] = useState(true);
   const [team, setTeam] = useState(null);
   const [isHappening, setIsHappening] = useState(null);
   const [isFetchingConfig, setIsFetchingConfig] = useState(true);
   const [gameConfig, setGameConfig] = useState(null);
+  const [isCreatingAutoGroup, setIsCreatingAutoGroup] = useState(false);
+  const [currentGame, setCurrentGame] = useState(null);
   
-  // TIRAR ISSO DEPOIS DA SEMCOMP 27
-  const [imageIndex, setImageIndex] = useState<number>(10);
-  const timeToImage = [
-    { start: 5, end: 7, imgIndex: 0 },
-    { start: 7, end: 8, imgIndex: 1 },
-    { start: 8, end: 10, imgIndex: 2 },
-    { start: 10, end: 12, imgIndex: 3 },
-    { start: 12, end: 14, imgIndex: 4 },
-    { start: 14, end: 16, imgIndex: 5 },
-    { start: 16, end: 17, imgIndex: 6 },
-    { start: 17, end: 18, imgIndex: 7 },
-    { start: 18, end: 19, imgIndex: 8 },
-    { start: 19, end: 22, imgIndex: 9 },
-    { start: 0, end: 5, imgIndex: 10 },
-  ];
-  useEffect(() => {
-    const currentHour = new Date().getHours();
-    const matchedImage = timeToImage.find(
-      ({ start, end }) => currentHour >= start && currentHour < end
-    );
-    setImageIndex(matchedImage?.imgIndex ?? 10);
-  }, []);
-
-
-  async function fetchGameConfig() {
-    setIsFetchingConfig(true);
-    try {
-      const result = await API.game.getConfig(game as string);
-      
-      if(result.data){
-        // Mapeia o resultado da API na classe GameConfig
-        const gameConfigInstance = new GameConfig(result.data);
-        setGameConfig(gameConfigInstance);  // Agora você passa a instância da classe
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsFetchingConfig(false);
-    }
-  }
-
-  useEffect(() => {
-    if(game){
-      fetchGameConfig();
-    }
-  }, [game])
-
-
-  useEffect(() => {
-    if(gameConfig){
-      setIsHappening(gameConfig.verifyIfIsHappening());
-    }
-  }, [gameConfig])
-
   const [socket] = useState(() =>
     IOSocket(baseURL, {
       withCredentials: true,
@@ -87,7 +41,108 @@ export default function GamePage({ children }) {
     })
   );
 
-  const { token } = useAppContext();
+  const { user, token } = useAppContext();
+
+  // Função para criar grupo automaticamente
+  async function createAutoGroup(gameConfigInstance: GameConfig) {
+    if (isCreatingAutoGroup) return;
+    
+    setIsCreatingAutoGroup(true);
+    
+    try {
+      const groupName = `Jogador_${Date.now()}`;
+      let timeout: ReturnType<typeof setTimeout>;
+      
+      socket.emit(`${gameConfigInstance.getEventPrefix()}-create-group`, { 
+        name: groupName, 
+        token 
+      });
+      
+      // Aguarda a confirmação via group-created
+      await new Promise((resolve, reject) => {
+      
+        const handleGroupCreated = (group) => {
+          clearTimeout(timeout);
+          socket.off(`${gameConfigInstance.getEventPrefix()}-group-created`, handleGroupCreated);
+          
+          if (group) {
+            setTeam(group);
+            toast.success("Grupo criado automaticamente!");
+            resolve(group);
+          } else {
+            reject(new Error('No group created'));
+          }
+        };
+      
+        timeout = setTimeout(() => {
+          socket.off(`${gameConfigInstance.getEventPrefix()}-group-created`, handleGroupCreated);
+          reject(new Error('Timeout creating auto group'));
+        }, 10000);
+      
+        socket.on(`${gameConfigInstance.getEventPrefix()}-group-created`, handleGroupCreated);
+      });
+      
+    } catch (e) {
+      console.error('Erro ao criar grupo automático:', e);
+      toast.error("Erro ao criar grupo automaticamente");
+    } finally {
+      setIsCreatingAutoGroup(false);
+    }
+  }
+
+  // Função principal que executa quando o jogo muda
+  async function initializeGame() {
+    if (!game || !token) return;
+
+    // Limpa estado anterior
+    setTeam(null);
+    setIsCreatingAutoGroup(false);
+    setIsFetchingTeam(true);
+    setIsFetchingConfig(true);
+    setCurrentGame(game);
+
+    try {
+      // Busca configuração do jogo
+      const result = await API.game.getConfig(game as string);
+      if (result.data) {
+        const gameConfigInstance = new GameConfig(result.data);
+        setGameConfig(gameConfigInstance);
+        setIsFetchingConfig(false);
+
+        const group = await API.game.getGroupByUserIdAndGame(user.id, game as string);
+        if (group.data) {
+          setTeam(group.data);
+          setIsFetchingTeam(false);
+        }
+
+        // Verifica se deve criar grupo automaticamente
+        const shouldCreateAutoGroup = !gameConfigInstance.hasGroups() || 
+                                     gameConfigInstance.getMaximumNumberOfMembersInGroup() === 1;
+        
+        if (!group.data && shouldCreateAutoGroup) {
+          await createAutoGroup(gameConfigInstance);
+        } else {
+          // Para jogos com grupos, busca equipe existente
+          socket.emit(`${gameConfigInstance.getEventPrefix()}-join-group-room`, { token });
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao inicializar jogo:', e);
+      setIsFetchingConfig(false);
+    } finally {
+      setIsFetchingTeam(false);
+    }
+  }
+
+  // Atualizar informações do grupo
+  function handleNewGroupInfo(info) {    
+    if (info) {
+      setTeam(info);
+    } else {
+      setTeam(null);
+    }
+    setIsFetchingTeam(false);
+  }
 
   // Funções de navegação
   function handleGoToGame() {
@@ -102,98 +157,69 @@ export default function GamePage({ children }) {
     router.push(gameConfig.getRoutes()[GameRoutes.JOIN_TEAM]);
   }
 
-  // Atualizar informações do grupo (apenas para jogos em equipe)
-  function handleNewGroupInfo(info) {
-    if (info) {
-      setTeam(info);
-    }
-    setIsFetchingTeam(false);
-  }
-
-  // Configuração de sockets e grupo apenas para jogos em equipe
   useEffect(() => {
-    if (!gameConfig) {
-      return;
-    }
+    initializeGame();
+  }, [game, token]);
 
-    socket.on(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
-
-    return () => {
-      socket.off(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
-    };
-  }, [gameConfig]);
-
-  // Entrar na sala do grupo apenas para jogos em equipe
-  useEffect(() => {
-    if (!gameConfig || !token) {
-      return;
-    }
-
-    socket.emit(`${gameConfig.getEventPrefix()}-join-group-room`, { token });
-  }, [gameConfig, token]);
 
   // Verificar se o jogo já começou
   useEffect(() => {
-    if(gameConfig){
-        const handler = setInterval(() => {
-          if (!gameConfig.verifyIfIsHappening()) {
-            setIsHappening(false);
-            clearInterval(handler);
-          }
-        }, 1000);
-        return () => clearInterval(handler);
+    if (gameConfig) {
+      const handler = setInterval(() => {
+        if (!gameConfig.verifyIfIsHappening()) {
+          setIsHappening(false);
+          clearInterval(handler);
+        } else {
+          setIsHappening(true);
+          clearInterval(handler);
+        }
+      }, 1000);
+      return () => clearInterval(handler);
     }
   }, [gameConfig]);
 
+  if (isCheckingAccess || !isGameOpen) {
+    return <GameAccessLoader isCheckingAccess={isCheckingAccess} isGameOpen={isGameOpen} />;
+  }
+
   return (
-    <div className="min-h-screen w-full flex flex-col bg-blue">
+    <div className="flex flex-col min-h-screen md:h-full">
       <Navbar className="z-20"/>
       <Sidebar />
-      <AnimatedBG imageIndex={imageIndex} />
-      <div className='z-20 h-full py-12 phone:pt-16 tablet:pt-34 w-full flex flex-col items-center justify-center'>
-      <div className='flex flex-col h-full items-center justify-center w-[50%] mobile:w-full text-primary static rounded-lg z-20 bg-white'>
-      {
-      !isFetchingConfig ?
-        <>
-          {gameConfig && gameConfig.hasGroups() ? (  
-            !isFetchingTeam ? (
-              <Lobby
-              gameConfig={gameConfig}
-              setTeam={setTeam}
-              team={team}
-              goToGame={handleGoToGame}
-              goToCreateTeam={handleGoToCreateTeam}
-              goToJoinTeam={handleGoToJoinTeam}
-              />
-            ) : (
-              <div className='flex content-center'>
-            <div className='flex flex-col items-center justify-center text-xl font-secondary py-16'>
-              <p className='pb-4'>Tentando encontrar grupo</p>
-              <Spinner size="large"/>
-            </div>
+      <SimpleBackground />
+      <main className="flex justify-center flex-1 w-full md:h-full md:text-sm tablet:text-xl phone:text-xs md:items-center relative z-10">
+        <div className='flex flex-col items-center justify-center md:w-[50%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20 rounded-lg'>
+          <div className='flex justify-center h-fit md:w-[70%] tablet:p-12 phone:p-9 font-secondary tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20 text-white'>
+            {
+              !isFetchingConfig ? (
+                <>
+                  {isCreatingAutoGroup ? (
+                    <div className="flex flex-col items-center justify-center py-8">
+                      <Spinner size="large" />
+                      <p className="mt-4 text-white">Criando grupo automaticamente...</p>
+                    </div>
+                  ) : (
+                    gameConfig && !isFetchingTeam ? (
+                      <Lobby
+                        gameConfig={gameConfig}
+                        setTeam={setTeam}
+                        team={team}
+                        goToGame={handleGoToGame}
+                        goToCreateTeam={handleGoToCreateTeam}
+                        goToJoinTeam={handleGoToJoinTeam}
+                      />
+                    ) : (
+                      <GameLoadingState message="Tentando encontrar grupo" />
+                    )
+                  )}
+                </>
+              ) : (
+                <GameLoadingState message="Tentando encontrar Jogo" />
+              )
+            }
+          </div>
         </div>
-            )
-          ) : (
-            gameConfig && !isFetchingTeam && <Lobby
-            gameConfig={gameConfig}
-            setTeam={setTeam}
-            team={team}
-            goToGame={handleGoToGame}
-            goToCreateTeam={handleGoToCreateTeam}
-            goToJoinTeam={handleGoToJoinTeam}
-              />
-            )}
-        </>
-        :
-        <div className='flex content-center'>
-            <div className='flex flex-col items-center justify-center text-xl font-secondary py-16'>
-              <p className='pb-4'>Tentando encontrar Jogo</p>
-              <Spinner size="large"/>
-            </div>
-        </div>
-        }
-        </div>
-      </div>
+      </main>
       <NewFooter />
     </div>
   );

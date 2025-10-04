@@ -343,7 +343,7 @@ function Options({ item, fetchEvents }) {
         {item.events.find((event) => !event.isSubscribed) && (
           <AccordionActions>
             <LoadingButton
-              className={`bg-${user.house.name} hover:bg-[#a9a9a9] text-white w-full py-3 shadow rounded-lg`}
+              className={`bg-primary hover:bg-hoverPrimary text-white w-full py-3 rounded-lg`}
               type="submit"
               isLoading={isUpdating}
             >

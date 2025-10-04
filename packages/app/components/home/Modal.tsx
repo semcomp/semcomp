@@ -27,12 +27,12 @@ const Modal: React.FC<ModalProps> = ({ element, setButtonSelected }) => {
           maxHeight: '95%',
         }}
       >
-        <div className='flex flex-row w-full justify-end align-end max-h-fit'>
+        <div className='flex flex-row w-full justify-end'>
           <button
             onClick={() => setButtonSelected('')}
-            className="h-fit w-fit my-4 text-white bg-red-600 border-b-4 border-red-800 rounded-full outline-none focus:outline-none hover:bg-red-500 hover:border-red-700 active:translate-y-1 active:border-b-0 top-2 right-2 sm:px-3 sm:py-2 md:px-4 md:py-3"
+            className="h-8 w-8 my-4 text-gray-400 rounded-full outline-none focus:outline-none hover:text-gray-600 active:scale-95 transition-all duration-200 flex items-center justify-center"
           >
-            <AiOutlineClose size={20} className="sm:size-24 md:size-30 lg:size-36" />
+            <AiOutlineClose size={16} />
           </button>
         </div>
         <div className="flex flex-col items-center justify-center w-full h-full md:mx-32 md:mb-12 text-white custom-scroll tablet:px-8 desktop:px-8 overflow-y-auto overflow-x-hidden">
@@ -61,7 +61,7 @@ const Modal: React.FC<ModalProps> = ({ element, setButtonSelected }) => {
 
         .custom-scroll::-webkit-scrollbar-thumb {
           border-radius: 10px;
-          background-color:  rgb(192 132 252);
+          background-color:  #00B4D8;
         }
 
       `}</style>

@@ -24,7 +24,6 @@ const GameGroupMemberSchema = new Mongoose.Schema(
     },
     userId: {
       type: String,
-      unique: true,
       required: true,
     },
     createdAt: {
@@ -36,6 +35,8 @@ const GameGroupMemberSchema = new Mongoose.Schema(
   },
   { collection: "game-group-member" }
 );
+
+GameGroupMemberSchema.index({ userId: 1, gameGroupId: 1 }, { unique: true });
 
 export const GameGroupMemberModel = Mongoose.model(
   "game-group-member",

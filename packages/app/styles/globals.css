@@ -72,6 +72,21 @@
   font-family: "Qatar2022-Heavy";
   src: url("../assets/Qatar2022Arabic-Heavy.ttf");
 }
+
+@font-face {
+  font-family: "Cinzel";
+  src: url("../assets/28-fonts/Cinzel/static/Cinzel-Bold.ttf");
+}
+
+@font-face {
+  font-family: "BebasNeue";
+  src: url("../assets/28-fonts/Bebas_Neue/BebasNeue-Regular.ttf");
+}
+@font-face {
+  font-family: "Windsor";
+  src: url("../assets/28-fonts/windsor-pro/WindsorProRg.TTF");
+}
+
 :root {
   --color-blue-main:#173A72;
   --color-dark-blue: #009541;
@@ -108,8 +123,8 @@ html,
   scroll-behavior: smooth;
   font-family: Roboto, sans-serif;
 
-  /* The whole page is not a perfect white so it goes a bit easier on the reader's eyes */
-  background-color: #fafafa;
+  /* Background removido para permitir o componente SimpleBackground */
+  background-color: transparent;
 }
 
 body::-webkit-scrollbar {
@@ -142,7 +157,7 @@ a {
 }
 
 button{
-  font-family: VideoType;
+  font-family: "Poppins", "Roboto", sans-serif;
   font-weight: 300;
 }
 

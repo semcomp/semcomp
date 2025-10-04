@@ -1,3 +1,5 @@
+const themeColors = require("./styles/themeColors");
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -22,32 +24,11 @@ module.exports = {
       xl: "1440px",
       lg: "1450px",
     },
-    colors: {
-      primary: "#2E1B5B", 
-      secondary: "#F5CE00",
-      tertiary: "#642712",
-      blue: "#242d5c",
-      orange: "#EC4E20",
-      green: "#009541",
-      yellow: "#f9f004",
-      black: "#1d1d1b",
-      grayDark: "#3d3d3d",
-      gray: "#c2c2c2",
-      grayLight: "#f0f0f0",
-      white: "#FCFBFF",
-      hoverWhite: "rgba(255, 255, 255, 0.3)",
-      darkblue: "#2E1B5B",
-      pink: "#FF3184",
-      backgroundBlue: "#232234ff",
-      Symbiosia: "#6fbe39ff",
-      Stormrock: "#f26f18ff",
-      Cybertechna: "#470787ff",
-      Arcadium: "#0e56cbff"
-    },
+    colors: themeColors,
     fontFamily: {
-      primary: ["UPHEAVAL"], //Staatliches
-      secondary: ["VideoType"], //Poppins
-      tertiary: ["VideoType"]
+      primary: ["Cinzel", "system-ui", "sans-serif"],
+      secondary: ["Poppins"],
+      tertiary: ["BebasNeue"]
     },
     fontSize: {
       'superlarge': '25px',

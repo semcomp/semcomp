@@ -1,5 +1,16 @@
 import Mongoose from "mongoose";
 
+type AdditionalInfos = {
+  position: string,
+  phone: string,
+  linkedin: string,
+  admissionYear: string,
+  expectedGraduationYear: string,
+  expectedGraduationSemester: string,
+  institute: string,
+  extensionGroups: Object,
+};
+
 type User = {
   id?: string;
   email: string;
@@ -10,15 +21,19 @@ type User = {
   telegram?: string;
   permission?: boolean;
   resetPasswordCode?: string;
-  wantNameTag?: boolean; 
+  verificationCode?: string;
+  wantNameTag?: boolean;
   paid?: boolean;
   gotKit?: boolean;
   gotTagName?: boolean;
+  additionalInfos?: AdditionalInfos;
   createdAt?: number;
   updatedAt?: number;
+  verified?: boolean;
 }
 
 export default User;
+export type { AdditionalInfos };
 
 const UserSchema = new Mongoose.Schema(
   {
@@ -61,6 +76,9 @@ const UserSchema = new Mongoose.Schema(
     resetPasswordCode: {
       type: String,
     },
+    verificationCode: {
+      type: String,
+    },
     wantNameTag: {
       type: Boolean,
     },
@@ -79,12 +97,22 @@ const UserSchema = new Mongoose.Schema(
       default: false,
       required: true,
     },
+    additionalInfos: {
+      type: Object,
+      default: null,
+      required: false,
+    },
     createdAt: {
       type: Number,
     },
     updatedAt: {
       type: Number,
     },
+    verified: {
+      type: Boolean,
+      default: false,
+    },
+
   },
   { collection: "user" }
 );

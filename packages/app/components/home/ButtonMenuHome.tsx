@@ -1,7 +1,4 @@
 import React, { useState } from 'react';
-import Image from 'next/image';
-import buttonNormal from "../../assets/27-imgs/button.png";
-import buttonSelected from "../../assets/27-imgs/buttonSelected.png";
 
 interface ButtonProps {
   label: string;
@@ -9,59 +6,37 @@ interface ButtonProps {
 }
 
 const ButtonMenuHome: React.FC<ButtonProps> = ({ label, onClick }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
 
   const handleClick = () => {
-    setIsClicked(!isClicked); // Alterna entre selecionado e não selecionado
+    setIsClicked(true);
+    setTimeout(() => setIsClicked(false), 150); // Reset após 150ms
     onClick();
   };
 
-  const currentImage = isHovered ? buttonSelected : buttonNormal; // Mostra a imagem selecionada se clicado ou quando o mouse está por cima
-
   return (
-    <div 
-      style={{ 
-        position: 'relative', 
-        display: 'inline-block', 
-        zIndex: 2,
-        width: '250px',  
-        height: '60px',  
-        maxWidth: '100%', 
-        transform: isClicked ? 'scale(0.95)' : 'scale(1)', // Animação de pressão
-        transition: 'transform 0.1s ease', // Animação suave
-      }} 
-      onMouseEnter={() => setIsHovered(true)} 
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleClick} // Usa a função handleClick
+    <button
+      onClick={handleClick}
+      className={`
+        relative w-48 h-12 max-w-full
+        text-white font-secondary text-base font-medium
+        rounded-full shadow-md
+        transform transition-all duration-200 ease-in-out
+        hover:scale-105 hover:shadow-lg
+        active:scale-95
+        border-2 border-transparent
+        hover:border-secondary
+        focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-50
+        overflow-hidden
+        ${isClicked ? 'scale-95' : ''}
+      `}
+      style={{
+        backgroundColor: isClicked ? '#4A90E2' : '#242d5c',
+        overflow: 'hidden'
+      }}
     >
-      <Image
-        src={currentImage} // Muda a imagem com base nos estados
-        alt="Botão de fundo"
-        layout="fill" 
-        objectFit="cover" 
-        style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
-      />
-
-      <button
-        style={{
-          position: 'relative',
-          zIndex: 2,
-          backgroundColor: 'transparent', 
-          border: 'none',
-          width: '100%',  
-          height: '100%', 
-          fontSize: '1.1em', 
-          cursor: 'pointer',
-          color: '#fff', 
-          textAlign: 'center', 
-          padding: '10px 20px',
-          outline: 'none', // Remove o contorno
-        }}
-      >
-        {label}
-      </button>
-    </div>
+      {label}
+    </button>
   );
 };
 

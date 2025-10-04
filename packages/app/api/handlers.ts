@@ -7,6 +7,7 @@ const Handlers = {
     (email, password) => API.post(`/auth/login`, { email, password }),
     {
       401: "Usuário ou senha inválidos",
+      403: "Usuário precisa confirmar email"
     }
   ),
   signup: withCustomError((userInfo) => API.post(`/auth/signup`, userInfo), {
@@ -22,6 +23,17 @@ const Handlers = {
       401: "Este e-mail não está cadastrado.",
     }
   ),
+  sendVerificationCode: withCustomError( // TODO: remover fluxo inutilizado (confirmar)
+    (email) => API.post("/auth/send-verification-code", { email }),
+    {
+      401: "Este e-mail não está cadastrado.",
+    }
+  ),
+  confirmVerificationCode: withCustomError((email: string, code: string) =>
+    API.post("/auth/confirm-verification-code", { email, code }), {
+      400: "Código/email inválido",
+      401: "Usuário não encontrado/inválido",
+    }),
   resetPassword: (email, code, password) =>
     API.post("/auth/reset-password", { email, code, password }),
   getHouseScores: () => API.get("/houses/scores"),
@@ -45,16 +57,26 @@ const Handlers = {
     getAllAtendancesByUser: withNoErrorMessage(() => API.get(`/users/get-attendance`)),
   },
   game: {
+    getGroupByUserIdAndGame: withNoErrorMessage((userId: string, game: string) => API.get(`/game/${game}/group/user/${userId}`)),
     joinTeam: withCustomError(
-      (game, teamId) => API.put(`/game/${game}/group/join?id=${teamId}`),
-      { 418: `O limite de jogadores já foi atingido` },
+      (game, teamId) => API.post(`/game/${game}/group/join?id=${teamId}`),
+      { 
+        418: `O limite de jogadores já foi atingido`,
+        404: `Grupo não encontrado`
+       },
     ),
-    leaveTeam: (game) => API.put(`/game/${game}/group/leave`),
-    useClue: (game) => API.post(`/game/${game}/group/use-clue`),
+    leaveTeam: withCustomError((game: string) => API.put(`/game/${game}/group/leave`), {
+      404: `Grupo não encontrado`
+    }),
+    useClue: withCustomError((game: string) => API.post(`/game/${game}/group/use-clue`), {
+      403: `Grupo não tem dicas disponíveis`,
+      404: `Grupo/Questão não encontrado`
+    }
+    ),
     useSkip: (game) => API.post(`/game/${game}/group/use-skip`),
     getQuestion: (game, questionIndex) => API.get(`/game/${game}/question/${questionIndex}`),
     getConfig: (game) => API.get(`/game/${game}/config`),
-    getIsHappening: () => API.get(`/game/isHappening`),
+    getIsHappening: withNoErrorMessage(() => API.get(`/game/isHappening`)),
     getNumberOfQuestions: (game) => API.get(`/game/${game}/numberOfQuestions`)
   },
   achievements: {
@@ -64,7 +86,8 @@ const Handlers = {
   config: {
     getConfig: withNoErrorMessage(() => API.get("/config")),
     checkCoffeeTotal: withNoErrorMessage(() => API.get("/config/coffee-total")),
-    checkRemainingCoffee: withNoErrorMessage(() => API.get("/config/coffee-remaining")), },
+    checkRemainingCoffee: withNoErrorMessage(() => API.get("/config/coffee-remaining")),
+  },
   coffee: {
     createPayment: (
       withSocialBenefit: boolean,
@@ -100,7 +123,7 @@ const Handlers = {
       });
     },
   },
-  treasureHunt : {
+  treasureHunt: {
     getImage: withNoErrorMessage((imageId: string) => API.get(`/treasure-hunt-images/${imageId}`))
   }
 };

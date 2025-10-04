@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { body } from "express-validator";
+import { body, param } from "express-validator";
 
 import authMiddleware from "../middlewares/auth.middleware";
 import GameGroupController from "../controllers/game/game-group.controller";
 import GameQuestionController from "../controllers/game/game-question.controller";
 import GameConfigController from "../controllers/game/game-config.controller";
+import Game from "../lib/constants/game-enum";
 
 const router = Router();
 
@@ -18,7 +19,7 @@ router.post(
   GameGroupController.create
 );
 
-router.put(
+router.post(
   "/:game/group/join",
   [authMiddleware.authenticate, authMiddleware.isAuthenticated],
   GameGroupController.join
@@ -33,6 +34,7 @@ router.put(
 router.get(
   "/:game/question/:index",
   [authMiddleware.authenticate, authMiddleware.isAuthenticated],
+  param("game").isIn(Object.values(Game)).withMessage("Jogo inválido"),
   GameQuestionController.getQuestion
 );
 
@@ -52,6 +54,20 @@ router.get(
   "/isHappening",
   [authMiddleware.authenticate, authMiddleware.isAuthenticated],
   GameConfigController.getIsHappening
+);
+
+router.post(
+  "/:game/group/use-clue",
+  [authMiddleware.authenticate, authMiddleware.isAuthenticated],
+  GameGroupController.useClue
+);
+
+router.get(
+  "/:game/group/user/:userId",
+  [authMiddleware.authenticate, authMiddleware.isAuthenticated],
+  param("game").isIn(Object.values(Game)).withMessage("Jogo inválido"),
+  param("userId").isString().withMessage("ID do usuário inválido"),
+  GameGroupController.getGroupByUserIdAndGame
 );
 
 export default router;
