@@ -26,6 +26,10 @@ import {
   SemcompApiSale,
   SemcompApiGetGameConfigResponse,
   SemcompApiGetPaymentsResponse,
+  SemcompApiGetDonationsResponse,
+  SemcompApiDonation,
+  SemcompApiGetItemsResponse,
+  SemcompApiItem,
 } from "../models/SemcompApiModels";
 import Http from "./http";
 
@@ -68,6 +72,48 @@ class SemcompApi {
 
   public async addUserAchievement(userId: string, achievementId: string): Promise<any> {
     return this.http.post(`/admin/users/${userId}/achievements/${achievementId}`, {});
+  }
+
+  // Donations
+  public async getDonations(pagination: PaginationRequest): Promise<SemcompApiGetDonationsResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/donation", semcompApiPagination);
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  public async createDonation(data: SemcompApiDonation): Promise<any> {
+      const response = await this.http.post("/admin/donation", data);
+      return response;
+  }
+
+  public async deleteDonation(id: string): Promise<any> {
+      const response = await this.http.delete("/admin/donation" + id);
+      return response;
+  }
+
+  // Items
+  public async getItems(pagination: PaginationRequest): Promise<SemcompApiGetItemsResponse> {
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+
+    const response = await this.http.get("/admin/item", semcompApiPagination);
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);
+  }
+
+  public async createItems(data: SemcompApiItem): Promise<any> {
+      const response = await this.http.post("/admin/item", data);
+      return response;
+  }
+
+  public async deleteItems(id: string): Promise<any> {
+      const response = await this.http.delete("/admin/item" + id);
+      return response;
   }
 
   // ADMIN-USERS

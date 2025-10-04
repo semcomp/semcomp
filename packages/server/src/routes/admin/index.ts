@@ -20,6 +20,8 @@ import PaymentServiceImpl from "../../services/payment-impl.service";
 import PaymentRouter from "./payment.router";
 import GameConfigRouter from "./game-config.router";
 import attendanceRouter from "./attendance.router";
+import donationRouter from "./donation.router";
+import itemRouter from "./item.router";
 
 const tShirtRouter = new TShirtRouter(adminAuthMiddleware);
 const salesRouter = new SaleRouter(adminAuthMiddleware);
@@ -56,6 +58,8 @@ export default class AdminRouter {
     router.use("/subscription", subscriptionRouter);
     router.use("/treasure-hunt-images", treasureHuntImageRouter);
     router.use("/attendances", attendanceRouter);
+    router.use("/donation", donationRouter);
+    router.use("/item", itemRouter);
 
     return router;
   }
