@@ -42,20 +42,36 @@ function SignupPage() {
   //Get parameters from URL
   useEffect(() => {
     if (!router.isReady) return;
-
+  
     const url = new URL(router.asPath, window.location.origin);
     const email = url.searchParams.get("email") ?? "";
     const stepStr = url.searchParams.get("step") ?? "";
   
-    setEmailUrl(email);
+    if (email) {
+      setEmailUrl(email);
+      sessionStorage.setItem("signup.email", email);
+    }
   
     const stepNum = parseInt(stepStr);
     if (!Number.isNaN(stepNum)) {
       setStep(STEPS.CONFIRMATION_CODE);
+      sessionStorage.setItem("signup.step", String(stepNum));
     }
-  
-    console.log("email:", email, "step:", stepNum);
   }, [router.isReady, router.asPath]);
+  
+  // Fallback: recuperar se a URL chegou sem params (ex.: após 401)
+  useEffect(() => {
+    if (!router.isReady) return;
+  
+    if (!emailUrl) {
+      const savedEmail = sessionStorage.getItem("signup.email");
+      if (savedEmail) setEmailUrl(savedEmail);
+    }
+    if (step === STEPS.BASIC_INFO) {
+      const savedStep = sessionStorage.getItem("signup.step");
+      if (savedStep === "2") setStep(STEPS.CONFIRMATION_CODE);
+    }
+  }, [router.isReady]);
 
   // This state will hold the whole form value. The `setFormValue` function will
   // be passed to all steps components. Whenver an input in any step changes, they
