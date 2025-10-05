@@ -29,38 +29,31 @@ class DonationController {
 
             const item = donationData.item;
 
-            const multiplier = CalculatorService.calculateMultiplier(item, item.tier);
-            const points = multiplier * item.value * donationData.quantity;
+            const points = CalculatorService.totalPoints(item, donationData.quantity);
 
             donationData.points = points;
 
-            const house = await houseService.findById(donationData.houseId);
+            if (points > 0) {
+                const house = await houseService.findById(donationData.houseId);
 
-            const updatedHouse = await houseService.addHousePoints(house, points);
+                const updatedHouse = await houseService.addHousePoints(house, points);
 
-            const houseAdminLog: AdminLog = {
-              adminId: req.adminUser.id,
-              type: "add-points",
-              collectionName: "house",
-              objectBefore: JSON.stringify(house),
-              objectAfter: JSON.stringify(updatedHouse),
-            };
-            await adminLogService.create(houseAdminLog);
+                const houseAdminLog: AdminLog = {
+                  adminId: req.adminUser.id,
+                  type: "add-points",
+                  collectionName: "house",
+                  objectBefore: JSON.stringify(house),
+                  objectAfter: JSON.stringify(updatedHouse),
+                };
+                await adminLogService.create(houseAdminLog);
+            }
+
 
             const createdEntity = await donationService.create(req.body);
 
-            item.tierQuantity += donationData.quantity;
             item.totalQuantity += donationData.quantity;
 
-            if (CalculatorService.verifyDemote(item)) {
-                const nextTier = CalculatorService.findNextTier(item.tier);
-                if (nextTier != null) {
-                    item.tier = nextTier;
-                    item.tierQuantity = 0;
-                }
-            }
-
-            itemService.update(item.id, item);
+            await itemService.update(item.id, item);
 
             const adminLog: AdminLog = {
                 adminId: req.adminUser.id,
