@@ -2,6 +2,8 @@ import { Model } from "mongoose";
 
 import GameGroupMember, { GameGroupMemberModel } from "../models/game-group-member";
 import IdServiceImpl from "./id-impl.service";
+import HttpError from "../lib/http-error";
+import GameGroupService from "./game-group.service";
 
 const idService = new IdServiceImpl();
 
@@ -38,18 +40,35 @@ class GameGroupMemberService {
   }
 
   public async count(filters?: Partial<Filters>): Promise<number> {
-    const count = await GameGroupMemberModel.count(filters);
+    const count = await GameGroupMemberModel.countDocuments(filters);
 
     return count;
   }
 
   public async create(gameGroupMember: GameGroupMember): Promise<GameGroupMember> {
-    gameGroupMember.id = await idService.create();
-    gameGroupMember.createdAt = Date.now();
-    gameGroupMember.updatedAt = Date.now();
-    const entity = await GameGroupMemberModel.create(gameGroupMember);
+    try {
+      const existingMembership = await this.findUserMembershipInGame(
+        gameGroupMember.userId, 
+        gameGroupMember.gameGroupId
+      );
+      
+      if (existingMembership) {
+        throw new HttpError(400, ["Você já está em um grupo neste jogo"]);
+      }
 
-    return this.findById(entity.id);
+      gameGroupMember.id = await idService.create();
+      gameGroupMember.createdAt = Date.now();
+      gameGroupMember.updatedAt = Date.now();
+      const entity = await GameGroupMemberModel.create(gameGroupMember);
+
+      return this.mapEntity(entity as any);
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new HttpError(400, ["Você já está em um grupo neste jogo"]);
+      }
+      
+      throw error;
+    }
   }
 
   public async update(gameGroupMember: GameGroupMember): Promise<GameGroupMember> {
@@ -73,6 +92,30 @@ class GameGroupMemberService {
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };
+  }
+
+  private async findUserMembershipInGame(userId: string, gameGroupId: string): Promise<GameGroupMember> {
+    const targetGroup = await GameGroupService.findOne({ id: gameGroupId });
+    if (!targetGroup) {
+      return null;
+    }
+
+    const result = await GameGroupMemberModel.aggregate([
+      { $match: { userId } },
+      {
+        $lookup: {
+          from: 'game-group',
+          localField: 'gameGroupId',
+          foreignField: 'id',
+          as: 'group'
+        }
+      },
+      { $unwind: '$group' },
+      { $match: { 'group.game': targetGroup.game } },
+      { $limit: 1 }
+    ]);
+
+    return result.length > 0 ? this.mapEntity(result[0] as any) : null;
   }
 };
 

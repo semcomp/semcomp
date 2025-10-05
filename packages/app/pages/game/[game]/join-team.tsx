@@ -1,23 +1,86 @@
-import React from "react";
-import Navbar from "../../../components/navbar";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { toast } from "react-toastify";
+
+import GameConfig from "../../../libs/game-config";
+import Navbar from '../../../components/navbar';
 import Sidebar from '../../../components/sidebar';
-import JoinTeam from "../../../components/game/join-team";
-import { Card } from '@mui/material';
-import Footer from '../../../components/Footer';
+import JoinTeam from '../../../components/game/join-team';
+import SimpleBackground from '../../../components/home/SimpleBackground';
+import NewFooter from '../../newFooter';
+import API from "../../../api";
+import GameLoadingState from '../../../components/game/GameLoadingState';
+import GameConfigError from '../../../components/game/GameConfigError';
+import { useGameAccess } from '../../../libs/hooks/useGameAccess';
+import GameAccessLoader from '../../../components/game/GameAccessLoader';
 
-export default function (){
+export default function JoinTeamPage() {
+  const router = useRouter();
+  const { game } = router.query;
 
-    return(
-        <>
-        <Navbar />
-        <Sidebar />
-            <div className='p-6'>
-                <Card className='p-6'>
-                    <JoinTeam />
-                </Card>
-            </div>
-            <Footer />
+  // Verifica se os jogos estão abertos
+  const { isGameOpen, isLoading: isCheckingAccess } = useGameAccess();
 
-        </>
+  const [isFetchingConfig, setIsFetchingConfig] = useState(true);
+  const [gameConfig, setGameConfig] = useState(null);
+  
+  async function fetchGameConfig() {
+    setIsFetchingConfig(true);
+    try {
+      const result = await API.game.getConfig(game as string);
+      
+      if(result.data){
+        const gameConfigInstance = new GameConfig(result.data);
+        setGameConfig(gameConfigInstance);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsFetchingConfig(false);
+    }
+  }
+
+  useEffect(() => {
+    if(game){
+      fetchGameConfig();
+    }
+  }, [game])
+
+  // Se está verificando acesso ou os jogos não estão abertos, mostra loading
+  if (isCheckingAccess || !isGameOpen) {
+    return <GameAccessLoader isCheckingAccess={isCheckingAccess} isGameOpen={isGameOpen} />;
+  }
+
+  function renderContent() {
+    if (isFetchingConfig) {
+      return <GameLoadingState message="Carregando configuração do jogo..." />;
+    }
+
+    if (!gameConfig) {
+      return <GameConfigError onRetry={fetchGameConfig} />;
+    }
+
+    return (
+      <div className="w-full max-w-md">
+        <JoinTeam gameConfig={gameConfig} />
+      </div>
     );
+  }
+
+  return (
+    <div className="h-screen w-full flex flex-col justify-between font-secondary text-sm mobile:mt-10 tablet:mt-0">
+      <Navbar />
+      <Sidebar />
+      
+      <div className="flex-1 relative">
+        <SimpleBackground />
+        
+        <div className="relative z-10 flex items-center justify-center h-full p-6">
+          {renderContent()}
+        </div>
+      </div>
+      
+      <NewFooter />
+    </div>
+  );
 }

@@ -4,6 +4,7 @@ import YouTubeIcon from "@mui/icons-material/YouTube";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import TwitterIcon from "@mui/icons-material/Twitter";
+import { config } from "../config";
 
 function SocialLinkIcon({ link, icon }: { link: string; icon: any }) {
   return (
@@ -38,40 +39,40 @@ const Footer = (props) => {
         <div className="flex flex-col items-center">
           <div className="flex items-center my-1">
             <EmailIcon sx={{ mr: 0.5 }} />
-            <a href="mailto:semcomp@icmc.usp.br">semcomp@icmc.usp.br</a>
+            <a href={`mailto:${config.ORGANIZING_COMMITTEE_EMAIL}`}>{config.ORGANIZING_COMMITTEE_EMAIL}</a>
           </div>
           <div className="flex items-center my-1">
             <EmailIcon sx={{ mr: 0.5 }} />
-            <a href="mailto:patrocinio_semcomp@icmc.usp.br">
-              patrocinio_semcomp@icmc.usp.br
+            <a href={`mailto:${config.ORGANIZING_COMMITTEE_PATROCINIO_EMAIL}`}>
+              {config.ORGANIZING_COMMITTEE_PATROCINIO_EMAIL}
             </a>
           </div>
         </div>
       </section>
       <section className="py-2 text-sm text-center">
-        <p>© Semcomp 2024. Todos os direitos reservados.</p>
+        <p>© Semcomp {config.YEAR}. Todos os direitos reservados.</p>
       </section>
       <section className="py-2 text-sm text-center">
         <p>Nos siga nas redes sociais</p>
         <div className="flex justify-center p-2">
           <SocialLinkIcon
-            link="https://www.facebook.com/Semcomp/"
+            link={config.ORGANIZING_COMMITTEE_FACEBOOK_LINK}
             icon={<FacebookIcon />}
           />
           <SocialLinkIcon
-            link="https://www.youtube.com/channel/UCPF97UIRX8AnkS9gU907g1Q"
+            link={config.ORGANIZING_COMMITTEE_YOUTUBE_LINK}
             icon={<YouTubeIcon />}
           />
           <SocialLinkIcon
-            link="https://instagram.com/semcomp"
+            link={config.ORGANIZING_COMMITTEE_INSTAGRAM_LINK}
             icon={<InstagramIcon />}
           />
           <SocialLinkIcon
-            link="https://www.linkedin.com/company/semcomp/"
+            link={config.ORGANIZING_COMMITTEE_LINKEDIN_LINK}
             icon={<LinkedInIcon />}
           />
           <SocialLinkIcon
-            link="https://twitter.com/semcomp"
+            link={config.ORGANIZING_COMMITTEE_TWITTER_LINK}
             icon={<TwitterIcon />}
           />
         </div>

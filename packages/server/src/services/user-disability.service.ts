@@ -24,7 +24,7 @@ class UserDisabilityService {
   }
 
   public async count(filters?: Partial<UserDisability>): Promise<number> {
-    const count = await UserDisabilityModel.count(filters);
+    const count = await UserDisabilityModel.countDocuments(filters);
 
     return count;
   }

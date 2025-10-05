@@ -19,6 +19,7 @@ import { PaginationRequest, PaginationResponse } from "../lib/pagination";
 import EventTypes from "../lib/constants/event-types-enum";
 import configService from "./config.service";
 import subscriptionService from "./subscription.service";
+import crypto from "crypto";
 
 const idService = new IdServiceImpl();
 
@@ -32,6 +33,7 @@ type Filters = User | {
   telegram: string[];
   permission: boolean[];
   resetPasswordCode: string[];
+  verificationCode: string[];
   wantNameTag: boolean[];
   paid: boolean[];
   gotKit: boolean[];
@@ -105,7 +107,7 @@ class UserServiceImpl implements UserService {
   }
 
   public async count(filters?: Partial<Filters>): Promise<number> {
-    const count = await UserModel.count(filters);
+    const count = await UserModel.countDocuments(filters);
 
     return count;
   }
@@ -115,6 +117,7 @@ class UserServiceImpl implements UserService {
     user.createdAt = Date.now();
     user.updatedAt = Date.now();
     user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10));
+    user.verificationCode = crypto.randomBytes(6).toString("hex");
     const entity = await UserModel.create(user);
 
     return this.findById(entity.id);
@@ -146,6 +149,34 @@ class UserServiceImpl implements UserService {
     }
 
     return entity && this.mapEntity(entity);
+  }
+
+  public async deleteAllCron(){
+    //If user.verified is false and 30minutes has passed since the account has been created then
+    //delete that account
+    const now = new Date();
+    const formattedNow = now.toLocaleString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+    console.log(`[CRON] (${formattedNow}) Removendo contas...`);
+
+    const users = await UserModel.find({
+      verified: false,
+      createdAt: { $lt: new Date(Date.now() - 30 * 60 * 1000) }
+    });
+
+    users.forEach((user: User) => {
+      console.log("Usuário excluído: ", user.email)
+      this.delete(user);
+    })
+    
+    console.log("[CRON] Fluxo finalizado");
   }
 
   async getUserHouse(userId: string): Promise<House> {
@@ -243,11 +274,14 @@ class UserServiceImpl implements UserService {
       discord: entity.discord,
       telegram: entity.telegram,
       permission: entity.permission,
+      verified: entity.verified,
       resetPasswordCode: entity.resetPasswordCode,
+      verificationCode: entity.verificationCode,
       wantNameTag: entity.wantNameTag,
       paid: entity.paid,
       gotKit: entity.gotKit,
       gotTagName: entity.gotTagName,
+      additionalInfos: entity.additionalInfos,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };

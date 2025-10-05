@@ -1,62 +1,46 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 
-import IOSocket from "socket.io-client";
-import { Card } from '@mui/material';
+import { toast } from 'react-toastify';
 
 import GameConfig from "../../../libs/game-config";
 import Navbar from '../../../components/navbar';
 import Sidebar from '../../../components/sidebar';
-import Footer from '../../../components/Footer';
-import { baseURL } from "../../../constants/api-url";
 import { useAppContext } from "../../../libs/contextLib";
 import GameCard from '../../../components/game/game';
 import API from "../../../api";
-import AnimatedBG from '../../animatedBG';
+import SimpleBackground from '../../../components/home/SimpleBackground';
 import NewFooter from '../../newFooter';
 import Spinner from '../../../components/spinner';
+import { useSocket } from '../../../libs/hooks/useSocket';
+import { useGameAccess } from '../../../libs/hooks/useGameAccess';
+import GameAccessLoader from '../../../components/game/GameAccessLoader';
 
 export default function GamePage({children}) {
   const router = useRouter();
   const { game } = router.query;
 
+  const { isGameOpen, isLoading: isCheckingAccess } = useGameAccess();
   const [isFetchingTeam, setIsFetchingTeam] = useState(true);
   const [isFetchingConfig, setIsFetchingConfig] = useState(true);
   const [gameConfig, setGameConfig] = useState(null);
   const [team, setTeam] = useState(null);
+  const [hasCheckedTeam, setHasCheckedTeam] = useState(false);
 
-  // TIRAR ISSO DEPOIS DA SEMCOMP 27
-  const [imageIndex, setImageIndex] = useState<number>(10);
-  const timeToImage = [
-    { start: 5, end: 7, imgIndex: 0 },
-    { start: 7, end: 8, imgIndex: 1 },
-    { start: 8, end: 10, imgIndex: 2 },
-    { start: 10, end: 12, imgIndex: 3 },
-    { start: 12, end: 14, imgIndex: 4 },
-    { start: 14, end: 16, imgIndex: 5 },
-    { start: 16, end: 17, imgIndex: 6 },
-    { start: 17, end: 18, imgIndex: 7 },
-    { start: 18, end: 19, imgIndex: 8 },
-    { start: 19, end: 22, imgIndex: 9 },
-    { start: 0, end: 5, imgIndex: 10 },
-  ];
-  useEffect(() => {
-    const currentHour = new Date().getHours();
-    const matchedImage = timeToImage.find(
-      ({ start, end }) => currentHour >= start && currentHour < end
-    );
-    setImageIndex(matchedImage?.imgIndex ?? 10);
-  }, []);
-
-  const socket = IOSocket(baseURL, {
-    withCredentials: true,
-    transports: ["websocket"],
-  });
+  const { emit, on, off, isConnected } = useSocket();
   const { token } = useAppContext();
 
   function handleNewGroupInfo(info) {
     setTeam(info);
     setIsFetchingTeam(false);
+    setHasCheckedTeam(true);
+  }
+
+  function handleGroupUpdate(updateData) {
+    if (updateData.type === 'question-completed') {
+      // Atualizar o estado do grupo quando uma pergunta é completada
+      setTeam(updateData.data.group);
+    }
   }
 
   useEffect(() => {
@@ -72,7 +56,7 @@ export default function GamePage({children}) {
       
       if(result.data){
         const gameConfigInstance = new GameConfig(result.data);
-        setGameConfig(gameConfigInstance);  // Agora você passa a instância da classe
+        setGameConfig(gameConfigInstance);
       }
     } catch (e) {
       console.error(e);
@@ -83,50 +67,83 @@ export default function GamePage({children}) {
 
   useEffect(() => {
     if (gameConfig) {
-      socket.on(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
+      on(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
+      on(`${gameConfig.getEventPrefix()}-group-update`, handleGroupUpdate);
 
       return () => {
-        socket.off(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
+        off(`${gameConfig.getEventPrefix()}-group-info`, handleNewGroupInfo);
+        off(`${gameConfig.getEventPrefix()}-group-update`, handleGroupUpdate);
       };
     }
-  }, [gameConfig]);
+  }, [gameConfig, on, off]);
 
   useEffect(() => {
-    if (!gameConfig || !token) {
+    if (!gameConfig || !token || !isConnected) {
       return;
     }
-    socket.emit(`${gameConfig.getEventPrefix()}-join-group-room`, {token});
-  }, [gameConfig]);
+    emit(`${gameConfig.getEventPrefix()}-join-group-room`, {token});
+  }, [gameConfig, token, isConnected, emit]);
 
-  return (
-  <div className="min-h-screen w-full flex flex-col">
-  <Navbar />
-  <Sidebar />
-  <AnimatedBG imageIndex={imageIndex} />
-      <div className="w-full flex flex-col z-50">
-        <div className='p-6'>
-          {
-            !isFetchingTeam ? <GameCard
-              team={team}
-              setTeam={setTeam}
-              socket={socket}
-              gameConfig={gameConfig}
-              token={token}
-            ></GameCard>
-            :
-            <div className='z-20 h-full py-12 phone:pt-16 tablet:pt-34 w-full flex flex-col items-center justify-center'>
-              <div className='flex flex-col h-full items-center justify-center w-[50%] mobile:w-full text-primary static rounded-lg z-20 bg-white'>      
-                <div className='flex content-center'>
+  // Verifica se o usuário tem equipe após carregar tudo
+  useEffect(() => {
+    if (hasCheckedTeam && !team && gameConfig) {
+      toast.error('Você precisa estar em uma equipe para jogar!');
+      router.push(`/game/${game}/lobby`);
+    }
+  }, [hasCheckedTeam, team, gameConfig, router, game]);
+
+  if (isCheckingAccess || !isGameOpen) {
+    return <GameAccessLoader isCheckingAccess={isCheckingAccess} isGameOpen={isGameOpen} />;
+  }
+
+  // Se ainda está carregando a equipe, mostra loading
+  if (isFetchingTeam || !hasCheckedTeam) {
+    return (
+      <div className="flex flex-col min-h-screen md:h-full">
+        <Navbar />
+        <Sidebar />
+        <SimpleBackground />
+        <main className="flex justify-center flex-1 w-full md:h-full md:text-sm tablet:text-xl phone:text-xs md:items-center relative z-10">
+          <div className='flex flex-col items-center justify-center md:w-[50%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20 rounded-lg'>      
+            <div className='items-center justify-center h-fit md:w-[70%] md:p-9 tablet:p-12 phone:p-9 font-secondary tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20 text-white'>
+              <div className='z-20 h-full w-full flex flex-col items-center justify-center'>
                 <div className='flex flex-col items-center justify-center text-xl font-secondary py-16'>
-                  <p className='pb-4'>Tentando encontrar grupo</p>
+                  <p className='pb-4'>
+                    {isConnected ? 'Verificando equipe...' : 'Conectando...'}
+                  </p>
                   <Spinner size="large"/>
                 </div>
               </div>
             </div>
-        </div>
-          }
-        </div>
+          </div>
+        </main>
+        <NewFooter />
       </div>
+    );
+  }
+
+  // Se não tem equipe, não renderiza nada (já foi redirecionado)
+  if (!team) {
+    return null;
+  }
+
+  return (
+  <div className="flex flex-col min-h-screen md:h-full">
+  <Navbar />
+  <Sidebar />
+    <SimpleBackground />
+      <main className="flex justify-center flex-1 w-full md:h-full md:text-sm tablet:text-xl phone:text-xs md:items-center relative z-10">
+        <div className='flex flex-col items-center justify-center md:w-[50%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20 rounded-lg'>      
+          <div className='items-center justify-center h-fit md:w-[70%] md:p-9 tablet:p-12 phone:p-9 font-secondary tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20 text-white'>
+            <GameCard
+              team={team}
+              setTeam={setTeam}
+              gameConfig={gameConfig}
+              token={token}
+            />
+          </div>
+        </div>
+      </main>
     <NewFooter />
   </div>
   );

@@ -3,6 +3,7 @@ import {
   } from "../../lib/handle-validation-result";
   import { handleError } from "../../lib/handle-error";
   import gameConfigService from "../../services/game-config.service";
+  import ConfigService from "../../services/config.service";
   
 class GameConfigController {
 
@@ -10,8 +11,7 @@ class GameConfigController {
     try {
       handleValidationResult(req);
 
-      const { game, index } = req.params;
-
+      const { game } = req.params;
       const foundConfig = await gameConfigService.findOne({ game });
 
       return res.status(200).json(foundConfig);
@@ -27,9 +27,18 @@ class GameConfigController {
       // Busca a configuração do(s) jogo(s) pelo nome (ou outro identificador)
       const foundGames = await gameConfigService.findMany();
 
+      const config = await ConfigService.getOne();
+
+      const isActive = config.openGames;
+
       // Se não encontrar nenhum jogo
       if (!foundGames || foundGames.length === 0) {
-        return res.status(200).json({ message: 'No games for now' });
+        return res.status(200).json({ message: 'Não há jogos ativos' });
+      }
+
+      //Se os jogos não estiverem ativos
+      if(!isActive){
+        return res.status(200).json({ message: 'Os jogos estão desativados' });
       }
 
       let isHappeningGames = [];

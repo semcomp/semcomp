@@ -1,4 +1,5 @@
 import axios from "axios";
+import { v4 as uuidv4 } from "uuid";
 
 import PaymentIntegrationService, { CreatedPayment, Payment } from "./payment-integration.service";
 
@@ -29,7 +30,8 @@ export default class MercadoPagoPaymentService implements PaymentIntegrationServ
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${this.accessToken}`,
-    }
+      'X-Idempotency-Key': uuidv4()
+    };
 
     const createPaymentResponse = (await axios.post(
       'https://api.mercadopago.com/v1/payments',

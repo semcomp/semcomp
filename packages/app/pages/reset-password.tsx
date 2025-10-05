@@ -3,15 +3,14 @@ import React from "react";
 import { toast } from "react-toastify";
 
 import API from "../api";
-import Footer from "../components/Footer";
 import Sidebar from '../components/sidebar';
 import Stepper from "../components/stepper/Stepper";
 import Step0 from "../components/reset-password/Step0";
 import Step1 from "../components/reset-password/Step1";
 import Step2 from "../components/reset-password/Step2";
-import Card from "../components/Card";
 import { useAppContext } from "../libs/contextLib";
 import Navbar from "../components/navbar";
+import SimpleBackground from "../components/home/SimpleBackground";
 
 function ResetPassword() {
   // Controls the current step on the form.
@@ -129,29 +128,32 @@ function ResetPassword() {
   ][step];
 
   return (
-    <div className="flex flex-col justify-between min-h-screen font-secondary">
+    <div className="flex flex-col min-h-screen md:h-full">
       <Navbar />
       <Sidebar />
-      <main className="flex items-center justify-center flex-1 my-12 ">
-        <Card className="bg-white rounded-lg">
-          <div className="flex flex-col items-center w-full max-w-lg p-9">
-            <h1 className="text-xl ">Recuperar senha</h1>
+      <SimpleBackground />
+      <main className="flex justify-center flex-1 w-full md:h-full md:text-sm tablet:text-xl phone:text-xs md:items-center relative z-10">
+        <div className="flex flex-col items-center justify-center md:w-[50%] mobile:w-full backdrop-brightness-95 backdrop-blur z-20 rounded-lg">
+          <div className="items-center justify-center h-fit md:w-[70%] md:p-9 tablet:p-12 phone:p-9 font-secondary tablet:rounded-lg phone:w-full backdrop-brightness-90 backdrop-blur z-20">
+            <h1 className="text-2xl text-center text-white font-secondary tablet:text-3xl">Recuperar senha</h1>
+            <div className="w-full flex justify-center">
             <div className="w-full max-w-xs">
               <Stepper
                 numberOfSteps={3}
                 activeStep={step}
                 onStepClick={handleStepClick}
-                activeColor={"primary"} 
-                unactiveColor={"white"}              
+                  activeColor="#2840BD"
+                  unactiveColor="#E8E8E8"
               />
+              </div>
             </div>
-
             {/* Renders the correct form according to the current step */}
+            <div className="text-white">
             {stepComponent}
+            </div>
           </div>
-        </Card>
+        </div>
       </main>
-      <Footer />
     </div>
   );
 }

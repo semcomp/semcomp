@@ -56,7 +56,7 @@ class TShirtService {
   }
 
   public async count(filters?: Partial<TShirt>): Promise<number> {
-    const count = await TShirtModel.count(filters);
+    const count = await TShirtModel.countDocuments(filters);
 
     return count;
   }

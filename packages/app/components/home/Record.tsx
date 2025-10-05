@@ -14,7 +14,6 @@ const Record = ({ className, isPhone, isMobile }): ReactElement => {
         }
 
         setState(!state);
-        console.log(state);
     
     }
 

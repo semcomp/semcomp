@@ -59,10 +59,20 @@ export default class GameConfig {
     return this.game.maximumNumberOfMembersInGroup;
   }
 
-  public verifyIfIsHappening() {
+  public async verifyIfIsHappening(): Promise<boolean> {
     // console.log(new Date(Math.max(Date.now() - this.getStartDate().getTime(), 0)).getTime() > 0 && (this.getEndDate().getTime() - Date.now() > 0))
+    const result = await API.game.getIsHappening();
 
-    return (new Date(Math.max(Date.now() - this.getStartDate().getTime(), 0)).getTime() > 0) && (this.getEndDate().getTime() - Date.now() > 0)
+    if (!result && !result.data) {
+      return false;
+    }
+
+    const gameOpen = result.data.isHappeningGames?.find(game => {
+      if (game.prefix === this.game.eventPrefix) {
+        return game.isHappening;
+    }});
+
+    return gameOpen && (new Date(Math.max(Date.now() - this.getStartDate().getTime(), 0)).getTime() > 0) && (this.getEndDate().getTime() - Date.now() > 0)
   }
 
   public getRoutes(): { [key: string]: string } {

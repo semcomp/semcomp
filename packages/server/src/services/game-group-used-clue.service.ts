@@ -30,7 +30,7 @@ class GameGroupUsedClueService {
   }
 
   public async count(filters?: Partial<GameGroupUsedClue>): Promise<number> {
-    const count = await GameGroupUsedClueModel.count(filters);
+    const count = await GameGroupUsedClueModel.countDocuments(filters);
 
     return count;
   }

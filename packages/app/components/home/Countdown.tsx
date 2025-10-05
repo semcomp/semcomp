@@ -1,43 +1,35 @@
 import { ReactElement, useEffect, useState } from "react";
 
 import Card from "../Card";
+import { config } from "../../config";
 
 interface CountdownNumberProps {
-  timeIndex: number;
   number: number;
   label: string;
 }
 
-function textColor(timeIndex) {
-  if(timeIndex <= 6 && timeIndex > 2) {
-    return 'text-primary'
-  } else {
-    return 'text-white'
-  }
+function textColor() {
+  return 'text-white';
 }
 
-function borderColor(timeIndex) {
-  if(timeIndex <= 6 && timeIndex > 2) {
-    return 'border-primary'
-  } else {
-    return 'border-white'
-  }
+function borderColor() {
+  return 'border-white';
 }
 
-function CountdownNumber({ timeIndex, number, label }: CountdownNumberProps) {
+function CountdownNumber({ number, label }: CountdownNumberProps) {
   return (
     <div className="p-2 md:p-4">
-      <Card className={`flex flex-col items-center justify-center phone:w-14 phone:h-14 tablet:w-24 tablet:h-24 md:w-24 md:h-24 border-solid border rounded-lg ${borderColor(timeIndex)}`}>
-        <span className={`phone:text-lg tablet:text-4xl md:text-4xl ${textColor(timeIndex)}`}>
+      <Card className={`flex flex-col items-center justify-center phone:w-14 phone:h-14 tablet:w-24 tablet:h-24 md:w-24 md:h-24 border-solid border rounded-lg ${borderColor()}`}>
+        <span className={`phone:text-lg tablet:text-4xl md:text-4xl ${textColor()}`}>
           {number.toString().padStart(2, "0")}
         </span>
-        <span className={`phone:text-[10px] tablet:text-base md:text-base ${textColor(timeIndex)}`}>{label}</span>
+        <span className={`phone:text-[10px] tablet:text-base md:text-base ${textColor()}`}>{label}</span>
       </Card>
     </div>
   );
 }
 
-const Countdown = ({timeIndex}: {timeIndex: number}): ReactElement => {
+const Countdown = (): ReactElement => {
   const [days, setDays] = useState(null);
   const [hours, setHours] = useState(null);
   const [minutes, setMinutes] = useState(null);
@@ -46,7 +38,7 @@ const Countdown = ({timeIndex}: {timeIndex: number}): ReactElement => {
 
   useEffect(() => {
     setInterval(() => {
-      let eventDate = new Date(2024, 9, 19, 8).getTime();
+      let eventDate = new Date(config.START_DATE).getTime();
       let difference = eventDate - new Date().getTime();
       if (difference < 1) {
         setTimeUp(true);
@@ -74,11 +66,11 @@ const Countdown = ({timeIndex}: {timeIndex: number}): ReactElement => {
   }
 
   return (
-    <div className="flex flex-wrap justify-center font-thin select-none font-secondary">
-      <CountdownNumber timeIndex={timeIndex} number={days} label={dayString}></CountdownNumber>
-      <CountdownNumber timeIndex={timeIndex} number={hours} label="horas"></CountdownNumber>
-      <CountdownNumber timeIndex={timeIndex} number={minutes} label="minutos"></CountdownNumber>
-      <CountdownNumber timeIndex={timeIndex} number={seconds} label="segundos"></CountdownNumber>
+    <div className="flex flex-wrap justify-center select-none font-secondary">
+      <CountdownNumber number={days} label={dayString}></CountdownNumber>
+      <CountdownNumber number={hours} label="horas"></CountdownNumber>
+      <CountdownNumber number={minutes} label="minutos"></CountdownNumber>
+      <CountdownNumber number={seconds} label="segundos"></CountdownNumber>
     </div>
   );
 };

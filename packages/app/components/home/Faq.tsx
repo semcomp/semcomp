@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import Linkify from "react-linkify";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
@@ -68,7 +68,14 @@ function Question({ question, answer, isFirst, isLast }) {
                 </a>
               )}
             >
-              {answer}
+              {
+                answer.split('\n').map((line, index) => (
+                  <Fragment key={index}>
+                    {line}
+                    <br />
+                  </Fragment>
+                ))
+              }
             </Linkify>
           </p>
         </div>
@@ -99,17 +106,24 @@ const FAQ = () => {
       answer:
         "Sim! Campeonatos da game night e concursos terão premiações, mas não esqueça que, para poder participar, é preciso estar inscrito na Semcomp.",
     },
+    {
+      question: "O que é o tema da Semcomp?",
+      answer:
+        "A cada ano, a organização da Semcomp escolhe um tema para guiar o processo criativo da edição sendo desenvolvida. O tema escolhido direciona os elementos de marketing e da identidade visual, as atividades extracurriculares e culturais ao longo da semana e a ambientação do jogo, ajudando a criar uma atmosfera única e divertida para cada edição.\
+        \n\nDessa forma, é importante esclarecer que as palestras, minicursos e atividades acadêmicas que acontecem ao longo da semana são independentes do tema. Essas atrações abordam conteúdos técnicos e de diversas áreas áreas da computação, sem relação com o tema escolhido para o conteúdo extracurricular.\
+        \n\nOu seja neste ano, o tema escolhido foi cinema, enriquecendo as atividades extracurriculares, a estética e a experiência lúdica do evento. As palestras e minicursos continuam sendo focados em tecnologia e computação de modo geral, com o objetivo de complementar e aprofundar a formação dos alunos."
+      },
   ];
 
   return (
     <section
       id="schedule"
-      className="flex flex-col items-center overflow-auto text-center text-secondary custom-scroll"
+      className="pb-4 flex flex-col items-center overflow-auto text-center text-secondary custom-scroll"
       style={{ maxWidth: '100%' }}  // Garantir que não ultrapasse a largura da tela
     >
       <h1
         id="titulo"
-        className="text-purple-400 superdesktop:text-title-large desktop:text-title-large tablet:text-title-medium medphone:text-title-small phone:text-title-tiny text stroke"
+        className="text-modalTitleColor superdesktop:text-title-large desktop:text-title-large tablet:text-title-medium medphone:text-title-small phone:text-title-tiny text stroke mb-2"
       >
         FAQ
       </h1>
@@ -119,8 +133,8 @@ const FAQ = () => {
             key={index}
             question={item.question}
             answer={item.answer}
-            isFirst={index === 0} // Passa true se for a primeira pergunta
-            isLast={index === questions.length - 1} // Passa true se for a última pergunta
+            isFirst={index === 0}
+            isLast={index === questions.length - 1}
           />
         ))}
       </div>

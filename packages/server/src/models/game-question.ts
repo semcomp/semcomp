@@ -33,7 +33,6 @@ const GameQuestionSchema = new Mongoose.Schema(
     },
     index: {
       type: Number,
-      unique: true,
       required: true,
     },
     title: {
@@ -67,6 +66,8 @@ const GameQuestionSchema = new Mongoose.Schema(
   },
   { collection: "game-question" }
 );
+
+GameQuestionSchema.index({ game: 1, index: 1 }, { unique: true });
 
 export const GameQuestionModel = Mongoose.model(
   "game-question",

@@ -54,7 +54,7 @@ class TreasureHuntImageService {
   }
 
   public async count(filters?: Partial<Filters>): Promise<number> {
-    const count = await TreasureHuntImageModel.count(filters);
+    const count = await TreasureHuntImageModel.countDocuments(filters);
 
     return count;
   }

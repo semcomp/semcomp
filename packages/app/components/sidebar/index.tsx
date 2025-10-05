@@ -7,17 +7,17 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import { Box, Divider } from '@mui/material'; // Importar Divider
+import { Box, Divider } from '@mui/material';
 
 import Routes from '../../routes';
-import SemcompLogo from '../../assets/27-imgs/logo.svg';
 import { useAppContext } from '../../libs/contextLib';
 import { useRouter } from 'next/router';
 import { createTheme } from '@mui/material/styles';
-import Modal from '../home/Modal'; // Importar o Modal
+import Modal from '../home/Modal';
 import Logo from '../home/Logo';
 import API from "../../api";
 import GameIsHappening from "../../libs/constants/is-happening-game";
+import React from 'react';
 
 const theme = createTheme({
   palette: {
@@ -61,7 +61,7 @@ function Sidebar(props) {
   const isUserLoggedIn = Boolean(user);
 
   const [isOpen, setIsOpen] = useState(false);
-  const [buttonSelected, setButtonSelected] = useState(''); // Estado para controlar o modal
+  const [buttonSelected, setButtonSelected] = useState('');
   
   const [loadingGames, setLoadingGame] = useState(true);
   const [happeningGames, setHappeningGames] = useState([]);
@@ -150,7 +150,6 @@ function Sidebar(props) {
               Sobre nós
             </button>
             
-            {/* Divider abaixo do botão "Sobre nós" */}
             <Divider className="w-full" />
 
             <button
@@ -159,21 +158,27 @@ function Sidebar(props) {
             >
               Cronograma
             </button>
+            <Divider className="w-full" />
             {isUserLoggedIn ? (
               <>  
                 {
                   !loadingGames && 
-                  happeningGames.length > 0 &&
-                  happeningGames.map((game, index) => (
-                    game.isHappening &&
-                    <Navlink 
-                      key={index} 
-                      href={`/game/${game.prefix}/lobby`}
-                      className="text-lg font-secondary" >{game.title}</Navlink>
-                  ))
+                  happeningGames
+                    .filter(game => game.isHappening)
+                    .map((game, index) => (
+                      <React.Fragment key={`${game.prefix}-${index}`}>
+                        <NavLink
+                          title={game.title}
+                          href={`/game/${game.prefix}/lobby`}
+                        />
+                        
+                        <Divider className="w-full" />
+                      </React.Fragment>
+                    ))
                 }
                 <NavLink title="Perfil" href={Routes.profile + '#about'} />
-                <button className="w-full py-3 text-center text-white bg-primary" onClick={logUserOut}>
+            <Divider className="w-full" />
+            <button className="w-full py-3 text-center text-white bg-primary" onClick={logUserOut}>
                   Sair
                 </button>
               </>

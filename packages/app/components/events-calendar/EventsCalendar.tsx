@@ -137,7 +137,7 @@ const EventsCalendar = (props) => {
                     value={selectedDay || ""}
                     onChange={(e) => changeDay(e.target.value)}
                     className={`w-full px-4 py-2 text-white rounded-md font-secondary outline-none appearance-none transition ${
-                      selectedDay ? "bg-purple-400" : "bg-secondary"
+                      selectedDay ? "bg-secondary" : "bg-tertiary"
                     }`}
                   >
                     {uniqueDayAndDates.map((dayAndDate) => (
@@ -160,8 +160,8 @@ const EventsCalendar = (props) => {
                     key={dayAndDate}
                     className={`px-4 py-2 rounded-md transition transform focus:outline-none ${
                       selectedDay === dayAndDate
-                        ? "bg-purple-400 text-gray-900 shadow-inner scale-95"
-                        : "bg-secondary text-gray-900 hover:bg-purple-400 active:scale-95 active:shadow-inner"
+                        ? "bg-secondary text-gray-900 shadow-inner scale-95"
+                        : "bg-tertiary text-gray-900 hover:bg-secondary active:scale-95 active:shadow-inner"
                     }`}
                     onClick={() => changeDay(dayAndDate)}
                   >
@@ -196,7 +196,7 @@ const EventsCalendar = (props) => {
                   iconStyle={
                     isMobile
                       ? { display: "none" }
-                      : { background: "rgb(192 132 252)", color: "#fff" }
+                      : { background: "#006789ff", color: "#fff" }
                   }
                   contentStyle={
                     isMobile
@@ -224,14 +224,14 @@ const EventsCalendar = (props) => {
                 >
                   <div onClick={() => toggleExpandEvent(index)} className="cursor-pointer">
                     <div className="flex flex-row align-left justify-left w-full">
-                      <h4 className="text-purple-500 text-left pr-2 whitespace-nowrap">
+                      <h4 className="text-secondary text-left pr-2 whitespace-nowrap">
                           {event.type + " |"}
                       </h4>
                       <h3 className="text-left">
                         {event.name} { event.wasPresent ? <Chip label="Presente" color="primary" size="small" /> : ""}
                       </h3>
                     </div>
-                    <p className="flex items-center text-yellow-400">
+                    <p className="flex items-center text-yellow-600">
                       <AiOutlineClockCircle className="mr-2" />
                       {startTimeStr} - {endTimeStr}
                     </p>
@@ -245,13 +245,13 @@ const EventsCalendar = (props) => {
                     <div className="p-4">
                       {event.speaker && event.speaker.length > 0 && 
                         <div className="w-full flex flex-row items-center justify-left">
-                          <p className="text-purple-400 pr-2">Ministrante: </p> 
+                          <p className="text-secondary pr-2">Ministrante: </p> 
                           <p>{event.speaker}</p>
                         </div>
                       }
                       {event.location && event.location.length > 0 && 
                         <div className="w-full flex flex-row items-center justify-left">
-                            <p className="text-purple-400 pr-2">Local: </p>
+                            <p className="text-secondary pr-2">Local: </p>
                             <p>{event.location}</p>
                         </div>
                       }

@@ -311,8 +311,9 @@ export default class PaymentServiceImpl implements PaymentService {
       newPayment.paymentIntegrationId = paymentResponse.id;
       newPayment.qrCode = paymentResponse.qrCode;
       newPayment.qrCodeBase64 = paymentResponse.qrCodeBase64;
-    } catch {
+    } catch (error) {
       await this.delete(newPayment);
+      console.log('Error creating payment', { error, newPaymentData });
       throw new HttpError(400, ["Erro no servidor! Tente novamente mais tarde."]);
     }
 

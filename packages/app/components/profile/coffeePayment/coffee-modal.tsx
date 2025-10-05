@@ -23,6 +23,8 @@ export type CoffeePaymentData = {
     name: string,
     price: number,
     hasTShirt: boolean,
+    hasCoffee: boolean,
+    hasKit: boolean,
     items: string[],
     allowHalfPayment: boolean
   }[];
@@ -52,9 +54,7 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }
       <button
         type="button"
         onClick={onClick}
-        className={
-          `rounded bg-${user.house.name} text-white shadow-md px-6 py-3 ` + className
-        }
+        className={`rounded bg-primary text-white shadow-md px-6 py-3 ${className}`}
         {...props}
       >
         {children}
@@ -219,30 +219,55 @@ function CoffeePayment({ onRequestClose, allSales, dataOpenStep3, userPayments }
     />,
     <CoffeeStep3 key={2} data={data}/>,
   ];
-
+  const headerSales = filteredSales?.length ? filteredSales : data.sale;
   return (
     <Modal onRequestClose={onRequestClose}>
-      <div className={`w-full bg-${user.house.name} text-white text-center text-xl p-6`}>
-        Compra Kit e Coffee da Semcomp!
+      <div className="w-full bg-primary text-white text-center text-xl p-6">
+        {(() => {
+          const hasCoffee = headerSales?.some(item => item.hasCoffee);
+          const hasKit = headerSales?.some(item => item.hasKit);
+
+          if (hasCoffee && hasKit) {
+            return <p>Compre o Coffee e o Kit da Semcomp!</p>;
+          }
+          if (hasCoffee) {
+            return <p>Compre o Coffee da Semcomp!</p>;
+          }
+          if (hasKit) {
+            return <p>Compre o Kit da Semcomp!</p>;
+          }
+          return <p>{filteredSales ? "Garanta" : "Confira"} as ofertas da Semcomp!</p>;
+        })()}
       </div>
       { !loading ? 
         (
-          <div className="max-h-lg w-full overflow-y-scroll p-6">
-            { availableSales && availableSales.length > 0 &&
-              <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} activeColor={user.house.name} unactiveColor={"white"} />
-            }
-            {stepComponent[coffeeStep]}
-            <div className="flex justify-between w-full">
-              <SemcompButton className="bg-[#F24444]" onClick={onRequestClose}>
-                Fechar
-              </SemcompButton>
-              {coffeeStep < 2 && (filteredSales && filteredSales.length > 0) ? (
-                <SemcompButton onClick={nextCoffeeStep}>
-                  Próximo
-                </SemcompButton>
-              ) : <></>}
-            </div>
-          </div>
+          <>
+            { availableSales && availableSales.length > 0 ? (
+              <div className="w-full p-6 max-h-[60vh] overflow-y-auto">
+                <Stepper numberOfSteps={3} activeStep={coffeeStep} onStepClick={null} activeColor="#2840BD" unactiveColor="#E8E8E8" connectorColor="#2840BD" />
+                {stepComponent[coffeeStep]}
+                <div className="flex justify-between w-full">
+                  {coffeeStep > 0 && coffeeStep < 2 ? (
+                    <SemcompButton 
+                      onClick={() => setCoffeeStep(coffeeStep - 1)}
+                      className="bg-gray-500 hover:bg-gray-600"
+                    >
+                      Voltar
+                    </SemcompButton>
+                  ) : <div/>}
+                  {coffeeStep < 2 && (filteredSales && filteredSales.length > 0) ? (
+                    <SemcompButton onClick={nextCoffeeStep}>
+                      Próximo
+                    </SemcompButton>
+                  ) : <></>}
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 text-center">
+                <p className="text-black text-base font-bold mb-0">Não há vendas disponíveis no momento :(</p>
+              </div>
+            )}
+          </>
         ) : (
           <div className="my-5">
             <Spinner />

@@ -53,11 +53,6 @@ function MarkAttendanceModal({
             facingMode: 'environment',
           }}/>
       </div>
-      <div className="w-full px-6">
-        <button className="w-full bg-red-500 text-white py-3 px-6 my-6" type="button" onClick={onRequestClose}>
-          Fechar
-        </button>
-      </div>
     </Modal>
   );
 }

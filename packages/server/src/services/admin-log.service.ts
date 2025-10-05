@@ -24,7 +24,7 @@ class AdminLogService {
   }
 
   public async count(filters?: Partial<AdminLog>): Promise<number> {
-    const count = await AdminLogModel.count(filters);
+    const count = await AdminLogModel.countDocuments(filters);
 
     return count;
   }
