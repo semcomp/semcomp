@@ -42,14 +42,20 @@ function SignupPage() {
   //Get parameters from URL
   useEffect(() => {
     if (!router.isReady) return;
-    console.log('router', router.query);
-    const { email, step } = router.query;
-    setEmailUrl(typeof email === 'string' ? email : '');
-    const newStep = parseInt(typeof step === 'string' ? step : '');
-    if (!Number.isNaN(newStep)) {
+
+    const url = new URL(router.asPath, window.location.origin);
+    const email = url.searchParams.get("email") ?? "";
+    const stepStr = url.searchParams.get("step") ?? "";
+  
+    setEmailUrl(email);
+  
+    const stepNum = parseInt(stepStr);
+    if (!Number.isNaN(stepNum)) {
       setStep(STEPS.CONFIRMATION_CODE);
     }
-  }, [router.isReady, router.query]);
+  
+    console.log("email:", email, "step:", stepNum);
+  }, [router.isReady, router.asPath]);
 
   // This state will hold the whole form value. The `setFormValue` function will
   // be passed to all steps components. Whenver an input in any step changes, they
