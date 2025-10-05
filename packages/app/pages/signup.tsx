@@ -78,6 +78,7 @@ function SignupPage() {
     customCourse: "",
     customInstitute: "",
     extensionGroups: [],
+    educationLevel: ""
   });
 
   //new form value for the last step of the signup.
@@ -147,11 +148,16 @@ function SignupPage() {
       linkedin,
       customInstitute,
       extensionGroups,
+      educationLevel,
     } = formValue;
 
     // Some validation
     // TODO - move validation to a different file. Validation logic should be
     // separated from form logic
+    if (isStudent && educationLevel.trim().length === 0) {
+      return toast.error("Você deve informar o modelo de sua graduação");
+    }
+
     if (isStudent && !course)
       return toast.error("Você deve fornecer um curso se for estudante!");
 
@@ -268,6 +274,7 @@ function SignupPage() {
           expectedGraduationSemester: isStudent ? expectedGraduationSemester : null,
           institute: isStudent ? finalInstitute : null,
           extensionGroups: isStudent ? extensionGroups : null,
+          educationLevel: isStudent ? educationLevel : null
         },
       };
 
@@ -427,11 +434,9 @@ function SignupPage() {
                   <div className="my-12 text-center text-white">
                     <h1 className="text-4xl">Inscrições Encerradas! </h1>
                     <div className="text-xl">
-                      <p>Caso você tenha uma conta, clique
+                      <p>Caso você tenha uma conta, clique{' '}
                         <Link href="/login">
-                          <a className="text-blue-700 hover:text-blue-500 visited:bg-none">
-                            aqui
-                          </a>
+                          <a className="text-black hover:text-blue-500 visited:bg-none">aqui</a>
                         </Link>
                       </p>
                     </div>

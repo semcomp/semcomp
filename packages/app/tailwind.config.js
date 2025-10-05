@@ -26,9 +26,9 @@ module.exports = {
     },
     colors: themeColors,
     fontFamily: {
-      primary: ["Cinzel", "system-ui", "sans-serif"],
-      secondary: ["Poppins"],
-      tertiary: ["BebasNeue"]
+      primary: ["Jost", "system-ui", "sans-serif"],
+      secondary: ["Jost"],
+      tertiary: ["Jost"]
     },
     fontSize: {
       'superlarge': '25px',

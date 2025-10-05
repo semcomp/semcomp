@@ -32,19 +32,19 @@ const TitleHome: React.FC<TitleHomeProps> = (): ReactElement => {
         setTitleFontSize("7vw");
 
       } else if(width > 660){
-        setTitleFontSize("13vw");
+        setTitleFontSize("8vw");
 
       } else {
-        setTitleFontSize("16vw");
+        setTitleFontSize("14vw");
       }
 
       // Lógica para a logo
       if (width > 1050) {
-        setLogoSize("10vw");
+        setLogoSize("170vw");
       } else if(width > 660){
-        setLogoSize("20vw");
+        setLogoSize("150vw");
       }else{
-        setLogoSize("34vw");
+        setLogoSize("150vw");
       }
     };
 
@@ -55,7 +55,7 @@ const TitleHome: React.FC<TitleHomeProps> = (): ReactElement => {
   }, []);
 
   const getTitleColor = (): string => {
-    return "#FCFBFF"; // Cor branca consistente para o novo design
+    return "#FCFBFF";
   };
 
   return (
@@ -76,15 +76,15 @@ const TitleHome: React.FC<TitleHomeProps> = (): ReactElement => {
             className="relative flex flex-col items-center justify-center text-center text-primary md:mb-6 mobile:mb-8"
             style={{
               fontSize: titleFontSize,
-              fontFamily: "Windsor",
+              fontFamily: "Jost-sb",
               lineHeight: "0.9",
               color: getTitleColor(),
               textShadow: "2px 4px 6px rgba(36, 36, 36, 0.6)",
               zIndex: 1,
             }}
           >
-            <Logo className="mobile:mb-6" width={logoSize} height={logoSize} fillColor={getTitleColor()}/>
-            <span style={{ marginTop: "1vw" }}></span>
+            <Logo className="mobile:mb-6" width={logoSize} height={logoSize} />
+            <span className="my-3"/>
             SEMCOMP {config.EDITION}
           </h1>
         </div>

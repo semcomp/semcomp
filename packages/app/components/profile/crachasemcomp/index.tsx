@@ -67,7 +67,7 @@ function ConfirmarCracha({ onRequestClose, user }) {
           <br />
           <br />
           <span className="font-bold underline w-full text-center block">
-             Responder até dia 14/10.
+             Responder até dia 13/10.
           </span>
           <br />
         </p>

@@ -79,6 +79,21 @@
 }
 
 @font-face {
+  font-family: "Jost-sb";
+  src: url("../assets/28-fonts/Jost/static/Jost-SemiBold.ttf");
+}
+
+@font-face {
+  font-family: "Jost-med";
+  src: url("../assets/28-fonts/Jost/static/Jost-Medium.ttf");
+}
+
+@font-face {
+  font-family: "Jost";
+  src: url("../assets/28-fonts/Jost/static/Jost-Regular.ttf");
+}
+
+@font-face {
   font-family: "BebasNeue";
   src: url("../assets/28-fonts/Bebas_Neue/BebasNeue-Regular.ttf");
 }
@@ -157,7 +172,7 @@ a {
 }
 
 button{
-  font-family: "Poppins", "Roboto", sans-serif;
+  font-family: "Jost", "Roboto", sans-serif;
   font-weight: 300;
 }
 

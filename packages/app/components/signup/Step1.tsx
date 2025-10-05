@@ -103,6 +103,7 @@ function Step1({
     customCourse: string;
     customInstitute: string;
     extensionGroups: string[];
+    educationLevel: string;
   };
   updateFormValue: Function;
   onSubmit: Function;
@@ -173,6 +174,13 @@ function Step1({
     const isStudentValue = value === "Sim";
     setIsStudent(value);
     updateFormValue({ isStudent: isStudentValue });
+  }
+
+  const [educationLevel, setEducationLevel] = useState(formValue.educationLevel || "");
+  function handleEducationLevelChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value;
+    setEducationLevel(value);
+    updateFormValue({ educationLevel: value });
   }
 
   const [position, setPosition] = useState(formValue.position);
@@ -403,7 +411,7 @@ function Step1({
         type={InputType.Text}
         placeholder="Cole o link do seu perfil"
       />
-      <FormControl className="my-3">
+      <FormControl className="my-3 w-full">
         <FormLabel 
           id="student-label" 
           sx={{ 
@@ -478,6 +486,80 @@ function Step1({
       </FormControl>
       {isStudent === "Sim" && (
         <>
+          <FormControl className="my-3">
+            <FormLabel 
+              id="education-level-label" 
+              sx={{ 
+                color: 'white', 
+                marginBottom: '8px',
+                marginTop: '10px',
+                '&.Mui-focused': {
+                  color: 'white'
+                }
+              }}
+            >
+              Nível*
+            </FormLabel>
+            <RadioGroup
+              aria-labelledby="education-level-label"
+              value={educationLevel}
+              onChange={handleEducationLevelChange}
+              sx={{ flexDirection: 'row', gap: '16px' }}
+            >
+              <FormControlLabel
+                value="Pós graduação"
+                control={
+                  <Radio 
+                    sx={{ 
+                      color: 'white',
+                      '&.Mui-checked': {
+                        color: 'white'
+                      },
+                      '&.Mui-focusVisible': {
+                        color: 'white'
+                      }
+                    }} 
+                  />
+                }
+                label="Pós graduação"
+                sx={{ 
+                  color: 'white',
+                  '&.Mui-focused': {
+                    color: 'white'
+                  },
+                  '&:hover': {
+                    color: 'white'
+                  }
+                }}
+              />
+              <FormControlLabel
+                value="Graduação"
+                control={
+                  <Radio 
+                    sx={{ 
+                      color: 'white',
+                      '&.Mui-checked': {
+                        color: 'white'
+                      },
+                      '&.Mui-focusVisible': {
+                        color: 'white'
+                      }
+                    }} 
+                  />
+                }
+                label="Graduação"
+                sx={{ 
+                  color: 'white',
+                  '&.Mui-focused': {
+                    color: 'white'
+                  },
+                  '&:hover': {
+                    color: 'white'
+                  }
+                }}
+              />
+            </RadioGroup>
+          </FormControl>
           <Input
             className="my-3"
             label="Curso*"

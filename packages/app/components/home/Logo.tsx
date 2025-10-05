@@ -1,13 +1,28 @@
-import LogoSVG from '../../assets/logo_default_preto.svg';
+import Image, { StaticImageData } from 'next/image';
+import defaultLogo from '../../assets/28-imgs/logo.png';
 
-export default function Logo({ className = '', width = "1vw", height = "1vh", fillColor = '#000' }) {
+type LogoProps = {
+  className?: string;
+  width?: string;
+  height?: string;
+  src?: string | StaticImageData;
+  alt?: string;
+};
+
+export default function Logo({
+  className = '',
+  width = "1vm",
+  height = "1vm",
+  src,
+  alt = 'Semcomp Logo',
+}: LogoProps) {
   return (
-    <LogoSVG
-      alt="Semcomp Logo"
-      className={className}
+    <Image
+      src={src ?? defaultLogo}
+      alt={alt}
       width={width}
       height={height}
-      fill={fillColor}
+      className={className}
     />
   );
 }

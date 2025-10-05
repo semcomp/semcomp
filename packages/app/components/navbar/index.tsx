@@ -69,7 +69,7 @@ const Navbar = (props) => {
     "text-center px-4 w-full font-secondary md:flex md:justify-between md:items-center mobile:hidden";
 
   props.bg ? (navStyles += props.bg) : (navStyles += " bg-white text-primary shadow-lg z-50");
-  props.bg ? logoSize = 80 : logoSize = 50;
+  props.bg ? logoSize = "80vw" : logoSize = "50vw";
 
   // Funções para abrir o modal de "Sobre nós" e "Cronograma"
   function handleSobre() {
@@ -86,7 +86,7 @@ const Navbar = (props) => {
       <nav className={navStyles}>
         <Navlink href={Routes.home}>
           <div id="logo-img">
-            <Logo height={logoSize} width={logoSize} fillColor={themeColors.primary}/>
+            <Logo height={logoSize} width={logoSize} />
           </div>
         </Navlink>
 

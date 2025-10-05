@@ -33,7 +33,8 @@ function Modal({ children, onRequestClose, hideCloseButton = false, maxHeight = 
       aria-modal="true"
     >
       <div
-        className={`flex flex-col items-center w-full max-w-xl max-h-[${maxHeight}] bg-white rounded-lg shadow-2xl relative`}
+        className={`flex flex-col items-center w-full max-w-xl bg-white rounded-lg shadow-2xl relative overflow-hidden`}
+        style={{ maxHeight }}
         onClick={handleCardClick}
       >
         {!hideCloseButton && (
