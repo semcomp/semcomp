@@ -52,7 +52,7 @@ function ItemsTable({
   onRowSelect: (selectedIndexes: number[]) => void,
 }) {
   return (<DataTable
-    data={new PaginationResponse<ItemData>(mapData(data.getEntities()), data.getTotalNumberOfItems())}
+    data={new PaginationResponse<ItemData>(mapData(data == null? []: data.getEntities()), data == null? 0: data.getTotalNumberOfItems())}
     pagination={pagination}
     onRowClick={onRowClick}
     onRowSelect={onRowSelect}

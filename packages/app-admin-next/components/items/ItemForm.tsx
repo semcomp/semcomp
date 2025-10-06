@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 import Tier from "../../libs/constants/tier-enum";
 import Input, { InputType } from "../Input";
@@ -30,21 +30,28 @@ function ItemForm({
 }) {
   const [data, setData] = useState(initialData);
 
-  function handleInputChange(event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-    const { name, value } = event.target;
-    let updatedValue: string | number | Tier = value;
+  function handleMaxQttChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value;
+    setData({...data, maxQuantity: Number(value)});
+    onDataChange({...data, maxQuantity: Number(value)});
+  }
+  
+  function handleValueChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const val = event.target.value;
+    setData({...data, value: Number(val)});
+    onDataChange({...data, value: Number(val)});
+  }
 
-    if (name === 'value' || name === 'maxQuantity')
-      updatedValue = parseFloat(value) || 0;
-    else if (name === 'tier')
-      updatedValue = value as Tier;
-    else
-      updatedValue = value as string;
+  function handleNameChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const val = event.target.value;
+    setData({...data, name: val});
+    onDataChange({...data, name: val});
+  }
 
-    const updatedData = { ...data, [name]: updatedValue } as ItemFormData;
-
-    setData(updatedData);
-    onDataChange(updatedData);
+  function handleTierChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const val = event.target.value;
+    setData({...data, tier: val as Tier});
+    onDataChange({...data, name: val as Tier});
   }
 
   return (
@@ -53,28 +60,28 @@ function ItemForm({
         className="my-3"
         label="name"
         value={data.name}
-        onChange={handleInputChange}
+        onChange={handleNameChange}
         type={InputType.Text}
       />
       <Input
         className="my-3"
         label="value"
         value={data.value}
-        onChange={handleInputChange}
+        onChange={handleValueChange}
         type={InputType.Number}
       />
       <Input
         className="my-3"
         label="Quantidade Máxima"
         value={data.maxQuantity}
-        onChange={handleInputChange}
+        onChange={handleMaxQttChange}
         type={InputType.Number}
       />
       <Input
         className="my-3"
         label="Tier"
         value={data.tier}
-        onChange={handleInputChange}
+        onChange={handleTierChange}
         choices={TIERS}
         type={InputType.Select}
       />

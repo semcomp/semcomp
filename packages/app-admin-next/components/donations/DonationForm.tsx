@@ -64,8 +64,9 @@ function DonationForm({
   };
 
   function handleHouseChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const houseId = event.target.value;
-    updateData({ houseId });
+    const val = event.target.value;
+    setData({...data, houseId: val});
+    onDataChange({...data, houseId: val});
   }
 
   function handleItemChange(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -73,14 +74,24 @@ function DonationForm({
     
     const selectedItem = items.getEntities().find(item => item.id === itemId) || null;
 
-    updateData({ item: selectedItem });
+    setData({...data, item: selectedItem});
+    onDataChange({...data, item: selectedItem});
   }
 
-  function handleNumberChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const { name, value } = event.target;
-    const updatedValue = parseFloat(value) || 0;
+  function handleQtdChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const val = event.target;
+    const updatedValue = parseFloat(val.value) || 0;
     
-    updateData({ [name]: updatedValue } as Partial<DonationFormData>);
+    setData({...data, quantity: updatedValue});
+    onDataChange({...data, quantity: updatedValue});
+  }
+
+  function handlePointsChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const val = event.target;
+    const updatedValue = parseFloat(val.value) || 0;
+    
+    setData({...data, points: updatedValue});
+    onDataChange({...data, points: updatedValue});
   }
 
   return (
@@ -107,7 +118,7 @@ function DonationForm({
         className="my-3"
         label="Quantidade"
         value={data.quantity}
-        onChange={handleNumberChange}
+        onChange={handleQtdChange}
         type={InputType.Number}
       />
       
@@ -115,7 +126,7 @@ function DonationForm({
         className="my-3"
         label="Pontos"
         value={data.points}
-        onChange={handleNumberChange}
+        onChange={handlePointsChange}
         type={InputType.Number}
       />
     </>

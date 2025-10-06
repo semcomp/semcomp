@@ -48,7 +48,7 @@ function DonationsTable({
   onRowSelect: (selectedIndexes: number[]) => void,
 }) {
   return (<DataTable
-    data={new PaginationResponse<DonationData>(mapData(data.getEntities()), data.getTotalNumberOfItems())}
+    data={new PaginationResponse<DonationData>(mapData(data == null? []: data.getEntities()), data == null? 0: data.getTotalNumberOfItems())}
     pagination={pagination}
     onRowClick={onRowClick}
     onRowSelect={onRowSelect}
