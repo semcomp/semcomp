@@ -52,7 +52,11 @@ function ItemsTable({
   onRowSelect: (selectedIndexes: number[]) => void,
 }) {
   return (<DataTable
+<<<<<<< HEAD
     data={new PaginationResponse<ItemData>(mapData(data == null? []: data.getEntities()), data == null? 0: data.getTotalNumberOfItems())}
+=======
+    data={new PaginationResponse<ItemData>(mapData(data == null ? [] : data.getEntities()), data == null ? 0 : data.getTotalNumberOfItems())}
+>>>>>>> e78ebc7 (fix: Donation 404 error)
     pagination={pagination}
     onRowClick={onRowClick}
     onRowSelect={onRowSelect}

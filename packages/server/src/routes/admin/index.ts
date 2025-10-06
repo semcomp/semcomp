@@ -40,6 +40,8 @@ export default class AdminRouter {
   public create(): Router {
     const router = Router();
 
+    router.use("/donation", donationRouter);
+    router.use("/item", itemRouter);
     router.use("/auth", authRouter);
     router.use("/game/questions", gameQuestionsRouter);
     router.use("/game/groups", gameGroupsRouter);
@@ -58,8 +60,6 @@ export default class AdminRouter {
     router.use("/subscription", subscriptionRouter);
     router.use("/treasure-hunt-images", treasureHuntImageRouter);
     router.use("/attendances", attendanceRouter);
-    router.use("/donation", donationRouter);
-    router.use("/item", itemRouter);
 
     return router;
   }
