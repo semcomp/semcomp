@@ -66,20 +66,23 @@ class AuthService {
       await userDisabilityService.create(userDisability);
     }
 
-    // TODO: Verificar pq em prod esse link remove os parametros
-    // <h3>Acesse a página de verificação <a  href="https://semcomp.icmc.usp.br/signup?email=${encodeURIComponent(createdUser.email)}&step=2"> aqui </a></h3>
+    const baseUrl = process.env.NODE_ENV === "production" 
+      ? "https://semcomp.icmc.usp.br" 
+      : "http://localhost:3000";
+    
     try{
       await emailService.send(
         createdUser.email,
         "Bem vinde à Semcomp 28!",
         `Você se cadastrou no nosso site, não se esqueça de confirmar sua conta!
         Se prepare para a 28° edição da maior Semana de Computação do Brasil! Aproveite o melhor das nossas palestras, minicursos, concursos e eventos culturais!
-        Fique de olho no nosso site (https://semcomp.icmc.usp.br/), Twitter (https://twitter.com/semcomp), e Instagram (https://www.instagram.com/semcomp/) para não perder nenhum detalhe da programação incrível que preparamos especialmente para VOCÊ!`,
+        Fique de olho no nosso site (${baseUrl}/), Twitter (https://twitter.com/semcomp), e Instagram (https://www.instagram.com/semcomp/) para não perder nenhum detalhe da programação incrível que preparamos especialmente para VOCÊ!`,
         `<div>
         <h1>Voc&ecirc; se cadastrou no nosso site, não se esqueça de confirmar sua conta!</h1>
         <h3>Seu código para confirmação de conta: ${user?.verificationCode}</h3>
+        <h3>Acesse a página de verificação <a  href="${baseUrl}/verify?email=${encodeURIComponent(createdUser.email)}"> aqui </a></h3>
         <p>Se prepare para a 28&deg; edi&ccedil;&atilde;o da maior Semana de Computa&ccedil;&atilde;o do Brasil! Aproveite o melhor das nossas palestras, minicursos, concursos e eventos culturais!</p>
-        <p>Fique de olho no nosso <a href="https://semcomp.icmc.usp.br/">site</a>, <a href="https://twitter.com/semcomp">Twitter</a>, e <a href="https://www.instagram.com/semcomp/">Instagram</a>&nbsp;para n&atilde;o perder nenhum detalhe da programa&ccedil;&atilde;o incr&iacute;vel que preparamos especialmente para VOC&Ecirc;!</p>
+        <p>Fique de olho no nosso <a href="${baseUrl}/">site</a>, <a href="https://twitter.com/semcomp">Twitter</a>, e <a href="https://www.instagram.com/semcomp/">Instagram</a>&nbsp;para n&atilde;o perder nenhum detalhe da programa&ccedil;&atilde;o incr&iacute;vel que preparamos especialmente para VOC&Ecirc;!</p>
         </div>`
       );
 
@@ -95,6 +98,10 @@ class AuthService {
       throw new HttpError(401, []);
     }
 
+    const baseUrl = process.env.NODE_ENV === "production" 
+      ? "https://semcomp.icmc.usp.br" 
+      : "http://localhost:3000";
+
     try {
       await emailService.send(
         email,
@@ -102,7 +109,7 @@ class AuthService {
         `Seu código de verificação: ->: ${user?.verificationCode}`,
         `<div>
         <h1>Seu código para confirmação de conta:${user?.verificationCode}</h1>
-        <h2>Acesse a página de verificação <a  href="http://localhost:3000/signup?email=${user.email}&step=2"> aqui </a>
+        <h2>Acesse a página de verificação <a  href="${baseUrl}/verify?email=${encodeURIComponent(user.email)}"> aqui </a>
         </div>`
       );
 

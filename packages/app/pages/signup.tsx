@@ -38,44 +38,6 @@ function SignupPage() {
   // Controls the current step on the form.
   const [step, setStep] = useState(STEPS.BASIC_INFO);
 
-
-  //Get parameters from URL
-  useEffect(() => {
-    console.log('href', window.location.href);
-    console.log('path', router.asPath);
-    console.log('query', router.query);
-    if (!router.isReady) return;
-  
-    const url = new URL(router.asPath, window.location.origin);
-    const email = url.searchParams.get("email") ?? "";
-    const stepStr = url.searchParams.get("step") ?? "";
-  
-    if (email) {
-      setEmailUrl(email);
-      sessionStorage.setItem("signup.email", email);
-    }
-  
-    const stepNum = parseInt(stepStr);
-    if (!Number.isNaN(stepNum)) {
-      setStep(STEPS.CONFIRMATION_CODE);
-      sessionStorage.setItem("signup.step", String(stepNum));
-    }
-  }, [router.isReady, router.asPath]);
-  
-  // Fallback: recuperar se a URL chegou sem params (ex.: após 401)
-  useEffect(() => {
-    if (!router.isReady) return;
-  
-    if (!emailUrl) {
-      const savedEmail = sessionStorage.getItem("signup.email");
-      if (savedEmail) setEmailUrl(savedEmail);
-    }
-    if (step === STEPS.BASIC_INFO) {
-      const savedStep = sessionStorage.getItem("signup.step");
-      if (savedStep === "2") setStep(STEPS.CONFIRMATION_CODE);
-    }
-  }, [router.isReady]);
-
   // This state will hold the whole form value. The `setFormValue` function will
   // be passed to all steps components. Whenver an input in any step changes, they
   // should update the whole state by calling the `setFormValue` function with
@@ -319,11 +281,8 @@ function SignupPage() {
     if (isSigningUp) return;
 
     const { verificationCode } = verificationFormValue;
-    console.log('FORM VALUE', formValue);
-    console.log('FORM VALUE', formValue.email);
     let { email } = formValue;
 
-    console.log('email antes de verificationCode', email);
     if (!verificationCode)
       return toast.error("Você deve fornecer um código de verificação!");
 
@@ -331,11 +290,9 @@ function SignupPage() {
     try {
       setIsSigningUp(true); // Sets the state to show the spinner
       
-      console.log('email url', emailUrl, typeof emailUrl);
-      if (emailUrl !== null && emailUrl.trim().length > 0) {
+      if (emailUrl && emailUrl.trim().length > 0) {
         email = emailUrl;
       }
-      console.log('email depois do email url', email);
       const { data } = await API.confirmVerificationCode(email, verificationCode);
       localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
