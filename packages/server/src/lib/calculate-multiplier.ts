@@ -28,7 +28,7 @@ class CalculatorService {
     const x = minimumMultiplier - item.tierQuantity / item.maxQuantity;
     
     const poly = new Polynomial(coeficients.reverse());
-    let multiplier = poly.eval(x);
+    let multiplier = poly.eval(x >= 0 ? x : 0);
     
     multiplier = Math.max(minimumMultiplier, multiplier);
 
@@ -36,13 +36,33 @@ class CalculatorService {
   }
 
 
-  verifyDemote(item: any) {
-    return item.tierQuantity >= item.maxQuantity;
-  }
-
-  async findNextTier(actualTier: Tier) {
+  findNextTier(actualTier: Tier) {
       return nextTierMap[actualTier];
   }
+
+  totalPoints(item: any, quantity: number): number {
+      let points: number = 0;
+
+      for (let i = 0; i < quantity; i++) {
+        item.tierQuantity += 1;
+
+        points += this.calculateMultiplier(item, item.tier) * item.value;
+
+
+        if (item.tierQuantity >= item.maxQuantity) {
+          const nextTier = this.findNextTier(item.tier);
+
+          if (nextTier) {
+            item.tier = nextTier;
+            item.tierQuantity = 0;
+          } else {
+            item.tierQuantity = item.maxQuantity;
+          }
+        }
+      }
+
+      return points;
+    }
 }
 
 export default new CalculatorService();
