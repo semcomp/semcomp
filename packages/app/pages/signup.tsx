@@ -319,8 +319,11 @@ function SignupPage() {
     if (isSigningUp) return;
 
     const { verificationCode } = verificationFormValue;
+    console.log('FORM VALUE', formValue);
+    console.log('FORM VALUE', formValue.email);
     let { email } = formValue;
 
+    console.log('email antes de verificationCode', email);
     if (!verificationCode)
       return toast.error("Você deve fornecer um código de verificação!");
 
@@ -328,9 +331,11 @@ function SignupPage() {
     try {
       setIsSigningUp(true); // Sets the state to show the spinner
       
+      console.log('email url', emailUrl, typeof emailUrl);
       if (emailUrl !== null && emailUrl.trim().length > 0) {
         email = emailUrl;
       }
+      console.log('email depois do email url', email);
       const { data } = await API.confirmVerificationCode(email, verificationCode);
       localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
