@@ -153,11 +153,11 @@ function CoffeeStep2({
             Medidas aproximada da modelagem tradicional <br/>
             LARGURA X COMPRIMENTO <br/><br/>
     
-            P   - 50x70 cm <br/>
-            M   - 52x72 cm <br/>
-            G   - 54X74 cm <br/>
-            GG  - 57X77 cm <br/>
-            XGG - 60X80 cm <br/><br/>
+            P   - 51x70 cm <br/>
+            M   - 54X72 cm <br/>
+            G   - 56X74 cm <br/>
+            GG  - 58X76 cm <br/>
+            EXG - 64x76 cm <br/><br/>
 
             <b>Na dúvida entre dois tamanhos, opte pelo maior.</b>
           </p>

@@ -31,7 +31,8 @@ function Step2(
     <form className="w-full" onSubmit={handleSubmit}>
       <p>
         Enviamos para o seu e-mail um código de verificação. Por favor, digite o
-        código aqui abaixo e confirme o seu email.
+        código aqui abaixo e confirme o seu email. Você tem 30 minutos para realizar essa verificação.
+         Não feche essa página.
       </p>
       <Input
         className="my-3"
