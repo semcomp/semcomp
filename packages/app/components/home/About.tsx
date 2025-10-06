@@ -30,7 +30,7 @@ function About() {
           <br />
           
           <p id="aboutText" className="text-gray-300 font-secondary">
-            Ela acontecerá dos dias <strong>21 a 25 de Outubro</strong>, estamos esperando por você!
+            Ela acontecerá dos dias <strong>20 a 24 de Outubro</strong>, estamos esperando por você!
           </p>
           
 

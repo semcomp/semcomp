@@ -328,7 +328,9 @@ function SignupPage() {
     try {
       setIsSigningUp(true); // Sets the state to show the spinner
       
-      if (emailUrl != null) email = emailUrl;
+      if (emailUrl !== null && emailUrl.trim().length > 0) {
+        email = emailUrl;
+      }
       const { data } = await API.confirmVerificationCode(email, verificationCode);
       localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
