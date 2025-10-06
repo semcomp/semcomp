@@ -16,6 +16,7 @@ function VerifyPage() {
   const { setUser } = useAppContext();
 
   const [isSigningUp, setIsSigningUp] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formValue, setFormValue] = useState({
     email: "",
     verificationCode: "",
@@ -34,6 +35,8 @@ function VerifyPage() {
     } catch {
         console.log('Não foi possível recuperar os dados a partir da URL');
     }
+
+    setLoading(false);
   }, [router.isReady, router.asPath]);
 
   function updateFormValue(newValue) {
@@ -70,12 +73,14 @@ function VerifyPage() {
           <div className="h-full items-center justify-center font-secondary phone:mt-16 backdrop-brightness-90 backdrop-blur z-20 md:w-[70%] md:p-9 md:pb-2 tablet:p-20 md:rounded-none tablet:rounded-lg tablet:max-w-[700px] tablet:min-w-[500px] phone:p-9 phone:w-full">
             <h1 className="text-2xl text-center text-white font-secondary tablet:text-3xl">Confirmar e-mail</h1>
             <div className="text-white pb-6">
-              <Step2
-                formValue={formValue}
-                updateFormValue={updateFormValue}
-                onSubmit={handleSubmit}
-                isSigningUp={isSigningUp}
-              />
+                { !loading && 
+                    <Step2
+                        formValue={formValue}
+                        updateFormValue={updateFormValue}
+                        onSubmit={handleSubmit}
+                        isSigningUp={isSigningUp}
+                    />
+                }
             </div>
           </div>
         </div>

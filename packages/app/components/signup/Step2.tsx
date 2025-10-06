@@ -20,12 +20,6 @@ function Step2(
     updateFormValue({ verificationCode: value });
   };
 
-  useEffect(() => {
-    if (formValue.email) {
-      setEmailInput(formValue.email);
-    }
-  }, [formValue]);
-
   function handleSubmit(event) {
     event.preventDefault(); // Stops the page from reloading
 
