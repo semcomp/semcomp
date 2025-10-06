@@ -41,6 +41,9 @@ function SignupPage() {
 
   //Get parameters from URL
   useEffect(() => {
+    console.log('href', window.location.href);
+    console.log('path', router.asPath);
+    console.log('query', router.query);
     if (!router.isReady) return;
   
     const url = new URL(router.asPath, window.location.origin);
