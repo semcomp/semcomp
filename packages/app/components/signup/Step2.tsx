@@ -35,15 +35,13 @@ function Step2(
         código aqui abaixo e confirme o seu email. Você tem 30 minutos para realizar essa verificação.
          Não feche essa página.
       </p>
-      {!emailInput && (
-        <Input
-          className="my-3"
-          label="E-mail"
-          value={emailInput}
-          onChange={(e) => { setEmailInput(e.target.value); updateFormValue({ email: e.target.value }); }}
-          type={InputType.Text}
-        />
-      )}
+      <Input
+        className="my-3"
+        label="E-mail"
+        value={emailInput}
+        onChange={(e) => { setEmailInput(e.target.value); updateFormValue({ email: e.target.value }); }}
+        type={InputType.Text}
+      />
       <Input
         className="my-3"
         label="Código recebido por e-mail"
