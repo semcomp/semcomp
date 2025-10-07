@@ -21,6 +21,6 @@ router.post(
     body("password", "Invalid field 'password'").isLength({ min: 6 }),
   ],
   AdminAuthController.login
-);
+)
 
 export default router;

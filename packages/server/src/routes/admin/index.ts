@@ -40,8 +40,8 @@ export default class AdminRouter {
   public create(): Router {
     const router = Router();
 
-    router.use("/donation", donationRouter);
-    router.use("/item", itemRouter);
+    router.use("/donations", donationRouter);
+    router.use("/items", itemRouter);
     router.use("/auth", authRouter);
     router.use("/game/questions", gameQuestionsRouter);
     router.use("/game/groups", gameGroupsRouter);
