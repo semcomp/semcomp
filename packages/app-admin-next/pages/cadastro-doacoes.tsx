@@ -110,7 +110,7 @@ function Donations() {
     {
       !isLoading && (
         <DataPage
-          title="Itens doados"
+          title="Doações Realizadas"
           isLoading={isLoading}
           buttons={<button
             className="bg-black text-white py-3 px-6"

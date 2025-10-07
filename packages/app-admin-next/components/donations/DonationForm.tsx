@@ -57,12 +57,6 @@ function DonationForm({
   const [data, setData] = useState(initialData);
   const { houses, items, isLoadingDropdowns } = useDropdownData();
 
-  const updateData = (updatedFields: Partial<DonationFormData>) => {
-    const updatedData = { ...data, ...updatedFields };
-    setData(updatedData);
-    onDataChange(updatedData);
-  };
-
   function handleHouseChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const val = event.target.value;
     setData({...data, houseId: val});
@@ -72,7 +66,7 @@ function DonationForm({
   function handleItemChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const itemId = event.target.value;
     
-    const selectedItem = items.getEntities().find(item => item.id === itemId) || null;
+    const selectedItem = items == null? null: items.getEntities().find(item => item.id === itemId) || null;
 
     setData({...data, item: selectedItem});
     onDataChange({...data, item: selectedItem});
@@ -102,7 +96,7 @@ function DonationForm({
         value={data.houseId} 
         onChange={handleHouseChange}
         type={InputType.Select}
-        choices={houses.getEntities().map(h => ({ label: h.name, value: h.id }))}
+        choices={houses == null? []: houses.getEntities().map(h => ({ label: h.name, value: h.id }))}
       />
 
       <Input
@@ -111,7 +105,7 @@ function DonationForm({
         value={data.item?.name || ""} 
         onChange={handleItemChange}
         type={InputType.Select}
-        choices={items.getEntities().map(i => ({ label: i.name, value: i }))}
+        choices={items == null? []: items.getEntities().map(i => ({ label: i.name, value: i }))}
       />
       
       <Input

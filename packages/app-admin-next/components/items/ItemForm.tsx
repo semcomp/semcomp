@@ -51,21 +51,21 @@ function ItemForm({
   function handleTierChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const val = event.target.value;
     setData({...data, tier: val as Tier});
-    onDataChange({...data, name: val as Tier});
+    onDataChange({...data, tier: val as Tier});
   }
 
   return (
     <>
       <Input
         className="my-3"
-        label="name"
+        label="Nome"
         value={data.name}
         onChange={handleNameChange}
         type={InputType.Text}
       />
       <Input
         className="my-3"
-        label="value"
+        label="Valor"
         value={data.value}
         onChange={handleValueChange}
         type={InputType.Number}
