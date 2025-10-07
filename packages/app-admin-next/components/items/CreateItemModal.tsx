@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 
 import SemcompApi from "../../api/semcomp-api";
-import { SemcompApiItem } from "../../models/SemcompApiModels"
+import { SemcompApiItem } from "../../models/SemcompApiModels";
 import { useAppContext } from "../../libs/contextLib";
 import Modal from "../Modal";
 import LoadingButton from "../reusable/LoadingButton";
