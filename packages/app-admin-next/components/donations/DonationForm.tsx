@@ -20,14 +20,6 @@ function useDropdownData() {
   const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
   const [houses, setHouses] = useState(null as SemcompApiGetHousesResponse);
   const [items, setItems] = useState(null as SemcompApiGetItemsResponse);
-  // NOTE: Initializing PaginationRequest here might be causing an issue if fetchDropdownOptions is not defined yet
-  // If your PaginationRequest needs the function immediately, you should pass a dummy or define fetchDropdownOptions outside
-  // For simplicity, I'll define fetchDropdownOptions outside useEffect as it depends on it.
-  
-  // NOTE: The issue with 'pagination' in your original code: 
-  // const [pagination, setPagination] = useState(new PaginationRequest(() => (fetchDropdownOptions())));
-  // is complex. I'll revert it to the simpler, non-state approach unless required otherwise.
-  // Using an empty object or null for simple requests is safer in hooks.
   const [pagination, setPagination] = useState(new PaginationRequest (() => fetchDropdownOptions())); 
   const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(true);
 

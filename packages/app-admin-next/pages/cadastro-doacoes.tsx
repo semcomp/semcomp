@@ -4,7 +4,7 @@ import DataTable from '../components/reusable/DataTable';
 import RequireAuth from '../libs/RequireAuth';
 import SemcompApi from '../api/semcomp-api';
 import { useAppContext } from '../libs/contextLib';
-import { SemcompApiDonation, SemcompApiGetDonationsResponse } from '../models/SemcompApiModels';
+import { SemcompApiDonation, SemcompApiGetDonationsResponse, SemcompApiGetHousesResponse } from '../models/SemcompApiModels';
 import CreateDonationModal from '../components/donations/CreateDonationModal';
 // import EditItemModal from '../components/items/EditItemModal';
 import DataPage from '../components/DataPage';
@@ -20,6 +20,8 @@ type DonationData = {
     "Quantidade": number,
     "Pontos": number,
 };
+
+var selectedHouses: SemcompApiGetHousesResponse
 
 function toDonationFormData(donation: SemcompApiDonation): DonationFormData {
   return {
@@ -37,7 +39,7 @@ function mapData(data: SemcompApiDonation[]): DonationData[] {
   for (const donation of data) {
     newData.push({
       "ID": donation.id,
-      "HouseId": donation.houseId,
+      "HouseId": selectedHouses == null ? "" : selectedHouses.getEntities().find(house => house.id == donation.houseId).name,
       "Item": donation.item?.name ?? "",
       "Quantidade": donation.quantity,
       "Pontos": donation.points,
@@ -73,6 +75,7 @@ function Donations() {
   const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
 
   const [data, setData] = useState(null as SemcompApiGetDonationsResponse);
+  const [houses, setHouses] = useState(null as SemcompApiGetHousesResponse);
   const [pagination, setPagination] = useState(new PaginationRequest(() => fetchData()));
   const [selectedData, setSelectedData] = useState(null as DonationFormData);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,8 +96,10 @@ function Donations() {
     try {
       setIsLoading(true);
       const response = await semcompApi.getDonations(pagination);
-      console.log(response);
       setData(response);
+      const houseList = await semcompApi.getHouses(pagination);
+      setHouses(houseList);
+      selectedHouses = houseList
     } catch (error) {
       console.error(error);
     } finally {
@@ -121,15 +126,6 @@ function Donations() {
         onRequestClose={() => setIsCreateModalOpen(false)}
       />
     )}
-    {/* {isEditModalOpen && (
-      <EditItemModal
-        initialValue={selectedData}
-        onRequestClose={() => {
-          fetchData();
-          setIsEditModalOpen(false);
-        }}
-      />
-    )} */}
     {
       !isLoading && (
         <DataPage
@@ -147,7 +143,7 @@ function Donations() {
             pagination={pagination}
             onRowClick={handleRowClick}
             onRowSelect={handleSelectedIndexesChange}
-            actions={{"deleteDonation": deleteDonation}}
+            actions={{"delete_donation": deleteDonation}}
           />}
         ></DataPage>
       )

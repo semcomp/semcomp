@@ -113,15 +113,6 @@ function Items() {
         onRequestClose={() => setIsCreateModalOpen(false)}
       />
     )}
-    {/* {isEditModalOpen && (
-      <EditItemModal
-        initialValue={selectedData}
-        onRequestClose={() => {
-          fetchData();
-          setIsEditModalOpen(false);
-        }}
-      />
-    )} */}
     {
       !isLoading && (
         <DataPage
@@ -139,7 +130,7 @@ function Items() {
             pagination={pagination}
             onRowClick={handleRowClick}
             onRowSelect={handleSelectedIndexesChange}
-            actions={{"deleteItem": deleteItem}}
+            actions={{"delete_item": deleteItem}}
           />}
         ></DataPage>
       )
