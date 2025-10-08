@@ -16,7 +16,10 @@ function CoffeeStep1({
 }) {
   const showCoffeeMessage = false;
 
-  function handleSaleOptionChange(saleOptions: string[]) {
+  function handleSaleOptionChange(event: PointerEvent) {
+    const target = event.target as unknown as { value: string[] };    // TODO: Corrigir
+    const saleOptions = target?.value as string[];
+
     const sales = [];
     if (saleOptions.length > 0) {
       saleOptions.forEach((option) => {
