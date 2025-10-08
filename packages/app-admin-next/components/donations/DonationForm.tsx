@@ -112,7 +112,6 @@ function DonationForm({
       <Input
         className="my-3"
         label="Casa do Doador"
-        // Correct: The value of the select is the house ID (string)
         value={data.displayHouse} 
         onChange={handleHouseChange}
         type={InputType.Select}
@@ -122,7 +121,6 @@ function DonationForm({
       <Input
         className="my-3"
         label="Item a Ser Doado"
-        // FIX 2: The value must be the selected item's ID (string) to match the options
         value={data.displayItem || ""} 
         onChange={handleItemChange}
         type={InputType.Select}

@@ -16,10 +16,22 @@ import util from '../libs/util';
 type DonationData = {
     "ID": string,
     "HouseId": string,
-    "Item": Item,
+    "Item": string,
     "Quantidade": number,
     "Pontos": number,
 };
+
+function toDonationFormData(donation: SemcompApiDonation): DonationFormData {
+  return {
+    houseId: donation.houseId,
+    item: donation.item,
+    quantity: donation.quantity,
+    points: donation.points,
+    // eu sei nao faz sentido, mas sla
+    displayHouse: "",
+    displayItem: "",
+  };
+}
 
 function mapData(data: SemcompApiDonation[]): DonationData[] {
   const newData: DonationData[] = [];
@@ -27,7 +39,7 @@ function mapData(data: SemcompApiDonation[]): DonationData[] {
     newData.push({
       "ID": donation.id,
       "HouseId": donation.houseId,
-      "Item": donation.item,
+      "Item": donation.item?.name ?? "",
       "Quantidade": donation.quantity,
       "Pontos": donation.points,
     })
@@ -81,7 +93,7 @@ function Donations() {
   }
 
   async function handleRowClick(index: number) {
-    setSelectedData(data.getEntities()[index]);
+    setSelectedData(toDonationFormData(data.getEntities()[index]));
     setIsEditModalOpen(true);
   }
 

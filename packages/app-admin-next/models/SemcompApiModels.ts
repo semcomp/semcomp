@@ -359,7 +359,7 @@ export type SemcompApiGetPaymentsResponse = PaginationResponse<SemcompApiPayment
 export type SemcompApiDonation = {
     id?: string,
     houseId: string,
-    item: Item,
+    item: SemcompApiItem,
     quantity: number,
     points?: number,
 }
