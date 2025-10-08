@@ -157,6 +157,17 @@ class HouseService {
     return this.update(house);
   };
 
+  public async subtractHousePoints(house: House, points: number): Promise<House> {
+    if (house && Math.floor(+points) <= house.score) {
+        house.score -= Math.floor(+points);
+    } else {
+        return house;
+    }
+
+    return this.update(house);
+  }
+        
+
   private mapEntity(entity: Model<House> & House): House {
     return entity ? {
       id: entity.id,

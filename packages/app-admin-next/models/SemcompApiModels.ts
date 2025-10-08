@@ -3,6 +3,8 @@ import AchievementCategories from "../libs/constants/achievement-categories-enum
 import AchievementTypes from "../libs/constants/achievement-types-enum";
 import EventType from "../libs/constants/event-types-enum";
 import Game from "../libs/constants/game-enum";
+import Item from "../libs/constants/item-type";
+import Tier from "../libs/constants/tier-enum";
 import Status from "../libs/constants/status-treasure-hunt-enum";
 import { PaginationResponse } from "./Pagination";
 
@@ -353,3 +355,26 @@ export type SemcompApiPayment = {
 }
 
 export type SemcompApiGetPaymentsResponse = PaginationResponse<SemcompApiPayment>;
+
+export type SemcompApiDonation = {
+    id?: string,
+    houseId: string,
+    item: SemcompApiItem,
+    quantity: number,
+    points?: number,
+}
+
+
+export type SemcompApiGetDonationsResponse = PaginationResponse<SemcompApiDonation>;
+
+export type SemcompApiItem = {
+  id?: string;
+  name: string;
+  value: number;
+  maxQuantity: number;
+  tier: Tier;
+  tierQuantity?: number;
+  totalQuantity?: number;
+}
+
+export type SemcompApiGetItemsResponse = PaginationResponse<SemcompApiItem>;

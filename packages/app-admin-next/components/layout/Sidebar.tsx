@@ -112,6 +112,10 @@ function Sidebar() {
               <NavLink title="Configurações" href={Routes.configuration}></NavLink>}
             { findRole(adminRole, 'ACHIEVEMENTS') &&
               <NavLink title="Conquistas" href={Routes.achievements}></NavLink> }
+            { findRole(adminRole, 'GAMEGROUPS') &&
+              <NavLink title="Itens para doação" href={Routes.donationItems}></NavLink> }
+            { findRole(adminRole, 'GAMEGROUPS') &&
+              <NavLink title="Cadastro de doações" href={Routes.donations}></NavLink> }
             {/* adminRole === 0 && <NavLink title="Logs" href={Routes.logs}></NavLink> */}
             {/* adminRole === 0 && <NavLink title="Enviar Email" href={Routes.broadcastEmail}></NavLink> */}
             <button className="w-full bg-black text-white text-center py-3" onClick={handleLogout}>
