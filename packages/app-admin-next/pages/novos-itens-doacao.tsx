@@ -45,17 +45,20 @@ function ItemsTable({
   pagination,
   onRowClick,
   onRowSelect,
+  actions
 }: {
   data: PaginationResponse<SemcompApiItem>,
   pagination: PaginationRequest,
   onRowClick: (selectedIndex: number) => void,
   onRowSelect: (selectedIndexes: number[]) => void,
+  actions: {}
 }) {
   return (<DataTable
     data={new PaginationResponse<ItemData>(mapData(data == null ? [] : data.getEntities()), data == null ? 0 : data.getTotalNumberOfItems())}
     pagination={pagination}
     onRowClick={onRowClick}
     onRowSelect={onRowSelect}
+    actions={actions}
   ></DataTable>);
 }
 
@@ -70,6 +73,14 @@ function Items() {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  async function deleteItem(row) {
+    const confirmed = window.confirm("Tem certeza de que deseja excluir " + row.Nome + "?");
+      if (confirmed) {
+        await semcompApi.deleteItems(row.ID)
+        fetchData();
+      }
+  }
 
   async function fetchData() {
     try {
@@ -128,6 +139,7 @@ function Items() {
             pagination={pagination}
             onRowClick={handleRowClick}
             onRowSelect={handleSelectedIndexesChange}
+            actions={{"deleteItem": deleteItem}}
           />}
         ></DataPage>
       )

@@ -27,7 +27,6 @@ function toDonationFormData(donation: SemcompApiDonation): DonationFormData {
     item: donation.item,
     quantity: donation.quantity,
     points: donation.points,
-    // eu sei nao faz sentido, mas sla
     displayHouse: "",
     displayItem: "",
   };
@@ -53,17 +52,20 @@ function DonationsTable({
   pagination,
   onRowClick,
   onRowSelect,
+  actions
 }: {
   data: PaginationResponse<SemcompApiDonation>,
   pagination: PaginationRequest,
   onRowClick: (selectedIndex: number) => void,
   onRowSelect: (selectedIndexes: number[]) => void,
+  actions: {}
 }) {
   return (<DataTable
     data={new PaginationResponse<DonationData>(mapData(data == null? []: data.getEntities()), data == null? 0: data.getTotalNumberOfItems())}
     pagination={pagination}
     onRowClick={onRowClick}
     onRowSelect={onRowSelect}
+    actions={actions}
   ></DataTable>);
 }
 
@@ -78,6 +80,14 @@ function Donations() {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  async function deleteDonation(row) {
+    const confirmed = window.confirm("Tem certeza de que deseja excluir essa doação?");
+      if (confirmed) {
+        await semcompApi.deleteDonation(row.ID)
+        fetchData();
+      }
+  }
 
   async function fetchData() {
     try {
@@ -137,6 +147,7 @@ function Donations() {
             pagination={pagination}
             onRowClick={handleRowClick}
             onRowSelect={handleSelectedIndexesChange}
+            actions={{"deleteDonation": deleteDonation}}
           />}
         ></DataPage>
       )

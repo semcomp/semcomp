@@ -98,7 +98,7 @@ function Row({
                         <EditOutlined />
                       </IconButton>
                     );
-                  } else if (action.toLowerCase() === 'delete' && adminRole.includes('DELETE')) {
+                  } else if ((action.toLowerCase() === 'delete' && adminRole.includes('DELETE')) || (action.toLowerCase() === "deleteDonation" || action.toLowerCase() === "deleteItem") {
                     return (
                       <IconButton key={index} onClick={() => actions[action](row)}>
                         <DeleteOutlineOutlined />
