@@ -90,7 +90,7 @@ class SemcompApi {
   }
 
   public async deleteDonation(id: string): Promise<any> {
-      return this.http.delete("/admin/donations" + id);
+      return this.http.delete("/admin/donations/" + id);
   }
 
   // Items
@@ -110,7 +110,7 @@ class SemcompApi {
   }
 
   public async deleteItems(id: string): Promise<any> {
-      const response = await this.http.delete("/admin/items" + id);
+      const response = await this.http.delete("/admin/items/" + id);
       return response;
   }
 
