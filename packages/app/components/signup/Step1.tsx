@@ -335,7 +335,7 @@ function Step1({
       return toast.error("Por favor, selecione se você é estudante ou não!");
     }
 
-    if (isStudent === "Sim") {
+    if (isStudent === "Sim" && educationLevel !== "Escola") {
       if (!institute) {
         return toast.error("Você deve selecionar o instituto/faculdade!");
       }
@@ -558,84 +558,114 @@ function Step1({
                   }
                 }}
               />
+              <FormControlLabel
+                value="Escola"
+                control={
+                  <Radio 
+                    sx={{ 
+                      color: 'white',
+                      '&.Mui-checked': {
+                        color: 'white'
+                      },
+                      '&.Mui-focusVisible': {
+                        color: 'white'
+                      }
+                    }} 
+                  />
+                }
+                label="Escola"
+                sx={{ 
+                  color: 'white',
+                  '&.Mui-focused': {
+                    color: 'white'
+                  },
+                  '&:hover': {
+                    color: 'white'
+                  }
+                }}
+              />
             </RadioGroup>
           </FormControl>
-          <Input
-            className="my-3"
-            label="Curso*"
-            value={course}
-            onChange={handleCourseChange}
-            choices={ICMCCourses}
-            type={InputType.Select}
-            placeholder="Selecione o curso"
-          />
-          {course === "Outro" && (
-            <Input
-              className="my-3"
-              label="Nome do Curso*"
-              value={customCourse}
-              onChange={handleCustomCourseChange}
-              type={InputType.Text}
-              placeholder="Digite o nome do curso"
-            />
-          )}
-          <Input
-            className="my-3"
-            label="Instituto*"
-            value={institute}
-            onChange={handleInstituteChange}
-            choices={USPInstitutes}
-            type={InputType.Select}
-            placeholder="Selecione o instituto"
-            disabled={isICMCCourse(course)}
-          />
-          {institute === "Outro" && (
-            <Input
-              className="my-3"
-              label="Nome do Instituto*"
-              value={customInstitute}
-              onChange={handleCustomInstituteChange}
-              type={InputType.Text}
-              placeholder="Selecione o instituto"
-            />
-          )}
-          <div className="flex mobile:flex-col">
-            <Input
-              className="my-3 mr-1 w-1/2 mobile:w-full"
-              label="Ano de Ingresso*"
-              value={admissionYear}
-              onChange={handleAdmissionYearChange}
-              choices={ADMISSION_YEARS.map((year) => year.toString())}
-              type={InputType.Select}
-              placeholder="Selecione o ano"
-            />
-            <Input
-              className="my-3 w-1/2 mobile:w-full"
-              label="Ano de Formação*"
-              value={expectedGraduationYear}
-              onChange={handleExpectedGraduationYearChange}
-              choices={GRADUATION_YEARS.map((year) => year.toString())}
-              type={InputType.Select}
-              placeholder="Ano de expectativa"
-            />
-          </div>
-          <Input
-            className="my-3"
-            label="Semestre de Formação (esperado)*"
-            value={expectedGraduationSemester}
-            onChange={handleExpectedGraduationSemesterChange}
-            choices={SemesterOptions}
-            type={InputType.Select}
-            placeholder="Selecione o semestre"
-          />
-          <Input
-            className="my-6"
-            label="Grupos de Extensão que você participa ou já participou (opcional)"
-            value={extensionGroups}
-            onChange={handleExtensionGroupsChange}
-            choices={ExtensionGroups}
-            type={InputType.MultiSelect}
-          />
+          {educationLevel !== "Escola" &&
+            <>
+              <Input
+                className="my-3"
+                label="Curso*"
+                value={course}
+                onChange={handleCourseChange}
+                choices={ICMCCourses}
+                type={InputType.Select}
+                placeholder="Selecione o curso"
+              />
+              {course === "Outro" && (
+                <Input
+                  className="my-3"
+                  label="Nome do Curso*"
+                  value={customCourse}
+                  onChange={handleCustomCourseChange}
+                  type={InputType.Text}
+                  placeholder="Digite o nome do curso"
+                />
+              )}
+              <Input
+                className="my-3"
+                label="Instituto*"
+                value={institute}
+                onChange={handleInstituteChange}
+                choices={USPInstitutes}
+                type={InputType.Select}
+                placeholder="Selecione o instituto"
+                disabled={isICMCCourse(course)}
+              />
+              {institute === "Outro" && (
+                <Input
+                  className="my-3"
+                  label="Nome do Instituto*"
+                  value={customInstitute}
+                  onChange={handleCustomInstituteChange}
+                  type={InputType.Text}
+                  placeholder="Selecione o instituto"
+                />
+              )}
+              <div className="flex mobile:flex-col">
+                <Input
+                  className="my-3 mr-1 w-1/2 mobile:w-full"
+                  label="Ano de Ingresso*"
+                  value={admissionYear}
+                  onChange={handleAdmissionYearChange}
+                  choices={ADMISSION_YEARS.map((year) => year.toString())}
+                  type={InputType.Select}
+                  placeholder="Selecione o ano"
+                />
+                <Input
+                  className="my-3 w-1/2 mobile:w-full"
+                  label="Ano de Formação*"
+                  value={expectedGraduationYear}
+                  onChange={handleExpectedGraduationYearChange}
+                  choices={GRADUATION_YEARS.map((year) => year.toString())}
+                  type={InputType.Select}
+                  placeholder="Ano de expectativa"
+                />
+              </div>
+              <Input
+                className="my-3"
+                label="Semestre de Formação (esperado)*"
+                value={expectedGraduationSemester}
+                onChange={handleExpectedGraduationSemesterChange}
+                choices={SemesterOptions}
+                type={InputType.Select}
+                placeholder="Selecione o semestre"
+              />
+              <Input
+                className="my-6"
+                label="Grupos de Extensão que você participa ou já participou (opcional)"
+                value={extensionGroups}
+                onChange={handleExtensionGroupsChange}
+                choices={ExtensionGroups}
+                type={InputType.MultiSelect}
+              />
+            </>
+          }
         </>
       )}
       {isStudent === "Não" && (

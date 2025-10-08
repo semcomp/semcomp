@@ -15,7 +15,7 @@ interface PartnerGridProps {
 export default function PartnerGrid({ logos }: PartnerGridProps) {
   return (
     <div className="text-base max-w-6xl">
-      <div className="grid md:grid-cols-3 md:gap-12 phone:grid-cols-2 phone:gap-4 tablet:grid-cols-3 tablet:gap-8">
+      <div className="grid md:grid-cols-4 md:gap-10 phone:grid-cols-2 phone:gap-4 tablet:grid-cols-3 tablet:gap-8">
         {logos.map((logo, index) => {
           const content = logo.isSvg ? (
             <logo.src
