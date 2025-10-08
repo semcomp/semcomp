@@ -61,7 +61,7 @@ class CalculatorService {
         }
       }
 
-      return points;
+      return Math.round(points);
     }
 }
 

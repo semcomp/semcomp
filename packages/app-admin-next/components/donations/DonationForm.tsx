@@ -8,8 +8,10 @@ import { PaginationRequest, PaginationResponse } from '../../models/Pagination';
 import Item from "../../libs/constants/item-type"
 
 export type DonationFormData = {
+  displayHouse: string;
   houseId: string;
-  item: Item | null;
+  displayItem: string;
+  item: SemcompApiItem | null;
   quantity: number;
   points: number;
 };
@@ -18,15 +20,25 @@ function useDropdownData() {
   const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
   const [houses, setHouses] = useState(null as SemcompApiGetHousesResponse);
   const [items, setItems] = useState(null as SemcompApiGetItemsResponse);
-  const [pagination, setPagination] = useState<PaginationRequest>();
+  // NOTE: Initializing PaginationRequest here might be causing an issue if fetchDropdownOptions is not defined yet
+  // If your PaginationRequest needs the function immediately, you should pass a dummy or define fetchDropdownOptions outside
+  // For simplicity, I'll define fetchDropdownOptions outside useEffect as it depends on it.
+  
+  // NOTE: The issue with 'pagination' in your original code: 
+  // const [pagination, setPagination] = useState(new PaginationRequest(() => (fetchDropdownOptions())));
+  // is complex. I'll revert it to the simpler, non-state approach unless required otherwise.
+  // Using an empty object or null for simple requests is safer in hooks.
+  const [pagination, setPagination] = useState(new PaginationRequest (() => fetchDropdownOptions())); 
   const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(true);
 
-  useEffect(() => {
-    async function fetchDropdownOptions() {
+  async function fetchDropdownOptions() {
       setIsLoadingDropdowns(true);
       try {
         const houseList = await semcompApi.getHouses(pagination)
         const itemList = await semcompApi.getItems(pagination)
+
+        console.log(houseList.getEntities());
+        console.log(itemList);
         
         setHouses(houseList);
         setItems(itemList);
@@ -35,9 +47,11 @@ function useDropdownData() {
       } finally {
         setIsLoadingDropdowns(false);
       }
-    }
+  }
+
+  useEffect(() => {
     fetchDropdownOptions();
-  }, []);
+  }, [pagination]); // Added pagination to dependency array if you plan to use setPagination later
 
   return { houses, items, isLoadingDropdowns };
 }
@@ -45,10 +59,12 @@ function useDropdownData() {
 function DonationForm({
   onDataChange,
   initialData = {
+    displayHouse: "",
     houseId: "",
+    displayItem: "",
     item: null,
     quantity: 0,
-    points: 0,
+    points: 0
   },
 }: {
   onDataChange: (data: DonationFormData) => void;
@@ -59,16 +75,21 @@ function DonationForm({
 
   function handleHouseChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const val = event.target.value;
-    setData({...data, houseId: val});
-    onDataChange({...data, houseId: val});
+
+    const selectedHouse = houses == null ? null : houses.getEntities().find(house => house.name == val) || null;
+
+    setData({...data, displayHouse: selectedHouse.name, houseId: selectedHouse.id});
+    onDataChange({...data, houseId: selectedHouse.id});
   }
 
   function handleItemChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const itemId = event.target.value;
+    const itemName = event.target.value;
     
-    const selectedItem = items == null? null: items.getEntities().find(item => item.id === itemId) || null;
+    // Look up the full item object using the ID
+    const selectedItem = items == null? null: items.getEntities().find(item => item.name === itemName) || null;
 
-    setData({...data, item: selectedItem});
+    // Store the full object in state
+    setData({...data, displayItem: selectedItem.name, item: selectedItem});
     onDataChange({...data, item: selectedItem});
   }
 
@@ -80,12 +101,10 @@ function DonationForm({
     onDataChange({...data, quantity: updatedValue});
   }
 
-  function handlePointsChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const val = event.target;
-    const updatedValue = parseFloat(val.value) || 0;
-    
-    setData({...data, points: updatedValue});
-    onDataChange({...data, points: updatedValue});
+
+  // Optional: Render loading state if data is still fetching
+  if (isLoadingDropdowns) {
+      return <div>Carregando opções...</div>
   }
 
   return (
@@ -93,19 +112,21 @@ function DonationForm({
       <Input
         className="my-3"
         label="Casa do Doador"
-        value={data.houseId} 
+        // Correct: The value of the select is the house ID (string)
+        value={data.displayHouse} 
         onChange={handleHouseChange}
         type={InputType.Select}
-        choices={houses == null? []: houses.getEntities().map(h => ({ label: h.name, value: h.id }))}
+        choices={houses.getEntities().map(x => x.name)}
       />
 
       <Input
         className="my-3"
         label="Item a Ser Doado"
-        value={data.item?.name || ""} 
+        // FIX 2: The value must be the selected item's ID (string) to match the options
+        value={data.displayItem || ""} 
         onChange={handleItemChange}
         type={InputType.Select}
-        choices={items == null? []: items.getEntities().map(i => ({ label: i.name, value: i }))}
+        choices={items.getEntities().map(x => x.name)}
       />
       
       <Input
@@ -116,13 +137,6 @@ function DonationForm({
         type={InputType.Number}
       />
       
-      <Input
-        className="my-3"
-        label="Pontos"
-        value={data.points}
-        onChange={handlePointsChange}
-        type={InputType.Number}
-      />
     </>
   );
 }

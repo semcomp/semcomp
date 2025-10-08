@@ -71,6 +71,7 @@ function Donations() {
     try {
       setIsLoading(true);
       const response = await semcompApi.getDonations(pagination);
+      console.log(response);
       setData(response);
     } catch (error) {
       console.error(error);

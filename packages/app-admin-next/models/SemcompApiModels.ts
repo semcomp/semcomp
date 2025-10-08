@@ -361,7 +361,7 @@ export type SemcompApiDonation = {
     houseId: string,
     item: Item,
     quantity: number,
-    points: number,
+    points?: number,
 }
 
 

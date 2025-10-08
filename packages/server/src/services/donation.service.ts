@@ -25,7 +25,12 @@ class donationService {
     }
 
     public async create(donation: Donation): Promise<Donation> {
-        const entity = await DonationModel.create(donation);
+        const donationPayload = {
+                ...donation,
+                item: donation.item.id,
+            };
+
+        const entity = await DonationModel.create(donationPayload);
 
         return this.mapEntity(entity.populate("item"));
     }
