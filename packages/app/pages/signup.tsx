@@ -38,22 +38,6 @@ function SignupPage() {
   // Controls the current step on the form.
   const [step, setStep] = useState(STEPS.BASIC_INFO);
 
-
-  //Get parameters from URL
-  useEffect(() => {
-    const urlSearchString = window.location.search;
-
-    const params = new URLSearchParams(urlSearchString);
-
-    setEmailUrl(params.get('email'));
-    const newStep = parseInt(params.get('step'));
-    if(!Number.isNaN(newStep)){
-      setStep(STEPS.CONFIRMATION_CODE);
-    }
-
-    
-  })
-
   // This state will hold the whole form value. The `setFormValue` function will
   // be passed to all steps components. Whenver an input in any step changes, they
   // should update the whole state by calling the `setFormValue` function with
@@ -154,93 +138,99 @@ function SignupPage() {
     // Some validation
     // TODO - move validation to a different file. Validation logic should be
     // separated from form logic
-    if (isStudent && educationLevel.trim().length === 0) {
-      return toast.error("Você deve informar o modelo de sua graduação");
-    }
-
-    if (isStudent && !course)
-      return toast.error("Você deve fornecer um curso se for estudante!");
-
-    if (isStudent && !admissionYear)
-      return toast.error(
-        "Você deve fornecer o ano de ingresso se for estudante!"
-      );
-
-    if (isStudent && !expectedGraduationYear)
-      return toast.error(
-        "Você deve fornecer o ano de formação esperado se for estudante!"
-      );
-
-    if (isStudent && !expectedGraduationSemester) {
-      return toast.error(
-        "Você deve selecionar o semestre de formação esperado!"
-      );
-    }
-
-    if (isStudent && !institute)
-      return toast.error("Você deve selecionar o instituto se for estudante!");
-
-    if (isStudent && admissionYear) {
-      const currentYear = new Date().getFullYear();
-      const year = parseInt(admissionYear);
-
-      if (year < 1900 || year > currentYear + 1) {
-        return toast.error("Por favor, forneça um ano de ingresso válido!");
-      }
-    }
-
-    if (isStudent && expectedGraduationYear) {
-      const currentYear = new Date().getFullYear();
-      const year = parseInt(expectedGraduationYear);
-
-      if (year < currentYear || year > currentYear + 10) {
-        return toast.error("Por favor, forneça um ano de formação válido!");
-      }
-    }
-
-    if (isStudent && admissionYear && expectedGraduationYear) {
-      const admission = parseInt(admissionYear);
-      const graduation = parseInt(expectedGraduationYear);
-
-      if (graduation < admission) {
-        return toast.error(
-          "O ano de formação não pode ser anterior ao ano de ingresso!"
-        );
-      }
-
-      if (graduation - admission < 2) {
-        return toast.error(
-          "O período de formação deve ser de pelo menos 2 anos!"
-        );
-      }
-
-      if (graduation - admission > 10) {
-        return toast.error(
-          "O período de formação parece muito longo. Verifique os anos novamente!"
-        );
-      }
-
-      if (isStudent && course === "Outro" && !customCourse) {
-        return toast.error("Por favor, especifique o nome do curso!");
-      }
-
-      if (isStudent && institute === "Outro" && !customInstitute) {
-        return toast.error("Por favor, especifique o nome do instituto!");
-      }
-
-      if (isStudent && course === "Outro" && customCourse) {
-        if (customCourse.length < 3) {
+    if (isStudent) {
+      console.log(educationLevel);
+      if (educationLevel.trim() !== "Escola") {
+        if (educationLevel.trim().length === 0) {
+          return toast.error("Você deve informar o modelo de sua graduação");
+        }
+    
+        if (!course) {
+          return toast.error("Você deve fornecer um curso se for estudante!");
+        }
+    
+        if (!admissionYear)
           return toast.error(
-            "O nome do curso deve ter pelo menos 3 caracteres!"
+            "Você deve fornecer o ano de ingresso se for estudante!"
+          );
+    
+        if (!expectedGraduationYear)
+          return toast.error(
+            "Você deve fornecer o ano de formação esperado se for estudante!"
+          );
+    
+        if (!expectedGraduationSemester) {
+          return toast.error(
+            "Você deve selecionar o semestre de formação esperado!"
           );
         }
-      }
-
-      if (isStudent && institute === "Outro" && customInstitute) {
-        if (customInstitute.length < 4) {
-          return toast.error(
-            "O nome do instituto deve ter pelo menos 4 caracteres!"
-          );
+    
+        if (!institute)
+          return toast.error("Você deve selecionar o instituto se for estudante!");
+    
+        if (admissionYear) {
+          const currentYear = new Date().getFullYear();
+          const year = parseInt(admissionYear);
+    
+          if (year < 1900 || year > currentYear + 1) {
+            return toast.error("Por favor, forneça um ano de ingresso válido!");
+          }
+        }
+    
+        if (expectedGraduationYear) {
+          const currentYear = new Date().getFullYear();
+          const year = parseInt(expectedGraduationYear);
+    
+          if (year < currentYear || year > currentYear + 10) {
+            return toast.error("Por favor, forneça um ano de formação válido!");
+          }
+        }
+    
+        if (admissionYear && expectedGraduationYear) {
+          const admission = parseInt(admissionYear);
+          const graduation = parseInt(expectedGraduationYear);
+    
+          if (graduation < admission) {
+            return toast.error(
+              "O ano de formação não pode ser anterior ao ano de ingresso!"
+            );
+          }
+    
+          if (graduation - admission < 2) {
+            return toast.error(
+              "O período de formação deve ser de pelo menos 2 anos!"
+            );
+          }
+    
+          if (graduation - admission > 10) {
+            return toast.error(
+              "O período de formação parece muito longo. Verifique os anos novamente!"
+            );
+          }
+    
+          if (course === "Outro" && !customCourse) {
+            return toast.error("Por favor, especifique o nome do curso!");
+          }
+    
+          if (institute === "Outro" && !customInstitute) {
+            return toast.error("Por favor, especifique o nome do instituto!");
+          }
+    
+          if (course === "Outro" && customCourse) {
+            if (customCourse.length < 3) {
+              return toast.error(
+                "O nome do curso deve ter pelo menos 3 caracteres!"
+              );
+            }
+          }
+    
+          if (institute === "Outro" && customInstitute) {
+            if (customInstitute.length < 4) {
+              return toast.error(
+                "O nome do instituto deve ter pelo menos 4 caracteres!"
+              );
+            }
+          }
         }
       }
     }
@@ -306,7 +296,9 @@ function SignupPage() {
     try {
       setIsSigningUp(true); // Sets the state to show the spinner
       
-      if (emailUrl != null) email = emailUrl;
+      if (emailUrl && emailUrl.trim().length > 0) {
+        email = emailUrl;
+      }
       const { data } = await API.confirmVerificationCode(email, verificationCode);
       localStorage.setItem("user", JSON.stringify(data));
       setUser(data);

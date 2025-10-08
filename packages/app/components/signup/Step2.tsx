@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Input, { InputType } from "../Input";
 import LoadingButton from "../loading-button";
@@ -13,6 +13,7 @@ function Step2(
   }
 ) {
   const [verificationCode, setVerificationCode] = useState(formValue.verificationCode as string);
+  const [emailInput, setEmailInput] = useState(formValue.email || "");
   function handleVerificationCode(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     setVerificationCode(value);
@@ -31,8 +32,16 @@ function Step2(
     <form className="w-full" onSubmit={handleSubmit}>
       <p>
         Enviamos para o seu e-mail um código de verificação. Por favor, digite o
-        código aqui abaixo e confirme o seu email.
+        código aqui abaixo e confirme o seu email. Você tem 30 minutos para realizar essa verificação.
+         Não feche essa página.
       </p>
+      <Input
+        className="my-3"
+        label="E-mail"
+        value={emailInput}
+        onChange={(e) => { setEmailInput(e.target.value); updateFormValue({ email: e.target.value }); }}
+        type={InputType.Text}
+      />
       <Input
         className="my-3"
         label="Código recebido por e-mail"

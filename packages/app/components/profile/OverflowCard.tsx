@@ -64,11 +64,11 @@ function OverflowCard({ user, onAboutOverflowClick }: OverflowCardProps) {
       }
       <a
         className="bg-primary text-white p-2 rounded-lg mt-2 text-center text-xs hover:bg-white hover:text-primary"
-        href="https://t.me/+s1W4OLLiWD8xZWQx"
+        href="https://t.me/semcomp_avisos"
         target="_blank"
         rel="noopener noreferrer"
       >
-        Entrar no grupo do Overflow 
+        Entrar no grupo de avisos
         <TelegramIcon />
       </a> 
       <button className="text-sm mt-5 text-white hover:underline" onClick={onAboutOverflowClick}>
