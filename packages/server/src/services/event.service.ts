@@ -144,7 +144,7 @@ class EventService {
     ];
 
     const totalEventHoursResult = await EventModel.aggregate(totalEventHoursPipeline);
-    return totalEventHoursResult[0].totalEventHours;
+    return totalEventHoursResult.length > 0 ? totalEventHoursResult[0].totalEventHours : 0;
   }
 
   public async getInfo(userId: string) {

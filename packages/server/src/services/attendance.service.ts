@@ -126,7 +126,13 @@ class AttendanceService {
       },
       {
         $addFields: {
-          percentage: { $multiply: [{ $divide: ["$palestraHours", totalPalestraHours] }, 100] }
+          percentage: {
+            $cond: {
+              if: { $gt: [totalPalestraHours, 0] },
+              then: { $multiply: [{ $divide: ["$palestraHours", "$totalPalestraHours"] }, 100] },
+              else: 0
+            }
+          }
         }
       },
       {
