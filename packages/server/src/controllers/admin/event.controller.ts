@@ -126,7 +126,17 @@ class EventController {
       const { eventId } = req.params;
       const usersAttendancesInfo = await eventService.listUsersAttendancesInfoByEvent(eventId);
 
-      return res.status(200).json(usersAttendancesInfo);
+      const formattedUserAttendances = usersAttendancesInfo.map(userAt => {
+        return {
+          email: userAt.email,
+          name: userAt.name,
+          totalHours: userAt.hours,
+          hours: Math.floor(userAt.hours),
+          minutes: Math.round((userAt.hours - Math.floor(userAt.hours)) * 60),
+        }
+      });
+
+      return res.status(200).json(formattedUserAttendances);
     } catch (error) {
       return handleError(error, next);
     }

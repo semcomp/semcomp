@@ -21,7 +21,7 @@ export default function exportToCsv(data: any[], fileName: string = 'data') {
       typeof value === 'number' ? `"${value.toString().replace('.', ',')}"` : value
     ).join(','));
     return acc;
-  }, [])
+  }, []);
 
   downloadFile({
     data: [headers, ...dataCsv].join('\n'),

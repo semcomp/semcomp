@@ -41,7 +41,9 @@ type AttendedEventsApiData = {
   name: string;
   email: string;
   course: string;
+  totalHours: number;
   hours: number;
+  minutes: number;
   percentage: number;
 };
 
@@ -199,7 +201,9 @@ function Events() {
         "Nome": user.name,
         "E-mail": user.email,
         "Curso": user.course,
-        "Horas totais": user.hours,
+        "Horas totais": user.totalHours,
+        "Horas": user.hours,
+        "Minutos": user.minutes,
         "Presença[%]": user.percentage,
         ">70%": user.percentage > 70 ? "Sim" : "Não",
       })
