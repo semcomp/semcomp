@@ -129,7 +129,7 @@ class AttendanceService {
           percentage: {
             $cond: {
               if: { $gt: [totalPalestraHours, 0] },
-              then: { $multiply: [{ $divide: ["$palestraHours", "$totalPalestraHours"] }, 100] },
+              then: { $multiply: [{ $divide: ["$palestraHours", totalPalestraHours] }, 100] },
               else: 0
             }
           }
