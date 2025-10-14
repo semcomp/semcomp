@@ -237,10 +237,10 @@ const EventsCalendar = (props) => {
                     </p>
                   </div>
                   <div
-                    className={`transition-max-height duration-700 ease-in-out overflow-hidden ${
-                      expandedEvents[index] ? "max-h-screen" : "max-h-0"
-                    }`}
-                    style={{ transition: 'max-height 0.7s ease-in-out' }}
+                   className={`transition-max-height duration-700 ease-in-out ${
+                    expandedEvents[index] ? "max-h-full overflow-y-auto" : "max-h-0 overflow-hidden"
+                  }`}
+                  style={{ transition: "max-height 0.7s ease-in-out" }}
                   >
                     <div className="p-4">
                       {event.speaker && event.speaker.length > 0 && 
