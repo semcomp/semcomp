@@ -15,7 +15,7 @@ import util from '../libs/util';
 
 type DonationData = {
     "ID": string,
-    "HouseId": string,
+    "HouseName": string,
     "Item": string,
     "Quantidade": number,
     "Pontos": number,
@@ -39,7 +39,7 @@ function mapData(data: SemcompApiDonation[]): DonationData[] {
   for (const donation of data) {
     newData.push({
       "ID": donation.id,
-      "HouseId": selectedHouses == null ? "" : selectedHouses.getEntities().find(house => house.id == donation.houseId).name,
+      "HouseName": selectedHouses == null ? "" : selectedHouses.getEntities().find(house => house.id == donation.houseId).name,
       "Item": donation.item?.name ?? "",
       "Quantidade": donation.quantity,
       "Pontos": donation.points,
