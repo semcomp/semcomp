@@ -116,6 +116,12 @@ export type SemcompApiCreateHouseRequest = {
   imageBase64: string;
 };
 
+
+export type Filter = {
+  sortConfig: { key: string; direction: 'asc' | 'desc' } | null,
+  searchQuery: string
+}
+
 export type SemcompApiTShirt = {
   id: string;
   size: string;

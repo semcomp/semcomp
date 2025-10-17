@@ -62,6 +62,19 @@ class SemcompApi {
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
+  public async getFilteredUsers(sortConfig, searchQuery): Promise<SemcompApiGetUsersResponse> {
+    console.log("Entrei em FilteredUsers");
+
+    const filter = {sortConfig, searchQuery};
+
+    const response = await this.http.get("/admin/users/filter", null, filter)
+
+    console.log("Aqui está a resposta ", response);
+
+    return response;
+
+  }
+
   public async updateKitStatus(id: string, changedData: object): Promise<any> {
     return this.http.put(`/admin/users/${id}`, changedData);
   }

@@ -83,6 +83,51 @@ class UserServiceImpl implements UserService {
     return paginatedResponse;
   }
 
+
+  public async filteredFindBackoffice(filters) {
+    console.log("=== DEBUG START ===");
+    console.log("1. Raw filters:", filters);
+    console.log("2. Type of filters:", typeof filters);
+    console.log("3. filters.searchQuery direct access:", filters.searchQuery);
+    console.log("4. Is filters.searchQuery truthy?", !!filters.searchQuery);
+
+    // const { sortConfig, searchQuery } = filters;
+    // console.log("5. After destructuring - searchQuery:", searchQuery);
+    // console.log("6. After destructuring - sortConfig:", sortConfig);
+
+    console.log("7. JSON.stringify filters:", JSON.stringify(filters));
+    console.log("=== DEBUG END ===");
+
+
+    // Always parse if it's a string
+    const filtersObj = typeof filters === 'string' ? JSON.parse(filters) : filters;
+
+    const { searchQuery } = filtersObj;
+
+    console.log("SEARCHquERY; ", searchQuery);
+
+    //Ele chega até aqui!
+
+    if (!searchQuery || searchQuery.trim() === '') {
+      // Return all users or handle empty search as needed
+      return await UserModel.find({});
+    }
+
+    const searchFields = ['course', 'name', 'email', 'telegram'];
+    const query = {
+      $or: searchFields.map(field => ({
+        [field]: { $regex: searchQuery, $options: 'i' }
+      })),
+    };
+
+
+    const users = await UserModel.find(query);
+
+    console.log("esses são os usuarios", users);
+
+    return users;
+  }
+
   public async minimalFind(filters?: Partial<Filters>): Promise<Partial<User>[]> {
     const users = await UserModel.find(filters);
 
@@ -151,7 +196,7 @@ class UserServiceImpl implements UserService {
     return entity && this.mapEntity(entity);
   }
 
-  public async deleteAllCron(){
+  public async deleteAllCron() {
     //If user.verified is false and 30minutes has passed since the account has been created then
     //delete that account
     const now = new Date();
@@ -175,7 +220,7 @@ class UserServiceImpl implements UserService {
       console.log("Usuário excluído: ", user.email)
       this.delete(user);
     })
-    
+
     console.log("[CRON] Fluxo finalizado");
   }
 
@@ -184,7 +229,7 @@ class UserServiceImpl implements UserService {
     if (!userHouseMember) {
       return null;
     }
-    
+
     const userHouse = await houseService.findOne({ id: userHouseMember.houseId });
 
     return userHouse;
@@ -195,7 +240,7 @@ class UserServiceImpl implements UserService {
     if (!config || !config.openAchievement) {
       return null;
     }
-    
+
     const users = await this.find({ pagination: new PaginationRequest(1, 9999) });
     const events = await eventService.find({ pagination: new PaginationRequest(1, 9999) });
     const individualAchievements = await achievementService.find({
@@ -209,7 +254,7 @@ class UserServiceImpl implements UserService {
           achievement.endDate && achievement.endDate < Date.now()) {
           continue;
         }
-        
+
         const userAchievement = await userAchievementService.findOne({ userId: user.id, achievementId: achievement.id });
         if (userAchievement) {
           continue;
@@ -237,7 +282,7 @@ class UserServiceImpl implements UserService {
                 userId: user.id,
               })
             ) {
-             attendanceOnEventType++;
+              attendanceOnEventType++;
             }
           }
 

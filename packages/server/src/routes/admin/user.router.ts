@@ -23,6 +23,12 @@ export default class UserAdminRouter {
     );
 
     router.get(
+      "/filter",
+      [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
+      (req, res, next) => this.userAdminController.listFilteredUsers(req, res, next),
+    );
+
+    router.get(
       "/for-enterprise",
       [adminAuthMiddleware.authenticate, adminAuthMiddleware.isAuthenticated],
       (req, res, next) => this.userAdminController.listForEnterprise(req, res, next),

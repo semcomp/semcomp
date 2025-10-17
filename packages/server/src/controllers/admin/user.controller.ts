@@ -112,6 +112,14 @@ export default class UserController {
     );
   }
 
+
+  public async listFilteredUsers(req, res, next) {
+      console.log("Aqui filters no backend: ", req.query.filter);
+      const usersFound = await userService.filteredFindBackoffice(req.query.filter);
+      console.log("aqui esta o usersFound ", usersFound);
+      return usersFound;
+  }
+
   public async listForEnterprise(req, res, next) {
     const pagination = new PaginationRequest(
       +req.query.page,
