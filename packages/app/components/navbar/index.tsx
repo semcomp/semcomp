@@ -111,6 +111,13 @@ const Navbar = (props) => {
           >
             Cronograma
           </Navlink>
+          <Navlink
+            href="https://ganesh.icmc.usp.br/ctf/"
+            title="CTF"
+            className="mx-4 text-lg cursor-pointer nav-link font-secondary focus:outline-none"
+          >
+            CTF
+          </Navlink>
           {isUserLoggedIn ? (
             <>
               <Navlink href={Routes.profile} className="text-lg font-secondary">Perfil</Navlink>

@@ -127,6 +127,10 @@ const Home: React.FC = () => {
     router.push(Routes.login);
   }
 
+  function handleCtf() {
+    window.open("https://ganesh.icmc.usp.br/ctf/", "_blank");
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Background simples com gradiente */}
@@ -174,6 +178,9 @@ const Home: React.FC = () => {
           </div>
           <div className="mb-1">
             <ButtonMenuHome label="CRONOGRAMA" onClick={handleCronograma} />
+          </div>
+          <div className="mb-1">
+            <ButtonMenuHome label="CTF" onClick={handleCtf} />
           </div>
           <div className="mb-1">
             <ButtonMenuHome label="FAQ" onClick={handleFaq} />
