@@ -85,45 +85,55 @@ class UserServiceImpl implements UserService {
 
 
   public async filteredFindBackoffice(filters) {
-    console.log("=== DEBUG START ===");
-    console.log("1. Raw filters:", filters);
-    console.log("2. Type of filters:", typeof filters);
-    console.log("3. filters.searchQuery direct access:", filters.searchQuery);
-    console.log("4. Is filters.searchQuery truthy?", !!filters.searchQuery);
-
-    // const { sortConfig, searchQuery } = filters;
-    // console.log("5. After destructuring - searchQuery:", searchQuery);
-    // console.log("6. After destructuring - sortConfig:", sortConfig);
-
-    console.log("7. JSON.stringify filters:", JSON.stringify(filters));
-    console.log("=== DEBUG END ===");
-
 
     // Always parse if it's a string
     const filtersObj = typeof filters === 'string' ? JSON.parse(filters) : filters;
 
-    const { searchQuery } = filtersObj;
-
-    console.log("SEARCHquERY; ", searchQuery);
-
-    //Ele chega até aqui!
-
-    if (!searchQuery || searchQuery.trim() === '') {
-      // Return all users or handle empty search as needed
-      return await UserModel.find({});
-    }
+    const { sortConfig, searchQuery } = filtersObj;
 
     const searchFields = ['course', 'name', 'email', 'telegram'];
+
+    //translates SortConfig options to SearchField Options
+    const fieldMap = {
+      'Nome': 'name',
+      'Curso': 'course',
+      'Telegram': 'telegram',
+      'Email': 'email',
+    };
+
+
+    let sortKey = 'name';
+    if (sortConfig?.key) {
+      sortKey = fieldMap[sortConfig.key] || 'name'; // fallback to name if not found
+    }
+
+
+    // Build sort
+    let sortOptions = {};
+    console.log(sortConfig);
+    if (sortConfig) {
+      const sortDirection = sortConfig.direction === 'desc' ? -1 : 1;
+      sortOptions[sortKey] = sortDirection;
+    }
+
+
+
+    if (!searchQuery || searchQuery.trim() === '') {
+      // Return all users following sortOptions
+      return await UserModel.find({}).sort(sortOptions);
+    }
+
+
+    //Build query
     const query = {
       $or: searchFields.map(field => ({
         [field]: { $regex: searchQuery, $options: 'i' }
       })),
     };
 
+    const users = await UserModel.find(query).sort(sortOptions);
 
-    const users = await UserModel.find(query);
-
-    console.log("esses são os usuarios", users);
+    console.log(users);
 
     return users;
   }
