@@ -1,0 +1,154 @@
+import { useEffect, useState } from 'react';
+
+import DataTable from '../components/reusable/DataTable';
+import RequireAuth from '../libs/RequireAuth';
+import SemcompApi from '../api/semcomp-api';
+import { useAppContext } from '../libs/contextLib';
+import { SemcompApiDonation, SemcompApiGetDonationsResponse, SemcompApiGetHousesResponse } from '../models/SemcompApiModels';
+import CreateDonationModal from '../components/donations/CreateDonationModal';
+// import EditItemModal from '../components/items/EditItemModal';
+import DataPage from '../components/DataPage';
+import { DonationFormData } from '../components/donations/DonationForm';
+import { PaginationRequest, PaginationResponse } from '../models/Pagination';
+import Item from '../libs/constants/item-type';
+import util from '../libs/util';
+
+type DonationData = {
+    "ID": string,
+    "HouseName": string,
+    "Item": string,
+    "Quantidade": number,
+    "Pontos": number,
+};
+
+var selectedHouses: SemcompApiGetHousesResponse
+
+function toDonationFormData(donation: SemcompApiDonation): DonationFormData {
+  return {
+    houseId: donation.houseId,
+    item: donation.item,
+    quantity: donation.quantity,
+    points: donation.points,
+    displayHouse: "",
+    displayItem: "",
+  };
+}
+
+function mapData(data: SemcompApiDonation[]): DonationData[] {
+  const newData: DonationData[] = [];
+  for (const donation of data) {
+    newData.push({
+      "ID": donation.id,
+      "HouseName": selectedHouses == null ? "" : selectedHouses.getEntities().find(house => house.id == donation.houseId).name,
+      "Item": donation.item?.name ?? "",
+      "Quantidade": donation.quantity,
+      "Pontos": donation.points,
+    })
+  }
+
+  return newData;
+}
+
+function DonationsTable({
+  data,
+  pagination,
+  onRowClick,
+  onRowSelect,
+  actions
+}: {
+  data: PaginationResponse<SemcompApiDonation>,
+  pagination: PaginationRequest,
+  onRowClick: (selectedIndex: number) => void,
+  onRowSelect: (selectedIndexes: number[]) => void,
+  actions: {}
+}) {
+  return (<DataTable
+    data={new PaginationResponse<DonationData>(mapData(data == null? []: data.getEntities()), data == null? 0: data.getTotalNumberOfItems())}
+    pagination={pagination}
+    onRowClick={onRowClick}
+    onRowSelect={onRowSelect}
+    actions={actions}
+  ></DataTable>);
+}
+
+function Donations() {
+  const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
+
+  const [data, setData] = useState(null as SemcompApiGetDonationsResponse);
+  const [houses, setHouses] = useState(null as SemcompApiGetHousesResponse);
+  const [pagination, setPagination] = useState(new PaginationRequest(() => fetchData()));
+  const [selectedData, setSelectedData] = useState(null as DonationFormData);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedIndexes, setSelectedIndexes] = useState([]);
+
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  async function deleteDonation(row) {
+    const confirmed = window.confirm("Tem certeza de que deseja excluir essa doação?");
+      if (confirmed) {
+        await semcompApi.deleteDonation(row.ID)
+        fetchData();
+      }
+  }
+
+  async function fetchData() {
+    try {
+      setIsLoading(true);
+      const response = await semcompApi.getDonations(pagination);
+      setData(response);
+      const houseList = await semcompApi.getHouses(pagination);
+      setHouses(houseList);
+      selectedHouses = houseList
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleRowClick(index: number) {
+    setSelectedData(toDonationFormData(data.getEntities()[index]));
+    setIsEditModalOpen(true);
+  }
+
+  async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
+    setSelectedIndexes(updatedSelectedIndexes);
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  return (<>
+    {isCreateModalOpen && (
+      <CreateDonationModal
+        onRequestClose={() => setIsCreateModalOpen(false)}
+      />
+    )}
+    {
+      !isLoading && (
+        <DataPage
+          title="Doações Realizadas"
+          isLoading={isLoading}
+          buttons={<button
+            className="bg-black text-white py-3 px-6"
+            type="button"
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            Criar
+          </button>}
+          table={<DonationsTable
+            data={data}
+            pagination={pagination}
+            onRowClick={handleRowClick}
+            onRowSelect={handleSelectedIndexesChange}
+            actions={{"delete_donation": deleteDonation}}
+          />}
+        ></DataPage>
+      )
+    }
+  </>);
+}
+
+export default RequireAuth(Donations, "GAMEQUESTIONS");
