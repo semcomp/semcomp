@@ -2,7 +2,7 @@ import { Model } from "mongoose";
 
 import Event, { EventModel } from "../models/event";
 import subscriptionService from "./subscription.service";
-import Attendance from "../models/attendance";
+import Attendance, { AttendanceModel } from "../models/attendance";
 import attendanceService from "./attendance.service";
 import userService from "../services/user.service";
 import { config } from "dotenv";
@@ -144,7 +144,7 @@ class EventService {
     ];
 
     const totalEventHoursResult = await EventModel.aggregate(totalEventHoursPipeline);
-    return totalEventHoursResult[0].totalEventHours;
+    return totalEventHoursResult.length > 0 ? totalEventHoursResult[0].totalEventHours : 0;
   }
 
   public async getInfo(userId: string) {
@@ -483,41 +483,74 @@ class EventService {
   }
 
   public async listUsersAttendancesInfoByEvent(eventId: string): Promise<UserAttendanceInfo[]> {
-    // pega todos os usuários
-    const users = await userService.find({
-      pagination: new PaginationRequest(1, 9999),
-    });
+    const result = await EventModel.aggregate([
+      {
+        $match: {
+          id: eventId,
+        },
+      },
+      // Calcula a duração do evento em horas
+      {
+        $addFields: {
+          eventDurationHours: {
+            $divide: [
+              {
+                $subtract: ["$endDate", "$startDate"],
+              },
+              1000 * 60 * 60, // converte milissegundos para horas
+            ],
+          },
+        },
+      },
+      {
+        $lookup: { // JOIN com Attendance
+          from: "attendance",
+          localField: "id",
+          foreignField: "eventId",
+          as: "attendance",
+        },
+      },
+      {
+        $unwind: "$attendance",
+      },
+      {
+        $lookup: { // JOIN com User
+          from: "user",
+          localField: "attendance.userId",
+          foreignField: "id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+      // Agrupa por usuário, somando as horas
+      {
+        $group: {
+          _id: "$user._id",
+          email: {
+            $first: "$user.email",
+          },
+          name: {
+            $first: "$user.name",
+          },
+          totalHours: {
+            $sum: "$eventDurationHours",
+          },
+        },
+      },
+      // Renomeia os campos de saída
+      {
+        $project: {
+          _id: 0,
+          name: 1,
+          email: 1,
+          hours: { $round: ["$totalHours", 2] },
+        },
+      },
+    ]);
 
-    // pega todas as presenças daquele evento
-    const attendances = await attendanceService.find({ eventId: eventId });
-
-    const events = await this.find({
-      pagination: new PaginationRequest(1, 9999),
-    });
-
-    // cria um array de objetos com as informações de presença de cada usuário
-    const usersAttendancesInfo: UserAttendanceInfo[] = [];
-    for (const user of users.getEntities()) {
-      const userAttendances = attendances.filter(attendance => attendance.userId === user.id);
-
-      if (userAttendances.length === 0) continue;
-
-      let hours = 0;
-      for (const userAttendance of userAttendances) {
-        const event = events.getEntities().find(event => event.id === userAttendance.eventId);
-
-        const startDate = new Date(event.startDate);
-        const endDate = new Date(event.endDate);
-        hours += endDate.getHours() - startDate.getHours();
-      }
-      usersAttendancesInfo.push({
-        email: user.email,
-        name: user.name,
-        hours,
-      });
-    }
-
-    return usersAttendancesInfo;
+    return result;
   }
 
   private mapEntity(entity: Model<Event> & Event): Event {

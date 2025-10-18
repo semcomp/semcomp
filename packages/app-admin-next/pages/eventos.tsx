@@ -41,7 +41,9 @@ type AttendedEventsApiData = {
   name: string;
   email: string;
   course: string;
+  totalHours: number;
   hours: number;
+  minutes: number;
   percentage: number;
 };
 
@@ -128,7 +130,8 @@ function Events() {
   const [isMarkAttendanceModalOpen, setIsMarkAttendanceModalOpen] = useState(false);
   const eventTableRef = useRef(null);
 
-  const btnHeight = "50px";
+  const btnHeight = '50px';
+  const downloadBtnHeight = '48px';
   
   async function fetchData() {
     try {
@@ -176,7 +179,12 @@ function Events() {
       setIsLoading(true);
       setDownloadAttendances(true);
       const response = await semcompApi.getDetailedAttendances({ eventType: EventType.PALESTRA });
-      exportToCsv(mapData(response));
+
+      if (response?.length > 0) {
+        exportToCsv(mapData(response));
+      } else {
+        toast.error('Não há dados para serem baixado');
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -193,7 +201,9 @@ function Events() {
         "Nome": user.name,
         "E-mail": user.email,
         "Curso": user.course,
-        "Horas totais": user.hours,
+        "Horas totais": user.totalHours,
+        "Horas": user.hours,
+        "Minutos": user.minutes,
         "Presença[%]": user.percentage,
         ">70%": user.percentage > 70 ? "Sim" : "Não",
       })
@@ -395,7 +405,7 @@ function Events() {
         </div>
       )}
       {!isLoading && !downloadAttendances && (
-        <>
+        <div style={{ height: `calc(100vh - ${downloadBtnHeight})` }}>
           <DataPage
             title="Eventos"
             isLoading={isLoading}
@@ -469,12 +479,12 @@ function Events() {
           <button
             className="w-full bg-black text-white py-3 px-6"
             type="button"
-            style={{ height: '48px' }}
+            style={{ height: downloadBtnHeight }}
             onClick={fetchDownloadData}
           >
             Baixar Planilha de Presenças
           </button>
-        </>
+        </div>
       )}
     </>
   );

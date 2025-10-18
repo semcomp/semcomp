@@ -17,7 +17,18 @@ const attendanceController = {
       const { eventType } = req.body;
       const attendances = await AttendanceService.listAttendanceInfoWithEventTypeRate(eventType);
 
-      return res.status(200).json(attendances);
+      const formattedAttendance = attendances.map(at => {
+        return {
+          percentage: at.percentage,
+          name: at.name,
+          email: at.email,
+          course: at.course,
+          totalHours: at.hours,
+          hours: Math.floor(at.hours),
+          minutes: Math.round((at.hours - Math.floor(at.hours)) * 60),
+        }
+      })
+      return res.status(200).json(formattedAttendance);
     } catch (error) {
       return handleError(error, next);
     }

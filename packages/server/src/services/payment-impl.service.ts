@@ -427,8 +427,12 @@ export default class PaymentServiceImpl implements PaymentService {
     }
   }
 
-  public async getPaymentWithUsers(pagination: PaginationRequest) : Promise<PaginationResponse<Payment>> {
-    const entity = await PaymentModel.aggregate([
+  public async getPaymentWithUsers(pagination: PaginationRequest): Promise<PaginationResponse<Payment>> {
+    const itemsPerPage = pagination.getItems();
+    const page = pagination.getPage();
+    const skip = (page - 1) * itemsPerPage;
+  
+    const aggregationPipeline = [
       {
         $lookup: {
           from: 'user',
@@ -436,16 +440,31 @@ export default class PaymentServiceImpl implements PaymentService {
           foreignField: 'id',
           as: 'user'
         }
-      }, { $unwind: "$user" }
-    ]).limit(pagination.getItems());
-    
-    if (entity && entity.length > 0) {
-      const entities = entity.map((payment) => this.mapEntityWithUser(payment));
-      const paginatedResponse = new PaginationResponse(entities, entities.length);
+      },
+      { $unwind: "$user" },
+      {
+        $facet: {
+          metadata: [ { $count: "total" } ],
+          data: [
+            { $skip: skip },
+            { $limit: itemsPerPage }
+          ]
+        }
+      }
+    ];
+  
+    const result = await PaymentModel.aggregate(aggregationPipeline);
+  
+    if (result && result.length > 0 && result[0].data.length > 0) {
+      const entities: Payment[] = result[0].data.map((payment) => this.mapEntityWithUser(payment));
+      
+      const totalItems = result[0].metadata[0]?.total || 0;
+  
+      const paginatedResponse = new PaginationResponse(entities, totalItems);
       return paginatedResponse;
     }
     
-    return null;
+    return new PaginationResponse([], 0);
   }
 
   private mapEntity(entity: Model<Payment> & Payment | Payment): Payment {

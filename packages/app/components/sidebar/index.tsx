@@ -185,6 +185,7 @@ function Sidebar(props) {
             ) : (
               <NavLink title="Entrar" href={Routes.login} />
             )}
+            <NavLink title="CTF" href="https://ganesh.icmc.usp.br/ctf/" />
           </Box>
         </Drawer>
       </div>

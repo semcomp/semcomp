@@ -15,6 +15,14 @@ type Filters = {
   updatedAt: number | number[];
 };
 
+type attendanceInfoWithEventTypeRate = {
+  email: string;
+  name: string;
+  hours: number;
+  percentage: number;
+  course: string;
+}
+
 class AttendanceService {
   public async find(filters?: Partial<Filters>, optional?: string): Promise<Attendance[]> {
     const attendances = await AttendanceModel.find(filters, optional);
@@ -71,7 +79,7 @@ class AttendanceService {
     return entity && this.mapEntity(entity);
   }
 
-  public async listAttendanceInfoWithEventTypeRate(eventType: EventTypes): Promise<Attendance[]> {
+  public async listAttendanceInfoWithEventTypeRate(eventType: EventTypes): Promise<attendanceInfoWithEventTypeRate[]> {
     const totalPalestraHours = await eventService.calcTotalTimeByEventType(eventType);
     const allEvents = [EventTypes.CONCURSO, EventTypes.RODA, EventTypes.CULTURAL, EventTypes.FEIRA, EventTypes.PALESTRA];
     
@@ -126,7 +134,13 @@ class AttendanceService {
       },
       {
         $addFields: {
-          percentage: { $multiply: [{ $divide: ["$palestraHours", totalPalestraHours] }, 100] }
+          percentage: {
+            $cond: {
+              if: { $gt: [totalPalestraHours, 0] },
+              then: { $multiply: [{ $divide: ["$palestraHours", totalPalestraHours] }, 100] },
+              else: 0
+            }
+          }
         }
       },
       {

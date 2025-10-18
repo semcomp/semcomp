@@ -87,32 +87,42 @@ function Question({ question, answer, isFirst, isLast }) {
 const FAQ = () => {
   const questions = [
     {
-      question: "Como faço para participar da Semcomp?",
-      answer:
-        "Para participar, basta se inscrever aqui mesmo em nosso site! O nosso evento é presencial e ocorre no Instituto de Ciências Matemáticas e Computação da USP de São Carlos. Para mais notícias, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos)",
-    },
-    {
-      question: "Onde tenho acesso aos avisos da Semcomp?",
-      answer:
-        "Para ficar por dentro de tudo que vai rolar na Semcomp, acompanhe nossas redes sociais (@semcomp no Instagram) e nosso canal de avisos no Telegram (https://t.me/semcomp_avisos). Enviaremos todas as novidades por lá!",
-    },
-    {
-      question: "Tem certificado?",
-      answer:
-        "Haverão certificados de participação nos minicursos. Assim, é preciso se inscrever neles aqui no site e comparecer na hora do evento. Após o final da Semcomp, emitiremos um certificado com a quantidade de horas correspondente às suas presenças.",
-    },
-    {
-      question: "Tem premiação?",
-      answer:
-        "Sim! Campeonatos da game night e concursos terão premiações, mas não esqueça que, para poder participar, é preciso estar inscrito na Semcomp.",
-    },
-    {
       question: "O que é o tema da Semcomp?",
       answer:
-        "A cada ano, a organização da Semcomp escolhe um tema para guiar o processo criativo da edição sendo desenvolvida. O tema escolhido direciona os elementos de marketing e da identidade visual, as atividades extracurriculares e culturais ao longo da semana e a ambientação do jogo, ajudando a criar uma atmosfera única e divertida para cada edição.\
+        "A cada ano, a organização da Semcomp escolhe um tema para guiar o processo criativo da edição sendo desenvolvida. O tema escolhido direciona os elementos de marketing e da identidade visual, as atividades extracurriculares e culturais ao longo da semana e a ambientação do jogo, ajudando a criar uma atmosfera única e divertida para cada edição. \
         \n\nDessa forma, é importante esclarecer que as palestras, minicursos e atividades acadêmicas que acontecem ao longo da semana são independentes do tema. Essas atrações abordam conteúdos técnicos e de diversas áreas áreas da computação, sem relação com o tema escolhido para o conteúdo extracurricular.\
-        \n\nOu seja neste ano, o tema escolhido foi cinema, enriquecendo as atividades extracurriculares, a estética e a experiência lúdica do evento. As palestras e minicursos continuam sendo focados em tecnologia e computação de modo geral, com o objetivo de complementar e aprofundar a formação dos alunos."
-      },
+        \n\nNeste ano, o tema escolhido foi cinema, enriquecendo as atividades extracurriculares, a estética e a experiência lúdica do evento. As palestras e minicursos continuam sendo focados em tecnologia e computação de modo geral, com o objetivo de complementar e aprofundar a formação dos alunos."
+    },
+    {
+      question: "Por que se inscrever no site da Semcomp?",
+      answer:
+        "Com seu perfil de participante no site, você pode se inscrever nos minicursos, concursos e oficinas que serão oferecidos ao longo da semana. Além disso, é com os dados da inscrição que geramos os certificados de participação!",
+    },
+    {
+      question: "Como a presença é coletada durante a Semcomp?",
+      answer:
+        "A presença é coletada por meio do escaneamento dos QR Codes de identificação disponíveis no perfil do participante no site e no crachá. Os QR Codes são escaneados na entrada e na saída das atrações ao longo do evento.",
+    },
+    {
+      question: "Qual é a presença mínima no evento?",
+      answer: "Para os alunos de Ciências de Computação, Sistemas de Informação e Ciência de Dados, a presença no evento substitui a presença nas aulas que ocorreriam ao longo da semana. A presença mínima no evento corresponde a presença em 70% das palestras. Caso você estagie ou trabalhe, será possível abonar as faltas na semana através de um formulário disponibilizado no evento.",
+    },
+    {
+      question: "O que é Overflow?",
+      answer: "O Overflow é uma competição entre casas que ocorre durante toda a Semcomp. Todos os inscritos são separados em quatro casas e pontuam para sua casa a medida que participam de palestras, minicursos, concursos e atividades culturais. A casa com maior pontuação ao final do evento vence a Semcomp!",
+    },
+    {
+      question: "Como funciona o Coffee Break?",
+      answer: "Os coffee breaks são “pausas para o café”, intervalos com comida que acontecem ao longo da semana do evento. Neste ano, o pacote de coffee breaks dará acesso aos quatro coffee breaks fechados da Semcomp, basta comprar o pacote em nosso site e apresentar suas credenciais na entrada. Além deles, organizaremos coffee breaks abertos ao longo da semana da Semcomp.",
+    },
+    {
+      question: "A presença na Semcomp conta como AAC?",
+      answer: "A presença na Semcomp concede aos inscritos um certficado de participação no evento, que pode ser contabilizado como Atividade Acadêmica Complementar (AAC). Também são emitidos certificados para os participantes em cada um dos minicursos.",
+    },
+    {
+      question: "Como funciona a inscrição em minicursos?",
+      answer: "A inscrição nos minicursos é feita através da página do participante em nosso site, de acordo com a disponibilidade de vagas em cada um deles. Vamos liberar as vagas em lotes, com horários diferentes, para que todos tenham oportunidade de participar! Anunciaremos os minicursos e as aberturas das inscrições em breve.",
+    }
   ];
 
   return (

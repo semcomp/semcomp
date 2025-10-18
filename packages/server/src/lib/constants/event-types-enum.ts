@@ -10,6 +10,7 @@ enum EventTypes {
   CONTEST = "Contest",
   CULTURAL = "Cultural",
   COFFEE = "Coffee",
+  ENCERRAMENTO = "Encerramento",
 }
 
 export default EventTypes;
