@@ -17,6 +17,8 @@ const Routes = {
   broadcastEmail: '/enviar-email',
   treasureHuntImages: '/caca-tesouro-imagens',
   configuration: '/configuracoes',
+  donationItems: '/novos-itens-doacao',
+  donations: '/cadastro-doacoes'
 };
 
 export default Routes;

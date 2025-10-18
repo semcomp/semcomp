@@ -20,6 +20,8 @@ import PaymentServiceImpl from "../../services/payment-impl.service";
 import PaymentRouter from "./payment.router";
 import GameConfigRouter from "./game-config.router";
 import attendanceRouter from "./attendance.router";
+import donationRouter from "./donation.router";
+import itemRouter from "./item.router";
 
 const tShirtRouter = new TShirtRouter(adminAuthMiddleware);
 const salesRouter = new SaleRouter(adminAuthMiddleware);
@@ -38,6 +40,8 @@ export default class AdminRouter {
   public create(): Router {
     const router = Router();
 
+    router.use("/donations", donationRouter);
+    router.use("/items", itemRouter);
     router.use("/auth", authRouter);
     router.use("/game/questions", gameQuestionsRouter);
     router.use("/game/groups", gameGroupsRouter);
