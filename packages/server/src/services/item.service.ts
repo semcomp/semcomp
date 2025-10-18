@@ -45,6 +45,13 @@ class itemService {
 
         return paginatedResponse;
 
+    } 
+
+    public async findById(id: string): Promise<Item | null> {
+       const entity = await ItemModel.findOne({ id });
+       
+       if (!entity) return null;
+       return this.mapEntity(entity);
     }
 
     public async update(id: string, payload: UpdateQuery<ItemDocument>): Promise<Item | null> {

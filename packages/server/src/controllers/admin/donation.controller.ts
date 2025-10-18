@@ -77,6 +77,12 @@ class DonationController {
 
             const donationData = await donationService.findById(id);
 
+            const item = donationData.item;
+            if (item != null){
+                const payload = CalculatorService.throwbackItem(item, donationData.quantity);
+                await itemService.update(item.id, payload);
+            }
+
             const house = await houseService.findById(donationData.houseId);
 
             const updatedHouse = houseService.subtractHousePoints(house, donationData.points);
