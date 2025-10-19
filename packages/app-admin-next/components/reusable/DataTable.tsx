@@ -152,6 +152,7 @@ const DataTable = forwardRef(({
   renderCell?: (column: string, row: any) => ReactNode;
   actions?: {};
 }, dataTableRef?) => {
+  
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);

@@ -66,6 +66,18 @@ class SemcompApi {
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
+  public async getFilteredUsers(pagination: PaginationRequest, sortConfig, searchQuery): Promise<SemcompApiGetUsersResponse> {
+    const filter = {sortConfig, searchQuery};
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+    const response = await this.http.get("/admin/users/filter", semcompApiPagination, filter)
+
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);;
+
+  }
+
   public async updateKitStatus(id: string, changedData: object): Promise<any> {
     return this.http.put(`/admin/users/${id}`, changedData);
   }

@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-import { SemcompApiPaginationRequest } from "../models/SemcompApiModels";
+import { Filter, SemcompApiPaginationRequest } from "../models/SemcompApiModels";
 
 class Http {
   private instance: AxiosInstance;
@@ -55,11 +55,11 @@ class Http {
   private onResponseError(error: AxiosError): Promise<AxiosError> {
     const response = error.response;
     let message = '';
-    
+
     if (response && response.data) {
-      message = (error.response.data as { message: string }).message;      
+      message = (error.response.data as { message: string }).message;
     }
-    
+
     if (response && message) {
       this.callbackMessageError(message[0]);
     } else if (response && response.status === 401) {
@@ -81,15 +81,24 @@ class Http {
   public async get(
     url: string,
     pagination?: SemcompApiPaginationRequest,
+    filter?: Filter
   ): Promise<any> {
     const defaultPagination = new SemcompApiPaginationRequest();
-    const config = { params: { page: defaultPagination.getPage(), items: defaultPagination.getItems() } };
+    const config = { params: { page: defaultPagination.getPage(), items: defaultPagination.getItems(), filter: filter } };
     if (pagination) {
-      config.params = { page: pagination.getPage(), items: pagination.getItems() };
+      config.params = { page: pagination.getPage(), items: pagination.getItems(), filter: filter };
     }
 
-    const { data } = await this.instance.get(url, config);
-    return data;
+    try {
+      const { data } = await this.instance.get(url, config);
+      return data;
+    }
+    catch (err) {
+      console.log(err);
+    }
+
+
+
   }
 
   public async post(url: string, body?: any): Promise<any> {

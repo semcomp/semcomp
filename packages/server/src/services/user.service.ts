@@ -16,10 +16,11 @@ import AchievementCategories from "../lib/constants/achievement-categories-enum"
 import UserAchievement from "../models/user-achievement";
 import userDisabilityService from "./user-disability.service";
 import { PaginationRequest, PaginationResponse } from "../lib/pagination";
-import EventTypes from "../lib/constants/event-types-enum";
 import configService from "./config.service";
-import subscriptionService from "./subscription.service";
 import crypto from "crypto";
+import PaymentStatus from "../lib/constants/payment-status-enum";
+import TShirtSize from "../lib/constants/t-shirt-size-enum";
+import FoodOption from "../lib/constants/food-option-enum";
 
 const idService = new IdServiceImpl();
 
@@ -81,6 +82,150 @@ class UserServiceImpl implements UserService {
     const paginatedResponse = new PaginationResponse(entities, count)
 
     return paginatedResponse;
+  }
+
+  public async filteredFindBackoffice({
+    filters,
+    pagination,
+  }: {
+    filters?: any;
+    pagination: PaginationRequest;
+  }): Promise<PaginationResponse<User>> {
+
+    const filtersObj = typeof filters === 'string' ? JSON.parse(filters) : filters;
+    const { sortConfig, searchQuery } = filtersObj || {};
+    const searchFields = ['course', 'name', 'email', 'telegram'];
+
+    // Definição da chave e direção de ordenação
+    let sortKey = sortConfig?.key || 'createdAt';
+    const sortDirection = sortConfig?.direction === 'desc' ? -1 : 1;
+    const sortStage: any = { [sortKey]: sortDirection };
+
+    // Filtro de Busca
+    let query: any = {};
+    if (searchQuery && searchQuery.trim() !== '') {
+      query = {
+        $or: searchFields.map(field => ({
+          [field]: { $regex: searchQuery, $options: 'i' }
+        })),
+      };
+    }
+
+    const basePipeline = [
+        // Match inicial para query de busca
+        { $match: query }, 
+        
+        {
+          $lookup: {
+            from: 'house-member',
+            localField: 'id',
+            foreignField: 'userId',
+            as: 'houseMember',
+            pipeline: [{ $limit: 1 }]
+          }
+        },
+        { $unwind: { path: '$houseMember', preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: 'house',
+            localField: 'houseMember.houseId',
+            foreignField: 'id',
+            as: 'houseDetails',
+            pipeline: [{ $project: { name: 1, _id: 0 } }, { $limit: 1 }]
+          }
+        },
+        { $unwind: { path: '$houseDetails', preserveNullAndEmptyArrays: true } },
+
+        {
+          $lookup: {
+            from: 'payment',
+            localField: 'id',
+            foreignField: 'userId',
+            as: 'rawPayments',
+          }
+        },
+        {
+          $addFields: {
+            activePayments: {
+              $filter: {
+                input: '$rawPayments',
+                as: 'p',
+                cond: { $ne: ['$$p.status', PaymentStatus.CANCELED] } 
+              }
+            }
+          }
+        },
+
+        {
+          $lookup: {
+            from: 'user-disability',
+            localField: '_id',
+            foreignField: 'userId',
+            as: 'userDisabilities',
+          }
+        },
+        
+        { 
+            $project: {
+                id: '$id',
+                name: '$name',
+                email: '$email',
+                course: '$course',
+                telegram: '$telegram',
+                gotKit: { $ifNull: ['$gotKit', false] },
+                gotTagName: { $ifNull: ['$gotTagName', false] },
+                wantNameTag: { $ifNull: ['$wantNameTag', false] },
+                permission: { $ifNull: ['$permission', false] },
+                createdAt: '$createdAt',
+                updatedAt: '$updatedAt',
+
+                house: {
+                    name: { $ifNull: ['$houseDetails.name', 'Não possui'] },
+                },
+
+                payment: {
+                    status: '$activePayments.status',
+                    saleOption: '$activePayments.salesOption',
+                    
+                    tShirtSize: {
+                        $reduce: {
+                            input: '$activePayments',
+                            initialValue: TShirtSize.NONE,
+                            in: { $cond: [{ $ne: ['$$this.tShirtSize', TShirtSize.NONE] }, '$$this.tShirtSize', '$$value'] }
+                        }
+                    },
+                    foodOption: {
+                        $reduce: {
+                            input: '$activePayments',
+                            initialValue: FoodOption.NONE,
+                            in: { $cond: [{ $ne: ['$$this.foodOption', FoodOption.NONE] }, '$$this.foodOption', '$$value'] }
+                        }
+                    }
+                },
+                disabilities: '$userDisabilities.disability',
+            }
+        }
+    ];
+    
+    const aggregationResult = await UserModel.aggregate([
+        ...basePipeline,
+        {
+            $facet: {
+                metadata: [{ $count: "total" }],
+                data: [
+                    { $sort: sortStage }, 
+                    { $skip: pagination.getSkip() },
+                    { $limit: pagination.getItems() }
+                ]
+            }
+        }
+    ]).exec();
+
+    const [results] = aggregationResult;
+    const total = results.metadata[0]?.total || 0;
+    const users: User[] = results.data;
+
+    return new PaginationResponse<User>(users, total);
   }
 
   public async minimalFind(filters?: Partial<Filters>): Promise<Partial<User>[]> {
@@ -151,7 +296,7 @@ class UserServiceImpl implements UserService {
     return entity && this.mapEntity(entity);
   }
 
-  public async deleteAllCron(){
+  public async deleteAllCron() {
     //If user.verified is false and 30minutes has passed since the account has been created then
     //delete that account
     const now = new Date();
@@ -175,7 +320,7 @@ class UserServiceImpl implements UserService {
       console.log("Usuário excluído: ", user.email)
       this.delete(user);
     })
-    
+
     console.log("[CRON] Fluxo finalizado");
   }
 
@@ -184,7 +329,7 @@ class UserServiceImpl implements UserService {
     if (!userHouseMember) {
       return null;
     }
-    
+
     const userHouse = await houseService.findOne({ id: userHouseMember.houseId });
 
     return userHouse;
@@ -195,7 +340,7 @@ class UserServiceImpl implements UserService {
     if (!config || !config.openAchievement) {
       return null;
     }
-    
+
     const users = await this.find({ pagination: new PaginationRequest(1, 9999) });
     const events = await eventService.find({ pagination: new PaginationRequest(1, 9999) });
     const individualAchievements = await achievementService.find({
@@ -209,7 +354,7 @@ class UserServiceImpl implements UserService {
           achievement.endDate && achievement.endDate < Date.now()) {
           continue;
         }
-        
+
         const userAchievement = await userAchievementService.findOne({ userId: user.id, achievementId: achievement.id });
         if (userAchievement) {
           continue;
@@ -237,7 +382,7 @@ class UserServiceImpl implements UserService {
                 userId: user.id,
               })
             ) {
-             attendanceOnEventType++;
+              attendanceOnEventType++;
             }
           }
 
