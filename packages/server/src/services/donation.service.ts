@@ -54,7 +54,7 @@ class donationService {
     }
 
     public async findById(id: string): Promise<Donation | null> {
-        const entity = await DonationModel.findById(id);
+        const entity = await DonationModel.findById(id).populate("item");
 
         if (!entity) return null;
         else return this.mapEntity(entity);
