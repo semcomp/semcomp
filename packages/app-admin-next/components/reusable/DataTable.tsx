@@ -20,7 +20,6 @@ import Input, { InputType } from "../Input";
 import { PaginationRequest, PaginationResponse } from "../../models/Pagination";
 import { useAppContext } from "../../libs/contextLib";
 import { DeleteOutlineOutlined, EditOutlined } from "@mui/icons-material";
-import SemcompApi from "../../api/semcomp-api";
 
 function Row({
   index,
@@ -153,8 +152,6 @@ const DataTable = forwardRef(({
   renderCell?: (column: string, row: any) => ReactNode;
   actions?: {};
 }, dataTableRef?) => {
-  //Pq usar AppContext??
-  const { semcompApi }: { semcompApi: SemcompApi } = useAppContext();
   
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -162,12 +159,6 @@ const DataTable = forwardRef(({
   const [searchQuery, setSearchQuery] = useState("");
   const [filterQuery, setFilterQuery] = useState("");
   const [openRowIndex, setOpenRowIndex] = useState<number | null>(null);
-
-
-  async function getFilteredUsers() {
-    const users = await semcompApi.getFilteredUsers(sortConfig, searchQuery)
-    console.log(users);
-  }
 
   function handleRowSelect(selectChangeIndex: number, isSelected: boolean) {
     let updatedSelectedRows = [...selectedRows];
@@ -180,7 +171,6 @@ const DataTable = forwardRef(({
 
     setSelectedRows(updatedSelectedRows);
     onRowSelect(updatedSelectedRows);
-    getFilteredUsers();
   }
 
   function handleChangePage(
