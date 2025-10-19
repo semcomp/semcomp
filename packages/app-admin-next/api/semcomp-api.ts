@@ -62,16 +62,15 @@ class SemcompApi {
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
-  public async getFilteredUsers(sortConfig, searchQuery): Promise<SemcompApiGetUsersResponse> {
-    console.log("Entrei em FilteredUsers");
-
+  public async getFilteredUsers(pagination: PaginationRequest, sortConfig, searchQuery): Promise<SemcompApiGetUsersResponse> {
     const filter = {sortConfig, searchQuery};
+    const semcompApiPagination = new SemcompApiPaginationRequest(
+      pagination.getPage(),
+      pagination.getItems(),
+    );
+    const response = await this.http.get("/admin/users/filter", semcompApiPagination, filter)
 
-    const response = await this.http.get("/admin/users/filter", null, filter)
-
-    console.log("Aqui está a resposta ", response);
-
-    return response;
+    return new PaginationResponse(response.entities, response.totalNumberOfItems);;
 
   }
 

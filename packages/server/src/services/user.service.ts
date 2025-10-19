@@ -16,10 +16,11 @@ import AchievementCategories from "../lib/constants/achievement-categories-enum"
 import UserAchievement from "../models/user-achievement";
 import userDisabilityService from "./user-disability.service";
 import { PaginationRequest, PaginationResponse } from "../lib/pagination";
-import EventTypes from "../lib/constants/event-types-enum";
 import configService from "./config.service";
-import subscriptionService from "./subscription.service";
 import crypto from "crypto";
+import PaymentStatus from "../lib/constants/payment-status-enum";
+import TShirtSize from "../lib/constants/t-shirt-size-enum";
+import FoodOption from "../lib/constants/food-option-enum";
 
 const idService = new IdServiceImpl();
 
@@ -83,59 +84,148 @@ class UserServiceImpl implements UserService {
     return paginatedResponse;
   }
 
+  public async filteredFindBackoffice({
+    filters,
+    pagination,
+  }: {
+    filters?: any;
+    pagination: PaginationRequest;
+  }): Promise<PaginationResponse<User>> {
 
-  public async filteredFindBackoffice(filters) {
-
-    // Always parse if it's a string
     const filtersObj = typeof filters === 'string' ? JSON.parse(filters) : filters;
-
-    const { sortConfig, searchQuery } = filtersObj;
-
+    const { sortConfig, searchQuery } = filtersObj || {};
     const searchFields = ['course', 'name', 'email', 'telegram'];
 
-    //translates SortConfig options to SearchField Options
-    const fieldMap = {
-      'Nome': 'name',
-      'Curso': 'course',
-      'Telegram': 'telegram',
-      'Email': 'email',
-    };
+    // Definição da chave e direção de ordenação
+    let sortKey = sortConfig?.key || 'createdAt';
+    const sortDirection = sortConfig?.direction === 'desc' ? -1 : 1;
+    const sortStage: any = { [sortKey]: sortDirection };
 
-
-    let sortKey = 'name';
-    if (sortConfig?.key) {
-      sortKey = fieldMap[sortConfig.key] || 'name'; // fallback to name if not found
+    // Filtro de Busca
+    let query: any = {};
+    if (searchQuery && searchQuery.trim() !== '') {
+      query = {
+        $or: searchFields.map(field => ({
+          [field]: { $regex: searchQuery, $options: 'i' }
+        })),
+      };
     }
 
+    const basePipeline = [
+        // Match inicial para query de busca
+        { $match: query }, 
+        
+        {
+          $lookup: {
+            from: 'house-member',
+            localField: 'id',
+            foreignField: 'userId',
+            as: 'houseMember',
+            pipeline: [{ $limit: 1 }]
+          }
+        },
+        { $unwind: { path: '$houseMember', preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: 'house',
+            localField: 'houseMember.houseId',
+            foreignField: 'id',
+            as: 'houseDetails',
+            pipeline: [{ $project: { name: 1, _id: 0 } }, { $limit: 1 }]
+          }
+        },
+        { $unwind: { path: '$houseDetails', preserveNullAndEmptyArrays: true } },
 
-    // Build sort
-    let sortOptions = {};
-    console.log(sortConfig);
-    if (sortConfig) {
-      const sortDirection = sortConfig.direction === 'desc' ? -1 : 1;
-      sortOptions[sortKey] = sortDirection;
-    }
+        {
+          $lookup: {
+            from: 'payment',
+            localField: 'id',
+            foreignField: 'userId',
+            as: 'rawPayments',
+          }
+        },
+        {
+          $addFields: {
+            activePayments: {
+              $filter: {
+                input: '$rawPayments',
+                as: 'p',
+                cond: { $ne: ['$$p.status', PaymentStatus.CANCELED] } 
+              }
+            }
+          }
+        },
 
+        {
+          $lookup: {
+            from: 'user-disability',
+            localField: '_id',
+            foreignField: 'userId',
+            as: 'userDisabilities',
+          }
+        },
+        
+        { 
+            $project: {
+                id: '$id',
+                name: '$name',
+                email: '$email',
+                course: '$course',
+                telegram: '$telegram',
+                gotKit: { $ifNull: ['$gotKit', false] },
+                gotTagName: { $ifNull: ['$gotTagName', false] },
+                wantNameTag: { $ifNull: ['$wantNameTag', false] },
+                permission: { $ifNull: ['$permission', false] },
+                createdAt: '$createdAt',
+                updatedAt: '$updatedAt',
 
+                house: {
+                    name: { $ifNull: ['$houseDetails.name', 'Não possui'] },
+                },
 
-    if (!searchQuery || searchQuery.trim() === '') {
-      // Return all users following sortOptions
-      return await UserModel.find({}).sort(sortOptions);
-    }
+                payment: {
+                    status: '$activePayments.status',
+                    saleOption: '$activePayments.salesOption',
+                    
+                    tShirtSize: {
+                        $reduce: {
+                            input: '$activePayments',
+                            initialValue: TShirtSize.NONE,
+                            in: { $cond: [{ $ne: ['$$this.tShirtSize', TShirtSize.NONE] }, '$$this.tShirtSize', '$$value'] }
+                        }
+                    },
+                    foodOption: {
+                        $reduce: {
+                            input: '$activePayments',
+                            initialValue: FoodOption.NONE,
+                            in: { $cond: [{ $ne: ['$$this.foodOption', FoodOption.NONE] }, '$$this.foodOption', '$$value'] }
+                        }
+                    }
+                },
+                disabilities: '$userDisabilities.disability',
+            }
+        }
+    ];
+    
+    const aggregationResult = await UserModel.aggregate([
+        ...basePipeline,
+        {
+            $facet: {
+                metadata: [{ $count: "total" }],
+                data: [
+                    { $sort: sortStage }, 
+                    { $skip: pagination.getSkip() },
+                    { $limit: pagination.getItems() }
+                ]
+            }
+        }
+    ]).exec();
 
+    const [results] = aggregationResult;
+    const total = results.metadata[0]?.total || 0;
+    const users: User[] = results.data;
 
-    //Build query
-    const query = {
-      $or: searchFields.map(field => ({
-        [field]: { $regex: searchQuery, $options: 'i' }
-      })),
-    };
-
-    const users = await UserModel.find(query).sort(sortOptions);
-
-    console.log(users);
-
-    return users;
+    return new PaginationResponse<User>(users, total);
   }
 
   public async minimalFind(filters?: Partial<Filters>): Promise<Partial<User>[]> {

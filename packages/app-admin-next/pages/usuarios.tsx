@@ -1,11 +1,11 @@
 import jszip from 'jszip';
 import QRCode from "qrcode";
 import { toast } from "react-toastify";
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useEffect, useMemo, useRef, useState, MutableRefObject } from "react";
 
 import DataPage from "../components/DataPage";
 import { Modal } from '../components/reusable/Modal';
-import DataTable from "../components/reusable/DataTable";
+import { DataTable as NewDataTable } from "../components/reusable/NewDataTable";
 import InfoCards from "../components/reusable/InfoCards";
 import { TShirtSize } from "../components/t-shirt/TShirtForm";
 import Input, { InputType } from '../components/Input';
@@ -16,9 +16,9 @@ import { useAppContext } from "../libs/contextLib";
 import SemcompApi from "../api/semcomp-api";
 import {
   PaymentStatus,
-  SemcompApiUser,
   SemcompApiSale,
   SaleType,
+  SemcompApiUser as BaseSemcompApiUser,
 } from "../models/SemcompApiModels";
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
@@ -30,6 +30,19 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
+// Estrutura de dados completa retornada pelo novo endpoint de Aggregation
+type EnrichedSemcompApiUser = BaseSemcompApiUser & {
+    house: {
+        name: string,
+    },
+    payment: {
+        status: PaymentStatus[],
+        tShirtSize: TShirtSize,
+        foodOption?: string,
+        saleOption: string[][],
+    },
+    disabilities: any[]
+};
 
 type UserData = {
   "E-mail": string;
@@ -52,7 +65,7 @@ type InfoData = {
 };
 
 function mapData(
-  data: SemcompApiUser[],
+  data: EnrichedSemcompApiUser[],
   allSales: (SemcompApiSale & {usedQuantity:number})[],
   handleOpenKitModal?: () => void,
   handleOpenSaleModal?: (saleOption: string[], paymentStatus: string[]) => void,
@@ -63,22 +76,26 @@ function mapData(
   for (let index = 0; index < data.length; index++) {
     const user = data[index];
 
-    const paymentStatus = [];
-    const allSalesObj = {};
+    const paymentStatus: string[] = [];
+    const allSalesObj: { [key: string]: SemcompApiSale & { usedQuantity: number } } = {};
     allSales.forEach((sale) => {
       allSalesObj[sale.id] = sale;
     });
-    let saleOption = [];
+    let saleOption: string[] = [];
     let hasKit = false;
-    let tShirtSize = null;
+    let tShirtSize: TShirtSize | null = null;
 
+    if (user.payment.tShirtSize && TShirtSize[user.payment.tShirtSize] !== TShirtSize.NONE) {
+      tShirtSize = user.payment.tShirtSize;
+    }
+    
     for (let i = 0; i < user.payment.status.length; i++) {
       let name = '';
-      if (TShirtSize[user.payment.tShirtSize] !== TShirtSize.NONE) {
-        tShirtSize = TShirtSize[user.payment.tShirtSize];
-      }
-      if (user.payment.status[i] === PaymentStatus.APPROVED) {
-        user.payment.saleOption[i].forEach(saleId => {
+      const currentStatus = user.payment.status[i];
+      const currentSaleOptionIds = user.payment.saleOption[i];
+      
+      if (currentStatus === PaymentStatus.APPROVED) {
+        currentSaleOptionIds.forEach(saleId => {
           if (allSalesObj.hasOwnProperty(saleId)) {
             const sale = allSalesObj[saleId];
             if (sale) {
@@ -98,14 +115,12 @@ function mapData(
           paymentStatus.push("Aprovado");
         }
       } else {
-        user.payment.saleOption[i].forEach(saleId => {
+        currentSaleOptionIds.forEach(saleId => {
           if (allSalesObj.hasOwnProperty(saleId)) {
             const sale = allSalesObj[saleId];
             if (sale) {
               name = name.concat(sale.name, ', ');
             }
-          }  else {
-            // console.log('Venda', saleId, ' não encontrada para usuário', user.name);
           }
         });
 
@@ -168,7 +183,7 @@ function mapData(
   return newData;
 }
 
-function getInfoData(data: SemcompApiUser[], allSales: (SemcompApiSale & { usedQuantity: number })[]): InfoData[] {
+function getInfoData(data: EnrichedSemcompApiUser[], allSales: (SemcompApiSale & { usedQuantity: number })[]): InfoData[] {
   const infoData: InfoData[] = [];
   infoData.push({ infoTitle: "Inscritos", infoValue: data.length });
 
@@ -208,35 +223,33 @@ function getInfoData(data: SemcompApiUser[], allSales: (SemcompApiSale & { usedQ
 }
 
 function UsersTable({
-  data,
-  pagination,
   onRowSelect,
   allData,
   updateUser,
   allSales,
+  dataTableRef,
 }: {
-  data: PaginationResponse<SemcompApiUser>;
-  pagination: PaginationRequest;
   onRowSelect: (selectedIndexes: number[]) => void;
-  allData: PaginationResponse<SemcompApiUser>;
+  allData: PaginationResponse<EnrichedSemcompApiUser> | null;
   updateUser: (id: string, gotKit: boolean, gotTagName: boolean) => any,
   allSales?: (SemcompApiSale & { usedQuantity: number })[];
+  dataTableRef: MutableRefObject<any>;
 }) {
-  const [infoData, setInfoData] = useState<InfoData[]>(getInfoData(allData.getEntities(), allSales));
-
-  const [isModalOpen, setModalOpen] = useState<boolean>(false);
-  const [isSaleModalOpen, setSaleModalOpen] = useState<boolean>(false);
-  const [selected, setSelected] = useState(null);
-  const [userSaleOption, setUserSaleOption] = useState([]);
-  const [userStatusPayment, setUserStatusPayment] = useState([]);
-  const [gotTagName, setGotTagName] = useState(false);
+  const { semcompApi }: { semcompApi: SemcompApi } = useAppContext();
   
-  const handleOpenKitModal = () => {
-    setModalOpen(true);
-  }
-  const handleCloseKitModal = () => {
-    setModalOpen(false);
-  }
+  const initialInfoData = allData ? getInfoData(allData.getEntities(), allSales) : [];
+  const [infoData, setInfoData] = useState<InfoData[]>(initialInfoData);
+
+  useEffect(() => {
+    if (allData) {
+      setInfoData(getInfoData(allData.getEntities(), allSales));
+    }
+  }, [allData, allSales]);
+
+  const [isSaleModalOpen, setSaleModalOpen] = useState<boolean>(false);
+  const [selected, setSelected] = useState<EnrichedSemcompApiUser | null>(null);
+  const [userSaleOption, setUserSaleOption] = useState<string[]>([]);
+  const [userStatusPayment, setUserStatusPayment] = useState<string[]>([]);
 
   function handleOpenSaleModal (saleOption: string[], paymentStatus: string[]) {
     setUserSaleOption(saleOption);
@@ -249,66 +262,144 @@ function UsersTable({
     setSaleModalOpen(false);
   }
 
-  const handleGotItems = async (index: number, gotTagName: boolean) => {
-    const gotKit = !allData.getEntities()[index].gotKit;
-    const userGotTagName = allData.getEntities()[index].gotTagName;
+  const handleToggleGotKitStatus = async (userRow: EnrichedSemcompApiUser, updateRow: (fields: Partial<EnrichedSemcompApiUser>) => void) => {
+    const newGotKit = !userRow.gotKit;
+    const newGotTagName = userRow.gotTagName;
 
-    allData.getEntities()[index].gotKit = gotKit;
-    allData.getEntities()[index].gotTagName = gotTagName;
-
-    const response = await updateUser(allData.getEntities()[index].id, gotKit, gotTagName);
+    const updatedUser = await updateUser(userRow.id, newGotKit, newGotTagName);
     
-    // fazer update do valor dos kits retirados.
-    const updatedInfoData = infoData.map((item, idx) => {
-      if (item.infoTitle === "Kits Retirados") {
-        return {
-          ...item, 
-          infoValue: item.infoValue + (response?.gotKit ? 1 : -1)
-        };
-      }
-      return item; 
-    });
-    setInfoData(updatedInfoData);
-    setGotTagName(response.gotTagName);
-    setSelected(-1);
-
-    // fechar o modal
-    handleCloseKitModal();
+    if (updatedUser) {
+      // Atualiza infoData localmente
+      const updatedInfoData = infoData.map(item => {
+        if (item.infoTitle === "Kits Retirados") {
+          return {
+            ...item, 
+            infoValue: item.infoValue + (newGotKit ? 1 : -1)
+          };
+        }
+        return item; 
+      });
+      setInfoData(updatedInfoData);
+      
+      // Atualiza a linha no datatable
+      updateRow({ gotKit: newGotKit });
+    }
   }
 
-  useEffect(() => {
-    setGotTagName(allData.getEntities()[selected]?.gotTagName);
-  }, [selected]);
+  const handleToggleTagNameStatus = async (userRow: EnrichedSemcompApiUser, updateRow: (fields: Partial<EnrichedSemcompApiUser>) => void) => {
+    const newGotKit = userRow.gotKit;
+    const newGotTagName = !userRow.gotTagName; 
+
+    const updatedUser = await updateUser(userRow.id, newGotKit, newGotTagName);
+
+    // Atualiza a linha no datatable
+    if (updatedUser) {
+      updateRow({ gotTagName: newGotTagName });
+    }
+  };
+
+  const getUserSales = (user: EnrichedSemcompApiUser) => {
+    const paymentStatus: string[] = [];
+    const saleOption: string[] = [];
+    const allSalesObj: { [key: string]: SemcompApiSale & { usedQuantity: number } } = {};
+    allSales.forEach((sale) => {
+      allSalesObj[sale.id] = sale;
+    });
+
+    for (let i = 0; i < user.payment.status.length; i++) {
+      let name = '';
+      const isApproved = user.payment.status[i] === PaymentStatus.APPROVED;
+
+      user.payment.saleOption[i].forEach(saleId => {
+        const sale = allSalesObj[saleId];
+        if (sale) {
+          name = name.concat(sale.name, ', ');
+        }
+      });
+
+      if (name !== '') {
+        name = name.slice(0, -2);
+        saleOption.push(name);
+        paymentStatus.push(isApproved ? "Aprovado" : "Pendente");
+      }
+    }
+    return { saleOption, paymentStatus };
+  }
+
+  const columns = useMemo(() => [
+    { key: 'name', label: 'Nome' },
+    { key: 'email', label: 'E-mail' },
+    { key: 'house.name', label: 'Casa', value: (row: EnrichedSemcompApiUser) => row.house.name },
+    { 
+      key: 'payment.tShirtSize', 
+      label: 'Tamanho Camiseta', 
+      value: (row: EnrichedSemcompApiUser) =>
+        row.payment.tShirtSize != null && row.payment.tShirtSize !== TShirtSize.NONE
+          ? row.payment.tShirtSize
+          : '-'
+    },
+    { 
+      key: 'sales_details',
+      label: 'Detalhes',
+      render: (row: EnrichedSemcompApiUser) => {
+        const { saleOption, paymentStatus } = getUserSales(row);
+        
+        if (saleOption.length > 0) {
+          return (
+            <RemoveRedEyeIcon 
+              style={{ cursor: 'pointer' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenSaleModal(saleOption, paymentStatus);
+              }}
+            />
+          );
+        }
+        return '-';
+      }
+    },
+    { 
+      key: 'gotKit',
+      label: 'Retirou kit',
+      render: (row: EnrichedSemcompApiUser, updateRow) => (
+        <Input
+          onChange={() => {
+              handleToggleGotKitStatus(row, updateRow);
+          }}
+          value={row.gotKit}
+          type={InputType.Checkbox}
+        />
+      )
+    },
+    { 
+      key: 'gotTagName',
+      label: 'Retirou crachá',
+     
+      render: (row: EnrichedSemcompApiUser, updateRow) => (
+        <Input
+          onChange={() => {
+              handleToggleTagNameStatus(row, updateRow);
+          }}
+          value={row.gotTagName}
+          type={InputType.Checkbox}
+        />
+      )
+    },
+    { 
+      key: 'wantNameTag',
+      label: 'Quer crachá?',
+      render: (row: EnrichedSemcompApiUser) => (
+        <Input
+          value={row.wantNameTag}
+          type={InputType.Checkbox}
+          disabled={true}
+        />
+      )
+    },
+    { key: 'createdAt', label: 'Criado em', value: (row: EnrichedSemcompApiUser) => new Date(row.createdAt).toLocaleDateString('pt-BR'), }
+  ], [getUserSales, handleToggleGotKitStatus, handleToggleTagNameStatus, handleOpenSaleModal]);
 
   return (<>
-    <Modal
-      isOpen={isModalOpen}
-      hasCloseBtn={false}
-      onClose={handleCloseKitModal}
-    >
-      <div className="flex flex-col gap-5 p-5 border border-gray-300">
-        {!allData.getEntities()[selected]?.gotTagName &&
-          <Input className='pr-4'
-            value={gotTagName}
-            label='Retirou crachá?'
-            type={InputType.Checkbox}
-            onChange={() => setGotTagName(!gotTagName)}
-          />
-        }
-
-        <div className="text-lg font-semibold mb-2"> Confirmar mudança? </div>
-        <div className="flex justify-between">
-          <button className="bg-green-600 text-black py-2 px-4 rounded hover:bg-green-700"
-            onClick={() => handleGotItems(selected, gotTagName)}>
-            Sim
-          </button>
-          <button className="bg-red-600 text-black py-2 px-4 rounded hover:bg-red-700" onClick={handleCloseKitModal}>
-            Não
-          </button>
-        </div>
-      </div>
-    </Modal>
-
     {isSaleModalOpen &&
       <Modal
         isOpen={isSaleModalOpen}
@@ -348,44 +439,41 @@ function UsersTable({
       </AccordionDetails>
     </Accordion>
             
-
-    
-    <DataTable
-      data={new PaginationResponse<UserData>(mapData(data.getEntities(), allSales, handleOpenKitModal, handleOpenSaleModal, updateUser), data.getTotalNumberOfItems())}
-      allData={allData}
-      pagination={pagination}
-      onRowClick={(index: number) => {
-        setSelected(index);
+    <NewDataTable
+      ref={dataTableRef}
+      fetchData={async ({ page, limit, search, sort }) => {
+        return await semcompApi.getFilteredUsers(new PaginationRequest(() => {}, page, limit), sort, search) as PaginationResponse<EnrichedSemcompApiUser>
+      }}
+      columns={columns as any}
+      
+      onRowClick={(user: EnrichedSemcompApiUser) => { 
+        setSelected(user);
       }}
       onRowSelect={onRowSelect}
-    ></DataTable>
+    />
   </>);
 }
 
 function Users() {
   const { semcompApi }: { semcompApi: SemcompApi } = useAppContext();
-  const [data, setData] = useState<PaginationResponse<SemcompApiUser> | null>(
-    null
-  );
-  const [allData, setAllData] =
-    useState<PaginationResponse<SemcompApiUser> | null>(null);
-  const [pagination, setPagination] = useState(
-    new PaginationRequest(() => fetchTableData())
-  );
-  const [paginationComplete, setPaginationComplete] = useState(
-    new PaginationRequest(() => fetchAllData(), 1, 9999)
-  );
-  const [allSales, setAllSales] = useState<SemcompApiSale[]>([]);
   
-  async function fetchAllData() {
+  const [statsData, setStatsData] = 
+    useState<PaginationResponse<EnrichedSemcompApiUser> | null>(null);
+  
+  async function fetchStatsData() {
     try {
-      const response = await fetchAllDataParse(paginationComplete);
-      setAllData(response);
+      const response = await fetchFullDataParse(paginationComplete);
+      setStatsData(response);
     } catch (error) {
       console.error(error);
     }
   }
 
+  const [paginationComplete, setPaginationComplete] = useState(
+    new PaginationRequest(() => fetchStatsData(), 1, 9999)
+  );
+  const [allSales, setAllSales] = useState<SemcompApiSale[]>([]);
+  
   async function getSales() {
     const sales = await semcompApi.getSales(new PaginationRequest(null, 0, 9999));
     setAllSales(sales ? sales.getEntities() : []);
@@ -393,34 +481,18 @@ function Users() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndexes, setSelectedIndexes] = useState<number[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState<SemcompApiUser[] | null>(null);
   const downloadBtnHeight = '48px';
-
-  async function fetchData(pagination: PaginationRequest) {
-    return await semcompApi.getUsers(pagination);
-  }
-
-  async function fetchAllDataParse(paginationComplete: PaginationRequest) {
-    return await semcompApi.getUsers(paginationComplete);
-  }
-
-  async function fetchTableData() {
-    try {
-      const response = await fetchData(pagination);
-      setData(response);
-      setFilteredUsers(response.getEntities());
-    } catch (error) {
-      console.error(error);
-    }
+  
+  async function fetchFullDataParse(paginationComplete: PaginationRequest): Promise<PaginationResponse<EnrichedSemcompApiUser>> {
+    return await semcompApi.getFilteredUsers(paginationComplete, null, null) as PaginationResponse<EnrichedSemcompApiUser>;
   }
 
   async function fetchDownloadData() {
     try {
       setIsLoading(true);
-      const response = await semcompApi.getUsers(
-        new PaginationRequest(null, 1, 9999)
-      );
+      const response = await semcompApi.getFilteredUsers(
+        new PaginationRequest(null, 1, 9999), null, null
+      ) as PaginationResponse<EnrichedSemcompApiUser>;
       exportToCsv(mapData(response.getEntities(), allSales, undefined, undefined, undefined, true));
     } catch (error) {
       console.error(error);
@@ -432,11 +504,13 @@ function Users() {
   async function fetchDownloadUserQrCode() {
     try {
       setIsLoading(true);
-      const response = await semcompApi.getUsers(new PaginationRequest(() => {}, 1, 9999));
+      const response = await semcompApi.getFilteredUsers(
+        new PaginationRequest(() => {}, 1, 9999), null, null
+      ) as PaginationResponse<EnrichedSemcompApiUser>;
+      
       const users = response.getEntities().filter(user => user.wantNameTag);
       const zip = new jszip();
-      let content = null;
-
+      
       try {
         for (const user of users) {
             const qrCodeText = user.id;
@@ -446,9 +520,8 @@ function Users() {
             zip.file(`${user.name}-${user.house.name}.png`, imgData, { base64: true });
         }
 
-        // Gera o zip e envia como resposta para download
-        zip.generateAsync({ type: 'nodebuffer' }).then((content) => {
-          const url = window.URL.createObjectURL(new Blob([content]));
+        zip.generateAsync({ type: 'blob' }).then((content: Blob) => {
+          const url = window.URL.createObjectURL(content);
 
           const link = document.createElement('a');
           link.href = url;
@@ -472,53 +545,34 @@ function Users() {
     }
   }
   
-  async function updateUser(id: string, gotKit: boolean, gotTagName: boolean) {
+  async function updateUser(id: string, gotKit: boolean, gotTagName: boolean): Promise<any> {
     try {
-      const index = data.getEntities().findIndex(user => user.id === id);
-
       const response = await semcompApi.updateKitStatus(id, {gotKit: gotKit, gotTagName: gotTagName});
-      fetchAllData();
-      fetchTableData();
 
       toast.success(`Status de ${response.name} atualizado com sucesso`);
       return response;
     } catch (error) {
       toast.error('Erro ao atualizar status do kit, atualize a página e tente novamente');
       console.error(error);
+      return null;
     }
   }
 
-  // Get all data about users
   useEffect(() => {
     setIsLoading(true);
-    fetchAllData();
-    fetchTableData();
+    fetchStatsData();
     getSales();
+    
+    setIsLoading(false); 
+    
   }, []);
-
-  function findUsers(searchTerm: string) {
-    const mappedData = allData.getEntities();
-    if (searchTerm) {
-      setFilteredUsers(
-        mappedData.filter((user) =>
-          user.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    } else {
-      setFilteredUsers((data?.getEntities() || []));
-    }
-  }
-
-  useEffect(() => {
-    if (allData != null) {
-      findUsers(searchTerm);
-      setIsLoading(false);
-    }
-  }, [allData, data]);
+  
 
   async function handleSelectedIndexesChange(updatedSelectedIndexes: number[]) {
     setSelectedIndexes(updatedSelectedIndexes);
   }
+
+  const dataTableRef = useRef<any>(null);
 
   return (
     <>
@@ -530,40 +584,12 @@ function Users() {
               isLoading={isLoading}
               table={
                 <>
-                  <div className="mb-4 w-full">
-                    <TextField
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <Search />
-                          </InputAdornment>
-                        ),
-                      }}
-                      type="text"
-                      placeholder="Digite o nome e pressione Enter..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          findUsers(searchTerm);
-                        }
-                      }}
-                      className="mb-4 p-2 border border-gray-300 rounded w-full"
-                    />
-                  </div>
-
                   <UsersTable
-                    data={
-                      new PaginationResponse<SemcompApiUser>(
-                        filteredUsers || [],
-                        data ? data.getTotalNumberOfItems() : 0
-                      )
-                    }
-                    pagination={pagination}
                     onRowSelect={handleSelectedIndexesChange}
-                    allData={allData!}
+                    allData={statsData!}
                     updateUser={updateUser}
                     allSales={allSales}
+                    dataTableRef={dataTableRef}
                   />
                 </>
               }

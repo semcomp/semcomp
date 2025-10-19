@@ -114,9 +114,16 @@ export default class UserController {
 
 
   public async listFilteredUsers(req, res, next) {
-      const usersFound = await userService.filteredFindBackoffice(req.query.filter);
-      return res.status(200).json(usersFound);
-  }
+    const usersFound = await userService.filteredFindBackoffice({
+      filters: req.query.filter,
+      pagination: new PaginationRequest(
+        +req.query.page,
+        +req.query.items,
+      ),
+    });
+
+    return res.status(200).json(usersFound);
+}
 
   public async listForEnterprise(req, res, next) {
     const pagination = new PaginationRequest(

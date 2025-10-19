@@ -125,7 +125,7 @@ function Sidebar(props) {
                 </IconButton>
               </ThemeProvider>
               <Navlink href={Routes.home}>
-                <Logo className="my-auto mr-2" height="2rem" width="2rem" fillColor="#2E1B5B"/>
+                <Logo className="my-auto mr-2" height="2rem" width="2rem" />
               </Navlink>
             </Toolbar>
           </AppBar>
