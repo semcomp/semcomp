@@ -89,11 +89,8 @@ class Http {
       config.params = { page: pagination.getPage(), items: pagination.getItems(), filter: filter };
     }
 
-    console.log("Aqui estão os filters: ", filter);
-
     try {
       const { data } = await this.instance.get(url, config);
-      console.log("Aqui esta a data ", data);
       return data;
     }
     catch (err) {
