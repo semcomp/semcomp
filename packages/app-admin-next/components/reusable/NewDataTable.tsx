@@ -206,7 +206,7 @@ const DataTable = forwardRef(
 
         useEffect(() => {
             loadData();
-        }, [page, limit, sortConfig, searchQuery]);
+        }, [page, limit, sortConfig]);
 
         useImperativeHandle(ref, () => ({
             reload: loadData,
