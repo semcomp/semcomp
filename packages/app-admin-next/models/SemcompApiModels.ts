@@ -254,6 +254,7 @@ export type SemcompApiEditGameQuestionRequest =
 export type SemcompApiGameGroup = {
   groupName: string;
   game: string;
+  members: Array<string>;
   questionIndex: number;
   availableClues?: number;
   availableSkips?: number;

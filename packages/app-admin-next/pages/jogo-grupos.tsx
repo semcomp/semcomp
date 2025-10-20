@@ -18,6 +18,7 @@ import util from "../libs/util";
 type GameGroupData = {
   Jogo: string;
   Nome: string;
+  Membros: string;
   "Questao atual": any;
   // "Dicas disponíveis": number;
   // "Pulos disponíveis": number;
@@ -37,6 +38,7 @@ function mapData(data: SemcompApiGameGroup[]): GameGroupData[] {
     newData.push({
       Jogo: game,
       Nome: gameQuestion.groupName,
+      Membros: gameQuestion?.members?.join(','),
       "Questao atual": gameQuestion.questionIndex,
       // "Dicas disponíveis": gameQuestion.availableClues,
       // "Pulos disponíveis": gameQuestion.availableSkips,

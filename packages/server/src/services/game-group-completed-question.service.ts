@@ -75,6 +75,7 @@ class GameGroupCompletedQuestionService {
 
     return entity && this.mapEntity(entity);
   }
+
   public async getLastQuestionByGroup({
     filters,
     pagination,
@@ -82,11 +83,14 @@ class GameGroupCompletedQuestionService {
     filters?: Partial<GameGroupCompletedQuestion>;
     pagination: PaginationRequest;
   }): Promise<PaginationResponse<GameGroupCompletedQuestion>> {
-    const totalItems = await GameGroupModel.countDocuments();
+    
+    const itemsPerPage = pagination.getItems();
+    const page = pagination.getPage();
+    const skip = (page - 1) * itemsPerPage;
 
-    const entities = await GameGroupCompletedQuestionModel.aggregate([
+    const aggregationPipeline = [
       {
-      $match: filters || {},
+        $match: filters || {},
       },
       {
         $sort: {
@@ -97,7 +101,7 @@ class GameGroupCompletedQuestionService {
         $group: {
           _id: "$gameGroupId",
           mostRecentDocument: {
-          $first: "$$ROOT",
+            $first: "$$ROOT",
           },
         },
       },
@@ -129,25 +133,68 @@ class GameGroupCompletedQuestionService {
         $unwind: "$group",
       },
       {
+        $lookup: {
+          from: "game-group-member",
+          let: { groupId: "$gameGroupId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$gameGroupId", "$$groupId"] },
+              },
+            },
+            {
+              $lookup: {
+                from: "user",
+                localField: "userId",
+                foreignField: "id",
+                as: "userDetails",
+              },
+            },
+            {
+              $unwind: "$userDetails",
+            },
+            {
+              $project: {
+                _id: 0,
+                name: "$userDetails.name",
+              },
+            },
+          ],
+          as: "membersInfo",
+        },
+      },
+      {
         $project: {
           questionIndex: "$question.index",
           groupName: "$group.name",
           game: "$group.game",
           createdAt: "$createdAt",
+          members: "$membersInfo.name",
         },
       },
       {
         $sort: {
           questionIndex: -1,
-          createdAt: -1
+          createdAt: -1,
         },
       },
       {
-        $limit: pagination.getItems(),
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [
+            { $skip: skip }, 
+            { $limit: itemsPerPage }
+          ],
+        },
       },
-    ]);
+    ];
+    
+    const result = await GameGroupCompletedQuestionModel.aggregate(aggregationPipeline);
 
-    const paginatedResponse = new PaginationResponse(entities, totalItems);
+    const entities = result[0]?.data || [];
+    const totalItems = result[0]?.metadata[0]?.total || 0;
+
+    const paginatedResponse: PaginationResponse<GameGroupCompletedQuestion> = new PaginationResponse(entities, totalItems);
 
     return paginatedResponse;
   }
