@@ -97,6 +97,12 @@ function Sidebar() {
           </Link>
           {/* <Link className={style.button} onClick={handleToggleSidebar} to={Routes.riddleQuestions}>Riddle - Perguntas</Link> */}
           {/* <Link className={style.button} onClick={handleToggleSidebar} to={Routes.riddleGroups}>Riddle - Grupos</Link> */}
+          <Link className={style.button} onClick={handleToggleSidebar} to={Routes.donations}>
+            Cadastro de doações
+          </Link>
+          <Link className={style.button} onClick={handleToggleSidebar} to={Routes.points}>
+            Pontuações
+          </Link>
           <Link className={style.button} onClick={handleToggleSidebar} to={Routes.riddlethonQuestions}>
             Riddlethon - Perguntas
           </Link>
