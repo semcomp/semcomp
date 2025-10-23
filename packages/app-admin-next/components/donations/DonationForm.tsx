@@ -20,7 +20,7 @@ function useDropdownData() {
   const {semcompApi}: {semcompApi: SemcompApi} = useAppContext();
   const [houses, setHouses] = useState(null as SemcompApiGetHousesResponse);
   const [items, setItems] = useState(null as SemcompApiGetItemsResponse);
-  const [pagination, setPagination] = useState(new PaginationRequest (() => fetchDropdownOptions())); 
+  const [pagination, setPagination] = useState(new PaginationRequest (() => fetchDropdownOptions(), undefined, 100));
   const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(true);
 
   async function fetchDropdownOptions() {
