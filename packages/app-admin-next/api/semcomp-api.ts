@@ -66,8 +66,13 @@ class SemcompApi {
     return new PaginationResponse(response.entities, response.totalNumberOfItems);
   }
 
-  public async getFilteredUsers(pagination: PaginationRequest, sortConfig, searchQuery): Promise<SemcompApiGetUsersResponse> {
-    const filter = {sortConfig, searchQuery};
+  public async getFilteredUsers(
+    pagination: PaginationRequest,
+    sortConfig: {key: string; direction: "asc" | "desc"},
+    searchQuery: string,
+    includeAdditionalInfos: boolean = false
+  ): Promise<SemcompApiGetUsersResponse> {
+    const filter = {sortConfig, searchQuery, includeAdditionalInfos};
     const semcompApiPagination = new SemcompApiPaginationRequest(
       pagination.getPage(),
       pagination.getItems(),

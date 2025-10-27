@@ -65,6 +65,14 @@ export type SemcompApiUser = {
   wantNameTag: boolean;
   createdAt: number;
   updatedAt: number;
+  position?: string;
+  phone?: string;
+  linkedin?: string;
+  admissionYear?: string;
+  expectedGraduationYear?: string;
+  expectedGraduationSemester?: string;
+  institute?: string;
+  extensionGroups?: [string];
 };
 
 export type UserData = {

@@ -93,7 +93,7 @@ class UserServiceImpl implements UserService {
   }): Promise<PaginationResponse<User>> {
 
     const filtersObj = typeof filters === 'string' ? JSON.parse(filters) : filters;
-    const { sortConfig, searchQuery } = filtersObj || {};
+    const { sortConfig, searchQuery, includeAdditionalInfos } = filtersObj || {};
     const searchFields = ['course', 'name', 'email', 'telegram'];
 
     // Definição da chave e direção de ordenação
@@ -110,6 +110,17 @@ class UserServiceImpl implements UserService {
         })),
       };
     }
+
+    const flattenedAdditionalInfos = {
+      position: { $ifNull: ['$additionalInfos.position', null] },
+      phone: { $ifNull: ['$additionalInfos.phone', null] },
+      linkedin: { $ifNull: ['$additionalInfos.linkedin', null] },
+      admissionYear: { $ifNull: ['$additionalInfos.admissionYear', null] },
+      expectedGraduationYear: { $ifNull: ['$additionalInfos.expectedGraduationYear', null] },
+      expectedGraduationSemester: { $ifNull: ['$additionalInfos.expectedGraduationSemester', null] },
+      institute: { $ifNull: ['$additionalInfos.institute', null] },
+      extensionGroups: { $ifNull: ['$additionalInfos.extensionGroups', {}] },
+    };
 
     const basePipeline = [
         // Match inicial para query de busca
@@ -203,6 +214,7 @@ class UserServiceImpl implements UserService {
                     }
                 },
                 disabilities: '$userDisabilities.disability',
+                ...(includeAdditionalInfos === true ? flattenedAdditionalInfos : {})
             }
         }
     ];

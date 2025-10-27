@@ -1,7 +1,7 @@
 import jszip from 'jszip';
 import QRCode from "qrcode";
 import { toast } from "react-toastify";
-import { ReactElement, useEffect, useMemo, useRef, useState, MutableRefObject } from "react";
+import { useEffect, useMemo, useRef, useState, MutableRefObject } from "react";
 
 import DataPage from "../components/DataPage";
 import { Modal } from '../components/reusable/Modal';
@@ -9,7 +9,6 @@ import { DataTable as NewDataTable } from "../components/reusable/NewDataTable";
 import InfoCards from "../components/reusable/InfoCards";
 import { TShirtSize } from "../components/t-shirt/TShirtForm";
 import Input, { InputType } from '../components/Input';
-import util from "../libs/util";
 import RequireAuth from "../libs/RequireAuth";
 import exportToCsv from "../libs/DownloadCsv";
 import { useAppContext } from "../libs/contextLib";
@@ -22,15 +21,9 @@ import {
 } from "../models/SemcompApiModels";
 import { PaginationRequest, PaginationResponse } from "../models/Pagination";
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
-import { Search } from "@mui/icons-material";
-import {
-  Accordion, AccordionDetails,
-  AccordionSummary, InputAdornment,
-  TextField 
-} from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-// Estrutura de dados completa retornada pelo novo endpoint de Aggregation
 type EnrichedSemcompApiUser = BaseSemcompApiUser & {
     house: {
         name: string,
@@ -41,7 +34,6 @@ type EnrichedSemcompApiUser = BaseSemcompApiUser & {
         foodOption?: string,
         saleOption: string[][],
     },
-    disabilities: any[]
 };
 
 type UserData = {
@@ -50,13 +42,21 @@ type UserData = {
   Curso: string;
   Telegram: string;
   Casa: string;
-  "Retirou kit": ReactElement | string;
-  "Retirou crachá": ReactElement | string;
-  "Quer crachá": ReactElement | string;
-  "Tamanho da camiseta": TShirtSize;
-  "Compras": ReactElement | string;
+  "Retirou kit": string;
+  "Retirou crachá": string;
+  "Quer crachá": string;
+  "Tamanho da camiseta": string;
+  "Compras": string;
   "Permite divulgação?": string;
-  "Criado em": string;
+  // Adittional infos
+  "Cargo": string;
+  "Telefone": string;
+  "LinkedIn": string;
+  "Instituto": string;
+  "Ano de Ingresso": string;
+  "Previsão de Formatura (Ano)": string;
+  "Previsão de Formatura (Semestre)": string;
+  "Grupos de Extensão": string;
 };
 
 type InfoData = {
@@ -65,22 +65,19 @@ type InfoData = {
 };
 
 function mapData(
-  data: EnrichedSemcompApiUser[],
-  allSales: (SemcompApiSale & {usedQuantity:number})[],
-  handleOpenKitModal?: () => void,
-  handleOpenSaleModal?: (saleOption: string[], paymentStatus: string[]) => void,
-  updateUser?: (id: string, gotKit: boolean, gotTagName: boolean) => any,
-  exportToCsv?: boolean,
+  data: EnrichedSemcompApiUser[], 
+  allSales: (SemcompApiSale & { usedQuantity: number })[],
 ): UserData[] {
+  
   const newData: UserData[] = [];
+  const allSalesObj: { [key: string]: SemcompApiSale & { usedQuantity: number } } = {};
+  allSales.forEach((sale) => {
+    allSalesObj[sale.id] = sale;
+  });
+
   for (let index = 0; index < data.length; index++) {
     const user = data[index];
 
-    const paymentStatus: string[] = [];
-    const allSalesObj: { [key: string]: SemcompApiSale & { usedQuantity: number } } = {};
-    allSales.forEach((sale) => {
-      allSalesObj[sale.id] = sale;
-    });
     let saleOption: string[] = [];
     let hasKit = false;
     let tShirtSize: TShirtSize | null = null;
@@ -94,90 +91,56 @@ function mapData(
       const currentStatus = user.payment.status[i];
       const currentSaleOptionIds = user.payment.saleOption[i];
       
-      if (currentStatus === PaymentStatus.APPROVED) {
-        currentSaleOptionIds.forEach(saleId => {
-          if (allSalesObj.hasOwnProperty(saleId)) {
-            const sale = allSalesObj[saleId];
-            if (sale) {
-              if (sale.hasKit) {
-                hasKit = true;
-              }
-              name = name.concat(sale.name, ', ');
+      currentSaleOptionIds.forEach(saleId => {
+        if (allSalesObj.hasOwnProperty(saleId)) {
+          const sale = allSalesObj[saleId];
+          if (sale) {
+            if (currentStatus === PaymentStatus.APPROVED && sale.hasKit) {
+              hasKit = true;
             }
-          }  else {
-            toast.error(`Venda ${saleId} não encontrada para usuário ${user.name}`);
+            name = name.concat(sale.name, ', ');
           }
-        });
-
-        if (name !== '') {
-          name = name.slice(0, -2);
-          saleOption.push(name);
-          paymentStatus.push("Aprovado");
+        } else {
+          toast.error(`Venda ${saleId} não encontrada para usuário ${user.name}`);
         }
-      } else {
-        currentSaleOptionIds.forEach(saleId => {
-          if (allSalesObj.hasOwnProperty(saleId)) {
-            const sale = allSalesObj[saleId];
-            if (sale) {
-              name = name.concat(sale.name, ', ');
-            }
-          }
-        });
+      });
 
-        if (name !== '') {
-          name = name.slice(0, -2);
-          saleOption.push(name);
-          paymentStatus.push("Pendente");
-        }
+      if (name !== '') {
+        name = name.slice(0, -2);
+        saleOption.push(name);
       }
     }
 
-    const gotKitInput = hasKit ?
-      <Input
-        onChange={handleOpenKitModal ? handleOpenKitModal : () => { }}
-        value={user.gotKit}
-        type={InputType.Checkbox}
-      /> : <></>;
+    const newDataSales = saleOption.length > 0 ? saleOption.join(" - ") : "Nenhuma";
+    const newDataGotKit = hasKit ? (user.gotKit ? "Sim" : "Não") : "-";
+    const newDataGotTagName = user.gotTagName ? "Sim" : "Não";
+    const newDataWantTagName = user.wantNameTag ? "Sim" : "Não";
 
-    const gotTagNameInput = <Input
-        onChange={updateUser ? () => updateUser(user.id, user.gotKit, !user.gotTagName) : () => { }}
-        value={user.gotTagName}
-        type={InputType.Checkbox}
-      />;
-
-    const openSales = handleOpenSaleModal ? 
-    <RemoveRedEyeIcon onClick={() => handleOpenSaleModal(saleOption, paymentStatus)}/> : null;
-  
-    let newDataSales = undefined;
-    let newDataGotKit = undefined;
-    let newDataGotTagName = undefined;
-    let newDataWantTagName = undefined;
-
-    if (exportToCsv) {
-      newDataSales = saleOption.length > 0 ? saleOption.join(" - ") : "Nenhuma";
-      newDataGotKit = user.gotKit ? "Sim" : "Não";
-      newDataGotTagName = user.gotTagName ? "Sim" : "Não";
-      newDataWantTagName = user.wantNameTag ? "Sim" : "Não";
-    } else {
-      newDataSales = openSales && saleOption.length > 0 ? openSales : saleOption.join(", ");
-      newDataGotKit = handleOpenKitModal ? gotKitInput : (user.gotKit ? "Sim" : "Não");
-      newDataGotTagName = gotTagNameInput;
-      newDataWantTagName = <Input type={InputType.Checkbox} disabled={true} value={user.wantNameTag}></Input>;
+    let extensionGroupsStr = "-";
+    if (user.extensionGroups && user.extensionGroups.length > 0) {
+      extensionGroupsStr = user.extensionGroups.join(', ');
     }
 
     newData.push({
       "E-mail": user.email,
       Nome: user.name,
-      Curso: user.course,
-      Telegram: user.telegram,
+      Curso: user.course || "-",
+      Telegram: user.telegram || "-",
       Casa: user.house.name,
-      "Tamanho da camiseta": tShirtSize,
+      "Tamanho da camiseta": tShirtSize || "-",
       "Compras": newDataSales,
       "Retirou kit": newDataGotKit,
       "Retirou crachá": newDataGotTagName,
       "Quer crachá": newDataWantTagName,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
-      "Criado em": util.formatDate(user.createdAt),
+      "Cargo": user.position || "-",
+      "Telefone": user.phone || "-",
+      "LinkedIn": user.linkedin || "-",
+      "Instituto": user.institute || "-",
+      "Ano de Ingresso": user.admissionYear || "-",
+      "Previsão de Formatura (Ano)": user.expectedGraduationYear || "-",
+      "Previsão de Formatura (Semestre)": user.expectedGraduationSemester || "-",
+      "Grupos de Extensão": extensionGroupsStr,
     });
   }
   return newData;
@@ -491,9 +454,9 @@ function Users() {
     try {
       setIsLoading(true);
       const response = await semcompApi.getFilteredUsers(
-        new PaginationRequest(null, 1, 9999), null, null
+        new PaginationRequest(null, 1, 9999), null, null, true
       ) as PaginationResponse<EnrichedSemcompApiUser>;
-      exportToCsv(mapData(response.getEntities(), allSales, undefined, undefined, undefined, true));
+      exportToCsv(mapData(response.getEntities(), allSales));
     } catch (error) {
       console.error(error);
     } finally {
