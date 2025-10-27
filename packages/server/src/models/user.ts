@@ -9,6 +9,7 @@ type AdditionalInfos = {
   expectedGraduationSemester: string,
   institute: string,
   extensionGroups: Object,
+  educationLevel: string,
 };
 
 type User = {

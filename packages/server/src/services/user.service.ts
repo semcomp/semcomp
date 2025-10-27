@@ -112,6 +112,7 @@ class UserServiceImpl implements UserService {
     }
 
     const flattenedAdditionalInfos = {
+      educationLevel: { $ifNull: ['$additionalInfos.educationLevel', null] },
       position: { $ifNull: ['$additionalInfos.position', null] },
       phone: { $ifNull: ['$additionalInfos.phone', null] },
       linkedin: { $ifNull: ['$additionalInfos.linkedin', null] },

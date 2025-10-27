@@ -73,6 +73,7 @@ export type SemcompApiUser = {
   expectedGraduationSemester?: string;
   institute?: string;
   extensionGroups?: [string];
+  educationLevel?: string;
 };
 
 export type UserData = {

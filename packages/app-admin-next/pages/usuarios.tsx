@@ -49,6 +49,7 @@ type UserData = {
   "Compras": string;
   "Permite divulgação?": string;
   // Adittional infos
+  "Escolaridade": string;
   "Cargo": string;
   "Telefone": string;
   "LinkedIn": string;
@@ -133,6 +134,7 @@ function mapData(
       "Retirou crachá": newDataGotTagName,
       "Quer crachá": newDataWantTagName,
       "Permite divulgação?": user.permission ? "Sim" : "Não",
+      "Escolaridade": user.educationLevel,
       "Cargo": user.position || "-",
       "Telefone": user.phone || "-",
       "LinkedIn": user.linkedin || "-",
