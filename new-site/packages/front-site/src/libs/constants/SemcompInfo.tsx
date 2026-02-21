@@ -1,4 +1,4 @@
-export const semcompInfo = {
+const SemcompInfo = {
     "EDITION": 29,
     "YEAR": 2026,
     "START_DATE": "2025-10-16 09:10:00",
@@ -12,3 +12,5 @@ export const semcompInfo = {
     "ORGANIZING_COMMITTEE_TELEGRAM_LINK": "https://t.me/semcomp_avisos/",
     "ORGANIZING_COMMITTEE_YOUTUBE_LINK": "https://www.youtube.com/@SemcompUSP/",
 }
+
+export default SemcompInfo;
