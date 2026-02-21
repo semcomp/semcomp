@@ -4,7 +4,7 @@ import Event, { EventModel } from "../models/event";
 import subscriptionService from "./subscription.service";
 import Attendance, { AttendanceModel } from "../models/attendance";
 import attendanceService from "./attendance.service";
-import userService from "../services/user.service";
+import userService from "./user.service";
 import { config } from "dotenv";
 config({ path: `./config/env/${process.env.NODE_ENV === "production" ? "production" : "development"}.env` });
 
