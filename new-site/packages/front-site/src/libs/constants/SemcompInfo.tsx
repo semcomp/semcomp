@@ -1,8 +1,10 @@
 const SemcompInfo = {
-    "EDITION": 29,
+    "EDITION": "XXIX",
     "YEAR": 2026,
-    "START_DATE": "2025-10-16 09:10:00",
-    "END_DATE": "2025-10-23 17:00:00",
+    "START_DATE": "2026-10-17 09:10:00",
+    "END_DATE": "2026-10-23 17:00:00",
+    "DATES_STRING": "17 a 23 de outubro de 2026",
+    "LOCATION": "ICMC-USP, São Carlos - SP",
     "ORGANIZING_COMMITTEE_EMAIL": "semcomp@icmc.usp.br",
     "ORGANIZING_COMMITTEE_PATROCINIO_EMAIL": "patrocinio_semcomp@icmc.usp.br",
     "ORGANIZING_COMMITTEE_INSTAGRAM_LINK": "https://www.instagram.com/semcomp/",
