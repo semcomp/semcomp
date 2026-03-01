@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@theme {
+  --color-semcompBlack: #00080b;
+  --color-semcompWhite: #f8f8f8;
+  --color-semcompBlue: #003050;
+}
+
 :root {
 	--font-display: 'Comfortaa', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 	--font-sans: 'Poppins', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto;
