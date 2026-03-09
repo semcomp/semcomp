@@ -1,9 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-semcompBlack: #00080b;
-  --color-semcompWhite: #f8f8f8;
-  --color-semcompBlue: #003050;
+  --color-semcompDarkBlue: #0B2639;
+  --color-semcompMidDarkBlue: #003050;
+  --color-semcompMidLightBlue: #105079;
+  --color-semcompLightBlue: #357BA3;
+  --color-semcompOffWhite: #EEF8FF;
+  --color-semcompOffBlack: #00080B;
 }
 
 :root {
