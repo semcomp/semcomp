@@ -10,7 +10,7 @@ export default function MainEntrance() {
       <div className="absolute inset-0 bg-black/50" />
 
       <div className="absolute w-full flex justify-center px-4">
-        <div className="relative w-full max-w-6xl">
+        <div className="relative w-full max-w-[60%]">
           <div className="bg-semcompWhite rounded-b-4xl shadow-xl px-20 py-30 text-center">
             <h1 className="text-7xl md:text-8xl font-sans font-bold text-semcompBlue">SEMCOMP {SemcompInfo.EDITION}</h1>
             <p className="font-sans mt-2 text-2xl text-slate-600">{SemcompInfo.DATES_STRING}</p>
