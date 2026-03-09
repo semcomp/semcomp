@@ -1,6 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import LogoSemcomp from "../assets/img/semcomp/logo_default_branco.png";
-import { COLORS } from "../constants/Colors";
 
 type TabKey = "home" | "cronograma" | "login";
 
@@ -32,19 +31,19 @@ export default function Header({
   }, [active, tabs]);
 
   return (
-    <header className={`sticky top-0 z-10 border-b bg-${COLORS.MAIN_BLUE}`}>
+    <header className="sticky top-0 z-10 border-b bg-semcompDarkBlue transition-transform duration-300 ease-in-out">
       <div className="mx-auto flex w-full items-center justify-between px-6 py-4">
         <div className="flex items-center gap-2">
           <img src={LogoSemcomp} alt="Logo da Semcomp" className="h-8 w-auto" />
-          <h1 className="text-xl font-display text-white">semcomp</h1>
+          <h1 className="text-xl font-display text-semcompOffWhite">semcomp</h1>
         </div>
         <nav
           ref={navRef}
-          className="relative flex items-center gap-2 p-1 transition-transform"
+          className="relative flex items-center gap-2 p-1"
         >
           <span
             aria-hidden
-            className="absolute bottom-0 h-0.5 bg-white transition-all duration-300 ease-out"
+            className="absolute bottom-0 h-0.5 bg-semcompOffWhite transition-all duration-300 ease-out"
             style={{ left: indicator.left, width: indicator.width }}
           />
           {tabs.map((tab) => {
@@ -52,11 +51,15 @@ export default function Header({
             return (
               <button
                 key={tab.key}
-                ref={(el) => { btnRefs.current[tab.key] = el; }}
+                ref={(el) => {
+                  btnRefs.current[tab.key] = el;
+                }}
                 type="button"
                 onClick={() => onChange(tab.key)}
-                className={`relative px-4 py-2 text-sm font-bold transition-colors duration-200 ${
-                  isActive ? "text-white" : "text-slate-300 hover:text-slate-200"
+                className={`relative px-4 py-2 text-sm font-bold transition-all duration-200 transform ${
+                  isActive
+                    ? "text-semcompOffWhite scale-110"
+                    : "text-semcompOffWhite/70 hover:text-semcompOffWhite/90 hover:scale-110"
                 }`}
               >
                 {tab.label}

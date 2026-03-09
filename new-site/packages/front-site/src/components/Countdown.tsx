@@ -21,7 +21,7 @@ export default function Countdown({ target }: { target: Date }) {
 
   if (left.finished) return <div className="text-sm">O evento já começou!</div>;
 
-  const itemClass = `bg-gradient-to-b from-blue-900 to-black text-white mx-6 px-4 py-12 shadow-md rounded-4xl flex flex-col items-center justify-center`;
+  const itemClass = `bg-gradient-to-b from-semcompMidLightBlue to-semcompOffBlack text-semcompOffWhite mx-6 px-4 py-12 shadow-md rounded-4xl flex flex-col items-center justify-center`;
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-center justify-between">
