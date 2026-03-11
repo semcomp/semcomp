@@ -2,7 +2,7 @@ import { IonIcon } from "@ionic/react";
 import { chevronDownOutline } from "ionicons/icons";
 import { motion } from "framer-motion";
 import Countdown from "./Countdown";
-import SemcompInfo from "../libs/constants/SemcompInfo";
+import SemcompInfo from "../lib/constants/SemcompInfo";
 import FotoSemcompMain from "../assets/img/semcomp/Semcomp28.jpg";
 
 export default function MainEntrance() {

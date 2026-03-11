@@ -7,15 +7,6 @@ export default function FAQList({ faqs }: { faqs: Array<{ Q: string; A: string }
 
   return (
     <section id="faq" className="py-20 max-w-4xl mx-auto px-6">
-      <motion.h2
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="text-3xl font-bold text-[#115079] mb-10 text-center"
-      >
-        Perguntas <span className="text-gradient">Frequentes</span>
-      </motion.h2>
 
       <div className="space-y-4">
         {faqs.map((faq, i) => (

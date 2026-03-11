@@ -3,8 +3,8 @@ import HomePage from "./pages/Home";
 import CronogramaPage from "./pages/Cronograma";
 import Header from "./components/Header";
 import LoginPage from "./pages/Login";
-import { Sun, Moon } from "lucide-react";
-import useWindowDimensions from "./hooks/useWindowDimensions";
+import DarkModeToggle from "./components/DarkModeToggle";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 type TabKey = "home" | "cronograma" | "login";
 
@@ -14,14 +14,8 @@ const tabs: Array<{ key: TabKey; label: string }> = [
   { key: "login", label: "LOGIN" },
 ];
 
-function App() {
+function AppContent() {
   const [activeTab, setActiveTab] = useState<TabKey>("home");
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const { width, height } = useWindowDimensions();
-
-  const toggleTheme = () => {
-    setIsDarkMode((prev) => !prev);
-  };
 
   const currentPage = useMemo(() => {
     switch (activeTab) {
@@ -37,23 +31,19 @@ function App() {
   }, [activeTab]);
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? "bg-semcompDarkBlue text-semcompOffWhite" : "bg-semcompOffWhite text-semcompDarkBlue"} transition-colors duration-300`}>
+    <>
       <Header tabs={tabs} active={activeTab} onChange={setActiveTab} />
       <main className="w-full">{currentPage}</main>
+      <DarkModeToggle />
+    </>
+  );
+}
 
-      {/* Dark Mode Button */}
-      <button
-        onClick={toggleTheme}
-        className={`fixed bottom-4 right-4 flex items-center justify-center w-12 h-12 rounded-full shadow-lg focus:outline-none transition-colors duration-300 ${
-          isDarkMode
-            ? "bg-semcompOffWhite text-semcompDarkBlue hover:bg-semcompOffWhite/80"
-            : "bg-semcompMidDarkBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue/80"
-        }`}
-      >
-
-        {isDarkMode ? <Sun size={0.02*width} /> : <Moon size={0.02*width} />}
-      </button>
-    </div>
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 
