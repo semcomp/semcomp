@@ -1,19 +1,59 @@
+import React from "react"
+import FotoSemcompMain from "../assets/img/semcomp/Semcomp28.jpg";
+
 export default function TeamGrid({ data }: { data: Record<string, Record<string, string>> }) {
+  const [currentDepartment, setCurrentDepartment] = React.useState(0);
+
+  const entries = Object.entries(data);
+
+  function changePictures(index: number) {
+    setCurrentDepartment(index);
+  }
+
+  const firstRow = entries.slice(0, 4);
+  const secondRow = entries.slice(4, 9);
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {Object.entries(data).map(([department, members]) => (
-        <div key={department}>
-          <h3 className="font-semibold text-lg mb-4 text-[#115079]">{department}</h3>
-          <div className="space-y-2">
-            {Object.entries(members).map(([name, role]) => (
-              <div key={name} className="text-sm">
-                <p className="font-medium">{name}</p>
-                <p className="text-gray-600">{role}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
+    <div className="flex flex-col gap-4 items-center">
+      {/* linha de 4 */}
+      <div className="flex gap-32 justify-center">
+        {firstRow.map(([department], index) => (
+          <button
+            key={index}
+            className={`w-40 h-12 bg-semcompLightBlue rounded-md flex items-center justify-center hover:bg-sky-400 ${currentDepartment === index? "bg-sky-400 text-white": "bg-semcompLightBlue hover:bg-sky-500"}`}
+            onClick={() => changePictures(index)}
+          >
+            {department}
+          </button>
+        ))}
+      </div>
+
+      {/* linha de 5 */}
+      <div className="flex gap-32 justify-center">
+        {secondRow.map(([department], index) => (
+          <button
+            key={index+4}
+            className={`w-40 h-12 bg-semcompLightBlue rounded-md flex items-center justify-center hover:bg-sky-400 ${currentDepartment === index+4? "bg-sky-400 text-white": "bg-semcompLightBlue hover:bg-sky-500"}`}
+            onClick={() => changePictures(index+4)}
+          >
+            {department}
+          </button>
+        ))}
+      </div>
+
+      <div key={currentDepartment} className="flex gap-32 justify-center pt-10 transition-all duration-500 transform animate-slide">
+        {Object.entries(entries[currentDepartment][1]).map(([person, role]) => (
+            <div key={person}>
+              <img src={FotoSemcompMain} alt="" className="w-40 h-40"/>
+              {person} <br/>
+              {role}
+            </div>
+        ))}
+      </div>
+
+      <div>
+        
+      </div>
     </div>
   );
 }

@@ -1,5 +1,10 @@
 const TEAM = {
-  "Extracurriculares": {
+  "Presidência": {
+    "Bucke": "Presidente",
+    "Duda": "Presidente",
+    "Lunkes": "Presidente",
+  },
+  "Eventos Extracurriculares": {
     "Fernando": "Coordenador Geral",
     "Gustavo": "Coordenador Geral",
   }, 
@@ -19,7 +24,7 @@ const TEAM = {
     "Isabela": "Coordenadora de Marketing",
     "Luiz": "Coordenador de Marketing",
   },
-  "Patrocinio": {
+  "Patrocínio": {
     "Pedro Prestes": "Coordenador de Patrocínio",
     "Crystian": "Coordenador de Patrocínio",
   },
