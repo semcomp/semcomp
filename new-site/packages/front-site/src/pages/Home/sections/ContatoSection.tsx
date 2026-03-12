@@ -2,7 +2,11 @@ import { motion } from "framer-motion";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 
-const ContatoSection = () => {
+type ContatoSectionProps = {
+  className?: string;
+}
+
+const ContatoSection = (props: ContatoSectionProps) => {
   const { width } = useWindowDimensions();
   const { isDarkMode } = useTheme();
 
@@ -18,7 +22,7 @@ const ContatoSection = () => {
   };
 
   return (
-    <section id="contato" className={`${sectionPadding}`}>
+    <section id="contato" className={`${props.className} ${sectionPadding}`}>
       <motion.h2
         className={`${headingSize} font-extrabold mb-6`}
         initial="hidden"

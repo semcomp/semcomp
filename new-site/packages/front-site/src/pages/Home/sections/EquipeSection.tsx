@@ -4,7 +4,11 @@ import TEAM from "@/lib/constants/Team";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 
-const EquipeSection = () => {
+type EquipeSectionProps = {
+  className?: string;
+}
+
+const EquipeSection = (props: EquipeSectionProps) => {
   const { width } = useWindowDimensions();
   const { isDarkMode } = useTheme();
 
@@ -20,7 +24,7 @@ const EquipeSection = () => {
   };
 
   return (
-    <section id="equipe" className={`${sectionPadding}`}>
+    <section id="equipe" className={`${props.className} ${sectionPadding}`}>
       <motion.h2
         className={`${headingSize} font-extrabold mb-10`}
         initial="hidden"

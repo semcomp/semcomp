@@ -4,7 +4,11 @@ import FAQS from "@/lib/constants/FAQS";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 
-const FAQSection = () => {
+type FAQSectionProps = {
+  className?: string;
+}
+
+const FAQSection = (props: FAQSectionProps) => {
   const { width } = useWindowDimensions();
   const { isDarkMode } = useTheme();
 
@@ -20,7 +24,7 @@ const FAQSection = () => {
   };
 
   return (
-    <section id="faq" className={`${sectionPadding}`}>
+    <section id="faq" className={`${props.className} ${sectionPadding}`}>
       <motion.h2
         className={`${headingSize} font-extrabold mb-10`}
         initial="hidden"

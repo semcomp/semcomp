@@ -32,7 +32,7 @@ function AppContent() {
 
   return (
     <>
-      <Header tabs={tabs} active={activeTab} onChange={setActiveTab} />
+      <Header tabs={tabs} active={activeTab} onChange={(key: TabKey) => setActiveTab(key)} />
       <main className="w-full">{currentPage}</main>
       <DarkModeToggle />
     </>

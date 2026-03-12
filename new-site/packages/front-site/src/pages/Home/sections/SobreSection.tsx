@@ -5,7 +5,10 @@ import FotoSemcompMain2 from "@/assets/img/semcomp/palestra.png";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 
-const SobreSection = () => {
+type SobreProps = {
+  className?: string;
+}
+const SobreSection = (props: SobreProps) => {
   const { width } = useWindowDimensions();
   const { isDarkMode } = useTheme();
 
@@ -13,7 +16,6 @@ const SobreSection = () => {
   const gradientFrom = isDarkMode ? "from-semcompLightBlue" : "from-semcompLightBlue";
   const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompDarkBlue";
   const sectionMargin = width > 768 ? "my-20" : "my-10";
-  const sectionPadding = width > 768 ? "py-20" : "py-10";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
 
   const fadeIn = {
@@ -22,8 +24,7 @@ const SobreSection = () => {
   };
 
   return (
-    
-    <section id="sobre" className={`${sectionPadding} w-full`}>
+    <section id="sobre" className={`${props.className}  w-full`}>
       <div className={`${sectionMargin}`}></div>
       <motion.h2
         className={`${headingSize} font-extrabold mb-6`}
@@ -32,12 +33,12 @@ const SobreSection = () => {
         viewport={{ once: true }}
         variants={fadeIn}
       >
-        <span className={`${textColor} font-extrabold`}>SOBRE A</span>{" "}
-        <span className={`bg-clip-text text-transparent bg-linear-to-r ${gradientFrom} ${gradientTo} font-extrabold`}>
+        <span className={`${textColor} font-poppins-extrabold`}>SOBRE A</span>{" "}
+        <span className={`bg-clip-text font-poppins-extrabold text-transparent bg-linear-to-r ${gradientFrom} ${gradientTo} font-extrabold`}>
           SEMCOMP
         </span>
       </motion.h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-12 items-start">
         <motion.div
           className="self-start"
           initial="hidden"
@@ -60,7 +61,7 @@ const SobreSection = () => {
           viewport={{ once: true }}
           variants={fadeIn}
         >
-          <p className={`mb-4 ${textColor} text-justify`}>
+          <p className={`mb-4 ${textColor} font- text-justify`}>
             A Semcomp (Semana Acadêmica de Computação) é organizada por estudantes dos cursos de Ciência da Computação, Sistemas de Informação e Ciência de Dados do Instituto de Ciências Matemáticas e de Computação (ICMC) da USP São Carlos — cidade, inclusive, reconhecida como a Capital da Tecnologia.
           </p>
           <p className={`mb-4 ${textColor} text-justify`}>

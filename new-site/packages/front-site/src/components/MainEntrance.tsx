@@ -25,7 +25,7 @@ export default function MainEntrance() {
         alt={`SEMCOMP ${SemcompInfo.EDITION}`}
         className="absolute inset-0 h-full w-full object-cover"
       />
-      <div className="absolute inset-0 bg-semcompOffBlack/50" />
+      <div className="absolute inset-0 bg-semcompOffBlack/30" />
 
       <div className="absolute w-full flex justify-center px-4">
         <div className="relative w-full max-w-6xl">
