@@ -43,11 +43,11 @@ export default function TeamGrid({ data }: { data: TeamType }) {
       </div>
 
       {/* linha de 5 */}
-      <div className="flex gap-8 justify-center">
+      <div className="flex gap-8 w-[60%] justify-center">
         {secondRow.map(([department], index) => (
           <button
             key={index + 4}
-            className={`px-5 py-3 rounded-md flex items-center justify-center text-white font-semibold shadow-md transition-transform transform hover:scale-105 ${currentDepartment === index + 4 ? "bg-sky-400 hover:bg-sky-500" : "bg-semcompLightBlue hover:bg-semcompMidLightBlue"} focus:outline-none focus:ring-4 focus:ring-sky-400 focus:ring-opacity-50`}
+            className={`px-5 py-3 min-w-[30%] rounded-md flex items-center justify-center text-white font-semibold shadow-md transition-transform transform hover:scale-105 ${currentDepartment === index + 4 ? "bg-sky-400 hover:bg-sky-500" : "bg-semcompLightBlue hover:bg-semcompMidLightBlue"} focus:outline-none focus:ring-4 focus:ring-sky-400 focus:ring-opacity-50`}
             onClick={() => changePictures(index + 4)}
           >
             {department}

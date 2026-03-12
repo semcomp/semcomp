@@ -71,6 +71,7 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
   return (
     <section id="patrocinadores" className={`w-full`} >
     <div className={`${className}`}>
+    <div className="mx-auto max-w-[80%]">
       
       <motion.h2
         className={`${headingSize} font-extrabold mb-10`}
@@ -85,7 +86,7 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
         </span>
       </motion.h2>
 
-      <div className="flexjustify-center gap-10 flex-wrap">
+      <div className="flexjustify-center  flex-wrap">
         {sponsors.length > 0 ? (
           sponsors.map((sponsor, index) => (
             <motion.div
@@ -102,7 +103,7 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
           </motion.div>
         ))): 
         (<div className="sm:w-[95%] xl:w-full pt-10 flex items-center justify-center">
-          <div className="relative inline-block w-full max-w-lg">
+          <div className="relative inline-block  max-w-lg">
             <div className={`absolute -top-3 -left-3 w-[95%] h-[95%]  rounded-4xl ${formsBgColor} opacity-40`} />
             <div className={`absolute -bottom-3 -right-3 w-[95%] h-[95%] rounded-4xl ${formsBgColor} opacity-40`} />
             <div className={`relative z-10 ${formsBgColor} p-10 rounded-4xl`}>
@@ -136,6 +137,7 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
         </div>
         )}
       </div>
+    </div>
     </div>
     </section>
   );

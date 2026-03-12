@@ -25,6 +25,7 @@ const EquipeSection = (props: EquipeSectionProps) => {
 
   return (
     <section id="equipe" className={`${props.className} ${sectionPadding}`}>
+      <div className="mx-auto max-w-[80%]">
       <motion.h2
         className={`${headingSize} font-extrabold mb-10`}
         initial="hidden"
@@ -45,6 +46,7 @@ const EquipeSection = (props: EquipeSectionProps) => {
       >
         <TeamGrid data={TEAM} />
       </motion.div>
+      </div>
     </section>
   );
 };

@@ -6,7 +6,7 @@ export default function FAQList({ faqs }: { faqs: Array<{ Q: string; A: string }
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="py-20 max-w-4xl mx-auto px-6">
+    <section id="faq" className="py-20 max-w-[70%] mx-auto px-6">
 
       <div className="space-y-4">
         {faqs.map((faq, i) => (
@@ -16,13 +16,13 @@ export default function FAQList({ faqs }: { faqs: Array<{ Q: string; A: string }
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.1, duration: 0.5 }}
-            className="bg-semcompOffWhite rounded-xl shadow-md overflow-hidden"
+            className="bg-semcompOffWhite rounded-xl shadow-md overflow-hidden hover:scale-110 transition-transform duration-300 focus-within:scale-110"
           >
             <button
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
               className="w-full flex items-center justify-between p-6 text-left"
             >
-              <span className="font-medium text-semcompDarkBlue">{faq.Q}</span>
+              <span className="font-mediumt text-justify text-semcompDarkBlue">{faq.Q}</span>
               <motion.span
                 animate={{ rotate: openIndex === i ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
@@ -38,7 +38,7 @@ export default function FAQList({ faqs }: { faqs: Array<{ Q: string; A: string }
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <p className="px-6 pb-6 text-semcompMidDarkBlue">{faq.A}</p>
+                  <p className="px-6 pb-6 text-justify text-semcompMidDarkBlue">{faq.A}</p>
                 </motion.div>
               )}
             </AnimatePresence>

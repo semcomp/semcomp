@@ -25,6 +25,7 @@ const FAQSection = (props: FAQSectionProps) => {
 
   return (
     <section id="faq" className={`${props.className} ${sectionPadding}`}>
+      <div className="mx-auto max-w-[80%]">
       <motion.h2
         className={`${headingSize} font-extrabold mb-10`}
         initial="hidden"
@@ -45,6 +46,7 @@ const FAQSection = (props: FAQSectionProps) => {
       >
         <FAQList faqs={FAQS} />
       </motion.div>
+      </div>
     </section>
   );
 };

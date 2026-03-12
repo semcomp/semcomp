@@ -12,21 +12,21 @@ export default function HomePage() {
 
   const bgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompOffWhite";
 
-  const sectionStyles = "mx-auto px-6 py-30 max-w-[80%]";
+  const sectionStyles = "mx-auto py-30";
   return (
     <div className={`w-full font-poppins ${bgColor}`}>
       <MainEntrance />
       <main>
 
-        <SobreSection className={`${sectionStyles}`} />        
+        <SobreSection className={`${sectionStyles}`} />
 
-        <div className={`${isDarkMode ? "bg-semcompOffWhite/70" : "bg-semcompDarkBlue/70"} w-full h-svh`}>
+        <div className={`${isDarkMode ? "bg-semcompOffWhite/40" : "bg-semcompDarkBlue/40"}`}>
         <PatrocinadoresSection className={sectionStyles} sponsors={SPONSORS} />
         </div>
 
         <EquipeSection className={sectionStyles} />
 
-        <div className={`${isDarkMode ? "bg-semcompOffWhite/70" : "bg-semcompDarkBlue/70"} w-full`}>
+        <div className={`${isDarkMode ? "bg-semcompOffWhite/40" : "bg-semcompDarkBlue/40"}`}>
         <FAQSection className={sectionStyles} />
         </div>
         

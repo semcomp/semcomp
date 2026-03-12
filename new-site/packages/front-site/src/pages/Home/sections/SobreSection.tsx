@@ -25,9 +25,10 @@ const SobreSection = (props: SobreProps) => {
 
   return (
     <section id="sobre" className={`${props.className} w-full`}>
-      <div className={`${sectionMargin}`}></div>
+      <div className={`${sectionMargin}`}> </div>
+      <div className="mx-auto max-w-[80%]">
       <motion.h2
-        className={`${headingSize} font-extrabold mb-6`}
+        className={`${headingSize} font-extrabold mb-6 `}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
@@ -71,6 +72,7 @@ const SobreSection = (props: SobreProps) => {
             Nosso propósito é ampliar as perspectivas de carreira dos estudantes, promovendo o contato direto com grandes nomes da indústria e da pesquisa no Brasil. Queremos que cada participante aproveite ao máximo a maior semana de computação do país.
           </p>
         </motion.div>
+      </div>
       </div>
     </section>
     

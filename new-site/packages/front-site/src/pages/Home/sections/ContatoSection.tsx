@@ -23,6 +23,7 @@ const ContatoSection = (props: ContatoSectionProps) => {
 
   return (
     <section id="contato" className={`${props.className} ${sectionPadding}`}>
+      <div className="mx-auto max-w-[80%]">
       <motion.h2
         className={`${headingSize} font-extrabold mb-6`}
         initial="hidden"
@@ -53,6 +54,7 @@ const ContatoSection = (props: ContatoSectionProps) => {
       >
         semcomp@icmc.usp.br
       </motion.p>
+      </div>
     </section>
   );
 };
