@@ -24,7 +24,7 @@ const SobreSection = (props: SobreProps) => {
   };
 
   return (
-    <section id="sobre" className={`${props.className}  w-full`}>
+    <section id="sobre" className={`${props.className} w-full`}>
       <div className={`${sectionMargin}`}></div>
       <motion.h2
         className={`${headingSize} font-extrabold mb-6`}
@@ -38,7 +38,7 @@ const SobreSection = (props: SobreProps) => {
           SEMCOMP
         </span>
       </motion.h2>
-      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-12 items-start">
+      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-12 items-start p-0">
         <motion.div
           className="self-start"
           initial="hidden"
@@ -61,13 +61,13 @@ const SobreSection = (props: SobreProps) => {
           viewport={{ once: true }}
           variants={fadeIn}
         >
-          <p className={`mb-4 ${textColor} font- text-justify`}>
+          <p className={`mb-4 ${textColor} font-poppins-regular text-justify`}>
             A Semcomp (Semana Acadêmica de Computação) é organizada por estudantes dos cursos de Ciência da Computação, Sistemas de Informação e Ciência de Dados do Instituto de Ciências Matemáticas e de Computação (ICMC) da USP São Carlos — cidade, inclusive, reconhecida como a Capital da Tecnologia.
           </p>
-          <p className={`mb-4 ${textColor} text-justify`}>
+          <p className={`mb-4 ${textColor} font-poppins-regular text-justify`}>
             Realizado anualmente, o evento conta com uma programação diversificada e intensa, composta por palestras, minicursos, concursos, além do tradicional Hackathon e da já consagrada Game Night.
           </p>
-          <p className={`mb-4 ${textColor} text-justify`}>
+          <p className={`mb-4 ${textColor} font-poppins-regular text-justify`}>
             Nosso propósito é ampliar as perspectivas de carreira dos estudantes, promovendo o contato direto com grandes nomes da indústria e da pesquisa no Brasil. Queremos que cada participante aproveite ao máximo a maior semana de computação do país.
           </p>
         </motion.div>

@@ -47,6 +47,13 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
     }
   };
 
+  const images = import.meta.glob("@/assets/img/team/*.png", {
+    eager: true,
+    import: "default"
+  }) as Record<string, string>;
+
+  console.log(images);
+
   const titleColor = isDarkMode ? "text-semcompDarkBlue" : "text-semcompOffWhite";
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
   const bgColor = isDarkMode ? "bg-semcompOffWhite" : "bg-semcompDarkBlue";
@@ -62,7 +69,9 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
   };
 
   return (
-    <section id="patrocinadores" className={`${className}`}>
+    <section id="patrocinadores" className={`w-full`} >
+    <div className={`${className}`}>
+      
       <motion.h2
         className={`${headingSize} font-extrabold mb-10`}
         initial="hidden"
@@ -127,6 +136,7 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
         </div>
         )}
       </div>
+    </div>
     </section>
   );
 };
