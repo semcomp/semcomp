@@ -1,61 +1,110 @@
 import { motion } from "framer-motion";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
+import { FaLinkedin, FaInstagram } from "react-icons/fa";
+import SemcompInfo from "../../../lib/constants/SemcompInfo"
+import LogoSemcomp from "../../../assets/img/semcomp/logo_default_branco.png"
 
 type ContatoSectionProps = {
   className?: string;
-}
+};
 
-const ContatoSection = (props: ContatoSectionProps) => {
+const ContatoSection = ({ className }: ContatoSectionProps) => {
   const { width } = useWindowDimensions();
   const { isDarkMode } = useTheme();
 
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
-  const sectionPadding = width > 768 ? "py-20" : "py-10";
-  const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = isDarkMode ? "from-semcompLightBlue" : "from-semcompLightBlue";
-  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompDarkBlue";
+  const sectionPadding = width > 768 ? "py-16" : "py-10";
+  const headingSize = width > 768 ? "text-3xl" : "text-xl";
+  const gradientFrom = "from-semcompMidLightBlue";
+  const gradientTo = isDarkMode ? "to-semcompDarkBlue" : "to-semcompAlmostDarkBlue";
 
   const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 15 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
   };
 
   return (
-    <section id="contato" className={`${props.className} ${sectionPadding}`}>
-      <div className="mx-auto max-w-[80%]">
-      <motion.h2
-        className={`${headingSize} font-extrabold mb-6`}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={fadeIn}
-      >
-        <span className={`${textColor} font-extrabold`}>ENTRE EM</span>{" "}
-        <span className={`bg-clip-text text-transparent bg-linear-to-r ${gradientFrom} ${gradientTo} font-extrabold`}>
-          CONTATO
-        </span>
-      </motion.h2>
-      <motion.p
-        className={textColor}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={fadeIn}
-      >
-        patrocinio_semcomp@icmc.usp.br
-      </motion.p>
-      <motion.p
-        className={textColor}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={fadeIn}
-      >
-        semcomp@icmc.usp.br
-      </motion.p>
+    <footer
+      id="contato"
+      className={`border-t border-white/10 ${sectionPadding} ${className}`}
+    >
+      <div className="mx-auto max-w-[80%] flex flex-col md:flex-row items-center md:items-start justify-between">
+
+        <div className="text-center md:text-left">
+          <motion.h2
+            className={`${headingSize} font-extrabold mb-4`}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+          >
+            <span className={`${textColor}`}>TEM ALGUMA DÚVIDA? <br/> </span>
+            <span
+              className={`bg-clip-text text-transparent bg-linear-to-r ${gradientFrom} ${gradientTo}`}
+            >
+              FALE CONOSCO
+            </span>
+          </motion.h2>
+
+          <motion.div
+            className={`flex flex-col gap-1 ${textColor}`}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+          >
+
+            <a
+              href={`mailto:${SemcompInfo.ORGANIZING_COMMITTEE_EMAIL}`}
+              className="hover:underline"
+            >
+              {SemcompInfo.ORGANIZING_COMMITTEE_EMAIL}
+            </a>
+
+            <a
+              href={`mailto:${SemcompInfo.ORGANIZING_COMMITTEE_PATROCINIO_EMAIL}`}
+              className="hover:underline"
+            >
+              {SemcompInfo.ORGANIZING_COMMITTEE_PATROCINIO_EMAIL}
+            </a>
+          </motion.div>
+        </div>
+
+        <motion.div
+          className="flex gap-3 pt-10"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeIn}
+        >
+          <a
+            href={SemcompInfo.ORGANIZING_COMMITTEE_INSTAGRAM_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${textColor} hover:scale-110 transition`}
+          >
+            <FaInstagram size={36} />
+          </a>
+
+          <a
+            href={SemcompInfo.ORGANIZING_COMMITTEE_LINKEDIN_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${textColor} hover:scale-110 transition`}
+          >
+            <FaLinkedin size={36} />
+          </a>
+        </motion.div>
       </div>
-    </section>
+      <div className={`flex pt-10 gap-5 justify-center ${isDarkMode ? "" : "invert-[75%]"}`}>
+        <img src={LogoSemcomp} alt="oiii" className="h-18 w-18"/>
+      </div>
+
+      <div className="mt-10 text-center text-sm opacity-70">
+        © {new Date().getFullYear()} Semcomp — ICMC USP
+      </div>
+    </footer>
   );
 };
 

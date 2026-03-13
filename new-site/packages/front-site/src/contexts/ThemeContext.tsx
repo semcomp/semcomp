@@ -20,8 +20,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       <div
         className={`min-h-screen transition-colors duration-300 ${
           isDarkMode
-            ? "bg-semcompDarkBlue text-semcompOffWhite"
-            : "bg-semcompOffWhite text-semcompDarkBlue"
+            ? "bg-semcompDarkBlue text-semcompLightBlue"
+            : "bg-semcompMidLightBlue text-semcompDarkBlue"
         }`}
       >
         {children}

@@ -13,8 +13,8 @@ const SobreSection = (props: SobreProps) => {
   const { isDarkMode } = useTheme();
 
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
-  const gradientFrom = isDarkMode ? "from-semcompLightBlue" : "from-semcompLightBlue";
-  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompDarkBlue";
+    const gradientFrom = "from-semcompMidLightBlue";
+  const gradientTo = isDarkMode ? "to-semcompDarkBlue" : "to-semcompAlmostDarkBlue";
   const sectionMargin = width > 768 ? "my-20" : "my-10";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
 

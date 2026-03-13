@@ -20,17 +20,17 @@ export default function HomePage() {
 
         <SobreSection className={`${sectionStyles}`} />
 
-        <div className={`${isDarkMode ? "bg-semcompOffWhite/40" : "bg-semcompDarkBlue/40"}`}>
+        <div className={`${isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompMidLightBlue/40"}`}>
         <PatrocinadoresSection className={sectionStyles} sponsors={SPONSORS} />
         </div>
 
         <EquipeSection className={sectionStyles} />
 
-        <div className={`${isDarkMode ? "bg-semcompOffWhite/40" : "bg-semcompDarkBlue/40"}`}>
+        <div className={`${isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompMidLightBlue/40"}`}>
         <FAQSection className={sectionStyles} />
         </div>
         
-        <ContatoSection className={sectionStyles}  />
+        <ContatoSection className="mx-auto py-5"  />
       </main>
     </div>
   );

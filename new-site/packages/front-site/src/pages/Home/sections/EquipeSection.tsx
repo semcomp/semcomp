@@ -15,8 +15,8 @@ const EquipeSection = (props: EquipeSectionProps) => {
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
   const sectionPadding = width > 768 ? "py-20" : "py-10";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = isDarkMode ? "from-semcompLightBlue" : "from-semcompLightBlue";
-  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompDarkBlue";
+   const gradientFrom = "from-semcompMidLightBlue";
+  const gradientTo = isDarkMode ? "to-semcompDarkBlue" : "to-semcompAlmostDarkBlue";
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
