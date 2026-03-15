@@ -39,12 +39,8 @@ const ContatoSection = ({ className }: ContatoSectionProps) => {
             viewport={{ once: true }}
             variants={fadeIn}
           >
-            <span className={`${textColor}`}>TEM ALGUMA DÚVIDA? <br/> </span>
-            <span
-              className={`bg-clip-text text-transparent bg-linear-to-r ${gradientFrom} ${gradientTo}`}
-            >
-              FALE CONOSCO
-            </span>
+            <span className={`${textColor}`}>TEM ALGUMA DÚVIDA? <br/> FALE CONOSCO</span>
+            
           </motion.h2>
 
           <motion.div

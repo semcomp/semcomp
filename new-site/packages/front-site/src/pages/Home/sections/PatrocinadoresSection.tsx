@@ -54,14 +54,14 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
 
   console.log(images);
 
-  const titleColor = isDarkMode ? "text-semcompDarkBlue" : "text-semcompOffWhite";
+  const titleColor = isDarkMode ? "text-semcompDarkBlue" : "text-semcompMidDarkBlue";
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
   const bgColor = isDarkMode ? "bg-semcompOffWhite" : "bg-semcompDarkBlue";
   const formsBgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompOffWhite";
   const placeholderColor = isDarkMode ? "placeholder:text-semcompOffWhite/50" : "placeholder:text-semcompDarkBlue/50";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = "from-semcompMidLightBlue";
-  const gradientTo = isDarkMode ? "to-semcompDarkBlue" : "to-semcompAlmostDarkBlue";
+  const gradientFrom = isDarkMode ? "from-semcompLightBlue" : "from-semcompOffBlack";
+  const gradientTo = isDarkMode ? "to-semcompOffBlack" : "to-semcompMidLightBlue";
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -81,7 +81,7 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
         variants={fadeIn}
       >
         <span className={`${titleColor} font-extrabold`}>NOSSOS</span>{" "}
-        <span className={`bg-clip-text text-transparent bg-linear-to-r ${gradientFrom} ${gradientTo} font-extrabold`}>
+        <span className={`bg-clip-text ${textColor} bg-linear-to-r font-extrabold`}>
           PATROCINADORES
         </span>
       </motion.h2>
@@ -117,7 +117,7 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
                 <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
                   <p className="font-extrabold text-2xl text-center tracking-wide">
                     <span className={textColor}>Torne-se um patrocinador da </span>
-                    <span className={`bg-clip-text text-transparent bg-linear-to-r ${gradientFrom} ${gradientTo}`}>SEMCOMP</span>
+                    <span className={`${textColor} bg-clip-text bg-linear-to-r `}>SEMCOMP</span>
                   </p>
                   <p className={`${textColor} text-sm text-center opacity-80 md:text-lg max-md:text-sm mb-2`}>Conecte sua empresa a centenas de estudantes de computação. Preencha e entraremos em contato.</p>
                   <input type="text" name="name" placeholder="Seu nome" required className={`px-4 py-2 border border-gray-400 ${textColor} ${placeholderColor} rounded-md w-[90%] bg-transparent`} />

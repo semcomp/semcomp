@@ -15,8 +15,8 @@ const FAQSection = (props: FAQSectionProps) => {
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
   const sectionPadding = width > 768 ? "py-20" : "py-10";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-    const gradientFrom = "from-semcompMidLightBlue";
-  const gradientTo = isDarkMode ? "to-semcompDarkBlue" : "to-semcompAlmostDarkBlue";
+  const gradientFrom = isDarkMode ? "from-semcompOffWhite" : "from-semcompOffBlack";
+  const gradientTo = isDarkMode ? "to-semcompMidDarkBlue" : "to-semcompMidLightBlue";
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -34,7 +34,7 @@ const FAQSection = (props: FAQSectionProps) => {
         variants={fadeIn}
       >
         <span className={`${textColor} font-extrabold`}>PERGUNTAS</span>{" "}
-        <span className={`bg-clip-text text-transparent bg-linear-to-r ${gradientFrom} ${gradientTo} font-extrabold`}>
+        <span className={`${textColor} bg-clip-text bg-linear-to-r font-extrabold`}>
           FREQUENTES
         </span>
       </motion.h2>
