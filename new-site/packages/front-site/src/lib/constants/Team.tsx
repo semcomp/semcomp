@@ -6,7 +6,7 @@ const TEAM: TeamType = {
       nomeDaFrente: "Presidência",
       membros: [
         {
-          nome: "Bucke",
+          nome: "Pedro Bucke",
           position: "Presidente",
           linkedin: "https://www.linkedin.com/in/pedro-bucke",
         },
@@ -26,7 +26,7 @@ const TEAM: TeamType = {
       nomeDaFrente: "Eventos Extracurriculares",
       membros: [
         {
-          nome: "Fernando Torres",
+          nome: "Fernando Valentim",
           position: "Coordenador Geral",
           linkedin: "https://www.linkedin.com/in/fernandovaltorres",
         },
@@ -106,7 +106,7 @@ const TEAM: TeamType = {
           linkedin: "https://www.linkedin.com/in/phprestes",
         },
         {
-          nome: "Christyan Paniago Nantes",
+          nome: "Christyan Nantes",
           position: "Coordenador de Patrocínio",
           linkedin: "https://www.linkedin.com/in/christyan-nantes/",
         },
@@ -131,7 +131,7 @@ const TEAM: TeamType = {
       nomeDaFrente: "Financeiro",
       membros: [
         {
-          nome: "Ana Júlia",
+          nome: "Ana Júlia França",
           position: "Coordenadora Financeira",
           linkedin: "https://www.linkedin.com/in/anajulia-franca",
         },

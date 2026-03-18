@@ -35,7 +35,7 @@ export default function MainEntrance() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="bg-semcompOffWhite rounded-b-4xl shadow-xl px-20 py-30 text-center"
           >
-            <h1 className="text-7xl md:text-3xl font-sans font-bold text-semcompDarkBlue">
+            <h1 className="text-3xl md:text-7xl font-sans font-bold text-semcompDarkBlue">
               SEMCOMP {SemcompInfo.EDITION}
             </h1>
             <p className="font-sans mt-2 text-2xl text-semcompMidDarkBlue">
