@@ -1,5 +1,4 @@
 import React from "react"
-import FotoSemcompMain from "../assets/img/semcomp/Semcomp28.jpg";
 import { FaLinkedin } from "react-icons/fa";
 import type { TeamType } from "@/types/TeamType";
 
@@ -60,7 +59,7 @@ export default function TeamGrid({ data }: { data: TeamType }) {
         className="flex flex-wrap gap-8 justify-center pt-10 transition-all duration-500 transform animate-slide"
       >
         {data.frente[currentDepartment].membros.map((member) => (
-          <div>
+          <div key={member.nome}>
           <div key={member.nome} className="text-center justify-items-center hover:scale-120 transition-transform cursor-pointer">
             <img
               src={getPhoto(member.nome)}

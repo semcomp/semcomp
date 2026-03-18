@@ -119,6 +119,7 @@ const TEAM: TeamType = {
           nome: "João Gabriel Pieroli",
           position: "Coordenador de Site",
           linkedin: "https://www.linkedin.com/in/joao-gabriel-pieroli/"
+          linkedin: "https://www.linkedin.com/in/joao-gabriel-pieroli/"
         },
         {
           nome: "Pedro Perez",

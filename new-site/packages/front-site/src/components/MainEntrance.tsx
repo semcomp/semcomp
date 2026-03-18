@@ -17,7 +17,7 @@ export default function MainEntrance() {
     <section
       id="hero"
       aria-label="hero"
-      className="relative w-full"
+      className="relative w-full sm:h-screen flex"
       style={{ height: "calc(100vh - 64px)" }}
     >
       <img
@@ -35,14 +35,14 @@ export default function MainEntrance() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="bg-semcompOffWhite rounded-b-4xl shadow-xl px-20 py-30 text-center"
           >
-            <h1 className="text-7xl md:text-8xl font-sans font-bold text-semcompDarkBlue">
+            <h1 className="text-7xl md:text-3xl font-sans font-bold text-semcompDarkBlue">
               SEMCOMP {SemcompInfo.EDITION}
             </h1>
             <p className="font-sans mt-2 text-2xl text-semcompMidDarkBlue">
               {SemcompInfo.DATES_STRING}
             </p>
           </motion.div>
-          {/* countdown boxes overlapping bottom of white box */}
+          
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
