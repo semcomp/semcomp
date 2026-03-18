@@ -8,20 +8,17 @@ const TEAM: TeamType = {
         {
           nome: "Bucke",
           position: "Presidente",
-          photo: "",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/pedro-bucke",
         },
         {
           nome: "Eduarda Carvalho",
           position: "Presidente",
-          photo: "",
           linkedin: "https://www.linkedin.com/in/eduarda-carvalho-51102a1ba/",
         },
         {
           nome: "Pedro Lunkes",
           position: "Presidente",
-          photo: "",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/pedro-lunkes-villela-25a55224b",
         },
       ],
     },
@@ -29,16 +26,14 @@ const TEAM: TeamType = {
       nomeDaFrente: "Eventos Extracurriculares",
       membros: [
         {
-          nome: "Fernando Valentim Torres",
+          nome: "Fernando Torres",
           position: "Coordenador Geral",
-          photo: "",
           linkedin: "https://www.linkedin.com/in/fernandovaltorres",
         },
         {
-          nome: "Gustavo",
+          nome: "Gustavo Vidigal",
           position: "Coordenador Geral",
-          photo: "",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/gusvidigal/",
         },
       ],
     },
@@ -46,16 +41,14 @@ const TEAM: TeamType = {
       nomeDaFrente: "Jogo",
       membros: [
         {
-          nome: "Frederico",
+          nome: "Frederico Scheffel",
           position: "Coordenador de Jogo",
-          photo: "",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/fredericoscheffel/",
         },
         {
-          nome: "Guilherme",
+          nome: "Guilherme Cavalcanti",
           position: "Coordenador de Jogo",
-          photo: "@/assets/img/team/Guilherme.png",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/guilhermecs42/",
         },
       ],
     },
@@ -63,21 +56,18 @@ const TEAM: TeamType = {
       nomeDaFrente: "Eventos Acadêmicos",
       membros: [
         {
-          nome: "Mariane",
+          nome: "Mariane Santos",
           position: "Coordenadora de Eventos Acadêmicos",
-          photo: "@/assets/img/team/Mariane.png",
           linkedin: "https://www.linkedin.com/in/mariane-ferreira-3b92a136a/",
         },
         {
-          nome: "Lucas",
+          nome: "Lucas Ciosaki",
           position: "Coordenador de Eventos Acadêmicos",
-          photo: "@/assets/img/team/Lucas.png",
           linkedin: "https://www.linkedin.com/in/lucas-ciosaki-942256348/",
         },
         {
-          nome: "Camilli",
+          nome: "Camilli Muniz",
           position: "Coordenadora de Eventos Acadêmicos",
-          photo: "@/assets/img/team/Camilli.png",
           linkedin: "",
         },
       ],
@@ -86,10 +76,9 @@ const TEAM: TeamType = {
       nomeDaFrente: "Infraestrutura",
       membros: [
         {
-          nome: "Gustavo",
+          nome: "Gustavo Ramos",
           position: "Coordenador de Infraestrutura",
-          photo: "@/assets/img/team/Gustavo_Ramos.png",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/gustavo-rs-pires/",
         },
       ],
     },
@@ -97,16 +86,14 @@ const TEAM: TeamType = {
       nomeDaFrente: "Marketing",
       membros: [
         {
-          nome: "Isabela",
+          nome: "Isabela Farias",
           position: "Coordenadora de Marketing",
-          photo: "@/assets/img/team/Isabela.png",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/isabelabfarias",
         },
         {
-          nome: "Luiz",
-          position: "Coordenador de Marketing",
-          photo: "@/assets/img/team/Luiz.png",
-          linkedin: "",
+          nome: "Júlia Ribeiro",
+          position: "Coordenadora de Marketing",
+          linkedin: "https://www.linkedin.com/in/julia-cribeiro",
         },
       ],
     },
@@ -116,13 +103,11 @@ const TEAM: TeamType = {
         {
           nome: "Pedro Prestes",
           position: "Coordenador de Patrocínio",
-          photo: "@/assets/img/team/Pedro_Prestes.png",
           linkedin: "https://www.linkedin.com/in/phprestes",
         },
         {
           nome: "Christyan Paniago Nantes",
           position: "Coordenador de Patrocínio",
-          photo: "@/assets/img/team/Christyan Paniago Nantes.png",
           linkedin: "https://www.linkedin.com/in/christyan-nantes/",
         },
       ],
@@ -133,12 +118,12 @@ const TEAM: TeamType = {
         {
           nome: "João Gabriel Pieroli",
           position: "Coordenador de Site",
-          linkedin: "https://www.linkedin.com/in/jo%C3%A3o-gabriel-pieroli-da-silva-4b25712a9/"
+          linkedin: "https://www.linkedin.com/in/joao-gabriel-pieroli/"
         },
         {
-          nome: "Pedro Henrique Perez Dias",
+          nome: "Pedro Perez",
           position: "Coordenador de Site",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
         },
       ],
     },
@@ -148,7 +133,7 @@ const TEAM: TeamType = {
         {
           nome: "Ana Júlia",
           position: "Coordenadora Financeira",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/anajulia-franca",
         },
       ],
     },
