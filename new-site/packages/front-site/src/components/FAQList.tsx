@@ -6,7 +6,7 @@ export default function FAQList({ faqs }: { faqs: Array<{ Q: string; A: string }
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="py-20 max-w-[70%] mx-auto px-6">
+    <section id="faq" className="py-20 lg:w-full mx-auto px-6">
 
       <div className="space-y-4">
         {faqs.map((faq, i) => (

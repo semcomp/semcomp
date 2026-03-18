@@ -3,7 +3,7 @@ import { chevronDownOutline } from "ionicons/icons";
 import { motion } from "framer-motion";
 import Countdown from "./Countdown";
 import SemcompInfo from "../lib/constants/SemcompInfo";
-import FotoSemcompMain from "../assets/img/semcomp/Semcomp28.jpg";
+import FotoSemcompMain from "../assets/img/semcomp/Semcomp.jpg";
 
 export default function MainEntrance() {
   const scrollToContent = () => {
@@ -33,16 +33,16 @@ export default function MainEntrance() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="bg-semcompOffWhite rounded-b-4xl shadow-xl px-20 py-30 text-center"
+            className="bg-semcompOffWhite/70 rounded-b-4xl shadow-xl py-18 md:px-20 md:py-30 text-center"
           >
-            <h1 className="text-7xl md:text-3xl font-sans font-bold text-semcompDarkBlue">
+            <h1 className="text-4xl md:text-6xl font-sans font-bold text-semcompDarkBlue">
               SEMCOMP {SemcompInfo.EDITION}
             </h1>
-            <p className="font-sans mt-2 text-2xl text-semcompMidDarkBlue">
+            <p className="font-sans mt-2 text-1xl md:text-2xl text-semcompMidDarkBlue">
               {SemcompInfo.DATES_STRING}
             </p>
           </motion.div>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
