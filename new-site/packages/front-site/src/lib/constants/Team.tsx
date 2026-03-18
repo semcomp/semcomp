@@ -29,10 +29,10 @@ const TEAM: TeamType = {
       nomeDaFrente: "Eventos Extracurriculares",
       membros: [
         {
-          nome: "Fernando",
+          nome: "Fernando Valentim Torres",
           position: "Coordenador Geral",
           photo: "",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/fernandovaltorres",
         },
         {
           nome: "Gustavo",
@@ -117,7 +117,7 @@ const TEAM: TeamType = {
           nome: "Pedro Prestes",
           position: "Coordenador de Patrocínio",
           photo: "@/assets/img/team/Pedro_Prestes.png",
-          linkedin: "https://www.linkedin.com//in/phprestes",
+          linkedin: "https://www.linkedin.com/in/phprestes",
         },
         {
           nome: "Christyan Paniago Nantes",
@@ -133,13 +133,11 @@ const TEAM: TeamType = {
         {
           nome: "João Gabriel Pieroli",
           position: "Coordenador de Site",
-          photo: "@/assets/img/team/Joao_Gabriel.png",
           linkedin: "https://www.linkedin.com/in/jo%C3%A3o-gabriel-pieroli-da-silva-4b25712a9/"
         },
         {
-          nome: "Perez",
+          nome: "Pedro Henrique Perez Dias",
           position: "Coordenador de Site",
-          photo: "@/assets/img/team/Perez.png",
           linkedin: "",
         },
       ],
@@ -150,7 +148,6 @@ const TEAM: TeamType = {
         {
           nome: "Ana Júlia",
           position: "Coordenadora Financeira",
-          photo: "@/assets/img/team/AnaJulia.png",
           linkedin: "",
         },
       ],

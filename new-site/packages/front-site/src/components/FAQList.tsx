@@ -16,7 +16,7 @@ export default function FAQList({ faqs }: { faqs: Array<{ Q: string; A: string }
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.1, duration: 0.5 }}
-            className="bg-semcompOffWhite rounded-xl shadow-md overflow-hidden hover:scale-110 transition-transform duration-300 focus-within:scale-110"
+            className="bg-semcompOffWhite rounded-xl shadow-md overflow-hidden hover:scale-110 transition-transform duration-300 "
           >
             <button
               onClick={() => setOpenIndex(openIndex === i ? null : i)}

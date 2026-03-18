@@ -4,7 +4,6 @@ export type TeamType = {
     membros: {
       nome: string,
       position: string
-      photo: string,
       linkedin: string,
     }[],
   }[],

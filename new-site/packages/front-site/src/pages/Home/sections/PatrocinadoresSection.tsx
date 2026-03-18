@@ -54,14 +54,18 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
 
   console.log(images);
 
-  const titleColor = isDarkMode ? "text-semcompDarkBlue" : "text-semcompMidDarkBlue";
+  const titleColor = isDarkMode ? "text-semcompDarkBlue" : "text-semcompOffBlack";
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
+  const constrastColor = isDarkMode ? "text-semcompOffBlack" : "text-semcompOffWhite";
+  
   const bgColor = isDarkMode ? "bg-semcompOffWhite" : "bg-semcompDarkBlue";
   const formsBgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompOffWhite";
   const placeholderColor = isDarkMode ? "placeholder:text-semcompOffWhite/50" : "placeholder:text-semcompDarkBlue/50";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = isDarkMode ? "from-semcompLightBlue" : "from-semcompOffBlack";
-  const gradientTo = isDarkMode ? "to-semcompOffBlack" : "to-semcompMidLightBlue";
+  const gradientFrom = isDarkMode ? "from-semcompMidLightBlue" : "from-semcompMidDarkBlue";
+  const gradientTo = isDarkMode ? "to-semcompLightBlue" : "to-semcompDarkBlue";
+
+  const hoverColor = isDarkMode ? "hover:bg-semcompLightBlue" : "hover:bg-semcompMidDarkBlue";
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -80,8 +84,8 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
         viewport={{ once: true }}
         variants={fadeIn}
       >
-        <span className={`${titleColor} font-extrabold`}>NOSSOS</span>{" "}
-        <span className={`bg-clip-text ${textColor} bg-linear-to-r font-extrabold`}>
+        <span className={`${textColor} font-extrabold`}>NOSSOS</span>{" "}
+        <span className={`bg-clip-text font-poppins-extrabold text-transparent bg-linear-to-r ${gradientFrom} ${gradientTo} font-extrabold`}>
           PATROCINADORES
         </span>
       </motion.h2>
@@ -127,7 +131,7 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
                   {status === "error" && (
                     <p className="text-red-500 text-sm text-center">Erro ao enviar. Tente novamente.</p>
                   )}
-                  <button type="submit" disabled={status === "loading"} className={`px-6 py-2 ${bgColor} ${titleColor} rounded-md hover:bg-semcompLightBlueHover transition-colors duration-300 disabled:opacity-50`}>
+                  <button type="submit" disabled={status === "loading"} className={`px-6 py-2 ${bgColor} ${constrastColor} rounded-md ${hoverColor} transition-all duration-300 hover:scale-105 disabled:opacity-50`}>
                     {status === "loading" ? "Enviando..." : "Enviar"}
                   </button>
                 </form>

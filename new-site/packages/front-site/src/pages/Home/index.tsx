@@ -20,13 +20,13 @@ export default function HomePage() {
 
         <SobreSection className={`${sectionStyles}`} />
 
-        <div className={`${isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompMidLightBlue/40"}`}>
+        <div className={`${isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompLightBlue"}`}>
         <PatrocinadoresSection className={sectionStyles} sponsors={SPONSORS} />
         </div>
 
         <EquipeSection className={sectionStyles} />
 
-        <div className={`${isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompMidLightBlue/40"}`}>
+        <div className={`${isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompLightBlue"}`}>
         <FAQSection className={sectionStyles} />
         </div>
         
