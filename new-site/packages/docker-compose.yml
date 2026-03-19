@@ -1,0 +1,51 @@
+
+# services:
+#   nginx:
+#     image: nginx:alpine
+#     container_name: semcomp-nginx
+#     ports:
+#       - "80:80"
+#       - "443:443"
+#     volumes:
+#       # - ./nginx.conf:/etc/nginx/conf.d/default.conf
+#       #
+#       # - ./certs:/etc/letsencrypt
+#     depends_on:
+#       - front-site
+#       - front-backoffice
+#       - front-test
+#       - backend
+
+#   front-site:
+#     build: ./packages/front-site
+#     container_name: front-site
+#     restart: always
+
+#   # front-backoffice:
+#   #   build: ./packages/front-backoffice
+#   #   container_name: front-backoffice
+#   #   restart: always
+
+#   # front-test:
+#   #   build: ./packages/front-test
+#   #   container_name: front-test
+#   #   restart: always
+
+#   # backend:
+#   #   build: ./packages/backend
+#   #   container_name: backend
+#   #   restart: always
+#   #   expose:
+#   #     - "4000"  
+#   #   environment:
+#   #     - NODE_ENV=production
+
+
+services:
+  front-site:
+    build: ./front-site
+    container_name: front-site
+    ports:
+      - "5173:5173"
+    command: npm run dev -- --host
+    restart: unless-stopped

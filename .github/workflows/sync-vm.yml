@@ -16,3 +16,8 @@ jobs:
           git fetch origin
           git checkout new-site
           git reset --hard origin/new-site
+      - name: Restart Docker containers
+        run: |
+          cd /var/www/html/site-semcomp/semcomp/new-site/packages/
+          make restart
+          
