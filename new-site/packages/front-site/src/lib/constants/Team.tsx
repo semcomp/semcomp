@@ -23,36 +23,6 @@ const TEAM: TeamType = {
       ],
     },
     {
-      nomeDaFrente: "Eventos Extracurriculares",
-      membros: [
-        {
-          nome: "Fernando Valentim",
-          position: "Coordenador Geral",
-          linkedin: "https://www.linkedin.com/in/fernandovaltorres",
-        },
-        {
-          nome: "Gustavo Vidigal",
-          position: "Coordenador Geral",
-          linkedin: "https://www.linkedin.com/in/gusvidigal/",
-        },
-      ],
-    },
-    {
-      nomeDaFrente: "Jogo",
-      membros: [
-        {
-          nome: "Frederico Scheffel",
-          position: "Coordenador de Jogo",
-          linkedin: "https://www.linkedin.com/in/fredericoscheffel/",
-        },
-        {
-          nome: "Guilherme Cavalcanti",
-          position: "Coordenador de Jogo",
-          linkedin: "https://www.linkedin.com/in/guilhermecs42/",
-        },
-      ],
-    },
-    {
       nomeDaFrente: "Eventos Acadêmicos",
       membros: [
         {
@@ -69,6 +39,76 @@ const TEAM: TeamType = {
           nome: "Camilli Muniz",
           position: "Coordenadora de Eventos Acadêmicos",
           linkedin: "",
+        },
+      ],
+    },
+    {
+      nomeDaFrente: "Patrocínio",
+      membros: [
+        {
+          nome: "Pedro Prestes",
+          position: "Coordenador de Patrocínio",
+          linkedin: "https://www.linkedin.com/in/phprestes",
+        },
+        {
+          nome: "Christyan Nantes",
+          position: "Coordenador de Patrocínio",
+          linkedin: "https://www.linkedin.com/in/christyan-nantes/",
+        },
+      ],
+    },
+    {
+      nomeDaFrente: "Eventos Extracurriculares",
+      membros: [
+        {
+          nome: "Fernando Valentim",
+          position: "Coordenador de Extracurriculares",
+          linkedin: "https://www.linkedin.com/in/fernandovaltorres",
+        },
+        {
+          nome: "Gustavo Vidigal",
+          position: "Coordenador de Extracurriculares",
+          linkedin: "https://www.linkedin.com/in/gusvidigal/",
+        },
+      ],
+    },
+    {
+      nomeDaFrente: "Site",
+      membros: [
+        {
+          nome: "João Gabriel Pieroli",
+          position: "Coordenador de Site",
+          linkedin: "https://www.linkedin.com/in/joao-gabriel-pieroli/"
+        },
+        {
+          nome: "Pedro Perez",
+          position: "Coordenador de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+      ],
+    },
+    {
+      nomeDaFrente: "Financeiro",
+      membros: [
+        {
+          nome: "Ana Júlia França",
+          position: "Coordenadora de Financeiro",
+          linkedin: "https://www.linkedin.com/in/anajulia-franca",
+        },
+      ],
+    },
+    {
+      nomeDaFrente: "Jogo",
+      membros: [
+        {
+          nome: "Frederico Scheffel",
+          position: "Coordenador de Jogo",
+          linkedin: "https://www.linkedin.com/in/fredericoscheffel/",
+        },
+        {
+          nome: "Guilherme Cavalcanti",
+          position: "Coordenador de Jogo",
+          linkedin: "https://www.linkedin.com/in/guilhermecs42/",
         },
       ],
     },
@@ -94,46 +134,6 @@ const TEAM: TeamType = {
           nome: "Júlia Ribeiro",
           position: "Coordenadora de Marketing",
           linkedin: "https://www.linkedin.com/in/julia-cribeiro",
-        },
-      ],
-    },
-    {
-      nomeDaFrente: "Patrocínio",
-      membros: [
-        {
-          nome: "Pedro Prestes",
-          position: "Coordenador de Patrocínio",
-          linkedin: "https://www.linkedin.com/in/phprestes",
-        },
-        {
-          nome: "Christyan Nantes",
-          position: "Coordenador de Patrocínio",
-          linkedin: "https://www.linkedin.com/in/christyan-nantes/",
-        },
-      ],
-    },
-    {
-      nomeDaFrente: "Site",
-      membros: [
-        {
-          nome: "João Gabriel Pieroli",
-          position: "Coordenador de Site",
-          linkedin: "https://www.linkedin.com/in/joao-gabriel-pieroli/"
-        },
-        {
-          nome: "Pedro Perez",
-          position: "Coordenador de Site",
-          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
-        },
-      ],
-    },
-    {
-      nomeDaFrente: "Financeiro",
-      membros: [
-        {
-          nome: "Ana Júlia França",
-          position: "Coordenadora Financeira",
-          linkedin: "https://www.linkedin.com/in/anajulia-franca",
         },
       ],
     },

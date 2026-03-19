@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import LogoSemcomp from "../assets/img/semcomp/logo_default_branco.png";
 import { IoMenu } from "react-icons/io5";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
+import { useTheme } from "@/contexts/useTheme";
 
 type TabKey = "home" | "cronograma" | "login" ;
 
@@ -19,6 +20,7 @@ export default function Header({
     cronograma: null,
     login: null,
   });
+  const { isDarkMode } = useTheme();
   const navRef = useRef<HTMLElement | null>(null);
   const { width } = useWindowDimensions();
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
@@ -36,8 +38,10 @@ export default function Header({
 
   const isMobile = width < 768;
 
+  const headerColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidDarkBlue";
+
   return (
-    <header className="sticky top-0 z-50 border-b bg-semcompDarkBlue transition-transform duration-300 ease-in-out">
+    <header className={`sticky top-0 z-50 border-b ${headerColor} transition-all duration-300 ease-in-out`}>
       <div className="mx-auto flex w-full items-center justify-between px-4 py-3 md:px-6 md:py-4">
         <div className="flex items-center gap-2">
           <img src={LogoSemcomp} alt="Logo da Semcomp" className="h-6 w-auto md:h-8" />

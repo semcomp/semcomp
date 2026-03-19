@@ -12,7 +12,7 @@ export default function HomePage() {
 
   const bgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompOffWhite";
 
-  const sectionStyles = "mx-auto py-30";
+  const sectionStyles = "mx-auto py-20";
   return (
     <div className={`w-full font-poppins ${bgColor}`}>
       <MainEntrance />
@@ -20,7 +20,7 @@ export default function HomePage() {
 
         <SobreSection className={`${sectionStyles}`} />
 
-        <div className={`${isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompLightBlue"}`}>
+        <div className={`${isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompMidDarkBlue"}`}>
         <PatrocinadoresSection className={sectionStyles} sponsors={SPONSORS} />
         </div>
 
