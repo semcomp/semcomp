@@ -9,7 +9,7 @@ build:
 down:
 	docker compose -p $(PROJECT) down
 
-restart: down build up
+restart: build down up
 
 logs:
 	docker compose -p $(PROJECT) logs -f

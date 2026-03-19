@@ -18,6 +18,7 @@ jobs:
           git reset --hard origin/new-site
       - name: Restart Docker containers
         run: |
+          whoami
           cd /var/www/html/site-semcomp/semcomp/new-site/packages/
           make restart
           
