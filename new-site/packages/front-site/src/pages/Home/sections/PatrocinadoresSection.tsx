@@ -86,7 +86,7 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
         variants={fadeIn}
       >
         <span className={`text-semcompOffWhite font-extrabold`}>NOSSOS</span>{" "}
-        <span className={`bg-clip-text font-poppins-extrabold text-transparent bg-gradient-to-r ${gradientFrom} ${gradientVia} ${gradientTo} font-extrabold`}>
+        <span className={`bg-clip-text font-poppins-extrabold text-transparent bg-linear-to-r ${gradientFrom} ${gradientVia} ${gradientTo} font-extrabold`}>
           PATROCINADORES
         </span>
       </motion.h2>
@@ -119,6 +119,7 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
                   <button onClick={() => setStatus("idle")} className={`mt-4 px-6 py-2 ${bgColor} ${titleColor} rounded-md transition-colors duration-300`}>Enviar outra mensagem</button>
                 </div>
               ) : (
+                <div className={`z-10 ${formsBgColor} z-40`}>
                 <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
                   <p className="font-extrabold text-2xl text-center tracking-wide">
                     <span className={textColor}>Torne-se um patrocinador da </span>
@@ -136,6 +137,7 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
                     {status === "loading" ? "Enviando..." : "Enviar"}
                   </button>
                 </form>
+                </div>
               )}
             </div>
           </div>

@@ -78,14 +78,14 @@ export default function Carousel({ images }: CarouselProps) {
 
       <button
         onClick={scrollPrev}
-        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white p-2 rounded-full shadow"
+        className="absolute left-2 text-semcompOffBlack top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white p-2 rounded-full shadow"
       >
         <ArrowLeft size={20} />
       </button>
 
       <button
         onClick={scrollNext}
-        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white p-2 rounded-full shadow"
+        className="absolute right-2 text-semcompOffBlack top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white p-2 rounded-full shadow"
       >
         <ArrowRight size={20} />
       </button>

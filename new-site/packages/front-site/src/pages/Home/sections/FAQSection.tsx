@@ -16,7 +16,7 @@ const FAQSection = (props: FAQSectionProps) => {
   const sectionPadding = width > 768 ? "py-20" : "py-10";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
   const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompDarkBlue/80";
-  const gradientVia  = isDarkMode ? "via-semcompLightBlue"        : "via-semcompDarkBlue";
+  const gradientVia  = isDarkMode ? "via-semcompLightBlue" : "via-semcompDarkBlue";
   const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompOffBlack";
 
   const fadeIn = {

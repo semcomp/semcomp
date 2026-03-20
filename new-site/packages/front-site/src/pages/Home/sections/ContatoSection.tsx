@@ -16,8 +16,6 @@ const ContatoSection = ({ className }: ContatoSectionProps) => {
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
   const sectionPadding = width > 768 ? "py-16" : "py-10";
   const headingSize = width > 768 ? "text-3xl" : "text-xl";
-  const gradientFrom = "from-semcompMidLightBlue";
-  const gradientTo = isDarkMode ? "to-semcompDarkBlue" : "to-semcompAlmostDarkBlue";
 
   const fadeIn = {
     hidden: { opacity: 0, y: 15 },

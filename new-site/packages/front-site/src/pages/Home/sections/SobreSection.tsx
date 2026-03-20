@@ -36,7 +36,7 @@ const SobreSection = (props: SobreProps) => {
         variants={fadeIn}
       >
         <span className={`${textColor} font-poppins-extrabold`}>SOBRE A</span>{" "}
-        <span className={`bg-clip-text font-poppins-extrabold text-transparent bg-gradient-to-r ${gradientFrom} ${gradientVia} ${gradientTo} font-extrabold`}>
+        <span className={`bg-clip-text font-poppins-extrabold text-transparent bg-linear-to-r ${gradientFrom} ${gradientVia} ${gradientTo} font-extrabold`}>
           SEMCOMP
         </span>
       </motion.h2>
@@ -50,8 +50,8 @@ const SobreSection = (props: SobreProps) => {
         >
           <Carousel
             images={[
-              { src: FotoSemcompMain, alt: "Description" },
-              { src: FotoSemcompMain2, alt: "Description" },
+              { src: FotoSemcompMain, alt: "Uma foto com toda a equipe da Semcomp 28" },
+              { src: FotoSemcompMain2, alt: "Uma foto com um aluno fazendo uma pergunta durante uma palestra" },
             ]}
           />
         </motion.div>
