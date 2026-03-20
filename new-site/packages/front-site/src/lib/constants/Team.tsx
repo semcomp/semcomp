@@ -131,7 +131,7 @@ const TEAM: TeamType = {
           linkedin: "https://www.linkedin.com/in/isabelabfarias",
         },
         {
-          nome: "Júlia Ribeiro",
+          nome: "Julia Ribeiro",
           position: "Coordenadora de Marketing",
           linkedin: "https://www.linkedin.com/in/julia-cribeiro",
         },

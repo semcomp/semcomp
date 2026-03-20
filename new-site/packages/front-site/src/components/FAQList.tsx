@@ -38,7 +38,7 @@ export default function FAQList({ faqs }: { faqs: Array<{ Q: string; A: string }
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <p className="px-6 pb-6 text-justify text-xs md:text-sm text-semcompMidDarkBlue">{faq.A}</p>
+                  <p className="px-6 pb-6 text-xs md:text-sm text-semcompMidDarkBlue">{faq.A}</p>
                 </motion.div>
               )}
             </AnimatePresence>

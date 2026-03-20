@@ -62,8 +62,9 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
   const formsBgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompOffWhite";
   const placeholderColor = isDarkMode ? "placeholder:text-semcompOffWhite/50" : "placeholder:text-semcompDarkBlue/50";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = isDarkMode ? "from-semcompMidLightBlue" : "from-semcompMidLightBlue";
-  const gradientTo = isDarkMode ? "to-semcompLightBlue" : "to-semcompOffWhite";
+  const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompLightBlue/80";
+  const gradientVia = isDarkMode ? "via-semcompLightBlue" : "via-semcompLightBlue"
+  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompOffWhite";
 
   const hoverColor = isDarkMode ? "hover:bg-semcompLightBlue" : "hover:bg-semcompMidDarkBlue";
 
@@ -85,7 +86,7 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
         variants={fadeIn}
       >
         <span className={`text-semcompOffWhite font-extrabold`}>NOSSOS</span>{" "}
-        <span className={`bg-clip-text font-poppins-extrabold text-transparent bg-linear-to-r ${gradientFrom} ${gradientTo} font-extrabold`}>
+        <span className={`bg-clip-text font-poppins-extrabold text-transparent bg-gradient-to-r ${gradientFrom} ${gradientVia} ${gradientTo} font-extrabold`}>
           PATROCINADORES
         </span>
       </motion.h2>

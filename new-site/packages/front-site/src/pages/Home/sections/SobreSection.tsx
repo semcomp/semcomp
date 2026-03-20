@@ -13,8 +13,9 @@ const SobreSection = (props: SobreProps) => {
   const { isDarkMode } = useTheme();
 
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
-  const gradientFrom = isDarkMode ? "from-semcompMidLightBlue" : "from-semcompMidDarkBlue";
-  const gradientTo = isDarkMode ? "to-semcompLightBlue" : "to-semcompDarkBlue";
+  const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompDarkBlue/80";
+  const gradientVia  = isDarkMode ? "via-semcompLightBlue"        : "via-semcompDarkBlue";
+  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompOffBlack";
   const sectionMargin = width > 768 ? "my-20" : "my-10";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
 
@@ -35,7 +36,7 @@ const SobreSection = (props: SobreProps) => {
         variants={fadeIn}
       >
         <span className={`${textColor} font-poppins-extrabold`}>SOBRE A</span>{" "}
-        <span className={`bg-clip-text font-poppins-extrabold text-transparent bg-linear-to-r ${gradientFrom} ${gradientTo} font-extrabold`}>
+        <span className={`bg-clip-text font-poppins-extrabold text-transparent bg-gradient-to-r ${gradientFrom} ${gradientVia} ${gradientTo} font-extrabold`}>
           SEMCOMP
         </span>
       </motion.h2>

@@ -15,9 +15,10 @@ const EquipeSection = (props: EquipeSectionProps) => {
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
   const sectionPadding = width > 768 ? "py-20" : "py-10";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = isDarkMode ? "from-semcompMidLightBlue" : "from-semcompMidLightBlue";
-  const gradientTo = isDarkMode ? "to-semcompLightBlue" : "to-semcompDarkBlue";
-
+  const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompDarkBlue/80";
+  const gradientVia  = isDarkMode ? "via-semcompLightBlue"        : "via-semcompDarkBlue";
+  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompOffBlack";
+  
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -34,7 +35,7 @@ const EquipeSection = (props: EquipeSectionProps) => {
         variants={fadeIn}
       >
         <span className={`${textColor} font-extrabold`}>NOSSA</span>{" "}
-        <span className={`bg-clip-text text-transparent bg-linear-to-r ${gradientFrom} ${gradientTo} font-extrabold`}>
+        <span className={`bg-clip-text text-transparent bg-linear-to-r ${gradientFrom} ${gradientVia} ${gradientTo} font-extrabold`}>
           EQUIPE
         </span>
       </motion.h2>
