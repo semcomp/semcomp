@@ -1,48 +1,26 @@
-import { useMemo, useState } from "react";
-import HomePage from "./pages/Home";
-import CronogramaPage from "./pages/Cronograma";
+/* importa header, darkmode, tema e o 
+ outlet (layout onde os componentes especificos serão reenderizados) */
+
 import Header from "./components/Header";
-import LoginPage from "./pages/Login";
 import DarkModeToggle from "./components/DarkModeToggle";
 import { ThemeProvider } from "./contexts/ThemeContext";
-
-type TabKey = "home" | "cronograma" | "login";
-
-const tabs: Array<{ key: TabKey; label: string }> = [
-  { key: "home", label: "HOME" },
-  // { key: "cronograma", label: "CRONOGRAMA" },
-  // { key: "login", label: "LOGIN" },
-];
-
-function AppContent() {
-  const [activeTab, setActiveTab] = useState<TabKey>("home");
-
-  const currentPage = useMemo(() => {
-    switch (activeTab) {
-      case "home":
-        return <HomePage />;
-      // case "cronograma":
-      //   return <CronogramaPage />;
-      // case "login":
-      //   return <LoginPage />;
-      default:
-        return null;
-    }
-  }, [activeTab]);
-
-  return (
-    <>
-      <Header tabs={tabs} active={activeTab} onChange={(key: TabKey) => setActiveTab(key)} />
-      <main className="w-full">{currentPage}</main>
-      <DarkModeToggle />
-    </>
-  );
-}
+import { Outlet } from "react-router-dom";
 
 function App() {
   return (
+    /** 
+     * o cabecalha e o trigger de tema são conteudo fixos entao estao sempre
+     * presentes na pagina, o resto é renderizado no outlet, com o conteudo variando
+     * com base na pagina na qual o usuario esta presente.
+    */ 
     <ThemeProvider>
-      <AppContent />
+      <Header /> 
+
+      <main className="w-full">
+        <Outlet />
+      </main>
+
+      <DarkModeToggle /> 
     </ThemeProvider>
   );
 }
