@@ -3,36 +3,44 @@ import LogoSemcomp from "../assets/img/semcomp/logo_default_branco.png";
 import { IoMenu } from "react-icons/io5";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
+import { Link, useLocation } from "react-router-dom";
 
+// definição de Tabkey
 type TabKey = "home" | "cronograma" | "login" ;
 
-export default function Header({
-  tabs,
-  active,
-  onChange,
-}: {
-  tabs: Array<{ key: TabKey; label: string }>;
-  active: TabKey;
-  onChange: (k: TabKey) => void;
-}) {
-  const btnRefs = useRef<Record<TabKey, HTMLButtonElement | null>>({
+
+// Tabs como array de Tabkey
+const tabs: Array<{ key: TabKey; label: string; path: string }> = [
+  { key: "home", label: "HOME", path: "/" },
+  { key: "cronograma", label: "CRONOGRAMA", path: "/cronograma" },
+  { key: "login", label: "LOGIN", path: "/login" },
+];
+
+export default function Header() {
+  const location = useLocation(); //pega qual o url atual
+  const active = tabs.find((t) => t.path === location.pathname)?.key || "home"; //checa qual a tab ativa
+
+  // referencias do menu
+  const btnRefs = useRef<Record<TabKey, HTMLAnchorElement | null>>({
     home: null,
     cronograma: null,
     login: null,
   });
-  const { isDarkMode } = useTheme();
-  const navRef = useRef<HTMLElement | null>(null);
-  const { width } = useWindowDimensions();
-  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  useLayoutEffect(() => { 
+
+  const { isDarkMode } = useTheme(); // consome o tema da aplicação
+  const navRef = useRef<HTMLElement | null>(null); // referencia para a nabar
+  const { width } = useWindowDimensions(); // largura da aplicação
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 }); // state indicator
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // state para o estado do menu
+
+  useLayoutEffect(() => {  // hook para modificar a posição da barrinha branca
     const el = btnRefs.current[active];
     const navEl = navRef.current;
-    if (el && navEl) {
-      const elRect = el.getBoundingClientRect();
-      const navRect = navEl.getBoundingClientRect();
-      setIndicator({ left: elRect.left - navRect.left, width: elRect.width });
+    if (el && navEl) { // se os elementos existem
+      const elRect = el.getBoundingClientRect(); // posicao do elemento atual
+      const navRect = navEl.getBoundingClientRect(); // posicao da navbar
+      setIndicator({ left: elRect.left - navRect.left, width: elRect.width }); // atribui a nova posicao para o indicador("barrinha branca")
     }
   }, [active, tabs]);
 
@@ -71,16 +79,13 @@ export default function Header({
                 {tabs.map((tab) => {
                   const isActive = active === tab.key;
                   return (
-                    <button
+                    <Link
                       key={tab.key}
-                      ref={(el) => {
+                      to={tab.path}
+                      ref={(el: HTMLAnchorElement | null) => {
                         btnRefs.current[tab.key] = el;
                       }}
-                      type="button"
-                      onClick={() => {
-                        onChange(tab.key);
-                        setIsMenuOpen(false);
-                      }}
+                      onClick={() => setIsMenuOpen(false)}
                       className={`relative px-3 py-1 text-xs font-bold transition-all duration-200 transform md:px-4 md:py-2 md:text-sm ${
                         isActive
                           ? "text-semcompOffWhite scale-110"
@@ -88,7 +93,7 @@ export default function Header({
                       }`}
                     >
                       {tab.label}
-                    </button>
+                    </Link>
                   );
                 })}
               </nav>
@@ -107,13 +112,12 @@ export default function Header({
             {tabs.map((tab) => {
               const isActive = active === tab.key;
               return (
-                <button
+                <Link
                   key={tab.key}
-                  ref={(el) => {
+                  to={tab.path}
+                  ref={(el: HTMLAnchorElement | null) => {
                     btnRefs.current[tab.key] = el;
                   }}
-                  type="button"
-                  onClick={() => onChange(tab.key)}
                   className={`relative px-3 py-1 text-xs font-bold transition-all duration-200 transform md:px-4 md:py-2 md:text-sm ${
                     isActive
                       ? "text-semcompOffWhite scale-110"
@@ -121,7 +125,7 @@ export default function Header({
                   }`}
                 >
                   {tab.label}
-                </button>
+                </Link>
               );
             })}
           </nav>
