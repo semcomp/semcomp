@@ -10,7 +10,7 @@ const puppeteer = require('puppeteer');
     console.log('REQUEST FAIL:', request.url(), request.failure().errorText)
   );
 
-  await page.goto('http://localhost:5174', { waitUntil: 'networkidle0' });
+  await page.goto('http://localhost:5173', { waitUntil: 'networkidle0' });
   const innerText = await page.evaluate(() => document.body.innerText);
   console.log('BODY TEXT LOG:', innerText.substring(0, 200));
 
