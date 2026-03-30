@@ -10,7 +10,7 @@ type TabKey = "home" | "cronograma" | "login";
 
 const tabs: Array<{ key: TabKey; label: string }> = [
   { key: "home", label: "HOME" },
-  // { key: "cronograma", label: "CRONOGRAMA" },
+  { key: "cronograma", label: "CRONOGRAMA" },
   // { key: "login", label: "LOGIN" },
 ];
 
@@ -21,8 +21,8 @@ function AppContent() {
     switch (activeTab) {
       case "home":
         return <HomePage />;
-      // case "cronograma":
-      //   return <CronogramaPage />;
+      case "cronograma":
+        return <CronogramaPage />;
       // case "login":
       //   return <LoginPage />;
       default:
