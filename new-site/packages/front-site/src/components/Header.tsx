@@ -30,7 +30,7 @@ export default function Header() {
 
   const { isDarkMode } = useTheme(); // consome o tema da aplicação
   const navRef = useRef<HTMLElement | null>(null); // referencia para a nabar
-  const { width } = useWindowDimensions(); // largura da aplicação
+  const { width, height } = useWindowDimensions(); // largura da aplicação
   const [indicator, setIndicator] = useState({ left: 0, width: 0 }); // state indicator
   const [isMenuOpen, setIsMenuOpen] = useState(false); // state para o estado do menu
 

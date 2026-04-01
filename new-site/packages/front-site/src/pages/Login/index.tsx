@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useContext, useState } from "react";
+import { useTheme } from "@/contexts/useTheme";
 
 type Mode = "login" | "register";
 
@@ -12,6 +13,13 @@ export default function LoginPage(): React.ReactElement {
   const [name, setName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [remember, setRemember] = useState(false);
+
+  const { isDarkMode } = useTheme()
+
+  const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
+  const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompDarkBlue/80";
+  const gradientVia  = isDarkMode ? "via-semcompLightBlue" : "via-semcompDarkBlue";
+  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompOffBlack";
 
   const resetForm = useCallback(() => {
     setEmail("");
@@ -69,7 +77,7 @@ export default function LoginPage(): React.ReactElement {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+    <div className={`min-h-screen flex items-center justify-center bg-gray-100 p-6`}>
       <div className="w-96 max-w-full bg-white p-7 shadow-lg rounded-lg" role="main" aria-labelledby="auth-title">
         <h2 id="auth-title" className="m-0 mb-2 text-xl font-semibold">
           {mode === "login" ? "Entrar" : "Criar conta"}
