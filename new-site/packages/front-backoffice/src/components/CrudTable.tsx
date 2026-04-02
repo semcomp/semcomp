@@ -1,19 +1,22 @@
 import type { CrudItemType } from "@/types/CrudItem";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useMemo } from "react";
-import { ChevronDown, ChevronUp, ChevronsUpDown, Search, Plus, Pencil, Trash2, X } from "lucide-react";
+import {
+  ChevronDown, ChevronUp, ChevronsUpDown, Search, Plus, Pencil, Trash2, X,
+  ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
+} from "lucide-react";
 
 export interface CrudField {
   value: string;
   label: string;
   type?: "text" | "badge" | "date" | "number";
-  badgeVariants?: Record<string, string>; // value -> className
+  badgeVariants?: Record<string, string>;
 }
 
 export interface CrudTableProps {
@@ -23,13 +26,27 @@ export interface CrudTableProps {
   onDelete: (id: string) => void;
   onCreate?: (item: CrudItemType) => void;
   entityLabel?: string;
+  defaultPageSize?: number;
 }
 
-export function CrudTable({ data, fields, onEdit, onDelete, onCreate, entityLabel = "item" }: CrudTableProps) {
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
+
+export function CrudTable({
+  data,
+  fields,
+  onEdit,
+  onDelete,
+  onCreate,
+  entityLabel = "item",
+  defaultPageSize = 10,
+}: CrudTableProps) {
   const [filter, setFilter] = useState("");
   const [filterField, setFilterField] = useState(fields[0]?.value ?? "name");
   const [sortField, setSortField] = useState(fields[0]?.value ?? "name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(defaultPageSize);
+
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -38,14 +55,26 @@ export function CrudTable({ data, fields, onEdit, onDelete, onCreate, entityLabe
 
   const handleSort = (field: string) => {
     if (sortField === field) {
-      setSortOrder(o => o === "asc" ? "desc" : "asc");
+      setSortOrder(o => (o === "asc" ? "desc" : "asc"));
     } else {
       setSortField(field);
       setSortOrder("asc");
     }
+    setPage(1);
   };
 
-  const filtered = useMemo(() => {
+  const handleFilterChange = (value: string) => {
+    setFilter(value);
+    setPage(1);
+  };
+
+  const handleFilterFieldChange = (value: string) => {
+    setFilterField(value);
+    setFilter("");
+    setPage(1);
+  };
+
+  const filteredAll = useMemo(() => {
     let result = [...data];
     if (filter.trim()) {
       result = result.filter(item => {
@@ -60,6 +89,14 @@ export function CrudTable({ data, fields, onEdit, onDelete, onCreate, entityLabe
     });
     return result;
   }, [data, filter, filterField, sortField, sortOrder]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredAll.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+
+  const paginated = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return filteredAll.slice(start, start + pageSize);
+  }, [filteredAll, safePage, pageSize]);
 
   const openEdit = (item: CrudItemType) => {
     setSelectedItem(item);
@@ -97,12 +134,27 @@ export function CrudTable({ data, fields, onEdit, onDelete, onCreate, entityLabe
     return <span className="text-slate-200">{val}</span>;
   };
 
+  const startItem = filteredAll.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const endItem = Math.min(safePage * pageSize, filteredAll.length);
+
+  const getPageNumbers = (): (number | "...")[] => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const pages: (number | "...")[] = [1];
+    if (safePage > 3) pages.push("...");
+    for (let i = Math.max(2, safePage - 1); i <= Math.min(totalPages - 1, safePage + 1); i++) {
+      pages.push(i);
+    }
+    if (safePage < totalPages - 2) pages.push("...");
+    pages.push(totalPages);
+    return pages;
+  };
+
   return (
     <div className="space-y-4">
-      {/* Ferramentas [FiltroPorCampo/Criação] */}
+      {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         <div className="flex gap-2 flex-1 w-full">
-          <Select value={filterField} onValueChange={val => { setFilterField(val); }}>
+          <Select value={filterField} onValueChange={handleFilterFieldChange}>
             <SelectTrigger className="w-36 bg-slate-800 border-slate-700 text-slate-200 text-sm">
               <SelectValue />
             </SelectTrigger>
@@ -119,11 +171,14 @@ export function CrudTable({ data, fields, onEdit, onDelete, onCreate, entityLabe
             <Input
               placeholder={`Filtrar por ${fields.find(f => f.value === filterField)?.label ?? "campo"}…`}
               value={filter}
-              onChange={e => setFilter(e.target.value)}
+              onChange={e => handleFilterChange(e.target.value)}
               className="pl-9 bg-slate-800 border-slate-700 text-slate-200 placeholder:text-slate-500 focus-visible:ring-sky-500"
             />
             {filter && (
-              <button onClick={() => setFilter("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
+              <button
+                onClick={() => handleFilterChange("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+              >
                 <X className="w-4 h-4" />
               </button>
             )}
@@ -140,8 +195,110 @@ export function CrudTable({ data, fields, onEdit, onDelete, onCreate, entityLabe
         )}
       </div>
 
-      {/* Tabela genérica */}
-      <div className="rounded-xl border border-slate-800 overflow-hidden scrollbar-hide">
+      {/* Paginação */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+        {/* Info + Quantidade por página */}
+        <div className="flex items-center gap-3 text-xs text-slate-500">
+          <span>
+            {filteredAll.length === 0
+              ? "Nenhum registro"
+              : `${startItem}–${endItem} de ${filteredAll.length} registro${filteredAll.length !== 1 ? "s" : ""}`}
+            {filter && filteredAll.length !== data.length && (
+              <span className="ml-1 text-slate-600">(filtrado de {data.length})</span>
+            )}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-600">Por página:</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={v => { setPageSize(Number(v)); setPage(1); }}
+            >
+              <SelectTrigger className="h-7 w-14 bg-slate-800 border-slate-700 text-slate-300 text-xs px-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700 min-w-14">
+                {PAGE_SIZE_OPTIONS.map(n => (
+                  <SelectItem key={n} value={String(n)} className="text-slate-200 text-xs focus:bg-slate-700">
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Números Paginação */}
+        {totalPages > 1 && (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPage(1)}
+              disabled={safePage === 1}
+              className="h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 disabled:opacity-30"
+              title="Primeira página"
+            >
+              <ChevronsLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 disabled:opacity-30"
+              title="Página anterior"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+
+            {getPageNumbers().map((p, i) =>
+              p === "..." ? (
+                <span key={`ellipsis-${i}`} className="w-8 text-center text-slate-600 text-sm select-none">
+                  ···
+                </span>
+              ) : (
+                <Button
+                  key={p}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPage(p as number)}
+                  className={`h-8 w-8 p-0 rounded-lg text-sm transition-all ${
+                    safePage === p
+                      ? "bg-sky-600 text-white hover:bg-sky-500 font-semibold"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                  }`}
+                >
+                  {p}
+                </Button>
+              )
+            )}
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              className="h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 disabled:opacity-30"
+              title="Próxima página"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPage(totalPages)}
+              disabled={safePage === totalPages}
+              className="h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 disabled:opacity-30"
+              title="Última página"
+            >
+              <ChevronsRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Table */}
+      <div className="rounded-xl border border-slate-800 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="border-slate-800 bg-slate-800/60 hover:bg-slate-800/60">
@@ -155,25 +312,31 @@ export function CrudTable({ data, fields, onEdit, onDelete, onCreate, entityLabe
                   <SortIcon field={f.value} />
                 </TableHead>
               ))}
-              <TableHead className="text-slate-400 text-xs font-semibold uppercase tracking-wider w-28">Ações</TableHead>
+              <TableHead className="text-slate-400 text-xs font-semibold uppercase tracking-wider w-24">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 ? (
+            {paginated.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={fields.length + 1} className="text-center py-12 text-slate-500">
                   <div className="flex flex-col items-center gap-2">
                     <Search className="w-8 h-8 opacity-30" />
                     <p>Nenhum resultado encontrado</p>
-                    {filter && <button onClick={() => setFilter("")} className="text-sky-400 hover:text-sky-300 text-sm">Limpar filtro</button>}
+                    {filter && (
+                      <button onClick={() => handleFilterChange("")} className="text-sky-400 hover:text-sky-300 text-sm">
+                        Limpar filtro
+                      </button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((item, i) => (
+              paginated.map((item, i) => (
                 <TableRow
                   key={item.id}
-                  className={`border-slate-800 transition-colors hover:bg-slate-800/50 ${i % 2 === 0 ? "bg-transparent" : "bg-slate-900/30"}`}
+                  className={`border-slate-800 transition-colors hover:bg-slate-800/50 ${
+                    i % 2 === 0 ? "bg-transparent" : "bg-slate-900/30"
+                  }`}
                 >
                   {fields.map(f => (
                     <TableCell key={f.value} className="py-3">
@@ -208,6 +371,8 @@ export function CrudTable({ data, fields, onEdit, onDelete, onCreate, entityLabe
           </TableBody>
         </Table>
       </div>
+
+
 
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -309,7 +474,8 @@ export function CrudTable({ data, fields, onEdit, onDelete, onCreate, entityLabe
             <DialogTitle className="text-white">Confirmar exclusão</DialogTitle>
           </DialogHeader>
           <p className="text-slate-400 text-sm py-2">
-            Tem certeza que deseja excluir <span className="text-white font-medium">"{selectedItem?.name}"</span>? Esta ação não pode ser desfeita.
+            Tem certeza que deseja excluir{" "}
+            <span className="text-white font-medium">"{selectedItem?.name}"</span>? Esta ação não pode ser desfeita.
           </p>
           <DialogFooter className="gap-2">
             <Button variant="ghost" onClick={() => setDeleteOpen(false)} className="text-slate-400">Cancelar</Button>

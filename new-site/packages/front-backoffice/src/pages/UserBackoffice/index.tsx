@@ -8,25 +8,21 @@ import { ArrowLeft, UserCog } from "lucide-react";
 
 interface UserItem extends CrudItemType {
   email: string;
-  cargo: string;
-  permissao: string;
-  status: string;
-  departamento: string;
 }
 
 const sampleUsers: UserItem[] = [
-  { id: "1", name: "Ana Beatriz Santos", email: "ana@semcomp.com", cargo: "Diretora Geral", permissao: "Admin", departamento: "Diretoria", status: "Ativo" },
-  { id: "2", name: "Carlos Eduardo Lima", email: "carlos@semcomp.com", cargo: "Dev Backend", permissao: "Moderador", departamento: "TI", status: "Ativo" },
-  { id: "3", name: "Fernanda Oliveira", email: "fernanda@semcomp.com", cargo: "Coord. Eventos", permissao: "Editor", departamento: "Eventos", status: "Ativo" },
-  { id: "4", name: "Gabriel Costa", email: "gabriel@semcomp.com", cargo: "Designer", permissao: "Editor", departamento: "Marketing", status: "Ativo" },
-  { id: "5", name: "Helena Martins", email: "helena@semcomp.com", cargo: "Relações Públicas", permissao: "Visualizador", departamento: "Comunicação", status: "Ativo" },
-  { id: "6", name: "Igor Ferreira", email: "igor@semcomp.com", cargo: "Dev Frontend", permissao: "Moderador", departamento: "TI", status: "Ativo" },
-  { id: "7", name: "Juliana Ramos", email: "juliana@semcomp.com", cargo: "Coord. Patrocínio", permissao: "Editor", departamento: "Financeiro", status: "Inativo" },
-  { id: "8", name: "Lucas Almeida", email: "lucas@semcomp.com", cargo: "Suporte TI", permissao: "Visualizador", departamento: "TI", status: "Ativo" },
-  { id: "9", name: "Marina Pereira", email: "marina@semcomp.com", cargo: "Coord. Inscrições", permissao: "Editor", departamento: "Eventos", status: "Ativo" },
-  { id: "10", name: "Nicolas Barbosa", email: "nicolas@semcomp.com", cargo: "Segurança", permissao: "Visualizador", departamento: "Operações", status: "Ativo" },
-  { id: "11", name: "Olívia Souza", email: "olivia@semcomp.com", cargo: "Tesoureira", permissao: "Moderador", departamento: "Financeiro", status: "Ativo" },
-  { id: "12", name: "Pedro Henrique Nunes", email: "pedro@semcomp.com", cargo: "Infraestrutura", permissao: "Admin", departamento: "TI", status: "Inativo" },
+  { id:"1", name: "Ana Beatriz Santos", email: "ana@gmail.com" },
+  { id:"2", name: "Carlos Eduardo Lima", email: "carlos@gmail.com" },
+  { id:"3", name: "Fernanda Oliveira", email: "fernanda@gmail.com" },
+  { id:"4", name: "Gabriel Costa", email: "gabriel@gmail.com" },
+  { id:"5", name: "Helena Martins", email: "helena@gmail.com" },
+  { id:"6", name: "Igor Ferreira", email: "igor@gmail.com" },
+  { id: "7", name: "Juliana Ramos", email: "juliana@gmail.com" },
+  { id: "8", name: "Lucas Almeida", email: "lucas@gmail.com" },
+  { id: "9", name: "Marina Pereira", email: "marina@gmail.com" },
+  { id: "10", name: "Nicolas Barbosa", email: "nicolas@gmail.com" },
+  { id: "11", name: "Olívia Souza", email: "olivia@gmail.com" },
+  { id: "12", name: "Pedro Henrique Nunes", email: "pedro@gmail.com" },
 ];
 
 const fields: CrudField[] = [
