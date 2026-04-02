@@ -481,7 +481,7 @@ export function CrudTable({
             <Button variant="ghost" onClick={() => setDeleteOpen(false)} className="text-slate-400">Cancelar</Button>
             <Button
               variant="destructive"
-              className="bg-rose-600 hover:bg-rose-500"
+              className="text-white bg-rose-600 hover:bg-rose-500"
               onClick={() => {
                 if (selectedItem) onDelete(selectedItem.id);
                 setDeleteOpen(false);
