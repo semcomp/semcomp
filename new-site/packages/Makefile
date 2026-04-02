@@ -17,5 +17,11 @@ logs:
 logs-front:
 	docker compose -p $(PROJECT) logs -f front-site
 
-bash:
+bash-front:
 	docker compose -p $(PROJECT) exec front-site sh
+
+logs-backoffice:
+	docker compose -p $(PROJECT) logs -f backoffice
+
+bash-backoffice:
+	docker compose -p $(PROJECT) exec backoffice sh
