@@ -19,6 +19,7 @@ func main() {
 
 	http.HandleFunc("/", handlers.HomeHandler(db))
 	http.HandleFunc("/register", handlers.RegisterHandler(db))
+	http.HandleFunc("/login", handlers.LoginHandler(db))
 
 	fmt.Println("Servidor rodando na porta 4000")
 	errServer := http.ListenAndServe(":4000", nil)
