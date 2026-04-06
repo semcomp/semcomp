@@ -27,11 +27,14 @@ func main() {
 	r.POST("/register", handlers.RegisterHandler(db))
 	r.POST("/login", handlers.LoginHandler(db))
 
-	// Rotas protegidas por autenticação JWT
+	// Rotas protegidas por autenticação JWT (rota de exemplo: /api/profile)
 	authRoutes := r.Group("/api")
 	authRoutes.Use(middleware.AuthMiddleware())
 
-	//authRoutes.GET("/profile", handler)
+	authRoutes.GET("/profile", handlers.ProfileHandler())
+
+	// Para adicionar rotas protegidas, basta adicionar aqui, por exemplo:
+	// authRoutes.GET("/exemplo", handlers.exemploHandler())
 
 	r.Run(":4000")
 }
