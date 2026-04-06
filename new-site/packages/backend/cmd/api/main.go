@@ -1,29 +1,37 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-
 	"backend/internal/database"
 	"backend/internal/handlers"
+	"backend/internal/middleware"
 	"backend/internal/models"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	db, errDB := database.ConnectDB()
 	if errDB != nil {
-		fmt.Println("Error connecting to database:", errDB)
-		return
+		panic("Failed to connect to database: " + errDB.Error())
 	}
-	db.AutoMigrate(&models.User{}) // Cria a tabela de usuários se não existir
 
-	http.HandleFunc("/", handlers.HomeHandler(db))
-	http.HandleFunc("/register", handlers.RegisterHandler(db))
-	http.HandleFunc("/login", handlers.LoginHandler(db))
-
-	fmt.Println("Servidor rodando na porta 4000")
-	errServer := http.ListenAndServe(":4000", nil)
-	if errServer != nil {
-		fmt.Println("Erro ao iniciar servidor:", errServer)
+	// Cria a tabela de usuários no banco de dados se ainda não existir
+	err := db.AutoMigrate(&models.User{})
+	if err != nil {
+		panic("Failed to migrate database: " + err.Error())
 	}
+
+	r := gin.Default()
+
+	// Rotas públicas
+	r.POST("/register", handlers.RegisterHandler(db))
+	r.POST("/login", handlers.LoginHandler(db))
+
+	// Rotas protegidas por autenticação JWT
+	authRoutes := r.Group("/api")
+	authRoutes.Use(middleware.AuthMiddleware())
+
+	//authRoutes.GET("/profile", handler)
+
+	r.Run(":4000")
 }
