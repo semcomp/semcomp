@@ -10,9 +10,10 @@ export function useSegmentedControl() {
 interface SegmentedControlProps {
   islogin: boolean;
   setIslogin: (value: boolean) => void;
+  hook?: () => void 
 }
 
-export default function SegmentedControl({ islogin, setIslogin }: SegmentedControlProps){
+export default function SegmentedControl({ islogin, setIslogin, hook }: SegmentedControlProps){
   return (
     <div className="flex items-center justify-center pb-8 pt-2">
       {/* Container Principal */}
@@ -26,7 +27,10 @@ export default function SegmentedControl({ islogin, setIslogin }: SegmentedContr
 
         <button
           type="button"
-          onClick={() => setIslogin(true)}
+          onClick={() => {
+            setIslogin(true)
+            if(hook) hook()
+          }}
           className={`relative z-10 flex-1 text-sm font-medium transition-colors duration-300 ${
             islogin ? 'text-white' : 'text-blue-700'
           }`}
@@ -36,7 +40,10 @@ export default function SegmentedControl({ islogin, setIslogin }: SegmentedContr
 
         <button
           type="button"
-          onClick={() => setIslogin(false)}
+          onClick={() => {
+            setIslogin(false)
+            if(hook) hook()
+          }}
           className={`relative z-10 flex-1 text-sm font-medium transition-colors duration-300 ${
             !islogin ? 'text-white' : 'text-blue-700'
           }`}
