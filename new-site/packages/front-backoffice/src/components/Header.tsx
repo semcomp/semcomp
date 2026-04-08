@@ -1,49 +1,50 @@
-import { useLayoutEffect, useEffect, useState } from "react";
+import { useLayoutEffect, useEffect, useState, useRef } from "react";
 import { IoMenu, IoClose } from "react-icons/io5";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, Home, CalendarDays, Users } from "lucide-react";
+import { LogOut } from "lucide-react";
 import SemcompLogo from "@/assets/img/semcomp/logo.webp";
+import { Tabs } from "@/constants/Tabs";
 
-type TabKey = "home" | "events" | "semcompusers" | "backofficeusers";
-
-const tabs: Array<{ key: TabKey; label: string; path: string; icon: React.ReactNode; description: string }> = [
-  { key: "home", label: "Home", path: "/home", icon: <Home className="w-4 h-4" />, description: "Painel principal" },
-  { key: "events", label: "Eventos", path: "/events", icon: <CalendarDays className="w-4 h-4" />, description: "Eventos e atividades da semana" },
-  { key: "semcompusers", label: "Usuários Semcomp", path: "/semcompusers", icon: <Users className="w-4 h-4" />, description: "Gestão dos participantes da Semcomp" },
-  { key: "backofficeusers", label: "Usuários Backoffice", path: "/backofficeusers", icon: <Users className="w-4 h-4" />, description: "Gestão de usuários do Backoffice" },
-  // { key: "settings", label: "Configurações", path: "/settings", icon: <LogOut className="w-4 h-4" />, description: "Preferências e ajustes" },
-  // { key: "support", label: "Suporte", path: "/support", icon: <LogOut className="w-4 h-4" />, description: "Ajuda e contato" },
-  // { key: "reports", label: "Relatórios", path: "/reports", icon: <LogOut className="w-4 h-4" />, description: "Análises e métricas" },
-  // { key: "analytics", label: "Analytics", path: "/analytics", icon: <LogOut className="w-4 h-4" />, description: "Dados e insights" },
-  // { key: "billing", label: "Faturamento", path: "/billing", icon: <LogOut className="w-4 h-4" />, description: "Pagamentos e assinaturas" },
-  // { key: "integrations", label: "Integrações", path: "/integrations", icon: <LogOut className="w-4 h-4" />, description: "Conexões e APIs" },
-  // { key: "feedback", label: "Feedback", path: "/feedback", icon: <LogOut className="w-4 h-4" />, description: "Comentários e sugestões" },
-  // { key: "announcements", label: "Anúncios", path: "/announcements", icon: <LogOut className="w-4 h-4" />, description: "Novidades e comunicados" },
-  // { key: "users", label: "Usuários", path: "/users", icon: <Users className="w-4 h-4" />, description: "Gerenciamento de usuários" },
-  // { key: "events", label: "Eventos", path: "/events", icon: <CalendarDays className="w-4 h-4" />, description: "Gerenciamento de eventos" },
-  // { key: "home", label: "Home", path: "/home", icon: <Home className="w-4 h-4" />, description: "Visão geral e estatísticas" },
-];
 
 export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // Referência para o primeiro item do menu para focar ao abrir
+  const firstNavLinkRef = useRef<HTMLAnchorElement>(null);
 
   useLayoutEffect(() => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
+  // Gerenciamento de Overflow e Auto-foco ao abrir o menu
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = "hidden";
+      
+      // Move o foco para o primeiro link do menu após a renderização
+      const timer = setTimeout(() => {
+        firstNavLinkRef.current?.focus();
+      }, 100);
+      
+      return () => clearTimeout(timer);
     } else {
       document.body.style.overflow = "";
     }
-    return () => { document.body.style.overflow = ""; };
   }, [isMenuOpen]);
+
+  // Fechar menu com a tecla ESC
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsMenuOpen(false);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -56,53 +57,53 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-slate-800/60 bg-slate-950/95 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border bg-[color-mix(in_oklab,semcompDarkBlue_90%,white_10%)]/95 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
           
-          {/* Menu + Logo [Lado esquerdo da página] */}
           <div className="flex items-center gap-3">
             {isAuthenticated && (
               <Button
                 type="button"
                 size="icon"
                 variant="ghost"
-                className="h-9 w-9 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                className="h-9 w-9 rounded-lg"
                 onClick={() => setIsMenuOpen(v => !v)}
+                tabIndex={-1}
+                aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
               >
                 {isMenuOpen ? <IoClose size={24} /> : <IoMenu size={24} />}
               </Button>
             )}
-
-            <Link to="/home" className="flex items-center gap-3 group">
-              <img src={SemcompLogo} alt="Semcomp Logo" className="w-8 h-8 rounded-full group-hover:brightness-110 transition" />
-              <div className="hidden sm:block">
-                <p className="text-[10px] tracking-[0.35em] text-slate-500 uppercase leading-none">Backoffice</p>
-                <h1 className="text-sm font-comfortaa text-white leading-tight tracking-wide">semcomp</h1>
+            
+                <Link to="/home" className="flex items-center gap-3 group transition ">
+              <img src={SemcompLogo} alt="Brand Logo" className="w-8 h-8 rounded-full transition group-hover:contrast-70" />
+              <div className="hidden sm:block group-hover:scale-105 transition">
+                <p className="text-[10px] uppercase leading-none tracking-[0.35em] muted">Backoffice</p>
+                <h1 className="font-comfortaa text-sm leading-tight tracking-wide text-app">semcomp</h1>
               </div>
             </Link>
           </div>
 
-          {/* User Info + Logout [Lado direito] */}
           <div className="flex items-center gap-3">
             {isAuthenticated && (
               <>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-linear-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-sky-500/20">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-(--primary-contrast) shadow-lg shadow-[color-mix(in_oklab,var(--sc-primary)_30%,transparent)]">
                     {initials}
                   </div>
                   <div className="hidden md:flex flex-col">
-                    <span className="text-xs font-medium text-slate-200 leading-none">{user?.name ?? "Admin"}</span>
-                    <span className="text-[10px] text-slate-500 mt-1 uppercase tracking-wider italic">{user?.email}</span>
+                    <span className="text-xs font-medium leading-none text-app">{user?.name ?? "Admin"}</span>
+                    <span className="mt-1 text-[10px] italic uppercase tracking-wider muted">{user?.email}</span>
                   </div>
                 </div>
 
-                <div className="h-4 w-px bg-slate-800 mx-1 hidden md:block" />
+                <div className="mx-1 hidden h-4 w-px bg-(--border) md:block" />
 
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleLogout}
-                  className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 gap-2 rounded-lg transition-colors"
+                  className="gap-2 rounded-lg transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
                   <span className="text-sm hidden sm:inline">Sair</span>
@@ -116,36 +117,45 @@ export default function Header() {
       {isMenuOpen && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-300"
+            className="fixed inset-0 z-40 bg-black/35 backdrop-blur-sm"
             onClick={() => setIsMenuOpen(false)}
+            aria-hidden="true"
           />
 
           <aside
-            className="fixed left-0 top-0 z-50 h-full w-70 bg-slate-950 border-r border-slate-800 shadow-2xl flex flex-col animate-in slide-in-from-left duration-300"
+            id="main-navigation"
+            role="dialog"
+            aria-modal="true"
+            className="fixed left-0 top-0 z-50 flex h-full w-70 flex-col border-r border-app bg-[color-mix(in_oklab,semcompDarkBlue_90%,white_10%)] shadow-2xl"
           >
-            {/* Links do Menu de Navegação */}
-            <nav className="flex-1 p-4 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-hide">
-              {tabs.map(tab => (
+            <nav
+              aria-label="Navegação Principal"
+                    className="flex-1 p-4 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-hide"
+            >
+              {Tabs.map((tab) => (
                 <NavLink
                   key={tab.key}
-                  to={tab.path}
+                  to={tab.pageNavigate}
                   onClick={() => setIsMenuOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-start gap-4 px-4 py-4 rounded-xl transition-all duration-200 ${
+                    `flex items-start gap-4 px-4 py-4 rounded-xl transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-(--primary) ${
                       isActive
-                        ? "bg-sky-500/10 text-sky-300 border border-sky-500/20"
-                        : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border border-transparent"
+                        ? "border border-[color-mix(in_oklab,var(--sc-primary)_40%,transparent)] bg-[color-mix(in_oklab,var(--sc-primary)_12%,transparent)] text-primary"
+                        : "border border-transparent muted hover:bg-[color-mix(in_oklab,var(--sc-accent)_15%,transparent)] hover:text-app"
                     }`
                   }
                 >
                   {({ isActive }) => (
                     <>
-                      <span className={`p-2 rounded-lg ${isActive ? "bg-sky-500/20 text-sky-400" : "bg-slate-800 text-slate-500"}`}>
+                      <span 
+                        className={`rounded-lg p-2 ${isActive ? "bg-[color-mix(in_oklab,var(--sc-primary)_15%,transparent)] text-primary" : "bg-[color-mix(in_oklab,var(--sc-accent)_20%,transparent)] muted"}`} 
+                        aria-hidden="true"
+                      >
                         {tab.icon}
                       </span>
                       <div>
                         <p className="text-sm font-semibold">{tab.label}</p>
-                        <p className="text-[11px] text-slate-500 mt-0.5 leading-tight">{tab.description}</p>
+                        <p className="mt-0.5 text-[11px] leading-tight text-(--muted)">{tab.description}</p>
                       </div>
                     </>
                   )}
@@ -153,9 +163,8 @@ export default function Header() {
               ))}
             </nav>
 
-            {/* Footer do Drawer */}
-            <div className="p-6 text-[10px] text-slate-600 border-t border-slate-900 uppercase tracking-widest text-center shrink-0">
-                Semcomp ICMC - Backoffice
+            <div className="shrink-0 border-t border-(--border) p-6 text-center text-[10px] uppercase tracking-widest text-(--muted)">
+                Semcomp - Backoffice
             </div>
           </aside>
         </>

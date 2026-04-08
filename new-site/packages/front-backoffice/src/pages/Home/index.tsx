@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Users, ArrowRight } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { ArrowRight } from "lucide-react";
+import { Tabs } from "@/constants/Tabs";
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -13,9 +14,9 @@ export default function HomePage() {
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-8">
       {/* Bem-vindos banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-linear-to-br from-slate-900 via-slate-900 to-sky-950/40 p-6 md:p-8">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-sky-500/8 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-violet-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-2xl border border-app bg-linear-to-br from-slate-900 via-slate-900 to-sky-950/60 p-6 md:p-8 card-surface">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[color-mix(in_oklab,var(--sc-primary)_10%,transparent)] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-[color-mix(in_oklab,var(--sc-accent)_6%,transparent)] rounded-full blur-3xl pointer-events-none" />
 					<div className="relative">
 						<h2 className="text-3xl md:text-4xl font-semibold text-white mb-2">
 							{greeting}, {user?.name?.split(" ")[0] ?? "Admin"} 👋
@@ -29,52 +30,41 @@ export default function HomePage() {
 
       {/* CRUD cards */}
       <div className="grid md:grid-cols-3 gap-4">
-        <Card className="border-slate-800 bg-slate-900/50 hover:bg-slate-900 transition-all hover:border-sky-800/50 group cursor-pointer hover:scale-105 duration-1000" onClick={() => navigate('/events')}>
-          <CardHeader className="pb-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-400 mb-2 group-hover:bg-sky-500/20 transition-colors">
-              <CalendarDays className="w-5 h-5" />
+      {Tabs.map((item, index) => {
+        const Icon: React.ReactNode = item.icon;
+        return (
+          <Card
+            key={index}
+            className={`group cursor-pointer border-(--border) transition-all duration-300 hover:-translate-y-0.5 hover:border-[color-mix(in_oklab,var(--primary)_45%,transparent)] focus-visible:ring-2 focus-visible:ring-(--primary) focus-visible:outline-none`}
+            onClick={() => navigate(item.pageNavigate)}
+            
+            // --- ACESSIBILIDADE ---
+            tabIndex={0} // Permite focar com a tecla Tab
+            role="link" // Indica que o card age como um link de navegação
+            aria-label={`Acessar ${item.label}`} // Melhora a leitura para cegos
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                navigate(item.pageNavigate);
+              }
+            }}
+          >
+            <div className="px-5 pt-5 pb-3">
+              <div className={`mb-2 flex h-10 w-10 items-center justify-center rounded-xl ${item.bg} text-primary transition-colors group-hover:${item.hoverBg}`} aria-hidden="true">
+                {Icon}
+              </div>
+              <h3 className="text-base font-semibold text-app">{item.label}</h3>
+              <p className="text-sm muted">{item.description}</p>
             </div>
-            <CardTitle className="text-base text-white">Eventos</CardTitle>
-            <CardDescription className="text-slate-500 text-sm">Acesse os eventos acadêmicos que compõem a Semana da Computação.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-1.5 text-sky-400 text-xs font-medium">
-              Acessar <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+            <div className="px-5 pb-5">
+              <div className={`flex items-center gap-1.5 text-xs font-medium text-primary`} aria-hidden="true">
+                Acessar <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+              </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-800 bg-slate-900/50 hover:bg-slate-900 transition-all hover:border-violet-800/50 group cursor-pointer hover:scale-105 duration-1000" onClick={() => navigate('/semcompusers')}>
-          <CardHeader className="pb-3">
-            <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400 mb-2 group-hover:bg-violet-500/20 transition-colors">
-              <Users className="w-5 h-5" />
-            </div>
-            <CardTitle className="text-base text-white">Usuários da Semcomp</CardTitle>
-            <CardDescription className="text-slate-500 text-sm">Acesse e gerencie os paricipantes da Semana da Computação.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-1.5 text-violet-400 text-xs font-medium">
-              Acessar <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-            </div>
-          </CardContent>
-        </Card>
-
-				<Card className="border-slate-800 bg-slate-900/50 hover:bg-slate-900 transition-all hover:border-violet-800/50 group cursor-pointer hover:scale-105 duration-1000" onClick={() => navigate('/backofficeusers')}>
-					<CardHeader className="pb-3">
-            <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-cyan-400 mb-2 group-hover:bg-violet-500/20 transition-colors">
-              <Users className="w-5 h-5" />
-            </div>
-            <CardTitle className="text-base text-white">Usuários do Backoffice</CardTitle>
-            <CardDescription className="text-slate-500 text-sm">Gerencie perfis, permissões e controle de acesso ao sistema de administração do Backoffice.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-1.5 text-cyan-400 text-xs font-medium">
-              Acessar <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-            </div>
-          </CardContent>
-				</Card>
-
-      </div>
+          </Card>
+        );
+      })}
+    </div>
     </section>
   );
 }

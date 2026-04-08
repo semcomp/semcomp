@@ -32,11 +32,11 @@ export const router = createBrowserRouter([
             element: <EventsCRUD />,
           },
           {
-            path: "/semcompusers",
+            path: "/semcomp-users",
             element: <SemcompUsers />,
           },
           {
-            path: "/backofficeusers",
+            path: "/backoffice-users",
             element: <BackofficeUsers />,
           },
 
