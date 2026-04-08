@@ -32,6 +32,10 @@ func main() {
 
 	// Rotas Públicas
 	r.POST("/register", userHandler.CreateUser)
+	r.GET("/users", userHandler.GetAllUsers)
+	r.GET("/users/:id", userHandler.GetUserByID)
+	r.PUT("/users/:id", userHandler.UpdateUser)
+	r.DELETE("/users/:id", userHandler.DeleteUser)
 	r.POST("/login", handlers.LoginHandler(db))
 
 	// Rotas Protegidas (Exigem Autenticação)

@@ -12,6 +12,9 @@ type UserRepository interface {
 	Create(user *models.User) error
 	GetByID(id uint) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
+	GetAll() ([]models.User, error)
+	Update(user *models.User) error
+	Delete(id uint) error
 }
 
 // userRepository é a implementação de UserRepository baseada no GORM.
@@ -51,4 +54,21 @@ func (r *userRepository) GetByEmail(email string) (*models.User, error) {
 	}
 	
 	return &user, err
+}
+
+// GetAll retorna uma lista de todos os usuários cadastrados.
+func (r *userRepository) GetAll() ([]models.User, error) {
+	var users []models.User
+	err := r.db.Find(&users).Error
+	return users, err
+}
+
+// Update salva as modificações de um registro de usuário existente no banco de dados.
+func (r *userRepository) Update(user *models.User) error {
+	return r.db.Save(user).Error
+}
+
+// Delete realiza a exclusão (soft-delete) de um usuário identificando-o pelo ID.
+func (r *userRepository) Delete(id uint) error {
+	return r.db.Delete(&models.User{}, id).Error
 }
