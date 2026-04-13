@@ -68,7 +68,7 @@ func (r *userRepository) Update(user *models.User) error {
 	return r.db.Save(user).Error
 }
 
-// Delete realiza a exclusão (soft-delete) de um usuário identificando-o pelo ID.
+// Delete realiza a exclusão de um usuário identificando-o pelo ID.
 func (r *userRepository) Delete(id uint) error {
-	return r.db.Delete(&models.User{}, id).Error
+	return r.db.Unscoped().Delete(&models.User{}, id).Error
 }
