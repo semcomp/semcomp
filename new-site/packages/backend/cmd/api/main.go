@@ -2,9 +2,12 @@ package main
 
 import (
 	"backend/internal/database"
-	"backend/internal/handlers"
 	"backend/internal/middleware"
 	"backend/internal/models"
+	
+	"backend/internal/handlers"
+	"backend/internal/repository"
+	"backend/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,26 +18,30 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	// Cria a tabela de usuários no banco de dados se ainda não existir
 	err := db.AutoMigrate(&models.User{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
 
+	// Inicializa as camadas da aplicação (Repository -> Service -> Handler)
+	userRepo := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepo)
+	userHandler := handlers.NewUserHandler(userService)
+
 	r := gin.Default()
 
-	// Rotas públicas
-	r.POST("/register", handlers.RegisterHandler(db))
+	// Rotas Públicas
+	r.POST("/register", userHandler.CreateUser)
+	r.GET("/users", userHandler.GetAllUsers)
+	r.GET("/users/:id", userHandler.GetUserByID)
+	r.PUT("/users/:id", userHandler.UpdateUser)
+	r.DELETE("/users/:id", userHandler.DeleteUser)
 	r.POST("/login", handlers.LoginHandler(db))
 
-	// Rotas protegidas por autenticação JWT (rota de exemplo: /api/profile)
+	// Rotas Protegidas (Exigem Autenticação)
 	authRoutes := r.Group("/api")
 	authRoutes.Use(middleware.AuthMiddleware())
-
 	authRoutes.GET("/profile", handlers.ProfileHandler())
-
-	// Para adicionar rotas protegidas, basta adicionar aqui, por exemplo:
-	// authRoutes.GET("/exemplo", handlers.exemploHandler())
 
 	r.Run(":4000")
 }
