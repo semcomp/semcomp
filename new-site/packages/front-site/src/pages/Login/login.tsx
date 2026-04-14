@@ -1,8 +1,9 @@
 import { useTheme } from "@/contexts/useTheme";
 import { useState, type ReactElement } from "react";
 import { useCallback } from "react";
-import SegmentedControl, { useSegmentedControl } from "@/components/ui/segcontrol";
+import SegmentedControl, { useSegmentedControl } from "@/components/ui/SegControl";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
+import Input from "@/components/ui/Input"
 
 
 
@@ -75,9 +76,8 @@ export default function loginPage(){
             <form onSubmit={handleSubmit} aria-live="polite" className="w-full mt-4">
                 {islogin === false && (
                     <label className="block mb-2">
-                        <div className="text-sm mb-1">Nome</div>
-                        <input
-                            className="w-full px-3 py-2 mb-3 rounded-md border border-gray-300 text-sm"
+                        <Input
+                            label="Nome"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Seu nome completo"
@@ -88,9 +88,8 @@ export default function loginPage(){
                 )}
 
                 <label className="block mb-2">
-                    <div className="text-sm mb-1">Email</div>
-                    <input
-                        className="w-full px-3 py-2 mb-3 rounded-md border border-gray-300 text-sm"
+                    <Input
+                        label="Email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -101,9 +100,8 @@ export default function loginPage(){
                 </label>
 
                 <label className="block mb-2">
-                    <div className="text-sm mb-1">Senha</div>
-                    <input
-                        className="w-full px-3 py-2 mb-3 rounded-md border border-gray-300 text-sm"
+                    <Input
+                        label="Senha"                        
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -115,9 +113,8 @@ export default function loginPage(){
 
                 {islogin === false && (
                     <label className="block mb-3">
-                        <div className="text-sm mb-1">Confirmar senha</div>
-                        <input
-                            className="w-full px-3 py-2 rounded-md border border-gray-300 text-sm"
+                        <Input
+                            label="Confirmar senha"
                             type="password"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -147,7 +144,7 @@ export default function loginPage(){
                     </div>
                 )}
 
-                <button type="submit" className="w-full px-3 py-2 rounded-md bg-blue-600 text-white text-sm disabled:opacity-50" disabled={loading}>
+                <button type="submit" className="w-full px-3 py-4 rounded-md bg-semcompMidDarkBlue text-white text-sm disabled:opacity-50" disabled={loading}>
                     {loading ? "Processando..." : islogin === true ? "Entrar" : "Criar conta"}
                 </button>
             </form>

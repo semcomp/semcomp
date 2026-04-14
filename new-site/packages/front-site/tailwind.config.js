@@ -47,7 +47,10 @@ module.exports = {
       backgroundImage: {
         'sky': "url('/assets/27-imgs/login-bg.png')",
         'footer-texture': "url('/img/footer-texture.png')",
-    },
+     },
+     boxShadow: {
+      input: 'var(--shadow-input)',
+      },
     },
   },
   plugins: [],

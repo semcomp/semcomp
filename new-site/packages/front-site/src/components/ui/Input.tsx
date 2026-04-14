@@ -1,0 +1,32 @@
+type InputProps = {
+    label: string
+    type?: string
+    value: string
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    placeholder?: string
+    required?: boolean
+  }
+  
+  export default function Input({
+    label,
+    type = "text",
+    value,
+    onChange,
+    placeholder,
+    required = false,
+  }: InputProps) {
+    return (
+      <div className="mb-3">
+        <div className="text-sm mb-2">{label}</div>
+        <input
+          className="w-full px-3 py-4 rounded-md border-2 border-semcompMidDarkBlue text-sm focus:shadow-input focus:border-none transition"
+          type={type}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          required={required}
+          aria-label={label}
+        />
+      </div>
+    )
+  }
