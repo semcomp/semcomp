@@ -3,7 +3,7 @@ package user
 import (
 	"errors"
 
-	"golang.org/x/crypto/bcrypt"
+	"backend/internal/providers"
 )
 
 // UserService define as regras de negócio para operações relacionadas a usuários.
@@ -17,12 +17,13 @@ type UserService interface {
 
 // userService é a implementação concreta de UserService.
 type userService struct {
-	repo UserRepository
+	repo             UserRepository
+	passwordProvider providers.PasswordProvider
 }
 
 // NewUserService inicializa e retorna uma nova instância de UserService.
-func NewUserService(repo UserRepository) UserService {
-	return &userService{repo: repo}
+func NewUserService(repo UserRepository, passwordProvider providers.PasswordProvider) UserService {
+	return &userService{repo: repo, passwordProvider: passwordProvider}
 }
 
 // CreateUser valida duplicatas, criptografa a senha e salva o novo usuário.
@@ -34,11 +35,11 @@ func (s *userService) CreateUser(user *User) error {
 		return errors.New("e-mail já cadastrado")
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
+	hashedPassword, err := s.passwordProvider.Hash(user.PasswordHash)
 	if err != nil {
 		return errors.New("erro ao processar a senha")
 	}
-	user.PasswordHash = string(hashedPassword)
+	user.PasswordHash = hashedPassword
 
 	return s.repo.Create(user)
 }

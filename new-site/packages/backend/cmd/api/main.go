@@ -3,8 +3,9 @@ package main
 import (
 	"backend/internal/database"
 	"backend/internal/auth"
-	"backend/internal/user"
 	"backend/internal/middleware"
+	"backend/internal/providers"
+	"backend/internal/user"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,12 +22,15 @@ func main() {
 	}
 
 	// Inicializa as camadas da aplicação (Repository -> Service -> Handler)
+	passwordProvider := providers.NewBcryptProvider()
+	jwtProvider := providers.NewJWTProvider()
+
 	userRepo := user.NewUserRepository(db)
-	userService := user.NewUserService(userRepo)
+	userService := user.NewUserService(userRepo, passwordProvider)
 	userHandler := user.NewUserHandler(userService)
 
 	authRepo := auth.NewAuthRepository(db)
-	authService := auth.NewAuthService(authRepo)
+	authService := auth.NewAuthService(authRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService)
 
 	r := gin.Default()
@@ -41,7 +45,7 @@ func main() {
 
 	// Rotas Protegidas (Exigem Autenticação)
 	authRoutes := r.Group("/api")
-	authRoutes.Use(middleware.AuthMiddleware())
+	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 
 	r.Run(":4000")

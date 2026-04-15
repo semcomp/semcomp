@@ -1,15 +1,12 @@
 
 package auth
+
 import (
 	"errors"
-	"os"
-	"strconv"
-	"time"
 
+	"backend/internal/providers"
 	"backend/internal/user"
 
-	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -24,15 +21,17 @@ type AuthService interface {
 }
 
 type authService struct {
-	repo AuthRepository
+	repo             AuthRepository
+	passwordProvider providers.PasswordProvider
+	jwtProvider      providers.JWTProvider
 }
 
-func NewAuthService(repo AuthRepository) AuthService {
-	return &authService{repo: repo}
+func NewAuthService(repo AuthRepository, passwordProvider providers.PasswordProvider, jwtProvider providers.JWTProvider) AuthService {
+	return &authService{repo: repo, passwordProvider: passwordProvider, jwtProvider: jwtProvider}
 }
 
 func (s *authService) Register(request RegisterUserRequest) (*user.User, error) {
-	hashed, errCrypt := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
+	hashed, errCrypt := s.passwordProvider.Hash(request.Password)
 	if errCrypt != nil {
 		return nil, errors.New("internal server error")
 	}
@@ -63,37 +62,15 @@ func (s *authService) Login(request LoginUserRequest) (*user.User, string, error
 		return nil, "", errors.New("internal server error")
 	}
 
-	errPassword := bcrypt.CompareHashAndPassword([]byte(userRecord.PasswordHash), []byte(request.Password))
+	errPassword := s.passwordProvider.Compare(userRecord.PasswordHash, request.Password)
 	if errPassword != nil {
 		return nil, "", ErrInvalidCredentials
 	}
 
-	token, errToken := GenerateJWT(*userRecord)
+	token, errToken := s.jwtProvider.Generate(userRecord.ID, userRecord.Email)
 	if errToken != nil {
 		return nil, "", errors.New("token generation failed")
 	}
 
 	return userRecord, token, nil
-}
-
-func GenerateJWT(userRecord user.User) (string, error) {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		return "", errors.New("jwt secret not configured")
-	}
-	hours, err := strconv.Atoi(os.Getenv("JWT_EXPIRES_IN_HOURS"))
-	if err != nil {
-		hours = 24
-	}
-
-	claims := JWTClaims{
-		UserID: userRecord.ID,
-		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   userRecord.Email,
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(hours) * time.Hour)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
 }
