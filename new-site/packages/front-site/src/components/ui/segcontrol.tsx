@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTheme } from "@/contexts/useTheme";
 
 // Este hook exporta o state e pode ser importado em sua página
 export function useSegmentedControl() {
@@ -13,11 +14,15 @@ interface SegmentedControlProps {
   hook?: () => void 
 }
 
+
+
 export default function SegmentedControl({ islogin, setIslogin, hook }: SegmentedControlProps){
+  const { isDarkMode } = useTheme()
+  
   return (
     <div className="flex items-center justify-center pb-8 pt-2">
       {/* Container Principal */}
-      <div className="relative flex w-64 h-15 p-1 bg-semcompDarkBlue border-1 border-semcompOffWhite rounded-full overflow-hidden">
+      <div className={`relative flex w-64 h-15 p-1 ${isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidDarkBlue"} border border-semcompOffWhite rounded-full overflow-hidden`}>
         
         <div
           className={`absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-semcompOffWhite rounded-full transition-transform duration-300 ease-in-out ${

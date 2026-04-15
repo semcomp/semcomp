@@ -1,10 +1,9 @@
 import { useTheme } from "@/contexts/useTheme";
 import { useState, type ReactElement } from "react";
 import { useCallback } from "react";
-import SegmentedControl, { useSegmentedControl } from "@/components/ui/SegControl";
+import SegmentedControl, { useSegmentedControl } from "@/components/ui/segcontrol";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Input from "@/components/ui/Input"
-
 
 
 export default function loginPage(){
@@ -22,11 +21,13 @@ export default function loginPage(){
     const [name, setName] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [remember, setRemember] = useState(false);
+    const [sobrenome, setSobrenome] = useState("")
 
     const resetForm = useCallback(() => {
         setEmail("");
         setPassword("");
         setName("");
+        setSobrenome("");
         setConfirmPassword("");
         setRemember(false);
         setMessage(null);
@@ -74,20 +75,33 @@ export default function loginPage(){
         <div className={`w-full max-w-sm flex flex-col items-center justify-center p-8 ${textColor}`}>
             <SegmentedControl islogin={islogin} setIslogin={setIslogin} hook={resetForm}/>
             <form onSubmit={handleSubmit} aria-live="polite" className="w-full mt-4">
-                {islogin === false && (
-                    <label className="block mb-2">
-                        <Input
-                            label="Nome"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Seu nome completo"
-                            required={islogin === false}
-                            aria-label="Nome"
-                        />
-                    </label>
+                {islogin === false && ( 
+                    <div className="flex flex-row justify-between gap-5">
+                        <label className={`block mb-2 ${!isDarkMode && "text-white"}`}>
+                            <Input
+                                label="Nome"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Nome"
+                                required={islogin === false}
+                                aria-label="Nome"
+                            />
+                        </label>
+
+                        <label className={`block mb-2 ${!isDarkMode && "text-white"}`}>
+                            <Input
+                                label="Sobrenome"
+                                value={sobrenome}
+                                onChange={(e) => setSobrenome(e.target.value)}
+                                placeholder="Sobrenome"
+                                required={islogin === false}
+                                aria-label="Sobrenome"
+                            />
+                        </label>
+                    </div>
                 )}
 
-                <label className="block mb-2">
+                <label className={`block mb-2 ${!isDarkMode && "text-white"}`}>
                     <Input
                         label="Email"
                         type="email"
@@ -99,7 +113,7 @@ export default function loginPage(){
                     />
                 </label>
 
-                <label className="block mb-2">
+                <label className={`block mb-2 ${!isDarkMode && "text-white"}`}>
                     <Input
                         label="Senha"                        
                         type="password"
@@ -112,7 +126,7 @@ export default function loginPage(){
                 </label>
 
                 {islogin === false && (
-                    <label className="block mb-3">
+                    <label className={`block mb-3 ${!isDarkMode && "text-white"}`}>
                         <Input
                             label="Confirmar senha"
                             type="password"
@@ -125,8 +139,8 @@ export default function loginPage(){
                     </label>
                 )}
 
-                {islogin === true && (
-                    <label className="flex items-center gap-2 mb-3 text-sm text-gray-700">
+                {islogin ? (
+                    <label className="flex items-center gap-2 mb-3 text-sm text-white underline">
                         <input
                             type="checkbox"
                             checked={remember}
@@ -136,7 +150,21 @@ export default function loginPage(){
                         />
                         <span>Lembrar-me</span>
                     </label>
-                )}
+                ) 
+                    :
+                (
+                    <label className="flex items-center gap-2 mb-3 text-sm text-white underline">
+                        <input
+                            type="checkbox"
+                            checked={remember}
+                            onChange={(e) => setRemember(e.target.checked)}
+                            aria-label="Concordo com os termos de serviço"
+                            className="w-4 h-4"
+                        />
+                        <span>Concordo com os termos de serviço da aplicação.</span>
+                    </label>
+                )
+                }
 
                 {message && (
                     <div className={`${message.includes("Erro") ? "text-red-700" : "text-green-700"} mb-3`}>
@@ -144,7 +172,7 @@ export default function loginPage(){
                     </div>
                 )}
 
-                <button type="submit" className="w-full px-3 py-4 rounded-md bg-semcompMidDarkBlue text-white text-sm disabled:opacity-50" disabled={loading}>
+                <button type="submit" className={`w-full px-3 py-4 rounded-md ${isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompMidDarkBlue"} text-white text-sm disabled:opacity-50" disabled={loading} mt-6`}>
                     {loading ? "Processando..." : islogin === true ? "Entrar" : "Criar conta"}
                 </button>
             </form>
@@ -152,7 +180,7 @@ export default function loginPage(){
     );
 
     let retorno: ReactElement | null;
-    const bgContainer = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidDarkBlue";
+    const bgContainer = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidLightBlue";
 
     if (width >= 1280) {
         retorno = (
@@ -178,9 +206,9 @@ export default function loginPage(){
                     <img 
                         src="https://diariodepernambuco.com.br/dpmais/wp-content/uploads/2025/11/Lionel-Messi.webp" 
                         alt="Background" 
-                        className="absolute inset-0 w-full h-full object-cover opacity-40 brightness-50"
+                        className={`absolute inset-0 w-full h-full object-cover ${ isDarkMode ? "opacity-40 brightness-50" : "opacity-90 brightness-50"}`}
                     />
-                    <div className="relative z-10 bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl m-4">
+                    <div className={`relative z-10 ${isDarkMode ? "bg-semcompOffWhite/10" : "bg-semcompMidLightBlue/30"} backdrop-blur-md rounded-2xl shadow-2xl m-4`}>
                         {formContent}
                     </div>
                 </div>
@@ -189,7 +217,9 @@ export default function loginPage(){
     } else {
         retorno = (
             <div className={`h-[calc(100vh-70px)] flex items-center justify-center ${bgColor} p-4`}>
-                <div className={`${bgContainer} w-[98%] min-h-[85%] rounded-3xl shadow-xl flex flex-col items-center justify-center`}>
+                <div className={`${bgContainer} w-[98%] min-h-[85%] rounded-3xl flex flex-col items-center justify-center
+                   ${isDarkMode ? "shadow-[-10px_-15px_0px_0px_#163756,15px_-40px_0px_0px_#0e2a44]" : "shadow-[-10px_-15px_0px_0px_#b3cde0,15px_-40px_0px_0px_#dbe9f4]"}
+                `}>
                     {formContent}
                 </div>
             </div>

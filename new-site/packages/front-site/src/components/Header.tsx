@@ -46,7 +46,7 @@ export default function Header() {
 
   const isMobile = width < 768;
 
-  const headerColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidDarkBlue";
+  const headerColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidLightBlue";
 
   return (
     <header className={`sticky top-0 z-50 border-b ${headerColor} transition-all duration-300 ease-in-out`}>

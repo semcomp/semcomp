@@ -1,7 +1,10 @@
+import { useTheme } from "@/contexts/useTheme"
+
 type InputProps = {
     label: string
     type?: string
     value: string
+    isDarkMode?: boolean
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     placeholder?: string
     required?: boolean
@@ -15,11 +18,12 @@ type InputProps = {
     placeholder,
     required = false,
   }: InputProps) {
+    const { isDarkMode } = useTheme()
     return (
       <div className="mb-3">
         <div className="text-sm mb-2">{label}</div>
         <input
-          className="w-full px-3 py-4 rounded-md border-2 border-semcompMidDarkBlue text-sm focus:shadow-input focus:border-none transition"
+          className={`w-full px-3 py-4 rounded-md border-2 ${ isDarkMode ? "border-semcompMidDarkBlue" : "border-semcompOffWhite bg-semcompMidDarkBlue"} text-sm focus:shadow-input focus:border-none transition`}
           type={type}
           value={value}
           onChange={onChange}

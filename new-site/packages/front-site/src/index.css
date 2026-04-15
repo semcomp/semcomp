@@ -235,3 +235,7 @@
 .animate-slide {
   animation: slide 1s ease;
 }
+
+html, body {
+  overscroll-behavior: none;
+}
