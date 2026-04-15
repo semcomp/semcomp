@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"backend/internal/models"
+	"backend/internal/auth"
 	"fmt"
 	"net/http"
 	"os"
@@ -26,7 +26,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Extrai o token JWT do header
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-		token, err := jwt.ParseWithClaims(tokenStr, &models.JWTClaims{}, func(t *jwt.Token) (any, error) {
+		token, err := jwt.ParseWithClaims(tokenStr, &auth.JWTClaims{}, func(t *jwt.Token) (any, error) {
 
 			// Verifica se o método de assinatura é HMAC
 			_, ok := t.Method.(*jwt.SigningMethodHMAC)
@@ -52,7 +52,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Valida as claims do token
-		claims, ok := token.Claims.(*models.JWTClaims)
+		claims, ok := token.Claims.(*auth.JWTClaims)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "Expired token claims",

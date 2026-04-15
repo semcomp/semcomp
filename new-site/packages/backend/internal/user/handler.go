@@ -1,29 +1,26 @@
-package handlers
+package user
 
 import (
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	
-	"backend/internal/models"
-	"backend/internal/service"
 )
 
 // UserHandler lida com as requisições HTTP para a entidade User.
 type UserHandler struct {
-	userService service.UserService
+	userService UserService
 }
 
 // NewUserHandler inicializa e retorna uma nova instância de UserHandler.
-func NewUserHandler(userService service.UserService) *UserHandler {
+func NewUserHandler(userService UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
 // CreateUser processa o payload JSON e tenta criar um novo usuário.
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	var user models.User
-	
+	var user User
+
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
 		return

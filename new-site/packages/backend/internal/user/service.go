@@ -1,34 +1,32 @@
-package service
+package user
 
 import (
 	"errors"
+
 	"golang.org/x/crypto/bcrypt"
-	
-	"backend/internal/models"
-	"backend/internal/repository"
 )
 
 // UserService define as regras de negócio para operações relacionadas a usuários.
 type UserService interface {
-	CreateUser(user *models.User) error
-	GetAllUsers() ([]models.User, error)
-	GetUserByID(id uint) (*models.User, error)
-	UpdateUser(user *models.User) error
+	CreateUser(user *User) error
+	GetAllUsers() ([]User, error)
+	GetUserByID(id uint) (*User, error)
+	UpdateUser(user *User) error
 	DeleteUser(id uint) error
 }
 
 // userService é a implementação concreta de UserService.
 type userService struct {
-	repo repository.UserRepository
+	repo UserRepository
 }
 
 // NewUserService inicializa e retorna uma nova instância de UserService.
-func NewUserService(repo repository.UserRepository) UserService {
+func NewUserService(repo UserRepository) UserService {
 	return &userService{repo: repo}
 }
 
 // CreateUser valida duplicatas, criptografa a senha e salva o novo usuário.
-func (s *userService) CreateUser(user *models.User) error {
+func (s *userService) CreateUser(user *User) error {
 	_, err := s.repo.GetByEmail(user.Email)
 	// TODO: Ajustar a busca no GetByEmail para ignorar o Soft Delete do GORM usando .Unscoped()
 	// Atualmente, ele retorna o erro de constraint do SQL em vez da nossa mensagem.
@@ -46,17 +44,17 @@ func (s *userService) CreateUser(user *models.User) error {
 }
 
 // GetAllUsers recupera todos os usuários repassando a chamada para a camada de repositório.
-func (s *userService) GetAllUsers() ([]models.User, error) {
+func (s *userService) GetAllUsers() ([]User, error) {
 	return s.repo.GetAll()
 }
 
 // GetUserByID busca e retorna um usuário específico pelo seu ID.
-func (s *userService) GetUserByID(id uint) (*models.User, error) {
+func (s *userService) GetUserByID(id uint) (*User, error) {
 	return s.repo.GetByID(id)
 }
 
 // UpdateUser aplica regras de negócio de edição e atualiza um usuário existente.
-func (s *userService) UpdateUser(user *models.User) error {
+func (s *userService) UpdateUser(user *User) error {
 	return s.repo.Update(user)
 }
 

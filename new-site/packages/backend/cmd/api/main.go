@@ -2,12 +2,9 @@ package main
 
 import (
 	"backend/internal/database"
+	"backend/internal/auth"
+	"backend/internal/user"
 	"backend/internal/middleware"
-	"backend/internal/models"
-	
-	"backend/internal/handlers"
-	"backend/internal/repository"
-	"backend/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,15 +15,19 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&models.User{})
+	err := db.AutoMigrate(&user.User{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
 
 	// Inicializa as camadas da aplicação (Repository -> Service -> Handler)
-	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo)
-	userHandler := handlers.NewUserHandler(userService)
+	userRepo := user.NewUserRepository(db)
+	userService := user.NewUserService(userRepo)
+	userHandler := user.NewUserHandler(userService)
+
+	authRepo := auth.NewAuthRepository(db)
+	authService := auth.NewAuthService(authRepo)
+	authHandler := auth.NewAuthHandler(authService)
 
 	r := gin.Default()
 
@@ -36,12 +37,12 @@ func main() {
 	r.GET("/users/:id", userHandler.GetUserByID)
 	r.PUT("/users/:id", userHandler.UpdateUser)
 	r.DELETE("/users/:id", userHandler.DeleteUser)
-	r.POST("/login", handlers.LoginHandler(db))
+	r.POST("/login", authHandler.LoginHandler)
 
 	// Rotas Protegidas (Exigem Autenticação)
 	authRoutes := r.Group("/api")
 	authRoutes.Use(middleware.AuthMiddleware())
-	authRoutes.GET("/profile", handlers.ProfileHandler())
+	authRoutes.GET("/profile", authHandler.ProfileHandler())
 
 	r.Run(":4000")
 }
