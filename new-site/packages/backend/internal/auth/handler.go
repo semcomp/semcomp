@@ -19,48 +19,6 @@ func NewAuthHandler(authService AuthService) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 
-func (h *AuthHandler) RegisterHandler(c *gin.Context) {
-	// Verifica request body e decodifica para struct
-	var request RegisterUserRequest
-	errReq := c.ShouldBindJSON(&request)
-	if errReq != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid json register request"})
-		return
-	}
-
-	errVal := validate.Struct(request)
-	if errVal != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid register request: " + errVal.Error()})
-		return
-	}
-
-	createdUser, errRegister := h.authService.Register(request)
-	if errRegister != nil {
-		if errors.Is(errRegister, ErrEmailAlreadyExists) {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
-			return
-		}
-		if errRegister.Error() == "create user failed" {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Create user failed"})
-			return
-		}
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-		return
-	}
-
-	// Confirmacao de criacao do usuario
-	c.Header("Content-Type", "application/json")
-	c.Status(http.StatusCreated)
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "User created successfully",
-		"user": map[string]string{
-			"name":      createdUser.Name,
-			"last_name": createdUser.LastName,
-			"email":     createdUser.Email,
-		},
-	})
-}
-
 func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	// Verifica request body e decodifica para struct
 	var request LoginUserRequest

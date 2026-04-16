@@ -16,45 +16,21 @@ var (
 )
 
 type AuthService interface {
-	Register(request RegisterUserRequest) (*user.User, error)
 	Login(request LoginUserRequest) (*user.User, string, error)
 }
 
 type authService struct {
-	repo             AuthRepository
+	userRepository   user.UserRepository
 	passwordProvider providers.PasswordProvider
 	jwtProvider      providers.JWTProvider
 }
 
-func NewAuthService(repo AuthRepository, passwordProvider providers.PasswordProvider, jwtProvider providers.JWTProvider) AuthService {
-	return &authService{repo: repo, passwordProvider: passwordProvider, jwtProvider: jwtProvider}
-}
-
-func (s *authService) Register(request RegisterUserRequest) (*user.User, error) {
-	hashed, errCrypt := s.passwordProvider.Hash(request.Password)
-	if errCrypt != nil {
-		return nil, errors.New("internal server error")
-	}
-
-	userRecord := user.User{
-		Name:         request.Name,
-		LastName:     request.LastName,
-		Email:        request.Email,
-		PasswordHash: string(hashed),
-	}
-	errCreateUser := s.repo.CreateUser(&userRecord)
-	if errCreateUser != nil {
-		if errors.Is(errCreateUser, gorm.ErrDuplicatedKey) {
-			return nil, ErrEmailAlreadyExists
-		}
-		return nil, errors.New("create user failed")
-	}
-
-	return &userRecord, nil
+func NewAuthService(userRepository user.UserRepository, passwordProvider providers.PasswordProvider, jwtProvider providers.JWTProvider) AuthService {
+	return &authService{userRepository: userRepository, passwordProvider: passwordProvider, jwtProvider: jwtProvider}
 }
 
 func (s *authService) Login(request LoginUserRequest) (*user.User, string, error) {
-	userRecord, errUser := s.repo.GetUserByEmail(request.Email)
+	userRecord, errUser := s.userRepository.GetByEmail(request.Email)
 	if errUser != nil {
 		if errors.Is(errUser, gorm.ErrRecordNotFound) {
 			return nil, "", ErrInvalidCredentials

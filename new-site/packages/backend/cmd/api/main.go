@@ -29,8 +29,7 @@ func main() {
 	userService := user.NewUserService(userRepo, passwordProvider)
 	userHandler := user.NewUserHandler(userService)
 
-	authRepo := auth.NewAuthRepository(db)
-	authService := auth.NewAuthService(authRepo, passwordProvider, jwtProvider)
+	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService)
 
 	r := gin.Default()
