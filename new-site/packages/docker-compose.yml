@@ -50,6 +50,15 @@ services:
     command: npm run dev -- --host
     restart: unless-stopped
 
+  backoffice:
+    build: ./front-backoffice
+    container_name: backoffice
+    ports:
+      - "5174:5174"
+    command: npm run dev -- --host
+    restart: unless-stopped
+
+
   backend:
     build: ./backend
     container_name: backend
