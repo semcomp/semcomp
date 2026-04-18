@@ -1,5 +1,4 @@
-import { IonIcon } from "@ionic/react";
-import { chevronDownOutline } from "ionicons/icons";
+import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import Countdown from "./Countdown";
 import SemcompInfo from "../lib/constants/SemcompInfo";
@@ -23,6 +22,10 @@ export default function MainEntrance() {
       <img
         src={FotoSemcompMain}
         alt={`SEMCOMP ${SemcompInfo.EDITION}`}
+        loading="eager"
+        decoding="async"
+        fetchPriority="high"
+        sizes="100vw"
         className="absolute inset-0 h-full w-full object-cover"
       />
       <div className="absolute inset-0 bg-semcompOffBlack/30" />
@@ -67,7 +70,7 @@ export default function MainEntrance() {
           onClick={scrollToContent}
           className="flex flex-col items-center text-semcompOffWhite hover:text-semcompOffWhite/80 focus:outline-none"
         >
-          <IonIcon icon={chevronDownOutline} className="text-5xl animate-bounce" />
+          <ChevronDown className="h-12 w-12 animate-bounce" aria-hidden="true" />
         </button>
       </motion.div>
     </section>

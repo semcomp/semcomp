@@ -92,7 +92,13 @@ const ContatoSection = ({ className }: ContatoSectionProps) => {
         </motion.div>
       </div>
       <div className={`flex pt-10 gap-5 justify-center ${isDarkMode ? "" : "invert-75"}`}>
-        <img src={LogoSemcomp} alt="Logo da Semcomp" className="h-18 w-18"/>
+        <img
+          src={LogoSemcomp}
+          alt="Logo da Semcomp"
+          loading="lazy"
+          decoding="async"
+          className="h-18 w-18"
+        />
       </div>
 
       <div className="mt-10 text-center text-sm opacity-70">
