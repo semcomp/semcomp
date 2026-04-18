@@ -2,7 +2,7 @@ import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import Countdown from "./Countdown";
 import SemcompInfo from "../lib/constants/SemcompInfo";
-import FotoSemcompMain from "../assets/img/semcomp/Semcomp.jpg";
+import FotoSemcompMain from "../assets/img/semcomp/Semcomp.webp";
 
 export default function MainEntrance() {
   const scrollToContent = () => {

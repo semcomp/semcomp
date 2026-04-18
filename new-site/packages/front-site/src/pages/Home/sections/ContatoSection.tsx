@@ -3,7 +3,7 @@ import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 import { FaLinkedin, FaInstagram } from "react-icons/fa";
 import SemcompInfo from "../../../lib/constants/SemcompInfo"
-import LogoSemcomp from "../../../assets/img/semcomp/logo_default_branco.png"
+import LogoSemcomp from "../../../assets/img/semcomp/logo_default_branco.webp"
 
 type ContatoSectionProps = {
   className?: string;
