@@ -11,6 +11,7 @@ const targets = [
 const exts = new Set(['.jpg', '.jpeg', '.png']);
 
 async function walk(dir, out = []) {
+  console.log(`[scan] entering ${path.relative(root, dir)}`);
   const entries = await fs.readdir(dir, { withFileTypes: true });
   for (const entry of entries) {
     const full = path.join(dir, entry.name);
@@ -19,7 +20,10 @@ async function walk(dir, out = []) {
       continue;
     }
     const ext = path.extname(entry.name).toLowerCase();
-    if (exts.has(ext)) out.push(full);
+    if (exts.has(ext)) {
+      console.log(`[scan] found ${path.relative(root, full)}`);
+      out.push(full);
+    }
   }
   return out;
 }
@@ -35,6 +39,7 @@ async function convertOne(src) {
   const webpOut = `${base}.webp`;
   const avifOut = `${base}.avif`;
 
+  console.log(`[convert] start ${path.relative(root, src)}`);
   const input = sharp(src);
   const meta = await input.metadata();
 
@@ -43,12 +48,14 @@ async function convertOne(src) {
     .rotate()
     .webp({ quality: 82, effort: 5 })
     .toFile(webpOut);
+  console.log(`[convert] wrote ${path.relative(root, webpOut)}`);
 
   await input
     .clone()
     .rotate()
     .avif({ quality: 52, effort: 5 })
     .toFile(avifOut);
+  console.log(`[convert] wrote ${path.relative(root, avifOut)}`);
 
   const [srcSize, webpSize, avifSize] = await Promise.all([
     fileSize(src),
@@ -77,14 +84,18 @@ function pct(from, to) {
 }
 
 async function main() {
+  console.log('[start] image conversion task');
   const files = [];
   for (const rel of targets) {
     const abs = path.join(root, rel);
     try {
+      console.log(`[start] scanning ${rel}`);
       await fs.access(abs);
       const found = await walk(abs);
       files.push(...found);
+      console.log(`[start] ${rel}: ${found.length} source files`);
     } catch {
+      console.log(`[start] missing folder ${rel}, skipping`);
       // ignore missing folders
     }
   }
@@ -94,8 +105,11 @@ async function main() {
     return;
   }
 
+  console.log(`[start] total source images: ${files.length}`);
+
   const results = [];
-  for (const file of files) {
+  for (const [index, file] of files.entries()) {
+    console.log(`[progress] ${index + 1}/${files.length}`);
     results.push(await convertOne(file));
   }
 
@@ -125,6 +139,7 @@ async function main() {
   const totalWebp = results.reduce((acc, r) => acc + r.webpSize, 0);
   const totalAvif = results.reduce((acc, r) => acc + r.avifSize, 0);
 
+  console.log('[done] conversion complete');
   console.log(`Converted ${results.length} files.`);
   console.log(`Total original: ${kb(totalSrc)}`);
   console.log(`Total WebP: ${kb(totalWebp)} (${pct(totalSrc, totalWebp)})`);

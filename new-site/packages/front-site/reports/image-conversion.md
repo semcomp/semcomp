@@ -1,6 +1,6 @@
 # Image Conversion Report
 
-Generated at: 2026-04-18T18:17:43.381Z
+Generated at: 2026-04-18T18:42:03.556Z
 
 | File | Original | WebP | AVIF |
 |---|---:|---:|---:|
@@ -8,12 +8,12 @@ Generated at: 2026-04-18T18:17:43.381Z
 | src/assets/img/team/Isabela Farias.jpg | 2228.5 KB | 500.1 KB (77.6%) | 216.4 KB (90.3%) |
 | src/assets/img/team/Julia Ribeiro.jpg | 1510.2 KB | 405.1 KB (73.2%) | 159.1 KB (89.5%) |
 | src/assets/img/team/Guilherme Cavalcanti.jpg | 1095.4 KB | 109.7 KB (90.0%) | 22.1 KB (98.0%) |
-| src/assets/img/team/Eduarda Carvalho.jpg | 954.7 KB | 274.2 KB (71.3%) | 131.2 KB (86.3%) |
 | src/assets/img/team/Fernando Valentim.jpg | 602.0 KB | 32.3 KB (94.6%) | 17.0 KB (97.2%) |
 | src/assets/img/semcomp/palestra.png | 578.8 KB | 218.4 KB (62.3%) | 103.3 KB (82.1%) |
 | src/assets/img/team/Christyan Nantes.jpg | 553.6 KB | 132.8 KB (76.0%) | 61.9 KB (88.8%) |
 | src/assets/img/team/Pedro Bucke.jpg | 224.5 KB | 127.3 KB (43.3%) | 70.5 KB (68.6%) |
 | src/assets/img/semcomp/Semcomp.jpg | 138.0 KB | 66.5 KB (51.8%) | 39.8 KB (71.2%) |
+| src/assets/img/team/Eduarda Carvalho.jpg | 130.9 KB | 79.6 KB (39.2%) | 42.4 KB (67.6%) |
 | src/assets/img/team/Mariane Santos.jpg | 124.2 KB | 91.9 KB (26.0%) | 49.9 KB (59.8%) |
 | src/assets/img/team/Ana Júlia França.jpg | 113.5 KB | 53.6 KB (52.8%) | 35.7 KB (68.5%) |
 | src/assets/img/team/Gustavo Ramos.jpg | 92.8 KB | 34.8 KB (62.5%) | 19.0 KB (79.5%) |
