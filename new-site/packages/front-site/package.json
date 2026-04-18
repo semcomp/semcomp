@@ -51,6 +51,7 @@
     "rollup-plugin-visualizer": "^6.0.11",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.2.1",
+    "ttf2woff2": "^8.0.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
     "vite": "^7.3.1"
