@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
@@ -31,7 +32,7 @@ export default function HomePage() {
       {/* CRUD cards */}
       <div className="grid md:grid-cols-3 gap-4">
       {Tabs.map((item, index) => {
-        const Icon: React.ReactNode = item.icon;
+        const Icon: ReactNode = item.icon;
         return (
           <Card
             key={index}

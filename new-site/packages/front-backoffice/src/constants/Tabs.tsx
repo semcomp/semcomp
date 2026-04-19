@@ -1,10 +1,11 @@
+import type { ReactNode } from "react";
 import { Calendar, Users } from "lucide-react";
 
 export const Tabs: {
   key: string;
   label: string;
   description: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   pageNavigate: string;
   bg: string;
   hoverBg: string;
