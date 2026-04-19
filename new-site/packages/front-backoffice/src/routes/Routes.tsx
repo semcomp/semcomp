@@ -7,41 +7,45 @@ import SemcompUsers from "@/pages/UserSemcomp";
 import BackofficeUsers from "@/pages/UserBackoffice";
 import RequireAuth from "@/lib/RequireAuth";
 
-export const router = createBrowserRouter([
+export const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <App />,
+      children: [
+        {
+          index: true,
+          element: <Navigate to="/home" replace />,
+        },
+        {
+          element: <LoginPage />,
+          path: "/login",
+        },
+        {
+          element: <RequireAuth />,
+          children: [
+            {
+              path: "/home",
+              element: <HomePage />,
+            },
+            {
+              path: "/events",
+              element: <EventsCRUD />,
+            },
+            {
+              path: "/semcomp-users",
+              element: <SemcompUsers />,
+            },
+            {
+              path: "/backoffice-users",
+              element: <BackofficeUsers />,
+            },
+          ],
+        },
+      ],
+    },
+  ],
   {
-    path: "/",
-    element: <App />,
-    children: [
-      {
-        index: true,
-        element: <Navigate to="/home" replace />,
-      },
-      {
-        element: <LoginPage />,
-        path: "/login",
-      },
-      {
-        element: <RequireAuth />,
-        children: [
-          {
-            path: "/home",
-            element: <HomePage />,
-          },
-          {
-            path: "/events",
-            element: <EventsCRUD />,
-          },
-          {
-            path: "/semcomp-users",
-            element: <SemcompUsers />,
-          },
-          {
-            path: "/backoffice-users",
-            element: <BackofficeUsers />,
-          },
-
-        ],
-      },
-    ],
-  },
-]);
+    basename: "/admin",
+  }
+);

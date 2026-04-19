@@ -1,17 +1,17 @@
 PROJECT=semcomp
 
 up:
-	docker compose -p $(PROJECT) up -d
+	docker compose -p $(PROJECT) --env-file ./backend/.env  up -d
 
 build:
-	docker compose -p $(PROJECT) up -d --build
+	docker compose -p $(PROJECT) --env-file ./backend/.env  up -d --build
 
 down:
 	docker compose -p $(PROJECT) down
 
 restart:
 	docker compose -p $(PROJECT) down
-	docker compose -p $(PROJECT) up -d --build
+	docker compose -p $(PROJECT) --env-file ./backend/.env  up -d --build
 
 logs:
 	docker compose -p $(PROJECT) logs -f
