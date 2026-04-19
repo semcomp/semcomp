@@ -63,6 +63,10 @@ export default function Carousel({ images }: CarouselProps) {
               <img
                 src={img.src}
                 alt={img.alt}
+                loading={index === 0 ? "eager" : "lazy"}
+                decoding="async"
+                fetchPriority={index === 0 ? "high" : "auto"}
+                sizes="(max-width: 768px) 100vw, 896px"
                 className="w-full h-full object-cover"
               />
 

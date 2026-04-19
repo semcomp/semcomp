@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Carousel from "@/components/ui/Carousel";
-import FotoSemcompMain from "@/assets/img/semcomp/Semcomp28.jpg";
-import FotoSemcompMain2 from "@/assets/img/semcomp/palestra.png";
+import FotoSemcompMain from "@/assets/img/semcomp/Semcomp28.webp";
+import FotoSemcompMain2 from "@/assets/img/semcomp/palestra.webp";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 

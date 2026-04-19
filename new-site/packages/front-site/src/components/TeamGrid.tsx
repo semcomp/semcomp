@@ -18,13 +18,13 @@ export default function TeamGrid({ data }: { data: TeamType }) {
   const firstRow = frentes.slice(0, 4);
   const secondRow = frentes.slice(4, 9);
 
-  const images = import.meta.glob("@/assets/img/team/*jpg", {
+  const images = import.meta.glob("@/assets/img/team/*.webp", {
     eager: true,
     import: "default"
   }) as Record<string, string>;
 
   const getPhoto = (name: string) =>
-    images[`/src/assets/img/team/${name}.jpg`];
+    images[`/src/assets/img/team/${name}.webp`];
 
   const textColor = isDarkMode ? "text-semcompOffWhite/50" : "text-semcompDarkBlue/60";
 
@@ -65,6 +65,9 @@ export default function TeamGrid({ data }: { data: TeamType }) {
             <img
               src={getPhoto(member.nome)}
               alt={member.nome}
+              loading="lazy"
+              decoding="async"
+              sizes="(max-width: 640px) 112px, (max-width: 768px) 144px, 160px"
               className="w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 object-cover justify-center rounded-3xl"
             />
             <div className="mt-2 font-bold">
