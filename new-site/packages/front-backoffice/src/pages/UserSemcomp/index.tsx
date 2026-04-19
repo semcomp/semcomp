@@ -1,4 +1,4 @@
-import { CrudTable, type CrudField } from "@/components/CrudTable";
+import { CrudTable } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -6,31 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, UserCog } from "lucide-react";
 import { sampleSemcompUsers } from "@/mock/user-semcomp";
-
-const fields: CrudField[] = [
-  { value: "name", label: "Nome", type: "text" },
-  { value: "email", label: "E-mail", type: "text" },
-  { value: "cargo", label: "Cargo", type: "text" },
-  { value: "departamento", label: "Departamento", type: "badge", badgeVariants: {
-    "TI": "bg-blue-500/20 text-blue-300 border border-blue-500/30",
-    "Eventos": "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
-    "Marketing": "bg-pink-500/20 text-pink-300 border border-pink-500/30",
-    "Financeiro": "bg-amber-500/20 text-amber-300 border border-amber-500/30",
-    "Diretoria": "bg-violet-500/20 text-violet-300 border border-violet-500/30",
-    "Comunicação": "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30",
-    "Operações": "bg-orange-500/20 text-orange-300 border border-orange-500/30",
-  }},
-  { value: "permissao", label: "Permissão", type: "badge", badgeVariants: {
-    "Admin": "bg-rose-500/20 text-rose-300 border border-rose-500/30",
-    "Moderador": "bg-violet-500/20 text-violet-300 border border-violet-500/30",
-    "Editor": "bg-sky-500/20 text-sky-300 border border-sky-500/30",
-    "Visualizador": "bg-slate-500/20 text-slate-300 border border-slate-500/30",
-  }},
-  { value: "status", label: "Status", type: "badge", badgeVariants: {
-    "Ativo": "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
-    "Inativo": "bg-slate-600/40 text-slate-400 border border-slate-600/30",
-  }},
-];
+import { fields } from "@/data/userSemcompCrudField";
 
 export default function UsersCRUD() {
   const navigate = useNavigate();

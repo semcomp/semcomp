@@ -15,8 +15,9 @@ import {
 export interface CrudField {
   value: string;
   label: string;
-  type?: "text" | "badge" | "date" | "number";
-  badgeVariants?: Record<string, string>;
+  type?: "text" | "select" | "date" | "number" | "multivalue";
+  selectVariants?: Record<string, string>;
+  multiValueOptions?: string[];
 }
 
 export interface CrudTableProps {
@@ -51,7 +52,35 @@ export function CrudTable({
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CrudItemType | null>(null);
-  const [formData, setFormData] = useState<Record<string, string>>({});
+
+  type FormValue = string | string[];
+  const [formData, setFormData] = useState<Record<string, FormValue>>({});
+
+  // Helpers para multivalue
+  const normalizeToStringArray = (value: unknown): string[] => {
+    if (Array.isArray(value)) return value.map((v) => String(v));
+    if (typeof value === "string") {
+      return value
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
+    }
+    return [];
+  };
+
+  const formatForCompare = (value: unknown): string => {
+    if (Array.isArray(value)) return value.map((v) => String(v)).join(", ");
+    return String(value ?? "");
+  };
+
+  const toggleMultiValue = (fieldValue: string, option: string) => {
+    setFormData((prev) => {
+      const current = normalizeToStringArray(prev[fieldValue]);
+      const exists = current.includes(option);
+      const next = exists ? current.filter((v) => v !== option) : [...current, option];
+      return { ...prev, [fieldValue]: next };
+    });
+  };
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -78,14 +107,16 @@ export function CrudTable({
     let result = [...data];
     if (filter.trim()) {
       result = result.filter(item => {
-        const val = String((item as Record<string, unknown>)[filterField] ?? "").toLowerCase();
+        const val = formatForCompare((item as Record<string, unknown>)[filterField]).toLowerCase();
         return val.includes(filter.toLowerCase());
       });
     }
     result.sort((a, b) => {
-      const av = String((a as Record<string, unknown>)[sortField] ?? "");
-      const bv = String((b as Record<string, unknown>)[sortField] ?? "");
-      return sortOrder === "asc" ? av.localeCompare(bv, "pt-BR") : bv.localeCompare(av, "pt-BR");
+      const av = (a as Record<string, unknown>)[sortField];
+      const bv = (b as Record<string, unknown>)[sortField];
+      return sortOrder === "asc"
+        ? formatForCompare(av).localeCompare(formatForCompare(bv), "pt-BR")
+        : formatForCompare(bv).localeCompare(formatForCompare(av), "pt-BR");
     });
     return result;
   }, [data, filter, filterField, sortField, sortOrder]);
@@ -100,8 +131,11 @@ export function CrudTable({
 
   const openEdit = (item: CrudItemType) => {
     setSelectedItem(item);
-    const fd: Record<string, string> = {};
-    fields.forEach(f => { fd[f.value] = String((item as Record<string, unknown>)[f.value] ?? ""); });
+    const fd: Record<string, FormValue> = {};
+    fields.forEach(f => {
+      const raw = (item as Record<string, unknown>)[f.value];
+      fd[f.value] = f.type === "multivalue" ? normalizeToStringArray(raw) : String(raw ?? "");
+    });
     setFormData(fd);
     setEditOpen(true);
   };
@@ -112,8 +146,8 @@ export function CrudTable({
   };
 
   const openCreate = () => {
-    const fd: Record<string, string> = {};
-    fields.forEach(f => { fd[f.value] = ""; });
+    const fd: Record<string, FormValue> = {};
+    fields.forEach(f => { fd[f.value] = f.type === "multivalue" ? [] : ""; });
     setFormData(fd);
     setCreateOpen(true);
   };
@@ -126,12 +160,33 @@ export function CrudTable({
   };
 
   const renderCell = (item: CrudItemType, field: CrudField) => {
-    const val = String((item as Record<string, unknown>)[field.value] ?? "—");
-    if (field.type === "badge" && field.badgeVariants) {
-      const cls = field.badgeVariants[val] ?? "bg-slate-700 text-slate-200";
+    const raw = (item as Record<string, unknown>)[field.value];
+    const val = String(raw ?? "—");
+
+    if (field.type === "multivalue") {
+      const values = normalizeToStringArray(raw);
+      if (!values.length) return <span className="text-slate-200">—</span>;
+      return (
+        <div className="flex flex-wrap gap-1.5">
+          {values.map((entry) => (
+            <Badge key={`${field.value}-${entry}`} className="px-2 py-0.5 text-xs font-medium bg-slate-700 text-slate-200">
+              {entry}
+            </Badge>
+          ))}
+        </div>
+      );
+    }
+
+    if (field.type === "select" && field.selectVariants) {
+      const cls = field.selectVariants[val] ?? "bg-slate-700 text-slate-200";
       return <Badge className={`text-xs font-medium px-2 py-0.5 ${cls}`}>{val}</Badge>;
     }
     return <span className="text-slate-200">{val}</span>;
+  };
+
+  const getItemId = (item: CrudItemType) => {
+    const id = (item as Record<string, unknown>)["id"];
+    return typeof id === "string" ? id : "";
   };
 
   const startItem = filteredAll.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
@@ -333,7 +388,7 @@ export function CrudTable({
             ) : (
               paginated.map((item, i) => (
                 <TableRow
-                  key={item.id}
+                  key={getItemId(item) || `row-${i}`}
                   className={`border-slate-800 transition-colors hover:bg-slate-800/50 ${
                     i % 2 === 0 ? "bg-transparent" : "bg-slate-900/30"
                   }`}
@@ -384,21 +439,60 @@ export function CrudTable({
             {fields.map(f => (
               <div key={f.value} className="space-y-1.5">
                 <Label htmlFor={`create-${f.value}`} className="text-slate-300 text-sm">{f.label}</Label>
-                {f.type === "badge" && f.badgeVariants ? (
-                  <Select value={formData[f.value]} onValueChange={v => setFormData(d => ({ ...d, [f.value]: v }))}>
+                {f.type === "select" && f.selectVariants ? (
+                  <Select value={formData[f.value] as string} onValueChange={v => setFormData(d => ({ ...d, [f.value]: v }))}>
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-200">
                       <SelectValue placeholder={`Selecionar ${f.label}`} />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-slate-700">
-                      {Object.keys(f.badgeVariants).map(v => (
+                      {Object.keys(f.selectVariants).map(v => (
                         <SelectItem key={v} value={v} className="text-slate-200 focus:bg-slate-700">{v}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                ) : f.type === "multivalue" ? (
+                  <div className="rounded-xl p-2.5">
+                    {f.multiValueOptions && f.multiValueOptions.length > 0 ? (
+                      <div className="grid gap-2 max-h-40 overflow-y-auto pr-1">
+                        {f.multiValueOptions.map((option) => {
+                          const selected = normalizeToStringArray(formData[f.value]).includes(option);
+                          return (
+                            <label key={option} className="flex items-center gap-2 text-sm text-slate-200">
+                              <input
+                                type="checkbox"
+                                checked={selected}
+                                onChange={() => toggleMultiValue(f.value, option)}
+                                className="peer sr-only"
+                              />
+                              <span className="flex h-5 w-5 items-center justify-center rounded-md border border-sky-600 bg-slate-900 transition-all duration-150 peer-checked:border-sky-600 peer-checked:bg-sky-600 peer-focus-visible:ring-2 peer-focus-visible:ring-sky-600/40">
+                                <svg className="h-3.5 w-3.5 text-white opacity-0 transition-opacity duration-150 peer-checked:opacity-100" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                              </span>
+                              <span>{option}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <Input
+                        id={`create-${f.value}`}
+                        value={normalizeToStringArray(formData[f.value]).join(", ")}
+                        onChange={(e) =>
+                          setFormData((d) => ({
+                            ...d,
+                            [f.value]: e.target.value
+                              .split(",")
+                              .map((v) => v.trim())
+                              .filter(Boolean),
+                          }))
+                        }
+                        placeholder="Separe por vírgula"
+                      />
+                    )}
+                  </div>
                 ) : (
                   <Input
                     id={`create-${f.value}`}
-                    value={formData[f.value] ?? ""}
+                    value={formData[f.value] as string ?? ""}
                     onChange={e => setFormData(d => ({ ...d, [f.value]: e.target.value }))}
                     className="bg-slate-800 border-slate-700 text-slate-200 focus-visible:ring-sky-500"
                   />
@@ -431,20 +525,58 @@ export function CrudTable({
             {fields.map(f => (
               <div key={f.value} className="space-y-1.5">
                 <Label className="text-slate-300 text-sm">{f.label}</Label>
-                {f.type === "badge" && f.badgeVariants ? (
-                  <Select value={formData[f.value]} onValueChange={v => setFormData(d => ({ ...d, [f.value]: v }))}>
+                {f.type === "select" && f.selectVariants ? (
+                  <Select value={formData[f.value] as string} onValueChange={v => setFormData(d => ({ ...d, [f.value]: v }))}>
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-200">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-slate-700">
-                      {Object.keys(f.badgeVariants).map(v => (
+                      {Object.keys(f.selectVariants).map(v => (
                         <SelectItem key={v} value={v} className="text-slate-200 focus:bg-slate-700">{v}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                ) : f.type === "multivalue" ? (
+                  <div className="rounded-xl p-2.5">
+                    {f.multiValueOptions && f.multiValueOptions.length > 0 ? (
+                      <div className="grid gap-2 max-h-40 overflow-y-auto pr-1">
+                        {f.multiValueOptions.map((option) => {
+                          const selected = normalizeToStringArray(formData[f.value]).includes(option);
+                          return (
+                            <label key={option} className="flex items-center gap-2 text-sm text-slate-200">
+                              <input
+                                type="checkbox"
+                                checked={selected}
+                                onChange={() => toggleMultiValue(f.value, option)}
+                                className="peer sr-only"
+                              />
+                              <span className="flex h-5 w-5 items-center justify-center rounded-md border border-sky-600 bg-slate-900 transition-all duration-150 peer-checked:border-sky-600 peer-checked:bg-sky-600 peer-focus-visible:ring-2 peer-focus-visible:ring-sky-600/40">
+                                <svg className="h-3.5 w-3.5 text-white opacity-0 transition-opacity duration-150 peer-checked:opacity-100" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                              </span>
+                              <span>{option}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <Input
+                        value={normalizeToStringArray(formData[f.value]).join(", ")}
+                        onChange={(e) =>
+                          setFormData((d) => ({
+                            ...d,
+                            [f.value]: e.target.value
+                              .split(",")
+                              .map((v) => v.trim())
+                              .filter(Boolean),
+                          }))
+                        }
+                        placeholder="Separe por vírgula"
+                      />
+                    )}
+                  </div>
                 ) : (
                   <Input
-                    value={formData[f.value] ?? ""}
+                    value={formData[f.value] as string ?? ""}
                     onChange={e => setFormData(d => ({ ...d, [f.value]: e.target.value }))}
                     className="bg-slate-800 border-slate-700 text-slate-200 focus-visible:ring-sky-500"
                   />
@@ -474,8 +606,7 @@ export function CrudTable({
             <DialogTitle className="text-white">Confirmar exclusão</DialogTitle>
           </DialogHeader>
           <p className="text-slate-400 text-sm py-2">
-            Tem certeza que deseja excluir{" "}
-            <span className="text-white font-medium">"{selectedItem?.name}"</span>? Esta ação não pode ser desfeita.
+            Tem certeza que deseja excluir? Esta ação não pode ser desfeita.
           </p>
           <DialogFooter className="gap-2">
             <Button variant="ghost" onClick={() => setDeleteOpen(false)} className="text-slate-400">Cancelar</Button>
@@ -483,7 +614,10 @@ export function CrudTable({
               variant="destructive"
               className="text-white bg-rose-600 hover:bg-rose-500"
               onClick={() => {
-                if (selectedItem) onDelete(selectedItem.id);
+                if (selectedItem) {
+                  const itemId = getItemId(selectedItem);
+                  if (itemId) onDelete(itemId);
+                }
                 setDeleteOpen(false);
               }}
             >

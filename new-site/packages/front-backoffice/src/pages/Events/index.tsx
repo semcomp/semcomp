@@ -6,26 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, ArrowLeft } from "lucide-react";
 import { sampleEvents } from "@/mock/events";
-
-const fields: CrudField[] = [
-  { value: "name", label: "Evento", type: "text" },
-  { value: "tipo", label: "Tipo", type: "badge", badgeVariants: {
-    "Palestra": "bg-blue-500/20 text-blue-300 border border-blue-500/30",
-    "Oficina": "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
-    "Workshop": "bg-amber-500/20 text-amber-300 border border-amber-500/30",
-    "Mesa Redonda": "bg-violet-500/20 text-violet-300 border border-violet-500/30",
-    "Minicurso": "bg-pink-500/20 text-pink-300 border border-pink-500/30",
-  }},
-  { value: "palestrante", label: "Palestrante", type: "text" },
-  { value: "local", label: "Local", type: "text" },
-  { value: "horario", label: "Horário", type: "text" },
-  { value: "vagas", label: "Vagas", type: "text" },
-  { value: "status", label: "Status", type: "badge", badgeVariants: {
-    "Confirmado": "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
-    "Pendente": "bg-amber-500/20 text-amber-300 border border-amber-500/30",
-    "Lotado": "bg-rose-500/20 text-rose-300 border border-rose-500/30",
-  }},
-];
+import { fields } from "@/data/eventsCrudField";
 
 export default function Events() {
   const navigate = useNavigate();

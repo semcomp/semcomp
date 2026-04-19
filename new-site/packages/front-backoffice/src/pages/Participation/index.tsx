@@ -1,24 +1,25 @@
 import { CrudTable } from "@/components/CrudTable";
-import type { CrudItemType } from "@/types/CrudItem";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, UserCog } from "lucide-react";
-import { sampleBackofficeUsers } from "@/mock/user-backoffice";
-import { fields } from "@/data/userBackofficeCrudField";
+import type { ParticipationType } from "@/types/ParticipationType";
+import { sampleParticipations } from "@/mock/participation";
+import { fields } from "@/data/participationCrudField";
+import type { CrudItemType } from "@/types/CrudItem";
 
-export default function BackofficeUsersCRUD() {
+
+export default function ParticipationCRUD() {
   const navigate = useNavigate();
-  const [data, setData] = useState<CrudItemType[]>(sampleBackofficeUsers);
+  const [data, setData] = useState<ParticipationType[]>(sampleParticipations);
 
-  // TODO: Integrar com backend para persistência real dos dados no BD
   const handleEdit = (item: CrudItemType) => {
-    setData(prev => prev.map(i => i.id === item.id ? item : i));
+    const participation = item as ParticipationType;
+    setData(prev => prev.map(i => i.nameEvent === participation.nameEvent && i.nameUser === participation.nameUser ? participation : i));
   };
   const handleDelete = (id: string) => setData(prev => prev.filter(i => i.id !== id));
-  const handleCreate = (item: CrudItemType) => setData(prev => [...prev, { ...item, id: String(Date.now()) }]);
-
+  const handleCreate = (item: CrudItemType) => setData(prev => [...prev, { ...(item as ParticipationType) }]);
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6 overflow-x-auto scrollbar-hide">
@@ -28,13 +29,13 @@ export default function BackofficeUsersCRUD() {
         <CardHeader className="pb-4">
           <div className="flex items-center gap-2 mb-2">
             <UserCog className="w-4 h-4 text-violet-400" />
-            <p className="text-xs uppercase tracking-[0.3em] text-violet-400 font-medium">Usuários</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-violet-400 font-medium">Participações</p>
           </div>
           <CardTitle className="text-2xl md:text-3xl text-white font-semibold">
-            Gestão de Usuários para Acesso ao Backoffice da Semcomp
+            Gestão de Participações em Eventos da Semcomp
           </CardTitle>
           <CardDescription className="text-slate-400 mt-1">
-            Cadastre e busque usuários do Backoffice, acesse e edite informações, mantenha controle sobre quem possui acesso ao painel Backoffice da Semana da Computação.
+            Cadastre e busque participações em eventos, acesse e edite informações, mantenha controle sobre as participações da Semana da Computação.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -53,7 +54,7 @@ export default function BackofficeUsersCRUD() {
         </CardContent>
       </Card>
 
-      {/* Tabela com os usuários do Backoffice */}
+      {/* Tabela de participações */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-5">
         <CrudTable
           data={data}
@@ -61,7 +62,7 @@ export default function BackofficeUsersCRUD() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onCreate={handleCreate}
-          entityLabel="usuário do backoffice"
+          entityLabel="participação"
         />
       </div>
     </section>

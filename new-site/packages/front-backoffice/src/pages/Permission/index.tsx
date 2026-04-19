@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, UserCog } from "lucide-react";
-import { sampleBackofficeUsers } from "@/mock/user-backoffice";
-import { fields } from "@/data/userBackofficeCrudField";
+import { ArrowLeft, Key } from "lucide-react";
+import { samplePermissions } from "@/mock/permissions";
+import { fields } from "@/data/permissionsBackofficeCrudField";
 
-export default function BackofficeUsersCRUD() {
+export default function PermissionsCRUD() {
   const navigate = useNavigate();
-  const [data, setData] = useState<CrudItemType[]>(sampleBackofficeUsers);
+  const [data, setData] = useState<CrudItemType[]>(samplePermissions);
 
   // TODO: Integrar com backend para persistência real dos dados no BD
   const handleEdit = (item: CrudItemType) => {
@@ -22,19 +22,18 @@ export default function BackofficeUsersCRUD() {
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6 overflow-x-auto scrollbar-hide">
-      {/* Header card situando a página */}
       <Card className="border-slate-800 bg-linear-to-br from-slate-900 via-slate-900 to-violet-950/30 overflow-hidden relative">
         <div className="absolute top-0 right-0 w-72 h-72 bg-violet-500/5 rounded-full blur-3xl pointer-events-none" />
         <CardHeader className="pb-4">
           <div className="flex items-center gap-2 mb-2">
-            <UserCog className="w-4 h-4 text-violet-400" />
-            <p className="text-xs uppercase tracking-[0.3em] text-violet-400 font-medium">Usuários</p>
+            <Key className="w-4 h-4 text-violet-400" />
+            <p className="text-xs uppercase tracking-[0.3em] text-violet-400 font-medium">Permissões</p>
           </div>
           <CardTitle className="text-2xl md:text-3xl text-white font-semibold">
-            Gestão de Usuários para Acesso ao Backoffice da Semcomp
+            Gestão de Permissões de Acesso ao Backoffice
           </CardTitle>
           <CardDescription className="text-slate-400 mt-1">
-            Cadastre e busque usuários do Backoffice, acesse e edite informações, mantenha controle sobre quem possui acesso ao painel Backoffice da Semana da Computação.
+            Defina e atribua permissões por seção para usuários do Backoffice.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -48,12 +47,10 @@ export default function BackofficeUsersCRUD() {
               <ArrowLeft className="w-4 h-4" />
               Voltar
             </Button>
-      
           </div>
         </CardContent>
       </Card>
 
-      {/* Tabela com os usuários do Backoffice */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-5">
         <CrudTable
           data={data}
@@ -61,7 +58,7 @@ export default function BackofficeUsersCRUD() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onCreate={handleCreate}
-          entityLabel="usuário do backoffice"
+          entityLabel="permissão do backoffice"
         />
       </div>
     </section>

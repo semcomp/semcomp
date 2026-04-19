@@ -22,7 +22,7 @@ export default function LoginPage() {
   const state = location.state as LocationState | null;
   const destination = state?.from?.pathname ?? "/home";
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!email.trim() || !password.trim()) {
