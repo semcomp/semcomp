@@ -1,40 +1,38 @@
-package handlers
+package user
 
 import (
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	
-	"backend/internal/models"
-	"backend/internal/service"
 )
 
 // UserHandler lida com as requisições HTTP para a entidade User.
 type UserHandler struct {
-	userService service.UserService
+	userService UserService
 }
 
 // NewUserHandler inicializa e retorna uma nova instância de UserHandler.
-func NewUserHandler(userService service.UserService) *UserHandler {
+func NewUserHandler(userService UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
 // CreateUser processa o payload JSON e tenta criar um novo usuário.
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	var user models.User
-	
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var request CreateUserRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
 		return
 	}
 
-	if err := h.userService.CreateUser(&user); err != nil {
+	safeUser, err := h.userService.CreateUser(request)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()}) // TODO: verificar qual erro seria mais adequado de retornar
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Usuário criado com sucesso!"})
+	c.JSON(http.StatusCreated, gin.H{"message": "Usuário criado com sucesso!", "user": safeUser})
 }
 
 // GetAllUsers retorna todos os usuários cadastrados.
@@ -71,18 +69,13 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.userService.GetUserByID(uint(id))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado"})
-		return
-	}
-
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var request UpdateUserRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
 		return
 	}
 
-	if err := h.userService.UpdateUser(user); err != nil {
+	if err := h.userService.UpdateUser(uint(id), request); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
