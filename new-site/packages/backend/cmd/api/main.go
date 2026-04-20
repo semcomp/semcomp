@@ -30,22 +30,25 @@ func main() {
 	userHandler := user.NewUserHandler(userService)
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
-	authHandler := auth.NewAuthHandler(authService)
+	authHandler := auth.NewAuthHandler(authService, userService)
 
 	r := gin.Default()
 
 	// Rotas Públicas
 	r.POST("/register", userHandler.CreateUser)
-	r.GET("/users", userHandler.GetAllUsers)
-	r.GET("/users/:id", userHandler.GetUserByID)
-	r.PUT("/users/:id", userHandler.UpdateUser)
-	r.DELETE("/users/:id", userHandler.DeleteUser)
 	r.POST("/login", authHandler.LoginHandler)
-
-	// Rotas Protegidas (Exigem Autenticação)
+	
+	// Rotas Protegidas (exigem autenticação)
 	authRoutes := r.Group("/api")
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 
+	// Rotas Backoffice (exigem autenticação de usuários do backoffice)
+	// TODO: adicionar um middleware de autenticação de usuários do backoffice para essa rotas
+	backofficeRoutes := r.Group("/admin")
+	backofficeRoutes.PUT("/users/:id", userHandler.UpdateUser)
+	backofficeRoutes.DELETE("/users/:id", userHandler.DeleteUser)
+	backofficeRoutes.GET("/users", userHandler.GetAllUsers)
+	backofficeRoutes.GET("/users/:id", userHandler.GetUserByID)
 	r.Run(":4000")
 }
