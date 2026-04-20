@@ -4,6 +4,7 @@ import RequireAuth from "@/lib/RequireAuth";
 import LoginPage from "@/pages/Login";
 import HomePage from "@/pages/Home";
 import EventsCRUD from "@/pages/Events";
+import QRCodeReader from "@/pages/Events/QRCodeReader";
 import Sections from "@/pages/Section";
 import SemcompUsersCRUD from "@/pages/UserSemcomp";
 import BackofficeUsersCRUD from "@/pages/UserBackoffice";
@@ -39,6 +40,10 @@ export const router = createBrowserRouter(
             {
               path: "/events",
               element: <EventsCRUD />,
+            },
+            {
+              path: "/events/:nameEvent/:datetime/qrcode-reader",
+              element: <QRCodeReader />,
             },
             {
               path: "/semcomp-users",

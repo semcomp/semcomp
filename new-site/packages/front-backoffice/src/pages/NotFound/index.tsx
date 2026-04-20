@@ -4,7 +4,7 @@ export default function NotFoundPage() {
 
   const container = "bg-semcompDarkBlue text-semcompOffWhite"
 
-  const card = "border-semcompMidLightBlue/30 bg-semcompAlmostDarkBlue/50"
+  const card = "border-semcompDarkBlue/30 bg-semcompAlmostDarkBlue/50"
 
   const subtitle = "text-semcompLightBlue"
 
