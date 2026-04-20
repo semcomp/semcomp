@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 
 interface ProfilePageProps {
@@ -19,6 +19,14 @@ export default function ProfilePage({
   const [userCode, setUserCode] = useState(code);
   const [qrData, setQrData] = useState(qrValue);
 
+  useEffect(() => {
+    // Chamada de API para buscar os dados do usuário
+    setUserName(name);
+    setUserCode(code);
+    setQrData(qrValue);
+  }, [name, code, qrValue]);
+
+  // As iniciais do usuário é para o avatar da aba "Minha Conta"
   const initials = userName
     .split(" ")
     .filter((_, i, arr) => i === 0 || i === arr.length - 1)
@@ -29,6 +37,7 @@ export default function ProfilePage({
   return (
     <div className="flex justify-center p-4 min-h-screen bg-background items-center">
       <div className="bg-card border border-border rounded-2xl w-full max-w-85 overflow-hidden shadow-xl animate-in fade-in zoom-in duration-300">
+        { /* Switch de abas */ }
         <div className="flex bg-muted/30 rounded-full m-3 p-1 gap-1 border border-border/50">
           <button
             onClick={() => setActiveTab("qr")}
@@ -51,6 +60,8 @@ export default function ProfilePage({
             Minha Conta
           </button>
         </div>
+
+        { /* QR Code Tab */ }
 
         {activeTab === "qr" && (
           <div className="px-6 pb-8 pt-2 flex flex-col items-center">
