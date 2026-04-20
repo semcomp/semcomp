@@ -11,6 +11,7 @@ type EventRepository interface {
 	GetByNameAndDateTime(name string, dateTime time.Time) (*Event, error)
 	DeleteByNameAndDateTime(name string, dateTime time.Time) error
 	UpdateByNameAndDateTime(name string, dateTime time.Time, event *Event) error
+	GetAll(limit int, offset int) ([]Event, error)
 }
 
 type eventRepository struct {
@@ -69,4 +70,14 @@ func (r *eventRepository) UpdateByNameAndDateTime(name string, dateTime time.Tim
 	}
 
 	return nil
+}
+
+func (r *eventRepository) GetAll(limit int, offset int) ([]Event, error) {
+	var events []Event
+	err := r.db.Order("date_time asc").Limit(limit).Offset(offset).Find(&events).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return events, nil
 }

@@ -3,6 +3,7 @@ package event
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -105,4 +106,39 @@ func (h *EventHandler) UpdateEventByNameAndDate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Evento atualizado com sucesso!", "event": event})
+}
+
+func (h *EventHandler) GetAllEvents(c *gin.Context) {
+	page := 1
+	limit := 10
+
+	if pageQuery := c.Query("page"); pageQuery != "" {
+		parsedPage, err := strconv.Atoi(pageQuery)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'page' inválido"})
+			return
+		}
+		page = parsedPage
+	}
+
+	if limitQuery := c.Query("limit"); limitQuery != "" {
+		parsedLimit, err := strconv.Atoi(limitQuery)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'limit' inválido"})
+			return
+		}
+		limit = parsedLimit
+	}
+
+	events, err := h.eventService.GetAllEvents(page, limit)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"page":   page,
+		"limit":  limit,
+		"events": events,
+	})
 }

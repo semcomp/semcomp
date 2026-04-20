@@ -2,6 +2,7 @@ package event
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -17,6 +18,7 @@ type EventService interface {
 	GetEventByNameAndDate(name string, date string) (*Event, error)
 	DeleteEventByNameAndDate(name string, date string) error
 	UpdateEventByNameAndDate(name string, date string, request UpdateEventRequest) (*Event, error)
+	GetAllEvents(page int, limit int) ([]Event, error)
 }
 
 type eventService struct {
@@ -102,4 +104,17 @@ func (s *eventService) UpdateEventByNameAndDate(name string, date string, reques
 	}
 
 	return &event, nil
+}
+
+func (s *eventService) GetAllEvents(page int, limit int) ([]Event, error) {
+	if page < 1 {
+		return nil, fmt.Errorf("page must be greater than 0")
+	}
+
+	if limit < 1 {
+		return nil, fmt.Errorf("limit must be greater than 0")
+	}
+
+	offset := (page - 1) * limit
+	return s.repo.GetAll(limit, offset)
 }

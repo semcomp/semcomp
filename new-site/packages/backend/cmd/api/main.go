@@ -45,6 +45,7 @@ func main() {
 	r.PUT("/users/:id", userHandler.UpdateUser)
 	r.DELETE("/users/:id", userHandler.DeleteUser)
 	r.POST("/login", authHandler.LoginHandler)
+	r.GET("/events", eventHandler.GetAllEvents)
 	r.GET("/event/:eventName/:date", eventHandler.GetEventByNameAndDate)
 
 	// Rotas Protegidas (Exigem Autenticação)
