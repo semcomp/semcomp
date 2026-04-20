@@ -1,6 +1,7 @@
 package event
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -29,4 +30,27 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Evento criado com sucesso!", "event": event})
+}
+
+func (h *EventHandler) GetEventByNameAndDate(c *gin.Context) {
+	name := c.Param("eventName")
+	date := c.Param("date")
+
+	event, err := h.eventService.GetEventByNameAndDate(name, date)
+	if err != nil {
+		if errors.Is(err, ErrInvalidEventDate) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
+			return
+		}
+
+		if errors.Is(err, ErrEventNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Evento não encontrado"})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		return
+	}
+
+	c.JSON(http.StatusOK, event)
 }

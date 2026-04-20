@@ -1,7 +1,20 @@
 package event
 
+import (
+	"errors"
+	"time"
+
+	"gorm.io/gorm"
+)
+
+var (
+	ErrInvalidEventDate = errors.New("invalid event date format")
+	ErrEventNotFound    = errors.New("event not found")
+)
+
 type EventService interface {
 	CreateEvent(request CreateEventRequest) (*Event, error)
+	GetEventByNameAndDate(name string, date string) (*Event, error)
 }
 
 type eventService struct {
@@ -27,4 +40,21 @@ func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
 	}
 
 	return &newEvent, nil
+}
+
+func (s *eventService) GetEventByNameAndDate(name string, date string) (*Event, error) {
+	dateTime, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		return nil, ErrInvalidEventDate
+	}
+
+	event, err := s.repo.GetByNameAndDateTime(name, dateTime)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrEventNotFound
+		}
+		return nil, err
+	}
+
+	return event, nil
 }
