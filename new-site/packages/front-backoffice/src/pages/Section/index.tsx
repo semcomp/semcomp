@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search } from "lucide-react";
 import { Tabs } from "@/constants/Tabs";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";

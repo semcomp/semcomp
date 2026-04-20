@@ -3,7 +3,6 @@ import type { CrudItemType } from "@/types/CrudItem";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
-import { User } from "lucide-react";
 import { sampleSemcompUsers } from "@/mock/user-semcomp";
 import { fields } from "@/data/userSemcompCrudField";
 import { Tabs } from "@/constants/Tabs";

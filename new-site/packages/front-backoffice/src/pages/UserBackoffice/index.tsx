@@ -3,7 +3,6 @@ import type { CrudItemType } from "@/types/CrudItem";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
-import { UserCog } from "lucide-react";
 import { sampleBackofficeUsers } from "@/mock/user-backoffice";
 import { fields } from "@/data/userBackofficeCrudField";
 import { Tabs } from "@/constants/Tabs";

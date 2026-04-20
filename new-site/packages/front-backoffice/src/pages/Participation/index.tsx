@@ -2,7 +2,6 @@ import { CrudTable } from "@/components/CrudTable";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
-import { Hand } from "lucide-react";
 import type { ParticipationType } from "@/types/ParticipationType";
 import { sampleParticipations } from "@/mock/participation";
 import { fields } from "@/data/participationCrudField";

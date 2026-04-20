@@ -130,7 +130,7 @@ export default function QRCodeReader() {
         <Card className="rounded-2xl border border-border bg-card p-5 md:p-6 shadow-sm space-y-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-secondary font-medium">Leitura</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-primary font-medium">Leitura</p>
               <h2 className="mt-1 text-lg md:text-xl font-semibold text-foreground">Scanner de QR Code</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Aponte a câmera para o QR Code dentro da moldura para registrar a presença.
@@ -206,7 +206,7 @@ export default function QRCodeReader() {
 
         <Card className="rounded-2xl border border-border bg-card p-5 md:p-6 shadow-sm space-y-4">
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-secondary font-medium">Contexto</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-primary font-medium">Contexto</p>
             <h3 className="text-lg font-semibold text-foreground">Evento alvo</h3>
             <p className="text-sm text-muted-foreground">
               O leitor já recebe a chave composta do evento selecionado na tela anterior.

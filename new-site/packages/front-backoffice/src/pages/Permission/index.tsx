@@ -3,7 +3,6 @@ import type { CrudItemType } from "@/types/CrudItem";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
-import { Key } from "lucide-react";
 import { samplePermissions } from "@/mock/permissions";
 import { fields } from "@/data/permissionsBackofficeCrudField";
 import { Tabs } from "@/constants/Tabs";
