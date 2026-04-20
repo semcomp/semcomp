@@ -29,6 +29,9 @@ func main() {
 	userRepo := user.NewUserRepository(db)
 	userService := user.NewUserService(userRepo, passwordProvider)
 	userHandler := user.NewUserHandler(userService)
+	eventRepo := event.NewEventRepository(db)
+	eventService := event.NewEventService(eventRepo)
+	eventHandler := event.NewEventHandler(eventService)
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService)
@@ -47,6 +50,11 @@ func main() {
 	authRoutes := r.Group("/api")
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
+
+	// Rotas de admin
+	adminRoutes := r.Group("/admin")
+	// TODO: admin middleware
+	adminRoutes.POST("/events", eventHandler.CreateEvent)
 
 	r.Run(":4000")
 }
