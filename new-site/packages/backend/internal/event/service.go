@@ -15,6 +15,7 @@ var (
 type EventService interface {
 	CreateEvent(request CreateEventRequest) (*Event, error)
 	GetEventByNameAndDate(name string, date string) (*Event, error)
+	DeleteEventByNameAndDate(name string, date string) error
 }
 
 type eventService struct {
@@ -57,4 +58,21 @@ func (s *eventService) GetEventByNameAndDate(name string, date string) (*Event, 
 	}
 
 	return event, nil
+}
+
+func (s *eventService) DeleteEventByNameAndDate(name string, date string) error {
+	dateTime, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		return ErrInvalidEventDate
+	}
+
+	err = s.repo.DeleteByNameAndDateTime(name, dateTime)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrEventNotFound
+		}
+		return err
+	}
+
+	return nil
 }
