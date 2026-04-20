@@ -233,6 +233,7 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --shadow-input: 0px 0px 40px var(--color-semcompMidLightBlue), 0px 0px 20px #00A2FF, 0px 0px 10px rgb(0, 162, 255, 0.5), 0px 0px 5px #00A2FF
 }
 
 @keyframes slide {
@@ -249,6 +250,11 @@
 .animate-slide {
   animation: slide 1s ease;
 }
+
+html, body {
+  overscroll-behavior: none;
+}
+
 
 @keyframes shimmer {
   0% {
