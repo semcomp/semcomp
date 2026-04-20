@@ -29,8 +29,6 @@ func NewUserService(repo UserRepository, passwordProvider providers.PasswordProv
 // CreateUser valida duplicatas, criptografa a senha e salva o novo usuário.
 func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 	_, err := s.repo.GetByEmail(request.Email)
-	// TODO: Ajustar a busca no GetByEmail para ignorar o Soft Delete do GORM usando .Unscoped()
-	// Atualmente, ele retorna o erro de constraint do SQL em vez da nossa mensagem.
 	if err == nil {
 		return nil, errors.New("e-mail já cadastrado")
 	}
@@ -42,9 +40,9 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 
 	newUser := User{
 		Name:         request.Name,
-		LastName:     request.LastName,
 		Email:        request.Email,
 		PasswordHash: hashedPassword,
+		PresenceRate: 0.0,
 	}
 
 	if err := s.repo.Create(&newUser); err != nil {
@@ -84,8 +82,8 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 	}
 
 	user.Name = request.Name
-	user.LastName = request.LastName
 	user.Email = request.Email
+	user.PresenceRate = request.PresenceRate // TODO: adicionar lógica para contabilização da presença
 
 	if request.Password != "" {
 		hashedPassword, err := s.passwordProvider.Hash(request.Password)

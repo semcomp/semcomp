@@ -69,5 +69,5 @@ func (r *userRepository) Update(user *User) error {
 
 // Delete realiza a exclusão de um usuário identificando-o pelo ID.
 func (r *userRepository) Delete(id uint) error {
-	return r.db.Unscoped().Delete(&User{}, id).Error
+	return r.db.Delete(&User{}, id).Error
 }

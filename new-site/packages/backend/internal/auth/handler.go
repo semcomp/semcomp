@@ -3,7 +3,9 @@ package auth
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
+	user "backend/internal/user"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -13,10 +15,11 @@ var validate = validator.New()
 
 type AuthHandler struct {
 	authService AuthService
+	userService user.UserService
 }
 
-func NewAuthHandler(authService AuthService) *AuthHandler {
-	return &AuthHandler{authService: authService}
+func NewAuthHandler(authService AuthService, userService user.UserService) *AuthHandler {
+	return &AuthHandler{authService: authService, userService: userService}
 }
 
 func (h *AuthHandler) LoginHandler(c *gin.Context) {
@@ -55,8 +58,8 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		"message": "Login successful",
 		"user": map[string]string{
 			"name":      userRecord.Name,
-			"last_name": userRecord.LastName,
 			"email":     userRecord.Email,
+			"presence_rate":	strconv.FormatFloat(userRecord.PresenceRate, 'f', 2, 64),
 		},
 		"token": token,
 	})
@@ -64,16 +67,22 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 
 func (h *AuthHandler) ProfileHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, _ := c.Get("userID")
-		email, _ := c.Get("email")
+		userNumber := c.MustGet("userNumber").(uint)
+		user, err := h.userService.GetUserByID(uint(userNumber))
+        if err != nil {
+            c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar perfil"})
+            return
+        }
 
 		// Teste de rota protegida, apenas para verificar se o middleware de autenticação JWT está funcionando corretamente
 		c.Header("Content-Type", "application/json")
 		c.Status(http.StatusOK)
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Entrada Permitida",
-			"userID":  userID,
-			"email":   email,
+			"user_number":  user.UserNumber,
+			"email":   user.Email,
+			"name": user.Name,
+			"presence_rate": user.PresenceRate,
 		})
 	}
 }

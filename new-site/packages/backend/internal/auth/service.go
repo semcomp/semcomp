@@ -43,7 +43,7 @@ func (s *authService) Login(request LoginUserRequest) (*user.User, string, error
 		return nil, "", ErrInvalidCredentials
 	}
 
-	token, errToken := s.jwtProvider.Generate(userRecord.ID, userRecord.Email)
+	token, errToken := s.jwtProvider.Generate(userRecord.UserNumber, userRecord.Email)
 	if errToken != nil {
 		return nil, "", errors.New("token generation failed")
 	}

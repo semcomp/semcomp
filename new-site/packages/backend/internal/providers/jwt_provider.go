@@ -16,7 +16,7 @@ type JWTProvider interface {
 }
 
 type AuthTokenClaims struct {
-	UserID uint
+	UserNumber uint
 	Email  string
 }
 
@@ -87,7 +87,7 @@ func (p *jwtProvider) Parse(token string) (*AuthTokenClaims, error) {
 		return nil, ErrInvalidTokenClaims
 	}
 
-	return &AuthTokenClaims{UserID: uint(idFloat), Email: email}, nil
+	return &AuthTokenClaims{UserNumber: uint(idFloat), Email: email}, nil
 }
 
 func getJWTSecret() (string, error) {
