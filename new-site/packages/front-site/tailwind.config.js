@@ -31,6 +31,9 @@ module.exports = {
       animation: {
         slide: "slide 1s ease",
         shimmer: "shimmer 2s linear infinite",
+       },
+     boxShadow: {
+      input: 'var(--shadow-input)',
       },
     },
   },

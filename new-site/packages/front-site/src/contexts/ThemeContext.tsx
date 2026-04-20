@@ -37,7 +37,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
           isDarkMode
             ? "bg-semcompDarkBlue text-semcompLightBlue"
             : "bg-semcompMidLightBlue text-semcompDarkBlue"
-        }`}
+          }`}
       >
         {children}
       </div>
