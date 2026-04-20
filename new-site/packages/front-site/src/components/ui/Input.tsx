@@ -9,6 +9,8 @@ type InputProps = {
     placeholder?: string
     required?: boolean
   }
+
+  // Componente de input customizado que já com estilizações
   
   export default function Input({
     label,

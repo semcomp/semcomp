@@ -14,7 +14,7 @@ interface SegmentedControlProps {
   hook?: () => void 
 }
 
-
+// Switch button que recebe um hook de login para mudança do valor do state.
 
 export default function SegmentedControl({ islogin, setIslogin, hook }: SegmentedControlProps){
   const { isDarkMode } = useTheme()

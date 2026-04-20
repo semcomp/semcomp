@@ -1,38 +1,46 @@
 import { useTheme } from "@/contexts/useTheme";
 import { useState, type ReactElement } from "react";
 import { useCallback } from "react";
-import SegmentedControl, { useSegmentedControl } from "@/components/ui/segcontrol";
+import SegmentedControl, { useSegmentedControl } from "@/components/ui/Segcontrol";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Input from "@/components/ui/Input"
 
+/* obs: deve ser implementar uma maneira mais inteligente de lidar com a altura do header
+visto que se algo mudar na altura dele, o resto da pagina neste componente pode potencialmente
+quebrar. */
 
 export default function loginPage(){
+    // variaveis para alterações de modo no forms e modo de luz do site
     const { islogin, setIslogin } = useSegmentedControl();
     const { isDarkMode } = useTheme();
+    
+    // cores e dimensão da janela
     const bgColor = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompOffWhite";
     const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
     let {width} = useWindowDimensions()
    
+    // estados do forms com mensagem a ser exibida
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
 
+    // campos a serem preenchidos no forms
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [remember, setRemember] = useState(false);
-    const [sobrenome, setSobrenome] = useState("")
 
+    // função para resetar o forms
     const resetForm = useCallback(() => {
         setEmail("");
         setPassword("");
         setName("");
-        setSobrenome("");
         setConfirmPassword("");
         setRemember(false);
         setMessage(null);
     }, []);
 
+    // checagem de formulario, ainda há mais restrições a serem colocadas eventualmente
     const validate = useCallback((): string | null => {
         if (!email.includes("@")) return "Insira um e-mail válido.";
         if (password.length < 6) return "A senha deve ter ao menos 6 caracteres.";
@@ -43,6 +51,7 @@ export default function loginPage(){
         return null;
     }, [email, password, confirmPassword, islogin, name]);
 
+    // prototipação da função de envio do forms
     const handleSubmit = useCallback(
         async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -71,33 +80,26 @@ export default function loginPage(){
         [validate, islogin, email, password, name]
     );
 
+    // conteudo do forms
     const formContent = (
         <div className={`w-full max-w-sm flex flex-col items-center justify-center p-8 ${textColor}`}>
+            {/* compoenente utilizado para definir qual o modo do formulario */}
             <SegmentedControl islogin={islogin} setIslogin={setIslogin} hook={resetForm}/>
             <form onSubmit={handleSubmit} aria-live="polite" className="w-full mt-4">
                 {islogin === false && ( 
-                    <div className="flex flex-row justify-between gap-5">
+                    <div>
                         <label className={`block mb-2 ${!isDarkMode && "text-white"}`}>
+                            {/* componente Input customizado */}
                             <Input
-                                label="Nome"
+                                label="Nome Completo"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                placeholder="Nome"
+                                placeholder="Nome completo"
                                 required={islogin === false}
-                                aria-label="Nome"
+                                aria-label="Nome completo"
                             />
                         </label>
 
-                        <label className={`block mb-2 ${!isDarkMode && "text-white"}`}>
-                            <Input
-                                label="Sobrenome"
-                                value={sobrenome}
-                                onChange={(e) => setSobrenome(e.target.value)}
-                                placeholder="Sobrenome"
-                                required={islogin === false}
-                                aria-label="Sobrenome"
-                            />
-                        </label>
                     </div>
                 )}
 
@@ -179,9 +181,11 @@ export default function loginPage(){
         </div>
     );
 
+    // variavel de retono da pagina que muda a depender do tamanho da pagina
     let retorno: ReactElement | null;
     const bgContainer = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidLightBlue";
 
+    // dimensao de PC
     if (width >= 1280) {
         retorno = (
             <div className={`h-[calc(100vh-70px)] flex items-center justify-center ${bgColor}`}>
@@ -199,7 +203,7 @@ export default function loginPage(){
                 </div>    
             </div>
         );
-    } else if (width >= 800) {
+    } else if (width >= 800) { // dimensão de tablet
         retorno = (
             <div className={`h-[calc(100vh-70px)] flex items-center justify-center ${bgColor} p-4`}>
                 <div className={`relative ${bgContainer} w-[98%] min-h-[85%] rounded-3xl shadow-xl flex items-center justify-center overflow-hidden`}>
@@ -214,7 +218,7 @@ export default function loginPage(){
                 </div>
             </div>
         );
-    } else {
+    } else { // diensão de celular
         retorno = (
             <div className={`h-[calc(100vh-70px)] flex items-center justify-center ${bgColor} p-4`}>
                 <div className={`${bgContainer} w-[98%] min-h-[85%] rounded-3xl flex flex-col items-center justify-center
@@ -226,7 +230,6 @@ export default function loginPage(){
         );
     }
 
-    // preciso ver uma forma mais inteligente de decrementar da main o tamanho do header, visto que se alguma hora for definido que ele muda de tamanho a pagina quebra
     return (
         retorno
     );
