@@ -4,6 +4,7 @@ import App from "../App";
 import HomePage from "../pages/Home";
 import CronogramaPage from "../pages/Cronograma";
 import LoginPage from "../pages/Login/login";
+import Profile from "@/pages/Perfil/profile";
 
 // criação do router
 export const router = createBrowserRouter([
@@ -22,6 +23,10 @@ export const router = createBrowserRouter([
       {
         path: "/login",
         element: <LoginPage />,
+      },
+      {
+        path: "/perfil",
+        element: <Profile />,
       },
     ],
   },
