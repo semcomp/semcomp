@@ -18,7 +18,7 @@ pq o light mode do footer ta esquisito?
 export default function Profile(){
     let { width } = useWindowDimensions()
     const { isDarkMode } = useTheme();
-    const bgColor = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompOffWhite";
+    //const bgColor = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompOffWhite";
     const headerBgWithOpacity = isDarkMode ? "bg-semcompDarkBlue/80" : "bg-semcompMidLight/80";
     const shadowClass = isDarkMode 
         ? "shadow-[inset_0_-180px_40px_-40px_theme(colors.semcompDarkBlue/100%)]" 
@@ -41,14 +41,22 @@ export default function Profile(){
                         </div>
                     </div>
 
-                    <div className={`h-[80%] w-[25%] ${headerBgWithOpacity} flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10`}>
+                    <div className={`h-[80%] w-[25%] ${headerBgWithOpacity} flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10`}>
                         <h1 className="text-center text-3xl font-bold pb-4">Overflow</h1>
                         <p className="text-center text-md pb-2">O Overflow é o principal concurso da nossa semana! E sua casa é...</p>
-                        <div className="h-[50%] bg-cover bg-center absolute inset-0"
+                        <div className="relative h-[50%] bg-cover bg-center "
                             style={{ backgroundImage: `url(${hogwarts})`}}
                         >
-                            <img className="h-[80%]" src={`${hogwartsLogo}`} alt="" />
+                            <img className="h-[80%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" src={`${hogwartsLogo}`} alt="Logo" />
+                            
+                            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 whitespace-nowrap font-bold text-2xl">
+                                Casa de Hogwarts
+                            </span>
                         </div>
+                        <hr className=" border-semcompOffWhite mt-6 mb-3" />
+                        <span className="text-sm text-justify">
+                            Fundada por Godrico Grifinória, esta casa valoriza a coragem, bravura, ousadia e cavalheirismo, tendo o leão como mascote e as cores vermelho escarlate e dourado. Conhecidos por seu ímpeto heroico, muitas vezes imprudente, seus membros costumam ser nobres e destemidos.
+                        </span>
                     </div>
                 </div>
                 <div>
