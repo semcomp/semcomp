@@ -108,9 +108,13 @@ func (h *EventHandler) UpdateEventByNameAndDate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Evento atualizado com sucesso!", "event": event})
 }
 
-func (h *EventHandler) GetAllEvents(c *gin.Context) {
+func (h *EventHandler) GetEvents(c *gin.Context) {
 	page := 1
 	limit := 10
+	sortBy := c.DefaultQuery("sort_by", "date_time")
+	sortOrder := c.DefaultQuery("sort_order", "asc")
+	searchBy := c.Query("search_by")
+	searchValue := c.Query("search_value")
 
 	if pageQuery := c.Query("page"); pageQuery != "" {
 		parsedPage, err := strconv.Atoi(pageQuery)
@@ -130,15 +134,21 @@ func (h *EventHandler) GetAllEvents(c *gin.Context) {
 		limit = parsedLimit
 	}
 
-	events, err := h.eventService.GetAllEvents(page, limit)
+	result, err := h.eventService.GetEvents(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"page":   page,
-		"limit":  limit,
-		"events": events,
+		"page":             page,
+		"limit":            limit,
+		"sort_by":          sortBy,
+		"sort_order":       sortOrder,
+		"search_by":        searchBy,
+		"search_value":     searchValue,
+		"total_records":    result.TotalRecords,
+		"filtered_records": result.FilteredRecords,
+		"events":           result.Events,
 	})
 }

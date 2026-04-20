@@ -3,6 +3,8 @@ package event
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -18,7 +20,7 @@ type EventService interface {
 	GetEventByNameAndDate(name string, date string) (*Event, error)
 	DeleteEventByNameAndDate(name string, date string) error
 	UpdateEventByNameAndDate(name string, date string, request UpdateEventRequest) (*Event, error)
-	GetAllEvents(page int, limit int) ([]Event, error)
+	GetEvents(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*EventListResult, error)
 }
 
 type eventService struct {
@@ -106,7 +108,7 @@ func (s *eventService) UpdateEventByNameAndDate(name string, date string, reques
 	return &event, nil
 }
 
-func (s *eventService) GetAllEvents(page int, limit int) ([]Event, error) {
+func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*EventListResult, error) {
 	if page < 1 {
 		return nil, fmt.Errorf("page must be greater than 0")
 	}
@@ -115,6 +117,78 @@ func (s *eventService) GetAllEvents(page int, limit int) ([]Event, error) {
 		return nil, fmt.Errorf("limit must be greater than 0")
 	}
 
+	if sortBy == "" {
+		sortBy = "date_time"
+	}
+
+	if sortOrder == "" {
+		sortOrder = "asc"
+	}
+
+	sortBy = strings.ToLower(sortBy)
+	sortOrder = strings.ToLower(sortOrder)
+
+	allowedSortFields := map[string]bool{
+		"name":           true,
+		"date_time":      true,
+		"type":           true,
+		"location":       true,
+		"description":    true,
+		"has_attendance": true,
+	}
+
+	if !allowedSortFields[sortBy] {
+		return nil, fmt.Errorf("invalid sort_by parameter")
+	}
+
+	if sortOrder != "asc" && sortOrder != "desc" {
+		return nil, fmt.Errorf("invalid sort_order parameter")
+	}
+
+	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
+		return nil, fmt.Errorf("search_by and search_value must be provided together")
+	}
+
+	if searchBy != "" {
+		searchBy = strings.ToLower(searchBy)
+
+		allowedSearchFields := map[string]bool{
+			"name":           true,
+			"type":           true,
+			"location":       true,
+			"description":    true,
+			"date_time":      true,
+			"has_attendance": true,
+		}
+
+		if !allowedSearchFields[searchBy] {
+			return nil, fmt.Errorf("invalid search_by parameter")
+		}
+
+		if searchBy == "date_time" {
+			parsedDateTime, err := time.Parse(time.RFC3339, searchValue)
+			if err != nil {
+				return nil, fmt.Errorf("invalid search_value for date_time, use RFC3339")
+			}
+			searchValue = parsedDateTime.Format(time.RFC3339)
+		}
+
+		if searchBy == "has_attendance" {
+			if _, err := strconv.ParseBool(searchValue); err != nil {
+				return nil, fmt.Errorf("invalid search_value for has_attendance")
+			}
+		}
+	}
+
 	offset := (page - 1) * limit
-	return s.repo.GetAll(limit, offset)
+	query := EventListQuery{
+		Limit:       limit,
+		Offset:      offset,
+		SortBy:      sortBy,
+		SortOrder:   sortOrder,
+		SearchBy:    searchBy,
+		SearchValue: searchValue,
+	}
+
+	return s.repo.GetEvents(query)
 }

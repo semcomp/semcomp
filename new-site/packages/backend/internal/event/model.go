@@ -28,3 +28,18 @@ type UpdateEventRequest struct {
 	Description   string    `json:"description"`
 	HasAttendance bool      `json:"has_attendance"`
 }
+
+type EventListQuery struct {
+	Limit       int
+	Offset      int
+	SortBy      string
+	SortOrder   string
+	SearchBy    string
+	SearchValue string
+}
+
+type EventListResult struct {
+	Events           []Event
+	TotalRecords     int64
+	FilteredRecords  int64
+}

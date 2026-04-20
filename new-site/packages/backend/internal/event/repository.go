@@ -1,7 +1,10 @@
 package event
 
 import (
+	"fmt"
+	"strings"
 	"time"
+	"slices"
 
 	"gorm.io/gorm"
 )
@@ -11,7 +14,7 @@ type EventRepository interface {
 	GetByNameAndDateTime(name string, dateTime time.Time) (*Event, error)
 	DeleteByNameAndDateTime(name string, dateTime time.Time) error
 	UpdateByNameAndDateTime(name string, dateTime time.Time, event *Event) error
-	GetAll(limit int, offset int) ([]Event, error)
+	GetEvents(query EventListQuery) (*EventListResult, error)
 }
 
 type eventRepository struct {
@@ -72,12 +75,85 @@ func (r *eventRepository) UpdateByNameAndDateTime(name string, dateTime time.Tim
 	return nil
 }
 
-func (r *eventRepository) GetAll(limit int, offset int) ([]Event, error) {
+func applySearchFilter(dbQuery *gorm.DB, query EventListQuery) *gorm.DB {
+	if query.SearchBy == "" || query.SearchValue == "" {
+		return dbQuery
+	}
+
+	switch query.SearchBy {
+	case "name":
+		return dbQuery.Where("name ILIKE ?", "%"+query.SearchValue+"%")
+	case "type":
+		return dbQuery.Where("type ILIKE ?", "%"+query.SearchValue+"%")
+	case "location":
+		return dbQuery.Where("location ILIKE ?", "%"+query.SearchValue+"%")
+	case "description":
+		return dbQuery.Where("description ILIKE ?", "%"+query.SearchValue+"%")
+	case "date_time":
+		return dbQuery.Where("date_time = ?", query.SearchValue)
+	case "has_attendance":
+		return dbQuery.Where("has_attendance = ?", query.SearchValue)
+	default:
+		return dbQuery
+	}
+}
+
+func resolveSortClause(sortBy string, sortOrder string) (string, error) {
+	allowedSortFields := []string{
+		"name",
+		"date_time",
+		"type",
+		"location",
+		"description",
+		"has_attendance",
+	}
+
+	field := strings.ToLower(sortBy)
+	isAllowedField := slices.Contains(allowedSortFields, field)
+	if !isAllowedField {
+		return "", fmt.Errorf("invalid sort field")
+	}
+
+	if !isAllowedField {
+		return "", fmt.Errorf("invalid sort field")
+	}
+
+	order := strings.ToLower(sortOrder)
+	if order != "asc" && order != "desc" {
+		return "", fmt.Errorf("invalid sort order")
+	}
+
+	return field + " " + order, nil
+}
+
+func (r *eventRepository) GetEvents(query EventListQuery) (*EventListResult, error) {
 	var events []Event
-	err := r.db.Order("date_time asc").Limit(limit).Offset(offset).Find(&events).Error
+	var totalRecords int64
+	var filteredRecords int64
+
+	sortClause, err := resolveSortClause(query.SortBy, query.SortOrder)
 	if err != nil {
 		return nil, err
 	}
 
-	return events, nil
+	if err := r.db.Model(&Event{}).Count(&totalRecords).Error; err != nil {
+		return nil, err
+	}
+
+	filteredQuery := applySearchFilter(r.db.Model(&Event{}), query)
+	if err := filteredQuery.Count(&filteredRecords).Error; err != nil {
+		return nil, err
+	}
+
+	dataQuery := applySearchFilter(r.db.Model(&Event{}), query)
+	err = dataQuery.Order(sortClause).Limit(query.Limit).Offset(query.Offset).Find(&events).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &EventListResult{
+		Events:          events,
+		TotalRecords:    totalRecords,
+		FilteredRecords: filteredRecords,
+	}, nil
 }
