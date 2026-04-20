@@ -131,11 +131,27 @@ export function CrudTable({
       });
     }
     result.sort((a, b) => {
-      const av = (a as Record<string, unknown>)[sortField];
-      const bv = (b as Record<string, unknown>)[sortField];
-      return sortOrder === "asc"
-        ? formatForCompare(av).localeCompare(formatForCompare(bv), "pt-BR")
-        : formatForCompare(bv).localeCompare(formatForCompare(av), "pt-BR");
+      const aVal = (a as any)[sortField];
+      const bVal = (b as any)[sortField];
+
+      const direction = sortOrder === "asc" ? 1 : -1;
+
+      // tenta número
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        const numA = Number(String(aVal).replace(/[^0-9.-]+/g, ""));
+        const numB = Number(String(bVal).replace(/[^0-9.-]+/g, ""));
+        if (!Number.isNaN(numA) && !Number.isNaN(numB)) {
+          return (numA - numB) * direction;
+        }
+      }
+
+      // tenta data
+      if (aVal instanceof Date && bVal instanceof Date) {
+        return (aVal.getTime() - bVal.getTime()) * direction;
+      }
+
+      // fallback string
+      return formatForCompare(aVal).localeCompare(formatForCompare(bVal), "pt-BR", { numeric: true }) * direction;
     });
     return result;
   }, [data, filter, filterField, sortField, sortOrder]);
