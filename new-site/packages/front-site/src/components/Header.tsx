@@ -6,7 +6,7 @@ import { useTheme } from "@/contexts/useTheme";
 import { Link, useLocation } from "react-router-dom";
 
 // definição de Tabkey
-type TabKey = "home" | "cronograma" | "login";
+type TabKey = "home" | "cronograma" | "login" | "profile";
 
 
 // Tabs como array de Tabkey
@@ -14,6 +14,7 @@ const tabs: Array<{ key: TabKey; label: string; path: string }> = [
   { key: "home", label: "HOME", path: "/" },
   { key: "cronograma", label: "CRONOGRAMA", path: "/cronograma" },
   { key: "login", label: "LOGIN", path: "/login" },
+  { key: "profile", label: "PROFILE", path: "/profile" },
 ];
 
 export default function Header() {
@@ -25,6 +26,7 @@ export default function Header() {
     home: null,
     cronograma: null,
     login: null,
+    profile: null,
   });
 
 
