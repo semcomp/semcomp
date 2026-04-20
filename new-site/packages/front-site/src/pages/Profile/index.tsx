@@ -148,7 +148,7 @@ export default function Profile({
             {/* preenchimento da barra */}
             <div
               className={`absolute inset-y-0 left-0 h-full bg-semcompMidDarkBlue flex items-center transition-all duration-1000 rounded-r-full ${
-                presencePercent > 12 ? 'justify-end pr-4' : 'justify-start'
+                presencePercent > 15 ? 'justify-end pr-4' : 'justify-start'
               }`}
               style={{ width: `${presencePercent}%` }}
             >
