@@ -1,12 +1,12 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import LogoSemcomp from "../assets/img/semcomp/logo_default_branco.png";
+import LogoSemcomp from "../assets/img/semcomp/logo_default_branco.webp";
 import { IoMenu } from "react-icons/io5";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 import { Link, useLocation } from "react-router-dom";
 
 // definição de Tabkey
-type TabKey = "home" | "cronograma" | "login" ;
+type TabKey = "home" | "cronograma" | "login";
 
 
 // Tabs como array de Tabkey

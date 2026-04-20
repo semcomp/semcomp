@@ -1,13 +1,16 @@
 window.addEventListener('error', (e) => console.error("GLOBAL ERROR:", e.error));
-import { StrictMode } from 'react'
+import { StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from "react-router-dom";
 import { router } from "./routes/Routes";
+import RouteLoading from "./components/RouteLoading";
 import './index.css'
 
 createRoot(document.getElementById('root')!).render(
-    // agora o router é renderizado ao inves do app diretamente
-    <StrictMode>
+  // agora o router é renderizado ao inves do app diretamente
+  <StrictMode>
+    <Suspense fallback={<RouteLoading />}>
       <RouterProvider router={router}></RouterProvider>
-    </StrictMode>
+    </Suspense>
+  </StrictMode>
 )
