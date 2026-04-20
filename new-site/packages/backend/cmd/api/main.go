@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/internal/database"
+	"backend/internal/event"
 	"backend/internal/auth"
 	"backend/internal/middleware"
 	"backend/internal/providers"
@@ -16,7 +17,7 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
