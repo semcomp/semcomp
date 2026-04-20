@@ -6,6 +6,9 @@ import path from "path"
 export default defineConfig({
   base: '/admin/',
   plugins: [react(), tailwindcss()],
+  server: {
+    allowedHosts: true,
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

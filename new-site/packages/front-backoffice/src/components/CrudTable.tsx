@@ -23,10 +23,11 @@ export interface CrudField {
 export interface CrudTableProps {
   data: CrudItemType[];
   fields: CrudField[];
-  onEdit: (item: CrudItemType) => void;
+  onEdit: (item: CrudItemType, itemKey: string) => void;
   onDelete: (id: string) => void;
   onCreate?: (item: CrudItemType) => void;
-  onAction?: (item: any) => void;
+  onAction?: (item: CrudItemType, itemKey: string) => void;
+  getItemKey?: (item: CrudItemType) => string;
   entityLabel?: string;
   defaultPageSize?: number;
 }
@@ -40,6 +41,7 @@ export function CrudTable({
   onDelete,
   onCreate,
   onAction,
+  getItemKey,
   entityLabel = "item",
   defaultPageSize = 10,
 }: CrudTableProps) {
@@ -54,6 +56,7 @@ export function CrudTable({
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CrudItemType | null>(null);
+  const [selectedItemKey, setSelectedItemKey] = useState("");
 
   type FormValue = string | string[];
   const [formData, setFormData] = useState<Record<string, FormValue>>({});
@@ -73,6 +76,20 @@ export function CrudTable({
   const formatForCompare = (value: unknown): string => {
     if (Array.isArray(value)) return value.map((v) => String(v)).join(", ");
     return String(value ?? "");
+  };
+
+  const resolveItemKey = (item: CrudItemType): string => {
+    if (getItemKey) return getItemKey(item);
+
+    const id = (item as Record<string, unknown>)["id"];
+    if (typeof id === "string" && id.trim()) return id;
+
+    const fieldKey = fields
+      .map((field) => formatForCompare((item as Record<string, unknown>)[field.value]).trim())
+      .filter(Boolean)
+      .join("|");
+
+    return fieldKey || JSON.stringify(item);
   };
 
   const toggleMultiValue = (fieldValue: string, option: string) => {
@@ -133,6 +150,7 @@ export function CrudTable({
 
   const openEdit = (item: CrudItemType) => {
     setSelectedItem(item);
+    setSelectedItemKey(resolveItemKey(item));
     const fd: Record<string, FormValue> = {};
     fields.forEach(f => {
       const raw = (item as Record<string, unknown>)[f.value];
@@ -144,6 +162,7 @@ export function CrudTable({
 
   const openDelete = (item: CrudItemType) => {
     setSelectedItem(item);
+    setSelectedItemKey(resolveItemKey(item));
     setDeleteOpen(true);
   };
 
@@ -200,11 +219,6 @@ export function CrudTable({
       );
     }
     return <span className="text-foreground">{val}</span>;
-  };
-
-  const getItemId = (item: CrudItemType) => {
-    const id = (item as Record<string, unknown>)["id"];
-    return typeof id === "string" ? id : "";
   };
 
   const startItem = filteredAll.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
@@ -424,7 +438,7 @@ export function CrudTable({
             ) : (
               paginated.map((item, i) => (
                 <TableRow
-                  key={getItemId(item) || `row-${i}`}
+                  key={resolveItemKey(item) || `row-${i}`}
                   className={`border-border transition-colors hover:bg-muted/20 ${
                     i % 2 === 0 ? "bg-transparent" : "bg-muted/10"
                   }`}
@@ -440,7 +454,7 @@ export function CrudTable({
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => onAction(item)}
+                          onClick={() => onAction(item, resolveItemKey(item))}
                           className="h-8 w-8 p-0 text-muted-foreground hover:text-secondary hover:bg-secondary/10 rounded-lg"
                           title="Coletar presença"
                         >
@@ -671,7 +685,7 @@ export function CrudTable({
             <Button
               className="bg-primary hover:bg-primary/90"
               onClick={() => {
-                if (selectedItem) onEdit({ ...selectedItem, ...formData } as CrudItemType);
+                if (selectedItem) onEdit({ ...selectedItem, ...formData } as CrudItemType, selectedItemKey);
                 setEditOpen(false);
               }}
             >
@@ -709,7 +723,7 @@ export function CrudTable({
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             onClick={() => {
               if (selectedItem) {
-                const itemId = getItemId(selectedItem);
+                const itemId = selectedItemKey || resolveItemKey(selectedItem);
                 if (itemId) onDelete(itemId);
               }
               setDeleteOpen(false);

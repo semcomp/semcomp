@@ -12,20 +12,25 @@ export default function Events() {
   const navigate = useNavigate();
   const [data, setData] = useState<EventType[]>(sampleEvents);
 
-  const handleEdit = (item: CrudItemType) => {
-    setData(prev => prev.map(i => i.id === item.id ? ({ ...i, ...item } as EventType) : i));
+  const resolveEventKey = (event: CrudItemType) => {
+    const typedEvent = event as EventType;
+    return `${typedEvent.nameEvent}__${typedEvent.datetime}`;
   };
-  const handleDelete = (id: string) => setData(data => data.filter(i => i.id !== id));
-  const handleCreate = (item: CrudItemType) => setData(data => [...data, { ...item, id: String(Date.now()) } as EventType]);
+
+  const handleEdit = (item: CrudItemType, itemKey: string) => {
+    setData((prev) => prev.map((event) => (resolveEventKey(event) === itemKey ? ({ ...event, ...item } as EventType) : event)));
+  };
+  const handleDelete = (itemKey: string) => setData((prev) => prev.filter((event) => resolveEventKey(event) !== itemKey));
+  const handleCreate = (item: CrudItemType) => setData((prev) => [...prev, item as EventType]);
   const handleAction = (item: CrudItemType) => {
     const event = item as EventType;
     navigate(
       `/events/${encodeURIComponent(event.nameEvent)}/${encodeURIComponent(event.datetime)}/qrcode-reader`,
       {
-      state: {
-        eventName: event.nameEvent,
-        datetime: event.datetime,
-      },
+        state: {
+          eventName: event.nameEvent,
+          datetime: event.datetime,
+        },
       }
     );
   };
@@ -56,6 +61,7 @@ export default function Events() {
           onDelete={handleDelete}
           onCreate={handleCreate}
           onAction={handleAction}
+          getItemKey={resolveEventKey}
           entityLabel="evento"
         />
       </div>

@@ -1,3 +1,3 @@
 export type CrudItemType = {
-  id: string;
+  id?: string;
 };
