@@ -16,6 +16,7 @@ type EventService interface {
 	CreateEvent(request CreateEventRequest) (*Event, error)
 	GetEventByNameAndDate(name string, date string) (*Event, error)
 	DeleteEventByNameAndDate(name string, date string) error
+	UpdateEventByNameAndDate(name string, date string, request UpdateEventRequest) (*Event, error)
 }
 
 type eventService struct {
@@ -75,4 +76,30 @@ func (s *eventService) DeleteEventByNameAndDate(name string, date string) error 
 	}
 
 	return nil
+}
+
+func (s *eventService) UpdateEventByNameAndDate(name string, date string, request UpdateEventRequest) (*Event, error) {
+	originalDateTime, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		return nil, ErrInvalidEventDate
+	}
+
+	event := Event{
+		Name:          request.Name,
+		DateTime:      request.DateTime,
+		Type:          request.Type,
+		Location:      request.Location,
+		Description:   request.Description,
+		HasAttendance: request.HasAttendance,
+	}
+
+	err = s.repo.UpdateByNameAndDateTime(name, originalDateTime, &event)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrEventNotFound
+		}
+		return nil, err
+	}
+
+	return &event, nil
 }

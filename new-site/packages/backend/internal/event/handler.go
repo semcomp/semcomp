@@ -77,3 +77,32 @@ func (h *EventHandler) DeleteEventByNameAndDate(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Evento removido com sucesso!"})
 }
+
+func (h *EventHandler) UpdateEventByNameAndDate(c *gin.Context) {
+	name := c.Param("eventName")
+	date := c.Param("date")
+
+	var request UpdateEventRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		return
+	}
+
+	event, err := h.eventService.UpdateEventByNameAndDate(name, date, request)
+	if err != nil {
+		if errors.Is(err, ErrInvalidEventDate) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
+			return
+		}
+
+		if errors.Is(err, ErrEventNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Evento não encontrado"})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Evento atualizado com sucesso!", "event": event})
+}

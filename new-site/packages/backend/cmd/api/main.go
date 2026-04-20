@@ -56,6 +56,7 @@ func main() {
 	adminRoutes := r.Group("/admin")
 	// TODO: admin middleware
 	adminRoutes.POST("/events", eventHandler.CreateEvent)
+	adminRoutes.PUT("/events/:eventName/:date", eventHandler.UpdateEventByNameAndDate)
 	adminRoutes.DELETE("/events/:eventName/:date", eventHandler.DeleteEventByNameAndDate)
 
 	r.Run(":4000")

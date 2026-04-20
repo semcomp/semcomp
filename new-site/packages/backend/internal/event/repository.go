@@ -10,6 +10,7 @@ type EventRepository interface {
 	Create(event *Event) error
 	GetByNameAndDateTime(name string, dateTime time.Time) (*Event, error)
 	DeleteByNameAndDateTime(name string, dateTime time.Time) error
+	UpdateByNameAndDateTime(name string, dateTime time.Time, event *Event) error
 }
 
 type eventRepository struct {
@@ -36,6 +37,29 @@ func (r *eventRepository) GetByNameAndDateTime(name string, dateTime time.Time) 
 
 func (r *eventRepository) DeleteByNameAndDateTime(name string, dateTime time.Time) error {
 	result := r.db.Where("name = ? AND date_time = ?", name, dateTime).Delete(&Event{})
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
+}
+
+func (r *eventRepository) UpdateByNameAndDateTime(name string, dateTime time.Time, event *Event) error {
+	result := r.db.Model(&Event{}).
+		Where("name = ? AND date_time = ?", name, dateTime).
+		Updates(map[string]interface{}{
+			"name":           event.Name,
+			"date_time":      event.DateTime,
+			"type":           event.Type,
+			"location":       event.Location,
+			"description":    event.Description,
+			"has_attendance": event.HasAttendance,
+		})
+
 	if result.Error != nil {
 		return result.Error
 	}
