@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/internal/database"
+	"backend/internal/event"
 	"backend/internal/auth"
 	"backend/internal/middleware"
 	"backend/internal/providers"
@@ -16,7 +17,7 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -28,6 +29,9 @@ func main() {
 	userRepo := user.NewUserRepository(db)
 	userService := user.NewUserService(userRepo, passwordProvider)
 	userHandler := user.NewUserHandler(userService)
+	eventRepo := event.NewEventRepository(db)
+	eventService := event.NewEventService(eventRepo)
+	eventHandler := event.NewEventHandler(eventService)
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService)
@@ -41,11 +45,20 @@ func main() {
 	r.PUT("/users/:id", userHandler.UpdateUser)
 	r.DELETE("/users/:id", userHandler.DeleteUser)
 	r.POST("/login", authHandler.LoginHandler)
+	r.GET("/events", eventHandler.GetEvents)
+	r.GET("/event/:eventName/:date", eventHandler.GetEventByNameAndDate)
 
 	// Rotas Protegidas (Exigem Autenticação)
 	authRoutes := r.Group("/api")
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
+
+	// Rotas de admin
+	adminRoutes := r.Group("/admin")
+	// TODO: admin middleware
+	adminRoutes.POST("/events", eventHandler.CreateEvent)
+	adminRoutes.PUT("/events/:eventName/:date", eventHandler.UpdateEventByNameAndDate)
+	adminRoutes.DELETE("/events/:eventName/:date", eventHandler.DeleteEventByNameAndDate)
 
 	r.Run(":4000")
 }
