@@ -23,11 +23,11 @@ type PresenceService interface {
 }
 
 type presenceService struct {
-	repo presenceRepository
+	repo PresenceRepository
 }
 
-func NewPresenceService(repo presenceRepository) presenceService {
-	return presenceService{repo: repo}
+func NewPresenceService(repo PresenceRepository) PresenceService {
+	return &presenceService{repo: repo}
 }
 
 func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presence, error) {

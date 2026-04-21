@@ -40,7 +40,7 @@ func (r *presenceRepository) GetByNameEventandDate(name string, eventName string
 }
 
 func (r *presenceRepository) DeleteByNameEventandDate(name string, eventName string, dateTime time.Time) error {
-	result := r.db.Where("name = ? AND event_time = ? AND event_date_time = ?", name, eventName, dateTime).Delete(&Presence{})
+	result := r.db.Where("name = ? AND event_name = ? AND event_date_time = ?", name, eventName, dateTime).Delete(&Presence{})
 	if result.Error != nil {
 		return result.Error
 	}
