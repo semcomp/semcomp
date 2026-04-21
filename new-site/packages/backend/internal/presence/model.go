@@ -3,10 +3,10 @@ package presence
 import "time"
 
 type Presence struct {
-	Name          string    `gorm:"size:255;primaryKey;not null"`
-	EventName     string    `gorm:"size:200;primaryKey;not null"`
-	EventDateTime time.Time `gorm:"type:timestamptz;primaryKey;not null"`
-	EmailAdmin    string    `gorm:"size:255;not null"`
+	Name          string    `gorm:"size:255;primaryKey;not null" json:"name"`
+	EventName     string    `gorm:"size:200;primaryKey;not null" json:"event_name"`
+	EventDateTime time.Time `gorm:"type:timestamptz;primaryKey;not null" json:"event_date_time"`
+	EmailAdmin    string    `gorm:"size:255;not null" json:"email_admin"`
 }
 
 type CreatePresenceRequest struct {
