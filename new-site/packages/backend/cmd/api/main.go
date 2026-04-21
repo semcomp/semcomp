@@ -1,8 +1,8 @@
 package main
 
 import (
-	"backend/internal/database"
 	"backend/internal/auth"
+	"backend/internal/database"
 	"backend/internal/middleware"
 	"backend/internal/providers"
 	"backend/internal/user"
@@ -46,6 +46,13 @@ func main() {
 	authRoutes := r.Group("/api")
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
+
+	//adminRoutes := r.Group("/admin")
+	//adminRoutes.POST("/presences", presenceHandler.CreatePresence)
+	//adminRoutes.GET("/presences", presenceHandler.GetPresences)
+	//adminRoutes.GET("/presences/:name/:event_name/:date", presenceHandler.GetPresenceByNameAndEvent)
+	//adminRoutes.PUT("/presences/:name/:event_name/:date", presenceHandler.UpdatePresence)
+	//adminRoutes.DELETE("/presences/:name/:event_name/:date", presenceHandler.DeletePresence)
 
 	r.Run(":4000")
 }
