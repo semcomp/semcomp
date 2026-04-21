@@ -114,10 +114,6 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 		return "", fmt.Errorf("invalid sort field")
 	}
 
-	if !isAllowedField {
-		return "", fmt.Errorf("invalid sort field")
-	}
-
 	order := strings.ToLower(sortOrder)
 	if order != "asc" && order != "desc" {
 		return "", fmt.Errorf("invalid sort order")
