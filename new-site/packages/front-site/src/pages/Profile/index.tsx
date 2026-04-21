@@ -252,15 +252,15 @@ export default function Profile({
               </div>
             </div>
 
-            <div className={`min-h-[60vh] ${isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompMidLightBlue"}  flex flex-col justify-center items-center font-poppins`}>
-              <div className={`border-2 h-[80%] w-[60%] rounded-2xl pt-12 pb-6 pl-16 pr-16 flex flex-col justify-center items-center ${isDarkMode ? "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompOffWhite" : "bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue"}`}>
+            <div className={`min-h-[60vh] ${isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompMidLightBlue"}  flex flex-col justify-center items-center font-poppins pt-24 pb-24`}>
+              <div className={`border-2 h-[80%] w-[60%] rounded-2xl pt-12 pb-10 pl-16 pr-16 flex flex-col justify-center items-center ${isDarkMode ? "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompOffWhite" : "bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue"}`}>
                 <h1 className="font-bold text-2xl mb-6">Inscrições em Eventos</h1>
                 <div className="w-full flex flex-row justify-between font-bold">
                   <span>Evento</span>
                   <span>Data/Horário</span>
                 </div>
                 <hr className={`w-full border mt-3 mb-3 ${isDarkMode ? "border-semcompOffWhite" : "border-semcompAlmostDarkBlue"}`}/>
-                <div className="w-full flex flex-col gap-4">
+                <div className="w-full flex flex-col gap-4 mb-20">
                   {events && events.length > 0 ? (
                     events.map((evento, index) => {
                       const { data, diaSemana } = formatarDataDynamic(evento.data);
@@ -285,6 +285,9 @@ export default function Profile({
                       Você ainda não está inscrito em nenhum evento. Inscreva-se em eventos para que eles apareçam aqui!
                     </div>
                   )}
+                </div>
+                <div className="w-full flex flex-row justify-center items-center h-[30%]">
+                  <button className={`bg-black/10 w-[40%] rounded-sm py-3 h-full text-xl`}>Inscreva-se</button>
                 </div>
               </div>
             </div>
