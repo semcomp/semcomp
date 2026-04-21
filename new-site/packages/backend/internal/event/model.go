@@ -3,12 +3,12 @@ package event
 import "time"
 
 type Event struct {
-	Name          string    `gorm:"size:200;primaryKey;not null"`
-	DateTime      time.Time `gorm:"type:timestamptz;primaryKey;not null"`
-	Type          string    `gorm:"size:50"`
-	Location      string
-	Description   string    `gorm:"type:text"`
-	HasAttendance bool
+	Name          string    `gorm:"size:200;primaryKey;not null" json:"name"`
+	DateTime      time.Time `gorm:"type:timestamptz;primaryKey;not null" json:"date_time"`
+	Type          string    `gorm:"size:50" json:"type"`
+	Location      string    `json:"location"`
+	Description   string    `gorm:"type:text" json:"description"`
+	HasAttendance bool      `json:"has_attendance"`
 }
 
 type CreateEventRequest struct {
@@ -39,7 +39,7 @@ type EventListQuery struct {
 }
 
 type EventListResult struct {
-	Events           []Event
-	TotalRecords     int64
-	FilteredRecords  int64
+	Events          []Event `json:"events"`
+	TotalRecords    int64   `json:"total_records"`
+	FilteredRecords int64   `json:"filtered_records"`
 }
