@@ -4,6 +4,7 @@ import (
 	"backend/internal/auth"
 	"backend/internal/database"
 	"backend/internal/middleware"
+	"backend/internal/presence"
 	"backend/internal/providers"
 	"backend/internal/user"
 
@@ -16,7 +17,7 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{})
+	err := db.AutoMigrate(&user.User{}, &presence.Presence{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -31,6 +32,10 @@ func main() {
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService)
+
+	presenceRepo := presence.NewPresenceRepository(db)
+	presenceService := presence.NewPresenceService(presenceRepo)
+	presenceHandler := presence.NewPresenceHandler(presenceService)
 
 	r := gin.Default()
 
@@ -47,12 +52,12 @@ func main() {
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 
-	//adminRoutes := r.Group("/admin")
-	//adminRoutes.POST("/presences", presenceHandler.CreatePresence)
-	//adminRoutes.GET("/presences", presenceHandler.GetPresences)
-	//adminRoutes.GET("/presences/:name/:event_name/:date", presenceHandler.GetPresenceByNameAndEvent)
-	//adminRoutes.PUT("/presences/:name/:event_name/:date", presenceHandler.UpdatePresence)
-	//adminRoutes.DELETE("/presences/:name/:event_name/:date", presenceHandler.DeletePresence)
+	adminRoutes := r.Group("/admin")
+	adminRoutes.POST("/presences", presenceHandler.CreatePresence)
+	adminRoutes.GET("/presences", presenceHandler.GetPresences)
+	adminRoutes.GET("/presences/:name/:eventName/:eventDate", presenceHandler.GetPresenceByNameEventandDate)
+	adminRoutes.PUT("/presences/:name/:eventName/:eventDate", presenceHandler.UpdatePresenceByNameEventandDate)
+	adminRoutes.DELETE("/presences/:name/:eventName/:eventDate", presenceHandler.DeletePresenceByNameEventandDate)
 
 	r.Run(":4000")
 }

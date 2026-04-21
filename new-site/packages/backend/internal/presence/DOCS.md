@@ -36,7 +36,15 @@ A tabela de presenca é composta por:
 Resposta de sucesso (`201`):
 
 ```json (mensagem de confirmacao da criacao)
-
+{
+  "message": "Presença criada com sucesso!",
+  "presence": {
+    "name": "Fulano de Ciclano",
+    "event_name": "Workshop A",
+    "event_date_time": "2026-07-10T14:00:00Z",
+    "email_admin": "Example@semcomp.com"
+  }
+}
 ```
 
 Erros comuns:
@@ -88,7 +96,14 @@ Exemplo:
 Resposta de sucesso (`200`):
 
 ```json (confirmacao de resposta)
-
+[
+  {
+    "name": "Fulano de Ciclano",
+    "event_name": "Workshop A",
+    "event_date_time": "2026-07-10T14:00:00Z",
+    "email_admin": "Example@semcomp.com"
+  }
+]
 ```
 
 Erros comuns (`400`):
@@ -116,7 +131,12 @@ Exemplo:
 Resposta de sucesso (`200`):
 
 ```json (confirmacao de busca)
-
+{
+  "name": "Fulano de Ciclano",
+  "event_name": "Workshop A",
+  "event_date_time": "2026-07-10T14:00:00Z",
+  "email_admin": "Example@semcomp.com"
+}
 ```
 
 Erros comuns:
@@ -149,7 +169,9 @@ Exemplo:
 Resposta de sucesso (`200`):
 
 ```json (confirmacao de atualizacao)
-
+{
+  "message": "Presença atualizada com sucesso!"
+}
 ```
 
 Erros comuns:
@@ -172,7 +194,9 @@ Exemplo:
 Resposta de sucesso (`200`):
 
 ```json (confirmacao de delecao)
-
+{
+  "message": "Presença removida com sucesso!"
+}
 ```
 
 Erros comuns:
