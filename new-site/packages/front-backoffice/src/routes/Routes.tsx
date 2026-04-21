@@ -1,11 +1,16 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import App from "@/App";
-import HomePage from "@/pages/Home";
-import LoginPage from "@/pages/Login";
-import EventsCRUD from "@/pages/Events";
-import SemcompUsers from "@/pages/UserSemcomp";
-import BackofficeUsers from "@/pages/UserBackoffice";
 import RequireAuth from "@/lib/RequireAuth";
+import LoginPage from "@/pages/Login";
+import HomePage from "@/pages/Home";
+import EventsCRUD from "@/pages/Events";
+import QRCodeReader from "@/pages/Events/QRCodeReader";
+import Sections from "@/pages/Section";
+import SemcompUsersCRUD from "@/pages/UserSemcomp";
+import BackofficeUsersCRUD from "@/pages/UserBackoffice";
+import ParticipationCRUD from "@/pages/Participation";
+import PermissionsCRUD from "@/pages/Permission";
+import NotFoundPage from "@/pages/NotFound";
 
 export const router = createBrowserRouter(
   [
@@ -29,17 +34,37 @@ export const router = createBrowserRouter(
               element: <HomePage />,
             },
             {
+              path: "/sections",
+              element: <Sections />,
+            },
+            {
               path: "/events",
               element: <EventsCRUD />,
             },
             {
+              path: "/events/:nameEvent/:datetime/qrcode-reader",
+              element: <QRCodeReader />,
+            },
+            {
               path: "/semcomp-users",
-              element: <SemcompUsers />,
+              element: <SemcompUsersCRUD />,
             },
             {
               path: "/backoffice-users",
-              element: <BackofficeUsers />,
+              element: <BackofficeUsersCRUD />,
             },
+            {
+              path: "/participation",
+              element: <ParticipationCRUD />,
+            },
+            {
+              path: "/permissions",
+              element: <PermissionsCRUD />,
+            },
+            {
+              path: "*",
+              element: <NotFoundPage />,
+            }
           ],
         },
       ],

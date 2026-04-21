@@ -3,13 +3,13 @@ import type { CrudItemType } from "@/types/CrudItem";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
-import { sampleSemcompUsers } from "@/mock/user-semcomp";
-import { fields } from "@/data/userSemcompCrudField";
+import { samplePermissions } from "@/mock/permissions";
+import { fields } from "@/data/permissionsBackofficeCrudField";
 import { Tabs } from "@/constants/Tabs";
 
-export default function UsersCRUD() {
+export default function PermissionsCRUD() {
   const navigate = useNavigate();
-  const [data, setData] = useState<CrudItemType[]>(sampleSemcompUsers);
+  const [data, setData] = useState<CrudItemType[]>(samplePermissions);
 
   // TODO: Integrar com backend para persistência real dos dados no BD
   const handleEdit = (item: CrudItemType) => {
@@ -21,13 +21,12 @@ export default function UsersCRUD() {
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6 overflow-x-auto scrollbar-hide">
-      {/* Header card com situando a página */}
       <BannerCard
-        icon={Tabs.find(tab => tab.key === "users-semcomp")?.icon}
+        icon={Tabs.find(tab => tab.key === "permissions")?.icon}
         iconClassName="text-violet-400"
-        label="Usuários"
-        title="Controle dos Usuários da Semcomp"
-        description="Busque participantes, acesse e edite informações, mantenha controle sobre os usuários inscritos para a Semana da Computação."
+        label="Permissões"
+        title="Gestão de Permissões de Acesso ao Backoffice"
+        description="Defina e atribua permissões por seção para usuários do Backoffice."
         onBack={() => navigate('/home')}
         cardClassName="border-slate-800 bg-linear-to-br from-slate-900 via-slate-900 to-violet-950/30 overflow-hidden relative"
         labelClassName="text-xs uppercase tracking-[0.3em] text-violet-400 font-medium"
@@ -35,7 +34,6 @@ export default function UsersCRUD() {
         descriptionClassName="text-slate-400 mt-1"
       />
 
-      {/* Tabela com os usuários */}
       <div className="rounded-xl border border-border bg-card/80 p-5">
         <CrudTable
           data={data}
@@ -43,7 +41,7 @@ export default function UsersCRUD() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onCreate={handleCreate}
-          entityLabel="usuário"
+          entityLabel="permissão do backoffice"
         />
       </div>
     </section>
