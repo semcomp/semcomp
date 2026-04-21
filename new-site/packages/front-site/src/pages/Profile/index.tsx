@@ -7,6 +7,14 @@ import hogwarts from "../../assets/img/profilePics/hogwarts.jpg"
 import hogwartsLogo from "../../assets/img/profilePics/hogwartsLogo.png"
 import ContatoSection from "../Home/sections/ContatoSection"
 
+type Evento = {
+  tipo: string
+  description: string
+  data: string
+  horaStart: string
+  horaEnd: string
+}
+
 interface ProfileProps {
   name: string;
   email: string;
@@ -14,6 +22,35 @@ interface ProfileProps {
   qrValue: string;
   event?: string;
 }
+
+let events: Evento[] = [
+  {
+    tipo: "Minicurso",
+    description: "Introdução à Programação Competitiva aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    data: "2026-05-16",
+    horaStart: "14:00",
+    horaEnd: "16:00"
+  },
+  {
+    tipo: "Palestra",
+    description: "O Futuro da IA na Engenharia de Software",
+    data: "2026-05-17",
+    horaStart: "16:30",
+    horaEnd: "18:00"
+  }
+];
+
+// Helper para formatar a data dinamicamente
+function formatarDataDynamic(dataIso: string) {
+  const dateObj = new Date(dataIso + "T12:00:00");
+  const dataFormatada = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
+  const diaDaSemana = dateObj.toLocaleDateString('pt-BR', { weekday: 'short' }); 
+  return {
+    data: dataFormatada,
+    diaSemana: diaDaSemana.replace('.', '')
+  };
+}
+
 
 export default function Profile({
   name = "João Gabriel Pieroli da Silva",
@@ -30,6 +67,9 @@ export default function Profile({
   const [userCode, setUserCode] = useState(code);
   const [qrData, setQrData] = useState(qrValue);
   const [presencePercent, setPresencePercent] = useState<number>(16);
+
+  const bgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompOffWhite";
+    const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
 
   const headerBgWithOpacity = isDarkMode ? "bg-semcompDarkBlue/80" : "bg-semcompMidDarkBlue/80";
   const shadowClass = isDarkMode
@@ -72,7 +112,7 @@ export default function Profile({
       
       {/* Card do QR Code*/ }
       {activeTab === "qr" && (
-        <div className="px-6 pb-8 bg-semcompOffWhite/50 mx-auto pt-8 h-full flex flex-col items-center">
+        <div className="px-6 pb-8 bg-semcompOffWhite/50 mx-auto pt-8 h-full flex flex-col items-center overflow-y-auto">
           <h1 className="text-2xl text-semcompMidDarkBlue font-bold mb-1">Meu QR Code</h1>
           <p className="text-md text-semcompDarkBlue/75 text-center mb-6 leading-relaxed">
             Utilize seu QR durante a <span className="text-semcompMidBlue font-semibold">{event}</span> para registrar sua presença
@@ -100,7 +140,7 @@ export default function Profile({
       )}
 
       {activeTab === "account" && (
-      <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300">
+      <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300 overflow-y-auto">
         {/* Título e Subtítulo conforme a imagem */}
         <div className="text-center mb-6">
           <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">Minha Conta</h2>
@@ -178,9 +218,9 @@ export default function Profile({
 
       if (width >= 1280) {
         return (
-          <div>
+          <div className={`${bgColor} ${textColor} min-h-screen`}>
             <div
-              className={`h-[calc(90vh-70px)] w-full bg-cover bg-center ${shadowClass} flex flex-row justify-center items-center gap-7 font-poppins`}
+              className={`h-[calc(90vh-70px)] w-full bg-cover bg-center ${shadowClass} flex flex-row justify-center items-center gap-10 font-poppins`}
               style={{
                 backgroundImage: `url(${hogwarts})`,
                 boxShadow: isDarkMode
@@ -188,11 +228,11 @@ export default function Profile({
                   : "inset 0 -180px 40px -40px rgba(53, 123, 163, 0.6)"
               }}
             >
-              <div className="h-[80%] w-[28%] bg-semcompOffWhite rounded-sm overflow-hidden shadow-xl">
+              <div className="h-[85%] w-[28%] bg-semcompOffWhite rounded-sm overflow-hidden shadow-xl">
                 {qrAndAccountCard}
               </div>
 
-              <div className={`h-[80%] w-[28%] ${headerBgWithOpacity} flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10`}>
+              <div className={`h-[85%] w-[28%] ${headerBgWithOpacity} flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10`}>
                 <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP Beta 2026</h1>
                 <p className="text-center text-md pb-2">Você sabia que vem por aí a prévia da maior semana acadêmica de computação do Brasil?</p>
                 <div
@@ -211,6 +251,44 @@ export default function Profile({
                 </span>
               </div>
             </div>
+
+            <div className={`min-h-[60vh] ${isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompMidLightBlue"}  flex flex-col justify-center items-center font-poppins`}>
+              <div className={`border-2 h-[80%] w-[60%] rounded-2xl pt-12 pb-6 pl-16 pr-16 flex flex-col justify-center items-center ${isDarkMode ? "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompOffWhite" : "bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue"}`}>
+                <h1 className="font-bold text-2xl mb-6">Inscrições em Eventos</h1>
+                <div className="w-full flex flex-row justify-between font-bold">
+                  <span>Evento</span>
+                  <span>Data/Horário</span>
+                </div>
+                <hr className={`w-full border mt-3 mb-3 ${isDarkMode ? "border-semcompOffWhite" : "border-semcompAlmostDarkBlue"}`}/>
+                <div className="w-full flex flex-col gap-4">
+                  {events && events.length > 0 ? (
+                    events.map((evento, index) => {
+                      const { data, diaSemana } = formatarDataDynamic(evento.data);
+                      return (
+                        <div key={index} className="w-full flex flex-row justify-between items-center py-2 px-4 rounded-lg bg-black/10">
+                          <div className="w-1/2 flex flex-col text-left gap-2 items-start pr-4">
+                            <span className="font-semibold shrink-0">{evento.tipo} |</span>
+                            <span className="text-sm break-all flex-1">{evento.description}</span>
+                          </div>
+                          <div className="w-auto flex flex-col items-end shrink-0">
+                            <div className="flex flex-row gap-2 items-center">
+                              <span className="font-semibold">{data}</span>
+                              <span className={`text-sm px-2 py-0.5 rounded-full ${isDarkMode ? "bg-semcompOffWhite text-semcompMidDarkBlue" : "bg-semcompDarkBlue text-semcompOffWhite capitalize"} `}>{diaSemana}</span>
+                            </div>
+                            <span className="text-sm">{evento.horaStart} às {evento.horaEnd}</span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center italic mt-6 py-8">
+                      Você ainda não está inscrito em nenhum evento. Inscreva-se em eventos para que eles apareçam aqui!
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <ContatoSection />
           </div>
       );
