@@ -82,51 +82,73 @@ export default function Profile({
     setPresencePercent(16);
   }, [name, code, qrValue]);
 
+  // Card de Evento -Mobile
   const EventCardMobile = ({ ev }: { ev: Evento }) => {
     const { data, diaSemana } = formatarDataDynamic(ev.data);
+    
+    // Lógica Dark Mode para os cards de evento
+    const cardBgColor = isDarkMode ? "bg-white/10 border-white/20 text-white" : "bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue";
+    
     return (
-      <div className="bg-white/10 border border-white/20 rounded-xl p-4 mb-3 text-white">
+      <div className={`border rounded-xl p-4 mb-3 ${cardBgColor}`}>
         <div className="flex items-start gap-2">
           <span className="font-bold whitespace-nowrap">{ev.tipo}</span>
           <span className="opacity-60">|</span>
           <p className="text-sm leading-tight opacity-90">{ev.description}</p>
         </div>
-        <p className="mt-2 text-sm opacity-80">
+        <p className="mt-2 text-sm opacity-80 font-medium">
           {diaSemana} ({data}), {ev.horaStart} às {ev.horaEnd}
         </p>
       </div>
     );
   };
 
-  // MOBILE (< 1280px)
+  // Mobile (< 1280px)
   if (width < 1280) {
+    // Variáveis de Tema para Mobile
+    const mMainBg = isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompOffWhite";
+    const mGradientTo = isDarkMode ? "to-semcompAlmostDarkBlue" : "to-semcompOffWhite";
+    
+    // Tabs
+    const mTabsContainer = isDarkMode ? "bg-black/40 border-white/20" : "bg-semcompMidLightBlue/40 border-semcompDarkBlue/20";
+    const mTabActive = isDarkMode ? "bg-[#D9D9D9] text-[#0B2639]" : "bg-semcompDarkBlue text-semcompOffWhite";
+    const mTabInactive = isDarkMode ? "text-white" : "text-semcompDarkBlue";
+    
+    // Cards
+    const mMainCardBg = isDarkMode ? "bg-[#D9D9D9] text-[#0B2639]" : "bg-gray-200 text-semcompDarkBlue border border-semcompDarkBlue/10 shadow-lg";
+    const mFallbackBg = isDarkMode ? "bg-[#B7C9D3] border-[#0B2639]/10" : "bg-semcompMidLightBlue/20 border-semcompDarkBlue/20";
+    
+    // Seções
+    const mOverflowBg = isDarkMode ? "bg-semcompDarkBlue text-white" : "bg-semcompMidLightBlue text-semcompDarkBlue";
+    const mInscricoesBg = isDarkMode ? "bg-[#1A3A4F] border-white/10" : "bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue";
+
     return (
-      <div className="min-h-screen bg-semcompAlmostDarkBlue font-poppins pb-10">
+      <div className={`min-h-screen ${mMainBg} font-poppins pb-10 transition-colors duration-300`}>
         {/* Header com Background Hogwarts */}
         <div className="relative h-80 w-full overflow-hidden">
           <img src={hogwarts} className="absolute inset-0 w-full h-full object-cover" alt="Hogwarts" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-semcompAlmostDarkBlue" />
+          <div className={`absolute inset-0 bg-gradient-to-b from-transparent ${mGradientTo}`} />
           
           {/* Tabs Seletoras */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex bg-black/40 backdrop-blur-md rounded-full p-1 border border-white/20 w-[80%] max-w-xs z-20">
+          <div className={`absolute bottom-10 left-1/2 -translate-x-1/2 flex backdrop-blur-md rounded-full p-1 border w-[80%] max-w-xs z-20 ${mTabsContainer}`}>
             <button 
               onClick={() => setActiveTab("qr")}
-              className={`flex-1 py-2 text-sm rounded-full transition-all ${activeTab === "qr" ? "bg-[#D9D9D9] text-[#0B2639] font-bold" : "text-white opacity-80"}`}
+              className={`flex-1 py-2 text-sm rounded-full transition-all font-bold ${activeTab === "qr" ? mTabActive : `${mTabInactive} opacity-80`}`}
             >
               QR Code
             </button>
             <button 
               onClick={() => setActiveTab("account")}
-              className={`flex-1 py-2 text-sm rounded-full transition-all ${activeTab === "account" ? "bg-[#D9D9D9] text-[#0B2639] font-bold" : "text-white opacity-80"}`}
+              className={`flex-1 py-2 text-sm rounded-full transition-all font-bold ${activeTab === "account" ? mTabActive : `${mTabInactive} opacity-80`}`}
             >
               Minha Conta
             </button>
           </div>
         </div>
 
-        {/* Conteúdo Principal (Card Branco) */}
+        {/* Conteúdo Principal (Card Central) */}
         <div className="px-5 -mt-6 relative z-10">
-          <div className="bg-[#D9D9D9] rounded-3xl p-6 md:p-8 flex flex-col items-center text-[#0B2639] shadow-2xl min-h-[400px]">
+          <div className={`${mMainCardBg} rounded-3xl p-6 md:p-8 flex flex-col items-center shadow-2xl min-h-[400px]`}>
             
             {activeTab === "qr" && (
               <>
@@ -149,7 +171,7 @@ export default function Profile({
                 <p className="font-bold text-lg mb-6 text-center">{userName}</p>
 
                 {/* Fallback Code */}
-                <div className="bg-[#B7C9D3] rounded-xl p-4 w-full flex flex-row items-center justify-between gap-4 border border-[#0B2639]/10">
+                <div className={`${mFallbackBg} rounded-xl p-4 w-full flex flex-row items-center justify-between gap-4 border`}>
                   <p className="text-[10px] md:text-xs leading-tight flex-1">
                     Caso dê algum problema ao scannear, forneça o código:
                   </p>
@@ -163,18 +185,18 @@ export default function Profile({
                  <h2 className="text-2xl font-bold text-center mb-6">Minha Conta</h2>
                  
                  <div className="flex flex-col space-y-4 mb-6">
-                    <div className="flex flex-col border-b border-[#0B2639]/10 pb-2">
+                    <div className="flex flex-col border-b border-black/10 pb-2">
                       <span className="text-xs font-bold opacity-70">Nome Completo:</span>
                       <span className="text-sm font-medium">{userName}</span>
                     </div>
-                    <div className="flex flex-col border-b border-[#0B2639]/10 pb-2">
+                    <div className="flex flex-col border-b border-black/10 pb-2">
                       <span className="text-xs font-bold opacity-70">E-mail:</span>
                       <span className="text-sm font-medium">{userEmail}</span>
                     </div>
                  </div>
 
                  {/* Barra de Progresso Mobile */}
-                 <div className="bg-white/50 rounded-xl p-4 mb-6 border border-[#0B2639]/10">
+                 <div className="bg-white/50 rounded-xl p-4 mb-6 border border-black/10">
                     <h3 className="text-center text-sm font-bold mb-3">Minha Presença</h3>
                     <div className="relative w-full h-6 bg-black/10 rounded-full overflow-hidden">
                       <div
@@ -198,37 +220,37 @@ export default function Profile({
         </div>
 
         {/* Seção Overflow (Grifinória) */}
-        <div className="mt-12 pt-10 pb-10 bg-semcompDarkBlue px-5 text-center">
-          <h2 className="text-white text-3xl font-bold mb-1 flex items-center justify-center gap-2">
+        <div className={`mt-12 pt-10 pb-10 px-5 text-center transition-colors ${mOverflowBg}`}>
+          <h2 className="text-3xl font-bold mb-1 flex items-center justify-center gap-2">
             Overflow 
-            <span className="flex items-center justify-center w-5 h-5 rounded-full border border-white/60 text-white/60 text-xs font-normal">?</span>
+            <span className={`flex items-center justify-center w-5 h-5 rounded-full border text-xs font-normal ${isDarkMode ? "border-white/60 text-white/60" : "border-semcompDarkBlue/60 text-semcompDarkBlue/60"}`}>?</span>
           </h2>
-          <p className="text-white/80 text-xs mb-6">O Overflow é o principal concurso da nossa semana! E sua casa é...</p>
+          <p className="text-xs mb-6 opacity-80">O Overflow é o principal concurso da nossa semana! E sua casa é...</p>
           
-          <div className="relative rounded-2xl overflow-hidden mb-4 bg-black/50 border border-white/10">
+          <div className={`relative rounded-2xl overflow-hidden mb-4 border ${isDarkMode ? "bg-black/50 border-white/10" : "bg-white border-semcompDarkBlue/20"}`}>
             <img src={hogwarts} className="w-full h-56 object-cover" />
             <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
               <img src={hogwartsLogo} className="w-32 mb-2 drop-shadow-2xl" alt="Gryffindor" />
-              <h3 className="text-white text-2xl font-black tracking-widest drop-shadow-lg">GRIFINÓRIA</h3>
+              <h3 className="text-2xl font-black tracking-widest drop-shadow-lg text-white">GRIFINÓRIA</h3>
             </div>
           </div>
           
-          <div className="border-t border-white/20 pt-4 px-2">
-            <p className="text-white text-[11px] leading-relaxed text-justify opacity-90">
+          <div className={`border-t pt-4 px-2 ${isDarkMode ? "border-white/20" : "border-semcompDarkBlue/20"}`}>
+            <p className="text-[11px] leading-relaxed text-justify opacity-90">
               Fundada por Godrico Grifinória, esta casa valoriza a coragem, bravura, ousadia e cavalheirismo, tendo o leão como mascote e as cores vermelho escarlate e dourado. Conhecidos por seu ímpeto heroico, muitas vezes imprudente, seus membros costumam ser nobres e destemidos.
             </p>
-            <button className="mt-4 text-white underline text-sm font-semibold hover:text-gray-300">Entrar no Grupo da Casa</button>
+            <button className="mt-4 underline text-sm font-semibold hover:opacity-70">Entrar no Grupo da Casa</button>
           </div>
         </div>
 
         {/* Seção Inscrições */}
         <div className="mt-12 mb-12 px-5">
-          <div className="bg-[#1A3A4F] rounded-3xl p-6 border border-white/10 shadow-xl">
-            <h2 className="text-white text-2xl font-bold text-center mb-6">Inscrições em Eventos</h2>
+          <div className={`rounded-3xl p-6 border shadow-xl transition-colors ${mInscricoesBg}`}>
+            <h2 className="text-2xl font-bold text-center mb-6">Inscrições em Eventos</h2>
             {events.length > 0 ? (
               events.map((ev, i) => <EventCardMobile key={i} ev={ev} />)
             ) : (
-              <p className="text-white/60 text-center text-sm italic">Nenhuma inscrição encontrada.</p>
+              <p className="opacity-60 text-center text-sm italic">Nenhuma inscrição encontrada.</p>
             )}
           </div>
         </div>
@@ -238,7 +260,9 @@ export default function Profile({
     );
   }
 
-  // DESKTOP (>= 1280px)
+  // ==========================================
+  // VIEW: DESKTOP ORIGIANL (>= 1280px)
+  // ==========================================
   const qrAndAccountCard = (
     <div className="h-full w-full pt-5 bg-gray-300 flex flex-col text-semcompDarkBlue rounder-2xl">
       <div className="flex mx-auto mb-5 w-[60%] rounded-full m-3 p-1 gap-1 border-2 border-semcompOffWhite/20 bg-semcompMidLight/20">
@@ -434,7 +458,7 @@ export default function Profile({
     );
   }
 
-  // Fallback View original (telas muito estreitas sem cair nas condicionais, só pra garantia)
+  // Fallback View original
   return (
     <div className="flex justify-center p-4 min-h-screen bg-semcompMidDarkBlue/90 items-center font-poppins">
       <div className="w-full max-w-85 rounded-2xl overflow-hidden shadow-xl animate-in fade-in zoom-in duration-300">
