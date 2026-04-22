@@ -260,9 +260,7 @@ export default function Profile({
     );
   }
 
-  // ==========================================
-  // VIEW: DESKTOP ORIGIANL (>= 1280px)
-  // ==========================================
+  // Desktop (>= 1280px)
   const qrAndAccountCard = (
     <div className="h-full w-full pt-5 bg-gray-300 flex flex-col text-semcompDarkBlue rounder-2xl">
       <div className="flex mx-auto mb-5 w-[60%] rounded-full m-3 p-1 gap-1 border-2 border-semcompOffWhite/20 bg-semcompMidLight/20">
