@@ -2,6 +2,9 @@ package user
 
 import (
 	"errors"
+	"fmt"
+	"strings"
+	"strconv"
 
 	"backend/internal/providers"
 )
@@ -9,7 +12,7 @@ import (
 // UserService define as regras de negócio para operações relacionadas a usuários.
 type UserService interface {
 	CreateUser(request CreateUserRequest) (*SafeUser, error)
-	GetAllUsers() ([]SafeUser, error)
+	GetAllUsers(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*UserListResult, error)
 	GetUserByID(id uint) (*SafeUser, error)
 	UpdateUser(id uint, request UpdateUserRequest) error
 	DeleteUser(id uint) error
@@ -54,13 +57,84 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 }
 
 // GetAllUsers recupera todos os usuários repassando a chamada para a camada de repositório.
-func (s *userService) GetAllUsers() ([]SafeUser, error) {
-	users, err := s.repo.GetAll()
+func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*UserListResult, error) {
+	
+	if page < 1 {
+		return nil, fmt.Errorf("page must be greater than 0")
+	}
+
+	if limit < 1 {
+		return nil, fmt.Errorf("limit must be greater than 0")
+	}
+
+	if sortBy == "" {
+		sortBy = "name"
+	}
+
+	if sortOrder == "" {
+		sortOrder = "asc"
+	}
+
+	sortBy = strings.ToLower(sortBy)
+	sortOrder = strings.ToLower(sortOrder)
+
+	allowedSortFields := map[string]bool{
+		"name":           	true,
+		"email":     	 	true,
+		"presence_rate":   	true,
+		"user_number":     	true,
+	}
+
+	if !allowedSortFields[sortBy] {
+		return nil, fmt.Errorf("invalid sort_by parameter")
+	}
+
+	if sortOrder != "asc" && sortOrder != "desc" {
+		return nil, fmt.Errorf("invalid sort_order parameter")
+	}
+
+	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
+		return nil, fmt.Errorf("search_by and search_value must be provided together")
+	}
+
+	if searchBy != "" {
+		searchBy = strings.ToLower(searchBy)
+
+		allowedSearchFields := map[string]bool{
+			"name":           	true,
+			"email":     	 	true,
+			"presence_rate":   	true,
+			"user_number":     	true,
+		}
+
+		if !allowedSearchFields[searchBy] {
+			return nil, fmt.Errorf("invalid search_by parameter")
+		}
+
+		if searchBy == "presence_rate" {
+			if _, err := strconv.ParseBool(searchValue); err != nil {
+				return nil, fmt.Errorf("invalid search_value for has_attendance")
+			}
+		}
+	}
+
+	offset := (page - 1) * limit
+	
+	query := UserListQuery{
+		Limit:       limit,
+		Offset:      offset,
+		SortBy:      sortBy,
+		SortOrder:   sortOrder,
+		SearchBy:    searchBy,
+		SearchValue: searchValue,
+	}
+	
+	users, err := s.repo.GetAll(query)
 	if err != nil {
 		return nil, err
 	}
 
-	return ToSafeUsers(users), nil
+	return users, nil
 }
 
 // GetUserByID busca e retorna um usuário específico pelo seu ID.

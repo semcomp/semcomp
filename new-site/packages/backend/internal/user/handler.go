@@ -37,12 +37,48 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 // GetAllUsers retorna todos os usuários cadastrados.
 func (h *UserHandler) GetAllUsers(c *gin.Context) {
-	users, err := h.userService.GetAllUsers()
+	page := 1
+	limit := 10
+	sortBy := c.DefaultQuery("sort_by", "name")
+	sortOrder := c.DefaultQuery("sort_order", "asc")
+	searchBy := c.Query("search_by")
+	searchValue := c.Query("search_value")
+
+	if pageQuery := c.Query("page"); pageQuery != "" {
+		parsedPage, err := strconv.Atoi(pageQuery)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'page' inválido"})
+			return
+		}
+		page = parsedPage
+	}
+
+	if limitQuery := c.Query("limit"); limitQuery != "" {
+		parsedLimit, err := strconv.Atoi(limitQuery)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'limit' inválido"})
+			return
+		}
+		limit = parsedLimit
+	}
+
+	result, err := h.userService.GetAllUsers(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, users)
+
+	c.JSON(http.StatusOK, gin.H{
+		"page":             page,
+		"limit":            limit,
+		"sort_by":          sortBy,
+		"sort_order":       sortOrder,
+		"search_by":        searchBy,
+		"search_value":     searchValue,
+		"total_records":    result.TotalRecords,
+		"filtered_records": result.FilteredRecords,
+		"users":           	result.Users,
+	})
 }
 
 // GetUserByID retorna um usuário específico buscando pelo seu ID passado na URL.

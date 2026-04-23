@@ -1,12 +1,14 @@
 package user
 
+import "fmt"
+
 type User struct {
 	// TODO: Para a semcompona, atualizar o model
-	UserNumber		uint	`gorm:"primaryKey;size:255;not null"`	
-	Name			string 	`gorm:"size:100;not null"`
-	Email        	string 	`gorm:"size:150;unique;not null"`
+	UserNumber		uint	`gorm:"primaryKey;size:255;not null" json:"user_number"`	
+	Name			string 	`gorm:"size:100;not null" json:"name"`
+	Email        	string 	`gorm:"size:150;unique;not null" json:"email"`
 	PasswordHash 	string 	`gorm:"size:255;not null"`
-	PresenceRate	float64 `gorm:"size:255;not null"`
+	PresenceRate	float64 `gorm:"size:255;not null" json:"presence_rate"`
 }
 
 type CreateUserRequest struct {
@@ -23,7 +25,7 @@ type UpdateUserRequest struct {
 }
 
 type SafeUser struct {
-	UserNumber 		uint   	`json:"userNumber"`
+	UserNumber 		string   	`json:"user_number"`
 	Name     		string 	`json:"name"`
 	Email    		string 	`json:"email"`
 	PresenceRate	float64	`json:"presence_rate"`
@@ -31,7 +33,7 @@ type SafeUser struct {
 
 func ToSafeUser(user *User) SafeUser {
 	return SafeUser{
-		UserNumber:  	user.UserNumber,
+		UserNumber:  	fmt.Sprintf("%05d", user.UserNumber),
 		Name:     		user.Name,
 		Email:    		user.Email,
 		PresenceRate: 	user.PresenceRate,
@@ -45,4 +47,19 @@ func ToSafeUsers(users []User) []SafeUser {
 	}
 
 	return safeUsers
+}
+
+type UserListQuery struct {
+	Limit       int
+	Offset      int
+	SortBy      string
+	SortOrder   string
+	SearchBy    string
+	SearchValue string
+}
+
+type UserListResult struct {
+	Users          []SafeUser 	`json:"users"`
+	TotalRecords    int64   `json:"total_records"`
+	FilteredRecords int64   `json:"filtered_records"`
 }
