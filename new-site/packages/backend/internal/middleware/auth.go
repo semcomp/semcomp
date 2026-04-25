@@ -37,7 +37,7 @@ func AuthMiddleware(jwtProvider providers.JWTProvider) gin.HandlerFunc {
 		}
 
 		// Adiciona as informações do usuário ao contexto para uso em handlers subsequentes
-		c.Set("userID", claims.UserID)
+		c.Set("userNumber", claims.UserNumber)
 		c.Set("email", claims.Email)
 
 		c.Next()
