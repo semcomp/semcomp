@@ -101,6 +101,7 @@ curl -X GET http://localhost:8080/api/profile \
 ```json
 {
   "user_number": "00001",
+  "message": "Entrada Permitida",
   "name": "João Silva",
   "email": "joao@example.com",
   "presence_rate": 0

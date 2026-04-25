@@ -17,7 +17,7 @@ type JWTProvider interface {
 
 type AuthTokenClaims struct {
 	UserNumber uint
-	Email  string
+	Email      string
 }
 
 var (

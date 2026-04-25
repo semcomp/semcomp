@@ -99,8 +99,7 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 	return field + " " + order, nil
 }
 
-
-// GetAll retorna uma lista de todos os usuários cadastrados, com os devidos filtros e 
+// GetAll retorna uma lista de todos os usuários cadastrados, com os devidos filtros e
 // ordenações aplicados.
 func (r *userRepository) GetAll(query UserListQuery) (*UserListResult, error) {
 	var users []User
@@ -128,9 +127,9 @@ func (r *userRepository) GetAll(query UserListQuery) (*UserListResult, error) {
 	}
 
 	return &UserListResult{
-		Users:       		ToSafeUsers(users),
-		TotalRecords:    	totalRecords,
-		FilteredRecords: 	filteredRecords,
+		Users:           ToSafeUsers(users),
+		TotalRecords:    totalRecords,
+		FilteredRecords: filteredRecords,
 	}, nil
 }
 

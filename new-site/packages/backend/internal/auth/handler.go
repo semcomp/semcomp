@@ -55,8 +55,8 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	c.Status(http.StatusOK)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
-		"user": user.ToSafeUser(userRecord),
-		"token": token,
+		"user":    user.ToSafeUser(userRecord),
+		"token":   token,
 	})
 }
 
@@ -64,19 +64,19 @@ func (h *AuthHandler) ProfileHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userNumber := c.MustGet("userNumber").(uint)
 		user, err := h.userService.GetUserByID(uint(userNumber))
-        if err != nil {
-            c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar perfil"})
-            return
-        }
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar perfil"})
+			return
+		}
 
 		// Teste de rota protegida, apenas para verificar se o middleware de autenticação JWT está funcionando corretamente
 		c.Header("Content-Type", "application/json")
 		c.Status(http.StatusOK)
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Entrada Permitida",
-			"user_number":  user.UserNumber,
-			"email":   user.Email,
-			"name": user.Name,
+			"message":       "Entrada Permitida",
+			"user_number":   user.UserNumber,
+			"email":         user.Email,
+			"name":          user.Name,
 			"presence_rate": user.PresenceRate,
 		})
 	}

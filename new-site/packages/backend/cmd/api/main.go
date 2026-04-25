@@ -1,9 +1,9 @@
 package main
 
 import (
+	"backend/internal/auth"
 	"backend/internal/database"
 	"backend/internal/event"
-	"backend/internal/auth"
 	"backend/internal/middleware"
 	"backend/internal/providers"
 	"backend/internal/user"
@@ -42,7 +42,7 @@ func main() {
 	r.POST("/register", userHandler.CreateUser)
 	r.POST("/login", authHandler.LoginHandler)
 
-  r.GET("/events", eventHandler.GetEvents)
+	r.GET("/events", eventHandler.GetEvents)
 	r.GET("/event/:eventName/:date", eventHandler.GetEventByNameAndDate)
 
 	// Rotas Protegidas (Exigem Autenticação)
@@ -57,8 +57,8 @@ func main() {
 	backofficeRoutes.DELETE("/users/:id", userHandler.DeleteUser)
 	backofficeRoutes.GET("/users", userHandler.GetAllUsers)
 	backofficeRoutes.GET("/users/:id", userHandler.GetUserByID)
-  
-  	backofficeRoutes.POST("/events", eventHandler.CreateEvent)
+
+	backofficeRoutes.POST("/events", eventHandler.CreateEvent)
 	backofficeRoutes.PUT("/events/:eventName/:date", eventHandler.UpdateEventByNameAndDate)
 	backofficeRoutes.DELETE("/events/:eventName/:date", eventHandler.DeleteEventByNameAndDate)
 	r.Run(":4000")

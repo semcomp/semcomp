@@ -8,6 +8,6 @@ type LoginUserRequest struct {
 }
 
 type JWTClaims struct {
-	UserID uint `json:"id"`
+	UserNumber uint `json:"id"`
 	jwt.RegisteredClaims
 }

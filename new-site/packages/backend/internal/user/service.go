@@ -3,8 +3,8 @@ package user
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 
 	"backend/internal/providers"
 )
@@ -58,7 +58,7 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 
 // GetAllUsers recupera todos os usuários repassando a chamada para a camada de repositório.
 func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*UserListResult, error) {
-	
+
 	if page < 1 {
 		return nil, fmt.Errorf("page must be greater than 0")
 	}
@@ -78,11 +78,12 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 	sortBy = strings.ToLower(sortBy)
 	sortOrder = strings.ToLower(sortOrder)
 
+	// Definição dos campos possíveis para ordenação
 	allowedSortFields := map[string]bool{
-		"name":           	true,
-		"email":     	 	true,
-		"presence_rate":   	true,
-		"user_number":     	true,
+		"name":          true,
+		"email":         true,
+		"presence_rate": true,
+		"user_number":   true,
 	}
 
 	if !allowedSortFields[sortBy] {
@@ -101,10 +102,10 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 		searchBy = strings.ToLower(searchBy)
 
 		allowedSearchFields := map[string]bool{
-			"name":           	true,
-			"email":     	 	true,
-			"presence_rate":   	true,
-			"user_number":     	true,
+			"name":          true,
+			"email":         true,
+			"presence_rate": true,
+			"user_number":   true,
 		}
 
 		if !allowedSearchFields[searchBy] {
@@ -116,10 +117,16 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 				return nil, fmt.Errorf("invalid search_value for presence_rate")
 			}
 		}
+
+		if searchBy == "user_number" {
+			if _, err := strconv.Atoi(searchValue); err != nil {
+				return nil, fmt.Errorf("invalid search_value for user_number")
+			}
+		}
 	}
 
 	offset := (page - 1) * limit
-	
+
 	query := UserListQuery{
 		Limit:       limit,
 		Offset:      offset,
@@ -128,7 +135,7 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 		SearchBy:    searchBy,
 		SearchValue: searchValue,
 	}
-	
+
 	users, err := s.repo.GetAll(query)
 	if err != nil {
 		return nil, err

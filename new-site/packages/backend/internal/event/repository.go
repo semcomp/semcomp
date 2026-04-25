@@ -2,9 +2,9 @@ package event
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
-	"slices"
 
 	"gorm.io/gorm"
 )
