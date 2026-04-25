@@ -108,7 +108,7 @@ func (h *PresenceHandler) UpdatePresenceByNameEventandDate(c *gin.Context) {
 			return
 		}
 		if errors.Is(err, ErrPresenceNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Evento não encontrado"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Presença não pôde ser computada."})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
@@ -131,7 +131,7 @@ func (h *PresenceHandler) DeletePresenceByNameEventandDate(c *gin.Context) {
 			return
 		}
 		if errors.Is(err, ErrPresenceNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Evento não encontrado"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Remoção de presença não pôde ser computada."})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})

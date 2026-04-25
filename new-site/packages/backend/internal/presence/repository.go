@@ -117,7 +117,8 @@ func applySearchFilter(dbQuery *gorm.DB, query PresenceListQuery) *gorm.DB {
 	case "email_admin":
 		return dbQuery.Where("email_admin ILIKE ?", "%"+query.SearchValue+"%")
 	case "event_date_time":
-		return dbQuery.Where("event_date_time = ?", query.SearchValue)
+		parsedTime, _ := time.Parse(time.RFC3339, query.SearchValue)
+		return dbQuery.Where("event_date_time = ?", parsedTime)
 	default:
 		return dbQuery
 	}

@@ -156,10 +156,10 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 			return nil, fmt.Errorf("invalid search_by parameter")
 		}
 
-		if searchBy == "date_time" {
+		if searchBy == "event_date_time" {
 			parsedDateTime, err := time.Parse(time.RFC3339, searchValue)
 			if err != nil {
-				return nil, fmt.Errorf("invalid search_value for date_time, use RFC3339")
+				return nil, fmt.Errorf("invalid search_value for event_date_time, use RFC3339")
 			}
 			searchValue = parsedDateTime.Format(time.RFC3339)
 		}
