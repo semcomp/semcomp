@@ -1,10 +1,13 @@
 package user
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // UserHandler lida com as requisições HTTP para a entidade User.
@@ -112,6 +115,21 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	}
 
 	if err := h.userService.UpdateUser(uint(id), request); err != nil {
+		// TODO: Pensar se é o melhor jeito de fazer isso. Há a possibilidade de 
+		// fazer essa verificação meio unificada para todos, tipo um método de 
+		// "conversão erro-código"
+		fmt.Println(err)
+		fmt.Printf("TYPE: %T\n", err)
+		fmt.Printf("CODE: %q\n", err)
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			fmt.Println(pgErr.Code)
+			// Código de chave duplicada, no caso, a única possível é a de email
+			if pgErr.Code == "23505" {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Email já cadastrado para outro usuário"})
+				return
+			}
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -123,6 +141,11 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	if _, err = h.userService.GetUserByID(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Usuário a ser deletado não existe"})
 		return
 	}
 

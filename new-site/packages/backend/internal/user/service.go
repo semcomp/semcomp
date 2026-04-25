@@ -112,8 +112,8 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 		}
 
 		if searchBy == "presence_rate" {
-			if _, err := strconv.ParseBool(searchValue); err != nil {
-				return nil, fmt.Errorf("invalid search_value for has_attendance")
+			if _, err := strconv.ParseFloat(searchValue, 64); err != nil {
+				return nil, fmt.Errorf("invalid search_value for presence_rate")
 			}
 		}
 	}

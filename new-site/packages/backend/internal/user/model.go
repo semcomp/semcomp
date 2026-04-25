@@ -4,11 +4,11 @@ import "fmt"
 
 type User struct {
 	// TODO: Para a semcompona, atualizar o model
-	UserNumber		uint	`gorm:"primaryKey;size:255;not null" json:"user_number"`	
+	UserNumber		uint	`gorm:"primaryKey;not null" json:"user_number"`	
 	Name			string 	`gorm:"size:100;not null" json:"name"`
 	Email        	string 	`gorm:"size:150;unique;not null" json:"email"`
 	PasswordHash 	string 	`gorm:"size:255;not null"`
-	PresenceRate	float64 `gorm:"size:255;not null" json:"presence_rate"`
+	PresenceRate	float64 `gorm:"not null" json:"presence_rate"`
 }
 
 type CreateUserRequest struct {

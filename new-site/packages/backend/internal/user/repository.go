@@ -65,13 +65,13 @@ func applySearchFilter(dbQuery *gorm.DB, query UserListQuery) *gorm.DB {
 
 	switch query.SearchBy {
 	case "user_number":
-		return dbQuery.Where("user_number ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("user_number = ?", query.SearchValue)
 	case "name":
 		return dbQuery.Where("name ILIKE ?", "%"+query.SearchValue+"%")
 	case "email":
 		return dbQuery.Where("email ILIKE ?", "%"+query.SearchValue+"%")
 	case "presence_rate":
-		return dbQuery.Where("presence_rate ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("presence_rate = ?", query.SearchValue)
 	default:
 		return dbQuery
 	}

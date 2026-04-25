@@ -58,7 +58,7 @@ func main() {
 	backofficeRoutes.GET("/users", userHandler.GetAllUsers)
 	backofficeRoutes.GET("/users/:id", userHandler.GetUserByID)
   
-  backofficeRoutes.POST("/events", eventHandler.CreateEvent)
+  	backofficeRoutes.POST("/events", eventHandler.CreateEvent)
 	backofficeRoutes.PUT("/events/:eventName/:date", eventHandler.UpdateEventByNameAndDate)
 	backofficeRoutes.DELETE("/events/:eventName/:date", eventHandler.DeleteEventByNameAndDate)
 	r.Run(":4000")

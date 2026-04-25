@@ -3,7 +3,6 @@ package auth
 import (
 	"errors"
 	"net/http"
-	"strconv"
 
 	user "backend/internal/user"
 	"github.com/gin-gonic/gin"
@@ -56,11 +55,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	c.Status(http.StatusOK)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
-		"user": map[string]string{
-			"name":      userRecord.Name,
-			"email":     userRecord.Email,
-			"presence_rate":	strconv.FormatFloat(userRecord.PresenceRate, 'f', 2, 64),
-		},
+		"user": user.ToSafeUser(userRecord),
 		"token": token,
 	})
 }
