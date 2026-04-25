@@ -1,10 +1,12 @@
 package user
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // UserHandler lida com as requisições HTTP para a entidade User.
@@ -37,12 +39,48 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 // GetAllUsers retorna todos os usuários cadastrados.
 func (h *UserHandler) GetAllUsers(c *gin.Context) {
-	users, err := h.userService.GetAllUsers()
+	page := 1
+	limit := 10
+	sortBy := c.DefaultQuery("sort_by", "name")
+	sortOrder := c.DefaultQuery("sort_order", "asc")
+	searchBy := c.Query("search_by")
+	searchValue := c.Query("search_value")
+
+	if pageQuery := c.Query("page"); pageQuery != "" {
+		parsedPage, err := strconv.Atoi(pageQuery)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'page' inválido"})
+			return
+		}
+		page = parsedPage
+	}
+
+	if limitQuery := c.Query("limit"); limitQuery != "" {
+		parsedLimit, err := strconv.Atoi(limitQuery)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'limit' inválido"})
+			return
+		}
+		limit = parsedLimit
+	}
+
+	result, err := h.userService.GetAllUsers(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, users)
+
+	c.JSON(http.StatusOK, gin.H{
+		"page":             page,
+		"limit":            limit,
+		"sort_by":          sortBy,
+		"sort_order":       sortOrder,
+		"search_by":        searchBy,
+		"search_value":     searchValue,
+		"total_records":    result.TotalRecords,
+		"filtered_records": result.FilteredRecords,
+		"users":            result.Users,
+	})
 }
 
 // GetUserByID retorna um usuário específico buscando pelo seu ID passado na URL.
@@ -76,6 +114,17 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	}
 
 	if err := h.userService.UpdateUser(uint(id), request); err != nil {
+		// TODO: Pensar se é o melhor jeito de fazer isso. Há a possibilidade de
+		// fazer essa verificação meio unificada para todos, tipo um método de
+		// "conversão erro-código"
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			// Código de chave duplicada, no caso, a única possível é a de email
+			if pgErr.Code == "23505" {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Email já cadastrado para outro usuário"})
+				return
+			}
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -87,6 +136,11 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	if _, err = h.userService.GetUserByID(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Usuário a ser deletado não existe"})
 		return
 	}
 

@@ -1,46 +1,42 @@
 package user
 
-import "gorm.io/gorm"
+import "fmt"
 
 type User struct {
-	// Atualmente as tabelas tão sendo criadas com ID artificial por causa do gorm.model.
-	// Assim que o MER da semcomp estiver completo isso deve ser alterado, definindo
-	// no model qual campo é a primary key de verdade da tabela
-	gorm.Model
-	Name         string `gorm:"size:255;not null"`
-	LastName     string `gorm:"size:255;not null"`
-	Email        string `gorm:"size:255;unique;not null"`
-	PasswordHash string `gorm:"size:255;not null"`
-	// Nusp		 string `gorm:"size:20;unique"
+	// TODO: Para a semcompona, atualizar o model
+	UserNumber   uint    `gorm:"primaryKey;not null" json:"user_number"`
+	Name         string  `gorm:"size:100;not null" json:"name"`
+	Email        string  `gorm:"size:150;unique;not null" json:"email"`
+	PasswordHash string  `gorm:"size:255;not null"`
+	PresenceRate float64 `gorm:"not null" json:"presence_rate"`
 }
 
 type CreateUserRequest struct {
 	Name     string `json:"name" binding:"required"`
-	LastName string `json:"last_name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=8"`
 }
 
 type UpdateUserRequest struct {
-	Name     string `json:"name" binding:"required"`
-	LastName string `json:"last_name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"omitempty,min=8"`
+	Name         string  `json:"name" binding:"required"`
+	Email        string  `json:"email" binding:"required,email"`
+	Password     string  `json:"password" binding:"omitempty,min=8"`
+	PresenceRate float64 `json:"presence_rate" binding:"required"`
 }
 
 type SafeUser struct {
-	ID       uint   `json:"id"`
-	Name     string `json:"name"`
-	LastName string `json:"last_name"`
-	Email    string `json:"email"`
+	UserNumber   string  `json:"user_number"`
+	Name         string  `json:"name"`
+	Email        string  `json:"email"`
+	PresenceRate float64 `json:"presence_rate"`
 }
 
 func ToSafeUser(user *User) SafeUser {
 	return SafeUser{
-		ID:       user.ID,
-		Name:     user.Name,
-		LastName: user.LastName,
-		Email:    user.Email,
+		UserNumber:   fmt.Sprintf("%05d", user.UserNumber),
+		Name:         user.Name,
+		Email:        user.Email,
+		PresenceRate: user.PresenceRate,
 	}
 }
 
@@ -51,4 +47,19 @@ func ToSafeUsers(users []User) []SafeUser {
 	}
 
 	return safeUsers
+}
+
+type UserListQuery struct {
+	Limit       int
+	Offset      int
+	SortBy      string
+	SortOrder   string
+	SearchBy    string
+	SearchValue string
+}
+
+type UserListResult struct {
+	Users           []SafeUser `json:"users"`
+	TotalRecords    int64      `json:"total_records"`
+	FilteredRecords int64      `json:"filtered_records"`
 }

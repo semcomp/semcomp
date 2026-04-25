@@ -1,9 +1,9 @@
 package main
 
 import (
+	"backend/internal/auth"
 	"backend/internal/database"
 	"backend/internal/event"
-	"backend/internal/auth"
 	"backend/internal/middleware"
 	"backend/internal/providers"
 	"backend/internal/user"
@@ -34,17 +34,14 @@ func main() {
 	eventHandler := event.NewEventHandler(eventService)
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
-	authHandler := auth.NewAuthHandler(authService)
+	authHandler := auth.NewAuthHandler(authService, userService)
 
 	r := gin.Default()
 
 	// Rotas Públicas
 	r.POST("/register", userHandler.CreateUser)
-	r.GET("/users", userHandler.GetAllUsers)
-	r.GET("/users/:id", userHandler.GetUserByID)
-	r.PUT("/users/:id", userHandler.UpdateUser)
-	r.DELETE("/users/:id", userHandler.DeleteUser)
 	r.POST("/login", authHandler.LoginHandler)
+
 	r.GET("/events", eventHandler.GetEvents)
 	r.GET("/event/:eventName/:date", eventHandler.GetEventByNameAndDate)
 
@@ -53,12 +50,16 @@ func main() {
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 
-	// Rotas de admin
-	adminRoutes := r.Group("/admin")
-	// TODO: admin middleware
-	adminRoutes.POST("/events", eventHandler.CreateEvent)
-	adminRoutes.PUT("/events/:eventName/:date", eventHandler.UpdateEventByNameAndDate)
-	adminRoutes.DELETE("/events/:eventName/:date", eventHandler.DeleteEventByNameAndDate)
+	// Rotas Backoffice (exigem autenticação de usuários do backoffice)
+	// TODO: adicionar um middleware de autenticação de usuários do backoffice para essa rotas
+	backofficeRoutes := r.Group("/admin")
+	backofficeRoutes.PUT("/users/:id", userHandler.UpdateUser)
+	backofficeRoutes.DELETE("/users/:id", userHandler.DeleteUser)
+	backofficeRoutes.GET("/users", userHandler.GetAllUsers)
+	backofficeRoutes.GET("/users/:id", userHandler.GetUserByID)
 
+	backofficeRoutes.POST("/events", eventHandler.CreateEvent)
+	backofficeRoutes.PUT("/events/:eventName/:date", eventHandler.UpdateEventByNameAndDate)
+	backofficeRoutes.DELETE("/events/:eventName/:date", eventHandler.DeleteEventByNameAndDate)
 	r.Run(":4000")
 }
