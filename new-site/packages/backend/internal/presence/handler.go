@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // PresenceHandler lida com as requisições HTTP para a entidade Presence.
@@ -111,6 +112,16 @@ func (h *PresenceHandler) UpdatePresenceByNameEventandDate(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Presença não pôde ser computada."})
 			return
 		}
+
+		// Detecta PostgreSQL a violção de chave primária
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Já existe presença com essa chave"})
+				return
+			}
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
 		return
 	}

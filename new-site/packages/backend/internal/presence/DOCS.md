@@ -126,7 +126,7 @@ Erros comuns (`400`):
 
 Exemplo:
 
-`GET /presences/Workshop%20A/2026-07-10T14:00:00Z`
+`GET /presences/Pedro/Workshop%20A/2026-07-10T14:00:00Z`
 
 Resposta de sucesso (`200`):
 

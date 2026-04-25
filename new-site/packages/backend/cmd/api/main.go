@@ -56,13 +56,6 @@ func main() {
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 
-	adminRoutes := r.Group("/admin")
-	adminRoutes.POST("/presences", presenceHandler.CreatePresence)
-	adminRoutes.GET("/presences", presenceHandler.GetPresences)
-	adminRoutes.GET("/presences/:name/:eventName/:eventDate", presenceHandler.GetPresenceByNameEventandDate)
-	adminRoutes.PUT("/presences/:name/:eventName/:eventDate", presenceHandler.UpdatePresenceByNameEventandDate)
-	adminRoutes.DELETE("/presences/:name/:eventName/:eventDate", presenceHandler.DeletePresenceByNameEventandDate)
-
 	// Rotas Backoffice (exigem autenticação de usuários do backoffice)
 	// TODO: adicionar um middleware de autenticação de usuários do backoffice para essa rotas
 	backofficeRoutes := r.Group("/admin")
