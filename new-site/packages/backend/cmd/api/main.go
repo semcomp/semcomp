@@ -5,6 +5,7 @@ import (
 	"backend/internal/database"
 	"backend/internal/event"
 	"backend/internal/middleware"
+	"backend/internal/presence"
 	"backend/internal/providers"
 	"backend/internal/user"
 
@@ -17,7 +18,7 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -29,9 +30,14 @@ func main() {
 	userRepo := user.NewUserRepository(db)
 	userService := user.NewUserService(userRepo, passwordProvider)
 	userHandler := user.NewUserHandler(userService)
+
 	eventRepo := event.NewEventRepository(db)
 	eventService := event.NewEventService(eventRepo)
 	eventHandler := event.NewEventHandler(eventService)
+
+	presenceRepo := presence.NewPresenceRepository(db)
+	presenceService := presence.NewPresenceService(presenceRepo)
+	presenceHandler := presence.NewPresenceHandler(presenceService)
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
@@ -61,5 +67,11 @@ func main() {
 	backofficeRoutes.POST("/events", eventHandler.CreateEvent)
 	backofficeRoutes.PUT("/events/:eventName/:date", eventHandler.UpdateEventByNameAndDate)
 	backofficeRoutes.DELETE("/events/:eventName/:date", eventHandler.DeleteEventByNameAndDate)
+
+	backofficeRoutes.POST("/presences", presenceHandler.CreatePresence)
+	backofficeRoutes.GET("/presences", presenceHandler.GetPresences)
+	backofficeRoutes.GET("/presences/:name/:eventName/:eventDate", presenceHandler.GetPresenceByNameEventandDate)
+	backofficeRoutes.PUT("/presences/:name/:eventName/:eventDate", presenceHandler.UpdatePresenceByNameEventandDate)
+	backofficeRoutes.DELETE("/presences/:name/:eventName/:eventDate", presenceHandler.DeletePresenceByNameEventandDate)
 	r.Run(":4000")
 }
