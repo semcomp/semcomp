@@ -9,6 +9,7 @@ import (
 	"backend/internal/providers"
 	"backend/internal/section"
 	"backend/internal/user"
+	"backend/internal/userBackoffice"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,6 +44,10 @@ func main() {
 	sectionRepo := section.NewSectionRepository(db)
 	sectionService := section.NewSectionService(sectionRepo)
 	sectionHandler := section.NewSectionHandler(sectionService)
+
+	userBackofficeRepo 	  := userBackoffice.NewUserBackofficeRepository(db)
+	userBackofficeService := userBackoffice.NewUserBackofficeService(userBackofficeRepo, passwordProvider)
+	userBackofficeHandler := userBackoffice.NewUserBackofficeHandler(userBackofficeService)
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
@@ -84,6 +89,12 @@ func main() {
 	backofficeRoutes.GET("/sections/:sectionName", sectionHandler.GetSectionByName)
 	backofficeRoutes.PUT("/sections/:sectionName", sectionHandler.UpdateSectionByName)
 	backofficeRoutes.DELETE("/sections/:sectionName", sectionHandler.DeleteSectionByName)
+
+	backofficeRoutes.POST("/usersBackoffice", userBackofficeHandler.CreateUser)
+	backofficeRoutes.GET("/usersBackoffice", userBackofficeHandler.GetAllUsers)
+	backofficeRoutes.GET("/usersBackoffice/:email", userBackofficeHandler.GetUserByEmail)
+	backofficeRoutes.PUT("/usersBackoffice/:email", userBackofficeHandler.UpdateUser)
+	backofficeRoutes.DELETE("/usersBackoffice/:email", userBackofficeHandler.DeleteUser)
 	
 	r.Run(":4000")
 }
