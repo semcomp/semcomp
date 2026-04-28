@@ -7,7 +7,8 @@ Documentacao das rotas de eventos do backend.
 A tabela de eventos é composta por:
 
 - `Name`: Nome do evento.
-- `DateTime`: Data e hora do evento.
+- `InitDate`: Data e hora do inicio do evento.
+- `EndDate`: Data e hora do fim do evento.
 - `Type`: Tipo do evento.
 - `Location`: Local do evento.
 - `Description`: Descricao do evento.
@@ -16,7 +17,7 @@ A tabela de eventos é composta por:
 ## Formato de data
 
 - O backend espera datas em **RFC3339** (ex.: `2026-07-10T14:00:00Z`).
-- Nas rotas com `:date`, envie a data no mesmo formato.
+- Nas rotas com `:initDate`, envie a data no mesmo formato.
 
 ---
 
@@ -29,7 +30,8 @@ A tabela de eventos é composta por:
 ```json
 {
   "name": "Workshop A",
-  "date_time": "2026-07-10T14:00:00Z",
+  "init_date": "2026-07-10T14:00:00Z",
+  "end_date": "2026-07-10T16:00:00Z",
   "type": "Workshop",
   "location": "Auditorio A",
   "description": "Introducao a Computacao",
@@ -44,7 +46,8 @@ Resposta de sucesso (`201`):
   "message": "Evento criado com sucesso!",
   "event": {
     "name": "Workshop A",
-    "date_time": "2026-07-10T14:00:00Z",
+    "init_time": "2026-07-10T14:00:00Z",
+    "end_time": "2026-07-10T16:00:00Z",
     "type": "Workshop",
     "location": "Auditorio A",
     "description": "Introducao a Computacao",
@@ -75,7 +78,7 @@ Erros comuns:
 ### Campos permitidos em `sort_by`
 
 - `name`
-- `date_time`
+- `init_date`
 - `type`
 - `location`
 - `description`
@@ -96,7 +99,7 @@ Campos permitidos em `search_by`:
 - `type`
 - `location`
 - `description`
-- `date_time` (valor em RFC3339)
+- `init_date` (valor em RFC3339)
 - `has_attendance` (`true` ou `false`)
 
 Exemplo:
@@ -118,7 +121,8 @@ Resposta de sucesso (`200`):
   "events": [
     {
       "name": "Workshop A",
-      "date_time": "2026-07-10T14:00:00Z",
+      "init_date": "2026-07-10T14:00:00Z",
+      "end_date": "2026-07-10T16:00:00Z",
       "type": "Workshop",
       "location": "Auditorio A",
       "description": "Introducao a Computacao",
@@ -136,7 +140,7 @@ Erros comuns (`400`):
 - `{"error":"invalid sort_order parameter"}`
 - `{"error":"search_by and search_value must be provided together"}`
 - `{"error":"invalid search_by parameter"}`
-- `{"error":"invalid search_value for date_time, use RFC3339"}`
+- `{"error":"invalid search_value for init_time, use RFC3339"}`
 - `{"error":"invalid search_value for has_attendance"}`
 
 ---
@@ -144,7 +148,7 @@ Erros comuns (`400`):
 ## 3) Buscar evento especifico [PUBLICO]
 
 - **Metodo**: `GET`
-- **Rota**: `/event/:eventName/:date`
+- **Rota**: `/event/:eventName/:initDate`
 
 Exemplo:
 
@@ -155,7 +159,8 @@ Resposta de sucesso (`200`):
 ```json
 {
   "name": "Workshop A",
-  "date_time": "2026-07-10T14:00:00Z",
+  "init_date": "2026-07-10T14:00:00Z",
+  "end_date": "2026-07-10T16:00:00Z",
   "type": "Workshop",
   "location": "Auditorio A",
   "description": "Introducao a Computacao",
@@ -174,7 +179,7 @@ Erros comuns:
 ## 4) Atualizar evento [ADMIN]
 
 - **Metodo**: `PUT`
-- **Rota**: `/admin/events/:eventName/:date`
+- **Rota**: `/admin/events/:eventName/:initDate`
 - **Body (JSON)**: mesmo formato da criacao
 
 Exemplo:
@@ -184,7 +189,8 @@ Exemplo:
 ```json
 {
   "name": "Workshop Golang",
-  "date_time": "2026-07-10T16:00:00Z",
+  "init_date": "2026-07-10T14:00:00Z",
+  "end_date": "2026-07-10T16:00:00Z",
   "type": "Workshop",
   "location": "Auditorio B",
   "description": "Conteudo atualizado",
@@ -199,7 +205,8 @@ Resposta de sucesso (`200`):
   "message": "Evento atualizado com sucesso!",
   "event": {
     "name": "Workshop Golang",
-    "date_time": "2026-07-10T16:00:00Z",
+    "init_time": "2026-07-10T14:00:00Z",
+    "end_time": "2026-07-10T16:00:00Z",
     "type": "Workshop",
     "location": "Auditorio B",
     "description": "Conteudo atualizado",
@@ -219,7 +226,7 @@ Erros comuns:
 ## 5) Deletar evento [ADMIN]
 
 - **Metodo**: `DELETE`
-- **Rota**: `/admin/events/:eventName/:date`
+- **Rota**: `/admin/events/:eventName/:initDate`
 
 Exemplo:
 

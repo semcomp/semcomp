@@ -54,7 +54,7 @@ func main() {
 	r.POST("/login", authHandler.LoginHandler)
 
 	r.GET("/events", eventHandler.GetEvents)
-	r.GET("/event/:eventName/:date", eventHandler.GetEventByNameAndDate)
+	r.GET("/event/:eventName/:initDate", eventHandler.GetEventByNameAndInitDate)
 
 	// Rotas Protegidas (Exigem Autenticação)
 	authRoutes := r.Group("/api")
@@ -70,20 +70,20 @@ func main() {
 	backofficeRoutes.GET("/users/:id", userHandler.GetUserByID)
 
 	backofficeRoutes.POST("/events", eventHandler.CreateEvent)
-	backofficeRoutes.PUT("/events/:eventName/:date", eventHandler.UpdateEventByNameAndDate)
-	backofficeRoutes.DELETE("/events/:eventName/:date", eventHandler.DeleteEventByNameAndDate)
+	backofficeRoutes.PUT("/events/:eventName/:initDate", eventHandler.UpdateEventByNameAndInitDate)
+	backofficeRoutes.DELETE("/events/:eventName/:initDate", eventHandler.DeleteEventByNameAndInitDate)
 
 	backofficeRoutes.POST("/presences", presenceHandler.CreatePresence)
 	backofficeRoutes.GET("/presences", presenceHandler.GetPresences)
-	backofficeRoutes.GET("/presences/:name/:eventName/:eventDate", presenceHandler.GetPresenceByNameEventandDate)
-	backofficeRoutes.PUT("/presences/:name/:eventName/:eventDate", presenceHandler.UpdatePresenceByNameEventandDate)
-	backofficeRoutes.DELETE("/presences/:name/:eventName/:eventDate", presenceHandler.DeletePresenceByNameEventandDate)
+	backofficeRoutes.GET("/presences/:name/:eventName/:eventInitDate", presenceHandler.GetPresenceByNameEventandInitDate)
+	backofficeRoutes.PUT("/presences/:name/:eventName/:eventInitDate", presenceHandler.UpdatePresenceByNameEventandInitDate)
+	backofficeRoutes.DELETE("/presences/:name/:eventName/:eventInitDate", presenceHandler.DeletePresenceByNameEventandInitDate)
 
 	backofficeRoutes.POST("/sections", sectionHandler.CreateSection)
 	backofficeRoutes.GET("/sections", sectionHandler.GetSections)
 	backofficeRoutes.GET("/sections/:sectionName", sectionHandler.GetSectionByName)
 	backofficeRoutes.PUT("/sections/:sectionName", sectionHandler.UpdateSectionByName)
 	backofficeRoutes.DELETE("/sections/:sectionName", sectionHandler.DeleteSectionByName)
-	
+
 	r.Run(":4000")
 }
