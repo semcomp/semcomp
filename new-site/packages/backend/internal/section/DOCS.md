@@ -1,5 +1,3 @@
-nota para mim mesmo (daniel): trocar todas as ocorrências de "---" por um exemplo real de campo de seção
-
 # Section API
 
 Documentacao das rotas de seção do backend.
@@ -21,8 +19,8 @@ A tabela de seção é composta por:
 
 ```json
 {
-  "name": "---",
-  "description": "---",
+  "name": "Eventos",
+  "description": "Gerencie os eventos da Semcomp",
 }
 ```
 
@@ -32,8 +30,8 @@ Resposta de sucesso (`201`):
 {
   "message": "Seção criada com sucesso!",
   "section": {
-    "name": "---",
-    "description": "---"
+    "name": "Eventos",
+    "description": "Gerencie os eventos da Semcomp"
   }
 }
 ```
@@ -78,7 +76,7 @@ Campos permitidos em `search_by`:
 
 Exemplo:
 
-`GET /admin/sections?page=1&limit=10&sort_by=name&sort_order=asc&search_by=name&search_value=---` 
+`GET /admin/sections?page=1&limit=10&sort_by=name&sort_order=asc&search_by=name&search_value=Eventos` 
 
 Resposta de sucesso (`200`):
 
@@ -89,13 +87,13 @@ Resposta de sucesso (`200`):
   "sort_by": "name",
   "sort_order": "asc",
   "search_by": "name",
-  "search_value": "---",
+  "search_value": "Eventos",
   "total_records": 8,
   "filtered_records": 1,
   "sections": [
     {
-      "name": "--- ",
-      "description": "---"
+      "name": "Eventos",
+      "description": "Gerencie os eventos da Semcomp"
     }
   ]
 }
@@ -119,14 +117,14 @@ Erros comuns (`400`):
 
 Exemplo:
 
-`GET /admin/sections/---`
+`GET /admin/sections/Eventos`
 
 Resposta de sucesso (`200`):
 
 ```json
 {
-  "name": "---",
-  "description": "---"
+  "name": "Eventos",
+  "description": "Gerencie os eventos da Semcomp"
 }
 ```
 
@@ -145,12 +143,12 @@ Erros comuns:
 
 Exemplo:
 
-`PUT /admin/sections/---`
+`PUT /admin/sections/Eventos`
 
 ```json
 {
-  "name": "---",
-  "description": "---"
+  "name": "Eventos",
+  "description": "Gerencie os eventos da Semcomp"
 }
 ```
 
@@ -160,8 +158,8 @@ Resposta de sucesso (`200`):
 {
   "message": "Seção atualizada com sucesso!",
   "section": {
-    "name": "---",
-    "description": "---"
+    "name": "Eventos",
+    "description": "Gerencie os eventos da Semcomp"
   }
 }
 ```
@@ -181,7 +179,7 @@ Erros comuns:
 
 Exemplo:
 
-`DELETE /admin/sections/---`
+`DELETE /admin/sections/Eventos`
 
 Resposta de sucesso (`200`):
 
