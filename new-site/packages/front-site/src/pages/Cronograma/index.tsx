@@ -1,12 +1,94 @@
 import {useState} from "react"
-import EVENT from "@/lib/constants/SemcompBetaEvents";
-import type { EventType } from "@/types/EventType";
+import { mockEvents } from "@/mock/mockEvents.tsx";
+import type { EventType } from "@/types/EventType.ts"
+import type { EventWithColumn } from "@/types/EventWithColumn.ts";
 import { useTheme } from "@/contexts/useTheme";
-import imagemFundo from "./Imagem_fundo.jpg";
+import { formatTime } from "@/lib/utils/formatDate";
+import imagemFundo from "@/assets/img/backgrounds/schedule.jpg";
+
+function ordenarEventosPorData(events: EventType[]): EventType[]{
+  const EventsCopy = [...events];
+  
+  EventsCopy.sort((a, b) => {
+    return new Date(a.dateInit).getTime() - new Date(b.dateInit).getTime();
+  });
+
+  return EventsCopy;
+}
+
+function agruparEventosCoincidentes(events: EventType[]): EventType[][]{
+  const dicionario: Record<number, EventType[]> = {};
+
+  for(const outroEvento of events){ // para cada evento de events...
+    const key = new Date(outroEvento.dateInit).getTime();
+
+    if(dicionario[key]){ // se o dicionario já haver o horário de "outroEvento"...
+
+      //Então adiciona este evento a lista de eventos DESTE HORÁRIO
+      dicionario[key].push(outroEvento); 
+
+    }else{
+      //Senão, cria mais uma linha no dicionário
+      dicionario[key] = [outroEvento];
+    }
+  }
+
+  return Object.values(dicionario);
+}
+
+function definirColuna(events: EventType[]): EventWithColumn[][]{
+  const grupos: EventType[][] = agruparEventosCoincidentes(events);
+  const resultado: EventWithColumn[][] = [];
+
+  for(const grupo of grupos){
+    if (grupo.length === 1) {
+      const grupoModificado: EventWithColumn[] = [
+        {
+          ...grupo[0],
+          column: "full"
+        }
+      ];
+      resultado.push(grupoModificado);
+
+    }else if(grupo.length === 2){
+      const grupoModificado: EventWithColumn[] = [
+        {
+          ...grupo[0],
+          column: "left"
+        },
+        {
+          ...grupo[1],
+          column: "right"
+        }
+      ];
+
+      resultado.push(grupoModificado);
+    }else{
+      const grupoModificado: EventWithColumn[] = [];
+
+      for (const evento of grupo) {
+        grupoModificado.push({
+          ...evento,
+          column: "full"
+        });
+      }
+      resultado.push(grupoModificado);
+    }
+  }
+
+  return resultado;
+}
+
+function processarEventos(events: EventType[]): EventWithColumn[][]{
+    const ordenados = ordenarEventosPorData(events);
+    const grupoEventosComColuna = definirColuna(ordenados);
+
+    return grupoEventosComColuna;
+}
 
 export default function CronogramaPage() {
 
-  const [selected, setSelected] = useState<EventType | null>(null);
+  const [selected, setSelected] = useState<EventWithColumn | null>(null);
   const { isDarkMode } = useTheme();
 
   const pageClasses = isDarkMode
@@ -21,19 +103,12 @@ export default function CronogramaPage() {
   const glowPrimaryClass = isDarkMode ? "bg-semcompMidLightBlue/10" : "bg-semcompMidLightBlue/15";
   const glowSecondaryClass = isDarkMode ? "bg-semcompLightBlue/5" : "bg-semcompAlmostDarkBlue/8";
 
-  const rows: EventType[][] = [];
-  let i = 0;
-  
-  // Define se a linha da tabela terá um evento ou mais na mesma linha
-  // Provavelmente isso será mudado, dado que os dados atuais tão hardcodados
-  while (i < EVENT.length) {
-    if (EVENT[i].col === "left" && EVENT[i + 1]?.col === "right") {
-      rows.push([EVENT[i], EVENT[i + 1]]);
-      i += 2;
-    } else {
-      rows.push([EVENT[i]]);
-      i++;
-    }
+  const GrupoEventosProcessados: EventWithColumn[][] = processarEventos(mockEvents.events);
+
+  const gridCols: Record<number, string> = {
+    1: "grid-cols-1",
+    2: "grid-cols-1 md:grid-cols-2",
+    3: "grid-cols-1 md:grid-cols-3",
   }
 
   // Cores do gradiente baseadas no modo
@@ -81,9 +156,9 @@ export default function CronogramaPage() {
               className={`w-full max-w-md rounded-2xl border p-6 shadow-2xl ${isDarkMode ? "border-semcompMidDarkBlue bg-semcompAlmostDarkBlue text-semcompOffWhite" : "border-semcompLightBlue bg-white text-semcompDarkBlue"}`}
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="font-poppins-bold text-xl">{selected.title}</h2>
-              {selected.time && (
-                <p className={`mt-1 text-sm ${captionClasses}`}>{selected.time}</p>
+              <h2 className="font-poppins-bold text-xl">{selected.name}</h2>
+              {formatTime(selected.dateInit) && (
+                <p className={`mt-1 text-sm ${captionClasses}`}>{formatTime(selected.dateInit)}</p>
               )}
               <p className="mt-3 text-sm leading-relaxed md:text-base">
                 {selected.description || "Sem descrição."}
@@ -99,31 +174,31 @@ export default function CronogramaPage() {
         )}
 
         <div className="space-y-3">
-          {rows.map((row, rowIndex) => (
-            <div key={rowIndex} className={`grid gap-3 ${row.length === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
-              {row.map((ev, colIndex) => (
+          {GrupoEventosProcessados.map((grupo, rowIndex) => (
+            <div key={rowIndex} className={`grid gap-3 ${gridCols[grupo.length] ?? "grid-cols-1"}`}>
+              {grupo.map((evento, colIndex) => (
                 <button
-                  key={`${ev.title}-${colIndex}`}
+                  key={`${evento.name}-${colIndex}`}
                   type="button"
                   className={`group w-full rounded-xl border px-4 py-4 text-center transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${cardClasses}`}
-                  onClick={() => setSelected(ev)}
+                  onClick={() => setSelected(evento)}
                 >
-                  <p className="font-poppins-bold text-base md:text-lg">{ev.title}</p>
-                  {ev.time && <p className={`mt-1 text-sm ${captionClasses}`}>{ev.time}</p>}
+                  <p className="font-poppins-bold text-base md:text-lg">{evento.name}</p>
+                  {formatTime(evento.dateInit) && <p className={`mt-1 text-sm ${captionClasses}`}>{formatTime(evento.dateInit)}</p>}
                   <div className="grid max-h-none grid-rows-[0fr] overflow-hidden opacity-0 transition-all duration-300 group-hover:mt-3 group-hover:max-h-none group-hover:grid-rows-[1fr] group-hover:opacity-100">
                     <div className="overflow-hidden">
                       <div className="flex items-center gap-4">
-                        {ev.image && (
+                        {evento.image && (
                           <div className="w-1/2 flex justify-center items-center h-full">
                             <img 
-                              src={ev.image} 
-                              alt={ev.title}
+                              src={evento.image} 
+                              alt={evento.name}
                               className="h-full w-auto max-w-xs rounded-lg object-cover"
                             />
                           </div>
                         )}
                         <p className={`text-sm text-justify w-1/2 ml-auto ${captionClasses}`}>
-                          {ev.description || "Mais detalhes deste evento."}
+                          {evento.description || "Mais detalhes deste evento."}
                         </p>
                       </div>
                     </div>
