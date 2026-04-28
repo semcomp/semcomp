@@ -7,6 +7,7 @@ import (
 	"backend/internal/middleware"
 	"backend/internal/presence"
 	"backend/internal/providers"
+	"backend/internal/section"
 	"backend/internal/user"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,7 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -38,6 +39,10 @@ func main() {
 	presenceRepo := presence.NewPresenceRepository(db)
 	presenceService := presence.NewPresenceService(presenceRepo)
 	presenceHandler := presence.NewPresenceHandler(presenceService)
+
+	sectionRepo := section.NewSectionRepository(db)
+	sectionService := section.NewSectionService(sectionRepo)
+	sectionHandler := section.NewSectionHandler(sectionService)
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
@@ -73,5 +78,12 @@ func main() {
 	backofficeRoutes.GET("/presences/:name/:eventName/:eventDate", presenceHandler.GetPresenceByNameEventandDate)
 	backofficeRoutes.PUT("/presences/:name/:eventName/:eventDate", presenceHandler.UpdatePresenceByNameEventandDate)
 	backofficeRoutes.DELETE("/presences/:name/:eventName/:eventDate", presenceHandler.DeletePresenceByNameEventandDate)
+
+	backofficeRoutes.POST("/sections", sectionHandler.CreateSection)
+	backofficeRoutes.GET("/sections", sectionHandler.GetSections)
+	backofficeRoutes.GET("/sections/:sectionName", sectionHandler.GetSectionByName)
+	backofficeRoutes.PUT("/sections/:sectionName", sectionHandler.UpdateSectionByName)
+	backofficeRoutes.DELETE("/sections/:sectionName", sectionHandler.DeleteSectionByName)
+	
 	r.Run(":4000")
 }
