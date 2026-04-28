@@ -11,6 +11,7 @@ import (
 	"backend/internal/user"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 )
 
 func main() {
@@ -49,6 +50,14 @@ func main() {
 
 	r := gin.Default()
 
+	r.Use(cors.New(cors.Config{
+        AllowOrigins:   []string{"http://localhost:5173"},
+        AllowMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:   []string{"Origin", "Content-Type", "Authorization"},
+        AllowCredentials: true,
+        ExposeHeaders:    []string{"Content-Length"},
+    }))
+
 	// Rotas Públicas
 	r.POST("/register", userHandler.CreateUser)
 	r.POST("/login", authHandler.LoginHandler)
@@ -84,6 +93,6 @@ func main() {
 	backofficeRoutes.GET("/sections/:sectionName", sectionHandler.GetSectionByName)
 	backofficeRoutes.PUT("/sections/:sectionName", sectionHandler.UpdateSectionByName)
 	backofficeRoutes.DELETE("/sections/:sectionName", sectionHandler.DeleteSectionByName)
-	
+
 	r.Run(":4000")
 }
