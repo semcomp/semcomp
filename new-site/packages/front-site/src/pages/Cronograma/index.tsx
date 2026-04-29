@@ -16,24 +16,47 @@ function ordenarEventosPorData(events: EventType[]): EventType[]{
   return EventsCopy;
 }
 
+// Essa função necessida dos eventos já ordenados
 function agruparEventosCoincidentes(events: EventType[]): EventType[][]{
-  const dicionario: Record<number, EventType[]> = {};
+  if (events.length === 0) return [];
 
-  for(const outroEvento of events){ // para cada evento de events...
-    const key = new Date(outroEvento.dateInit).getTime();
+  const resultado: EventType[][] = [];
+  let grupoAtual: EventType[] = [];
 
-    if(dicionario[key]){ // se o dicionario já haver o horário de "outroEvento"...
+  // controla até onde o grupo atual vai
+  let fimAtual = 0;
 
-      //Então adiciona este evento a lista de eventos DESTE HORÁRIO
-      dicionario[key].push(outroEvento); 
+  for (const evento of events) {
+    const inicio = new Date(evento.dateInit).getTime();
+    const fim = new Date(evento.dateEnd).getTime();
 
-    }else{
-      //Senão, cria mais uma linha no dicionário
-      dicionario[key] = [outroEvento];
+    // se o grupo está vazio, começa
+    if (grupoAtual.length === 0) {
+      grupoAtual.push(evento);
+      fimAtual = fim;
+      continue;
+    }
+
+    // se sobrepõe ao grupo atual
+    if (inicio < fimAtual) {
+      grupoAtual.push(evento);
+
+      fimAtual = Math.max(fimAtual, fim);
+    } 
+    // não sobrepõe, fecha grupo e cria outro
+    else {
+      resultado.push(grupoAtual);
+      grupoAtual = [evento];
+      fimAtual = fim;
     }
   }
 
-  return Object.values(dicionario);
+  // adiciona último grupo
+  if (grupoAtual.length > 0) {
+    resultado.push(grupoAtual);
+  }
+
+  return resultado;
 }
 
 function definirColuna(events: EventType[]): EventWithColumn[][]{
@@ -66,13 +89,36 @@ function definirColuna(events: EventType[]): EventWithColumn[][]{
     }else{
       const grupoModificado: EventWithColumn[] = [];
 
+      // 1. encontrar o evento "especial"
+      let eventoEspecial = grupo[0];
+
+      for (const evento of grupo) {
+        const inicioAtual = new Date(evento.dateInit).getTime();
+        const fimAtual = new Date(evento.dateEnd).getTime();
+        const duracaoAtual = fimAtual - inicioAtual;
+
+        const inicioEspecial = new Date(eventoEspecial.dateInit).getTime();
+        const fimEspecial = new Date(eventoEspecial.dateEnd).getTime();
+        const duracaoEspecial = fimEspecial - inicioEspecial;
+
+        if (
+          duracaoAtual > duracaoEspecial ||
+          (duracaoAtual === duracaoEspecial && inicioAtual < inicioEspecial)
+        ) {
+          eventoEspecial = evento;
+        }
+      }
+
+      // 2. montar o grupo com colunas
       for (const evento of grupo) {
         grupoModificado.push({
           ...evento,
-          column: "full"
+          column: evento === eventoEspecial ? "right" : "left"
         });
       }
+
       resultado.push(grupoModificado);
+
     }
   }
 
@@ -84,6 +130,51 @@ function processarEventos(events: EventType[]): EventWithColumn[][]{
     const grupoEventosComColuna = definirColuna(ordenados);
 
     return grupoEventosComColuna;
+}
+
+function EventButton({
+  evento,
+  onClick,
+  cardClasses,
+  captionClasses
+}: {
+  evento: EventWithColumn;
+  onClick: () => void;
+  cardClasses: string;
+  captionClasses: string;
+}) {
+  return (
+    <button
+      type="button"
+      className={`group w-full rounded-xl border px-4 py-4 text-center transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md h-full ${cardClasses}`}
+      onClick={onClick}
+    >
+      <p className="font-poppins-bold text-base md:text-lg">{evento.name}</p>
+
+      <p className={`mt-1 text-sm ${captionClasses}`}>
+        {formatTime(evento.dateInit)} - {formatTime(evento.dateEnd)}
+      </p>
+
+      <div className="grid max-h-none grid-rows-[0fr] overflow-hidden opacity-0 transition-all duration-300 group-hover:mt-3 group-hover:grid-rows-[1fr] group-hover:opacity-100">
+        <div className="overflow-hidden">
+          <div className="flex items-center gap-4">
+            {evento.image && (
+              <div className="w-1/2 flex justify-center items-center h-full">
+                <img 
+                  src={evento.image} 
+                  alt={evento.name}
+                  className="h-full w-auto max-w-xs rounded-lg object-cover"
+                />
+              </div>
+            )}
+            <p className={`text-sm text-justify w-1/2 ml-auto ${captionClasses}`}>
+              {evento.description || "Mais detalhes deste evento."}
+            </p>
+          </div>
+        </div>
+      </div>
+    </button>
+  );
 }
 
 export default function CronogramaPage() {
@@ -104,12 +195,6 @@ export default function CronogramaPage() {
   const glowSecondaryClass = isDarkMode ? "bg-semcompLightBlue/5" : "bg-semcompAlmostDarkBlue/8";
 
   const GrupoEventosProcessados: EventWithColumn[][] = processarEventos(mockEvents.events);
-
-  const gridCols: Record<number, string> = {
-    1: "grid-cols-1",
-    2: "grid-cols-1 md:grid-cols-2",
-    3: "grid-cols-1 md:grid-cols-3",
-  }
 
   // Cores do gradiente baseadas no modo
   const gradientColor = isDarkMode ? "#002D5E" : "#004F7C"; // semcompDarkBlue / semcompOffWhite
@@ -174,39 +259,59 @@ export default function CronogramaPage() {
         )}
 
         <div className="space-y-3">
-          {GrupoEventosProcessados.map((grupo, rowIndex) => (
-            <div key={rowIndex} className={`grid gap-3 ${gridCols[grupo.length] ?? "grid-cols-1"}`}>
-              {grupo.map((evento, colIndex) => (
-                <button
-                  key={`${evento.name}-${colIndex}`}
-                  type="button"
-                  className={`group w-full rounded-xl border px-4 py-4 text-center transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${cardClasses}`}
-                  onClick={() => setSelected(evento)}
-                >
-                  <p className="font-poppins-bold text-base md:text-lg">{evento.name}</p>
-                  {formatTime(evento.dateInit) && <p className={`mt-1 text-sm ${captionClasses}`}>{formatTime(evento.dateInit)}</p>}
-                  <div className="grid max-h-none grid-rows-[0fr] overflow-hidden opacity-0 transition-all duration-300 group-hover:mt-3 group-hover:max-h-none group-hover:grid-rows-[1fr] group-hover:opacity-100">
-                    <div className="overflow-hidden">
-                      <div className="flex items-center gap-4">
-                        {evento.image && (
-                          <div className="w-1/2 flex justify-center items-center h-full">
-                            <img 
-                              src={evento.image} 
-                              alt={evento.name}
-                              className="h-full w-auto max-w-xs rounded-lg object-cover"
-                            />
-                          </div>
-                        )}
-                        <p className={`text-sm text-justify w-1/2 ml-auto ${captionClasses}`}>
-                          {evento.description || "Mais detalhes deste evento."}
-                        </p>
-                      </div>
-                    </div>
+          {GrupoEventosProcessados.map((grupo, rowIndex) => {
+            const left = grupo.filter(e => e.column === "left");
+            const right = grupo.filter(e => e.column === "right");
+            const full = grupo.filter(e => e.column === "full");
+
+            return (
+              <div key={rowIndex} className="grid gap-3 md:grid-cols-2">
+
+                {full.length > 0 && full.map((evento) => (
+                  <div key={evento.name} className="col-span-2">
+                    <EventButton
+                      evento={evento}
+                      onClick={() => setSelected(evento)}
+                      cardClasses={cardClasses}
+                      captionClasses={captionClasses}
+                    />
                   </div>
-                </button>
-              ))}
-            </div>
-          ))}
+                ))}
+
+                {full.length === 0 && (
+                  <>
+                    <div className="flex flex-col gap-3 h-full">
+                      {left.map((evento) => (
+                        <div className="flex-1">
+                          <EventButton
+                            key={evento.name}
+                            evento={evento}
+                            onClick={() => setSelected(evento)}
+                            cardClasses={cardClasses}
+                            captionClasses={captionClasses}
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-col gap-3 h-full">
+                      {right.map((evento) => (
+                        <div className="flex-1">
+                          <EventButton
+                            key={evento.name}
+                            evento={evento}
+                            onClick={() => setSelected(evento)}
+                            cardClasses={cardClasses}
+                            captionClasses={captionClasses}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

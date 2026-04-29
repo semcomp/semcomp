@@ -14,7 +14,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Abertura",
             "dateInit": "2026-05-16T08:00:00Z",
-            "dateEnd": "2026-05-16T08:00:00Z",
+            "dateEnd": "2026-05-16T08:30:00Z",
             "type": "Abertura",
             "location": "Auditorio A",
             "description": "Abertura da SEMCOMP BETA 29",
@@ -23,7 +23,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Palestra A",
             "dateInit": "2026-05-16T08:30:00Z",
-            "dateEnd": "2026-05-16T08:30:00Z",
+            "dateEnd": "2026-05-16T10:00:00Z",
             "type": "Palestra",
             "location": "Auditorio A",
             "description": "Introducao a Computacao",
@@ -32,7 +32,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Vitrine Acadêmica A",
             "dateInit": "2026-05-16T10:00:00Z",
-            "dateEnd": "2026-05-16T10:00:00Z",
+            "dateEnd": "2026-05-16T10:30:00Z",
             "type": "Vitrine Academica",
             "location": "Auditorio A",
             "description": "Introducao a Computacao",
@@ -41,7 +41,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Palestra B",
             "dateInit": "2026-05-16T10:30:00Z",
-            "dateEnd": "2026-05-16T10:30:00Z",
+            "dateEnd": "2026-05-16T12:00:00Z",
             "type": "Palestra",
             "location": "Auditorio A",
             "description": "Introducao a Computacao",
@@ -50,7 +50,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Almoço",
             "dateInit": "2026-05-16T12:00:00Z",
-            "dateEnd": "2026-05-16T12:00:00Z",
+            "dateEnd": "2026-05-16T13:00:00Z",
             "type": "intervalo",
             "location": "Auditorio A",
             "description": "Introducao a Computacao",
@@ -60,7 +60,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Concurso A",
             "dateInit": "2026-05-16T14:00:00Z",
-            "dateEnd": "2026-05-16T14:00:00Z",
+            "dateEnd": "2026-05-16T15:00:00Z",
             "type": "Concurso",
             "location": "Auditorio A",
             "description": "Introducao a Computacao",
@@ -69,7 +69,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Concurso B",
             "dateInit": "2026-05-16T15:00:00Z",
-            "dateEnd": "2026-05-16T15:00:00Z",
+            "dateEnd": "2026-05-16T16:00:00Z",
             "type": "Concurso",
             "location": "Auditorio A",
             "description": "Introducao a Computacao",
@@ -78,7 +78,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Mini Curso",
             "dateInit": "2026-05-16T14:00:00Z",
-            "dateEnd": "2026-05-16T14:00:00Z",
+            "dateEnd": "2026-05-16T16:00:00Z",
             "type": "Minicurso",
             "location": "Auditorio A",
             "description": "Introducao a Computacao",
@@ -87,7 +87,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Coffee Break",
             "dateInit": "2026-05-16T16:00:00Z",
-            "dateEnd": "2026-05-16T16:00:00Z",
+            "dateEnd": "2026-05-16T16:40:00Z",
             "type": "Coffee",
             "location": "Auditorio A",
             "description": "Introducao a Computacao",
@@ -96,7 +96,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Vitrine Acadêmica B",
             "dateInit": "2026-05-16T16:40:00Z",
-            "dateEnd": "2026-05-16T16:40:00Z",
+            "dateEnd": "2026-05-16T18:00:00Z",
             "type": "Vitrine Academica",
             "location": "Auditorio A",
             "description": "Introducao a Computacao",
@@ -105,7 +105,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Mini Curso (continuação)",
             "dateInit": "2026-05-16T16:40:00Z",
-            "dateEnd": "2026-05-16T16:40:00Z",
+            "dateEnd": "2026-05-16T18:00:00Z",
             "type": "Minicurso",
             "location": "Auditorio A",
             "description": "Introducao a Computacao",
@@ -114,7 +114,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Encerramento",
             "dateInit": "2026-05-16T18:00:00Z",
-            "dateEnd": "2026-05-16T18:00:00Z",
+            "dateEnd": "2026-05-16T18:30:00Z",
             "type": "Encerramento",
             "location": "Auditorio A",
             "description": "Introducao a Computacao",
@@ -123,7 +123,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Janta",
             "dateInit": "2026-05-16T18:30:00Z",
-            "dateEnd": "2026-05-16T18:30:00Z",
+            "dateEnd": "2026-05-16T19:00:00Z",
             "type": "intervalo",
             "location": "Auditorio A",
             "description": "Introducao a Computacao",
@@ -132,7 +132,7 @@ export const mockEvents: EventsResponse = {
         {
             "name": "Game Night",
             "dateInit": "2026-05-16T19:30:00Z",
-            "dateEnd": "2026-05-16T19:30:00Z",
+            "dateEnd": "2026-05-16T23:00:00Z",
             "type": "Game Night",
             "location": "Auditorio A",
             "description": "Introducao a Computacao",
