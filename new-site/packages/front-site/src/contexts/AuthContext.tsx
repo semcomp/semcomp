@@ -1,13 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-
-type AuthUser = {
-  email: string;
-  name: string;
-};
+import type { UserType } from "@/types/UserType";
+import axios from "axios";
+import { BASEURL } from "@/constants/ApiURL";
+import Notification from "@/components/Notification";
 
 type AuthContextValue = {
   isAuthenticated: boolean;
-  user: AuthUser | null;
+  user: UserType | null;
   login: (email: string, password: string) => void;
   logout: () => void;
 };
@@ -16,7 +15,7 @@ const storageKey = "semcomp-site-auth";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function readStoredUser(): AuthUser | null {
+function readStoredUser(): UserType | null {
   if (typeof window === "undefined") {
     return null;
   }
@@ -27,7 +26,7 @@ function readStoredUser(): AuthUser | null {
   }
 
   try {
-    return JSON.parse(rawValue) as AuthUser;
+    return JSON.parse(rawValue) as UserType;
   } catch {
     window.localStorage.removeItem(storageKey);
     return null;
@@ -35,7 +34,8 @@ function readStoredUser(): AuthUser | null {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
+  const [user, setUser] = useState<UserType | null>(() => readStoredUser());
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -50,22 +50,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       isAuthenticated: user !== null,
       user,
-      login: (email: string) => {
-        const normalizedEmail = email.trim().toLowerCase();
-        const fallbackName = normalizedEmail.split("@")[0] || "Administrador";
+      login: async (email: string, password: string) => {
+        try {
+          // Faz a chamada da api com o método POST para tentativa de login
+          const response = await axios.post(`${BASEURL}/login`, {
+            email: email,
+            password: password,
+          });
 
-        setUser({
-          email: normalizedEmail,
-          name: fallbackName
-            .split(/[._-]/)
-            .filter(Boolean)
-            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-            .join(" ") || "Administrador",
-        });
+          // Teste de login
+          console.log("deu certo");
+
+          // Se a requisição deu certo, adiciona no user os dados de token, nome e email
+          setUser({
+            token: response.data.token,
+            name: response.data.user.name,
+            email: response.data.user.email,
+          });
+        } catch (err: any) {
+          setErrorMessage(err.message);
+          <Notification
+            message={errorMessage}
+            type="warning"
+            visible={Boolean(errorMessage)}
+            onClose={() => setErrorMessage("")}
+          />;
+        }
       },
       logout: () => setUser(null),
     }),
-    [user],
+    [user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
