@@ -16,9 +16,9 @@ var (
 
 type PresenceService interface {
 	CreatePresence(request CreatePresenceRequest) (*Presence, error)
-	GetPresenceByNameEventandDate(name string, eventName string, dateTime string) (*Presence, error)
-	DeletePresenceByNameEventandDate(name string, eventName string, dateTime string) error
-	UpdatePresenceByNameEventandDate(name string, eventName string, dateTime string, request UpdatePresenceRequest) error
+	GetPresenceByNameEventandInitDate(name string, eventName string, initDate string) (*Presence, error)
+	DeletePresenceByNameEventandInitDate(name string, eventName string, initDate string) error
+	UpdatePresenceByNameEventandInitDate(name string, eventName string, initDate string, request UpdatePresenceRequest) error
 	GetPresences(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*PresenceListResult, error)
 }
 
@@ -34,7 +34,7 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 	newPresence := Presence{
 		Name:          request.Name,
 		EventName:     request.EventName,
-		EventDateTime: request.EventDateTime,
+		EventInitDate: request.EventInitDate,
 		EmailAdmin:    request.EmailAdmin,
 	}
 
@@ -45,13 +45,13 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 	return &newPresence, nil
 }
 
-func (s *presenceService) GetPresenceByNameEventandDate(name string, eventName string, dateTime string) (*Presence, error) {
-	dateTimeParsed, err := time.Parse(time.RFC3339, dateTime)
+func (s *presenceService) GetPresenceByNameEventandInitDate(name string, eventName string, initDate string) (*Presence, error) {
+	initDateParsed, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
 		return nil, ErrInvalidEventDate
 	}
 
-	presence, err := s.repo.GetByNameEventandDate(name, eventName, dateTimeParsed)
+	presence, err := s.repo.GetByNameEventandInitDate(name, eventName, initDateParsed)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrPresenceNotFound
@@ -63,12 +63,12 @@ func (s *presenceService) GetPresenceByNameEventandDate(name string, eventName s
 
 }
 
-func (s *presenceService) DeletePresenceByNameEventandDate(name string, eventName string, dateTime string) error {
-	dateTimeParsed, err := time.Parse(time.RFC3339, dateTime)
+func (s *presenceService) DeletePresenceByNameEventandInitDate(name string, eventName string, initDate string) error {
+	initDateParsed, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
 		return ErrInvalidEventDate
 	}
-	err = s.repo.DeleteByNameEventandDate(name, eventName, dateTimeParsed)
+	err = s.repo.DeleteByNameEventandInitDate(name, eventName, initDateParsed)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrPresenceNotFound
@@ -79,8 +79,8 @@ func (s *presenceService) DeletePresenceByNameEventandDate(name string, eventNam
 	return nil
 }
 
-func (s *presenceService) UpdatePresenceByNameEventandDate(name string, eventName string, dateTime string, request UpdatePresenceRequest) error {
-	dateTimeParsed, err := time.Parse(time.RFC3339, dateTime)
+func (s *presenceService) UpdatePresenceByNameEventandInitDate(name string, eventName string, initDate string, request UpdatePresenceRequest) error {
+	initDateParsed, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
 		return ErrInvalidEventDate
 	}
@@ -88,11 +88,11 @@ func (s *presenceService) UpdatePresenceByNameEventandDate(name string, eventNam
 	updatePresence := Presence{
 		Name:          request.Name,
 		EventName:     request.EventName,
-		EventDateTime: request.EventDateTime,
+		EventInitDate: initDateParsed,
 		EmailAdmin:    request.EmailAdmin,
 	}
 
-	err = s.repo.UpdateByNameEventandDate(name, eventName, dateTimeParsed, &updatePresence)
+	err = s.repo.UpdateByNameEventandInitDate(name, eventName, initDateParsed, &updatePresence)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrPresenceNotFound
@@ -113,7 +113,7 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 	}
 
 	if sortBy == "" {
-		sortBy = "event_date_time"
+		sortBy = "event_init_date"
 	}
 
 	if sortOrder == "" {
@@ -126,7 +126,7 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 	allowedSortFields := map[string]bool{
 		"name":            true,
 		"event_name":      true,
-		"event_date_time": true,
+		"event_init_date": true,
 		"email_admin":     true,
 	}
 
@@ -149,17 +149,17 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 			"name":            true,
 			"event_name":      true,
 			"email_admin":     true,
-			"event_date_time": true,
+			"event_init_date": true,
 		}
 
 		if !allowedSearchFields[searchBy] {
 			return nil, fmt.Errorf("invalid search_by parameter")
 		}
 
-		if searchBy == "event_date_time" {
+		if searchBy == "event_init_date" {
 			parsedDateTime, err := time.Parse(time.RFC3339, searchValue)
 			if err != nil {
-				return nil, fmt.Errorf("invalid search_value for event_date_time, use RFC3339")
+				return nil, fmt.Errorf("invalid search_value for event_init_date, use RFC3339")
 			}
 			searchValue = parsedDateTime.Format(time.RFC3339)
 		}
