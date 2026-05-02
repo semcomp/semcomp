@@ -35,7 +35,6 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 		Name:          request.Name,
 		EventName:     request.EventName,
 		EventInitDate: request.EventInitDate,
-		EventEndDate:  request.EventEndDate,
 		EmailAdmin:    request.EmailAdmin,
 	}
 
@@ -90,7 +89,6 @@ func (s *presenceService) UpdatePresenceByNameEventandInitDate(name string, even
 		Name:          request.Name,
 		EventName:     request.EventName,
 		EventInitDate: initDateParsed,
-		EventEndDate:  request.EventEndDate,
 		EmailAdmin:    request.EmailAdmin,
 	}
 

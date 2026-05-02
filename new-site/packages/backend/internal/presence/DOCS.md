@@ -9,7 +9,6 @@ A tabela de presenca é composta por:
 - `Name`: Nome do usuário.
 - `EventName`: Nome do evento.
 - `EventInitDate`: Data e hora do início do evento.
-- `EventEndDate`: Data e hora do fim do evento.
 - `EmailAdmin`: Email do usuário backoffice que cadastrou a presença.
 
 ## Formato de data
@@ -30,7 +29,6 @@ A tabela de presenca é composta por:
   "name": "Fulano de Ciclano",
   "event_name": "Workshop A",
   "event_init_date": "2026-07-10T14:00:00Z",
-  "event_end_date": "2026-07-10T16:00:00Z",
   "email_admin": "Example@semcomp.com",
 }
 ```
@@ -44,7 +42,6 @@ Resposta de sucesso (`201`):
     "name": "Fulano de Ciclano",
     "event_name": "Workshop A",
     "event_init_date": "2026-07-10T14:00:00Z",
-    "event_end_date": "2026-07-10T16:00:00Z",
     "email_admin": "Example@semcomp.com"
   }
 }
@@ -89,7 +86,7 @@ Campos permitidos em `search_by`:
 
 - `name`
 - `event_name`
-- `event_init_date` (valor em RFC3339)_
+- `event_init_date` (valor em RFC3339)
 - `email_admin`
 
 Exemplo:
@@ -104,7 +101,6 @@ Resposta de sucesso (`200`):
     "name": "Fulano de Ciclano",
     "event_name": "Workshop A",
     "event_init_date": "2026-07-10T14:00:00Z",
-    "event_end_date": "2026-07-10T16:00:00Z",
     "email_admin": "Example@semcomp.com"
   }
 ]
@@ -139,7 +135,6 @@ Resposta de sucesso (`200`):
   "name": "Fulano de Ciclano",
   "event_name": "Workshop A",
   "event_init_date": "2026-07-10T14:00:00Z",
-  "event_end_date": "2026-07-10T16:00:00Z",
   "email_admin": "Example@semcomp.com"
 }
 ```
@@ -167,7 +162,6 @@ Exemplo:
   "name": "Fulano de Ciclano",
   "event_name": "Workshop Golang",
   "event_init_date": "2026-07-10T14:00:00Z",
-  "event_end_date": "2026-07-10T16:00:00Z",
   "email_admin": "Example@semcomp.com",
 }
 ```

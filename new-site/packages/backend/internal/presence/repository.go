@@ -59,7 +59,6 @@ func (r *presenceRepository) UpdateByNameEventandInitDate(name string, eventName
 			"name":            updatedPresence.Name,
 			"event_name":      updatedPresence.EventName,
 			"event_init_date": updatedPresence.EventInitDate,
-			"event_end_date":  updatedPresence.EventEndDate,
 			"email_admin":     updatedPresence.EmailAdmin,
 		})
 
