@@ -29,7 +29,7 @@ A tabela de presenca é composta por:
   "name": "Fulano de Ciclano",
   "event_name": "Workshop A",
   "event_init_date": "2026-07-10T14:00:00Z",
-  "email_admin": "Example@semcomp.com",
+  "email_admin": "Example@semcomp.com"
 }
 ```
 
@@ -91,19 +91,23 @@ Campos permitidos em `search_by`:
 
 Exemplo:
 
-`GET /presences?page=1&limit=10&sort_by=name&sort_order=desc&search_by=event_name&search_value=Workshop`
+`GET /admin/presences?page=1&limit=10&sort_by=name&sort_order=desc&search_by=event_name&search_value=Workshop`
 
 Resposta de sucesso (`200`):
 
 ```json (confirmacao de resposta)
-[
-  {
-    "name": "Fulano de Ciclano",
-    "event_name": "Workshop A",
-    "event_init_date": "2026-07-10T14:00:00Z",
-    "email_admin": "Example@semcomp.com"
-  }
-]
+{
+	"Presences": [
+		{
+			"name": "Fulano de Ciclano",
+			"event_name": "Workshop A",
+			"event_init_date": "2026-07-10T14:00:00Z",
+			"email_admin": "Example@semcomp.com"
+		}
+	],
+	"TotalRecords": 1,
+	"FilteredRecords": 1
+}
 ```
 
 Erros comuns (`400`):
@@ -122,11 +126,11 @@ Erros comuns (`400`):
 ## 3) Buscar presenca especifica [ADMIN]
 
 - **Metodo**: `GET`
-- **Rota**: `/presences/:name/:eventName/:eventInitDate`
+- **Rota**: `/admin/presences/:name/:eventName/:eventInitDate`
 
 Exemplo:
 
-`GET /presences/Pedro/Workshop%20A/2026-07-10T14:00:00Z`
+`GET /admin/presences/Fulano de Ciclano/Workshop%20A/2026-07-10T14:00:00Z`
 
 Resposta de sucesso (`200`):
 
@@ -162,7 +166,7 @@ Exemplo:
   "name": "Fulano de Ciclano",
   "event_name": "Workshop Golang",
   "event_init_date": "2026-07-10T14:00:00Z",
-  "email_admin": "Example@semcomp.com",
+  "email_admin": "Example@semcomp.com"
 }
 ```
 
