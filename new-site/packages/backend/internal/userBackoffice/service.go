@@ -31,6 +31,10 @@ func (s *userBackofficeService) InitializeAdmin() error {
 	email := os.Getenv("ADMIN_EMAIL")
 	password := os.Getenv("ADMIN_PASSWORD")
 
+	if email == "" || password == "" {
+		return errors.New("erro na inicialização do backoffice")
+	}
+	
 	_, err := s.repo.GetByEmail(email)
 	if err == nil {
 		return nil

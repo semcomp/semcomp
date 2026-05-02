@@ -11,10 +11,35 @@ A tabela de usuarios do backoffice é composta por:
 
 ---
 
+## 1) Login
+
+- **Metodo**: `POST`
+- **Rota**: `/admin/login`
+- **Body (JSON)**:
+
+```json
+{
+  "email": "sitesemcomp@gmail.com",
+  "password": "senhaBoa"
+}
+```
+
+Resposta de sucesso (`200`):
+
+```json
+{
+	"message": "Login successful",
+	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNpdGVzZW1jb21wQGdtYWlsLmNvbSIsImV4cCI6MTc3Nzg0NDkyNiwiaWF0IjoxNzc3NzU4NTI2LCJzdWIiOiJzaXRlc2VtY29tcEBnbWFpbC5jb20ifQ.zUSbjw0kmHYxaDdMa3nkMm3NbUn6I6dClRYlpuyukmc",
+	"user": {
+		"email": "sitesemcomp@gmail.com"
+	}
+}
+```
+
 ## 1) Criar usuario [ADMIN]
 
 - **Metodo**: `POST`
-- **Rota**: `/admin/users`
+- **Rota**: `/admin/usersBackoffice`
 - **Body (JSON)**:
 
 ```json
@@ -46,7 +71,7 @@ Erros comuns:
 ## 2) Listar usuarios [ADMIN]
 
 - **Metodo**: `GET`
-- **Rota**: `/admin/users`
+- **Rota**: `/admin/usersBackoffice`
 - **Query params**:
   - `page` (opcional, default `1`, minimo `1`)
   - `limit` (opcional, default `10`, minimo `1`)
@@ -74,7 +99,7 @@ Campos permitidos em `search_by`:
 
 Exemplo:
 
-`GET /admin/users?page=1&limit=10&sort_by=email&sort_order=asc&search_by=email&search_value=exemplo`
+`GET /admin/usersBackoffice?page=1&limit=10&sort_by=email&sort_order=asc&search_by=email&search_value=exemplo`
 
 Resposta de sucesso (`200`):
 
@@ -88,7 +113,7 @@ Resposta de sucesso (`200`):
   "search_value": "exemplo",
   "total_records": 5,
   "filtered_records": 1,
-  "users": [
+  "usersBackoffice": [
     {
       "email": "usuario@exemplo.com"
     }
@@ -110,11 +135,11 @@ Erros comuns (`400`):
 ## 3) Buscar usuario especifico [ADMIN]
 
 - **Metodo**: `GET`
-- **Rota**: `/admin/users/:email`
+- **Rota**: `/admin/usersBackoffice/:email`
 
 Exemplo:
 
-`GET /admin/users/usuario@exemplo.com`
+`GET /admin/usersBackoffice/usuario@exemplo.com`
 
 Resposta de sucesso (`200`):
 
@@ -133,7 +158,7 @@ Erros comuns:
 ## 4) Atualizar usuario [ADMIN]
 
 - **Metodo**: `PUT`
-- **Rota**: `/admin/users/:email`
+- **Rota**: `/admin/usersBackoffice/:email`
 - **Body (JSON)**:
 
 ```json
@@ -147,7 +172,7 @@ Erros comuns:
 
 Exemplo:
 
-`PUT /admin/users/usuario@exemplo.com`
+`PUT /admin/usersBackoffice/usuario@exemplo.com`
 
 Resposta de sucesso (`200`):
 
@@ -167,11 +192,11 @@ Erros comuns:
 ## 5) Deletar usuario [ADMIN]
 
 - **Metodo**: `DELETE`
-- **Rota**: `/admin/users/:email`
+- **Rota**: `/admin/usersBackoffice/:email`
 
 Exemplo:
 
-`DELETE /admin/users/usuario@exemplo.com`
+`DELETE /admin/usersBackoffice/usuario@exemplo.com`
 
 Resposta de sucesso (`200`):
 
