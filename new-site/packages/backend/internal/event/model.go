@@ -4,7 +4,8 @@ import "time"
 
 type Event struct {
 	Name          string    `gorm:"size:200;primaryKey;not null" json:"name"`
-	DateTime      time.Time `gorm:"type:timestamptz;primaryKey;not null" json:"date_time"`
+	InitDate      time.Time `gorm:"type:timestamptz;primaryKey;not null" json:"init_date"`
+	EndDate       time.Time `gorm:"type:timestamptz;not null" json:"end_date"`
 	Type          string    `gorm:"size:50" json:"type"`
 	Location      string    `json:"location"`
 	Description   string    `gorm:"type:text" json:"description"`
@@ -13,7 +14,8 @@ type Event struct {
 
 type CreateEventRequest struct {
 	Name          string    `json:"name" binding:"required,max=200"`
-	DateTime      time.Time `json:"date_time" binding:"required"`
+	InitDate      time.Time `json:"init_date" binding:"required"`
+	EndDate       time.Time `json:"end_date" binding:"required"`
 	Type          string    `json:"type" binding:"omitempty,max=50"`
 	Location      string    `json:"location"`
 	Description   string    `json:"description"`
@@ -22,7 +24,8 @@ type CreateEventRequest struct {
 
 type UpdateEventRequest struct {
 	Name          string    `json:"name" binding:"required,max=200"`
-	DateTime      time.Time `json:"date_time" binding:"required"`
+	InitDate      time.Time `json:"init_date" binding:"required"`
+	EndDate       time.Time `json:"end_date" binding:"required"`
 	Type          string    `json:"type" binding:"omitempty,max=50"`
 	Location      string    `json:"location"`
 	Description   string    `json:"description"`

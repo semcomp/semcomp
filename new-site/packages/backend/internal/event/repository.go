@@ -11,9 +11,9 @@ import (
 
 type EventRepository interface {
 	Create(event *Event) error
-	GetByNameAndDateTime(name string, dateTime time.Time) (*Event, error)
-	DeleteByNameAndDateTime(name string, dateTime time.Time) error
-	UpdateByNameAndDateTime(name string, dateTime time.Time, event *Event) error
+	GetByNameAndInitTime(name string, initTime time.Time) (*Event, error)
+	DeleteByNameAndInitTime(name string, initTime time.Time) error
+	UpdateByNameAndInitTime(name string, initTime time.Time, event *Event) error
 	GetEvents(query EventListQuery) (*EventListResult, error)
 }
 
@@ -29,9 +29,9 @@ func (r *eventRepository) Create(event *Event) error {
 	return r.db.Create(event).Error
 }
 
-func (r *eventRepository) GetByNameAndDateTime(name string, dateTime time.Time) (*Event, error) {
+func (r *eventRepository) GetByNameAndInitTime(name string, initTime time.Time) (*Event, error) {
 	var event Event
-	err := r.db.Where("name = ? AND date_time = ?", name, dateTime).First(&event).Error
+	err := r.db.Where("name = ? AND init_date = ?", name, initTime).First(&event).Error
 	if err != nil {
 		return nil, err
 	}
@@ -39,8 +39,8 @@ func (r *eventRepository) GetByNameAndDateTime(name string, dateTime time.Time) 
 	return &event, nil
 }
 
-func (r *eventRepository) DeleteByNameAndDateTime(name string, dateTime time.Time) error {
-	result := r.db.Where("name = ? AND date_time = ?", name, dateTime).Delete(&Event{})
+func (r *eventRepository) DeleteByNameAndInitTime(name string, initTime time.Time) error {
+	result := r.db.Where("name = ? AND init_date = ?", name, initTime).Delete(&Event{})
 	if result.Error != nil {
 		return result.Error
 	}
@@ -52,12 +52,13 @@ func (r *eventRepository) DeleteByNameAndDateTime(name string, dateTime time.Tim
 	return nil
 }
 
-func (r *eventRepository) UpdateByNameAndDateTime(name string, dateTime time.Time, event *Event) error {
+func (r *eventRepository) UpdateByNameAndInitTime(name string, initTime time.Time, event *Event) error {
 	result := r.db.Model(&Event{}).
-		Where("name = ? AND date_time = ?", name, dateTime).
+		Where("name = ? AND init_date = ?", name, initTime).
 		Updates(map[string]interface{}{
 			"name":           event.Name,
-			"date_time":      event.DateTime,
+			"init_date":      event.InitDate,
+			"end_date":       event.EndDate,
 			"type":           event.Type,
 			"location":       event.Location,
 			"description":    event.Description,
@@ -89,8 +90,8 @@ func applySearchFilter(dbQuery *gorm.DB, query EventListQuery) *gorm.DB {
 		return dbQuery.Where("location ILIKE ?", "%"+query.SearchValue+"%")
 	case "description":
 		return dbQuery.Where("description ILIKE ?", "%"+query.SearchValue+"%")
-	case "date_time":
-		return dbQuery.Where("date_time = ?", query.SearchValue)
+	case "init_date":
+		return dbQuery.Where("init_date = ?", query.SearchValue)
 	case "has_attendance":
 		return dbQuery.Where("has_attendance = ?", query.SearchValue)
 	default:
@@ -101,7 +102,7 @@ func applySearchFilter(dbQuery *gorm.DB, query EventListQuery) *gorm.DB {
 func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 	allowedSortFields := []string{
 		"name",
-		"date_time",
+		"init_date",
 		"type",
 		"location",
 		"description",
