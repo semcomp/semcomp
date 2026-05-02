@@ -17,9 +17,9 @@ var (
 
 type EventService interface {
 	CreateEvent(request CreateEventRequest) (*Event, error)
-	GetEventByNameAndDate(name string, date string) (*Event, error)
-	DeleteEventByNameAndDate(name string, date string) error
-	UpdateEventByNameAndDate(name string, date string, request UpdateEventRequest) (*Event, error)
+	GetEventByNameAndInitDate(name string, date string) (*Event, error)
+	DeleteEventByNameAndInitDate(name string, date string) error
+	UpdateEventByNameAndInitDate(name string, date string, request UpdateEventRequest) (*Event, error)
 	GetEvents(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*EventListResult, error)
 }
 
@@ -34,7 +34,8 @@ func NewEventService(repo EventRepository) EventService {
 func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
 	newEvent := Event{
 		Name:          request.Name,
-		DateTime:      request.DateTime,
+		InitDate:      request.InitDate,
+		EndDate:       request.EndDate,
 		Type:          request.Type,
 		Location:      request.Location,
 		Description:   request.Description,
@@ -48,13 +49,13 @@ func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
 	return &newEvent, nil
 }
 
-func (s *eventService) GetEventByNameAndDate(name string, date string) (*Event, error) {
-	dateTime, err := time.Parse(time.RFC3339, date)
+func (s *eventService) GetEventByNameAndInitDate(name string, initDate string) (*Event, error) {
+	initTime, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
 		return nil, ErrInvalidEventDate
 	}
 
-	event, err := s.repo.GetByNameAndDateTime(name, dateTime)
+	event, err := s.repo.GetByNameAndInitTime(name, initTime)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrEventNotFound
@@ -65,13 +66,13 @@ func (s *eventService) GetEventByNameAndDate(name string, date string) (*Event, 
 	return event, nil
 }
 
-func (s *eventService) DeleteEventByNameAndDate(name string, date string) error {
-	dateTime, err := time.Parse(time.RFC3339, date)
+func (s *eventService) DeleteEventByNameAndInitDate(name string, initDate string) error {
+	initTime, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
 		return ErrInvalidEventDate
 	}
 
-	err = s.repo.DeleteByNameAndDateTime(name, dateTime)
+	err = s.repo.DeleteByNameAndInitTime(name, initTime)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrEventNotFound
@@ -82,22 +83,23 @@ func (s *eventService) DeleteEventByNameAndDate(name string, date string) error 
 	return nil
 }
 
-func (s *eventService) UpdateEventByNameAndDate(name string, date string, request UpdateEventRequest) (*Event, error) {
-	originalDateTime, err := time.Parse(time.RFC3339, date)
+func (s *eventService) UpdateEventByNameAndInitDate(name string, initDate string, request UpdateEventRequest) (*Event, error) {
+	originalInitTime, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
 		return nil, ErrInvalidEventDate
 	}
 
 	event := Event{
 		Name:          request.Name,
-		DateTime:      request.DateTime,
+		InitDate:      request.InitDate,
+		EndDate:       request.EndDate,
 		Type:          request.Type,
 		Location:      request.Location,
 		Description:   request.Description,
 		HasAttendance: request.HasAttendance,
 	}
 
-	err = s.repo.UpdateByNameAndDateTime(name, originalDateTime, &event)
+	err = s.repo.UpdateByNameAndInitTime(name, originalInitTime, &event)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrEventNotFound
@@ -118,7 +120,7 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 	}
 
 	if sortBy == "" {
-		sortBy = "date_time"
+		sortBy = "init_date"
 	}
 
 	if sortOrder == "" {
@@ -130,7 +132,7 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 
 	allowedSortFields := map[string]bool{
 		"name":           true,
-		"date_time":      true,
+		"init_date":      true,
 		"type":           true,
 		"location":       true,
 		"description":    true,
@@ -154,10 +156,10 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 
 		allowedSearchFields := map[string]bool{
 			"name":           true,
+			"init_date":      true,
 			"type":           true,
 			"location":       true,
 			"description":    true,
-			"date_time":      true,
 			"has_attendance": true,
 		}
 
@@ -165,12 +167,12 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 			return nil, fmt.Errorf("invalid search_by parameter")
 		}
 
-		if searchBy == "date_time" {
-			parsedDateTime, err := time.Parse(time.RFC3339, searchValue)
+		if searchBy == "init_date" {
+			parsedInitDate, err := time.Parse(time.RFC3339, searchValue)
 			if err != nil {
-				return nil, fmt.Errorf("invalid search_value for date_time, use RFC3339")
+				return nil, fmt.Errorf("invalid search_value for init_date, use RFC3339")
 			}
-			searchValue = parsedDateTime.Format(time.RFC3339)
+			searchValue = parsedInitDate.Format(time.RFC3339)
 		}
 
 		if searchBy == "has_attendance" {

@@ -8,13 +8,13 @@ A tabela de presenca é composta por:
 
 - `Name`: Nome do usuário.
 - `EventName`: Nome do evento.
-- `EventDateTime`: Data e hora do evento.
+- `EventInitDate`: Data e hora do início do evento.
 - `EmailAdmin`: Email do usuário backoffice que cadastrou a presença.
 
 ## Formato de data
 
 - O backend espera datas em **RFC3339** (ex.: `2026-07-10T14:00:00Z`).
-- Nas rotas com `:eventDate`, envie a data no mesmo formato.
+- Nas rotas com `:eventInitDate`, envie a data no mesmo formato.
 
 ---
 
@@ -28,8 +28,8 @@ A tabela de presenca é composta por:
 {
   "name": "Fulano de Ciclano",
   "event_name": "Workshop A",
-  "event_date_time": "2026-07-10T14:00:00Z",
-  "email_admin": "Example@semcomp.com",
+  "event_init_date": "2026-07-10T14:00:00Z",
+  "email_admin": "Example@semcomp.com"
 }
 ```
 
@@ -41,7 +41,7 @@ Resposta de sucesso (`201`):
   "presence": {
     "name": "Fulano de Ciclano",
     "event_name": "Workshop A",
-    "event_date_time": "2026-07-10T14:00:00Z",
+    "event_init_date": "2026-07-10T14:00:00Z",
     "email_admin": "Example@semcomp.com"
   }
 }
@@ -70,7 +70,7 @@ Erros comuns:
 
 - `name`
 - `event_name`
-- `event_date_time`
+- `event_init_date`
 - `email_admin`
 
 ### Valores permitidos em `sort_order`
@@ -86,24 +86,28 @@ Campos permitidos em `search_by`:
 
 - `name`
 - `event_name`
-- `event_date_time` (valor em RFC3339)
+- `event_init_date` (valor em RFC3339)
 - `email_admin`
 
 Exemplo:
 
-`GET /presences?page=1&limit=10&sort_by=name&sort_order=desc&search_by=event_name&search_value=Workshop`
+`GET /admin/presences?page=1&limit=10&sort_by=name&sort_order=desc&search_by=event_name&search_value=Workshop`
 
 Resposta de sucesso (`200`):
 
 ```json (confirmacao de resposta)
-[
-  {
-    "name": "Fulano de Ciclano",
-    "event_name": "Workshop A",
-    "event_date_time": "2026-07-10T14:00:00Z",
-    "email_admin": "Example@semcomp.com"
-  }
-]
+{
+	"Presences": [
+		{
+			"name": "Fulano de Ciclano",
+			"event_name": "Workshop A",
+			"event_init_date": "2026-07-10T14:00:00Z",
+			"email_admin": "Example@semcomp.com"
+		}
+	],
+	"TotalRecords": 1,
+	"FilteredRecords": 1
+}
 ```
 
 Erros comuns (`400`):
@@ -114,7 +118,7 @@ Erros comuns (`400`):
 - `{"error":"invalid sort_order parameter"}`
 - `{"error":"search_by and search_value must be provided together"}`
 - `{"error":"invalid search_by parameter"}`
-- `{"error":"invalid search_value for date_time, use RFC3339"}`
+- `{"error":"invalid search_value for event_init_time, use RFC3339"}`
 - `{"error":"invalid search_value for has_attendance"}`
 
 ---
@@ -122,11 +126,11 @@ Erros comuns (`400`):
 ## 3) Buscar presenca especifica [ADMIN]
 
 - **Metodo**: `GET`
-- **Rota**: `/presences/:name/:eventName/:eventDate`
+- **Rota**: `/admin/presences/:name/:eventName/:eventInitDate`
 
 Exemplo:
 
-`GET /presences/Pedro/Workshop%20A/2026-07-10T14:00:00Z`
+`GET /admin/presences/Fulano de Ciclano/Workshop%20A/2026-07-10T14:00:00Z`
 
 Resposta de sucesso (`200`):
 
@@ -134,7 +138,7 @@ Resposta de sucesso (`200`):
 {
   "name": "Fulano de Ciclano",
   "event_name": "Workshop A",
-  "event_date_time": "2026-07-10T14:00:00Z",
+  "event_init_date": "2026-07-10T14:00:00Z",
   "email_admin": "Example@semcomp.com"
 }
 ```
@@ -150,7 +154,7 @@ Erros comuns:
 ## 4) Atualizar presenca [ADMIN]
 
 - **Metodo**: `PUT`
-- **Rota**: `/admin/presences/:name/:eventName/:eventDate`
+- **Rota**: `/admin/presences/:name/:eventName/:eventInitDate`
 - **Body (JSON)**: mesmo formato da criacao
 
 Exemplo:
@@ -161,8 +165,8 @@ Exemplo:
 {
   "name": "Fulano de Ciclano",
   "event_name": "Workshop Golang",
-  "event_date_time": "2026-07-10T16:00:00Z",
-  "email_admin": "Example@semcomp.com",
+  "event_init_date": "2026-07-10T14:00:00Z",
+  "email_admin": "Example@semcomp.com"
 }
 ```
 
@@ -185,7 +189,7 @@ Erros comuns:
 ## 5) Deletar presenca [ADMIN]
 
 - **Metodo**: `DELETE`
-- **Rota**: `/admin/presences/:name/:eventName/:eventDate`
+- **Rota**: `/admin/presences/:name/:eventName/:eventInitDate`
 
 Exemplo:
 

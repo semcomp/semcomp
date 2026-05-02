@@ -102,7 +102,8 @@ const ContatoSection = ({ className }: ContatoSectionProps) => {
       </div>
 
       <div className="mt-10 text-center text-sm opacity-70">
-        © {new Date().getFullYear()} Semcomp — ICMC USP
+        © {new Date().getFullYear()} Semcomp — ICMC USP — Feito com {isDarkMode ? "🤍": "💙"} por <a href="https://codelab.icmc.usp.br/" className={`no-underline hover:underline hover:decoration ${isDarkMode ? "text-[#5fccad]" : "text-[#488578]"}`}>USPCodelab Sanca</a>  
+
       </div>
     </footer>
   );
