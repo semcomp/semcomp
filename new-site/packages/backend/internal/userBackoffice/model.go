@@ -1,8 +1,13 @@
 package userBackoffice
 
 type UserBackoffice struct {
-	Email        string  `gorm:"size:150;unique;not null" json:"email"`
+	Email        string  `gorm:"size:150;primaryKey;not null" json:"email"`
 	PasswordHash string  `gorm:"size:255;not null"`
+}
+
+// Nome gerado pelo gorm era pouco identificável (user_backoffices)
+func (UserBackoffice) TableName() string {
+  return "users_backoffice"
 }
 
 type CreateUserBackofficeRequest struct {

@@ -109,5 +109,8 @@ func (r *userBackofficeRepository) Update(userB *UserBackoffice) error {
 }
 
 func (r *userBackofficeRepository) Delete(email string) error {
-	return r.db.Delete(&UserBackoffice{}, email).Error
+
+	user := UserBackoffice{Email: email}
+
+	return r.db.Delete(&user).Error
 }

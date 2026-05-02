@@ -3,12 +3,14 @@ package userBackoffice
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"backend/internal/providers"
 )
 
 type UserBackofficeService interface {
+	InitializeAdmin() error
 	CreateUser(request CreateUserBackofficeRequest) (*SafeUserB, error)
 	GetAllUsers(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*UserBListResult, error)
 	GetUserByEmail(email string) (*SafeUserB, error)
@@ -23,6 +25,28 @@ type userBackofficeService struct {
 
 func NewUserBackofficeService(repo UserBackofficeRepository, passwordProvider providers.PasswordProvider) UserBackofficeService {
 	return &userBackofficeService{repo: repo, passwordProvider: passwordProvider}
+}
+
+func (s *userBackofficeService) InitializeAdmin() error {
+	email := os.Getenv("ADMIN_EMAIL")
+	password := os.Getenv("ADMIN_PASSWORD")
+
+	_, err := s.repo.GetByEmail(email)
+	if err == nil {
+		return nil
+	}
+
+	admin := CreateUserBackofficeRequest{
+		Email:      email,
+		Password: 	password,
+	}
+
+	_, err = s.CreateUser(admin)
+	if err != nil {
+		return errors.New("erro na inicialização do backoffice")
+	}
+
+	return nil
 }
 
 func (s *userBackofficeService) CreateUser(request CreateUserBackofficeRequest) (*SafeUserB, error) {

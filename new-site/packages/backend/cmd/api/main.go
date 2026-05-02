@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/internal/auth"
+	"backend/internal/authBackoffice"
 	"backend/internal/database"
 	"backend/internal/event"
 	"backend/internal/middleware"
@@ -20,7 +21,7 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &userBackoffice.UserBackoffice{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -52,6 +53,13 @@ func main() {
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
 
+	authBackofficeService := authBackoffice.NewAuthBackofficeService(userBackofficeRepo, passwordProvider, jwtProvider)
+	authBackofficeHandler := authBackoffice.NewAuthBackofficeHandler(authBackofficeService, userBackofficeService)
+
+	if err := userBackofficeService.InitializeAdmin(); err != nil {
+        panic("Failed to initialize admin in backoffice: " + err.Error())
+    }
+
 	r := gin.Default()
 
 	// Rotas Públicas
@@ -66,9 +74,13 @@ func main() {
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 
-	// Rotas Backoffice (exigem autenticação de usuários do backoffice)
-	// TODO: adicionar um middleware de autenticação de usuários do backoffice para essa rotas
-	backofficeRoutes := r.Group("/admin")
+	// Rota Login Backoffice
+	adminRoutes := r.Group("/admin")
+	adminRoutes.POST("/login", authBackofficeHandler.LoginBackofficeHandler)
+
+	// Rotas Backoffice (Exigem Autenticação)
+	backofficeRoutes := adminRoutes.Group("/")
+	backofficeRoutes.Use(middleware.AuthBackofficeMiddleware(jwtProvider))
 	backofficeRoutes.PUT("/users/:id", userHandler.UpdateUser)
 	backofficeRoutes.DELETE("/users/:id", userHandler.DeleteUser)
 	backofficeRoutes.GET("/users", userHandler.GetAllUsers)

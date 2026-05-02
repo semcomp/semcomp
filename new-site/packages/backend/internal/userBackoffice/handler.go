@@ -35,7 +35,7 @@ func (h *UserBackofficeHandler) CreateUser(c *gin.Context) {
 func (h *UserBackofficeHandler) GetAllUsers(c *gin.Context) {
 	page := 1
 	limit := 10
-	sortBy := c.DefaultQuery("sort_by", "name")
+	sortBy := c.DefaultQuery("sort_by", "email")
 	sortOrder := c.DefaultQuery("sort_order", "asc")
 	searchBy := c.Query("search_by")
 	searchValue := c.Query("search_value")
@@ -104,7 +104,7 @@ func (h *UserBackofficeHandler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Usuário atualizado com sucesso!"})
 }
 
-// DeleteUser remove um usuário do sistema identificando-o pelo ID na URL.
+// DeleteUser remove um usuário do sistema identificando-o pelo email na URL.
 func (h *UserBackofficeHandler) DeleteUser(c *gin.Context) {
 	email := c.Param("email")
 
