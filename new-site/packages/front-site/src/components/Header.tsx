@@ -1,9 +1,10 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { use, useLayoutEffect, useRef, useState } from "react";
 import LogoSemcomp from "../assets/img/semcomp/logo_default_branco.webp";
 import { IoMenu } from "react-icons/io5";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 type TabKey = "home" | "cronograma" | "login" | "profile";
 
@@ -20,12 +21,12 @@ export default function Header() {
   const location = useLocation();
   
   //Simulação de Login
-  const isLoggedIn = false; 
+  const { isAuthenticated } = useAuth(); 
 
   //Filtro de abas
   const visibleTabs = allTabs.filter((tab) => {
-    if (tab.key === "profile") return isLoggedIn;
-    if (tab.key === "login") return !isLoggedIn;
+    if (tab.key === "profile") return isAuthenticated;
+    if (tab.key === "login") return !isAuthenticated;
     return true;
   });
 

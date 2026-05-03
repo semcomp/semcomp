@@ -1,13 +1,14 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { UserType } from "@/types/UserType";
+import type { APIResponse } from "@/types/APIResponseType";
 import axios from "axios";
 import { BASEURL } from "@/constants/ApiURL";
-import Notification from "@/components/Notification";
+import { useNavigate } from "react-router-dom";
 
 type AuthContextValue = {
   isAuthenticated: boolean;
   user: UserType | null;
-  login: (email: string, password: string) => void;
+  login: (email: string, password: string) => Promise<APIResponse>;
   logout: () => void;
 };
 
@@ -35,7 +36,8 @@ function readStoredUser(): UserType | null {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserType | null>(() => readStoredUser());
-  const [errorMessage, setErrorMessage] = useState("");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -67,17 +69,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             name: response.data.user.name,
             email: response.data.user.email,
           });
+
+          navigate("/profile");
+
+          const apiResponse: APIResponse = {
+            message: response.data.message as string,
+            type: "success",
+          };
+          return apiResponse;
         } catch (err: any) {
-          setErrorMessage(err.message);
-          <Notification
-            message={errorMessage}
-            type="warning"
-            visible={Boolean(errorMessage)}
-            onClose={() => setErrorMessage("")}
-          />;
+          const apiResponse: APIResponse = {
+            message: err.message as string,
+            type: "warning",
+          };
+          return apiResponse;
         }
       },
-      logout: () => setUser(null),
+      logout: () => {
+        setUser(null);
+        navigate("/");
+      },
     }),
     [user]
   );

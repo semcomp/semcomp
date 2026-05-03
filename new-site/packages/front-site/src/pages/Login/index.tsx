@@ -8,6 +8,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
 import { BASEURL } from "@/constants/ApiURL";
 import Notification from "@/components/Notification";
+import type { NotificationType } from "@/types/NotificationType";
+import type { APIResponse } from "@/types/APIResponseType";
 
 /* obs: deve ser implementar uma maneira mais inteligente de lidar com a altura do header
 visto que se algo mudar na altura dele, o resto da pagina neste componente pode potencialmente
@@ -65,21 +67,11 @@ export default function loginPage(){
                 password: password,
               });
 
-            setMessage(response.data.message);
-            <Notification
-            message={message}
-            type="success"
-            visible={Boolean(message)}
-            onClose={() => setMessage("")}
-          />;
+            const apiResponse:APIResponse = {message: response.data.message as string, type: "success"};
+            return apiResponse;
         } catch (err:any){
-            setMessage(err.message);
-            <Notification
-            message={message}
-            type="warning"
-            visible={Boolean(message)}
-            onClose={() => setMessage("")}
-          />;
+            const apiResponse:APIResponse = {message: err.message as string, type: "warning"};
+            return apiResponse;
         }
     }
 
@@ -96,11 +88,12 @@ export default function loginPage(){
 
         setLoading(true);
         try {
-            // Exemplo: adaptar para sua API
-            // const url = mode === "login" ? "/api/auth/login" : "/api/auth/register";
-            // await fetch(url, { method: "POST", body: JSON.stringify({ email, password, name }) });
-            // após sucesso, redirecionar ou atualizar estado global
-            (isLogin === true) ? login(email, password) : register(email, name, password);
+            // cchc
+            if (isLogin){
+                await login(email, password)
+            } else {
+                await register(email, name, password);
+            }
         } catch (err) {
             setMessage("Erro ao conectar com o servidor.");
         } finally {
@@ -261,6 +254,6 @@ export default function loginPage(){
     }
 
     return (
-        retorno
+        retorno 
     );
 }

@@ -1,4 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
+import RequireAuth from "@/lib/RequireAuth";
 
 export const router = createBrowserRouter([
   {
@@ -30,11 +31,16 @@ export const router = createBrowserRouter([
         },
       },
       {
-        path: "profile",
-        lazy: async () => {
-          const { default: ProfilePage } = await import("@/pages/Profile");
-          return { Component: ProfilePage };
-        },
+        element: <RequireAuth />,
+        children: [
+          {
+            path: "profile",
+            lazy: async () => {
+              const { default: ProfilePage } = await import("@/pages/Profile");
+              return { Component: ProfilePage };
+            }
+          },
+        ],
       },
       {
         path: "*",
