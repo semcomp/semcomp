@@ -33,11 +33,11 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Evento criado com sucesso!", "event": event})
 }
 
-func (h *EventHandler) GetEventByNameAndDate(c *gin.Context) {
+func (h *EventHandler) GetEventByNameAndInitDate(c *gin.Context) {
 	name := c.Param("eventName")
-	date := c.Param("date")
+	initDate := c.Param("initDate")
 
-	event, err := h.eventService.GetEventByNameAndDate(name, date)
+	event, err := h.eventService.GetEventByNameAndInitDate(name, initDate)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
@@ -56,11 +56,11 @@ func (h *EventHandler) GetEventByNameAndDate(c *gin.Context) {
 	c.JSON(http.StatusOK, event)
 }
 
-func (h *EventHandler) DeleteEventByNameAndDate(c *gin.Context) {
+func (h *EventHandler) DeleteEventByNameAndInitDate(c *gin.Context) {
 	name := c.Param("eventName")
-	date := c.Param("date")
+	initDate := c.Param("initDate")
 
-	err := h.eventService.DeleteEventByNameAndDate(name, date)
+	err := h.eventService.DeleteEventByNameAndInitDate(name, initDate)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
@@ -79,9 +79,9 @@ func (h *EventHandler) DeleteEventByNameAndDate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Evento removido com sucesso!"})
 }
 
-func (h *EventHandler) UpdateEventByNameAndDate(c *gin.Context) {
+func (h *EventHandler) UpdateEventByNameAndInitDate(c *gin.Context) {
 	name := c.Param("eventName")
-	date := c.Param("date")
+	initDate := c.Param("initDate")
 
 	var request UpdateEventRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -89,7 +89,7 @@ func (h *EventHandler) UpdateEventByNameAndDate(c *gin.Context) {
 		return
 	}
 
-	event, err := h.eventService.UpdateEventByNameAndDate(name, date, request)
+	event, err := h.eventService.UpdateEventByNameAndInitDate(name, initDate, request)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
@@ -111,7 +111,7 @@ func (h *EventHandler) UpdateEventByNameAndDate(c *gin.Context) {
 func (h *EventHandler) GetEvents(c *gin.Context) {
 	page := 1
 	limit := 10
-	sortBy := c.DefaultQuery("sort_by", "date_time")
+	sortBy := c.DefaultQuery("sort_by", "init_time")
 	sortOrder := c.DefaultQuery("sort_order", "asc")
 	searchBy := c.Query("search_by")
 	searchValue := c.Query("search_value")

@@ -41,7 +41,7 @@ func (h *PresenceHandler) CreatePresence(c *gin.Context) {
 func (h *PresenceHandler) GetPresences(c *gin.Context) {
 	pageStr := c.DefaultQuery("page", "1")
 	limitStr := c.DefaultQuery("limit", "10")
-	sortBy := c.DefaultQuery("sort_by", "event_date_time")
+	sortBy := c.DefaultQuery("sort_by", "event_init_date")
 	sortOrder := c.DefaultQuery("sort_order", "asc")
 	searchBy := c.Query("search_by")
 	searchValue := c.Query("search_value")
@@ -67,13 +67,13 @@ func (h *PresenceHandler) GetPresences(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// GetPresenceByNameEventandDate retorna uma presença específica buscando por nome, evento e data.
-func (h *PresenceHandler) GetPresenceByNameEventandDate(c *gin.Context) {
+// GetPresenceByNameEventandInitDate retorna uma presença específica buscando por nome, evento e data de início.
+func (h *PresenceHandler) GetPresenceByNameEventandInitDate(c *gin.Context) {
 	name := c.Param("name")
 	eventName := c.Param("eventName")
-	eventDate := c.Param("eventDate")
+	eventInitDate := c.Param("eventInitDate")
 
-	presence, err := h.presenceService.GetPresenceByNameEventandDate(name, eventName, eventDate)
+	presence, err := h.presenceService.GetPresenceByNameEventandInitDate(name, eventName, eventInitDate)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid event date format"})
@@ -90,11 +90,11 @@ func (h *PresenceHandler) GetPresenceByNameEventandDate(c *gin.Context) {
 	c.JSON(http.StatusOK, presence)
 }
 
-// UpdatePresenceByNameEventandDate atualiza uma presença existente identificada por nome, evento e data.
-func (h *PresenceHandler) UpdatePresenceByNameEventandDate(c *gin.Context) {
+// UpdatePresenceByNameEventandInitDate atualiza uma presença existente identificada por nome, evento e data de início.
+func (h *PresenceHandler) UpdatePresenceByNameEventandInitDate(c *gin.Context) {
 	name := c.Param("name")
 	eventName := c.Param("eventName")
-	eventDate := c.Param("eventDate")
+	eventInitDate := c.Param("eventInitDate")
 
 	var request UpdatePresenceRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -102,7 +102,7 @@ func (h *PresenceHandler) UpdatePresenceByNameEventandDate(c *gin.Context) {
 		return
 	}
 
-	err := h.presenceService.UpdatePresenceByNameEventandDate(name, eventName, eventDate, request)
+	err := h.presenceService.UpdatePresenceByNameEventandInitDate(name, eventName, eventInitDate, request)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
@@ -129,13 +129,13 @@ func (h *PresenceHandler) UpdatePresenceByNameEventandDate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Presença atualizada com sucesso!"})
 }
 
-// DeletePresenceByNameEventandDate remove uma presença identificada por nome, evento e data.
-func (h *PresenceHandler) DeletePresenceByNameEventandDate(c *gin.Context) {
+// DeletePresenceByNameEventandInitDate remove uma presença identificada por nome, evento e data de início.
+func (h *PresenceHandler) DeletePresenceByNameEventandInitDate(c *gin.Context) {
 	name := c.Param("name")
 	eventName := c.Param("eventName")
-	eventDate := c.Param("eventDate")
+	eventInitDate := c.Param("eventInitDate")
 
-	err := h.presenceService.DeletePresenceByNameEventandDate(name, eventName, eventDate)
+	err := h.presenceService.DeletePresenceByNameEventandInitDate(name, eventName, eventInitDate)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
