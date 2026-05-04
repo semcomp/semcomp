@@ -80,11 +80,11 @@ func (s *userBackofficeService) CreateUser(request CreateUserBackofficeRequest) 
 func (s *userBackofficeService) GetAllUsers(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*UserBListResult, error) {
 
 	if page < 1 {
-		return nil, fmt.Errorf("page must be greater than 0")
+		return nil, fmt.Errorf("Parâmetro inválido de 'page'")
 	}
 
 	if limit < 1 {
-		return nil, fmt.Errorf("limit must be greater than 0")
+		return nil, fmt.Errorf("Parâmetro inválido de 'limit'")
 	}
 
 	if sortBy == "" {
@@ -104,15 +104,15 @@ func (s *userBackofficeService) GetAllUsers(page int, limit int, sortBy string, 
 	}
 
 	if !allowedSortFields[sortBy] {
-		return nil, fmt.Errorf("invalid sort_by parameter")
+		return nil, fmt.Errorf("Parâmetro inválido de 'sort_by'")
 	}
 
 	if sortOrder != "asc" && sortOrder != "desc" {
-		return nil, fmt.Errorf("invalid sort_order parameter")
+		return nil, fmt.Errorf("Parâmetro inválido de 'sort_order'")
 	}
 
 	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
-		return nil, fmt.Errorf("search_by and search_value must be provided together")
+		return nil, fmt.Errorf("Os parâmetros 'search_by' e 'seacrh_value' devem ser enviados juntos")
 	}
 
 	if searchBy != "" {
@@ -123,7 +123,7 @@ func (s *userBackofficeService) GetAllUsers(page int, limit int, sortBy string, 
 		}
 
 		if !allowedSearchFields[searchBy] {
-			return nil, fmt.Errorf("invalid search_by parameter")
+			return nil, fmt.Errorf("Parâmetro inválido de 'search_by'")
 		}
 	}
 

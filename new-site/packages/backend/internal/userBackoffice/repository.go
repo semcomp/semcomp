@@ -61,12 +61,12 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 	field := strings.ToLower(sortBy)
 	isAllowedField := slices.Contains(allowedSortFields, field)
 	if !isAllowedField {
-		return "", fmt.Errorf("invalid sort field")
+		return "", fmt.Errorf("Parâmetro inválido de 'sort_by'")
 	}
 
 	order := strings.ToLower(sortOrder)
 	if order != "asc" && order != "desc" {
-		return "", fmt.Errorf("invalid sort order")
+		return "", fmt.Errorf("Parâmetro inválido de 'sort_order'")
 	}
 
 	return field + " " + order, nil
@@ -109,7 +109,6 @@ func (r *userBackofficeRepository) Update(userB *UserBackoffice) error {
 }
 
 func (r *userBackofficeRepository) Delete(email string) error {
-
 	user := UserBackoffice{Email: email}
 
 	return r.db.Delete(&user).Error

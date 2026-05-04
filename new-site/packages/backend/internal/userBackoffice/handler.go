@@ -15,23 +15,30 @@ func NewUserBackofficeHandler(userBackofficeService UserBackofficeService) *User
 	return &UserBackofficeHandler{userBackofficeService: userBackofficeService}
 }
 
+// CreateUser insere novos dados de usuário.
 func (h *UserBackofficeHandler) CreateUser(c *gin.Context) {
 	var request CreateUserBackofficeRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		if len(request.Password) < 8 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "A senha deve conter no mínimo 8 caracteres"})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Campo e-mail fora do padrão"})
 		return
 	}
 
 	safeUser, err := h.userBackofficeService.CreateUser(request)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()}) // TODO: verificar qual erro seria mais adequado de retornar
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Usuário criado com sucesso!", "user": safeUser})
 }
 
+// GetAllUsers retorna os dados de todos os usuários do backoffice,
+// considerando os valores de ordenação e busca passados por parâmetro.
 func (h *UserBackofficeHandler) GetAllUsers(c *gin.Context) {
 	page := 1
 	limit := 10
@@ -77,6 +84,7 @@ func (h *UserBackofficeHandler) GetAllUsers(c *gin.Context) {
 	})
 }
 
+// GetUserByEmail retorna os dados de um usuário do sistema.
 func (h *UserBackofficeHandler) GetUserByEmail(c *gin.Context) {
 	email := c.Param("email")
 
@@ -88,12 +96,17 @@ func (h *UserBackofficeHandler) GetUserByEmail(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+// UpdateUser altera os dados de um usuário do sistema identificando-o pelo email na URL.
 func (h *UserBackofficeHandler) UpdateUser(c *gin.Context) {
 	email := c.Param("email")
 
 	var request UpdateUserBackofficeRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		if len(request.Password) < 8 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "A senha deve conter no mínimo 8 caracteres"})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Campo e-mail fora do padrão"})
 		return
 	}
 
