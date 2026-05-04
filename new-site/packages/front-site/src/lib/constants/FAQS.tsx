@@ -11,10 +11,6 @@ const FAQS = [
     Q: "A Semcomp ocorre apenas no segundo semestre?",
     A: "Sim, tradicionalmente a Semcomp acontece no segundo semestre."
   },
-  {
-    Q: "A Semcomp ocorre apenas no segundo semestre?",
-    A: "Sim, tradicionalmente a Semcomp acontece no segundo semestre, mas neste ano, teremos a nossa Semcomp Beta, que ocorrerá no primeiro semestre, no dia "
-  },
    {
       Q: "Por que se inscrever no site da Semcomp?",
       A: "Com seu perfil de participante no site, você pode se inscrever nos minicursos, concursos e oficinas que serão oferecidos ao longo da semana. Além disso, é com os dados da inscrição que geramos os certificados de participação!"

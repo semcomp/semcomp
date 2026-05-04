@@ -6,8 +6,10 @@ import DarkModeToggle from "./components/DarkModeToggle";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { Outlet } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
 
 function App() {
+
   return (
     /**
      * o cabecalha e o trigger de tema são conteudo fixos entao estao sempre
@@ -16,13 +18,15 @@ function App() {
      */
     <ThemeProvider>
       <AuthProvider>
-        <Header />
+        <NotificationProvider>
+          <Header />
+          <main className="w-full">
+            <Outlet />
+          </main>
 
-        <main className="w-full">
-          <Outlet />
-        </main>
 
-        <DarkModeToggle />
+          <DarkModeToggle />
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   );
