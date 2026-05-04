@@ -24,13 +24,22 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	var request CreateUserRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON inválido no corpo da requisição"})
 		return
 	}
 
 	safeUser, err := h.userService.CreateUser(request)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()}) // TODO: verificar qual erro seria mais adequado de retornar
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			c.JSON(http.StatusConflict, gin.H{"error": "E-mail já cadastrado"})
+			return
+		}
+		if errors.Is(err, ErrEmailAlreadyExists) {
+			c.JSON(http.StatusConflict, gin.H{"error": "E-mail já cadastrado"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
 		return
 	}
 

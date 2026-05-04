@@ -12,6 +12,8 @@ import (
 var (
 	ErrEmailAlreadyExists = errors.New("email already exists")
 	ErrInvalidCredentials = errors.New("invalid email or password")
+	ErrTokenGeneration    = errors.New("token generation failed")
+	ErrInternalServerError = errors.New("internal server error")
 )
 
 type AuthService interface {
@@ -34,7 +36,7 @@ func (s *authService) Login(request LoginUserRequest) (*user.User, string, error
 		if errors.Is(errUser, gorm.ErrRecordNotFound) {
 			return nil, "", ErrInvalidCredentials
 		}
-		return nil, "", errors.New("internal server error")
+		return nil, "", ErrInternalServerError
 	}
 
 	errPassword := s.passwordProvider.Compare(userRecord.PasswordHash, request.Password)
@@ -44,7 +46,7 @@ func (s *authService) Login(request LoginUserRequest) (*user.User, string, error
 
 	token, errToken := s.jwtProvider.Generate(userRecord.UserNumber, userRecord.Email)
 	if errToken != nil {
-		return nil, "", errors.New("token generation failed")
+		return nil, "", ErrTokenGeneration
 	}
 
 	return userRecord, token, nil

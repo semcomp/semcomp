@@ -8,6 +8,7 @@ import (
 
 	"backend/internal/providers"
 )
+var ErrEmailAlreadyExists = errors.New("e-mail já cadastrado")
 
 // UserService define as regras de negócio para operações relacionadas a usuários.
 type UserService interface {
@@ -33,7 +34,7 @@ func NewUserService(repo UserRepository, passwordProvider providers.PasswordProv
 func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 	_, err := s.repo.GetByEmail(request.Email)
 	if err == nil {
-		return nil, errors.New("e-mail já cadastrado")
+		return nil, ErrEmailAlreadyExists
 	}
 
 	hashedPassword, err := s.passwordProvider.Hash(request.Password)
