@@ -6,11 +6,14 @@ import { useTheme } from "@/contexts/useTheme";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
-type TabKey = "home" | "cronograma" | "login" | "profile";
+const COFFEE_FORM_URL = "https://docs.google.com/forms/d/1-78IKRFPSMUla937lpv8OMou0NoAPRN-pFzI9bjnoV8/edit";
+
+type TabKey = "home" | "cronograma" | "coffee" | "login" | "profile" ;
 
 const allTabs: Array<{ key: TabKey; label: string; path: string }> = [
   { key: "home", label: "HOME", path: "/" },
   { key: "cronograma", label: "CRONOGRAMA", path: "/cronograma" },
+  { key: "coffee", label: "COFFEE", path: "/coffee" }, 
   { key: "login", label: "LOGIN", path: "/login" },
   { key: "profile", label: "PROFILE", path: "/profile" },
 ];
@@ -37,6 +40,7 @@ export default function Header() {
   const btnRefs = useRef<Record<TabKey, HTMLAnchorElement | null>>({
     home: null,
     cronograma: null,
+    coffee: null,
     login: null,
     profile: null,
   });
@@ -86,16 +90,31 @@ export default function Header() {
             {isMenuOpen && (
               <nav className="absolute top-full right-0 mt-3 w-48 bg-semcompDarkBlue border border-white/10 shadow-xl flex flex-col items-center gap-1 p-4 rounded-xl">
                 {visibleTabs.map((tab) => (
-                  <Link
-                    key={tab.key}
-                    to={tab.path}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`px-3 py-2 text-sm font-bold transition-all ${
-                      active === tab.key ? "text-semcompOffWhite" : "text-white/60"
-                    }`}
-                  >
-                    {tab.label}
-                  </Link>
+                  tab.key === "coffee" ? (
+                    <a
+                      key={tab.key}
+                      href={COFFEE_FORM_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`px-3 py-2 text-sm font-bold transition-all ${
+                        active === tab.key ? "text-semcompOffWhite" : "text-white/60"
+                      }`}
+                    >
+                      {tab.label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={tab.key}
+                      to={tab.path}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`px-3 py-2 text-sm font-bold transition-all ${
+                        active === tab.key ? "text-semcompOffWhite" : "text-white/60"
+                      }`}
+                    >
+                      {tab.label}
+                    </Link>
+                  )
                 ))}
               </nav>
             )}
@@ -108,16 +127,31 @@ export default function Header() {
               style={{ left: indicator.left, width: indicator.width }}
             />
             {visibleTabs.map((tab) => (
-              <Link
-                key={tab.key}
-                to={tab.path}
-                ref={(el) => { btnRefs.current[tab.key] = el; }}
-                className={`relative px-4 py-2 text-sm font-bold transition-all duration-200 ${
-                  active === tab.key ? "text-semcompOffWhite scale-105" : "text-semcompOffWhite/70 hover:text-white"
-                }`}
-              >
-                {tab.label}
-              </Link>
+              tab.key === "coffee" ? (
+                <a
+                  key={tab.key}
+                  href={COFFEE_FORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  ref={(el) => { btnRefs.current[tab.key] = el; }}
+                  className={`relative px-4 py-2 text-sm font-bold transition-all duration-200 ${
+                    active === tab.key ? "text-semcompOffWhite scale-105" : "text-semcompOffWhite/70 hover:text-white"
+                  }`}
+                >
+                  {tab.label}
+                </a>
+              ) : (
+                <Link
+                  key={tab.key}
+                  to={tab.path}
+                  ref={(el) => { btnRefs.current[tab.key] = el; }}
+                  className={`relative px-4 py-2 text-sm font-bold transition-all duration-200 ${
+                    active === tab.key ? "text-semcompOffWhite scale-105" : "text-semcompOffWhite/70 hover:text-white"
+                  }`}
+                >
+                  {tab.label}
+                </Link>
+              )
             ))}
           </nav>
         )}
