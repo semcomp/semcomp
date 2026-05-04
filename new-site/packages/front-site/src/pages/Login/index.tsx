@@ -7,8 +7,7 @@ import Input from "@/components/ui/Input"
 import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
 import { BASEURL } from "@/constants/ApiURL";
-import Notification from "@/components/Notification";
-import type { NotificationType } from "@/types/NotificationType";
+import { useNotification } from "@/contexts/NotificationContext";
 import type { APIResponse } from "@/types/APIResponseType";
 
 /* obs: deve ser implementar uma maneira mais inteligente de lidar com a altura do header
@@ -25,9 +24,9 @@ export default function loginPage(){
     const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
     let {width} = useWindowDimensions()
    
-    // estados do forms com mensagem a ser exibida
+    // estados do forms
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState<string>("");
+    const { showNotification } = useNotification();
 
     // campos a serem preenchidos no forms
     const [email, setEmail] = useState("");
@@ -43,7 +42,6 @@ export default function loginPage(){
         setName("");
         setConfirmPassword("");
         setRemember(false);
-        setMessage("");
     }, []);
 
     // checagem de formulario, ainda há mais restrições a serem colocadas eventualmente
@@ -79,28 +77,28 @@ export default function loginPage(){
     const handleSubmit = useCallback(
         async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setMessage("");
         const err = validate();
         if (err) {
-            setMessage(err);
+            showNotification(err, "warning");
             return;
         }
 
         setLoading(true);
         try {
-            // cchc
             if (isLogin){
-                await login(email, password)
+                const res = await login(email, password)
+                showNotification(res.message, res.type);
             } else {
-                await register(email, name, password);
+                const res = await register(email, name, password);
+                showNotification(res.message, res.type);
             }
         } catch (err) {
-            setMessage("Erro ao conectar com o servidor.");
+            showNotification("Erro ao conectar com o servidor.", "warning");
         } finally {
             setLoading(false);
         }
         },
-        [validate, isLogin, email, password, name]
+        [validate, isLogin, email, password, name, showNotification]
     );
 
     // conteudo do forms
@@ -189,13 +187,7 @@ export default function loginPage(){
                         <span>Concordo com os termos de serviço da aplicação.</span>
                     </label>
                 )
-                }
-
-                {message && (
-                    <div className={`${message.includes("Erro") ? "text-red-700" : "text-green-700"} mb-3`}>
-                        {message}
-                    </div>
-                )}
+                }                
 
                 <button type="submit" className={`w-full px-3 py-4 rounded-md ${isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompMidDarkBlue"} text-white text-sm disabled:opacity-50" disabled={loading} mt-6`}>
                     {loading ? "Processando..." : isLogin === true ? "Entrar" : "Criar conta"}
