@@ -4,11 +4,9 @@ import { useCallback } from "react";
 import SegmentedControl, { useSegmentedControl } from "@/components/ui/Segcontrol";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Input from "@/components/ui/Input"
-import { useAuth } from "@/contexts/AuthContext";
-import axios from "axios";
-import { BASEURL } from "@/constants/ApiURL";
+import { useAuth } from "@/contexts/useAuth";
 import { useNotification } from "@/contexts/NotificationContext";
-import type { APIResponse } from "@/types/APIResponseType";
+import { authAPI, getErrorMessage } from "@/api";
 
 /* obs: deve ser implementar uma maneira mais inteligente de lidar com a altura do header
 visto que se algo mudar na altura dele, o resto da pagina neste componente pode potencialmente
@@ -47,7 +45,7 @@ export default function loginPage(){
     // checagem de formulario, ainda há mais restrições a serem colocadas eventualmente
     const validate = useCallback((): string | null => {
         if (!email.includes("@")) return "Insira um e-mail válido.";
-        if (password.length < 6) return "A senha deve ter ao menos 6 caracteres.";
+        if (password.length < 8) return "A senha deve ter ao menos 8 caracteres.";
         if (isLogin === false) {
             if (name.trim().length === 0) return "Informe seu nome.";
             if (password !== confirmPassword) return "As senhas não coincidem.";
@@ -59,17 +57,13 @@ export default function loginPage(){
     const { login } = useAuth();
     const register = async (email: string, name: string, password: string) => {
         try {
-            const response = await axios.post(`${BASEURL}/register`, {
-                name: name,
-                email: email,
-                password: password,
-              });
-
-            const apiResponse:APIResponse = {message: response.data.message as string, type: "success"};
-            return apiResponse;
-        } catch (err:any){
-            const apiResponse:APIResponse = {message: err.message as string, type: "warning"};
-            return apiResponse;
+            const response = await authAPI.register(name, email, password);
+            showNotification(response.message, "success");
+            return true;
+        } catch (err: any) {
+            
+            showNotification(err.message, "warning");
+            return false;
         }
     }
 
@@ -85,20 +79,23 @@ export default function loginPage(){
 
         setLoading(true);
         try {
-            if (isLogin){
-                const res = await login(email, password)
-                showNotification(res.message, res.type);
+            let ok = false;
+            if (isLogin) {
+                ok = await login(email, password);
             } else {
-                const res = await register(email, name, password);
-                showNotification(res.message, res.type);
+                ok = await register(email, name, password);
+            }
+
+            if (ok) {
+                showNotification(isLogin ? "Login bem-sucedido!" : "Registro bem-sucedido!", "success");
             }
         } catch (err) {
-            showNotification("Erro ao conectar com o servidor.", "warning");
+            showNotification(getErrorMessage(err), "warning");
         } finally {
             setLoading(false);
         }
         },
-        [validate, isLogin, email, password, name, showNotification]
+        [validate, isLogin, email, password, name, showNotification, login, resetForm]
     );
 
     // conteudo do forms
@@ -149,6 +146,7 @@ export default function loginPage(){
                 </label>
 
                 {isLogin === false && (
+                    <>
                     <label className={`block mb-3 ${!isDarkMode && "text-white"}`}>
                         <Input
                             label="Confirmar senha"
@@ -160,22 +158,6 @@ export default function loginPage(){
                             aria-label="Confirmar senha"
                         />
                     </label>
-                )}
-
-                {isLogin ? (
-                    <label className="flex items-center gap-2 mb-3 text-sm text-white underline">
-                        <input
-                            type="checkbox"
-                            checked={remember}
-                            onChange={(e) => setRemember(e.target.checked)}
-                            aria-label="Lembrar-me"
-                            className="w-4 h-4"
-                        />
-                        <span>Lembrar-me</span>
-                    </label>
-                ) 
-                    :
-                (
                     <label className="flex items-center gap-2 mb-3 text-sm text-white underline">
                         <input
                             type="checkbox"
@@ -186,8 +168,9 @@ export default function loginPage(){
                         />
                         <span>Concordo com os termos de serviço da aplicação.</span>
                     </label>
-                )
-                }                
+                    </>
+                )}
+                               
 
                 <button type="submit" className={`w-full px-3 py-4 rounded-md ${isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompMidDarkBlue"} text-white text-sm disabled:opacity-50" disabled={loading} mt-6`}>
                     {loading ? "Processando..." : isLogin === true ? "Entrar" : "Criar conta"}

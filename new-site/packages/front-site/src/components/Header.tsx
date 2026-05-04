@@ -4,7 +4,7 @@ import { IoMenu } from "react-icons/io5";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/useAuth";
 
 const COFFEE_FORM_URL = "https://docs.google.com/forms/d/1-78IKRFPSMUla937lpv8OMou0NoAPRN-pFzI9bjnoV8/edit";
 

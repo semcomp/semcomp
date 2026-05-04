@@ -1,6 +1,30 @@
-import type { NotificationType } from "./NotificationType";
+import type { UserType } from "@/types/UserType";
 
-export type APIResponse = {
+/**
+ * Tipos de resposta e requisição da API
+ */
+
+export interface LoginResponse {
   message: string;
-  type: NotificationType;
-};
+  user: UserType;
+  token: string;
+}
+
+export interface RegisterResponse {
+  message: string;
+  user: UserType;
+}
+
+export interface ProfileResponse {
+  ok: boolean;
+  message: string;
+  user_number: number;
+  email: string;
+  name: string;
+  presence_rate: number;
+}
+
+export interface ApiError {
+  error?: string;
+  message?: string;
+}

@@ -5,7 +5,7 @@ import { useTheme } from "@/contexts/useTheme";
 import hogwarts from "../../assets/img/profilePics/hogwarts.jpg";
 import hogwartsLogo from "../../assets/img/profilePics/hogwartsLogo.png";
 import ContatoSection from "../Home/sections/ContatoSection";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/useAuth";
 
 type Evento = {
   tipo: string;
@@ -41,7 +41,6 @@ let events: Evento[] = [
   },
 ];
 
-// Helper para formatar a data dinamicamente
 function formatarDataDynamic(dataIso: string) {
   const dateObj = new Date(dataIso + "T12:00:00");
   const dataFormatada = dateObj.toLocaleDateString("pt-BR", {
@@ -163,7 +162,7 @@ export default function Profile({
             alt="Hogwarts"
           />
           <div
-            className={`absolute inset-0 bg-gradient-to-b from-transparent ${mGradientTo}`}
+            className={`absolute inset-0 bg-linear-to-b from-transparent ${mGradientTo}`}
           />
 
           {/* Tabs Seletoras */}
@@ -194,7 +193,7 @@ export default function Profile({
         {/* Conteúdo Principal (Card Central) */}
         <div className="px-5 -mt-6 relative z-10">
           <div
-            className={`${mMainCardBg} rounded-3xl p-6 md:p-8 flex flex-col items-center shadow-2xl min-h-[400px]`}
+            className={`${mMainCardBg} rounded-3xl p-6 md:p-8 flex flex-col items-center shadow-2xl min-h-100`}
           >
             {activeTab === "qr" && (
               <>
@@ -260,7 +259,7 @@ export default function Profile({
                   </h3>
                   <div className="relative w-full h-6 bg-black/10 rounded-full overflow-hidden">
                     <div
-                      className="absolute inset-y-0 left-0 h-full bg-[#0B2639] flex items-center justify-end pr-2 transition-all duration-1000"
+                      className="absolute inset-y-0 left-0 h-full bg-semcompDarkBlue flex items-center justify-end pr-2 transition-all duration-1000"
                       style={{ width: `${Math.max(presencePercent, 15)}%` }}
                     >
                       <span className="text-white text-[10px] font-bold">
@@ -270,7 +269,7 @@ export default function Profile({
                   </div>
                 </div>
 
-                <button className="w-full bg-[#0B2639] text-white py-3 rounded-lg text-sm font-semibold mb-4">
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4">
                   Editar Informações
                 </button>
                 <button

@@ -16,9 +16,10 @@ function App() {
      * presentes na pagina, o resto é renderizado no outlet, com o conteudo variando
      * com base na pagina na qual o usuario esta presente.
      */
+    <NotificationProvider>
     <ThemeProvider>
       <AuthProvider>
-        <NotificationProvider>
+        
           <Header />
           <main className="w-full">
             <Outlet />
@@ -26,9 +27,9 @@ function App() {
 
 
           <DarkModeToggle />
-        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
+    </NotificationProvider>
   );
 }
 

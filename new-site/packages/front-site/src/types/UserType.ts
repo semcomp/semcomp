@@ -1,5 +1,6 @@
 export type UserType = {
-  token?: string;
+  user_number: number;
   name: string;
   email: string;
+  presence_rate?: number;
 };

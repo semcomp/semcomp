@@ -1,20 +1,19 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
 import type { UserType } from "@/types/UserType";
-import type { APIResponse } from "@/types/APIResponseType";
-import axios from "axios";
-import { BASEURL } from "@/constants/ApiURL";
+import { authAPI, getErrorMessage } from "@/api";
 import { useNavigate } from "react-router-dom";
+import { useNotification } from "./NotificationContext";
 
 type AuthContextValue = {
   isAuthenticated: boolean;
   user: UserType | null;
-  login: (email: string, password: string) => Promise<APIResponse>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
 };
 
 const storageKey = "semcomp-site-auth";
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+export const AuthContext = createContext<AuthContextValue | null>(null);
 
 function readStoredUser(): UserType | null {
   if (typeof window === "undefined") {
@@ -36,8 +35,8 @@ function readStoredUser(): UserType | null {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserType | null>(() => readStoredUser());
-
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     if (user) {
@@ -54,39 +53,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       login: async (email: string, password: string) => {
         try {
-          // Faz a chamada da api com o método POST para tentativa de login
-          const response = await axios.post(`${BASEURL}/login`, {
-            email: email,
-            password: password,
-          });
+          const response = await authAPI.login(email, password);
 
-          // Teste de login
-          console.log("deu certo");
+          // Armazena token
+          localStorage.setItem("semcomp-site-token", response.token);
 
-          // Se a requisição deu certo, adiciona no user os dados de token, nome e email
+          // Atualiza user state 
           setUser({
-            token: response.data.token,
-            name: response.data.user.name,
-            email: response.data.user.email,
+            user_number: response.user.user_number,
+            name: response.user.name,
+            email: response.user.email,
           });
 
+          showNotification(response.message, "success");
           navigate("/profile");
-
-          const apiResponse: APIResponse = {
-            message: response.data.message as string,
-            type: "success",
-          };
-          return apiResponse;
+          return true;
         } catch (err: any) {
-          const apiResponse: APIResponse = {
-            message: err.message as string,
-            type: "warning",
-          };
-          return apiResponse;
+          showNotification(err.message, "warning");
+          return false;
         }
       },
       logout: () => {
         setUser(null);
+        showNotification("Desconectado com sucesso!", "success");
         navigate("/");
       },
     }),
@@ -94,14 +83,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-
-  return context;
 }
