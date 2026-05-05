@@ -1,21 +1,40 @@
 import { useTheme } from "@/contexts/useTheme";
-import { useState, type ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { useCallback } from "react";
 import SegmentedControl, { useSegmentedControl } from "@/components/ui/Segcontrol";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Input from "@/components/ui/Input"
 import { useAuth } from "@/contexts/useAuth";
 import { useNotification } from "@/contexts/NotificationContext";
-import { authAPI, getErrorMessage } from "@/api";
+import { authAPI } from "@/api";
+import TermsModal from "@/components/TermsModal";
+import { getTerms } from "@/mock/terms";
+import { useNavigate } from "react-router";
+import fallbackLoginHero from "@/assets/img/Login/Palestra.avif";
 
-/* obs: deve ser implementar uma maneira mais inteligente de lidar com a altura do header
-visto que se algo mudar na altura dele, o resto da pagina neste componente pode potencialmente
-quebrar. */
+// Load login side images (eagerly)
+const _loginModules = import.meta.glob(
+    "/src/assets/img/Login/*",
+    { eager: true }
+) as Record<string, { default: string }>;
+
+const LOGIN_IMAGES = Object.values(_loginModules)
+    .map((m) => m.default as string)
+    .filter((s) => /\.(webp)$/i.test(s));
+
+const pickRandomLoginHero = () =>
+    LOGIN_IMAGES.length
+        ? LOGIN_IMAGES[Math.floor(Math.random() * LOGIN_IMAGES.length)]
+        : fallbackLoginHero;
+
+
+
 
 export default function loginPage(){
     // variaveis para alterações de modo no forms e modo de luz do site
     const { isLogin, setIsLogin } = useSegmentedControl();
     const { isDarkMode } = useTheme();
+    const [loginHeroSrc] = useState<string>(() => pickRandomLoginHero());
     
     // cores e dimensão da janela
     const bgColor = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompOffWhite";
@@ -31,7 +50,27 @@ export default function loginPage(){
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [remember, setRemember] = useState(false);
+    const [acceptTerms, setAcceptTerms] = useState(false);
+    const [termsOpen, setTermsOpen] = useState(false);
+    const [termsContent, setTermsContent] = useState<string | null>(null);
+
+    const openTerms = useCallback(async () => {
+        setTermsOpen(true);
+        if (!termsContent) {
+            const t = await getTerms();
+            setTermsContent(t);
+        }
+    }, [termsContent]);
+
+    const { isAuthenticated } = useAuth();
+    const navigate = useNavigate();
+    
+    useEffect(() => {
+        if (isAuthenticated) {
+            showNotification("Você já está logado!", "info");
+            navigate("/");
+        }
+    }, []);
 
     // função para resetar o forms
     const resetForm = useCallback(() => {
@@ -39,7 +78,7 @@ export default function loginPage(){
         setPassword("");
         setName("");
         setConfirmPassword("");
-        setRemember(false);
+        setAcceptTerms(false);
     }, []);
 
     // checagem de formulario, ainda há mais restrições a serem colocadas eventualmente
@@ -61,8 +100,9 @@ export default function loginPage(){
             showNotification(response.message, "success");
             return true;
         } catch (err: any) {
-            
-            showNotification(err.message, "warning");
+            const message =
+              err?.response?.data?.error || err?.response?.data?.message || err?.message || "Erro no login";
+            showNotification(message, "warning");
             return false;
         }
     }
@@ -83,19 +123,27 @@ export default function loginPage(){
             if (isLogin) {
                 ok = await login(email, password);
             } else {
+                if (!acceptTerms) {
+                    showNotification("Você deve aceitar os termos de serviço para criar uma conta.", "warning");
+                    setLoading(false);
+                    return;
+                }
                 ok = await register(email, name, password);
             }
 
             if (ok) {
                 showNotification(isLogin ? "Login bem-sucedido!" : "Registro bem-sucedido!", "success");
+                if (!isLogin) {
+                    setIsLogin(true);
+                }
             }
         } catch (err) {
-            showNotification(getErrorMessage(err), "warning");
+            showNotification("Erro ao processar solicitação.", "warning");
         } finally {
             setLoading(false);
         }
         },
-        [validate, isLogin, email, password, name, showNotification, login, resetForm]
+        [validate, isLogin, email, password, name, showNotification, login, resetForm, acceptTerms]
     );
 
     // conteudo do forms
@@ -158,15 +206,21 @@ export default function loginPage(){
                             aria-label="Confirmar senha"
                         />
                     </label>
-                    <label className="flex items-center gap-2 mb-3 text-sm text-white underline">
+                    <label className="flex items-center gap-2 mb-3 text-sm text-white">
                         <input
                             type="checkbox"
-                            checked={remember}
-                            onChange={(e) => setRemember(e.target.checked)}
+                            checked={acceptTerms}
+                            onChange={(e) => setAcceptTerms(e.target.checked)}
                             aria-label="Concordo com os termos de serviço"
                             className="w-4 h-4"
                         />
-                        <span>Concordo com os termos de serviço da aplicação.</span>
+                        <span>
+                            Concordo com os{' '}
+                            <button type="button" onClick={openTerms} className="underline">
+                                Termos de Serviço
+                            </button>{' '}
+                            da aplicação.
+                        </span>
                     </label>
                     </>
                 )}
@@ -189,9 +243,9 @@ export default function loginPage(){
             <div className={`h-[calc(100vh-70px)] flex items-center justify-center ${bgColor}`}>
                 <div className={`${bgContainer} h-auto w-[98%] min-h-[95%] rounded-3xl shadow-xl flex overflow-hidden`}>
                     <div className="w-1/2 bg-gray-300 relative">
-                        <img 
-                            src="https://diariodepernambuco.com.br/dpmais/wp-content/uploads/2025/11/Lionel-Messi.webp" 
-                            alt="Background" 
+                        <img
+                            src={loginHeroSrc}
+                            alt="Background"
                             className="absolute inset-0 w-full h-full object-cover"
                         />
                     </div>
@@ -205,9 +259,9 @@ export default function loginPage(){
         retorno = (
             <div className={`h-[calc(100vh-70px)] flex items-center justify-center ${bgColor} p-4`}>
                 <div className={`relative ${bgContainer} w-[98%] min-h-[85%] rounded-3xl shadow-xl flex items-center justify-center overflow-hidden`}>
-                    <img 
-                        src="https://diariodepernambuco.com.br/dpmais/wp-content/uploads/2025/11/Lionel-Messi.webp" 
-                        alt="Background" 
+                    <img
+                        src={loginHeroSrc}
+                        alt="Background"
                         className={`absolute inset-0 w-full h-full object-cover ${ isDarkMode ? "opacity-40 brightness-50" : "opacity-90 brightness-50"}`}
                     />
                     <div className={`relative z-10 ${isDarkMode ? "bg-semcompOffWhite/10" : "bg-semcompMidLightBlue/30"} backdrop-blur-md rounded-2xl shadow-2xl m-4`}>
@@ -229,6 +283,9 @@ export default function loginPage(){
     }
 
     return (
-        retorno 
+        <>
+            {retorno}
+            <TermsModal open={termsOpen} onClose={() => setTermsOpen(false)} content={termsContent} />
+        </>
     );
 }

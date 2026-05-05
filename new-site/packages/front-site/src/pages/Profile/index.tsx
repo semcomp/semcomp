@@ -14,6 +14,7 @@ type Evento = {
   data: string;
   horaStart: string;
   horaEnd: string;
+  linkInscricao?: string;
 };
 
 interface ProfileProps {
@@ -32,6 +33,7 @@ let events: Evento[] = [
     data: "2026-10-20",
     horaStart: "14:00",
     horaEnd: "18:00",
+    linkInscricao: ""
   },
   {
     tipo: "Palestra",
@@ -39,6 +41,7 @@ let events: Evento[] = [
     data: "2026-10-21",
     horaStart: "16:30",
     horaEnd: "18:00",
+    linkInscricao: ""
   },
 ];
 
