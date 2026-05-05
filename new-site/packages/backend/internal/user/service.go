@@ -8,7 +8,13 @@ import (
 
 	"backend/internal/providers"
 )
-var ErrEmailAlreadyExists = errors.New("e-mail já cadastrado")
+
+var (
+	ErrEmailAlreadyExists = errors.New("email já cadastrado")
+	ErrInvalidCredentials = errors.New("email e/ou senha inválido(s)")
+	ErrTokenGeneration    = errors.New("geração do token falhou")
+	ErrInternalServerError = errors.New("erro interno")
+)
 
 // UserService define as regras de negócio para operações relacionadas a usuários.
 type UserService interface {

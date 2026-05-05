@@ -39,15 +39,15 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 
 	userRecord, token, errLogin := h.authService.Login(request)
 	if errLogin != nil {
-		if errors.Is(errLogin, ErrInvalidCredentials) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Email ou senha inválidos"})
+		if errors.Is(errLogin, user.ErrInvalidCredentials) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Email e/ou senha inválidos"})
 			return
 		}
-		if errors.Is(errLogin, ErrTokenGeneration) {
+		if errors.Is(errLogin, user.ErrTokenGeneration) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao gerar token de autenticação"})
 			return
 		}
-		if errors.Is(errLogin, ErrInternalServerError) {
+		if errors.Is(errLogin, user.ErrInternalServerError) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
 			return
 		}
