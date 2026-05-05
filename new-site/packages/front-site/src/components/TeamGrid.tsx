@@ -61,7 +61,7 @@ export default function TeamGrid({ data }: { data: TeamType }) {
         className="flex flex-wrap gap-6 sm:gap-8 justify-center pt-6 sm:pt-10 transition-all duration-500 transform animate-slide w-full"
       >
         {data.frente[currentDepartment].membros.map((member) => (
-          <div key={member.nome} className="w-36 sm:w-40 md:w-44 text-center justify-items-center hover:scale-105 transition-transform cursor-pointer">
+          <div key={member.nome} className="flex flex-col items-center w-36 sm:w-40 md:w-44 text-center justify-items-center hover:scale-105 transition-transform cursor-pointer">
             <img
               src={getPhoto(member.nome)}
               alt={member.nome}

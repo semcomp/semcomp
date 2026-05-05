@@ -6,6 +6,7 @@ import hogwarts from "../../assets/img/profilePics/hogwarts.jpg";
 import hogwartsLogo from "../../assets/img/profilePics/hogwartsLogo.png";
 import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/useAuth";
+import { authAPI } from "@/api";
 
 type Evento = {
   tipo: string;
@@ -73,6 +74,22 @@ export default function Profile({
 
   const { logout } = useAuth();
 
+  // buscar dados do perfil na montagem da pagina
+  useEffect(() => {
+    async function fetchProfile() { // função de busca
+      try {
+        const response = await authAPI.getProfile(); // chama a API do perfil e insere as infos
+        setUserName(response.name || name); 
+        setUserEmail(response.email || email);
+        setUserCode(response.user_number?.toString() || code);
+        setPresencePercent(response.presence_rate || 0);
+      } catch (err) { // caputura de erro
+        console.error("Erro ao buscar o perfil", err);
+      }
+    }
+    fetchProfile(); // chamada da função
+  }, []);
+
   // Variáveis do Desktop original
   const bgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompOffWhite";
   const textColor = isDarkMode
@@ -85,12 +102,11 @@ export default function Profile({
     ? "shadow-[inset_0_-180px_40px_-40px_theme(colors.semcompDarkBlue/100%)]"
     : "shadow-[inset_0_-180px_40px_-40px_theme(colors.semcompMidLight/100%)]";
 
+  // Retirado o useEffect de sobrescrita hardcoded params para não conflitar com API
   useEffect(() => {
-    setUserName(name);
-    setUserCode(code);
+    // Apenas garante que se o QR mudar explicitamente externamente, atualize
     setQrData(qrValue);
-    setPresencePercent(16);
-  }, [name, code, qrValue]);
+  }, [qrValue]);
 
   // Card de Evento -Mobile
   const EventCardMobile = ({ ev }: { ev: Evento }) => {
@@ -115,7 +131,7 @@ export default function Profile({
     );
   };
 
-  // Mobile (< 1280px)
+  // Mobile e Tablet (< 1280px)
   if (width < 1280) {
     // Variáveis de Tema para Mobile
     const mMainBg = isDarkMode
@@ -364,7 +380,7 @@ export default function Profile({
     );
   }
 
-  // Desktop (>= 1280px)
+  // construção do QRcode
   const qrAndAccountCard = (
     <div className="h-full w-full pt-5 bg-gray-300 flex flex-col text-semcompDarkBlue rounder-2xl">
       <div className="flex mx-auto mb-5 w-[60%] rounded-full m-3 p-1 gap-1 border-2 border-semcompOffWhite/20 bg-semcompMidLight/20">
@@ -509,6 +525,7 @@ export default function Profile({
     </div>
   );
 
+  // pagina para telas de computador
   if (width >= 1280) {
     return (
       <div className={`${bgColor} ${textColor} min-h-screen`}>
