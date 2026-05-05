@@ -1,22 +1,21 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-
-type AuthUser = {
-  email: string;
-  name: string;
-};
+import { createContext, useEffect, useMemo, useState } from "react";
+import type { UserType } from "@/types/UserType";
+import { authAPI, getErrorMessage } from "@/api";
+import { useNavigate } from "react-router-dom";
+import { useNotification } from "./NotificationContext";
 
 type AuthContextValue = {
   isAuthenticated: boolean;
-  user: AuthUser | null;
-  login: (email: string, password: string) => void;
+  user: UserType | null;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
 };
 
 const storageKey = "semcomp-site-auth";
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+export const AuthContext = createContext<AuthContextValue | null>(null);
 
-function readStoredUser(): AuthUser | null {
+function readStoredUser(): UserType | null {
   if (typeof window === "undefined") {
     return null;
   }
@@ -27,7 +26,7 @@ function readStoredUser(): AuthUser | null {
   }
 
   try {
-    return JSON.parse(rawValue) as AuthUser;
+    return JSON.parse(rawValue) as UserType;
   } catch {
     window.localStorage.removeItem(storageKey);
     return null;
@@ -35,7 +34,9 @@ function readStoredUser(): AuthUser | null {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
+  const [user, setUser] = useState<UserType | null>(() => readStoredUser());
+  const navigate = useNavigate();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     if (user) {
@@ -50,33 +51,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       isAuthenticated: user !== null,
       user,
-      login: (email: string) => {
-        const normalizedEmail = email.trim().toLowerCase();
-        const fallbackName = normalizedEmail.split("@")[0] || "Administrador";
+      login: async (email: string, password: string) => {
+        try {
+          const response = await authAPI.login(email, password);
 
-        setUser({
-          email: normalizedEmail,
-          name: fallbackName
-            .split(/[._-]/)
-            .filter(Boolean)
-            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-            .join(" ") || "Administrador",
-        });
+          // Armazena token
+          localStorage.setItem("semcomp-site-token", response.token);
+
+          // Atualiza user state 
+          setUser({
+            user_number: response.user.user_number,
+            name: response.user.name,
+            email: response.user.email,
+          });
+
+          showNotification(response.message, "success");
+          navigate("/profile");
+          return true;
+        } catch (err: any) {
+          showNotification(err.message, "warning");
+          return false;
+        }
       },
-      logout: () => setUser(null),
+      logout: () => {
+        setUser(null);
+        showNotification("Desconectado com sucesso!", "success");
+        navigate("/");
+      },
     }),
-    [user],
+    [user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-
-  return context;
 }

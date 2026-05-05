@@ -4,6 +4,9 @@ import { useCallback } from "react";
 import SegmentedControl, { useSegmentedControl } from "@/components/ui/Segcontrol";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Input from "@/components/ui/Input"
+import { useAuth } from "@/contexts/useAuth";
+import { useNotification } from "@/contexts/NotificationContext";
+import { authAPI, getErrorMessage } from "@/api";
 
 /* obs: deve ser implementar uma maneira mais inteligente de lidar com a altura do header
 visto que se algo mudar na altura dele, o resto da pagina neste componente pode potencialmente
@@ -11,7 +14,7 @@ quebrar. */
 
 export default function loginPage(){
     // variaveis para alterações de modo no forms e modo de luz do site
-    const { islogin, setIslogin } = useSegmentedControl();
+    const { isLogin, setIsLogin } = useSegmentedControl();
     const { isDarkMode } = useTheme();
     
     // cores e dimensão da janela
@@ -19,9 +22,9 @@ export default function loginPage(){
     const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
     let {width} = useWindowDimensions()
    
-    // estados do forms com mensagem a ser exibida
+    // estados do forms
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState<string | null>(null);
+    const { showNotification } = useNotification();
 
     // campos a serem preenchidos no forms
     const [email, setEmail] = useState("");
@@ -37,56 +40,71 @@ export default function loginPage(){
         setName("");
         setConfirmPassword("");
         setRemember(false);
-        setMessage(null);
     }, []);
 
     // checagem de formulario, ainda há mais restrições a serem colocadas eventualmente
     const validate = useCallback((): string | null => {
         if (!email.includes("@")) return "Insira um e-mail válido.";
-        if (password.length < 6) return "A senha deve ter ao menos 6 caracteres.";
-        if (islogin === false) {
-        if (name.trim().length === 0) return "Informe seu nome.";
-        if (password !== confirmPassword) return "As senhas não coincidem.";
+        if (password.length < 8) return "A senha deve ter ao menos 8 caracteres.";
+        if (isLogin === false) {
+            if (name.trim().length === 0) return "Informe seu nome.";
+            if (password !== confirmPassword) return "As senhas não coincidem.";
         }
         return null;
-    }, [email, password, confirmPassword, islogin, name]);
+    }, [email, password, confirmPassword, isLogin, name]);
+
+    // Integração com o back-end: api POST para registro de usuário
+    const { login } = useAuth();
+    const register = async (email: string, name: string, password: string) => {
+        try {
+            const response = await authAPI.register(name, email, password);
+            showNotification(response.message, "success");
+            return true;
+        } catch (err: any) {
+            
+            showNotification(err.message, "warning");
+            return false;
+        }
+    }
 
     // prototipação da função de envio do forms
     const handleSubmit = useCallback(
         async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setMessage(null);
         const err = validate();
         if (err) {
-            setMessage(err);
+            showNotification(err, "warning");
             return;
         }
 
         setLoading(true);
         try {
-            // Exemplo: adaptar para sua API
-            // const url = mode === "login" ? "/api/auth/login" : "/api/auth/register";
-            // await fetch(url, { method: "POST", body: JSON.stringify({ email, password, name }) });
+            let ok = false;
+            if (isLogin) {
+                ok = await login(email, password);
+            } else {
+                ok = await register(email, name, password);
+            }
 
-            await new Promise((r) => setTimeout(r, 700)); // simula requisição
-            setMessage(islogin === true ? "Login realizado (simulado)." : "Cadastro realizado (simulado).");
-            // após sucesso, redirecionar ou atualizar estado global
+            if (ok) {
+                showNotification(isLogin ? "Login bem-sucedido!" : "Registro bem-sucedido!", "success");
+            }
         } catch (err) {
-            setMessage("Erro ao conectar com o servidor.");
+            showNotification(getErrorMessage(err), "warning");
         } finally {
             setLoading(false);
         }
         },
-        [validate, islogin, email, password, name]
+        [validate, isLogin, email, password, name, showNotification, login, resetForm]
     );
 
     // conteudo do forms
     const formContent = (
         <div className={`w-full max-w-sm flex flex-col items-center justify-center p-8 ${textColor}`}>
             {/* compoenente utilizado para definir qual o modo do formulario */}
-            <SegmentedControl islogin={islogin} setIslogin={setIslogin} hook={resetForm}/>
+            <SegmentedControl islogin={isLogin} setIslogin={setIsLogin} hook={resetForm}/>
             <form onSubmit={handleSubmit} aria-live="polite" className="w-full mt-4">
-                {islogin === false && ( 
+                {isLogin === false && ( 
                     <div>
                         <label className={`block mb-2 ${!isDarkMode && "text-white"}`}>
                             {/* componente Input customizado */}
@@ -95,7 +113,7 @@ export default function loginPage(){
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Nome completo"
-                                required={islogin === false}
+                                required={isLogin === false}
                                 aria-label="Nome completo"
                             />
                         </label>
@@ -127,7 +145,8 @@ export default function loginPage(){
                     />
                 </label>
 
-                {islogin === false && (
+                {isLogin === false && (
+                    <>
                     <label className={`block mb-3 ${!isDarkMode && "text-white"}`}>
                         <Input
                             label="Confirmar senha"
@@ -139,22 +158,6 @@ export default function loginPage(){
                             aria-label="Confirmar senha"
                         />
                     </label>
-                )}
-
-                {islogin ? (
-                    <label className="flex items-center gap-2 mb-3 text-sm text-white underline">
-                        <input
-                            type="checkbox"
-                            checked={remember}
-                            onChange={(e) => setRemember(e.target.checked)}
-                            aria-label="Lembrar-me"
-                            className="w-4 h-4"
-                        />
-                        <span>Lembrar-me</span>
-                    </label>
-                ) 
-                    :
-                (
                     <label className="flex items-center gap-2 mb-3 text-sm text-white underline">
                         <input
                             type="checkbox"
@@ -165,17 +168,12 @@ export default function loginPage(){
                         />
                         <span>Concordo com os termos de serviço da aplicação.</span>
                     </label>
-                )
-                }
-
-                {message && (
-                    <div className={`${message.includes("Erro") ? "text-red-700" : "text-green-700"} mb-3`}>
-                        {message}
-                    </div>
+                    </>
                 )}
+                               
 
                 <button type="submit" className={`w-full px-3 py-4 rounded-md ${isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompMidDarkBlue"} text-white text-sm disabled:opacity-50" disabled={loading} mt-6`}>
-                    {loading ? "Processando..." : islogin === true ? "Entrar" : "Criar conta"}
+                    {loading ? "Processando..." : isLogin === true ? "Entrar" : "Criar conta"}
                 </button>
             </form>
         </div>
@@ -231,6 +229,6 @@ export default function loginPage(){
     }
 
     return (
-        retorno
+        retorno 
     );
 }

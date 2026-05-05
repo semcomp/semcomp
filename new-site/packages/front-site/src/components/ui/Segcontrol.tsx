@@ -3,8 +3,8 @@ import { useTheme } from "@/contexts/useTheme";
 
 // Este hook exporta o state e pode ser importado em sua página
 export function useSegmentedControl() {
-  const [islogin, setIslogin] = useState<boolean>(true);
-  return { islogin, setIslogin };
+  const [isLogin, setIsLogin] = useState<boolean>(true);
+  return { isLogin, setIsLogin };
 }
 
 // O componente em si é controlado pelas propriedades
