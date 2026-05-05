@@ -1,9 +1,26 @@
 import { motion } from "framer-motion";
 import Carousel from "@/components/ui/Carousel";
-import FotoSemcompMain from "@/assets/img/semcomp/Semcomp28.webp";
-import FotoSemcompMain2 from "@/assets/img/semcomp/palestra.webp";
+import FotoSemcompMain from "@/assets/img/Home/Hero/Semcomp.avif";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
+
+
+const _carouselModules = import.meta.glob(
+  "/src/assets/img/Home/Carousel/*",
+  { eager: true }
+) as Record<string, { default: string }>;
+
+const _carouselSrcs = Object.values(_carouselModules)
+  .map((m) => m.default as string)
+  .filter((s) => /\.(webp)$/i.test(s));
+
+const altFromPath = (p: string) => {
+  const base = p.split("/").pop() || p;
+  const name = base.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+  return name.replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+const CAROUSEL_IMAGES = _carouselSrcs.map((src) => ({ src, alt: altFromPath(src) }));
 
 type SobreProps = {
   className?: string;
@@ -49,10 +66,13 @@ const SobreSection = (props: SobreProps) => {
           variants={fadeIn}
         >
           <Carousel
-            images={[
-              { src: FotoSemcompMain, alt: "Uma foto com toda a equipe da Semcomp 28" },
-              { src: FotoSemcompMain2, alt: "Uma foto com um aluno fazendo uma pergunta durante uma palestra" },
-            ]}
+            images={
+              CAROUSEL_IMAGES.length
+                ? CAROUSEL_IMAGES
+                : [
+                    { src: FotoSemcompMain, alt: "Uma foto com toda a equipe da Semcomp 28" },
+                  ]
+            }
           />
         </motion.div>
 

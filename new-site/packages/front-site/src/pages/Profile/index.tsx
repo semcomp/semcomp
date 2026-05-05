@@ -2,11 +2,24 @@ import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
-import hogwarts from "../../assets/img/profilePics/hogwarts.jpg";
-import hogwartsLogo from "../../assets/img/profilePics/hogwartsLogo.png";
+import FotoSemcompMain from "@/assets/img/Home/Hero/Semcomp.avif";
+import imgLogoBranco from "@/assets/img/semcomp/logo_default_branco.webp";
 import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/useAuth";
 import { authAPI } from "@/api";
+import { ChevronDown } from "lucide-react";
+import { useNotification } from "@/contexts/NotificationContext";
+
+const _heroModules = import.meta.glob(
+  "/src/assets/img/Home/Hero/*",
+  { eager: true }
+) as Record<string, { default: string }>;
+const HERO_IMAGES = Object.values(_heroModules)
+  .map((m) => m.default as string)
+  .filter((src) => /\.(webp)$/i.test(src));
+const pickRandomHero = () =>
+  HERO_IMAGES.length ? HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)] : FotoSemcompMain;
+
 
 type Evento = {
   tipo: string;
@@ -14,6 +27,7 @@ type Evento = {
   data: string;
   horaStart: string;
   horaEnd: string;
+  linkInscricao?: string;
 };
 
 interface ProfileProps {
@@ -32,6 +46,7 @@ let events: Evento[] = [
     data: "2026-10-20",
     horaStart: "14:00",
     horaEnd: "18:00",
+    linkInscricao: "https://docs.google.com/forms/d/e/1FAIpQLScc0O2bcAs18cSS-mXkCS5mmJCVZ5BU37d4I8pDTANGiMCY0g/viewform"
   },
   {
     tipo: "Palestra",
@@ -39,6 +54,7 @@ let events: Evento[] = [
     data: "2026-10-21",
     horaStart: "16:30",
     horaEnd: "18:00",
+    linkInscricao: ""
   },
 ];
 
@@ -64,6 +80,7 @@ export default function Profile({
 }: ProfileProps) {
   const { width } = useWindowDimensions();
   const { isDarkMode } = useTheme();
+  const { showNotification } = useNotification();
 
   const [activeTab, setActiveTab] = useState<"qr" | "account">("qr");
   const [userName, setUserName] = useState(name);
@@ -71,8 +88,10 @@ export default function Profile({
   const [userCode, setUserCode] = useState(code);
   const [qrData, setQrData] = useState(qrValue);
   const [presencePercent, setPresencePercent] = useState<number>(16);
+  const [openSubscription, setOpenSubscription] = useState<number>(-1)
 
   const { logout } = useAuth();
+  const [heroSrc] = useState<string>(() => pickRandomHero());
 
   // buscar dados do perfil na montagem da pagina
   useEffect(() => {
@@ -118,15 +137,26 @@ export default function Profile({
       : "bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue";
 
     return (
-      <div className={`border rounded-xl p-4 mb-3 ${cardBgColor}`}>
-        <div className="flex items-start gap-2">
-          <span className="font-bold whitespace-nowrap">{ev.tipo}</span>
-          <span className="opacity-60">|</span>
-          <p className="text-sm leading-tight opacity-90">{ev.description}</p>
+      <div className={`border rounded-xl p-4 mb-3 ${cardBgColor} flex flex-col items-start`}>
+        <div className="w-full">
+          <div className="flex items-start gap-2">
+            <span className="font-bold whitespace-nowrap">{ev.tipo}</span>
+            <span className="opacity-60">|</span>
+            <p className="text-sm leading-tight opacity-90">{ev.description}</p>
+          </div>
+          <p className="mt-2 text-sm opacity-80 font-medium">
+            {diaSemana} ({data}), {ev.horaStart} às {ev.horaEnd}
+          </p>
+          <hr className="mb-2 mt-2"/>
+        </div>  
+        <div className={`w-full flex flex-row justify-center ${cardBgColor}/90 rounded-sm`}>
+          <button
+            className="cursor-pointer w-full"
+            onClick={()=>  ev.linkInscricao ? window.open(ev.linkInscricao, "_blank") : showNotification("Este evento ainda não está aberto para inscrições.")}
+          >
+            Inscreva-se
+          </button>
         </div>
-        <p className="mt-2 text-sm opacity-80 font-medium">
-          {diaSemana} ({data}), {ev.horaStart} às {ev.horaEnd}
-        </p>
       </div>
     );
   };
@@ -160,8 +190,8 @@ export default function Profile({
 
     // Seções
     const mOverflowBg = isDarkMode
-      ? "bg-semcompDarkBlue text-white"
-      : "bg-semcompMidLightBlue text-semcompDarkBlue";
+      ? "bg-semcompDarkBlue text-semcompOffWhite"
+      : "bg-semcompMidLightBlue text-semcompOffWhite";
     const mInscricoesBg = isDarkMode
       ? "bg-[#1A3A4F] border-white/10"
       : "bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue";
@@ -170,13 +200,16 @@ export default function Profile({
       <div
         className={`min-h-screen ${mMainBg} font-poppins pb-10 transition-colors duration-300`}
       >
-        {/* Header com Background Hogwarts */}
-        <div className="relative h-80 w-full overflow-hidden">
+        {/* Header com Background */}
+        <div className="relative h-80 w-full overflow-hidden bg-black">
           <img
-            src={hogwarts}
-            className="absolute inset-0 w-full h-full object-cover"
-            alt="Hogwarts"
+            src={heroSrc}
+            className="absolute inset-0 w-full h-full object-cover opacity-60"
+            alt="Semcomp Banner"
           />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <img src={imgLogoBranco} alt="SEMCOMP Logo" className="w-1/2 max-w-50 object-contain drop-shadow-2xl" />
+          </div>
           <div
             className={`absolute inset-0 bg-linear-to-b from-transparent ${mGradientTo}`}
           />
@@ -299,12 +332,12 @@ export default function Profile({
           </div>
         </div>
 
-        {/* Seção Overflow (Grifinória) */}
+        {/* Seção Overflow */}
         <div
           className={`mt-12 pt-10 pb-10 px-5 text-center transition-colors ${mOverflowBg}`}
         >
           <h2 className="text-3xl font-bold mb-1 flex items-center justify-center gap-2">
-            Overflow
+            SEMCOMP Beta 2026
             <span
               className={`flex items-center justify-center w-5 h-5 rounded-full border text-xs font-normal ${
                 isDarkMode
@@ -316,7 +349,7 @@ export default function Profile({
             </span>
           </h2>
           <p className="text-xs mb-6 opacity-80">
-            O Overflow é o principal concurso da nossa semana! E sua casa é...
+            Você sabia que vem por aí a prévia da maior semana acadêmica de computação do Brasil?
           </p>
 
           <div
@@ -326,15 +359,15 @@ export default function Profile({
                 : "bg-white border-semcompDarkBlue/20"
             }`}
           >
-            <img src={hogwarts} className="w-full h-56 object-cover" />
+            <img src={heroSrc} className="w-full h-56 object-cover brightness-[0.7]" />
             <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
               <img
-                src={hogwartsLogo}
+                src={imgLogoBranco}
                 className="w-32 mb-2 drop-shadow-2xl"
-                alt="Gryffindor"
+                alt="Logo"
               />
               <h3 className="text-2xl font-black tracking-widest drop-shadow-lg text-white">
-                GRIFINÓRIA
+                SEMCOMP Beta
               </h3>
             </div>
           </div>
@@ -345,15 +378,15 @@ export default function Profile({
             }`}
           >
             <p className="text-[11px] leading-relaxed text-justify opacity-90">
-              Fundada por Godrico Grifinória, esta casa valoriza a coragem,
-              bravura, ousadia e cavalheirismo, tendo o leão como mascote e as
-              cores vermelho escarlate e dourado. Conhecidos por seu ímpeto
-              heroico, muitas vezes imprudente, seus membros costumam ser nobres
-              e destemidos.
+              A SEMCOMP Beta é uma prévia de um evento ainda maior - a Semana de
+              Computação da USP São Carlos. Ela acontecerá no dia 16 de maio e
+              sua programação inclui palestras, minicursos, concursos, coffee
+              break e a nossa famosa gamenight. Participe e faça parte dessa
+              experiência única!
             </p>
-            <button className="mt-4 underline text-sm font-semibold hover:opacity-70">
+            {/* <button className="mt-4 underline text-sm font-semibold hover:opacity-70">
               Entrar no Grupo da Casa
-            </button>
+            </button> */}
           </div>
         </div>
 
@@ -532,7 +565,7 @@ export default function Profile({
         <div
           className={`h-[calc(90vh-70px)] w-full bg-cover bg-center ${shadowClass} flex flex-row justify-center items-center gap-10 font-poppins`}
           style={{
-            backgroundImage: `url(${hogwarts})`,
+            backgroundImage: `url(${heroSrc})`,
             boxShadow: isDarkMode
               ? "inset 0 -160px 60px -40px rgba(11, 38, 57, 0.8)"
               : "inset 0 -180px 40px -40px rgba(53, 123, 163, 0.6)",
@@ -553,16 +586,18 @@ export default function Profile({
               computação do Brasil?
             </p>
             <div
-              className="relative h-[50%] bg-cover bg-center "
-              style={{ backgroundImage: `url(${hogwarts})` }}
+              className="relative h-[50%] bg-cover bg-center bg-black"
             >
-              <img
-                className="h-[80%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                src={hogwartsLogo}
-                alt="Logo"
-              />
+              <img src={heroSrc} className="absolute inset-0 w-full h-full object-cover opacity-60" alt="background"/>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <img
+                  className="h-[80%] drop-shadow-2xl"
+                  src={imgLogoBranco}
+                  alt="Logo"
+                />
+              </div>
 
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 whitespace-nowrap font-bold text-2xl">
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 whitespace-nowrap font-bold text-2xl z-10 text-white drop-shadow-md">
                 SEMCOMP Beta
               </span>
             </div>
@@ -608,33 +643,62 @@ export default function Profile({
                   return (
                     <div
                       key={index}
-                      className="w-full flex flex-row justify-between items-center py-2 px-4 rounded-lg bg-black/10"
+                      className="flex flex-col justify-center items-center"
                     >
-                      <div className="w-1/2 flex flex-col text-left gap-2 items-start pr-4">
-                        <span className="font-semibold shrink-0">
-                          {evento.tipo} |
-                        </span>
-                        <span className="text-sm break-all flex-1">
-                          {evento.description}
-                        </span>
-                      </div>
-                      <div className="w-auto flex flex-col items-end shrink-0">
-                        <div className="flex flex-row gap-2 items-center">
-                          <span className="font-semibold">{data}</span>
-                          <span
-                            className={`text-sm px-2 py-0.5 rounded-full ${
-                              isDarkMode
-                                ? "bg-semcompOffWhite text-semcompMidDarkBlue"
-                                : "bg-semcompDarkBlue text-semcompOffWhite capitalize"
-                            } `}
-                          >
-                            {diaSemana}
+                      <div
+                        className={`w-full flex flex-row justify-between items-center py-3 px-6 ${openSubscription === index ? "rounded-t-lg bg-black/15 shadow-inner" : "rounded-lg bg-black/5 hover:bg-black/10"}
+                        transition-all duration-300 cursor-pointer`}
+                        onClick={()=>setOpenSubscription(openSubscription === index ? -1 : index)}
+                      >
+                        <div className="w-1/2 flex flex-col text-left gap-1 items-start pr-4">
+                          <span className="font-bold text-lg shrink-0">
+                            {evento.tipo}
+                          </span>
+                          <span className="text-sm font-medium break-all flex-1 opacity-90">
+                            {evento.description}
                           </span>
                         </div>
-                        <span className="text-sm">
-                          {evento.horaStart} às {evento.horaEnd}
-                        </span>
+                        <div className="w-auto flex flex-col items-end shrink-0 gap-1">
+                          <div className="flex flex-row gap-3 items-center">
+                            <span className="font-semibold text-md">{data}</span>
+                            <span
+                              className={`text-xs px-3 py-1 font-bold rounded-full ${
+                                isDarkMode
+                                  ? "bg-semcompOffWhite text-semcompMidDarkBlue"
+                                  : "bg-semcompDarkBlue text-semcompOffWhite capitalize"
+                              } `}
+                            >
+                              {diaSemana}
+                            </span>
+                          </div>
+                          <span className="text-sm font-medium opacity-80 flex items-center gap-2">
+                            {evento.horaStart} às {evento.horaEnd}
+                            <ChevronDown 
+                              className={`transition-transform duration-300 ${openSubscription === index ? "rotate-180" : ""} ${isDarkMode ? "text-white" : "text-black"}`} 
+                              size={20} 
+                            />
+                          </span>
+                        </div>
                       </div>
+                      {
+                        openSubscription === index && (
+                          <div className={`w-full p-6 flex flex-row items-center justify-center rounded-b-lg border-t border-black/10 shadow-lg transition-all animate-in fade-in duration-300 ${
+                            isDarkMode 
+                              ? "bg-black/20" 
+                              : "bg-black/5"
+                          }`}>
+                              <button className={`px-8 py-3 rounded-xl font-bold uppercase tracking-wide shadow-md hover:-translate-y-1 transition-all duration-300 ${
+                                isDarkMode 
+                                  ? "bg-semcompOffWhite text-semcompDarkBlue hover:bg-white hover:shadow-white/20" 
+                                  : "bg-semcompDarkBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-semcompDarkBlue/40"
+                                }`}
+                                onClick={()=>  evento.linkInscricao ? window.open(evento.linkInscricao, "_blank") : showNotification("Este evento ainda não está aberto para inscrições.")}
+                              >
+                                  Inscreva-se
+                              </button>
+                            </div>
+                        )
+                      }
                     </div>
                   );
                 })
@@ -644,13 +708,6 @@ export default function Profile({
                   eventos para que eles apareçam aqui!
                 </div>
               )}
-            </div>
-            <div className="w-full flex flex-row justify-center items-center h-[30%]">
-              <button
-                className={`bg-black/10 w-[40%] rounded-sm py-3 h-full text-xl`}
-              >
-                Inscreva-se
-              </button>
             </div>
           </div>
         </div>

@@ -69,7 +69,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           navigate("/profile");
           return true;
         } catch (err: any) {
-          showNotification(err.message, "warning");
+            const message =
+              err?.response?.data?.error || err?.response?.data?.message || err?.message || "Erro no login";
+            showNotification(message, "warning");
           return false;
         }
       },
