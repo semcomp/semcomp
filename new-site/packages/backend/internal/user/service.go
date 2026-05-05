@@ -8,6 +8,7 @@ import (
 
 	"backend/internal/providers"
 )
+var ErrEmailAlreadyExists = errors.New("e-mail já cadastrado")
 
 // UserService define as regras de negócio para operações relacionadas a usuários.
 type UserService interface {
@@ -33,7 +34,7 @@ func NewUserService(repo UserRepository, passwordProvider providers.PasswordProv
 func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 	_, err := s.repo.GetByEmail(request.Email)
 	if err == nil {
-		return nil, errors.New("e-mail já cadastrado")
+		return nil, ErrEmailAlreadyExists
 	}
 
 	hashedPassword, err := s.passwordProvider.Hash(request.Password)
@@ -60,11 +61,11 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*UserListResult, error) {
 
 	if page < 1 {
-		return nil, fmt.Errorf("page must be greater than 0")
+		return nil, fmt.Errorf("Valor de 'page' inválido")
 	}
 
 	if limit < 1 {
-		return nil, fmt.Errorf("limit must be greater than 0")
+		return nil, fmt.Errorf("Valor de 'limit' inválido")
 	}
 
 	if sortBy == "" {
@@ -87,15 +88,15 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 	}
 
 	if !allowedSortFields[sortBy] {
-		return nil, fmt.Errorf("invalid sort_by parameter")
+		return nil, fmt.Errorf("Parâmetro 'sort_by' inválido")
 	}
 
 	if sortOrder != "asc" && sortOrder != "desc" {
-		return nil, fmt.Errorf("invalid sort_order parameter")
+		return nil, fmt.Errorf("Parâmetro 'sort_order' inválido")
 	}
 
 	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
-		return nil, fmt.Errorf("search_by and search_value must be provided together")
+		return nil, fmt.Errorf("Para realizar uma busca, envie 'search_by' juntamente com 'search_value' ")
 	}
 
 	if searchBy != "" {
@@ -109,18 +110,18 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 		}
 
 		if !allowedSearchFields[searchBy] {
-			return nil, fmt.Errorf("invalid search_by parameter")
+			return nil, fmt.Errorf("Parâmetro 'search_by' inválido")
 		}
 
 		if searchBy == "presence_rate" {
 			if _, err := strconv.ParseFloat(searchValue, 64); err != nil {
-				return nil, fmt.Errorf("invalid search_value for presence_rate")
+				return nil, fmt.Errorf("Valor inválido para busca por 'presence_rate' ")
 			}
 		}
 
 		if searchBy == "user_number" {
 			if _, err := strconv.Atoi(searchValue); err != nil {
-				return nil, fmt.Errorf("invalid search_value for user_number")
+				return nil, fmt.Errorf("Valor inválido para busca por 'user_number' ")
 			}
 		}
 	}

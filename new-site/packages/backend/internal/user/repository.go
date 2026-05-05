@@ -88,12 +88,12 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 	field := strings.ToLower(sortBy)
 	isAllowedField := slices.Contains(allowedSortFields, field)
 	if !isAllowedField {
-		return "", fmt.Errorf("invalid sort field")
+		return "", fmt.Errorf("Valor inválido para campo 'sort_by' ")
 	}
 
 	order := strings.ToLower(sortOrder)
 	if order != "asc" && order != "desc" {
-		return "", fmt.Errorf("invalid sort order")
+		return "", fmt.Errorf("Valor inválido para campo 'sort_order' ")
 	}
 
 	return field + " " + order, nil
