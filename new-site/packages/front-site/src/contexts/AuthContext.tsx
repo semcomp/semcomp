@@ -1,6 +1,6 @@
 import { createContext, useEffect, useMemo, useState } from "react";
 import type { UserType } from "@/types/UserType";
-import { authAPI, getErrorMessage } from "@/api";
+import { authAPI } from "@/api";
 import { useNavigate } from "react-router-dom";
 import { useNotification } from "./NotificationContext";
 

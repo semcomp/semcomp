@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { authAPI } from "@/api/auth";
 
 type AuthUser = {
   email: string;
@@ -8,13 +10,13 @@ type AuthUser = {
 type AuthContextValue = {
   isAuthenticated: boolean;
   user: AuthUser | null;
-  login: (email: string, password: string) => void;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
 };
 
 const storageKey = "semcomp-backoffice-auth";
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+export const AuthContext = createContext<AuthContextValue | null>(null);
 
 function readStoredUser(): AuthUser | null {
   if (typeof window === "undefined") {
@@ -36,6 +38,7 @@ function readStoredUser(): AuthUser | null {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -50,22 +53,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       isAuthenticated: user !== null,
       user,
-      login: (email: string) => {
-        const normalizedEmail = email.trim().toLowerCase();
-        const fallbackName = normalizedEmail.split("@")[0] || "Administrador";
+      login: async (email: string, password: string) => {
+        try {
+          const response = await authAPI.login(email, password);
+          console.log("Login response:", response);
 
-        setUser({
-          email: normalizedEmail,
-          name: fallbackName
-            .split(/[._-]/)
-            .filter(Boolean)
-            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-            .join(" ") || "Administrador",
-        });
+          // Store token
+          localStorage.setItem("semcomp-backoffice-token", response.token);
+
+          const displayName = email.split("@")[0] || "Semcomper";
+          setUser({
+            email: response.user.email,
+            name: displayName,
+          });
+
+          navigate("/home", { replace: true });
+          return true;
+        } catch (err: any) {
+          const message =
+            err?.response?.data?.error ||
+            err?.response?.data?.message ||
+            err?.message ||
+            "Erro ao fazer login";
+          console.error("Login error:", message);
+          return false;
+        }
       },
-      logout: () => setUser(null),
+      logout: () => {
+        setUser(null);
+        localStorage.removeItem("semcomp-backoffice-token");
+        navigate("/login", { replace: true });
+      },
     }),
-    [user],
+    [user, navigate]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
