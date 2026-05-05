@@ -332,12 +332,12 @@ export default function Profile({
           </div>
         </div>
 
-        {/* Seção Overflow (Grifinória) */}
+        {/* Seção Overflow */}
         <div
           className={`mt-12 pt-10 pb-10 px-5 text-center transition-colors ${mOverflowBg}`}
         >
           <h2 className="text-3xl font-bold mb-1 flex items-center justify-center gap-2">
-            Overflow
+            SEMCOMP Beta 2026
             <span
               className={`flex items-center justify-center w-5 h-5 rounded-full border text-xs font-normal ${
                 isDarkMode
@@ -349,7 +349,7 @@ export default function Profile({
             </span>
           </h2>
           <p className="text-xs mb-6 opacity-80">
-            O Overflow é o principal concurso da nossa semana! E sua casa é...
+            Você sabia que vem por aí a prévia da maior semana acadêmica de computação do Brasil?
           </p>
 
           <div
@@ -367,7 +367,7 @@ export default function Profile({
                 alt="Logo"
               />
               <h3 className="text-2xl font-black tracking-widest drop-shadow-lg text-white">
-                OVERFLOW
+                SEMCOMP Beta
               </h3>
             </div>
           </div>
@@ -378,15 +378,15 @@ export default function Profile({
             }`}
           >
             <p className="text-[11px] leading-relaxed text-justify opacity-90">
-              Fundada por Godrico Grifinória, esta casa valoriza a coragem,
-              bravura, ousadia e cavalheirismo, tendo o leão como mascote e as
-              cores vermelho escarlate e dourado. Conhecidos por seu ímpeto
-              heroico, muitas vezes imprudente, seus membros costumam ser nobres
-              e destemidos.
+              A SEMCOMP Beta é uma prévia de um evento ainda maior - a Semana de
+              Computação da USP São Carlos. Ela acontecerá no dia 16 de maio e
+              sua programação inclui palestras, minicursos, concursos, coffee
+              break e a nossa famosa gamenight. Participe e faça parte dessa
+              experiência única!
             </p>
-            <button className="mt-4 underline text-sm font-semibold hover:opacity-70">
+            {/* <button className="mt-4 underline text-sm font-semibold hover:opacity-70">
               Entrar no Grupo da Casa
-            </button>
+            </button> */}
           </div>
         </div>
 
