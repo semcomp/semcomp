@@ -5,15 +5,6 @@ import (
 
 	"backend/internal/providers"
 	"backend/internal/user"
-
-	"gorm.io/gorm"
-)
-
-var (
-	ErrEmailAlreadyExists = errors.New("email already exists")
-	ErrInvalidCredentials = errors.New("invalid email or password")
-	ErrTokenGeneration    = errors.New("token generation failed")
-	ErrInternalServerError = errors.New("internal server error")
 )
 
 type AuthService interface {
@@ -33,20 +24,20 @@ func NewAuthService(userRepository user.UserRepository, passwordProvider provide
 func (s *authService) Login(request LoginUserRequest) (*user.User, string, error) {
 	userRecord, errUser := s.userRepository.GetByEmail(request.Email)
 	if errUser != nil {
-		if errors.Is(errUser, gorm.ErrRecordNotFound) {
-			return nil, "", ErrInvalidCredentials
+		if errors.Is(errUser, user.ErrInvalidCredentials) {
+			return nil, "", user.ErrInvalidCredentials
 		}
-		return nil, "", ErrInternalServerError
+		return nil, "", user.ErrInternalServerError
 	}
 
 	errPassword := s.passwordProvider.Compare(userRecord.PasswordHash, request.Password)
 	if errPassword != nil {
-		return nil, "", ErrInvalidCredentials
+		return nil, "", user.ErrInvalidCredentials
 	}
 
 	token, errToken := s.jwtProvider.Generate(userRecord.UserNumber, userRecord.Email)
 	if errToken != nil {
-		return nil, "", ErrTokenGeneration
+		return nil, "", user.ErrTokenGeneration
 	}
 
 	return userRecord, token, nil
