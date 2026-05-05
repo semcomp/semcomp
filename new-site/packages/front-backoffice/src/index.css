@@ -1,0 +1,163 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+/* =============================================================================
+  TAILWIND V4 THEME CONFIGURATION
+  Isso substitui a necessidade do tailwind.config.ts para a maioria das classes.
+  =============================================================================
+*/
+@theme {
+  /* Cores Semânticas (Shadcn UI) */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Paleta Semcomp */
+  --color-semcomp-50: var(--semcomp-primary-50);
+  --color-semcomp-100: var(--semcomp-primary-100);
+  --color-semcomp-200: var(--semcomp-primary-200);
+  --color-semcomp-300: var(--semcomp-primary-300);
+  --color-semcomp-400: var(--semcomp-primary-400);
+  --color-semcomp-500: var(--semcomp-primary-500);
+  --color-semcomp-600: var(--semcomp-primary-600);
+  --color-semcomp-700: var(--semcomp-primary-700);
+  --color-semcomp-800: var(--semcomp-primary-800);
+  --color-semcomp-900: var(--semcomp-primary-900);
+
+  /* Fontes */
+  --font-sans: var(--font-sans);
+  --font-poppins: var(--font-poppins);
+  --font-comfortaa: var(--font-comfortaa);
+
+  /* Espaçamento Customizado */
+  --spacing-xs: 0.375rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* Raio da Borda */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+}
+
+@custom-variant dark (&:is(.dark *));
+
+/* ==================== VARIABLES - LIGHT MODE ==================== */
+:root {
+  --background: oklch(0.17 0.02 250);
+  --foreground: oklch(0.95 0.01 250);
+  --card: oklch(0.22 0.025 250);
+  --card-foreground: oklch(0.95 0.01 250);
+  --primary: oklch(0.69 0.14 235);
+  --primary-foreground: oklch(0.98 0.01 250);
+  --secondary: oklch(0.29 0.02 250);
+  --secondary-foreground: oklch(0.95 0.01 250);
+  --muted: oklch(0.27 0.018 250);
+  --muted-foreground: oklch(0.74 0.015 250);
+  --accent: oklch(0.32 0.03 242);
+  --accent-foreground: oklch(0.97 0.01 250);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.34 0.02 250);
+  --input: oklch(0.3 0.02 250);
+  --ring: oklch(0.72 0.14 235);
+
+  /* Semcomp Palette */
+  --semcomp-primary-50: #f3f8fb;
+  --semcomp-primary-100: #e6f0f7;
+  --semcomp-primary-200: #bfdff0;
+  --semcomp-primary-300: #95c8e6;
+  --semcomp-primary-400: #5eadd8;
+  --semcomp-primary-500: #357BA3;
+  --semcomp-primary-600: #2f6e99;
+  --semcomp-primary-700: #105079;
+  --semcomp-primary-800: #0b3f5f;
+  --semcomp-primary-900: #0B2639;
+
+  --radius: 0.875rem;
+  --font-sans: 'Geist Variable', sans-serif;
+  --font-poppins: 'Poppins', ui-sans-serif, system-ui;
+  --font-comfortaa: 'Comfortaa', system-ui;
+}
+
+/* ==================== DARK MODE ==================== */
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+}
+
+/* ==================== BASE STYLES ==================== */
+@layer base {
+  * {
+    /* Use a variável diretamente para evitar o erro "unknown utility" durante o build */
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    margin: 0;
+    height: 100%;
+    /* Gradiente original */
+    background-image: 
+      radial-gradient(1200px 700px at 15% -10%, rgba(56, 189, 248, 0.12), transparent 55%),
+      radial-gradient(900px 500px at 100% 0%, rgba(14, 165, 233, 0.08), transparent 60%);
+  }
+
+  html, body, #root { height: 100%; }
+
+  /* Hide scrollbar */
+  html, body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  body::-webkit-scrollbar { display: none; }
+}
+
+/* ==================== COMPONENTS ==================== */
+@layer components {
+  .card-base {
+    @apply rounded-lg border bg-card text-card-foreground;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md px-4 py-2 font-medium transition-colors;
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  .btn-primary:hover { opacity: 0.9; }
+}

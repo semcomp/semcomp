@@ -1,182 +1,234 @@
-import React, { useCallback, useState } from "react";
+import { useTheme } from "@/contexts/useTheme";
+import { useState, type ReactElement } from "react";
+import { useCallback } from "react";
+import SegmentedControl, { useSegmentedControl } from "@/components/ui/Segcontrol";
+import useWindowDimensions from "@/hooks/useWindowDimensions";
+import Input from "@/components/ui/Input"
+import { useAuth } from "@/contexts/useAuth";
+import { useNotification } from "@/contexts/NotificationContext";
+import { authAPI, getErrorMessage } from "@/api";
 
-type Mode = "login" | "register";
+/* obs: deve ser implementar uma maneira mais inteligente de lidar com a altura do header
+visto que se algo mudar na altura dele, o resto da pagina neste componente pode potencialmente
+quebrar. */
 
-export default function LoginPage(): React.ReactElement {
-  const [mode, setMode] = useState<Mode>("login");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+export default function loginPage(){
+    // variaveis para alterações de modo no forms e modo de luz do site
+    const { isLogin, setIsLogin } = useSegmentedControl();
+    const { isDarkMode } = useTheme();
+    
+    // cores e dimensão da janela
+    const bgColor = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompOffWhite";
+    const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
+    let {width} = useWindowDimensions()
+   
+    // estados do forms
+    const [loading, setLoading] = useState(false);
+    const { showNotification } = useNotification();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [remember, setRemember] = useState(false);
+    // campos a serem preenchidos no forms
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [name, setName] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [remember, setRemember] = useState(false);
 
-  const resetForm = useCallback(() => {
-    setEmail("");
-    setPassword("");
-    setName("");
-    setConfirmPassword("");
-    setRemember(false);
-    setMessage(null);
-  }, []);
+    // função para resetar o forms
+    const resetForm = useCallback(() => {
+        setEmail("");
+        setPassword("");
+        setName("");
+        setConfirmPassword("");
+        setRemember(false);
+    }, []);
 
-  const toggleMode = useCallback(
-    (next: Mode) => {
-      setMode(next);
-      resetForm();
-    },
-    [resetForm]
-  );
+    // checagem de formulario, ainda há mais restrições a serem colocadas eventualmente
+    const validate = useCallback((): string | null => {
+        if (!email.includes("@")) return "Insira um e-mail válido.";
+        if (password.length < 8) return "A senha deve ter ao menos 8 caracteres.";
+        if (isLogin === false) {
+            if (name.trim().length === 0) return "Informe seu nome.";
+            if (password !== confirmPassword) return "As senhas não coincidem.";
+        }
+        return null;
+    }, [email, password, confirmPassword, isLogin, name]);
 
-  const validate = useCallback((): string | null => {
-    if (!email.includes("@")) return "Insira um e-mail válido.";
-    if (password.length < 6) return "A senha deve ter ao menos 6 caracteres.";
-    if (mode === "register") {
-      if (name.trim().length === 0) return "Informe seu nome.";
-      if (password !== confirmPassword) return "As senhas não coincidem.";
+    // Integração com o back-end: api POST para registro de usuário
+    const { login } = useAuth();
+    const register = async (email: string, name: string, password: string) => {
+        try {
+            const response = await authAPI.register(name, email, password);
+            showNotification(response.message, "success");
+            return true;
+        } catch (err: any) {
+            
+            showNotification(err.message, "warning");
+            return false;
+        }
     }
-    return null;
-  }, [email, password, confirmPassword, mode, name]);
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      setMessage(null);
-      const err = validate();
-      if (err) {
-        setMessage(err);
-        return;
-      }
+    // prototipação da função de envio do forms
+    const handleSubmit = useCallback(
+        async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const err = validate();
+        if (err) {
+            showNotification(err, "warning");
+            return;
+        }
 
-      setLoading(true);
-      try {
-        // Exemplo: adaptar para sua API
-        // const url = mode === "login" ? "/api/auth/login" : "/api/auth/register";
-        // await fetch(url, { method: "POST", body: JSON.stringify({ email, password, name }) });
+        setLoading(true);
+        try {
+            let ok = false;
+            if (isLogin) {
+                ok = await login(email, password);
+            } else {
+                ok = await register(email, name, password);
+            }
 
-        await new Promise((r) => setTimeout(r, 700)); // simula requisição
-        setMessage(mode === "login" ? "Login realizado (simulado)." : "Cadastro realizado (simulado).");
-        // após sucesso, redirecionar ou atualizar estado global
-      } catch (err) {
-        setMessage("Erro ao conectar com o servidor.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [validate, mode, email, password, name]
-  );
+            if (ok) {
+                showNotification(isLogin ? "Login bem-sucedido!" : "Registro bem-sucedido!", "success");
+            }
+        } catch (err) {
+            showNotification(getErrorMessage(err), "warning");
+        } finally {
+            setLoading(false);
+        }
+        },
+        [validate, isLogin, email, password, name, showNotification, login, resetForm]
+    );
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <div className="w-96 max-w-full bg-white p-7 shadow-lg rounded-lg" role="main" aria-labelledby="auth-title">
-        <h2 id="auth-title" className="m-0 mb-2 text-xl font-semibold">
-          {mode === "login" ? "Entrar" : "Criar conta"}
-        </h2>
+    // conteudo do forms
+    const formContent = (
+        <div className={`w-full max-w-sm flex flex-col items-center justify-center p-8 ${textColor}`}>
+            {/* compoenente utilizado para definir qual o modo do formulario */}
+            <SegmentedControl islogin={isLogin} setIslogin={setIsLogin} hook={resetForm}/>
+            <form onSubmit={handleSubmit} aria-live="polite" className="w-full mt-4">
+                {isLogin === false && ( 
+                    <div>
+                        <label className={`block mb-2 ${!isDarkMode && "text-white"}`}>
+                            {/* componente Input customizado */}
+                            <Input
+                                label="Nome Completo"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Nome completo"
+                                required={isLogin === false}
+                                aria-label="Nome completo"
+                            />
+                        </label>
 
-        <div className="flex justify-center gap-2 mb-3">
-          <button
-            onClick={() => toggleMode("login")}
-            aria-pressed={mode === "login"}
-            className={`bg-transparent border-none cursor-pointer ${mode === "login" ? "text-gray-900 font-semibold" : "text-gray-500 font-medium"}`}
-          >
-            Login
-          </button>
-          <span className="text-gray-200">|</span>
-          <button
-            onClick={() => toggleMode("register")}
-            aria-pressed={mode === "register"}
-            className={`bg-transparent border-none cursor-pointer ${mode === "register" ? "text-gray-900 font-semibold" : "text-gray-500 font-medium"}`}
-          >
-            Registrar
-          </button>
+                    </div>
+                )}
+
+                <label className={`block mb-2 ${!isDarkMode && "text-white"}`}>
+                    <Input
+                        label="Email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="nome@exemplo.com"
+                        required
+                        aria-label="Email"
+                    />
+                </label>
+
+                <label className={`block mb-2 ${!isDarkMode && "text-white"}`}>
+                    <Input
+                        label="Senha"                        
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Senha"
+                        required
+                        aria-label="Senha"
+                    />
+                </label>
+
+                {isLogin === false && (
+                    <>
+                    <label className={`block mb-3 ${!isDarkMode && "text-white"}`}>
+                        <Input
+                            label="Confirmar senha"
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Confirmar senha"
+                            required
+                            aria-label="Confirmar senha"
+                        />
+                    </label>
+                    <label className="flex items-center gap-2 mb-3 text-sm text-white underline">
+                        <input
+                            type="checkbox"
+                            checked={remember}
+                            onChange={(e) => setRemember(e.target.checked)}
+                            aria-label="Concordo com os termos de serviço"
+                            className="w-4 h-4"
+                        />
+                        <span>Concordo com os termos de serviço da aplicação.</span>
+                    </label>
+                    </>
+                )}
+                               
+
+                <button type="submit" className={`w-full px-3 py-4 rounded-md ${isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompMidDarkBlue"} text-white text-sm disabled:opacity-50" disabled={loading} mt-6`}>
+                    {loading ? "Processando..." : isLogin === true ? "Entrar" : "Criar conta"}
+                </button>
+            </form>
         </div>
+    );
 
-        <form onSubmit={handleSubmit} aria-live="polite">
-          {mode === "register" && (
-            <label className="block mb-2">
-              <div className="text-sm mb-1">Nome</div>
-              <input
-                className="w-full px-3 py-2 mb-3 rounded-md border border-gray-300 text-sm"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Seu nome completo"
-                required={mode === "register"}
-                aria-label="Nome"
-              />
-            </label>
-          )}
+    // variavel de retono da pagina que muda a depender do tamanho da pagina
+    let retorno: ReactElement | null;
+    const bgContainer = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidLightBlue";
 
-          <label className="block mb-2">
-            <div className="text-sm mb-1">Email</div>
-            <input
-              className="w-full px-3 py-2 mb-3 rounded-md border border-gray-300 text-sm"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="nome@exemplo.com"
-              required
-              aria-label="Email"
-            />
-          </label>
-
-          <label className="block mb-2">
-            <div className="text-sm mb-1">Senha</div>
-            <input
-              className="w-full px-3 py-2 mb-3 rounded-md border border-gray-300 text-sm"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Senha"
-              required
-              aria-label="Senha"
-            />
-          </label>
-
-          {mode === "register" && (
-            <label className="block mb-3">
-              <div className="text-sm mb-1">Confirmar senha</div>
-              <input
-                className="w-full px-3 py-2 rounded-md border border-gray-300 text-sm"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirmar senha"
-                required
-                aria-label="Confirmar senha"
-              />
-            </label>
-          )}
-
-          {mode === "login" && (
-            <label className="flex items-center gap-2 mb-3 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                aria-label="Lembrar-me"
-                className="w-4 h-4"
-              />
-              <span>Lembrar-me</span>
-            </label>
-          )}
-
-          {message && (
-            <div className={`${message.includes("Erro") ? "text-red-700" : "text-green-700"} mb-3`}>
-              {message}
+    // dimensao de PC
+    if (width >= 1280) {
+        retorno = (
+            <div className={`h-[calc(100vh-70px)] flex items-center justify-center ${bgColor}`}>
+                <div className={`${bgContainer} h-auto w-[98%] min-h-[95%] rounded-3xl shadow-xl flex overflow-hidden`}>
+                    <div className="w-1/2 bg-gray-300 relative">
+                        <img 
+                            src="https://diariodepernambuco.com.br/dpmais/wp-content/uploads/2025/11/Lionel-Messi.webp" 
+                            alt="Background" 
+                            className="absolute inset-0 w-full h-full object-cover"
+                        />
+                    </div>
+                    <div className="w-1/2 flex items-center justify-center">
+                        {formContent}
+                    </div>
+                </div>    
             </div>
-          )}
+        );
+    } else if (width >= 800) { // dimensão de tablet
+        retorno = (
+            <div className={`h-[calc(100vh-70px)] flex items-center justify-center ${bgColor} p-4`}>
+                <div className={`relative ${bgContainer} w-[98%] min-h-[85%] rounded-3xl shadow-xl flex items-center justify-center overflow-hidden`}>
+                    <img 
+                        src="https://diariodepernambuco.com.br/dpmais/wp-content/uploads/2025/11/Lionel-Messi.webp" 
+                        alt="Background" 
+                        className={`absolute inset-0 w-full h-full object-cover ${ isDarkMode ? "opacity-40 brightness-50" : "opacity-90 brightness-50"}`}
+                    />
+                    <div className={`relative z-10 ${isDarkMode ? "bg-semcompOffWhite/10" : "bg-semcompMidLightBlue/30"} backdrop-blur-md rounded-2xl shadow-2xl m-4`}>
+                        {formContent}
+                    </div>
+                </div>
+            </div>
+        );
+    } else { // diensão de celular
+        retorno = (
+            <div className={`h-[calc(100vh-70px)] flex items-center justify-center ${bgColor} p-4`}>
+                <div className={`${bgContainer} w-[98%] min-h-[85%] rounded-3xl flex flex-col items-center justify-center
+                   ${isDarkMode ? "shadow-[-10px_-15px_0px_0px_#163756,15px_-40px_0px_0px_#0e2a44]" : "shadow-[-10px_-15px_0px_0px_#b3cde0,15px_-40px_0px_0px_#dbe9f4]"}
+                `}>
+                    {formContent}
+                </div>
+            </div>
+        );
+    }
 
-          <button type="submit" className="w-full px-3 py-2 rounded-md bg-blue-600 text-white text-sm disabled:opacity-50" disabled={loading}>
-            {loading ? "Processando..." : mode === "login" ? "Entrar" : "Criar conta"}
-          </button>
-        </form>
-
-        <div className="mt-4 text-sm text-gray-500 text-center">
-          Ao continuar você concorda com os termos e a política de privacidade.
-        </div>
-      </div>
-    </div>
-  );
+    return (
+        retorno 
+    );
 }

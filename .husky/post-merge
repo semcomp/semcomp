@@ -1,9 +1,0 @@
-#!/bin/sh
-# . "$(dirname "$0")/_/husky.sh"
-
-# npm i --force &&
-# cd ./packages/app && npm i --force &&
-# cd ../..
-# cd ./packages/server && npm i --force &&
-# cd ../..
-# npm i --force

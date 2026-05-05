@@ -47,13 +47,6 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
     }
   };
 
-  const images = import.meta.glob("@/assets/img/team/*.png", {
-    eager: true,
-    import: "default"
-  }) as Record<string, string>;
-
-  console.log(images);
-
   const titleColor = isDarkMode ? "text-semcompDarkBlue" : "text-semcompOffBlack";
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
   const constrastColor = isDarkMode ? "text-semcompOffBlack" : "text-semcompOffWhite";
@@ -103,7 +96,13 @@ const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => 
             variants={fadeIn}
           >
             <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full h-full flex items-center justify-center">
-            <img src={sponsor.logoSrc} alt={sponsor.name} className="w-full h-full object-contain" /> 
+            <img
+              src={sponsor.logoSrc}
+              alt={sponsor.name}
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-contain"
+            />
             </a>
           </motion.div>
         ))): 
