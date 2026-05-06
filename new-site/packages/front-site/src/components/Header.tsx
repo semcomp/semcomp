@@ -6,7 +6,7 @@ import { useTheme } from "@/contexts/useTheme";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/useAuth";
 
-const COFFEE_FORM_URL = "https://docs.google.com/forms/d/1-78IKRFPSMUla937lpv8OMou0NoAPRN-pFzI9bjnoV8/edit";
+const COFFEE_FORM_URL = "https://forms.gle/VnA9hhQcyZTqDzqr7";
 
 type TabKey = "home" | "cronograma" | "coffee" | "login" | "profile" ;
 
