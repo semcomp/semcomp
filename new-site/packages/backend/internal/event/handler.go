@@ -111,7 +111,7 @@ func (h *EventHandler) UpdateEventByNameAndInitDate(c *gin.Context) {
 func (h *EventHandler) GetEvents(c *gin.Context) {
 	page := 1
 	limit := 10
-	sortBy := c.DefaultQuery("sort_by", "init_time")
+	sortBy := c.DefaultQuery("sort_by", "init_date")
 	sortOrder := c.DefaultQuery("sort_order", "asc")
 	searchBy := c.Query("search_by")
 	searchValue := c.Query("search_value")

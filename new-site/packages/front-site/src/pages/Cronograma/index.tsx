@@ -157,7 +157,7 @@ function EventButton({
 
       <div className="grid max-h-none grid-rows-[0fr] overflow-hidden opacity-0 transition-all duration-300 group-hover:mt-3 group-hover:grid-rows-[1fr] group-hover:opacity-100">
         <div className="overflow-hidden">
-          <div className="flex flex-col items-start gap-3">
+          <div className="flex flex-col items-center gap-3 text-center">
             {evento.image && (
               <div className="w-full flex justify-center">
                 <img 
@@ -167,7 +167,7 @@ function EventButton({
                 />
               </div>
             )}
-            <p className={`text-sm text-justify leading-relaxed wrap-break-word ${captionClasses}`}>
+            <p className={`text-sm text-center leading-relaxed wrap-break-word ${captionClasses}`}>
               {evento.description || "Mais detalhes deste evento."}
             </p>
           </div>
@@ -202,6 +202,7 @@ export default function CronogramaPage() {
       try {
         setLoading(true);
         const response = await eventsAPI.getAllEvents();
+        console.log("Eventos recebidos da API:", response);
         setEvents(response.events || []);
       } catch (error) {
         console.error("Erro ao buscar eventos:", error);
@@ -265,7 +266,7 @@ export default function CronogramaPage() {
               {formatTime(selected.dateInit) && (
                 <p className={`mt-1 text-sm ${captionClasses}`}>{formatTime(selected.dateInit)}</p>
               )}
-              <p className="mt-3 text-sm leading-relaxed md:text-base">
+              <p className="mt-3 text-center text-sm leading-relaxed md:text-base">
                 {selected.description || "Sem descrição."}
               </p>
               <button
