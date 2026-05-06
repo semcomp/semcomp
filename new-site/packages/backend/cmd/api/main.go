@@ -94,6 +94,7 @@ func main() {
 	backofficeRoutes.DELETE("/users/:id", userHandler.DeleteUser)
 	backofficeRoutes.GET("/users", userHandler.GetAllUsers)
 	backofficeRoutes.GET("/users/:id", userHandler.GetUserByID)
+	backofficeRoutes.POST("/users", userHandler.CreateUser)
 
 	backofficeRoutes.POST("/events", eventHandler.CreateEvent)
 	backofficeRoutes.PUT("/events/:eventName/:initDate", eventHandler.UpdateEventByNameAndInitDate)

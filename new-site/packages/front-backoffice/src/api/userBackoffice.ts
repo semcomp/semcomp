@@ -1,6 +1,10 @@
 import client from "./client";
 import type { BackofficeUserType } from "@/types/BackofficeUserType";
 
+type SafeBackofficeUser = {
+  email: string;
+};
+
 export interface UsersListResponse {
   page: number;
   limit: number;
@@ -23,7 +27,7 @@ export const userBackofficeAPI = {
   getAll: async (
     page = 1,
     limit = 10,
-    sortBy = "name",
+    sortBy = "email",
     sortOrder = "asc",
     searchBy?: string,
     searchValue?: string
@@ -33,32 +37,46 @@ export const userBackofficeAPI = {
       url += `&search_by=${searchBy}&search_value=${searchValue}`;
     }
     const response = await client.get<UsersListResponse>(url);
-    return response.data;
+    return {
+      ...response.data,
+      users: (response.data.users || []).map((user) => ({
+        id: user.email,
+        email: user.email,
+        password: "",
+      })),
+    };
   },
 
   /**
    * Busca um usuário do backoffice por email
    */
   getByEmail: async (email: string): Promise<BackofficeUserType> => {
-    const response = await client.get<BackofficeUserType>(
+    const response = await client.get<SafeBackofficeUser>(
       `/admin/usersBackoffice/${encodeURIComponent(email)}`
     );
-    return response.data;
+    return {
+      id: response.data.email,
+      email: response.data.email,
+      password: "",
+    };
   },
 
   /**
    * Cria um novo usuário do backoffice
    */
   create: async (data: Omit<BackofficeUserType, "id">): Promise<BackofficeUserType> => {
-    const response = await client.post<BackofficeUserType>(
+    const response = await client.post<{ message: string; user: SafeBackofficeUser }>(
       "/admin/usersBackoffice",
       {
-        name: data.name,
         email: data.email,
         password: data.password,
       }
     );
-    return response.data;
+    return {
+      id: response.data.user.email,
+      email: response.data.user.email,
+      password: "",
+    };
   },
 
   /**
@@ -67,13 +85,12 @@ export const userBackofficeAPI = {
   update: async (
     email: string,
     data: Partial<Omit<BackofficeUserType, "id">>
-  ): Promise<BackofficeUserType> => {
-    const response = await client.put<BackofficeUserType>(
+  ): Promise<{ message: string }> => {
+    const response = await client.put<{ message: string }>(
       `/admin/usersBackoffice/${encodeURIComponent(email)}`,
       {
-        name: data.name,
         email: data.email,
-        ...(data.password && { password: data.password }),
+        password: data.password,
       }
     );
     return response.data;

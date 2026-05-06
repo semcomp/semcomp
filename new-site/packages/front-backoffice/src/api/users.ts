@@ -1,6 +1,32 @@
 import client from "./client";
 import type { SemcompUserType } from "@/types/SemcompUserType";
 
+type SafeSemcompUser = {
+  user_number: string;
+  name: string;
+  email: string;
+  presence_rate: number;
+};
+
+const mapBackendUser = (user: SafeSemcompUser): SemcompUserType => {
+  return {
+    id: user.user_number,
+    name: user.name,
+    email: user.email,
+    presence_rate: user.presence_rate,
+    password: "",
+  };
+};
+
+const normalizePresenceRate = (value: unknown): number => {
+  if (typeof value === "number") return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = parseFloat(value);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
+};
+
 export interface UsersListResponse {
   page: number;
   limit: number;
@@ -10,7 +36,7 @@ export interface UsersListResponse {
   search_value: string | null;
   total_records: number;
   filtered_records: number;
-  users: SemcompUserType[];
+  users: SafeSemcompUser[];
 }
 
 /**
@@ -33,15 +59,35 @@ export const userSemcompAPI = {
       url += `&search_by=${searchBy}&search_value=${searchValue}`;
     }
     const response = await client.get<UsersListResponse>(url);
-    return response.data;
+    return {
+      ...response.data,
+      users: (response.data.users || []).map(mapBackendUser),
+    };
   },
 
   /**
    * Busca um usuário por ID
    */
   getById: async (id: string): Promise<SemcompUserType> => {
-    const response = await client.get<SemcompUserType>(`/admin/users/${id}`);
-    return response.data;
+    const response = await client.get<SafeSemcompUser>(`/admin/users/${id}`);
+    return mapBackendUser(response.data);
+  },
+
+  /**
+   * Cria um usuário
+   */
+  create: async (
+    data: Omit<SemcompUserType, "id" | "presence_rate">
+  ): Promise<SemcompUserType> => {
+    const response = await client.post<{ message: string; user: SafeSemcompUser }>(
+      "/admin/users",
+      {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      }
+    );
+    return mapBackendUser(response.data.user);
   },
 
   /**
@@ -57,9 +103,10 @@ export const userSemcompAPI = {
         name: data.name,
         email: data.email,
         ...(data.password && { password: data.password }),
-        ...(data.presence_rate !== undefined && { presence_rate: data.presence_rate }),
+        presence_rate: normalizePresenceRate(data.presence_rate),
       }
     );
+    console.log("Resposta do backend ao atualizar usuário:", response.data);
     return response.data;
   },
 

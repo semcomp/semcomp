@@ -37,11 +37,22 @@ export default function UsersCRUD() {
   const handleEdit = async (item: CrudItemType) => {
     try {
       const typedItem = item as SemcompUserType;
+      const presenceRate = Number(typedItem.presence_rate);
+      if (Number.isNaN(presenceRate)) {
+        setError("Taxa de presença inválida");
+        return;
+      }
+
+      if (typedItem.password && typedItem.password.length < 8) {
+        setError("A senha deve conter no mínimo 8 caracteres");
+        return;
+      }
+
       await userSemcompAPI.update(typedItem.id, {
         name: typedItem.name,
         email: typedItem.email,
         ...(typedItem.password && { password: typedItem.password }),
-        presence_rate: typedItem.presence_rate,
+        presence_rate: presenceRate,
       });
 
       // Atualizar estado local
@@ -64,9 +75,25 @@ export default function UsersCRUD() {
 
   const handleCreate = async (item: CrudItemType) => {
     try {
-      // A API não tem rota de criar usuário regular, apenas de registrar
-      // Mostrar erro ao usuário
-      setError("Usuários devem ser registrados pelo portal de registro");
+      const typedItem = item as SemcompUserType;
+      if (!typedItem.password || typedItem.password.length < 8) {
+        setError("A senha deve conter no mínimo 8 caracteres");
+        return;
+      }
+
+      const newUser = await userSemcompAPI.create({
+        name: typedItem.name,
+        email: typedItem.email,
+        password: typedItem.password,
+      });
+
+      setData((prev) => [
+        ...prev,
+        {
+          ...newUser,
+          password: "",
+        },
+      ]);
     } catch (err) {
       console.error("Erro ao criar usuário:", err);
       setError("Erro ao criar usuário");

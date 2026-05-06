@@ -41,14 +41,18 @@ export default function BackofficeUsersCRUD() {
       const originalUser = data.find(u => u.id === item.id);
       if (!originalUser) return;
 
+      if (!typedItem.password || typedItem.password.length < 8) {
+        setError("A senha deve conter no mínimo 8 caracteres");
+        return;
+      }
+
       await userBackofficeAPI.update(originalUser.email, {
-        name: typedItem.name,
         email: typedItem.email,
         password: typedItem.password,
       });
 
       // Atualizar estado local
-      setData(prev => prev.map(i => i.id === item.id ? typedItem : i));
+      setData(prev => prev.map(i => i.id === item.id ? { ...typedItem, id: typedItem.email } : i));
     } catch (err) {
       console.error("Erro ao editar usuário:", err);
       setError("Erro ao editar usuário");
@@ -71,14 +75,18 @@ export default function BackofficeUsersCRUD() {
   const handleCreate = async (item: CrudItemType) => {
     try {
       const typedItem = item as BackofficeUserType;
+      if (!typedItem.password || typedItem.password.length < 8) {
+        setError("A senha deve conter no mínimo 8 caracteres");
+        return;
+      }
+
       const newUser = await userBackofficeAPI.create({
-        name: typedItem.name,
         email: typedItem.email,
         password: typedItem.password,
       });
 
       // Atualizar estado local
-      setData(prev => [...prev, { ...typedItem, id: newUser.id || String(Date.now()) }]);
+      setData(prev => [...prev, { ...typedItem, id: newUser.id || typedItem.email }]);
     } catch (err) {
       console.error("Erro ao criar usuário:", err);
       setError("Erro ao criar usuário");
