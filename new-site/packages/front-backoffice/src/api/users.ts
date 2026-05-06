@@ -36,6 +36,18 @@ export interface UsersListResponse {
   search_value: string | null;
   total_records: number;
   filtered_records: number;
+  users: SemcompUserType[];
+}
+
+interface UsersListBackendResponse {
+  page: number;
+  limit: number;
+  sort_by: string;
+  sort_order: string;
+  search_by: string | null;
+  search_value: string | null;
+  total_records: number;
+  filtered_records: number;
   users: SafeSemcompUser[];
 }
 
@@ -58,7 +70,7 @@ export const userSemcompAPI = {
     if (searchBy && searchValue) {
       url += `&search_by=${searchBy}&search_value=${searchValue}`;
     }
-    const response = await client.get<UsersListResponse>(url);
+    const response = await client.get<UsersListBackendResponse>(url);
     return {
       ...response.data,
       users: (response.data.users || []).map(mapBackendUser),
