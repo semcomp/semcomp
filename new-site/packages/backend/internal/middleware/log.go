@@ -38,8 +38,6 @@ func AuditMiddleware(service log.Service) gin.HandlerFunc {
 			Message:    responseMessage(c),
 			Method:     c.Request.Method,
 			Path:       c.FullPath(),
-			IP:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
 			LatencyMs:  latency.Milliseconds(),
 		}
 
@@ -55,39 +53,6 @@ func AuditMiddleware(service log.Service) gin.HandlerFunc {
 		}
 
 		_ = service.CreateAudit(entry)
-	}
-}
-
-func ErrorLogMiddleware(service log.Service) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Next()
-
-		statusCode := c.Writer.Status()
-		if statusCode != http.StatusInternalServerError {
-			return
-		}
-
-		entry := log.ErrorLog{
-			StatusCode: statusCode,
-			Message:    responseMessage(c),
-			Method:     c.Request.Method,
-			Path:       c.FullPath(),
-			IP:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-		}
-
-		if userNumber, ok := c.Get("userNumber"); ok {
-			if userID, ok := userNumber.(uint); ok {
-				entry.UserNumber = &userID
-			}
-		}
-		if email, ok := c.Get("email"); ok {
-			if userEmail, ok := email.(string); ok {
-				entry.UserEmail = &userEmail
-			}
-		}
-
-		_ = service.CreateError(entry)
 	}
 }
 
