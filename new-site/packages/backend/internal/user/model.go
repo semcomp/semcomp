@@ -21,7 +21,7 @@ type UpdateUserRequest struct {
 	Name         string  `json:"name" binding:"required"`
 	Email        string  `json:"email" binding:"required,email"`
 	Password     string  `json:"password" binding:"omitempty,min=8"`
-	PresenceRate float64 `json:"presence_rate" binding:"required"`
+	PresenceRate float64 `json:"presence_rate" binding:"gte=0"`
 }
 
 type SafeUser struct {

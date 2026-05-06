@@ -40,7 +40,7 @@ func (r *userRepository) GetByID(id uint) (*User, error) {
 	err := r.db.First(&user, id).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, errors.New("usuário não encontrado")
+		return nil, ErrInvalidCredentials
 	}
 
 	return &user, err
@@ -52,7 +52,7 @@ func (r *userRepository) GetByEmail(email string) (*User, error) {
 	err := r.db.Where("email = ?", email).First(&user).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, errors.New("usuário não encontrado")
+		return nil, ErrInvalidCredentials
 	}
 
 	return &user, err
