@@ -1,27 +1,53 @@
-// import dos componentes para as paginas
 import { createBrowserRouter } from "react-router-dom";
-import App from "../App";
-import HomePage from "../pages/Home";
-import CronogramaPage from "../pages/Cronograma";
-import LoginPage from "../pages/Login";
+import RequireAuth from "@/lib/RequireAuth";
 
-// criação do router
 export const router = createBrowserRouter([
   {
-    path: "/", // path base onde iremos reenderizar outras paginas dentro dessa pagina 
-    element: <App />,
-    children: [ // paths das paginas filhas que serão reenderizadas dentro de app
+    path: "/",
+    lazy: async () => {
+      const { default: AppLayout } = await import("@/App");
+      return { Component: AppLayout };
+    },
+    children: [
       {
-        path: "/",
-        element: <HomePage />,
+        index: true,
+        lazy: async () => {
+          const { default: HomePage } = await import("@/pages/Home");
+          return { Component: HomePage };
+        },
       },
       {
-        path: "/cronograma",
-        element: <CronogramaPage />,
+        path: "cronograma",
+        lazy: async () => {
+          const { default: CronogramaPage } = await import("@/pages/Cronograma");
+          return { Component: CronogramaPage };
+        },
       },
       {
-        path: "/login",
-        element: <LoginPage />,
+        path: "login",
+        lazy: async () => {
+          const { default: LoginPage } = await import("@/pages/Login");
+          return { Component: LoginPage };
+        },
+      },
+      {
+        element: <RequireAuth />,
+        children: [
+          {
+            path: "profile",
+            lazy: async () => {
+              const { default: ProfilePage } = await import("@/pages/Profile");
+              return { Component: ProfilePage };
+            }
+          },
+        ],
+      },
+      {
+        path: "*",
+        lazy: async () => {
+          const { default: NotFoundPage } = await import("@/pages/NotFound");
+          return { Component: NotFoundPage };
+        },
       },
     ],
   },

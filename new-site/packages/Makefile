@@ -1,17 +1,17 @@
 PROJECT=semcomp
 
 up:
-	docker compose -p $(PROJECT) up -d
+	docker compose -p $(PROJECT) --env-file ./backend/.env  up -d
 
 build:
-	docker compose -p $(PROJECT) up -d --build
+	docker compose -p $(PROJECT) --env-file ./backend/.env  up -d --build
 
 down:
 	docker compose -p $(PROJECT) down
 
 restart:
 	docker compose -p $(PROJECT) down
-	docker compose -p $(PROJECT) up -d --build
+	docker compose -p $(PROJECT) --env-file ./backend/.env  up -d --build
 
 logs:
 	docker compose -p $(PROJECT) logs -f
@@ -35,10 +35,10 @@ bash-backend:
 	docker compose -p $(PROJECT) exec backend sh
 
 psql:
-	docker compose -p $(PROJECT) exec postgres_db psql -U postgres
+	docker compose -p $(PROJECT) exec db psql -U semcomp -d SemcompDB
 
 logs-db:
-	docker compose -p $(PROJECT) logs -f postgres_db
-
+	docker compose -p $(PROJECT) logs -f db
+	
 ps:
 	docker compose -p $(PROJECT) ps

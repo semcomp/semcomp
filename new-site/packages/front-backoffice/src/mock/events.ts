@@ -1,25 +1,10 @@
-import type { CrudItemType } from "@/types/CrudItem";
+import type { EventType } from "@/types/EventType";
 
-interface EventItem extends CrudItemType {
-  tipo: string;
-  palestrante: string;
-  local: string;
-  horario: string;
-  vagas: string;
-  status: string;
-}
-
-export const sampleEvents: EventItem[] = [
-  { id: "1", name: "Inteligência Artificial na Prática", tipo: "Palestra", palestrante: "Dra. Ana Souza", local: "Auditório Central", horario: "09:00", vagas: "200", status: "Confirmado" },
-  { id: "2", name: "Introdução ao Rust", tipo: "Oficina", palestrante: "Prof. Carlos Lima", local: "Lab 01", horario: "10:00", vagas: "30", status: "Confirmado" },
-  { id: "3", name: "DevOps com Docker e Kubernetes", tipo: "Workshop", palestrante: "Eng. Pedro Alves", local: "Lab 02", horario: "14:00", vagas: "25", status: "Confirmado" },
-  { id: "4", name: "Open Source: como contribuir", tipo: "Palestra", palestrante: "Mariana Costa", local: "Auditório Central", horario: "11:00", vagas: "200", status: "Pendente" },
-  { id: "5", name: "Machine Learning com Python", tipo: "Oficina", palestrante: "Dr. Felipe Rocha", local: "Lab 03", horario: "14:30", vagas: "35", status: "Confirmado" },
-  { id: "6", name: "Segurança em Aplicações Web", tipo: "Palestra", palestrante: "Esp. Beatriz Nunes", local: "Sala 101", horario: "16:00", vagas: "80", status: "Confirmado" },
-  { id: "7", name: "UX Design para Devs", tipo: "Workshop", palestrante: "Julia Ferreira", local: "Sala 102", horario: "13:00", vagas: "40", status: "Lotado" },
-  { id: "8", name: "Computação Quântica: introdução", tipo: "Palestra", palestrante: "Prof. Roberto Silva", local: "Auditório Central", horario: "17:00", vagas: "200", status: "Pendente" },
-  { id: "9", name: "APIs REST com Node.js", tipo: "Oficina", palestrante: "Dev. Amanda Gomes", local: "Lab 01", horario: "08:30", vagas: "30", status: "Confirmado" },
-  { id: "10", name: "Carreira em TI: mesa redonda", tipo: "Mesa Redonda", palestrante: "Vários", local: "Auditório B", horario: "15:30", vagas: "120", status: "Confirmado" },
-  { id: "11", name: "Flutter do zero ao deploy", tipo: "Oficina", palestrante: "Tiago Barbosa", local: "Lab 02", horario: "09:30", vagas: "28", status: "Lotado" },
-  { id: "12", name: "Álgebra Linear para ML", tipo: "Minicurso", palestrante: "Profa. Lara Mendes", local: "Sala 201", horario: "08:00", vagas: "50", status: "Confirmado" },
+export const sampleEvents: EventType[] = [
+  { id: "1", nameEvent: "Inteligência Artificial na Prática", type: "Palestra", description: "A palestra aborda conceitos e aplicações práticas de inteligência artificial.", local: "Auditório Central", dateInit: "2026-06-02T09:00:00Z", dateEnd: "2026-06-02T10:30:00Z", hasPresence: false },
+  { id: "2", nameEvent: "Oficina de Desenvolvimento Web", type: "Oficina", description: "Aprenda a criar sites e aplicações web utilizando as tecnologias mais recentes.", local: "Sala de Informática 1", dateInit: "2026-06-02T14:00:00Z", dateEnd: "2026-06-02T16:00:00Z", hasPresence: false },
+  { id: "3", nameEvent: "Mesa Redonda: O Futuro da Tecnologia", type: "Mesa Redonda", description: "Especialistas discutem as tendências e o futuro da tecnologia em diversas áreas.", local: "Auditório Secundário", dateInit: "2026-06-03T10:00:00Z", dateEnd: "2026-06-03T11:30:00Z", hasPresence: true },
+  { id: "4", nameEvent: "Workshop de Desenvolvimento Mobile", type: "Workshop", description: "Aprenda a desenvolver aplicativos para dispositivos móveis utilizando as principais plataformas.", local: "Sala de Informática 2", dateInit: "2026-06-03T15:00:00Z", dateEnd: "2026-06-03T17:00:00Z", hasPresence: true },
+  { id: "5", nameEvent: "Palestra de Encerramento: Inovação e Criatividade", type: "Palestra", description: "Encerramento da semana com uma palestra inspiradora sobre inovação e criatividade no campo da computação.", local: "Auditório Central", dateInit: "2026-06-04T18:00:00Z", dateEnd: "2026-06-04T19:30:00Z", hasPresence: false },
+  { id: "6", nameEvent: "Sprint de Desenvolvimento: Desafio Semcomp", type: "Sprint", description: "Participe de um desafio de desenvolvimento ágil, onde equipes competirão para criar a melhor solução para um problema proposto.", local: "Laboratório de Desenvolvimento", dateInit: "2026-06-05T09:00:00Z", dateEnd: "2026-06-05T17:00:00Z", hasPresence: true },
 ];

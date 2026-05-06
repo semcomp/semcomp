@@ -4,7 +4,10 @@ import tailwindcss from '@tailwindcss/vite'
 import path from "path"
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -12,6 +15,6 @@ export default defineConfig({
   },
   server: {
     host: true,
-    allowedHosts: ['semcomp.icmc.usp.br']
+    allowedHosts: ['semcomp.icmc.usp.br'] 
   }
 })

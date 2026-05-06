@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { NotificationProps, NotificationType } from "@/types/notification";
+import type { NotificationProps, NotificationType } from "@/types/NotificationType";
 
 const palette: Record<NotificationType, { light: string; dark: string; text: string }> = {
   success: { light: "#E8F5E9", dark: "#003923", text: "#003923" },
@@ -26,11 +26,11 @@ export function Notification({ message, type = "info", visible, duration = 2500,
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.25 }}
-          className="fixed left-1/2 top-6 z-50 -translate-x-1/2 max-w-xl w-[min(90%,600px)] rounded-lg shadow-lg"
+          className="fixed left-1/2 top-6 z-50 -translate-x-1/2 w-[min(90vw,500px)] min-w-70 rounded-lg shadow-lg"
           style={{ backgroundColor: p.light, borderTop: `4px solid ${p.dark}` }}
         >
-          <div className="px-4 py-3 text-center">
-            <p className="m-0 text-sm font-semibold" style={{ color: p.text }}>{message}</p>
+          <div className="px-6 py-4 text-center">
+            <p className="m-0 text-sm font-semibold leading-relaxed wrap-break-word" style={{ color: p.text }}>{message}</p>
           </div>
         </motion.div>
       )}

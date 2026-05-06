@@ -18,13 +18,13 @@ export default function TeamGrid({ data }: { data: TeamType }) {
   const firstRow = frentes.slice(0, 4);
   const secondRow = frentes.slice(4, 9);
 
-  const images = import.meta.glob("@/assets/img/team/*jpg", {
+  const images = import.meta.glob("@/assets/img/team/*.webp", {
     eager: true,
     import: "default"
   }) as Record<string, string>;
 
   const getPhoto = (name: string) =>
-    images[`/src/assets/img/team/${name}.jpg`];
+    images[`/src/assets/img/team/${name}.webp`];
 
   const textColor = isDarkMode ? "text-semcompOffWhite/50" : "text-semcompDarkBlue/60";
 
@@ -61,10 +61,13 @@ export default function TeamGrid({ data }: { data: TeamType }) {
         className="flex flex-wrap gap-6 sm:gap-8 justify-center pt-6 sm:pt-10 transition-all duration-500 transform animate-slide w-full"
       >
         {data.frente[currentDepartment].membros.map((member) => (
-          <div key={member.nome} className="w-36 sm:w-40 md:w-44 text-center justify-items-center hover:scale-105 transition-transform cursor-pointer">
+          <div key={member.nome} className="flex flex-col items-center w-36 sm:w-40 md:w-44 text-center justify-items-center hover:scale-105 transition-transform cursor-pointer">
             <img
               src={getPhoto(member.nome)}
               alt={member.nome}
+              loading="lazy"
+              decoding="async"
+              sizes="(max-width: 640px) 112px, (max-width: 768px) 144px, 160px"
               className="w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 object-cover justify-center rounded-3xl"
             />
             <div className="mt-2 font-bold">

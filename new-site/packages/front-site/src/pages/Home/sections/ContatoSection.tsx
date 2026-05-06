@@ -3,7 +3,7 @@ import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 import { FaLinkedin, FaInstagram } from "react-icons/fa";
 import SemcompInfo from "../../../lib/constants/SemcompInfo"
-import LogoSemcomp from "../../../assets/img/semcomp/logo_default_branco.png"
+import LogoSemcomp from "../../../assets/img/semcomp/logo_default_branco.webp"
 
 type ContatoSectionProps = {
   className?: string;
@@ -92,11 +92,18 @@ const ContatoSection = ({ className }: ContatoSectionProps) => {
         </motion.div>
       </div>
       <div className={`flex pt-10 gap-5 justify-center ${isDarkMode ? "" : "invert-75"}`}>
-        <img src={LogoSemcomp} alt="Logo da Semcomp" className="h-18 w-18"/>
+        <img
+          src={LogoSemcomp}
+          alt="Logo da Semcomp"
+          loading="lazy"
+          decoding="async"
+          className="h-18 w-18"
+        />
       </div>
 
       <div className="mt-10 text-center text-sm opacity-70">
-        © {new Date().getFullYear()} Semcomp — ICMC USP
+        © {new Date().getFullYear()} Semcomp — ICMC USP — Feito com {isDarkMode ? "🤍": "💙"} por <a href="https://codelab.icmc.usp.br/" className={`no-underline hover:underline hover:decoration ${isDarkMode ? "text-[#5fccad]" : "text-[#488578]"}`}>USPCodelab Sanca</a>  
+
       </div>
     </footer>
   );

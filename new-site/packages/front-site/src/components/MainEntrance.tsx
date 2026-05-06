@@ -1,18 +1,29 @@
-import { IonIcon } from "@ionic/react";
-import { chevronDownOutline } from "ionicons/icons";
+import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import Countdown from "./Countdown";
 import SemcompInfo from "../lib/constants/SemcompInfo";
-import FotoSemcompMain from "../assets/img/semcomp/Semcomp.jpg";
+import FotoSemcompMain from "@/assets/img/Home/Hero/Semcomp.avif";
+import { useState } from "react";
+
+const _heroModules = import.meta.glob(
+  "/src/assets/img/Home/Hero/*",
+  { eager: true }
+) as Record<string, { default: string }>;
+const HERO_IMAGES = Object.values(_heroModules)
+  .map((m) => m.default as string)
+  .filter((src) => /\.(webp)$/i.test(src));
+const pickRandomHero = () =>
+  HERO_IMAGES.length ? HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)] : FotoSemcompMain;
 
 export default function MainEntrance() {
+  const [heroSrc] = useState<string>(() => pickRandomHero());
+
   const scrollToContent = () => {
     const sobreSection = document.querySelector(`#sobre`);
     if (sobreSection) {
       sobreSection.scrollIntoView({ behavior: "smooth" });
     }
   };
-
   return (
     <section
       id="hero"
@@ -21,8 +32,12 @@ export default function MainEntrance() {
       style={{ height: "calc(100vh - 64px)" }}
     >
       <img
-        src={FotoSemcompMain}
+        src={heroSrc}
         alt={`SEMCOMP ${SemcompInfo.EDITION}`}
+        loading="eager"
+        decoding="async"
+        fetchPriority="high"
+        sizes="100vw"
         className="absolute inset-0 h-full w-full object-cover"
       />
       <div className="absolute inset-0 bg-semcompOffBlack/30" />
@@ -67,7 +82,7 @@ export default function MainEntrance() {
           onClick={scrollToContent}
           className="flex flex-col items-center text-semcompOffWhite hover:text-semcompOffWhite/80 focus:outline-none"
         >
-          <IonIcon icon={chevronDownOutline} className="text-5xl animate-bounce" />
+          <ChevronDown className="h-12 w-12 animate-bounce" aria-hidden="true" />
         </button>
       </motion.div>
     </section>
