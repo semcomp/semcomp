@@ -26,6 +26,11 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 
 	event, err := h.eventService.CreateEvent(request)
 	if err != nil {
+		if errors.Is(err, ErrEventConflict) {
+			c.JSON(http.StatusConflict, gin.H{"error": "Evento já existe"})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -39,6 +44,11 @@ func (h *EventHandler) GetEventByNameAndInitDate(c *gin.Context) {
 
 	event, err := h.eventService.GetEventByNameAndInitDate(name, initDate)
 	if err != nil {
+		if errors.Is(err, ErrEventConflict) {
+			c.JSON(http.StatusConflict, gin.H{"error": "Evento já existe"})
+			return
+		}
+
 		if errors.Is(err, ErrInvalidEventDate) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
 			return
@@ -111,7 +121,7 @@ func (h *EventHandler) UpdateEventByNameAndInitDate(c *gin.Context) {
 func (h *EventHandler) GetEvents(c *gin.Context) {
 	page := 1
 	limit := 10
-	sortBy := c.DefaultQuery("sort_by", "init_time")
+	sortBy := c.DefaultQuery("sort_by", "init_date")
 	sortOrder := c.DefaultQuery("sort_order", "asc")
 	searchBy := c.Query("search_by")
 	searchValue := c.Query("search_value")

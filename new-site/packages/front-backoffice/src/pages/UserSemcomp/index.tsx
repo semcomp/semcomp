@@ -1,22 +1,104 @@
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
-import { sampleSemcompUsers } from "@/mock/user-semcomp";
 import { fields } from "@/data/userSemcompCrudField";
 import { Tabs } from "@/constants/Tabs";
+import { userSemcompAPI } from "@/api/users";
+import type { SemcompUserType } from "@/types/SemcompUserType";
 
 export default function UsersCRUD() {
   const navigate = useNavigate();
-  const [data, setData] = useState<CrudItemType[]>(sampleSemcompUsers);
+  const [data, setData] = useState<SemcompUserType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // TODO: Integrar com backend para persistência real dos dados no BD
-  const handleEdit = (item: CrudItemType) => {
-    setData(prev => prev.map(i => i.id === item.id ? item : i));
+  // Buscar usuários ao montar o componente
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await userSemcompAPI.getAll();
+      setData(response.users || []);
+    } catch (err) {
+      console.error("Erro ao buscar usuários:", err);
+      setError("Erro ao carregar usuários");
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
   };
-  const handleDelete = (id: string) => setData(prev => prev.filter(i => i.id !== id));
-  const handleCreate = (item: CrudItemType) => setData(prev => [...prev, { ...item, id: String(Date.now()) }]);
+
+  const handleEdit = async (item: CrudItemType) => {
+    try {
+      const typedItem = item as SemcompUserType;
+      const presenceRate = Number(typedItem.presence_rate);
+      if (Number.isNaN(presenceRate)) {
+        setError("Taxa de presença inválida");
+        return;
+      }
+
+      if (typedItem.password && typedItem.password.length < 8) {
+        setError("A senha deve conter no mínimo 8 caracteres");
+        return;
+      }
+
+      await userSemcompAPI.update(typedItem.id, {
+        name: typedItem.name,
+        email: typedItem.email,
+        ...(typedItem.password && { password: typedItem.password }),
+        presence_rate: presenceRate,
+      });
+
+      // Atualizar estado local
+      setData(prev => prev.map(i => i.id === item.id ? typedItem : i));
+    } catch (err) {
+      console.error("Erro ao editar usuário:", err);
+      setError("Erro ao editar usuário");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await userSemcompAPI.delete(id);
+      setData(prev => prev.filter(i => i.id !== id));
+    } catch (err) {
+      console.error("Erro ao deletar usuário:", err);
+      setError("Erro ao deletar usuário");
+    }
+  };
+
+  const handleCreate = async (item: CrudItemType) => {
+    try {
+      const typedItem = item as SemcompUserType;
+      if (!typedItem.password || typedItem.password.length < 8) {
+        setError("A senha deve conter no mínimo 8 caracteres");
+        return;
+      }
+
+      const newUser = await userSemcompAPI.create({
+        name: typedItem.name,
+        email: typedItem.email,
+        password: typedItem.password,
+      });
+
+      setData((prev) => [
+        ...prev,
+        {
+          ...newUser,
+          password: "",
+        },
+      ]);
+    } catch (err) {
+      console.error("Erro ao criar usuário:", err);
+      setError("Erro ao criar usuário");
+    }
+  };
 
 
   return (
@@ -37,14 +119,25 @@ export default function UsersCRUD() {
 
       {/* Tabela com os usuários */}
       <div className="rounded-xl border border-border bg-card/80 p-5">
-        <CrudTable
-          data={data}
-          fields={fields}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onCreate={handleCreate}
-          entityLabel="usuário"
-        />
+        {error && (
+          <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
+            {error}
+          </div>
+        )}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-slate-400">Carregando usuários...</p>
+          </div>
+        ) : (
+          <CrudTable
+            data={data}
+            fields={fields}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onCreate={handleCreate}
+            entityLabel="usuário"
+          />
+        )}
       </div>
     </section>
   );

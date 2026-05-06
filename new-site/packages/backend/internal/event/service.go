@@ -13,6 +13,7 @@ import (
 var (
 	ErrInvalidEventDate = errors.New("invalid event date format")
 	ErrEventNotFound    = errors.New("event not found")
+	ErrEventConflict    = errors.New("event conflict")
 )
 
 type EventService interface {
@@ -32,6 +33,12 @@ func NewEventService(repo EventRepository) EventService {
 }
 
 func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
+	if _, err := s.repo.GetByNameAndInitTime(request.Name, request.InitDate); err == nil {
+		return nil, ErrEventConflict
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
 	newEvent := Event{
 		Name:          request.Name,
 		InitDate:      request.InitDate,
@@ -87,6 +94,14 @@ func (s *eventService) UpdateEventByNameAndInitDate(name string, initDate string
 	originalInitTime, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
 		return nil, ErrInvalidEventDate
+	}
+
+	if name != request.Name || !originalInitTime.Equal(request.InitDate) {
+		if _, err := s.repo.GetByNameAndInitTime(request.Name, request.InitDate); err == nil {
+			return nil, ErrEventConflict
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
 	}
 
 	event := Event{
