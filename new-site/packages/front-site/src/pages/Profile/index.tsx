@@ -42,18 +42,18 @@ let events: Evento[] = [
   {
     tipo: "Minicurso",
     description:
-      "Automação Agêntica de Processos: Construindo bots com Agentes de IA integrados",
-    data: "2026-10-20",
+      "Inteligência de Enxames aplicada a Robótica - Prof. Doutor Eduardo do Valle Simões",
+    data: "2026-05-16",
     horaStart: "14:00",
     horaEnd: "18:00",
     linkInscricao: "https://docs.google.com/forms/d/e/1FAIpQLScc0O2bcAs18cSS-mXkCS5mmJCVZ5BU37d4I8pDTANGiMCY0g/viewform"
   },
   {
-    tipo: "Palestra",
-    description: "O Futuro da IA na Engenharia de Software",
-    data: "2026-10-21",
-    horaStart: "16:30",
-    horaEnd: "18:00",
+    tipo: "Escape Room",
+    description: "Monte uma equipe e participe do nosso Escape Room!",
+    data: "2026-05-16",
+    horaStart: "19:00",
+    horaEnd: "23:00",
     linkInscricao: ""
   },
 ];
@@ -67,14 +67,14 @@ function formatarDataDynamic(dataIso: string) {
   const diaDaSemana = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
   return {
     data: dataFormatada,
-    diaSemana: diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1), // Capitaliza a primeira letra
+    diaSemana: diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1), 
   };
 }
 
 export default function Profile({
-  name = "João Gabriel Pieroli da Silva",
-  email = "joao.gabriel@example.com",
-  code = "0 1 1 2 3 5",
+  name = "Nome do usuário",
+  email = "E-mail do usuário",
+  code = "Código",
   qrValue = "Um código QR genérico para teste",
   event = "SEMCOMP",
 }: ProfileProps) {
@@ -142,7 +142,7 @@ export default function Profile({
           <div className="flex items-start gap-2">
             <span className="font-bold whitespace-nowrap">{ev.tipo}</span>
             <span className="opacity-60">|</span>
-            <p className="text-sm leading-tight opacity-90">{ev.description}</p>
+            <p className="text-sm leading-relaxed opacity-90 wrap-break-words">{ev.description}</p>
           </div>
           <p className="mt-2 text-sm opacity-80 font-medium">
             {diaSemana} ({data}), {ev.horaStart} às {ev.horaEnd}
@@ -318,7 +318,8 @@ export default function Profile({
                   </div>
                 </div>
 
-                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4">
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                  onClick={() => {showNotification("Entre em contato com a organização", "info")}}>
                   Editar Informações
                 </button>
                 <button
@@ -518,7 +519,8 @@ export default function Profile({
             </div>
           </div>
 
-          <button className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8">
+          <button className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8"
+           onClick={() => {showNotification("Entre em contato com a organização", "info")}}>
             Editar Informações
           </button>
 
@@ -654,7 +656,7 @@ export default function Profile({
                           <span className="font-bold text-lg shrink-0">
                             {evento.tipo}
                           </span>
-                          <span className="text-sm font-medium break-all flex-1 opacity-90">
+                          <span className="text-sm font-medium wrap-break-words flex-1 opacity-90">
                             {evento.description}
                           </span>
                         </div>

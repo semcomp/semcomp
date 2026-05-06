@@ -1,5 +1,5 @@
-import {useState} from "react"
-import { mockEvents } from "@/mock/mockEvents.tsx";
+import {useState, useEffect} from "react"
+import { eventsAPI } from "@/api/events";
 import type { EventType } from "@/types/EventType.ts"
 import type { EventWithColumn } from "@/types/EventWithColumn.ts";
 import { useTheme } from "@/contexts/useTheme";
@@ -157,17 +157,17 @@ function EventButton({
 
       <div className="grid max-h-none grid-rows-[0fr] overflow-hidden opacity-0 transition-all duration-300 group-hover:mt-3 group-hover:grid-rows-[1fr] group-hover:opacity-100">
         <div className="overflow-hidden">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col items-start gap-3">
             {evento.image && (
-              <div className="w-1/2 flex justify-center items-center h-full">
+              <div className="w-full flex justify-center">
                 <img 
                   src={evento.image} 
                   alt={evento.name}
-                  className="h-full w-auto max-w-xs rounded-lg object-cover"
+                  className="h-32 w-auto max-w-xs rounded-lg object-cover"
                 />
               </div>
             )}
-            <p className={`text-sm text-justify w-1/2 ml-auto ${captionClasses}`}>
+            <p className={`text-sm text-justify leading-relaxed wrap-break-word ${captionClasses}`}>
               {evento.description || "Mais detalhes deste evento."}
             </p>
           </div>
@@ -180,6 +180,8 @@ function EventButton({
 export default function CronogramaPage() {
 
   const [selected, setSelected] = useState<EventWithColumn | null>(null);
+  const [events, setEvents] = useState<EventType[]>([]);
+  const [loading, setLoading] = useState(true);
   const { isDarkMode } = useTheme();
 
   const pageClasses = isDarkMode
@@ -194,7 +196,25 @@ export default function CronogramaPage() {
   const glowPrimaryClass = isDarkMode ? "bg-semcompMidLightBlue/10" : "bg-semcompMidLightBlue/15";
   const glowSecondaryClass = isDarkMode ? "bg-semcompLightBlue/5" : "bg-semcompAlmostDarkBlue/8";
 
-  const GrupoEventosProcessados: EventWithColumn[][] = processarEventos(mockEvents.events);
+  // Buscar eventos da API
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const response = await eventsAPI.getAllEvents();
+        setEvents(response.events || []);
+      } catch (error) {
+        console.error("Erro ao buscar eventos:", error);
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  const GrupoEventosProcessados: EventWithColumn[][] = processarEventos(events);
 
   // Cores do gradiente baseadas no modo
   const gradientColor = isDarkMode ? "#002D5E" : "#004F7C"; // semcompDarkBlue / semcompOffWhite
@@ -223,10 +243,10 @@ export default function CronogramaPage() {
 
       <div className="relative z-10 mx-auto max-w-5xl px-4 py-10 md:px-6 md:py-14">
         <header className="mb-8 md:mb-10">
-          <h1 className="animate-slide font-poppins-bold text-3xl text-white [animation-duration:900ms] [animation-timing-function:cubic-bezier(0.22,1,0.36,1)] md:text-4xl">
+          <h1 className="animate-slide font-poppins-bold text-3xl text-white animation-duration-[900ms] [animation-timing-function:cubic-bezier(0.22,1,0.36,1)] md:text-4xl">
             Cronograma
           </h1>
-          <p className="animate-slide [animation-delay:120ms] [animation-duration:900ms] [animation-fill-mode:both] mt-2 text-sm text-white md:text-base">
+          <p className="animate-slide [animation-delay:120ms] animation-duration-[900ms] fill-mode-[both] mt-2 text-sm text-white md:text-base">
             Programação completa da Semcomp.
           </p>
         </header>
@@ -259,59 +279,69 @@ export default function CronogramaPage() {
         )}
 
         <div className="space-y-3">
-          {GrupoEventosProcessados.map((grupo, rowIndex) => {
-            const left = grupo.filter(e => e.column === "left");
-            const right = grupo.filter(e => e.column === "right");
-            const full = grupo.filter(e => e.column === "full");
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-semcompOffWhite/70">Carregando eventos...</p>
+            </div>
+          ) : events.length === 0 ? (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-semcompOffWhite/70">Nenhum evento disponível no momento.</p>
+            </div>
+          ) : (
+            GrupoEventosProcessados.map((grupo, rowIndex) => {
+              const left = grupo.filter(e => e.column === "left");
+              const right = grupo.filter(e => e.column === "right");
+              const full = grupo.filter(e => e.column === "full");
 
-            return (
-              <div key={rowIndex} className="grid gap-3 md:grid-cols-2">
+              return (
+                <div key={rowIndex} className="grid gap-3 md:grid-cols-2">
 
-                {full.length > 0 && full.map((evento) => (
-                  <div key={evento.name} className="col-span-2">
-                    <EventButton
-                      evento={evento}
-                      onClick={() => setSelected(evento)}
-                      cardClasses={cardClasses}
-                      captionClasses={captionClasses}
-                    />
-                  </div>
-                ))}
-
-                {full.length === 0 && (
-                  <>
-                    <div className="flex flex-col gap-3 h-full">
-                      {left.map((evento) => (
-                        <div className="flex-1">
-                          <EventButton
-                            key={evento.name}
-                            evento={evento}
-                            onClick={() => setSelected(evento)}
-                            cardClasses={cardClasses}
-                            captionClasses={captionClasses}
-                          />
-                        </div>
-                      ))}
+                  {full.length > 0 && full.map((evento) => (
+                    <div key={evento.name} className="col-span-2">
+                      <EventButton
+                        evento={evento}
+                        onClick={() => setSelected(evento)}
+                        cardClasses={cardClasses}
+                        captionClasses={captionClasses}
+                      />
                     </div>
+                  ))}
 
-                    <div className="flex flex-col gap-3 h-full">
-                      {right.map((evento) => (
-                        <div className="flex-1">
-                          <EventButton
-                            key={evento.name}
-                            evento={evento}
-                            onClick={() => setSelected(evento)}
-                            cardClasses={cardClasses}
-                            captionClasses={captionClasses}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })}
+                  {full.length === 0 && (
+                    <>
+                      <div className="flex flex-col gap-3 h-full">
+                        {left.map((evento) => (
+                          <div className="flex-1">
+                            <EventButton
+                              key={evento.name}
+                              evento={evento}
+                              onClick={() => setSelected(evento)}
+                              cardClasses={cardClasses}
+                              captionClasses={captionClasses}
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex flex-col gap-3 h-full">
+                        {right.map((evento) => (
+                          <div className="flex-1">
+                            <EventButton
+                              key={evento.name}
+                              evento={evento}
+                              onClick={() => setSelected(evento)}
+                              cardClasses={cardClasses}
+                              captionClasses={captionClasses}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </section>
