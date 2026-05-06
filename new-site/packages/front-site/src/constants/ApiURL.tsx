@@ -1,5 +1,8 @@
 import { DEBUGMODE } from "./DebugMode";
 
-export const BASEURL = DEBUGMODE ? "http://localhost:4000" : "https://semcomp.icmc.usp.br";
+const ACTUAL_URL = DEBUGMODE 
+  ? "http://localhost:4000" 
+  : "https://semcomp.icmc.usp.br/api"; 
 
-export default BASEURL + "/api";
+export const BASEURL = ACTUAL_URL;
+export default ACTUAL_URL;
