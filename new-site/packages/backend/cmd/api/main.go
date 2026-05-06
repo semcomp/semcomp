@@ -4,6 +4,7 @@ import (
 	"backend/internal/auth"
 	"backend/internal/database"
 	"backend/internal/event"
+	"backend/internal/log"
 	"backend/internal/middleware"
 	"backend/internal/presence"
 	"backend/internal/providers"
@@ -20,7 +21,7 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &log.AuditLog{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -45,10 +46,14 @@ func main() {
 	sectionService := section.NewSectionService(sectionRepo)
 	sectionHandler := section.NewSectionHandler(sectionService)
 
+	logRepo := log.NewRepository(db)
+	logService := log.NewService(logRepo)
+
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
 
 	r := gin.Default()
+	r.Use(middleware.AuditMiddleware(logService))
 
 	r.Use(cors.New(cors.Config{
         AllowOrigins:   []string{"http://localhost:5173"},

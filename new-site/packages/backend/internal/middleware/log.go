@@ -33,9 +33,13 @@ func AuditMiddleware(service log.Service) gin.HandlerFunc {
 		}
 
 		latency := time.Since(start)
+		message := responseMessage(c)
+		if statusCode >= http.StatusInternalServerError {
+			message = errorMessage(c)
+		}
 		entry := log.AuditLog{
 			StatusCode: statusCode,
-			Message:    responseMessage(c),
+			Message:    message,
 			Method:     c.Request.Method,
 			Path:       c.FullPath(),
 			LatencyMs:  latency.Milliseconds(),
@@ -63,4 +67,21 @@ func responseMessage(c *gin.Context) string {
 		}
 	}
 	return ""
+}
+
+func errorMessage(c *gin.Context) string {
+	if value, ok := c.Get("internalError"); ok {
+		if errValue, ok := value.(error); ok && errValue != nil {
+			return errValue.Error()
+		}
+		if message, ok := value.(string); ok {
+			return message
+		}
+	}
+
+	if len(c.Errors) > 0 {
+		return c.Errors.Last().Error()
+	}
+
+	return responseMessage(c)
 }

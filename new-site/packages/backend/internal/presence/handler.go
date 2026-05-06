@@ -24,16 +24,19 @@ func (h *PresenceHandler) CreatePresence(c *gin.Context) {
 	var request CreatePresenceRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
+		c.Set("responseMessage", "Dados inválidos")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
 		return
 	}
 
 	presence, err := h.presenceService.CreatePresence(request)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro interno do servidor")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
 		return
 	}
-
+	c.Set("responseMessage", "Presença criada com sucesso!")
 	c.JSON(http.StatusCreated, gin.H{"message": "Presença criada com sucesso!", "presence": presence})
 }
 
@@ -48,22 +51,25 @@ func (h *PresenceHandler) GetPresences(c *gin.Context) {
 
 	page, err := strconv.Atoi(pageStr)
 	if err != nil || page < 1 {
+		c.Set("responseMessage", "Parâmetro 'page' inválido")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'page' inválido"})
 		return
 	}
 
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit < 1 {
+		c.Set("responseMessage", "Parâmetro 'limit' inválido")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'limit' inválido"})
 		return
 	}
 
 	result, err := h.presenceService.GetPresences(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
+		c.Set("responseMessage", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
+	c.Set("responseMessage", "Presenças listadas com sucesso!")
 	c.JSON(http.StatusOK, result)
 }
 
@@ -76,17 +82,21 @@ func (h *PresenceHandler) GetPresenceByNameEventandInitDate(c *gin.Context) {
 	presence, err := h.presenceService.GetPresenceByNameEventandInitDate(name, eventName, eventInitDate)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
+			c.Set("responseMessage", "invalid event date format")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid event date format"})
 			return
 		}
 		if errors.Is(err, ErrPresenceNotFound) {
+			c.Set("responseMessage", "presence not found")
 			c.JSON(http.StatusNotFound, gin.H{"error": "presence not found"})
 			return
 		}
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro interno do servidor")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
 		return
 	}
-
+	c.Set("responseMessage", "Presença encontrada com sucesso!")
 	c.JSON(http.StatusOK, presence)
 }
 
@@ -98,6 +108,7 @@ func (h *PresenceHandler) UpdatePresenceByNameEventandInitDate(c *gin.Context) {
 
 	var request UpdatePresenceRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
+		c.Set("responseMessage", "Dados inválidos")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
 		return
 	}
@@ -105,10 +116,12 @@ func (h *PresenceHandler) UpdatePresenceByNameEventandInitDate(c *gin.Context) {
 	err := h.presenceService.UpdatePresenceByNameEventandInitDate(name, eventName, eventInitDate, request)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
+			c.Set("responseMessage", "Data inválida. Use o formato RFC3339")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
 			return
 		}
 		if errors.Is(err, ErrPresenceNotFound) {
+			c.Set("responseMessage", "Presença não pôde ser computada.")
 			c.JSON(http.StatusNotFound, gin.H{"error": "Presença não pôde ser computada."})
 			return
 		}
@@ -117,15 +130,17 @@ func (h *PresenceHandler) UpdatePresenceByNameEventandInitDate(c *gin.Context) {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
+				c.Set("responseMessage", "Já existe presença com essa chave")
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Já existe presença com essa chave"})
 				return
 			}
 		}
-
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro interno do servidor")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
 		return
 	}
-
+	c.Set("responseMessage", "Presença atualizada com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Presença atualizada com sucesso!"})
 }
 
@@ -138,16 +153,20 @@ func (h *PresenceHandler) DeletePresenceByNameEventandInitDate(c *gin.Context) {
 	err := h.presenceService.DeletePresenceByNameEventandInitDate(name, eventName, eventInitDate)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
+			c.Set("responseMessage", "Data inválida. Use o formato RFC3339")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
 			return
 		}
 		if errors.Is(err, ErrPresenceNotFound) {
+			c.Set("responseMessage", "Remoção de presença não pôde ser computada.")
 			c.JSON(http.StatusNotFound, gin.H{"error": "Remoção de presença não pôde ser computada."})
 			return
 		}
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro interno do servidor")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
 		return
 	}
-
+	c.Set("responseMessage", "Presença removida com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Presença removida com sucesso!"})
 }
