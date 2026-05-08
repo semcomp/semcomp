@@ -36,7 +36,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	userRecord, token, errLogin := h.authService.Login(request)
+	safeUser, token, errLogin := h.authService.Login(request)
 	if errLogin != nil {
 		if errors.Is(errLogin, ErrInvalidCredentials) {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
@@ -55,7 +55,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	c.Status(http.StatusOK)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
-		"user":    user.ToSafeUser(userRecord),
+		"user":    safeUser,
 		"token":   token,
 	})
 }
