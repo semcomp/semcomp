@@ -48,3 +48,36 @@ func AuthMiddleware(jwtProvider providers.JWTProvider) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func AuthBackofficeMiddleware(jwtProvider providers.JWTProvider) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Verifica se o header Authorization está presente e tem o formato correto
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
+			return
+		}
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
+			return
+		}
+
+		// Extrai o token JWT do header
+		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+		claims, err := jwtProvider.ParseToBackoffice(tokenStr)
+		if err != nil {
+			if errors.Is(err, providers.ErrJWTSecretNotConfigured) {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "server misconfigured"})
+				return
+			}
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid or expired token",
+			})
+			return
+		}
+
+		c.Set("email", claims.Email)
+
+		c.Next()
+	}
+}

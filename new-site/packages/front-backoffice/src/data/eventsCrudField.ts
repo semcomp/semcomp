@@ -2,7 +2,8 @@ import { type CrudField } from "@/components/CrudTable";
 
 export const fields: CrudField[] = [
   { value: "nameEvent", label: "Nome do Evento", type: "text" },
-  { value: "datetime", label: "Data do Evento", type: "date" },
+  { value: "dateInit", label: "Data/Hora Início", type: "date" },
+  { value: "dateEnd", label: "Data/Hora Fim", type: "date" },
   { value: "local", label: "Local", type: "text" },
   { value: "type", label: "Tipo", type: "text" },
   { value: "description", label: "Descrição", type: "text" },

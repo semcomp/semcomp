@@ -2,16 +2,28 @@ import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import Countdown from "./Countdown";
 import SemcompInfo from "../lib/constants/SemcompInfo";
-import FotoSemcompMain from "../assets/img/semcomp/Semcomp.webp";
+import FotoSemcompMain from "@/assets/img/Home/Hero/Semcomp.avif";
+import { useState } from "react";
+
+const _heroModules = import.meta.glob(
+  "/src/assets/img/Home/Hero/*",
+  { eager: true }
+) as Record<string, { default: string }>;
+const HERO_IMAGES = Object.values(_heroModules)
+  .map((m) => m.default as string)
+  .filter((src) => /\.(webp)$/i.test(src));
+const pickRandomHero = () =>
+  HERO_IMAGES.length ? HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)] : FotoSemcompMain;
 
 export default function MainEntrance() {
+  const [heroSrc] = useState<string>(() => pickRandomHero());
+
   const scrollToContent = () => {
     const sobreSection = document.querySelector(`#sobre`);
     if (sobreSection) {
       sobreSection.scrollIntoView({ behavior: "smooth" });
     }
   };
-
   return (
     <section
       id="hero"
@@ -20,7 +32,7 @@ export default function MainEntrance() {
       style={{ height: "calc(100vh - 64px)" }}
     >
       <img
-        src={FotoSemcompMain}
+        src={heroSrc}
         alt={`SEMCOMP ${SemcompInfo.EDITION}`}
         loading="eager"
         decoding="async"

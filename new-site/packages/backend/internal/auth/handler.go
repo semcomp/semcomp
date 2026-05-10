@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	user "backend/internal/user"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -27,42 +28,45 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	errReq := c.ShouldBindJSON(&request)
 	if errReq != nil {
 		c.Set("responseMessage", "Invalid json login request")
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid json login request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON inválido no corpo da requisição"})
 		return
 	}
 
 	errValidate := validate.Struct(request)
 	if errValidate != nil {
 		c.Set("responseMessage", "Invalid auth request: "+errValidate.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid auth request: " + errValidate.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Requisição inválida"})
 		return
 	}
 
 	userRecord, token, errLogin := h.authService.Login(request)
 	if errLogin != nil {
-		if errors.Is(errLogin, ErrInvalidCredentials) {
+		if errors.Is(errLogin, user.ErrInvalidCredentials) {
 			c.Set("responseMessage", "Invalid email or password")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Email e/ou senha inválidos"})
 			return
 		}
-		if errLogin.Error() == "token generation failed" {
+		if errors.Is(errLogin, user.ErrTokenGeneration) {
 			c.Set("internalError", errLogin)
 			c.Set("responseMessage", "Erro interno do servidor")
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao gerar token de autenticação"})
+			return
+		}
+		if errors.Is(errLogin, user.ErrInternalServerError) {
+			c.Set("internalError", errLogin)
+			c.Set("responseMessage", "Erro interno do servidor")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
 			return
 		}
 		c.Set("internalError", errLogin)
 		c.Set("responseMessage", "Erro interno do servidor")
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
 		return
 	}
 
-	// Confirmacao de login do usuario (passa o token para o cliente)
-	c.Header("Content-Type", "application/json")
-	c.Status(http.StatusOK)
-	c.Set("responseMessage", "Login successful")
+	// Confirmação de login do usuário (retorna token e dados do usuário)
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Login successful",
+		"message": "Login bem-sucedido",
 		"user":    user.ToSafeUser(userRecord),
 		"token":   token,
 	})
