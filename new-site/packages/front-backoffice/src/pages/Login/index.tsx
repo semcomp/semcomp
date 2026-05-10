@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,22 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Notification from "@/components/Notification";
 import { LockKeyhole, ShieldCheck } from "lucide-react";
 
-type LocationState = {
-  from?: { pathname?: string };
-};
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const { isAuthenticated, login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
 
-  const state = location.state as LocationState | null;
-  const destination = state?.from?.pathname ?? "/home";
-
-  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!email.trim() || !password.trim()) {
@@ -30,8 +23,21 @@ export default function LoginPage() {
       return;
     }
 
-    login(email, password);
-    navigate(destination, { replace: true });
+    setLoading(true);
+    try {
+      const success = await login(email, password);
+      if (!success) {
+        setErrorMessage("Falha ao fazer login. Verifique suas credenciais.");
+      }
+    } catch (err: any) {
+      setErrorMessage(
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        "Erro ao fazer login. Tente novamente."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (isAuthenticated) {
@@ -111,12 +117,13 @@ export default function LoginPage() {
               </div>
 
               <Button 
-                type="submit" 
-                className="group relative w-full h-12 overflow-hidden rounded-xl bg-primary font-semibold transition-all hover:bg-primary/90 active:scale-[0.98] text-foreground"
+                type="submit"
+                disabled={loading}
+                className="group relative w-full h-12 overflow-hidden rounded-xl bg-primary font-semibold transition-all hover:bg-primary/90 active:scale-[0.98] text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="flex items-center gap-2">
-                  Acessar Painel
-                  <LockKeyhole size={18} className="transition-transform group-hover:translate-x-1" />
+                  {loading ? "Processando..." : "Acessar Painel"}
+                  {!loading && <LockKeyhole size={18} className="transition-transform group-hover:translate-x-1" />}
                 </span>
               </Button>
             </form>

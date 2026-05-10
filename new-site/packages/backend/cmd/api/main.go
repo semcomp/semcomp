@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/internal/auth"
+	"backend/internal/authBackoffice"
 	"backend/internal/database"
 	"backend/internal/event"
 	"backend/internal/middleware"
@@ -9,9 +10,10 @@ import (
 	"backend/internal/providers"
 	"backend/internal/section"
 	"backend/internal/user"
+	"backend/internal/userBackoffice"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -20,7 +22,7 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &userBackoffice.UserBackoffice{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -45,13 +47,24 @@ func main() {
 	sectionService := section.NewSectionService(sectionRepo)
 	sectionHandler := section.NewSectionHandler(sectionService)
 
+	userBackofficeRepo 	  := userBackoffice.NewUserBackofficeRepository(db)
+	userBackofficeService := userBackoffice.NewUserBackofficeService(userBackofficeRepo, passwordProvider)
+	userBackofficeHandler := userBackoffice.NewUserBackofficeHandler(userBackofficeService)
+
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
+
+	authBackofficeService := authBackoffice.NewAuthBackofficeService(userBackofficeRepo, passwordProvider, jwtProvider)
+	authBackofficeHandler := authBackoffice.NewAuthBackofficeHandler(authBackofficeService, userBackofficeService)
+
+	if err := userBackofficeService.InitializeAdmin(); err != nil {
+        panic("Failed to initialize admin in backoffice: " + err.Error())
+    }
 
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-        AllowOrigins:   []string{"http://localhost:5173"},
+        AllowOrigins: []string{"http://localhost:5173", "http://localhost:5174", "https://semcomp.icmc.usp.br"},
         AllowMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
         AllowHeaders:   []string{"Origin", "Content-Type", "Authorization"},
         AllowCredentials: true,
@@ -70,13 +83,18 @@ func main() {
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 
-	// Rotas Backoffice (exigem autenticação de usuários do backoffice)
-	// TODO: adicionar um middleware de autenticação de usuários do backoffice para essa rotas
-	backofficeRoutes := r.Group("/admin")
+	// Rota Login Backoffice
+	adminRoutes := r.Group("/admin")
+	adminRoutes.POST("/login", authBackofficeHandler.LoginBackofficeHandler)
+
+	// Rotas Backoffice (Exigem Autenticação)
+	backofficeRoutes := adminRoutes.Group("/")
+	backofficeRoutes.Use(middleware.AuthBackofficeMiddleware(jwtProvider))
 	backofficeRoutes.PUT("/users/:id", userHandler.UpdateUser)
 	backofficeRoutes.DELETE("/users/:id", userHandler.DeleteUser)
 	backofficeRoutes.GET("/users", userHandler.GetAllUsers)
 	backofficeRoutes.GET("/users/:id", userHandler.GetUserByID)
+	backofficeRoutes.POST("/users", userHandler.CreateUser)
 
 	backofficeRoutes.POST("/events", eventHandler.CreateEvent)
 	backofficeRoutes.PUT("/events/:eventName/:initDate", eventHandler.UpdateEventByNameAndInitDate)
@@ -93,6 +111,12 @@ func main() {
 	backofficeRoutes.GET("/sections/:sectionName", sectionHandler.GetSectionByName)
 	backofficeRoutes.PUT("/sections/:sectionName", sectionHandler.UpdateSectionByName)
 	backofficeRoutes.DELETE("/sections/:sectionName", sectionHandler.DeleteSectionByName)
+
+	backofficeRoutes.POST("/usersBackoffice", userBackofficeHandler.CreateUser)
+	backofficeRoutes.GET("/usersBackoffice", userBackofficeHandler.GetAllUsers)
+	backofficeRoutes.GET("/usersBackoffice/:email", userBackofficeHandler.GetUserByEmail)
+	backofficeRoutes.PUT("/usersBackoffice/:email", userBackofficeHandler.UpdateUser)
+	backofficeRoutes.DELETE("/usersBackoffice/:email", userBackofficeHandler.DeleteUser)
 
 	r.Run(":4000")
 }

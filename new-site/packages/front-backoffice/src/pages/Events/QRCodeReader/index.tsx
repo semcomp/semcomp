@@ -60,7 +60,7 @@ export default function QRCodeReader() {
           maxScansPerSecond: 30,
           highlightScanRegion: true,
           highlightCodeOutline: true,
-          calculateScanRegion: (video) => {
+          calculateScanRegion: (video: HTMLVideoElement) => {
             const size = Math.round(Math.min(video.videoWidth, video.videoHeight) * 0.62);
             return {
               x: Math.round((video.videoWidth - size) / 2),
@@ -71,7 +71,7 @@ export default function QRCodeReader() {
               downScaledHeight: 240,
             };
           },
-          onDecodeError: (scanError) => {
+          onDecodeError: (scanError: string | Error) => {
             if (scanError !== QrScanner.NO_QR_CODE_FOUND) {
               console.error("Erro no scan:", scanError);
             }

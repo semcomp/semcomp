@@ -4,8 +4,7 @@ import sharp from 'sharp';
 
 const root = process.cwd();
 const targets = [
-  'src/assets/img/semcomp',
-  'src/assets/img/team',
+  'src/assets/img/Home/Carousel',
 ];
 
 const exts = new Set(['.jpg', '.jpeg', '.png']);

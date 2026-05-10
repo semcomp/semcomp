@@ -1,22 +1,97 @@
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
-import { sampleBackofficeUsers } from "@/mock/user-backoffice";
 import { fields } from "@/data/userBackofficeCrudField";
 import { Tabs } from "@/constants/Tabs";
+import { userBackofficeAPI } from "@/api/userBackoffice";
+import type { BackofficeUserType } from "@/types/BackofficeUserType";
 
 export default function BackofficeUsersCRUD() {
   const navigate = useNavigate();
-  const [data, setData] = useState<CrudItemType[]>(sampleBackofficeUsers);
+  const [data, setData] = useState<BackofficeUserType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // TODO: Integrar com backend para persistência real dos dados no BD
-  const handleEdit = (item: CrudItemType) => {
-    setData(prev => prev.map(i => i.id === item.id ? item : i));
+  // Buscar usuários ao montar o componente
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await userBackofficeAPI.getAll();
+      setData(response.users || []);
+    } catch (err) {
+      console.error("Erro ao buscar usuários:", err);
+      setError("Erro ao carregar usuários do backoffice");
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
   };
-  const handleDelete = (id: string) => setData(prev => prev.filter(i => i.id !== id));
-  const handleCreate = (item: CrudItemType) => setData(prev => [...prev, { ...item, id: String(Date.now()) }]);
+
+  const handleEdit = async (item: CrudItemType) => {
+    try {
+      const typedItem = item as BackofficeUserType;
+      // Encontrar o usuário original para ter o email anterior
+      const originalUser = data.find(u => u.id === item.id);
+      if (!originalUser) return;
+
+      if (!typedItem.password || typedItem.password.length < 8) {
+        setError("A senha deve conter no mínimo 8 caracteres");
+        return;
+      }
+
+      await userBackofficeAPI.update(originalUser.email, {
+        email: typedItem.email,
+        password: typedItem.password,
+      });
+
+      // Atualizar estado local
+      setData(prev => prev.map(i => i.id === item.id ? { ...typedItem, id: typedItem.email } : i));
+    } catch (err) {
+      console.error("Erro ao editar usuário:", err);
+      setError("Erro ao editar usuário");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const user = data.find(u => u.id === id);
+      if (!user) return;
+
+      await userBackofficeAPI.delete(user.email);
+      setData(prev => prev.filter(i => i.id !== id));
+    } catch (err) {
+      console.error("Erro ao deletar usuário:", err);
+      setError("Erro ao deletar usuário");
+    }
+  };
+
+  const handleCreate = async (item: CrudItemType) => {
+    try {
+      const typedItem = item as BackofficeUserType;
+      if (!typedItem.password || typedItem.password.length < 8) {
+        setError("A senha deve conter no mínimo 8 caracteres");
+        return;
+      }
+
+      const newUser = await userBackofficeAPI.create({
+        email: typedItem.email,
+        password: typedItem.password,
+      });
+
+      // Atualizar estado local
+      setData(prev => [...prev, { ...typedItem, id: newUser.id || typedItem.email }]);
+    } catch (err) {
+      console.error("Erro ao criar usuário:", err);
+      setError("Erro ao criar usuário");
+    }
+  };
 
 
   return (
@@ -37,14 +112,25 @@ export default function BackofficeUsersCRUD() {
 
       {/* Tabela com os usuários do Backoffice */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-5">
-        <CrudTable
-          data={data}
-          fields={fields}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onCreate={handleCreate}
-          entityLabel="usuário do backoffice"
-        />
+        {error && (
+          <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
+            {error}
+          </div>
+        )}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-slate-400">Carregando usuários do backoffice...</p>
+          </div>
+        ) : (
+          <CrudTable
+            data={data}
+            fields={fields}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onCreate={handleCreate}
+            entityLabel="usuário do backoffice"
+          />
+        )}
       </div>
     </section>
   );
