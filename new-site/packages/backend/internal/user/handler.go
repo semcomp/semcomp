@@ -28,14 +28,14 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	var request CreateUserRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-    if unmarshalErr, ok := err.(*json.UnmarshalTypeError); ok {
+    	if unmarshalErr, ok := err.(*json.UnmarshalTypeError); ok {
 		  c.Set("responseMessage", "Dados inválidos")
 		  c.JSON(http.StatusBadRequest, gin.H{
 		   	"error": fmt.Sprintf("O campo '%s' recebeu um valor do tipo %s, mas esperava %s", 
 					unmarshalErr.Field, unmarshalErr.Value, unmarshalErr.Type),
 			})
 			return
-    }
+    	}
 
 		if validationErrs, ok := err.(validator.ValidationErrors); ok {
 		  c.Set("responseMessage", "Dados inválidos")
@@ -51,7 +51,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	safeUser, err := h.userService.CreateUser(request)
 	if err != nil {
 		if errors.Is(err, ErrEmailAlreadyExists) {
-		  c.Set("responseMessage", "E-mail já cadastrado")
+		  	c.Set("responseMessage", "E-mail já cadastrado")
 			c.JSON(http.StatusConflict, gin.H{"error": "E-mail já cadastrado"})
 			return
 		}
@@ -152,7 +152,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	var request UpdateUserRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		if unmarshalErr, ok := err.(*json.UnmarshalTypeError); ok {
-		  c.Set("responseMessage", "Dados inválidos")
+		  	c.Set("responseMessage", "Dados inválidos")
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": fmt.Sprintf("O campo '%s' recebeu um valor do tipo %s, mas esperava %s",
 					unmarshalErr.Field, unmarshalErr.Value, unmarshalErr.Type),
@@ -161,7 +161,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		}
 
 		if validationErrs, ok := err.(validator.ValidationErrors); ok {
-		  c.Set("responseMessage", "Dados inválidos")
+		  	c.Set("responseMessage", "Dados inválidos")
 			fieldErr := validationErrs[0]
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",

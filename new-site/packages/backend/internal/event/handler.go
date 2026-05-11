@@ -29,7 +29,7 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 	if err != nil {
 
 		if errors.Is(err, ErrEventConflict) {
-      c.Set("responseMessage", "Evento já existe")
+      		c.Set("responseMessage", "Evento já existe")
 			c.JSON(http.StatusConflict, gin.H{"error": "Evento já existe"})
 			return
 		}
