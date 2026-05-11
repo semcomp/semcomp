@@ -5,6 +5,7 @@ import (
 	"backend/internal/authBackoffice"
 	"backend/internal/database"
 	"backend/internal/event"
+	"backend/internal/log"
 	"backend/internal/middleware"
 	"backend/internal/presence"
 	"backend/internal/providers"
@@ -22,7 +23,7 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &userBackoffice.UserBackoffice{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -47,6 +48,9 @@ func main() {
 	sectionService := section.NewSectionService(sectionRepo)
 	sectionHandler := section.NewSectionHandler(sectionService)
 
+	logRepo := log.NewRepository(db)
+	logService := log.NewService(logRepo)
+  
 	userBackofficeRepo 	  := userBackoffice.NewUserBackofficeRepository(db)
 	userBackofficeService := userBackoffice.NewUserBackofficeService(userBackofficeRepo, passwordProvider)
 	userBackofficeHandler := userBackoffice.NewUserBackofficeHandler(userBackofficeService)
@@ -62,6 +66,7 @@ func main() {
     }
 
 	r := gin.Default()
+	r.Use(middleware.AuditMiddleware(logService))
 
 	r.Use(cors.New(cors.Config{
         AllowOrigins: []string{"http://localhost:5173", "http://localhost:5174", "https://semcomp.icmc.usp.br"},
