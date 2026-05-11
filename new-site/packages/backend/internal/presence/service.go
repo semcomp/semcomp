@@ -105,11 +105,11 @@ func (s *presenceService) UpdatePresenceByNameEventandInitDate(name string, even
 
 func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*PresenceListResult, error) {
 	if page < 1 {
-		return nil, fmt.Errorf("page must be greater than 0")
+		return nil, fmt.Errorf("Page deve ser maior que 0")
 	}
 
 	if limit < 1 {
-		return nil, fmt.Errorf("limit must be greater than 0")
+		return nil, fmt.Errorf("Limit deve ser maior que 0")
 	}
 
 	if sortBy == "" {
@@ -131,15 +131,15 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 	}
 
 	if !allowedSortFields[sortBy] {
-		return nil, fmt.Errorf("invalid sort_by parameter")
+		return nil, fmt.Errorf("Parâmetro 'sort_by' inválido")
 	}
 
 	if sortOrder != "asc" && sortOrder != "desc" {
-		return nil, fmt.Errorf("invalid sort_order parameter")
+		return nil, fmt.Errorf("Parâmetro 'sort_order' inválido")
 	}
 
 	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
-		return nil, fmt.Errorf("search_by and search_value must be provided together")
+		return nil, fmt.Errorf("Parâmetro 'search_by' e 'search_value' devem ser fornecidos juntos")
 	}
 
 	if searchBy != "" {
@@ -153,13 +153,13 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 		}
 
 		if !allowedSearchFields[searchBy] {
-			return nil, fmt.Errorf("invalid search_by parameter")
+			return nil, fmt.Errorf("Parâmetro 'search_by' inválido")
 		}
 
 		if searchBy == "event_init_date" {
 			parsedDateTime, err := time.Parse(time.RFC3339, searchValue)
 			if err != nil {
-				return nil, fmt.Errorf("invalid search_value for event_init_date, use RFC3339")
+				return nil, fmt.Errorf("Parâmetro 'search_value' inválido para 'event_init_date', use o formato RFC3339")
 			}
 			searchValue = parsedDateTime.Format(time.RFC3339)
 		}

@@ -27,20 +27,14 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	var request CreateUserRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-    	if unmarshalErr, ok := err.(*json.UnmarshalTypeError); ok {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": fmt.Sprintf("O campo '%s' recebeu um valor do tipo %s, mas esperava %s", 
-					unmarshalErr.Field, unmarshalErr.Value, unmarshalErr.Type),
-			})
+		if _, ok := err.(*json.UnmarshalTypeError); ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Dados da requisição inválidos"})
 			return
-    	}
+		}
 
 		if validationErrs, ok := err.(validator.ValidationErrors); ok {
 			fieldErr := validationErrs[0]
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)", 
-					fieldErr.Field(), fieldErr.Tag()),
-			})
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)", fieldErr.Field(), fieldErr.Tag())})
 			return
 		}
 	}
@@ -51,7 +45,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 			c.JSON(http.StatusConflict, gin.H{"error": "E-mail já cadastrado"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro na criação de usuário"})
 		return
 	}
 
@@ -87,7 +81,7 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 
 	result, err := h.userService.GetAllUsers(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar usuários"})
 		return
 	}
 
@@ -161,7 +155,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 				return
 			}
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro na atualização de usuário"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Usuário atualizado com sucesso!"})
@@ -181,7 +175,7 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	}
 
 	if err := h.userService.DeleteUser(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro na remoção de usuário"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Usuário removido com sucesso!"})

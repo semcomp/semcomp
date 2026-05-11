@@ -127,11 +127,11 @@ func (s *eventService) UpdateEventByNameAndInitDate(name string, initDate string
 
 func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*EventListResult, error) {
 	if page < 1 {
-		return nil, fmt.Errorf("page must be greater than 0")
+		return nil, fmt.Errorf("Page deve ser maior que 0")
 	}
 
 	if limit < 1 {
-		return nil, fmt.Errorf("limit must be greater than 0")
+		return nil, fmt.Errorf("Limit deve ser maior que 0")
 	}
 
 	if sortBy == "" {
@@ -155,15 +155,15 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 	}
 
 	if !allowedSortFields[sortBy] {
-		return nil, fmt.Errorf("invalid sort_by parameter")
+		return nil, fmt.Errorf("Parametro 'sort_by' inválido")
 	}
 
 	if sortOrder != "asc" && sortOrder != "desc" {
-		return nil, fmt.Errorf("invalid sort_order parameter")
+		return nil, fmt.Errorf("Parametro 'sort_order' inválido")
 	}
 
 	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
-		return nil, fmt.Errorf("search_by and search_value must be provided together")
+		return nil, fmt.Errorf("Parametro 'search_by' e 'search_value' devem ser fornecidos juntos")
 	}
 
 	if searchBy != "" {
@@ -179,20 +179,20 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 		}
 
 		if !allowedSearchFields[searchBy] {
-			return nil, fmt.Errorf("invalid search_by parameter")
+			return nil, fmt.Errorf("Parametro 'search_by' inválido")
 		}
 
 		if searchBy == "init_date" {
 			parsedInitDate, err := time.Parse(time.RFC3339, searchValue)
 			if err != nil {
-				return nil, fmt.Errorf("invalid search_value for init_date, use RFC3339")
+				return nil, fmt.Errorf("Parametro 'search_value' inválido para init_date, use RFC3339")
 			}
 			searchValue = parsedInitDate.Format(time.RFC3339)
 		}
 
 		if searchBy == "has_attendance" {
 			if _, err := strconv.ParseBool(searchValue); err != nil {
-				return nil, fmt.Errorf("invalid search_value for has_attendance")
+				return nil, fmt.Errorf("Parametro 'search_value' inválido para has_attendance")
 			}
 		}
 	}

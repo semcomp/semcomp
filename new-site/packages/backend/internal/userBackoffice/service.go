@@ -32,22 +32,22 @@ func (s *userBackofficeService) InitializeAdmin() error {
 	password := os.Getenv("ADMIN_PASSWORD")
 
 	if email == "" || password == "" {
-		return errors.New("erro na inicialização do backoffice")
+		return errors.New("Variáveis de ambiente não definidas para o usuário admin")
 	}
-	
+
 	_, err := s.repo.GetByEmail(email)
 	if err == nil {
 		return nil
 	}
 
 	admin := CreateUserBackofficeRequest{
-		Email:      email,
-		Password: 	password,
+		Email:    email,
+		Password: password,
 	}
 
 	_, err = s.CreateUser(admin)
 	if err != nil {
-		return errors.New("erro na inicialização do backoffice")
+		return errors.New("Falha na criação do usuário admin: " + err.Error())
 	}
 
 	return nil
@@ -56,12 +56,12 @@ func (s *userBackofficeService) InitializeAdmin() error {
 func (s *userBackofficeService) CreateUser(request CreateUserBackofficeRequest) (*SafeUserB, error) {
 	_, err := s.repo.GetByEmail(request.Email)
 	if err == nil {
-		return nil, errors.New("e-mail já cadastrado")
+		return nil, errors.New("E-mail já cadastrado")
 	}
 
 	hashedPassword, err := s.passwordProvider.Hash(request.Password)
 	if err != nil {
-		return nil, errors.New("erro ao processar a senha")
+		return nil, errors.New("Erro ao processar a senha")
 	}
 
 	newUser := UserBackoffice{
@@ -100,7 +100,7 @@ func (s *userBackofficeService) GetAllUsers(page int, limit int, sortBy string, 
 
 	// Definição dos campos possíveis para ordenação
 	allowedSortFields := map[string]bool{
-		"email":         true,
+		"email": true,
 	}
 
 	if !allowedSortFields[sortBy] {
@@ -119,7 +119,7 @@ func (s *userBackofficeService) GetAllUsers(page int, limit int, sortBy string, 
 		searchBy = strings.ToLower(searchBy)
 
 		allowedSearchFields := map[string]bool{
-			"email":         true,
+			"email": true,
 		}
 
 		if !allowedSearchFields[searchBy] {
@@ -167,7 +167,7 @@ func (s *userBackofficeService) UpdateUser(email string, request UpdateUserBacko
 	if request.Password != "" {
 		hashedPassword, err := s.passwordProvider.Hash(request.Password)
 		if err != nil {
-			return errors.New("erro ao processar a senha")
+			return errors.New("Erro ao processar a senha")
 		}
 		user.PasswordHash = hashedPassword
 	}

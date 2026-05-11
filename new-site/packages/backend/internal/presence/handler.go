@@ -24,13 +24,13 @@ func (h *PresenceHandler) CreatePresence(c *gin.Context) {
 	var request CreatePresenceRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados da requisição inválidos"})
 		return
 	}
 
 	presence, err := h.presenceService.CreatePresence(request)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar presença"})
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *PresenceHandler) GetPresences(c *gin.Context) {
 
 	result, err := h.presenceService.GetPresences(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados da requisição inválidos"})
 		return
 	}
 
@@ -76,14 +76,14 @@ func (h *PresenceHandler) GetPresenceByNameEventandInitDate(c *gin.Context) {
 	presence, err := h.presenceService.GetPresenceByNameEventandInitDate(name, eventName, eventInitDate)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid event date format"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Formato de data inválido. Use o formato RFC3339"})
 			return
 		}
 		if errors.Is(err, ErrPresenceNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "presence not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Presença não encontrada"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao obter presença"})
 		return
 	}
 
@@ -98,7 +98,7 @@ func (h *PresenceHandler) UpdatePresenceByNameEventandInitDate(c *gin.Context) {
 
 	var request UpdatePresenceRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados da requisição inválidos"})
 		return
 	}
 
@@ -117,12 +117,12 @@ func (h *PresenceHandler) UpdatePresenceByNameEventandInitDate(c *gin.Context) {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Já existe presença com essa chave"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Já existe uma presença com essa chave"})
 				return
 			}
 		}
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao atualizar presença"})
 		return
 	}
 
@@ -145,7 +145,7 @@ func (h *PresenceHandler) DeletePresenceByNameEventandInitDate(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Remoção de presença não pôde ser computada."})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao remover presença"})
 		return
 	}
 

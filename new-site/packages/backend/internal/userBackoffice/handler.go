@@ -24,13 +24,13 @@ func (h *UserBackofficeHandler) CreateUser(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "A senha deve conter no mínimo 8 caracteres"})
 			return
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Campo e-mail fora do padrão"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
 		return
 	}
 
 	safeUser, err := h.userBackofficeService.CreateUser(request)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao criar usuário"})
 		return
 	}
 
@@ -67,7 +67,7 @@ func (h *UserBackofficeHandler) GetAllUsers(c *gin.Context) {
 
 	result, err := h.userBackofficeService.GetAllUsers(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao obter usuários"})
 		return
 	}
 
@@ -90,7 +90,7 @@ func (h *UserBackofficeHandler) GetUserByEmail(c *gin.Context) {
 
 	user, err := h.userBackofficeService.GetUserByEmail(email)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Falha ao obter usuário"})
 		return
 	}
 	c.JSON(http.StatusOK, user)
@@ -106,12 +106,12 @@ func (h *UserBackofficeHandler) UpdateUser(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "A senha deve conter no mínimo 8 caracteres"})
 			return
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Campo e-mail fora do padrão"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
 		return
 	}
 
 	if err := h.userBackofficeService.UpdateUser(email, request); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao atualizar usuário"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Usuário atualizado com sucesso!"})
@@ -122,12 +122,12 @@ func (h *UserBackofficeHandler) DeleteUser(c *gin.Context) {
 	email := c.Param("email")
 
 	if _, err := h.userBackofficeService.GetUserByEmail(email); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Usuário a ser deletado não existe"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao obter usuário"})
 		return
 	}
 
 	if err := h.userBackofficeService.DeleteUser(email); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao remover usuário"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Usuário removido com sucesso!"})

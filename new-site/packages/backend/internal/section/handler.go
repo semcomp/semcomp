@@ -20,13 +20,13 @@ func (h *SectionHandler) CreateSection(c *gin.Context) {
 	var request CreateSectionRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados da requisição inválidos"})
 		return
 	}
 
 	section, err := h.sectionService.CreateSection(request)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar seção"})
 		return
 	}
 
@@ -42,7 +42,7 @@ func (h *SectionHandler) GetSectionByName(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Seção não encontrada"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao obter seção"})
 		return
 	}
 
@@ -58,7 +58,7 @@ func (h *SectionHandler) DeleteSectionByName(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Seção não encontrada"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao remover seção"})
 		return
 	}
 
@@ -70,7 +70,7 @@ func (h *SectionHandler) UpdateSectionByName(c *gin.Context) {
 
 	var request UpdateSectionRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados da requisição inválidos"})
 		return
 	}
 
@@ -80,7 +80,7 @@ func (h *SectionHandler) UpdateSectionByName(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Seção não encontrada"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao atualizar seção"})
 		return
 	}
 
@@ -115,7 +115,7 @@ func (h *SectionHandler) GetSections(c *gin.Context) {
 
 	result, err := h.sectionService.GetSections(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados da requisição inválidos"})
 		return
 	}
 

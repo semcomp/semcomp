@@ -14,11 +14,11 @@ func AuthMiddleware(jwtProvider providers.JWTProvider) gin.HandlerFunc {
 		// Verifica se o header Authorization está presente e tem o formato correto
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Formato de cabeçalho de autorização está faltando"})
 			return
 		}
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Formato de cabeçalho de autorização inválido"})
 			return
 		}
 
@@ -26,13 +26,20 @@ func AuthMiddleware(jwtProvider providers.JWTProvider) gin.HandlerFunc {
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 		claims, err := jwtProvider.Parse(tokenStr)
 		if err != nil {
-			if errors.Is(err, providers.ErrJWTSecretNotConfigured) {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "server misconfigured"})
+			if errors.Is(err, providers.ErrJWTSecretNotConfigured) || errors.Is(err, providers.ErrJWTExpiresInHoursNotConfigured) {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Variável de ambiente não configurada"})
 				return
 			}
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid or expired token",
-			})
+			if errors.Is(err, providers.ErrInvalidToken) {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
+				return
+			}
+			if errors.Is(err, providers.ErrExpiredToken) {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token expirado"})
+				return
+			}
+
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Sem autorização de administração"})
 			return
 		}
 
@@ -49,11 +56,11 @@ func AuthBackofficeMiddleware(jwtProvider providers.JWTProvider) gin.HandlerFunc
 		// Verifica se o header Authorization está presente e tem o formato correto
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Formato de cabeçalho de autorização está faltando"})
 			return
 		}
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Formato de cabeçalho de autorização inválido"})
 			return
 		}
 
@@ -61,13 +68,22 @@ func AuthBackofficeMiddleware(jwtProvider providers.JWTProvider) gin.HandlerFunc
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 		claims, err := jwtProvider.ParseToBackoffice(tokenStr)
 		if err != nil {
-			if errors.Is(err, providers.ErrJWTSecretNotConfigured) {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "server misconfigured"})
+			if errors.Is(err, providers.ErrJWTSecretNotConfigured) || errors.Is(err, providers.ErrJWTExpiresInHoursNotConfigured) {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Variável de ambiente não configurada"})
 				return
 			}
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid or expired token",
-			})
+
+			if errors.Is(err, providers.ErrInvalidToken) {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
+				return
+			}
+
+			if errors.Is(err, providers.ErrExpiredToken) {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token expirado"})
+				return
+			}
+
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Sem autorização de administração"})
 			return
 		}
 

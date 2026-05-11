@@ -78,10 +78,10 @@ func (s *sectionService) UpdateSectionByName(name string, request UpdateSectionR
 
 func (s *sectionService) GetSections(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*SectionListResult, error) {
 	if page < 1 {
-		return nil, fmt.Errorf("page must be greater than 0")
+		return nil, fmt.Errorf("Page deve ser maior que 0")
 	}
 	if limit < 1 {
-		return nil, fmt.Errorf("limit must be greater than 0")
+		return nil, fmt.Errorf("Limit deve ser maior que 0")
 	}
 
 	if sortBy == "" {
@@ -99,14 +99,14 @@ func (s *sectionService) GetSections(page int, limit int, sortBy string, sortOrd
 		"description": true,
 	}
 	if !allowedSortFields[sortBy] {
-		return nil, fmt.Errorf("invalid sort_by parameter")
+		return nil, fmt.Errorf("Parâmetro 'sort_by' inválido")
 	}
 	if sortOrder != "asc" && sortOrder != "desc" {
-		return nil, fmt.Errorf("invalid sort_order parameter")
+		return nil, fmt.Errorf("Parâmetro 'sort_order' inválido")
 	}
 
 	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
-		return nil, fmt.Errorf("search_by and search_value must be provided together")
+		return nil, fmt.Errorf("Parâmetro 'search_by' e 'search_value' devem ser fornecidos juntos")
 	}
 
 	if searchBy != "" {
@@ -116,7 +116,7 @@ func (s *sectionService) GetSections(page int, limit int, sortBy string, sortOrd
 			"description": true,
 		}
 		if !allowedSearchFields[searchBy] {
-			return nil, fmt.Errorf("invalid search_by parameter")
+			return nil, fmt.Errorf("Parâmetro 'search_by' inválido")
 		}
 	}
 

@@ -31,7 +31,7 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar evento"})
 		return
 	}
 
@@ -59,7 +59,7 @@ func (h *EventHandler) GetEventByNameAndInitDate(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao obter evento"})
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *EventHandler) DeleteEventByNameAndInitDate(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao remover evento"})
 		return
 	}
 
@@ -111,7 +111,7 @@ func (h *EventHandler) UpdateEventByNameAndInitDate(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao atualizar evento"})
 		return
 	}
 
@@ -146,7 +146,7 @@ func (h *EventHandler) GetEvents(c *gin.Context) {
 
 	result, err := h.eventService.GetEvents(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Erro na requisição"})
 		return
 	}
 

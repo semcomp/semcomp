@@ -27,7 +27,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	var request LoginUserRequest
 	errReq := c.ShouldBindJSON(&request)
 	if errReq != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON inválido no corpo da requisição"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Requisição JSON inválida"})
 		return
 	}
 
@@ -40,18 +40,18 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	userRecord, token, errLogin := h.authService.Login(request)
 	if errLogin != nil {
 		if errors.Is(errLogin, user.ErrInvalidCredentials) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Email e/ou senha inválidos"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Email e/ou senha incorretos"})
 			return
 		}
 		if errors.Is(errLogin, user.ErrTokenGeneration) {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao gerar token de autenticação"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao gerar token de autenticação"})
 			return
 		}
 		if errors.Is(errLogin, user.ErrInternalServerError) {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha no servidor"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha no servidor"})
 		return
 	}
 
@@ -68,7 +68,7 @@ func (h *AuthHandler) ProfileHandler() gin.HandlerFunc {
 		userNumber := c.MustGet("userNumber").(uint)
 		user, err := h.userService.GetUserByID(uint(userNumber))
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar perfil"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Falha ao buscar perfil"})
 			return
 		}
 

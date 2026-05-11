@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	ErrEmailAlreadyExists = errors.New("email já cadastrado")
-	ErrInvalidCredentials = errors.New("email e/ou senha inválido(s)")
-	ErrTokenGeneration    = errors.New("geração do token falhou")
+	ErrEmailAlreadyExists  = errors.New("email já cadastrado")
+	ErrInvalidCredentials  = errors.New("email e/ou senha inválido(s)")
+	ErrTokenGeneration     = errors.New("geração do token falhou")
 	ErrInternalServerError = errors.New("erro interno")
 )
 
@@ -45,7 +45,7 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 
 	hashedPassword, err := s.passwordProvider.Hash(request.Password)
 	if err != nil {
-		return nil, errors.New("erro ao processar a senha")
+		return nil, errors.New("Erro ao processar a senha")
 	}
 
 	newUser := User{
@@ -176,7 +176,7 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 	if request.Password != "" {
 		hashedPassword, err := s.passwordProvider.Hash(request.Password)
 		if err != nil {
-			return errors.New("erro ao processar a senha")
+			return errors.New("Erro ao processar a senha")
 		}
 		user.PasswordHash = hashedPassword
 	}

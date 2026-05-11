@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	userBackoffice "backend/internal/userBackoffice"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -26,27 +27,27 @@ func (h *AuthBackofficeHandler) LoginBackofficeHandler(c *gin.Context) {
 	var request LoginUserBackofficeRequest
 	errReq := c.ShouldBindJSON(&request)
 	if errReq != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid json login request"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "JSON inválido"})
 		return
 	}
 
 	errValidate := validate.Struct(request)
 	if errValidate != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid auth request: " + errValidate.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Dados de login inválidos"})
 		return
 	}
 
 	backofficeRecord, token, errLogin := h.authBackofficeService.Login(request)
 	if errLogin != nil {
 		if errors.Is(errLogin, ErrInvalidCredentials) {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Email e/ou senha incorretos"})
 			return
 		}
 		if errLogin.Error() == "token generation failed" {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Token generation failed"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Falha ao gerar token"})
 			return
 		}
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Falha no servidor"})
 		return
 	}
 
