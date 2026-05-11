@@ -92,6 +92,15 @@ export function CrudTable({
     return fieldKey || JSON.stringify(item);
   };
 
+  const formatDateForInput = (val: unknown): string => {
+    if (!val || typeof val !== "string") return "";
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return val;
+    // Converte para formato local YYYY-MM-DDTHH:mm adequado para o input datetime-local
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+  };
+
   const toggleMultiValue = (fieldValue: string, option: string) => {
     setFormData((prev) => {
       const current = normalizeToStringArray(prev[fieldValue]);
@@ -576,6 +585,20 @@ export function CrudTable({
                       />
                     )}
                   </div>
+                ) : f.type === "date" ? (
+                  <Input
+                    type="datetime-local"
+                    id={`create-${f.value}`}
+                    value={formatDateForInput(formData[f.value])}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData((d) => ({
+                        ...d,
+                        [f.value]: val ? new Date(val).toISOString() : "",
+                      }));
+                    }}
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+                  />
                 ) : (
                   f.value.toLowerCase().includes("desc") || f.value.toLowerCase().includes("obs") || f.value.toLowerCase().includes("coment") ? (
                     <textarea
@@ -676,6 +699,19 @@ export function CrudTable({
                       />
                     )}
                   </div>
+                ) : f.type === "date" ? (
+                  <Input
+                    type="datetime-local"
+                    value={formatDateForInput(formData[f.value])}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData((d) => ({
+                        ...d,
+                        [f.value]: val ? new Date(val).toISOString() : "",
+                      }));
+                    }}
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+                  />
                 ) : (
                   f.value.toLowerCase().includes("desc") || f.value.toLowerCase().includes("obs") || f.value.toLowerCase().includes("coment") ? (
                     <textarea
