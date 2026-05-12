@@ -11,7 +11,7 @@ import { fields } from "@/data/sectionsCrudField";
 export default function Sections() {
   const navigate = useNavigate();
   const [data, setData] = useState<SectionType[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showNotification } = useNotification();
 
@@ -99,7 +99,6 @@ export default function Sections() {
       <CrudTable
         data={data}
         fields={fields}
-        loading={loading}
         onCreate={handleCreate}
         onEdit={handleEdit}
         onDelete={handleDelete}
