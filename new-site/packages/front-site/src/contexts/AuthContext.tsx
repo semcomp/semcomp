@@ -1,8 +1,10 @@
+
 import { createContext, useEffect, useMemo, useState } from "react";
 import type { UserType } from "@/types/UserType";
 import { authAPI } from "@/api";
 import { useNavigate } from "react-router-dom";
 import { useNotification } from "./NotificationContext";
+import { registerTokenInvalidCallback } from "@/api/client";
 
 type AuthContextValue = {
   isAuthenticated: boolean;
@@ -47,6 +49,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.localStorage.removeItem(storageKey);
   }, [user]);
 
+  // Registra callback para quando o token é invalidado (401/403)
+  useEffect(() => {
+    const handleTokenInvalid = () => {
+      setUser(null);
+      showNotification("Sessão expirada. Faça login novamente.", "warning");
+      navigate("/login", { replace: true });
+    };
+
+    registerTokenInvalidCallback(handleTokenInvalid);
+  }, [navigate, showNotification]);
+
+  // Valida o token ao montar o provider
+  useEffect(() => {
+    if (!user) return;
+
+    const validateToken = async () => {
+      try {
+        await authAPI.getProfile();
+      } catch (err: any) {
+        if (err?.response?.status === 401 || err?.response?.status === 403) {
+          setUser(null);
+          showNotification("Sessão expirada. Faça login novamente.", "warning");
+          navigate("/login", { replace: true });
+        }
+      }
+    };
+
+    validateToken();
+  }, [user, navigate, showNotification]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       isAuthenticated: user !== null,
@@ -77,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       logout: () => {
         setUser(null);
+        localStorage.removeItem("semcomp-site-token");
         showNotification("Desconectado com sucesso!", "success");
         navigate("/");
       },

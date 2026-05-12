@@ -1,6 +1,11 @@
+
+
+
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authAPI } from "@/api/auth";
+import { registerTokenInvalidCallback } from "@/api/client";
+import { useNotification } from "./NotificationContext";
 
 type AuthUser = {
   email: string;
@@ -39,6 +44,7 @@ function readStoredUser(): AuthUser | null {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     if (user) {
@@ -49,6 +55,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.localStorage.removeItem(storageKey);
   }, [user]);
 
+  // Registra callback para quando o token é invalidado (401/403)
+  useEffect(() => {
+    const handleTokenInvalid = () => {
+      setUser(null);
+      navigate("/login", { replace: true });
+    };
+
+    registerTokenInvalidCallback(handleTokenInvalid);
+  }, [navigate]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       isAuthenticated: user !== null,
@@ -56,7 +72,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login: async (email: string, password: string) => {
         try {
           const response = await authAPI.login(email, password);
-          console.log("Login response:", response);
 
           // Store token
           localStorage.setItem("semcomp-backoffice-token", response.token);
@@ -75,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             err?.response?.data?.message ||
             err?.message ||
             "Erro ao fazer login";
-          console.error("Login error:", message);
+            showNotification(message, "error");
           return false;
         }
       },

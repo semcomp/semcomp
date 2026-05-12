@@ -14,6 +14,18 @@ const client: AxiosInstance = axios.create({
 });
 
 /**
+ * Callback para quando o token é invalidado (401/403)
+ */
+let onTokenInvalid: (() => void) | null = null;
+
+/**
+ * Registra callback para quando o token é invalidado
+ */
+export function registerTokenInvalidCallback(callback: () => void) {
+  onTokenInvalid = callback;
+}
+
+/**
  * Interceptador de requisição: adiciona token se disponível
  */
 client.interceptors.request.use(
@@ -29,6 +41,7 @@ client.interceptors.request.use(
 
 /**
  * Interceptador de resposta: armazena novo token se fornecido
+ * e detecta token inválido (401/403)
  */
 client.interceptors.response.use(
   (response) => {
@@ -38,7 +51,16 @@ client.interceptors.response.use(
     }
     return response;
   },
-  (error: AxiosError) => Promise.reject(error)
+  (error: AxiosError) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      localStorage.removeItem("semcomp-backoffice-token");
+      localStorage.removeItem("semcomp-backoffice-auth");
+      if (onTokenInvalid) {
+        onTokenInvalid();
+      }
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default client;
