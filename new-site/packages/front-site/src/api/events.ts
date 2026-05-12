@@ -25,7 +25,7 @@ export const eventsAPI = {
    * @returns Lista de eventos
    */
   getAllEvents: async (): Promise<EventsResponse> => {
-    const response = await client.get<EventsResponse>("/events");
+    const response = await client.get<EventsResponse>("/events?limit=1000");
     return {
       ...response.data,
       events: response.data.events.map(mapBackendEvent),
