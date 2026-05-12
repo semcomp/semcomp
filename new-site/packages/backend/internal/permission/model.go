@@ -1,0 +1,36 @@
+package permission
+
+import (
+	"backend/internal/section"
+	"backend/internal/userBackoffice"
+)
+
+type Permission struct {
+    UserEmail      string `gorm:"size:150;primaryKey"`
+    SectionName    string `gorm:"size:200;primaryKey"`
+    PermissionType string `gorm:"size:2;not null"` // "RW" ou "R"
+    
+    User    *userBackoffice.UserBackoffice 	`gorm:"foreignKey:UserEmail" json:",omitempty"`
+    Section *section.Section        		`gorm:"foreignKey:SectionName" json:",omitempty"`
+}
+
+type PermissionRequest struct {
+    UserEmail      string `json:"user_email" binding:"required,max=150"`
+    SectionName    string `json:"section_name" binding:"required,max=200"`
+    PermissionType string `json:"permission_type" binding:"required,max=2"`
+}
+
+type PermissionListQuery struct {
+	Limit       int
+	Offset      int
+	SortBy      string
+	SortOrder   string
+	SearchBy    string
+	SearchValue string
+}
+
+type PermissionListResult struct {
+	Permissions       []Permission
+	TotalRecords    int64
+	FilteredRecords int64
+}

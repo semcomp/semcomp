@@ -4,7 +4,9 @@ import (
 	"errors"
 	"net/http"
 
+	permission "backend/internal/permission"
 	userBackoffice "backend/internal/userBackoffice"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -15,10 +17,11 @@ var validate = validator.New()
 type AuthBackofficeHandler struct {
 	authBackofficeService AuthBackofficeService
 	userBackofficeService userBackoffice.UserBackofficeService
+	permissionService     permission.PermissionService
 }
 
-func NewAuthBackofficeHandler(authBackofficeService AuthBackofficeService, userBackofficeService userBackoffice.UserBackofficeService) *AuthBackofficeHandler {
-	return &AuthBackofficeHandler{authBackofficeService: authBackofficeService, userBackofficeService: userBackofficeService}
+func NewAuthBackofficeHandler(authBackofficeService AuthBackofficeService, userBackofficeService userBackoffice.UserBackofficeService, permissionService permission.PermissionService) *AuthBackofficeHandler {
+	return &AuthBackofficeHandler{authBackofficeService: authBackofficeService, userBackofficeService: userBackofficeService, permissionService: permissionService}
 }
 
 func (h *AuthBackofficeHandler) LoginBackofficeHandler(c *gin.Context) {
@@ -50,12 +53,20 @@ func (h *AuthBackofficeHandler) LoginBackofficeHandler(c *gin.Context) {
 		return
 	}
 
+	// Busca das permissões referentes a esse usuário
+	permissions, err := h.permissionService.GetPermissionByUser(backofficeRecord.Email)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Erro na obtenção das permissões do usuário"})
+		return
+	}
+
 	// Confirmacao de login do usuario do backoffice (passa o token para o cliente)
 	c.Header("Content-Type", "application/json")
 	c.Status(http.StatusOK)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
 		"user":    userBackoffice.ToSafeUserB(backofficeRecord),
+		"permissions": permissions,
 		"token":   token,
 	})
 }
