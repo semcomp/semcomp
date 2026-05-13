@@ -52,7 +52,11 @@ func (s *permissionService) InitializePermissions() error {
 	permissions := GetInitialPermissions(email)
 	curPermissions, err := s.GetPermissionByUser(email)
 	if err != nil {
-		return errors.New("erro na inicialização das permissões")
+		if errors.Is(err, ErrPermissionNotFound) || errors.Is(err, gorm.ErrRecordNotFound) {
+			curPermissions = []Permission{}
+		} else {
+			return errors.New("erro na inicialização das permissões")
+		}
 	}
 
 	// Verifica se cada permissão já está cadastrada antes de cadastrar novamente
