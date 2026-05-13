@@ -8,7 +8,7 @@ import (
 )
 
 type AuthService interface {
-	Login(request LoginUserRequest) (*user.User, string, error)
+	Login(request LoginUserRequest) (*user.SafeUser, string, error)
 }
 
 type authService struct {
@@ -21,7 +21,7 @@ func NewAuthService(userRepository user.UserRepository, passwordProvider provide
 	return &authService{userRepository: userRepository, passwordProvider: passwordProvider, jwtProvider: jwtProvider}
 }
 
-func (s *authService) Login(request LoginUserRequest) (*user.User, string, error) {
+func (s *authService) Login(request LoginUserRequest) (*user.SafeUser, string, error) {
 	userRecord, errUser := s.userRepository.GetByEmail(request.Email)
 	if errUser != nil {
 		if errors.Is(errUser, user.ErrInvalidCredentials) {
@@ -40,5 +40,6 @@ func (s *authService) Login(request LoginUserRequest) (*user.User, string, error
 		return nil, "", user.ErrTokenGeneration
 	}
 
-	return userRecord, token, nil
+	safeUser := user.ToSafeUser(userRecord)
+	return &safeUser, token, nil
 }
