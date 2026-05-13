@@ -16,9 +16,9 @@ var (
 
 type PresenceService interface {
 	CreatePresence(request CreatePresenceRequest) (*Presence, error)
-	GetPresenceByNameEventandInitDate(name string, eventName string, initDate string) (*Presence, error)
-	DeletePresenceByNameEventandInitDate(name string, eventName string, initDate string) error
-	UpdatePresenceByNameEventandInitDate(name string, eventName string, initDate string, request UpdatePresenceRequest) error
+	GetPresenceByUserEventandInitDate(userEmail string, eventName string, initDate string) (*Presence, error)
+	DeletePresenceByUserEventandInitDate(userEmail string, eventName string, initDate string) error
+	UpdatePresenceByUserEventandInitDate(userEmail string, eventName string, initDate string, request UpdatePresenceRequest) error
 	GetPresences(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*PresenceListResult, error)
 }
 
@@ -32,7 +32,7 @@ func NewPresenceService(repo PresenceRepository) PresenceService {
 
 func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presence, error) {
 	newPresence := Presence{
-		Name:          request.Name,
+		UserEmail:          request.UserEmail,
 		EventName:     request.EventName,
 		EventInitDate: request.EventInitDate,
 		EmailAdmin:    request.EmailAdmin,
@@ -45,13 +45,13 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 	return &newPresence, nil
 }
 
-func (s *presenceService) GetPresenceByNameEventandInitDate(name string, eventName string, initDate string) (*Presence, error) {
+func (s *presenceService) GetPresenceByUserEventandInitDate(userEmail string, eventName string, initDate string) (*Presence, error) {
 	initDateParsed, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
 		return nil, ErrInvalidEventDate
 	}
 
-	presence, err := s.repo.GetByNameEventandInitDate(name, eventName, initDateParsed)
+	presence, err := s.repo.GetByUserEventandInitDate(userEmail, eventName, initDateParsed)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrPresenceNotFound
@@ -63,12 +63,12 @@ func (s *presenceService) GetPresenceByNameEventandInitDate(name string, eventNa
 
 }
 
-func (s *presenceService) DeletePresenceByNameEventandInitDate(name string, eventName string, initDate string) error {
+func (s *presenceService) DeletePresenceByUserEventandInitDate(userEmail string, eventName string, initDate string) error {
 	initDateParsed, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
 		return ErrInvalidEventDate
 	}
-	err = s.repo.DeleteByNameEventandInitDate(name, eventName, initDateParsed)
+	err = s.repo.DeleteByUserEventandInitDate(userEmail, eventName, initDateParsed)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrPresenceNotFound
@@ -79,20 +79,20 @@ func (s *presenceService) DeletePresenceByNameEventandInitDate(name string, even
 	return nil
 }
 
-func (s *presenceService) UpdatePresenceByNameEventandInitDate(name string, eventName string, initDate string, request UpdatePresenceRequest) error {
+func (s *presenceService) UpdatePresenceByUserEventandInitDate(userEmail string, eventName string, initDate string, request UpdatePresenceRequest) error {
 	initDateParsed, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
 		return ErrInvalidEventDate
 	}
 
 	updatePresence := Presence{
-		Name:          request.Name,
+		UserEmail:          request.UserEmail,
 		EventName:     request.EventName,
 		EventInitDate: initDateParsed,
 		EmailAdmin:    request.EmailAdmin,
 	}
 
-	err = s.repo.UpdateByNameEventandInitDate(name, eventName, initDateParsed, &updatePresence)
+	err = s.repo.UpdateByUserEventandInitDate(userEmail, eventName, initDateParsed, &updatePresence)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrPresenceNotFound
@@ -124,7 +124,7 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 	sortOrder = strings.ToLower(sortOrder)
 
 	allowedSortFields := map[string]bool{
-		"name":            true,
+		"user_email":            true,
 		"event_name":      true,
 		"event_init_date": true,
 		"email_admin":     true,
@@ -146,7 +146,7 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 		searchBy = strings.ToLower(searchBy)
 
 		allowedSearchFields := map[string]bool{
-			"name":            true,
+			"user_email":            true,
 			"event_name":      true,
 			"email_admin":     true,
 			"event_init_date": true,
