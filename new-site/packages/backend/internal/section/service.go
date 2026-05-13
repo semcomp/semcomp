@@ -46,11 +46,16 @@ func (s *sectionService) InitializeSections() error {
 	// Verifica se cada seção está cadastrada antes de tentar inserir novamente
 	for i := range sections {
 		_, err := s.repo.GetByName(sections[i].Name)
+		if err == nil {
+			continue
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("erro ao buscar seção %q durante a inicialização: %w", sections[i].Name, err)
+		}
+
+		_, err = s.CreateSection(sections[i])
 		if err != nil {
-			_, err := s.CreateSection(sections[i])
-			if err != nil {
-				return errors.New("erro na inicialização das seções")
-			}	
+			return fmt.Errorf("erro ao criar seção %q durante a inicialização: %w", sections[i].Name, err)
 		}
 	}
 
