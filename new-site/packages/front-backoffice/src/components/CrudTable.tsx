@@ -92,6 +92,14 @@ export function CrudTable({
     return fieldKey || JSON.stringify(item);
   };
 
+  // formata a hora vinda do GET do backend para deixar como valor no input
+  const formatDateForInput = (val: unknown): string => {
+    if (!val || typeof val !== "string") return "";
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return val;
+    return d.toISOString().slice(0, 16);
+  };
+
   const toggleMultiValue = (fieldValue: string, option: string) => {
     setFormData((prev) => {
       const current = normalizeToStringArray(prev[fieldValue]);
@@ -198,7 +206,6 @@ export function CrudTable({
 
   const renderCell = (item: CrudItemType, field: CrudField) => {
     const raw = (item as Record<string, unknown>)[field.value];
-
     const val = String(raw ?? "—");
 
     if (field.type === "multivalue") {
@@ -215,6 +222,14 @@ export function CrudTable({
       );
     }
 
+    // formata o valor de data passado ja como UTC vindo do back ou do input 
+    // e oculta a timezone tambem deixando em estilo short
+    if (field.type === "date") {
+      return <span className="text-foreground">
+        {isNaN(Date.parse(val)) ? val : new Date(val).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+        </span>;
+    }
+
     // For long text fields, ensure word-based wrapping in table cells
     if (field.type === "text" && val.length > 30) {
       return (
@@ -226,6 +241,7 @@ export function CrudTable({
       const cls = field.selectVariants[val] ?? "bg-muted/50 text-foreground";
       return <Badge className={`text-xs font-medium px-2 py-0.5 ${cls}`}>{val}</Badge>;
     }
+
     // Se o texto for muito longo, quebra em múltiplas linhas e limita largura
     if (typeof val === "string" && val.length > 40) {
       return (
@@ -576,6 +592,22 @@ export function CrudTable({
                       />
                     )}
                   </div>
+                ) : f.type === "date" ? (
+                  // input de datahora inicio
+                  <Input 
+                    type="datetime-local"
+                    lang="pt-BR"
+                    id={`create-${f.value}`}
+                    value={formatDateForInput(formData[f.value])} // formatação do value vindo do state já salvo
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData((d) => ({
+                        ...d,
+                        [f.value]: val ? new Date(val + "Z").toISOString() : "", // alteração gera salvamento no state
+                      }));
+                    }}
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+                  />
                 ) : (
                   f.value.toLowerCase().includes("desc") || f.value.toLowerCase().includes("obs") || f.value.toLowerCase().includes("coment") ? (
                     <textarea
@@ -676,6 +708,21 @@ export function CrudTable({
                       />
                     )}
                   </div>
+                ) : f.type === "date" ? (
+                  // input de datahora fim
+                  <Input
+                    type="datetime-local"
+                    lang="pt-BR"
+                    value={formatDateForInput(formData[f.value])} //formatação do value do input vindo do state
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData((d) => ({
+                        ...d,
+                        [f.value]: val ? new Date(val + "Z").toISOString() : "", // alteração gera salvamento no state
+                      }));
+                    }}
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+                  />
                 ) : (
                   f.value.toLowerCase().includes("desc") || f.value.toLowerCase().includes("obs") || f.value.toLowerCase().includes("coment") ? (
                     <textarea
