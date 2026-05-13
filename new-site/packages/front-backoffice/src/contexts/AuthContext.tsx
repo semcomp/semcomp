@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authAPI } from "@/api/auth";
+import { DEBUGMODE } from "@/constants/DebugMode";
 
 type AuthUser = {
   email: string;
@@ -36,8 +37,12 @@ function readStoredUser(): AuthUser | null {
   }
 }
 
+const DEV_USER: AuthUser = { email: "dev@semcomp.local", name: "Dev Mode" }; // Adição de dev local para debug
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
+  const [user, setUser] = useState<AuthUser | null>(
+    () => DEBUGMODE ? DEV_USER : readStoredUser() // leitura de dev local ou do usuário logado
+  );
   const navigate = useNavigate();
 
   useEffect(() => {
