@@ -14,10 +14,13 @@ export default function Events() {
   const [data, setData] = useState<EventType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const {showNotification} = useNotification();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
-    showNotification(error as string, "warning");
+    if (error !== null) {
+      // Verifica se o erro realmente existe para gerar a notificação
+      showNotification(error as string, "warning");
+    }
   }, [error]);
 
   // Buscar eventos ao montar o componente
@@ -48,14 +51,20 @@ export default function Events() {
   const handleEdit = async (item: CrudItemType, itemKey: string) => {
     try {
       const typedItem = item as EventType;
-      const originalEvent = data.find(e => resolveEventKey(e) === itemKey);
+      const originalEvent = data.find((e) => resolveEventKey(e) === itemKey);
       if (!originalEvent) return;
 
-      await eventsAPI.update(originalEvent.nameEvent, originalEvent.dateInit, typedItem);
+      await eventsAPI.update(
+        originalEvent.nameEvent,
+        originalEvent.dateInit,
+        typedItem
+      );
 
       // Atualizar estado local
       setData((prev) =>
-        prev.map((event) => (resolveEventKey(event) === itemKey ? typedItem : event))
+        prev.map((event) =>
+          resolveEventKey(event) === itemKey ? typedItem : event
+        )
       );
     } catch (err) {
       console.error("Erro ao editar evento:", err);
@@ -65,11 +74,13 @@ export default function Events() {
 
   const handleDelete = async (itemKey: string) => {
     try {
-      const event = data.find(e => resolveEventKey(e) === itemKey);
+      const event = data.find((e) => resolveEventKey(e) === itemKey);
       if (!event) return;
 
       await eventsAPI.delete(event.nameEvent, event.dateInit);
-      setData((prev) => prev.filter((event) => resolveEventKey(event) !== itemKey));
+      setData((prev) =>
+        prev.filter((event) => resolveEventKey(event) !== itemKey)
+      );
     } catch (err) {
       console.error("Erro ao deletar evento:", err);
       setError("Erro ao deletar evento");
@@ -81,7 +92,7 @@ export default function Events() {
       const typedItem = item as EventType;
       const createdEvent = await eventsAPI.create(typedItem);
       setData((prev) => [...prev, createdEvent]);
-    } catch (err:any) {
+    } catch (err: any) {
       console.log(err);
       setError(err.response?.data?.message || "Erro ao criar evento");
     }
@@ -90,7 +101,9 @@ export default function Events() {
   const handleAction = (item: CrudItemType) => {
     const event = item as EventType;
     navigate(
-      `/events/${encodeURIComponent(event.nameEvent)}/${encodeURIComponent(event.dateInit)}/qrcode-reader`,
+      `/events/${encodeURIComponent(event.nameEvent)}/${encodeURIComponent(
+        event.dateInit
+      )}/qrcode-reader`,
       {
         state: {
           eventName: event.nameEvent,
@@ -100,17 +113,16 @@ export default function Events() {
     );
   };
 
-
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6">
       {/* Header card situando a página em que está */}
       <BannerCard
-        icon={Tabs.find(tab => tab.key === "events")?.icon}
+        icon={Tabs.find((tab) => tab.key === "events")?.icon}
         iconClassName="text-violet-400"
         label="Eventos"
         title="Gerenciamento de Eventos da Semcomp"
         description="Cadastre, busque, edite e remova palestras, oficinas, workshops e cronograma da Semcomp."
-        onBack={() => navigate('/home')}
+        onBack={() => navigate("/home")}
         cardClassName="border-slate-800 bg-linear-to-br from-slate-900 via-slate-900 to-violet-950/30 overflow-hidden relative"
         labelClassName="text-xs uppercase tracking-[0.3em] text-violet-400 font-medium"
         titleClassName="text-2xl md:text-3xl text-white font-semibold"
