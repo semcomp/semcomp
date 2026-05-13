@@ -30,14 +30,14 @@ func NewSectionService(repo SectionRepository) SectionService {
 }
 
 func GetInitialSections() []CreateSectionRequest {
-    return []CreateSectionRequest{
-        {"Seções", "Observe as seções dos eventos da Semcomp."},
-        {"Eventos", "Gerencie os eventos da Semcomp."},
-        {"Usuários Backoffice", "Gerencie os usuários com acesso ao sistema de backoffice."},
-        {"Usuários Semcomp", "Gerencie os usuários participantes da Semcomp."},
-        {"Participações", "Gerencie as participações dos usuários nos eventos da Semcomp."},
-        {"Permissões", "Gerencie as permissões de acesso dos usuários ao sistema."},
-    }
+	return []CreateSectionRequest{
+		{"Seções", "Observe as seções dos eventos da Semcomp."},
+		{"Eventos", "Gerencie os eventos da Semcomp."},
+		{"Usuários Backoffice", "Gerencie os usuários com acesso ao sistema de backoffice."},
+		{"Usuários Semcomp", "Gerencie os usuários participantes da Semcomp."},
+		{"Participações", "Gerencie as participações dos usuários nos eventos da Semcomp."},
+		{"Permissões", "Gerencie as permissões de acesso dos usuários ao sistema."},
+	}
 }
 
 func (s *sectionService) InitializeSections() error {

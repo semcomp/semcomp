@@ -57,12 +57,16 @@ func (h *AuthBackofficeHandler) LoginBackofficeHandler(c *gin.Context) {
 
 	// Busca das permissões referentes a esse usuário
 	permissions, err := h.permissionService.GetPermissionByUser(backofficeRecord.Email)
-	if len(permissions) == 0 {
+	if err != nil {
+ 		if errors.Is(err, permission.ErrPermissionNotFound) {
+ 			message = "Login realizado, mas você não possui permissões"
+ 		} else {
+ 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Erro na obtenção das permissões do usuário"})
+ 			return
+ 		}
+ 	} else if len(permissions) == 0 {
 		message = "Login realizado, mas você não possui permissões"
-	} else if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Erro na obtenção das permissões do usuário"})
-		return
-	}
+	} 
 
 	// Confirmacao de login do usuario do backoffice (passa o token para o cliente)
 	c.Header("Content-Type", "application/json")

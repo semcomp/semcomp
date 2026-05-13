@@ -86,8 +86,19 @@ func (h *PermissionHandler) GetPermissions(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	response := gin.H{
+ 		"page":         page,
+ 		"limit":        limit,
+ 		"sort_by":      sortBy,
+ 		"sort_order":   sortOrder,
+ 		"search_by":    searchBy,
+ 		"search_value": searchValue,
+ 		"data":         result,
+ 	}
+
 	c.Set("responseMessage", "Permissões listadas com sucesso!")
-	c.JSON(http.StatusOK, result)
+	c.JSON(http.StatusOK, response)
 }
 
 func (h *PermissionHandler) GetPermissionByUser(c *gin.Context) {

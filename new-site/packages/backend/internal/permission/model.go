@@ -30,7 +30,7 @@ type PermissionListQuery struct {
 }
 
 type PermissionListResult struct {
-	Permissions     []Permission
-	TotalRecords    int64
-	FilteredRecords int64
+	Permissions     []Permission `json:"permissions"`
+	TotalRecords    int64        `json:"total_records"`
+	FilteredRecords int64        `json:"filtered_records"`
 }
