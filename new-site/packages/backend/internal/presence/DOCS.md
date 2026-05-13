@@ -66,7 +66,7 @@ Erros comuns:
   - `search_by` (opcional, usado com `search_value`)
   - `search_value` (opcional, usado com `search_by`)
 
--### Campos permitidos em `sort_by`
+### Campos permitidos em `sort_by`
 
 - `user_number`
 - `event_name`

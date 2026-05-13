@@ -107,9 +107,9 @@ func main() {
 
 	backofficeRoutes.POST("/presences", presenceHandler.CreatePresence)
 	backofficeRoutes.GET("/presences", presenceHandler.GetPresences)
-	backofficeRoutes.GET("/presences/:userEmail/:eventName/:eventInitDate", presenceHandler.GetPresenceByUserEventandInitDate)
-	backofficeRoutes.PUT("/presences/:userEmail/:eventName/:eventInitDate", presenceHandler.UpdatePresenceByUserEventandInitDate)
-	backofficeRoutes.DELETE("/presences/:userEmail/:eventName/:eventInitDate", presenceHandler.DeletePresenceByUserEventandInitDate)
+	backofficeRoutes.GET("/presences/:userNumber/:eventName/:eventInitDate", presenceHandler.GetPresenceByUserEventandInitDate)
+	backofficeRoutes.PUT("/presences/:userNumber/:eventName/:eventInitDate", presenceHandler.UpdatePresenceByUserEventandInitDate)
+	backofficeRoutes.DELETE("/presences/:userNumber/:eventName/:eventInitDate", presenceHandler.DeletePresenceByUserEventandInitDate)
 
 	backofficeRoutes.POST("/sections", sectionHandler.CreateSection)
 	backofficeRoutes.GET("/sections", sectionHandler.GetSections)

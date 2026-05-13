@@ -111,7 +111,7 @@ func applySearchFilter(dbQuery *gorm.DB, query PresenceListQuery) *gorm.DB {
 
 	switch query.SearchBy {
 	case "user_number":
-		return dbQuery.Where("CAST(user_number AS TEXT) ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("user_number = ?", "%"+query.SearchValue+"%")
 	case "event_name":
 		return dbQuery.Where("event_name ILIKE ?", "%"+query.SearchValue+"%")
 	case "email_admin":
