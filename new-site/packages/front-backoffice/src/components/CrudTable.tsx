@@ -594,7 +594,7 @@ export function CrudTable({
                       const val = e.target.value;
                       setFormData((d) => ({
                         ...d,
-                        [f.value]: val ? new Date(val + ":00Z").toISOString() : "",
+                        [f.value]: val ? new Date(val).toISOString() : "",
                       }));
                     }}
                     className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
@@ -707,7 +707,7 @@ export function CrudTable({
                       const val = e.target.value;
                       setFormData((d) => ({
                         ...d,
-                        [f.value]: val ? new Date(val + ":00Z").toISOString() : "",
+                        [f.value]: val ? new Date(val).toISOString() : "",
                       }));
                     }}
                     className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
