@@ -1,1 +1,1 @@
-export const DEBUGMODE = false;
+export const DEBUGMODE = true;

@@ -95,10 +95,11 @@ export function CrudTable({
   const formatDateForInput = (val: unknown): string => {
     if (!val || typeof val !== "string") return "";
     const d = new Date(val);
-    if (isNaN(d.getTime())) return val;
-    // Converte para formato local YYYY-MM-DDTHH:mm adequado para o input datetime-local
-    const tzOffset = d.getTimezoneOffset() * 60000;
-    return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+    return d.toISOString().slice(0, 16);
+    // if (isNaN(d.getTime())) return val;
+    // // Converte para formato local YYYY-MM-DDTHH:mm adequado para o input datetime-local
+    // const tzOffset = d.getTimezoneOffset() * 60000;
+    // return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
   };
 
   const toggleMultiValue = (fieldValue: string, option: string) => {
@@ -222,6 +223,12 @@ export function CrudTable({
           ))}
         </div>
       );
+    }
+
+    if (field.type === "date") {
+      return <span className="text-foreground">
+        {isNaN(Date.parse(val)) ? val : new Date(val).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+        </span>;
     }
 
     // For long text fields, ensure word-based wrapping in table cells
@@ -588,13 +595,14 @@ export function CrudTable({
                 ) : f.type === "date" ? (
                   <Input
                     type="datetime-local"
+                    lang="pt-BR"
                     id={`create-${f.value}`}
                     value={formatDateForInput(formData[f.value])}
                     onChange={(e) => {
                       const val = e.target.value;
                       setFormData((d) => ({
                         ...d,
-                        [f.value]: val ? new Date(val + ":00Z").toISOString() : "",
+                        [f.value]: val ? new Date(val + "Z").toISOString() : "",
                       }));
                     }}
                     className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
@@ -702,12 +710,13 @@ export function CrudTable({
                 ) : f.type === "date" ? (
                   <Input
                     type="datetime-local"
+                    lang="pt-BR"
                     value={formatDateForInput(formData[f.value])}
                     onChange={(e) => {
                       const val = e.target.value;
                       setFormData((d) => ({
                         ...d,
-                        [f.value]: val ? new Date(val + ":00Z").toISOString() : "",
+                        [f.value]: val ? new Date(val + "Z").toISOString() : "",
                       }));
                     }}
                     className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
