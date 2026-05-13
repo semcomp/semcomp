@@ -3,6 +3,8 @@ package permission
 import (
 	"errors"
 	"fmt"
+	"os"
+	"slices"
 	"strings"
 
 	"gorm.io/gorm"
@@ -13,6 +15,7 @@ var (
 )
 
 type PermissionService interface {
+	InitializePermissions() error
 	CreatePermission(request PermissionRequest) (*Permission, error)
 	GetPermissionByUser(user string) ([]Permission, error)
 	GetPermissionBySection(section string) ([]Permission, error)
@@ -27,6 +30,41 @@ type permissionService struct {
 
 func NewPermissionService(repo PermissionRepository) PermissionService {
 	return &permissionService{repo: repo}
+}
+
+func GetInitialPermissions(email string) []PermissionRequest {
+    return []PermissionRequest{
+        {email, "Seções", "RW"},
+        {email, "Eventos", "RW"},
+        {email, "Usuários Backoffice", "RW"},
+        {email, "Usuários Semcomp", "RW"},
+        {email, "Participações", "RW"},
+        {email, "Permissões", "RW"},
+    }
+}
+
+func (s *permissionService) InitializePermissions() error {
+	email := os.Getenv("ADMIN_EMAIL")
+	
+	permissions := GetInitialPermissions(email)
+	curPermissions, err := s.GetPermissionByUser(email)
+	if err != nil {
+		return errors.New("erro na inicialização das permissões")
+	}
+
+	// Verifica se cada permissão já está cadastrada antes de cadastrar novamente
+	for i := range permissions {
+		if !slices.ContainsFunc(curPermissions, func(p Permission) bool {
+			return p.UserEmail == permissions[i].UserEmail && p.SectionName == permissions[i].SectionName
+		}) {
+			_, err := s.CreatePermission(permissions[i])
+			if err != nil {
+				return errors.New("erro na inicialização das permissões")
+			}
+		}
+	}
+
+	return nil
 }
 
 func (s *permissionService) CreatePermission(request PermissionRequest) (*Permission, error) {

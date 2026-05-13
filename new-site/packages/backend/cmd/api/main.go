@@ -66,8 +66,19 @@ func main() {
 	authBackofficeService := authBackoffice.NewAuthBackofficeService(userBackofficeRepo, passwordProvider, jwtProvider)
 	authBackofficeHandler := authBackoffice.NewAuthBackofficeHandler(authBackofficeService, userBackofficeService, permissionService)
 
+	// Inicialização de valores base de seções para o banco de dados
+	if err := sectionService.InitializeSections(); err != nil {
+        panic("Failed to initialize sections in backoffice: " + err.Error())
+    }
+    
+	// Inicialização de valores base de admin para o banco de dados
 	if err := userBackofficeService.InitializeAdmin(); err != nil {
         panic("Failed to initialize admin in backoffice: " + err.Error())
+    }
+
+	// Inicialização de valores base de permissões para o banco de dados
+	if err := permissionService.InitializePermissions(); err != nil {
+        panic("Failed to initialize admin's permissions in backoffice: " + err.Error())
     }
 
 	r := gin.Default()
