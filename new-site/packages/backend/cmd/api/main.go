@@ -51,12 +51,12 @@ func main() {
 
 	logRepo := log.NewRepository(db)
 	logService := log.NewService(logRepo)
-  
-	userBackofficeRepo 	  := userBackoffice.NewUserBackofficeRepository(db)
+
+	userBackofficeRepo := userBackoffice.NewUserBackofficeRepository(db)
 	userBackofficeService := userBackoffice.NewUserBackofficeService(userBackofficeRepo, passwordProvider)
 	userBackofficeHandler := userBackoffice.NewUserBackofficeHandler(userBackofficeService)
 
-	permissionRepo 	  := permission.NewPermissionRepository(db)
+	permissionRepo := permission.NewPermissionRepository(db)
 	permissionService := permission.NewPermissionService(permissionRepo)
 	permissionHandler := permission.NewPermissionHandler(permissionService, sectionService, userBackofficeService)
 
@@ -68,29 +68,29 @@ func main() {
 
 	// Inicialização de valores base de seções para o banco de dados
 	if err := sectionService.InitializeSections(); err != nil {
-        panic("Failed to initialize sections in backoffice: " + err.Error())
-    }
-    
+		panic("Failed to initialize sections in backoffice: " + err.Error())
+	}
+
 	// Inicialização de valores base de admin para o banco de dados
 	if err := userBackofficeService.InitializeAdmin(); err != nil {
-        panic("Failed to initialize admin in backoffice: " + err.Error())
-    }
+		panic("Failed to initialize admin in backoffice: " + err.Error())
+	}
 
 	// Inicialização de valores base de permissões para o banco de dados
 	if err := permissionService.InitializePermissions(); err != nil {
-        panic("Failed to initialize admin's permissions in backoffice: " + err.Error())
-    }
+		panic("Failed to initialize admin's permissions in backoffice: " + err.Error())
+	}
 
 	r := gin.Default()
 	r.Use(middleware.AuditMiddleware(logService))
 
 	r.Use(cors.New(cors.Config{
-        AllowOrigins: []string{"http://localhost:5173", "http://localhost:5174", "https://semcomp.icmc.usp.br"},
-        AllowMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowHeaders:   []string{"Origin", "Content-Type", "Authorization"},
-        AllowCredentials: true,
-        ExposeHeaders:    []string{"Content-Length"},
-    }))
+		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:5174", "https://semcomp.icmc.usp.br"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+		ExposeHeaders:    []string{"Content-Length"},
+	}))
 
 	// Rotas Públicas
 	r.POST("/register", userHandler.CreateUser)

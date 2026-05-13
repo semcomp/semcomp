@@ -33,19 +33,22 @@ func NewPermissionService(repo PermissionRepository) PermissionService {
 }
 
 func GetInitialPermissions(email string) []PermissionRequest {
-    return []PermissionRequest{
-        {email, "Seções", "RW"},
-        {email, "Eventos", "RW"},
-        {email, "Usuários Backoffice", "RW"},
-        {email, "Usuários Semcomp", "RW"},
-        {email, "Participações", "RW"},
-        {email, "Permissões", "RW"},
-    }
+	return []PermissionRequest{
+		{email, "Seções", "RW"},
+		{email, "Eventos", "RW"},
+		{email, "Usuários Backoffice", "RW"},
+		{email, "Usuários Semcomp", "RW"},
+		{email, "Participações", "RW"},
+		{email, "Permissões", "RW"},
+	}
 }
 
 func (s *permissionService) InitializePermissions() error {
 	email := os.Getenv("ADMIN_EMAIL")
-	
+	if email == "" {
+		return errors.New("erro na inicialização do backoffice")
+	}
+
 	permissions := GetInitialPermissions(email)
 	curPermissions, err := s.GetPermissionByUser(email)
 	if err != nil {
@@ -85,7 +88,7 @@ func (s *permissionService) GetPermissionByUser(user string) ([]Permission, erro
 	permissions, err := s.repo.GetByUser(user)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrPermissionNotFound
+			return permissions, ErrPermissionNotFound
 		}
 		return nil, err
 	}
@@ -97,7 +100,7 @@ func (s *permissionService) GetPermissionBySection(section string) ([]Permission
 	permissions, err := s.repo.GetBySection(section)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrPermissionNotFound
+			return permissions, ErrPermissionNotFound
 		}
 		return nil, err
 	}
@@ -145,7 +148,7 @@ func (s *permissionService) GetPermissions(page int, limit int, sortBy string, s
 	}
 
 	if sortBy == "" {
-		sortBy = "event_init_date"
+		sortBy = "user_email"
 	}
 
 	if sortOrder == "" {

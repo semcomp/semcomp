@@ -1,6 +1,6 @@
 # Documentação de API — Módulo: Permissions
 
-> **Base path:** `/backoffice/permissions`  
+> **Base path:** `/admin/permissions`  
 > Todas as rotas são protegidas e requerem autenticação no backoffice.
 
 ---

@@ -11,8 +11,8 @@ import (
 )
 
 type PermissionHandler struct {
-	permissionService PermissionService
-	sectionService section.SectionService
+	permissionService     PermissionService
+	sectionService        section.SectionService
 	userBackofficeService userBackoffice.UserBackofficeService
 }
 
@@ -176,7 +176,7 @@ func (h *PermissionHandler) UpdatePermissionByUserSection(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Permissão não pôde ser alterada."})
 			return
 		}
-		
+
 		c.Set("internalError", err)
 		c.Set("responseMessage", "Erro interno do servidor")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})

@@ -37,6 +37,10 @@ func (r *permissionRepository) GetByUser(user string) ([]Permission, error) {
 		return nil, err
 	}
 
+	if len(permissions) == 0 {
+		return []Permission{}, gorm.ErrRecordNotFound
+	}
+
 	return permissions, nil
 }
 
@@ -46,6 +50,10 @@ func (r *permissionRepository) GetBySection(section string) ([]Permission, error
 	err := r.db.Where("section_name = ?", section).Find(&permissions).Error
 	if err != nil {
 		return nil, err
+	}
+
+	if len(permissions) == 0 {
+		return []Permission{}, gorm.ErrRecordNotFound
 	}
 
 	return permissions, nil
@@ -68,9 +76,9 @@ func (r *permissionRepository) UpdateByUserSection(user string, section string, 
 	result := r.db.Model(&Permission{}).
 		Where("user_email = ? AND section_name = ?", user, section).
 		Updates(map[string]interface{}{
-			"user_email":     	updatedPermission.UserEmail,
-			"section_name":  	updatedPermission.SectionName,
-			"permission_type": 	updatedPermission.PermissionType,
+			"user_email":      updatedPermission.UserEmail,
+			"section_name":    updatedPermission.SectionName,
+			"permission_type": updatedPermission.PermissionType,
 		})
 
 	if result.Error != nil {
