@@ -11,9 +11,9 @@ import (
 
 type PresenceRepository interface {
 	Create(presence *Presence) error
-	GetByUserEventandInitDate(userEmail string, eventName string, initDate time.Time) (*Presence, error)
-	DeleteByUserEventandInitDate(userEmail string, eventName string, initDate time.Time) error
-	UpdateByUserEventandInitDate(userEmail string, eventName string, initDate time.Time, updatedPresence *Presence) error
+	GetByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time) (*Presence, error)
+	DeleteByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time) error
+	UpdateByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time, updatedPresence *Presence) error
 	GetPresences(query PresenceListQuery) (*PresenceListResult, error)
 }
 
@@ -29,9 +29,9 @@ func (r *presenceRepository) Create(presence *Presence) error {
 	return r.db.Create(presence).Error
 }
 
-func (r *presenceRepository) GetByUserEventandInitDate(userEmail string, eventName string, initDate time.Time) (*Presence, error) {
+func (r *presenceRepository) GetByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time) (*Presence, error) {
 	var presence Presence
-	err := r.db.Where("user_email = ? AND event_name = ? AND event_init_date = ?", userEmail, eventName, initDate).First(&presence).Error
+	err := r.db.Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).First(&presence).Error
 	if err != nil {
 		return nil, err
 	}
@@ -39,8 +39,8 @@ func (r *presenceRepository) GetByUserEventandInitDate(userEmail string, eventNa
 	return &presence, nil
 }
 
-func (r *presenceRepository) DeleteByUserEventandInitDate(userEmail string, eventName string, initDate time.Time) error {
-	result := r.db.Where("user_email = ? AND event_name = ? AND event_init_date = ?", userEmail, eventName, initDate).Delete(&Presence{})
+func (r *presenceRepository) DeleteByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time) error {
+	result := r.db.Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).Delete(&Presence{})
 	if result.Error != nil {
 		return result.Error
 	}
@@ -52,11 +52,11 @@ func (r *presenceRepository) DeleteByUserEventandInitDate(userEmail string, even
 	return nil
 }
 
-func (r *presenceRepository) UpdateByUserEventandInitDate(userEmail string, eventName string, initDate time.Time, updatedPresence *Presence) error {
+func (r *presenceRepository) UpdateByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time, updatedPresence *Presence) error {
 	result := r.db.Model(&Presence{}).
-		Where("user_email = ? AND event_name = ? AND event_init_date = ?", userEmail, eventName, initDate).
+		Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).
 		Updates(map[string]interface{}{
-			"user_email":      updatedPresence.UserEmail,
+			"user_number":     updatedPresence.UserNumber,
 			"event_name":      updatedPresence.EventName,
 			"event_init_date": updatedPresence.EventInitDate,
 			"email_admin":     updatedPresence.EmailAdmin,
@@ -110,8 +110,8 @@ func applySearchFilter(dbQuery *gorm.DB, query PresenceListQuery) *gorm.DB {
 	}
 
 	switch query.SearchBy {
-	case "user_email":
-		return dbQuery.Where("user_email ILIKE ?", "%"+query.SearchValue+"%")
+	case "user_number":
+		return dbQuery.Where("CAST(user_number AS TEXT) ILIKE ?", "%"+query.SearchValue+"%")
 	case "event_name":
 		return dbQuery.Where("event_name ILIKE ?", "%"+query.SearchValue+"%")
 	case "email_admin":
@@ -126,7 +126,7 @@ func applySearchFilter(dbQuery *gorm.DB, query PresenceListQuery) *gorm.DB {
 
 func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 	allowedSortFields := []string{
-		"user_email",
+		"user_number",
 		"event_name",
 		"event_init_date",
 		"email_admin",

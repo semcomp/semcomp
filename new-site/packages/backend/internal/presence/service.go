@@ -3,6 +3,7 @@ package presence
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -10,15 +11,16 @@ import (
 )
 
 var (
-	ErrInvalidEventDate = errors.New("invalid event date format")
-	ErrPresenceNotFound = errors.New("presence not found")
+	ErrInvalidEventDate  = errors.New("invalid event date format")
+	ErrPresenceNotFound  = errors.New("presence not found")
+	ErrInvalidUserNumber = errors.New("invalid user number")
 )
 
 type PresenceService interface {
 	CreatePresence(request CreatePresenceRequest) (*Presence, error)
-	GetPresenceByUserEventandInitDate(userEmail string, eventName string, initDate string) (*Presence, error)
-	DeletePresenceByUserEventandInitDate(userEmail string, eventName string, initDate string) error
-	UpdatePresenceByUserEventandInitDate(userEmail string, eventName string, initDate string, request UpdatePresenceRequest) error
+	GetPresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) (*Presence, error)
+	DeletePresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) error
+	UpdatePresenceByUserEventandInitDate(userNumber string, eventName string, initDate string, request UpdatePresenceRequest) error
 	GetPresences(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*PresenceListResult, error)
 }
 
@@ -32,7 +34,7 @@ func NewPresenceService(repo PresenceRepository) PresenceService {
 
 func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presence, error) {
 	newPresence := Presence{
-		UserEmail:          request.UserEmail,
+		UserNumber:    request.UserNumber,
 		EventName:     request.EventName,
 		EventInitDate: request.EventInitDate,
 		EmailAdmin:    request.EmailAdmin,
@@ -45,13 +47,18 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 	return &newPresence, nil
 }
 
-func (s *presenceService) GetPresenceByUserEventandInitDate(userEmail string, eventName string, initDate string) (*Presence, error) {
+func (s *presenceService) GetPresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) (*Presence, error) {
 	initDateParsed, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
 		return nil, ErrInvalidEventDate
 	}
 
-	presence, err := s.repo.GetByUserEventandInitDate(userEmail, eventName, initDateParsed)
+	num, err := strconv.ParseInt(userNumber, 10, 64)
+	if err != nil {
+		return nil, ErrInvalidUserNumber
+	}
+
+	presence, err := s.repo.GetByUserEventandInitDate(num, eventName, initDateParsed)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrPresenceNotFound
@@ -63,12 +70,18 @@ func (s *presenceService) GetPresenceByUserEventandInitDate(userEmail string, ev
 
 }
 
-func (s *presenceService) DeletePresenceByUserEventandInitDate(userEmail string, eventName string, initDate string) error {
+func (s *presenceService) DeletePresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) error {
 	initDateParsed, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
 		return ErrInvalidEventDate
 	}
-	err = s.repo.DeleteByUserEventandInitDate(userEmail, eventName, initDateParsed)
+
+	num, err := strconv.ParseInt(userNumber, 10, 64)
+	if err != nil {
+		return ErrInvalidUserNumber
+	}
+
+	err = s.repo.DeleteByUserEventandInitDate(num, eventName, initDateParsed)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrPresenceNotFound
@@ -79,20 +92,25 @@ func (s *presenceService) DeletePresenceByUserEventandInitDate(userEmail string,
 	return nil
 }
 
-func (s *presenceService) UpdatePresenceByUserEventandInitDate(userEmail string, eventName string, initDate string, request UpdatePresenceRequest) error {
+func (s *presenceService) UpdatePresenceByUserEventandInitDate(userNumber string, eventName string, initDate string, request UpdatePresenceRequest) error {
 	initDateParsed, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
 		return ErrInvalidEventDate
 	}
 
+	num, err := strconv.ParseInt(userNumber, 10, 64)
+	if err != nil {
+		return ErrInvalidUserNumber
+	}
+
 	updatePresence := Presence{
-		UserEmail:          request.UserEmail,
+		UserNumber:    request.UserNumber,
 		EventName:     request.EventName,
 		EventInitDate: initDateParsed,
 		EmailAdmin:    request.EmailAdmin,
 	}
 
-	err = s.repo.UpdateByUserEventandInitDate(userEmail, eventName, initDateParsed, &updatePresence)
+	err = s.repo.UpdateByUserEventandInitDate(num, eventName, initDateParsed, &updatePresence)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrPresenceNotFound
@@ -124,10 +142,10 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 	sortOrder = strings.ToLower(sortOrder)
 
 	allowedSortFields := map[string]bool{
-		"user_email":            true,
-		"event_name":      true,
-		"event_init_date": true,
-		"email_admin":     true,
+		"user_number":      true,
+		"event_name":       true,
+		"event_init_date":  true,
+		"email_admin":      true,
 	}
 
 	if !allowedSortFields[sortBy] {
@@ -146,10 +164,10 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 		searchBy = strings.ToLower(searchBy)
 
 		allowedSearchFields := map[string]bool{
-			"user_email":            true,
-			"event_name":      true,
-			"email_admin":     true,
-			"event_init_date": true,
+			"user_number":      true,
+			"event_name":       true,
+			"email_admin":      true,
+			"event_init_date":  true,
 		}
 
 		if !allowedSearchFields[searchBy] {

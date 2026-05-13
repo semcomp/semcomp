@@ -6,7 +6,7 @@ Documentacao das rotas de presencas do backend.
 
 A tabela de presenca é composta por:
 
-- `Name`: Nome do usuário.
+- `user_number`: Identificador numérico do usuário.
 - `EventName`: Nome do evento.
 - `EventInitDate`: Data e hora do início do evento.
 - `EmailAdmin`: Email do usuário backoffice que cadastrou a presença.
@@ -26,7 +26,7 @@ A tabela de presenca é composta por:
 
 ```json
 {
-  "name": "Fulano de Ciclano",
+  "user_number": 12345,
   "event_name": "Workshop A",
   "event_init_date": "2026-07-10T14:00:00Z",
   "email_admin": "Example@semcomp.com"
@@ -66,9 +66,9 @@ Erros comuns:
   - `search_by` (opcional, usado com `search_value`)
   - `search_value` (opcional, usado com `search_by`)
 
-### Campos permitidos em `sort_by`
+-### Campos permitidos em `sort_by`
 
-- `name`
+- `user_number`
 - `event_name`
 - `event_init_date`
 - `email_admin`
@@ -84,29 +84,29 @@ Deve ser usado **um campo por vez**.
 
 Campos permitidos em `search_by`:
 
-- `name`
+- `user_number`
 - `event_name`
 - `event_init_date` (valor em RFC3339)
 - `email_admin`
 
 Exemplo:
 
-`GET /admin/presences?page=1&limit=10&sort_by=name&sort_order=desc&search_by=event_name&search_value=Workshop`
+`GET /admin/presences?page=1&limit=10&sort_by=user_number&sort_order=desc&search_by=event_name&search_value=Workshop`
 
 Resposta de sucesso (`200`):
 
 ```json (confirmacao de resposta)
 {
-	"Presences": [
-		{
-			"name": "Fulano de Ciclano",
-			"event_name": "Workshop A",
-			"event_init_date": "2026-07-10T14:00:00Z",
-			"email_admin": "Example@semcomp.com"
-		}
-	],
-	"TotalRecords": 1,
-	"FilteredRecords": 1
+  "Presences": [
+    {
+      "user_number": 12345,
+      "event_name": "Workshop A",
+      "event_init_date": "2026-07-10T14:00:00Z",
+      "email_admin": "Example@semcomp.com"
+    }
+  ],
+  "TotalRecords": 1,
+  "FilteredRecords": 1
 }
 ```
 
@@ -126,17 +126,17 @@ Erros comuns (`400`):
 ## 3) Buscar presenca especifica [ADMIN]
 
 - **Metodo**: `GET`
-- **Rota**: `/admin/presences/:name/:eventName/:eventInitDate`
+- **Rota**: `/admin/presences/:userNumber/:eventName/:eventInitDate`
 
 Exemplo:
 
-`GET /admin/presences/Fulano de Ciclano/Workshop%20A/2026-07-10T14:00:00Z`
+`GET /admin/presences/12345/Workshop%20A/2026-07-10T14:00:00Z`
 
 Resposta de sucesso (`200`):
 
 ```json (confirmacao de busca)
 {
-  "name": "Fulano de Ciclano",
+  "user_number": 12345,
   "event_name": "Workshop A",
   "event_init_date": "2026-07-10T14:00:00Z",
   "email_admin": "Example@semcomp.com"
@@ -154,16 +154,16 @@ Erros comuns:
 ## 4) Atualizar presenca [ADMIN]
 
 - **Metodo**: `PUT`
-- **Rota**: `/admin/presences/:name/:eventName/:eventInitDate`
+- **Rota**: `/admin/presences/:userNumber/:eventName/:eventInitDate`
 - **Body (JSON)**: mesmo formato da criacao
 
 Exemplo:
 
-`PUT /admin/presences/Fulano%20de%20Ciclano/Workshop%20A/2026-07-10T14:00:00Z`
+`PUT /admin/presences/12345/Workshop%20A/2026-07-10T14:00:00Z`
 
 ```json
 {
-  "name": "Fulano de Ciclano",
+  "user_number": 12345,
   "event_name": "Workshop Golang",
   "event_init_date": "2026-07-10T14:00:00Z",
   "email_admin": "Example@semcomp.com"
@@ -189,11 +189,11 @@ Erros comuns:
 ## 5) Deletar presenca [ADMIN]
 
 - **Metodo**: `DELETE`
-- **Rota**: `/admin/presences/:name/:eventName/:eventInitDate`
+- **Rota**: `/admin/presences/:userNumber/:eventName/:eventInitDate`
 
 Exemplo:
 
-`DELETE /admin/presences/Fulano%20de%20Ciclano/Workshop%20A/2026-07-10T14:00:00Z`
+`DELETE /admin/presences/12345/Workshop%20A/2026-07-10T14:00:00Z`
 
 Resposta de sucesso (`200`):
 
