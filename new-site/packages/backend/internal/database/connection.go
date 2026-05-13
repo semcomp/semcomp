@@ -50,7 +50,7 @@ func ConnectDB() (*gorm.DB, error) {
 func getEnv(key string) string {
 	value := os.Getenv(key)
 	if value == "" {
-		panic(fmt.Errorf("Variável de ambiente não está definida"))
+		panic(fmt.Errorf("variável de ambiente %q não está definida", key))
 	}
 	return value
 }
