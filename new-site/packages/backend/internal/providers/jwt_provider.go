@@ -27,8 +27,8 @@ type AuthBackofficeTokenClaims struct {
 }
 
 var (
-	ErrJWTSecretNotConfigured         = errors.New("Variavel de ambiente JWT_SECRET não configurada")
-	ErrJWTExpiresInHoursNotConfigured = errors.New("Variavel de ambiente JWT_EXPIRES_IN_HOURS não configurada")
+	ErrJWTSecretNotConfigured         = errors.New("Variável de ambiente JWT_SECRET não configurada")
+	ErrJWTExpiresInHoursNotConfigured = errors.New("Variável de ambiente JWT_EXPIRES_IN_HOURS não configurada")
 	ErrExpiredToken                   = errors.New("Token expirado")
 	ErrInvalidToken                   = errors.New("Token inválido")
 	ErrInvalidTokenClaims             = errors.New("Reivindicações de token inválidas")
