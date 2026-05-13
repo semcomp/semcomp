@@ -29,12 +29,17 @@ client.interceptors.request.use(
 
 /**
  * Interceptador de resposta: armazena novo token se fornecido
+ * Remove o prefixo "Bearer " caso o header já venha com ele,
+ * evitando "Bearer Bearer <token>" nas requisições seguintes.
  */
 client.interceptors.response.use(
   (response) => {
     const newToken = response.headers.authorization;
     if (newToken) {
-      localStorage.setItem("semcomp-backoffice-token", newToken);
+      const bare = newToken.startsWith("Bearer ")
+        ? newToken.slice(7)
+        : newToken;
+      localStorage.setItem("semcomp-backoffice-token", bare);
     }
     return response;
   },
