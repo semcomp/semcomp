@@ -6,7 +6,8 @@
   import { useEffect, useRef, useState } from "react";
   import { useLocation, useNavigate, useParams } from "react-router-dom";
   import { presenceAPI } from "@/api/presence.ts"
-  import { useNotification } from "@/contexts/NotificationContext"; 
+  import { useNotification } from "@/contexts/NotificationContext";
+  import { useAuth } from "@/contexts/AuthContext";
 
   QrScanner.WORKER_PATH = new URL("qr-scanner/qr-scanner-worker.min.js", import.meta.url).toString();
 
@@ -16,6 +17,7 @@
   }
 
   export default function QRCodeReader() {
+    const user = useAuth();
     const navigate = useNavigate();
     const { nameEvent, datetime } = useParams();
     const location = useLocation();
@@ -49,7 +51,7 @@
           userNumber,
           resolvedEventName,
           resolvedDateTime,
-          "admin@semcomp.com"
+          user.user?.email as string
         );
 
         setResult(userNumber);
