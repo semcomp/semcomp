@@ -82,7 +82,7 @@ func (h *PresenceHandler) GetPresenceByNameEventandInitDate(c *gin.Context) {
 	presence, err := h.presenceService.GetPresenceByNameEventandInitDate(name, eventName, eventInitDate)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
-			c.Set("responseMessage", "Fomrato de data inválido")
+			c.Set("responseMessage", "Formato de data inválido")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Formato de data inválido. Use o formato RFC3339"})
 			return
 		}
