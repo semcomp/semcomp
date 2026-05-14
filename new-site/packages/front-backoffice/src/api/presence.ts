@@ -12,8 +12,8 @@ export interface PresencesListResponse{
  */
 const mapBackendPresence = (presence: any): ParticipationType => {
     return{
-        id: `${presence.name}__${presence.event_name}__${presence.event_init_date}`,
-        nameUser: presence.name,
+        id: `${presence.user_number}__${presence.event_name}__${presence.event_init_date}`,
+        userNumber: presence.user_number,
         nameEvent: presence.event_name,
         dateEvent: presence.event_init_date,
         userBackoffice: presence.email_admin
@@ -39,7 +39,7 @@ const normalizeRFC3339 = (value: unknown): string => {
  */
 const mapFrontendPresence = (presence: ParticipationType) => {
   return {
-    name: presence.nameUser,
+    user_number: presence.userNumber,
     event_name: presence.nameEvent,
     event_init_date: normalizeRFC3339(presence.dateEvent),
     email_admin: presence.userBackoffice,
@@ -65,21 +65,21 @@ export const presenceAPI = {
         }
 
         const response = await client.get<any>(url);
-        console.log(response.data);
+        console.log("teste: ", response.data);
 
         return{
             ...response.data,
-            presences: response.data.Presences.map(mapBackendPresence),
+            presences: response.data.presence.map(mapBackendPresence),
         }
     },
 
     getByKeys: async (
-        name: string,
+        userNumber: string,
         eventName: string,
         dateEvent: string
     ): Promise<ParticipationType> => {
         const response = await client.get<any>(
-        `/admin/presences/${encodeURIComponent(name)}/${encodeURIComponent(eventName)}/${encodeURIComponent(dateEvent)}`
+        `/admin/presences/${encodeURIComponent(userNumber)}/${encodeURIComponent(eventName)}/${encodeURIComponent(dateEvent)}`
         );
 
         return mapBackendPresence(response.data);
@@ -101,7 +101,7 @@ export const presenceAPI = {
     },
 
     update: async (
-        originalName: string,
+        originalUserNumber: string,
         originalEventName: string,
         originalDateEvent: string,
         updatedPresence: ParticipationType
@@ -109,18 +109,46 @@ export const presenceAPI = {
         const payload = mapFrontendPresence(updatedPresence);
 
         await client.put(
-            `/admin/presences/${encodeURIComponent(originalName)}/${encodeURIComponent(originalEventName)}/${encodeURIComponent(originalDateEvent)}`,
+            `/admin/presences/${encodeURIComponent(originalUserNumber)}/${encodeURIComponent(originalEventName)}/${encodeURIComponent(originalDateEvent)}`,
             payload
         );
     },
 
     delete: async (
-        name: string,
+        userNumber: string,
         eventName: string,
         dateEvent: string
     ): Promise<void> => {
         await client.delete(
-        `/admin/presences/${encodeURIComponent(name)}/${encodeURIComponent(eventName)}/${encodeURIComponent(dateEvent)}`
+        `/admin/presences/${encodeURIComponent(userNumber)}/${encodeURIComponent(eventName)}/${encodeURIComponent(dateEvent)}`
         );
+    },
+
+    createByQRCode: async (
+        userNumber: string,
+        eventName: string,
+        eventInitDate: string,
+        adminEmail: string
+    ): Promise<ParticipationType> => {
+        const presence: ParticipationType = {
+            id: "",
+            userNumber: userNumber,
+            nameEvent: eventName,
+            dateEvent: eventInitDate,
+            userBackoffice: adminEmail,
+        };
+
+        const payload = mapFrontendPresence(presence);
+
+        console.log("Payload QR:", payload);
+
+        const response = await client.post<any>(
+            "/admin/presences",
+            payload
+        );
+
+        console.log("RESPOSTA COMPLETA:", response.data);
+
+        return mapBackendPresence(response.data.Presence);
     },
 }

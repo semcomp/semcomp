@@ -27,7 +27,7 @@ export default function ParticipationCRUD() {
   const resolvePresenceKey = (item: CrudItemType) => {
     const presence = item as ParticipationType;
 
-    return `${presence.nameUser}__${presence.nameEvent}__${presence.dateEvent}`;
+    return `${presence.emailUser}__${presence.nameEvent}__${presence.dateEvent}`;
   };
 
   const handleEdit = async (
@@ -44,7 +44,7 @@ export default function ParticipationCRUD() {
       if (!originalPresence) return;
 
       await presenceAPI.update(
-        originalPresence.nameUser,
+        originalPresence.emailUser,
         originalPresence.nameEvent,
         originalPresence.dateEvent,
         typedItem
