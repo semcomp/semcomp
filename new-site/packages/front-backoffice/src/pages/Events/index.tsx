@@ -8,9 +8,6 @@ import { BannerCard } from "@/components/BannerCard";
 import type { EventType } from "@/types/EventType";
 import { eventsAPI } from "@/api/events";
 import { useNotification } from "@/contexts/NotificationContext";
-import { DEBUGMODE } from "@/constants/DebugMode";
-import { sampleEvents } from "@/mock/events";
-
 export default function Events() {
   const navigate = useNavigate();
   const [data, setData] = useState<EventType[]>([]);
@@ -31,11 +28,6 @@ export default function Events() {
   }, []);
 
   const fetchEvents = async () => {
-    if (DEBUGMODE) { // Debug local
-      setData(sampleEvents);
-      setLoading(false);
-      return;
-    }
     try {
       setLoading(true);
       setError(null);
