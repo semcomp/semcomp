@@ -8,7 +8,6 @@ import { BannerCard } from "@/components/BannerCard";
 import type { EventType } from "@/types/EventType";
 import { eventsAPI } from "@/api/events";
 import { useNotification } from "@/contexts/NotificationContext";
-
 export default function Events() {
   const navigate = useNavigate();
   const [data, setData] = useState<EventType[]>([]);

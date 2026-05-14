@@ -136,12 +136,12 @@ export default function ParticipationCRUD() {
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6 overflow-x-auto scrollbar-hide">
       {/* Header card situando a página */}
       <BannerCard
-        icon={Tabs.find(tab => tab.key === "participation")?.icon}
+        icon={Tabs.find((tab) => tab.key === "participation")?.icon}
         iconClassName="text-violet-400"
         label="Participações"
         title="Gestão de Participações em Eventos da Semcomp"
         description="Cadastre e busque participações em eventos, acesse e edite informações, mantenha controle sobre as participações da Semana da Computação."
-        onBack={() => navigate('/home')}
+        onBack={() => navigate("/home")}
         cardClassName="border-slate-800 bg-linear-to-br from-slate-900 via-slate-900 to-violet-950/30 overflow-hidden relative"
         labelClassName="text-xs uppercase tracking-[0.3em] text-violet-400 font-medium"
         titleClassName="text-2xl md:text-3xl text-white font-semibold"

@@ -14,10 +14,12 @@ func AuthMiddleware(jwtProvider providers.JWTProvider) gin.HandlerFunc {
 		// Verifica se o header Authorization está presente e tem o formato correto
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
+			c.Set("responseMessage", "Authorization header is required")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
 			return
 		}
 		if !strings.HasPrefix(authHeader, "Bearer ") {
+			c.Set("responseMessage", "Invalid authorization header format")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
 			return
 		}
@@ -27,9 +29,12 @@ func AuthMiddleware(jwtProvider providers.JWTProvider) gin.HandlerFunc {
 		claims, err := jwtProvider.Parse(tokenStr)
 		if err != nil {
 			if errors.Is(err, providers.ErrJWTSecretNotConfigured) {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "server misconfigured"})
+				c.Set("internalError", err)
+				c.Set("responseMessage", "Erro interno do servidor")
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
 				return
 			}
+			c.Set("responseMessage", "Invalid or expired token")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "Invalid or expired token",
 			})

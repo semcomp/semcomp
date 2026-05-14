@@ -7,11 +7,12 @@ import type { SectionType } from "@/types/SectionType";
 import { sectionsAPI } from "@/api/sections";
 import { useNotification } from "@/contexts/NotificationContext";
 import { fields } from "@/data/sectionsCrudField";
+import { Tabs } from "@/constants/Tabs";
 
 export default function Sections() {
   const navigate = useNavigate();
   const [data, setData] = useState<SectionType[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showNotification } = useNotification();
 
@@ -88,24 +89,41 @@ export default function Sections() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-8">
+    <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6">
       <BannerCard
-        label="Seções"
-        title="Gerenciar Seções"
-        description="Crie, edite e delete as seções do backoffice"
-        onBack={() => navigate("/home")}
+          icon={Tabs.find((tab) => tab.key === "sections")?.icon}
+          iconClassName="text-violet-400"
+          label="Seções"
+          title="Gerenciamento de Seções da Semcomp"
+          description="Cadastre, busque, edite e remova seções da Semcomp."
+          onBack={() => navigate("/home")}
+          cardClassName="border-slate-800 bg-linear-to-br from-slate-900 via-slate-900 to-violet-950/30 overflow-hidden relative"
+          labelClassName="text-xs uppercase tracking-[0.3em] text-violet-400 font-medium"
+          titleClassName="text-2xl md:text-3xl text-white font-semibold"
+          descriptionClassName="text-slate-400 mt-1"
       />
-
-      <CrudTable
-        data={data}
-        fields={fields}
-        loading={loading}
-        onCreate={handleCreate}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        getItemKey={(item) => (item as SectionType).name}
-        entityLabel="seção"
-      />
+      <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-5">
+      {error && (
+          <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
+            {error}
+          </div>
+        )}
+      {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-slate-400">Carregando seções...</p>
+            </div>
+        ) : (
+          <CrudTable
+            data={data}
+            fields={fields}
+            onCreate={handleCreate}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            getItemKey={(item) => (item as SectionType).name}
+            entityLabel="seção"
+          />
+        )}
+        </div>
     </section>
   );
 }
