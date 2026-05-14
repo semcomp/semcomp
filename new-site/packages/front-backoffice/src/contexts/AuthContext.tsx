@@ -37,7 +37,8 @@ function readStoredUser(): AuthUser | null {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
+  const [user, setUser] = useState<AuthUser | null>(
+    () => readStoredUser() );
   const navigate = useNavigate();
 
   useEffect(() => {

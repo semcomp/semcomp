@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgconn"
+	"gorm.io/gorm"
 )
 
 // UserHandler lida com as requisições HTTP para a entidade User.
@@ -28,14 +29,16 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&request); err != nil {
     	if unmarshalErr, ok := err.(*json.UnmarshalTypeError); ok {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": fmt.Sprintf("O campo '%s' recebeu um valor do tipo %s, mas esperava %s", 
+		  c.Set("responseMessage", "Dados inválidos")
+		  c.JSON(http.StatusBadRequest, gin.H{
+		   	"error": fmt.Sprintf("O campo '%s' recebeu um valor do tipo %s, mas esperava %s", 
 					unmarshalErr.Field, unmarshalErr.Value, unmarshalErr.Type),
 			})
 			return
     	}
 
 		if validationErrs, ok := err.(validator.ValidationErrors); ok {
+		  c.Set("responseMessage", "Dados inválidos")
 			fieldErr := validationErrs[0]
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)", 
@@ -48,13 +51,17 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	safeUser, err := h.userService.CreateUser(request)
 	if err != nil {
 		if errors.Is(err, ErrEmailAlreadyExists) {
+		  	c.Set("responseMessage", "E-mail já cadastrado")
 			c.JSON(http.StatusConflict, gin.H{"error": "E-mail já cadastrado"})
 			return
 		}
+    
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro interno do servidor")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
 		return
 	}
-
+	c.Set("responseMessage", "Usuário criado com sucesso!")
 	c.JSON(http.StatusCreated, gin.H{"message": "Usuário criado com sucesso!", "user": safeUser})
 }
 
@@ -70,6 +77,7 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 	if pageQuery := c.Query("page"); pageQuery != "" {
 		parsedPage, err := strconv.Atoi(pageQuery)
 		if err != nil {
+			c.Set("responseMessage", "Parâmetro 'page' inválido")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'page' inválido"})
 			return
 		}
@@ -79,6 +87,7 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 	if limitQuery := c.Query("limit"); limitQuery != "" {
 		parsedLimit, err := strconv.Atoi(limitQuery)
 		if err != nil {
+			c.Set("responseMessage", "Parâmetro 'limit' inválido")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'limit' inválido"})
 			return
 		}
@@ -87,10 +96,12 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 
 	result, err := h.userService.GetAllUsers(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro interno do servidor")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
 		return
 	}
-
+	c.Set("responseMessage", "Usuários listados com sucesso!")
 	c.JSON(http.StatusOK, gin.H{
 		"page":             page,
 		"limit":            limit,
@@ -108,15 +119,24 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 func (h *UserHandler) GetUserByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		c.Set("responseMessage", "ID inválido")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
 		return
 	}
 
 	user, err := h.userService.GetUserByID(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.Set("responseMessage", "Usuário não encontrado")
+			c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado"})
+			return
+		}
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro interno do servidor")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
 		return
 	}
+	c.Set("responseMessage", "Usuário encontrado com sucesso!")
 	c.JSON(http.StatusOK, user)
 }
 
@@ -124,6 +144,7 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		c.Set("responseMessage", "ID inválido")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
 		return
 	}
@@ -131,6 +152,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	var request UpdateUserRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		if unmarshalErr, ok := err.(*json.UnmarshalTypeError); ok {
+		  	c.Set("responseMessage", "Dados inválidos")
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": fmt.Sprintf("O campo '%s' recebeu um valor do tipo %s, mas esperava %s",
 					unmarshalErr.Field, unmarshalErr.Value, unmarshalErr.Type),
@@ -139,6 +161,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		}
 
 		if validationErrs, ok := err.(validator.ValidationErrors); ok {
+		  	c.Set("responseMessage", "Dados inválidos")
 			fieldErr := validationErrs[0]
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",
@@ -146,6 +169,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 			})
 			return
 		}
+    
 		return
 	}
 
@@ -157,13 +181,17 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		if errors.As(err, &pgErr) {
 			// Código de chave duplicada, no caso, a única possível é a de email
 			if pgErr.Code == "23505" {
+				c.Set("responseMessage", "Email já cadastrado para outro usuário")
 				c.JSON(http.StatusConflict, gin.H{"error": "Email já cadastrado para outro usuário"})
 				return
 			}
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro interno do servidor")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
 		return
 	}
+	c.Set("responseMessage", "Usuário atualizado com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Usuário atualizado com sucesso!"})
 }
 
@@ -171,18 +199,29 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		c.Set("responseMessage", "ID inválido")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
 		return
 	}
 
 	if _, err = h.userService.GetUserByID(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Usuário a ser deletado não existe"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.Set("responseMessage", "Usuário a ser deletado não existe")
+			c.JSON(http.StatusNotFound, gin.H{"error": "Usuário a ser deletado não existe"})
+			return
+		}
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro interno do servidor")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
 		return
 	}
 
 	if err := h.userService.DeleteUser(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro interno do servidor")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
 		return
 	}
+	c.Set("responseMessage", "Usuário removido com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Usuário removido com sucesso!"})
 }
