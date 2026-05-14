@@ -39,13 +39,19 @@ func AuthMiddleware(jwtProvider providers.JWTProvider) gin.HandlerFunc {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
 				return
 			}
+			if errors.Is(err, providers.ErrInvalidTokenClaims) {
+				c.Set("responseMessage", "Claims do token de autenticação inválidas")
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
+				return
+			}
 			if errors.Is(err, providers.ErrExpiredToken) {
 			  c.Set("responseMessage", "Tempo de sessão expirado")
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token expirado"})
 				return
 			}
 
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Sem autorização de administração"})
+			c.Set("responseMessage", "Token de autenticação inválido")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
 			return
 		}
 
