@@ -38,8 +38,13 @@ const normalizeRFC3339 = (value: unknown): string => {
  * Converte formato local -> backend
  */
 const mapFrontendPresence = (presence: ParticipationType) => {
+  const normalizedUserNumber =
+    typeof presence.userNumber === "string"
+      ? parseInt(presence.userNumber, 10)
+      : presence.userNumber;
+
   return {
-    user_number: presence.userNumber,
+    user_number: normalizedUserNumber,
     event_name: presence.nameEvent,
     event_init_date: normalizeRFC3339(presence.dateEvent),
     email_admin: presence.userBackoffice,
@@ -65,11 +70,10 @@ export const presenceAPI = {
         }
 
         const response = await client.get<any>(url);
-        console.log("teste: ", response.data);
 
         return{
             ...response.data,
-            presences: response.data.presence.map(mapBackendPresence),
+            presences: response.data.Presences.map(mapBackendPresence),
         }
     },
 
@@ -97,7 +101,7 @@ export const presenceAPI = {
         payload
         );
 
-        return mapBackendPresence(response.data.presence);
+        return mapBackendPresence(response.data.Presences);
     },
 
     update: async (
@@ -131,7 +135,6 @@ export const presenceAPI = {
         adminEmail: string
     ): Promise<ParticipationType> => {
         const presence: ParticipationType = {
-            id: "",
             userNumber: userNumber,
             nameEvent: eventName,
             dateEvent: eventInitDate,
@@ -149,6 +152,6 @@ export const presenceAPI = {
 
         console.log("RESPOSTA COMPLETA:", response.data);
 
-        return mapBackendPresence(response.data.Presence);
+        return mapBackendPresence(response.data.presence);
     },
 }

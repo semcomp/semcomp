@@ -35,7 +35,7 @@
     const eventKey = resolvedEventName && resolvedDateTime ? `${resolvedEventName} + ${resolvedDateTime}` : "Sem chave composta";
 
     useEffect(() => {
-      if (error !== null) {
+      if (error !== null && error !== "") {
         // Verifica se o erro realmente existe para gerar a notificação
         showNotification(error as string, "warning");
       }
@@ -60,7 +60,12 @@
         console.error(err);
         setShowSuccessPopup(false);
 
-        setError("Erro ao registrar presença");
+        const backendMessage =
+          err?.response?.data?.error ||
+          err?.response?.data?.message ||
+          "Erro ao registrar presença";
+
+        setError(backendMessage);
       }
     };
 
