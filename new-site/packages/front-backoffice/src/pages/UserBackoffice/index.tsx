@@ -7,6 +7,8 @@ import { fields } from "@/data/userBackofficeCrudField";
 import { Tabs } from "@/constants/Tabs";
 import { userBackofficeAPI } from "@/api/userBackoffice";
 import type { BackofficeUserType } from "@/types/BackofficeUserType";
+import { DEBUGMODE } from "@/constants/DebugMode";
+import { sampleBackofficeUsers } from "@/mock/user-backoffice";
 
 export default function BackofficeUsersCRUD() {
   const navigate = useNavigate();
@@ -20,6 +22,11 @@ export default function BackofficeUsersCRUD() {
   }, []);
 
   const fetchUsers = async () => {
+    if (DEBUGMODE) { // Debug local
+      setData(sampleBackofficeUsers);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);

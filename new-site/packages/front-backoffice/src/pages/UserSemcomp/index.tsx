@@ -7,6 +7,8 @@ import { fields } from "@/data/userSemcompCrudField";
 import { Tabs } from "@/constants/Tabs";
 import { userSemcompAPI } from "@/api/users";
 import type { SemcompUserType } from "@/types/SemcompUserType";
+import { DEBUGMODE } from "@/constants/DebugMode";
+import { sampleSemcompUsers } from "@/mock/user-semcomp";
 
 export default function UsersCRUD() {
   const navigate = useNavigate();
@@ -20,6 +22,11 @@ export default function UsersCRUD() {
   }, []);
 
   const fetchUsers = async () => {
+    if (DEBUGMODE) { // Debug local
+      setData(sampleSemcompUsers);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
