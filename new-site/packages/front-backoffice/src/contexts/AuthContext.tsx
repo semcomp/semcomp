@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authAPI } from "@/api/auth";
-import { DEBUGMODE } from "@/constants/DebugMode";
 
 type AuthUser = {
   email: string;
