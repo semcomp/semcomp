@@ -70,10 +70,11 @@ export const presenceAPI = {
         }
 
         const response = await client.get<any>(url);
+        const presences = response.data.Presences ?? response.data.presences ?? [];
 
         return{
             ...response.data,
-            presences: response.data.Presences.map(mapBackendPresence),
+            presences: presences.map(mapBackendPresence),
         }
     },
 
