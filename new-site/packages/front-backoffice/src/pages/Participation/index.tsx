@@ -6,128 +6,129 @@ import type { ParticipationType } from "@/types/ParticipationType";
 import { fields } from "@/data/participationCrudField";
 import type { CrudItemType } from "@/types/CrudItem";
 import { Tabs } from "@/constants/Tabs";
-import { participationsAPI } from "@/api/participations";
+import { presenceAPI } from "@/api/presence.ts"
 import { useNotification } from "@/contexts/NotificationContext";
+
 
 export default function ParticipationCRUD() {
   const navigate = useNavigate();
   const [data, setData] = useState<ParticipationType[]>([]);
-  const [, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showNotification } = useNotification();
 
-  // Mostrar notificação de erro quando houver
   useEffect(() => {
     if (error !== null) {
+      // Verifica se o erro realmente existe para gerar a notificação
       showNotification(error as string, "warning");
     }
-  }, [error, showNotification]);
+  }, [error]);
 
-  // Buscar participações ao montar o componente
-  useEffect(() => {
-    fetchParticipations();
-  }, []);
+  const resolvePresenceKey = (item: CrudItemType) => {
+    const presence = item as ParticipationType;
 
-  const fetchParticipations = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await participationsAPI.getAll();
-      setData(response.presences || []);
-    } catch (err) {
-      console.error("Erro ao buscar participações:", err);
-      setError("Erro ao carregar participações");
-      setData([]);
-    } finally {
-      setLoading(false);
-    }
+    return `${presence.userNumber}__${presence.nameEvent}__${presence.dateEvent}`;
   };
 
-  const resolveParticipationKey = (participation: CrudItemType) => {
-    const typed = participation as ParticipationType;
-    return `${typed.nameUser}__${typed.nameEvent}__${typed.dateEvent}`;
+  const handleEdit = async (
+    item: CrudItemType,
+    itemKey: string
+  ) => {
+    try {
+      const typedItem = item as ParticipationType;
+
+      const originalPresence = data.find(
+        (p) => resolvePresenceKey(p) === itemKey
+      );
+
+      if (!originalPresence) return;
+
+      await presenceAPI.update(
+        originalPresence.userNumber,
+        originalPresence.nameEvent,
+        originalPresence.dateEvent,
+        typedItem
+      );
+
+      setData((prev) =>
+        prev.map((presence) =>
+          resolvePresenceKey(presence) === itemKey
+            ? typedItem
+            : presence
+        )
+      );
+
+      showNotification("Presença editada realizada com sucesso", "success");
+    } catch (err) {
+      console.error("Erro ao editar presença:", err);
+      setError("Erro ao editar presença");
+    }
+  };
+  
+  const handleDelete = async (itemKey: string) => {
+    try {
+      const presence = data.find(
+        (p) => resolvePresenceKey(p) === itemKey
+      );
+
+      if (!presence) return;
+
+      await presenceAPI.delete(
+        presence.userNumber,
+        presence.nameEvent,
+        presence.dateEvent
+      );
+
+      setData((prev) =>
+        prev.filter(
+          (presence) =>
+            resolvePresenceKey(presence) !== itemKey
+        )
+      );
+      
+      showNotification("Presença deletada com sucesso", "success");
+    } catch (err) {
+      console.error("Erro ao deletar presença:", err);
+      setError("Erro ao deletar presença");
+    }
   };
 
   const handleCreate = async (item: CrudItemType) => {
     try {
       const typedItem = item as ParticipationType;
-      const newParticipation = await participationsAPI.create({
-        nameUser: typedItem.nameUser,
-        nameEvent: typedItem.nameEvent,
-        dateEvent: typedItem.dateEvent,
-        userBackoffice: typedItem.userBackoffice,
-      });
-      setData((prev) => [...prev, newParticipation]);
-      
-      // Recarregar dados do servidor para garantir sincronização
-      await fetchParticipations();
-      
-      showNotification("Participação criada com sucesso!", "success");
-    } catch (err: any) {
-      console.error("Erro ao criar participação:", err);
-      // Tentar extrair mensagem de erro de diferentes fontes
-      const errorMessage = 
-        err.message || 
-        err.response?.data?.message || 
-        err.response?.data?.error ||
-        "Erro ao criar participação";
-      setError(errorMessage);
-      showNotification(errorMessage, "error");
-    }
-  };
 
-  const handleEdit = async (item: CrudItemType, itemKey: string) => {
-    try {
-      const typedItem = item as ParticipationType;
-      const originalParticipation = data.find((p) => resolveParticipationKey(p) === itemKey);
-      if (!originalParticipation) {
-        throw new Error("Participação original não encontrada");
-      }
-
-      await participationsAPI.update(
-        originalParticipation.nameUser,
-        originalParticipation.nameEvent,
-        originalParticipation.dateEvent,
+      const createdPresence = await presenceAPI.create(
         typedItem
       );
 
-      // Após sucesso, recarregar dados do servidor
-      await fetchParticipations();
-      
-      showNotification("Participação atualizada com sucesso!", "success");
-    } catch (err: any) {
-      console.error("Erro ao editar participação:", err);
-      const errorMessage = 
-        err.message || 
-        err.response?.data?.message || 
-        err.response?.data?.error ||
-        "Erro ao editar participação";
-      setError(errorMessage);
-      showNotification(errorMessage, "error");
+      setData((prev) => [...prev, createdPresence]);
+
+      showNotification("Presença criada com sucesso", "success");
+    } catch (err) {
+      console.error("Erro ao criar presença:", err);
+      setError("Erro ao criar presença");
     }
   };
 
-  const handleDelete = async (itemKey: string) => {
-    try {
-      const participation = data.find((p) => resolveParticipationKey(p) === itemKey);
-      if (!participation) return;
+  // Buscar presenças ao montar o componente
+    useEffect(() => {
+      fetchPresences();
+    }, []);
 
-      await participationsAPI.delete(
-        participation.nameUser,
-        participation.nameEvent,
-        participation.dateEvent
-      );
-      setData((prev) => prev.filter((p) => resolveParticipationKey(p) !== itemKey));
-      showNotification("Participação deletada com sucesso!", "success");
-    } catch (err: any) {
-      console.error("Erro ao deletar participação:", err);
-      const errorMessage = 
-        err.message || 
-        err.response?.data?.message || 
-        err.response?.data?.error ||
-        "Erro ao deletar participação";
-      setError(errorMessage);
-      showNotification(errorMessage, "error");
+  const fetchPresences = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await presenceAPI.getAll();
+
+      setData(response.presences || []);
+    } catch (err) {
+      console.error("Erro ao buscar presenças:", err);
+      setError("Erro ao carregar presenças");
+      setData([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -149,15 +150,26 @@ export default function ParticipationCRUD() {
 
       {/* Tabela de participações */}
       <div className="rounded-xl border border-border bg-card/80 p-5">
-        <CrudTable
-          data={data}
-          fields={fields}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onCreate={handleCreate}
-          getItemKey={resolveParticipationKey}
-          entityLabel="participação"
-        />
+        {error && (
+          <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
+            {error}
+          </div>
+        )}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-slate-400">Carregando presenças...</p>
+          </div>
+        ) : (
+          <CrudTable
+            data={data}
+            fields={fields}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onCreate={handleCreate}
+            getItemKey={resolvePresenceKey}
+            entityLabel="participação"
+          />
+        )}
       </div>
     </section>
   );
