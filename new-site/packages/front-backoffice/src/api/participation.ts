@@ -55,10 +55,10 @@ const mapFrontendPresence = (presence: ParticipationType) => {
 /**
  * API para gerenciar presenças
  */
-export const presenceAPI = {
+export const participationAPI = {
     getAll: async(
         page = 1,
-        limit = 50,
+        limit = 10,
         sortBy = "event_init_date",
         sortOrder = "asc",
         searchBy?: string,

@@ -8,6 +8,7 @@ import { fields } from "@/data/eventsCrudField";
 import { BannerCard } from "@/components/BannerCard";
 import type { EventType } from "@/types/EventType";
 import { eventsAPI } from "@/api/events";
+import { useNotification } from "@/contexts/NotificationContext";
 
 export default function Events() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function Events() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { showNotification } = useNotification();
 
   const fetchEvents = useCallback(async (params?: CrudQueryParams) => {
     try {
@@ -69,6 +71,7 @@ export default function Events() {
           resolveEventKey(event) === itemKey ? typedItem : event
         )
       );
+      showNotification("Evento editado com sucesso", "success");
     } catch (err) {
       console.error("Erro ao editar evento:", err);
       setError("Erro ao editar evento");
@@ -85,6 +88,7 @@ export default function Events() {
         prev.filter((event) => resolveEventKey(event) !== itemKey)
       );
       setTotalRecords(prev => prev - 1);
+      showNotification("Evento removido com sucesso", "success");
     } catch (err) {
       console.error("Erro ao deletar evento:", err);
       setError("Erro ao deletar evento");
@@ -97,6 +101,7 @@ export default function Events() {
       const createdEvent = await eventsAPI.create(typedItem);
       setData((prev) => [...prev, createdEvent]);
       setTotalRecords(prev => prev + 1);
+      showNotification("Evento criado com sucesso", "success");
     } catch (err: any) {
       console.log(err);
       setError(err.response?.data?.message || "Erro ao criar evento");
