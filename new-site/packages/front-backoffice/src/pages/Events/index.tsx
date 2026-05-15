@@ -8,7 +8,6 @@ import { fields } from "@/data/eventsCrudField";
 import { BannerCard } from "@/components/BannerCard";
 import type { EventType } from "@/types/EventType";
 import { eventsAPI } from "@/api/events";
-import { useNotification } from "@/contexts/NotificationContext";
 
 export default function Events() {
   const navigate = useNavigate();
@@ -16,13 +15,6 @@ export default function Events() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { showNotification } = useNotification();
-
-  useEffect(() => {
-    if (error !== null) {
-      showNotification(error as string, "warning");
-    }
-  }, [error]);
 
   const fetchEvents = useCallback(async (params?: CrudQueryParams) => {
     try {

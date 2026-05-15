@@ -132,11 +132,13 @@ export function CrudTable({
 
   // Notifica o pai quando qualquer parâmetro de query muda (modo server-side)
   useEffect(() => {
-    if (!serverSide || !onQueryChange) return;
     if (!isMounted.current) {
       isMounted.current = true;
       return;
     }
+    
+    if (!serverSide || !onQueryChange) return;
+    console.log("Query changed:", { page, pageSize, sortField, sortOrder, filterField, filter });
     onQueryChange({ page, pageSize, sortField, sortOrder, filterField, filterValue: filter });
   }, [page, pageSize, sortField, sortOrder, filterField, filter]);
 

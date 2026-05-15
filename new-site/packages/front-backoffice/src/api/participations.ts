@@ -44,19 +44,28 @@ const ensureRFC3339 = (dateValue: any): string => {
   return `${dateStr}T09:00:00Z`;
 };
 
+const fieldMap: Record<string, string> = {
+  nameUser: "name",
+  nameEvent: "event_name",
+  dateEvent: "event_init_date",
+  userBackoffice: "email_admin",
+};
+
 export const participationsAPI = {
-  // READ - Listar todas as participações
   getAll: async (
     page = 1,
-    limit = 50,
+    limit = 10,
     sortBy = "event_init_date",
     sortOrder = "asc",
     searchBy?: string,
     searchValue?: string
   ): Promise<ParticipationsListResponse> => {
-    let url = `/admin/presences?page=${page}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
-    if (searchBy && searchValue) {
-      url += `&search_by=${searchBy}&search_value=${searchValue}`;
+    const backendSortBy = fieldMap[sortBy] ?? sortBy;
+    const backendSearchBy = searchBy ? (fieldMap[searchBy] ?? searchBy) : undefined;
+
+    let url = `/admin/presences?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
+    if (backendSearchBy && searchValue) {
+      url += `&search_by=${backendSearchBy}&search_value=${searchValue}`;
     }
     const response = await client.get<any>(url);
     

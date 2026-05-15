@@ -41,7 +41,7 @@ export default function UsersCRUD() {
 
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+  }, []);
 
   const handleQueryChange = (params: CrudQueryParams) => {
     fetchUsers(params);
