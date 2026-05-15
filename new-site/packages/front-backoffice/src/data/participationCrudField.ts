@@ -1,7 +1,7 @@
 import { type CrudField } from "@/components/CrudTable";
 
 export const fields: CrudField[] = [
-  { value: "userNumber", label: "Número de Participante", type: "text" },
+  { value: "userNumber", label: "Número do Participante", type: "number" },
   { value: "nameEvent", label: "Nome do Evento", type: "text" },
   { value: "dateEvent", label: "Data do Evento", type: "date" },
   { value: "userBackoffice", label: "Admin Responsável", type: "text" },

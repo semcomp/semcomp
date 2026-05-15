@@ -7,23 +7,30 @@ import type { ParticipationType } from "@/types/ParticipationType";
 import { fields } from "@/data/participationCrudField";
 import type { CrudItemType } from "@/types/CrudItem";
 import { Tabs } from "@/constants/Tabs";
-import { participationsAPI } from "@/api/participations";
+import { presenceAPI } from "@/api/presence.ts"
 import { useNotification } from "@/contexts/NotificationContext";
+
 
 export default function ParticipationCRUD() {
   const navigate = useNavigate();
   const [data, setData] = useState<ParticipationType[]>([]);
+<<<<<<< HEAD
   const [totalRecords, setTotalRecords] = useState(0);
   const [, setLoading] = useState(true);
+=======
+  const [loading, setLoading] = useState(true);
+>>>>>>> 8efb3b65dd044e2d92bf5b036cc457accbe8aa28
   const [error, setError] = useState<string | null>(null);
   const { showNotification } = useNotification();
 
   useEffect(() => {
     if (error !== null) {
+      // Verifica se o erro realmente existe para gerar a notificação
       showNotification(error as string, "warning");
     }
-  }, [error, showNotification]);
+  }, [error]);
 
+<<<<<<< HEAD
   const fetchParticipations = useCallback(async (params?: CrudQueryParams) => {
     try {
       setLoading(true);
@@ -53,16 +60,81 @@ export default function ParticipationCRUD() {
 
   const handleQueryChange = (params: CrudQueryParams) => {
     fetchParticipations(params);
+=======
+  const resolvePresenceKey = (item: CrudItemType) => {
+    const presence = item as ParticipationType;
+
+    return `${presence.userNumber}__${presence.nameEvent}__${presence.dateEvent}`;
+>>>>>>> 8efb3b65dd044e2d92bf5b036cc457accbe8aa28
   };
 
-  const resolveParticipationKey = (participation: CrudItemType) => {
-    const typed = participation as ParticipationType;
-    return `${typed.nameUser}__${typed.nameEvent}__${typed.dateEvent}`;
+  const handleEdit = async (
+    item: CrudItemType,
+    itemKey: string
+  ) => {
+    try {
+      const typedItem = item as ParticipationType;
+
+      const originalPresence = data.find(
+        (p) => resolvePresenceKey(p) === itemKey
+      );
+
+      if (!originalPresence) return;
+
+      await presenceAPI.update(
+        originalPresence.userNumber,
+        originalPresence.nameEvent,
+        originalPresence.dateEvent,
+        typedItem
+      );
+
+      setData((prev) =>
+        prev.map((presence) =>
+          resolvePresenceKey(presence) === itemKey
+            ? typedItem
+            : presence
+        )
+      );
+
+      showNotification("Presença editada realizada com sucesso", "success");
+    } catch (err) {
+      console.error("Erro ao editar presença:", err);
+      setError("Erro ao editar presença");
+    }
+  };
+  
+  const handleDelete = async (itemKey: string) => {
+    try {
+      const presence = data.find(
+        (p) => resolvePresenceKey(p) === itemKey
+      );
+
+      if (!presence) return;
+
+      await presenceAPI.delete(
+        presence.userNumber,
+        presence.nameEvent,
+        presence.dateEvent
+      );
+
+      setData((prev) =>
+        prev.filter(
+          (presence) =>
+            resolvePresenceKey(presence) !== itemKey
+        )
+      );
+      
+      showNotification("Presença deletada com sucesso", "success");
+    } catch (err) {
+      console.error("Erro ao deletar presença:", err);
+      setError("Erro ao deletar presença");
+    }
   };
 
   const handleCreate = async (item: CrudItemType) => {
     try {
       const typedItem = item as ParticipationType;
+<<<<<<< HEAD
       const newParticipation = await participationsAPI.create({
         nameUser: typedItem.nameUser,
         nameEvent: typedItem.nameEvent,
@@ -83,22 +155,14 @@ export default function ParticipationCRUD() {
       showNotification(errorMessage, "error");
     }
   };
+=======
+>>>>>>> 8efb3b65dd044e2d92bf5b036cc457accbe8aa28
 
-  const handleEdit = async (item: CrudItemType, itemKey: string) => {
-    try {
-      const typedItem = item as ParticipationType;
-      const originalParticipation = data.find((p) => resolveParticipationKey(p) === itemKey);
-      if (!originalParticipation) {
-        throw new Error("Participação original não encontrada");
-      }
-
-      await participationsAPI.update(
-        originalParticipation.nameUser,
-        originalParticipation.nameEvent,
-        originalParticipation.dateEvent,
+      const createdPresence = await presenceAPI.create(
         typedItem
       );
 
+<<<<<<< HEAD
       await fetchParticipations();
       showNotification("Participação atualizada com sucesso!", "success");
     } catch (err: any) {
@@ -110,14 +174,23 @@ export default function ParticipationCRUD() {
         "Erro ao editar participação";
       setError(errorMessage);
       showNotification(errorMessage, "error");
+=======
+      setData((prev) => [...prev, createdPresence]);
+
+      showNotification("Presença criada com sucesso", "success");
+    } catch (err) {
+      console.error("Erro ao criar presença:", err);
+      setError("Erro ao criar presença");
+>>>>>>> 8efb3b65dd044e2d92bf5b036cc457accbe8aa28
     }
   };
 
-  const handleDelete = async (itemKey: string) => {
-    try {
-      const participation = data.find((p) => resolveParticipationKey(p) === itemKey);
-      if (!participation) return;
+  // Buscar presenças ao montar o componente
+    useEffect(() => {
+      fetchPresences();
+    }, []);
 
+<<<<<<< HEAD
       await participationsAPI.delete(
         participation.nameUser,
         participation.nameEvent,
@@ -135,6 +208,22 @@ export default function ParticipationCRUD() {
         "Erro ao deletar participação";
       setError(errorMessage);
       showNotification(errorMessage, "error");
+=======
+  const fetchPresences = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await presenceAPI.getAll();
+
+      setData(response.presences || []);
+    } catch (err) {
+      console.error("Erro ao buscar presenças:", err);
+      setError("Erro ao carregar presenças");
+      setData([]);
+    } finally {
+      setLoading(false);
+>>>>>>> 8efb3b65dd044e2d92bf5b036cc457accbe8aa28
     }
   };
 
@@ -154,6 +243,7 @@ export default function ParticipationCRUD() {
       />
 
       <div className="rounded-xl border border-border bg-card/80 p-5">
+<<<<<<< HEAD
         <CrudTable
           data={data}
           fields={fields}
@@ -166,6 +256,28 @@ export default function ParticipationCRUD() {
           totalRecords={totalRecords}
           onQueryChange={handleQueryChange}
         />
+=======
+        {error && (
+          <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
+            {error}
+          </div>
+        )}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-slate-400">Carregando presenças...</p>
+          </div>
+        ) : (
+          <CrudTable
+            data={data}
+            fields={fields}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onCreate={handleCreate}
+            getItemKey={resolvePresenceKey}
+            entityLabel="participação"
+          />
+        )}
+>>>>>>> 8efb3b65dd044e2d92bf5b036cc457accbe8aa28
       </div>
     </section>
   );
