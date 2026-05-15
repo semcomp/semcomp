@@ -47,7 +47,7 @@ export interface CrudTableProps {
   onQueryChange?: (params: CrudQueryParams) => void;
 }
 
-const PAGE_SIZE_OPTIONS = [2, 5, 10, 20, 50];
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
 
 export function CrudTable({
   data,

@@ -1,6 +1,7 @@
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
-import { useState, useEffect } from "react";
+import type { CrudQueryParams } from "@/components/CrudTable";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
 import { fields } from "@/data/userBackofficeCrudField";
@@ -11,20 +12,24 @@ import type { BackofficeUserType } from "@/types/BackofficeUserType";
 export default function BackofficeUsersCRUD() {
   const navigate = useNavigate();
   const [data, setData] = useState<BackofficeUserType[]>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Buscar usuários ao montar o componente
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async (params?: CrudQueryParams) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await userBackofficeAPI.getAll();
+      const response = await userBackofficeAPI.getAll(
+        params?.page ?? 1,
+        params?.pageSize ?? 10,
+        params?.sortField ?? "email",
+        params?.sortOrder ?? "asc",
+        params?.filterField && params?.filterValue ? params.filterField : undefined,
+        params?.filterValue || undefined,
+      );
       setData(response.users || []);
+      setTotalRecords(response.filtered_records ?? response.total_records ?? 0);
     } catch (err) {
       console.error("Erro ao buscar usuários:", err);
       setError("Erro ao carregar usuários do backoffice");
@@ -32,12 +37,19 @@ export default function BackofficeUsersCRUD() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  const handleQueryChange = (params: CrudQueryParams) => {
+    fetchUsers(params);
   };
 
   const handleEdit = async (item: CrudItemType) => {
     try {
       const typedItem = item as BackofficeUserType;
-      // Encontrar o usuário original para ter o email anterior
       const originalUser = data.find(u => u.id === item.id);
       if (!originalUser) return;
 
@@ -51,7 +63,6 @@ export default function BackofficeUsersCRUD() {
         password: typedItem.password,
       });
 
-      // Atualizar estado local
       setData(prev => prev.map(i => i.id === item.id ? { ...typedItem, id: typedItem.email } : i));
     } catch (err) {
       console.error("Erro ao editar usuário:", err);
@@ -66,6 +77,7 @@ export default function BackofficeUsersCRUD() {
 
       await userBackofficeAPI.delete(user.email);
       setData(prev => prev.filter(i => i.id !== id));
+      setTotalRecords(prev => prev - 1);
     } catch (err) {
       console.error("Erro ao deletar usuário:", err);
       setError("Erro ao deletar usuário");
@@ -85,18 +97,16 @@ export default function BackofficeUsersCRUD() {
         password: typedItem.password,
       });
 
-      // Atualizar estado local
       setData(prev => [...prev, { ...typedItem, id: newUser.id || typedItem.email }]);
+      setTotalRecords(prev => prev + 1);
     } catch (err) {
       console.error("Erro ao criar usuário:", err);
       setError("Erro ao criar usuário");
     }
   };
 
-
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6 overflow-x-auto scrollbar-hide">
-      {/* Header card situando a página */}
       <BannerCard
         icon={Tabs.find(tab => tab.key === "backoffice-users")?.icon}
         iconClassName="text-violet-400"
@@ -110,14 +120,13 @@ export default function BackofficeUsersCRUD() {
         descriptionClassName="text-slate-400 mt-1"
       />
 
-      {/* Tabela com os usuários do Backoffice */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-5">
         {error && (
           <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
             {error}
           </div>
         )}
-        {loading ? (
+        {loading && data.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             <p className="text-slate-400">Carregando usuários do backoffice...</p>
           </div>
@@ -129,6 +138,9 @@ export default function BackofficeUsersCRUD() {
             onDelete={handleDelete}
             onCreate={handleCreate}
             entityLabel="usuário do backoffice"
+            serverSide
+            totalRecords={totalRecords}
+            onQueryChange={handleQueryChange}
           />
         )}
       </div>
