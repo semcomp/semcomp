@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   ChevronDown, ChevronUp, ChevronsUpDown, ScanQrCode, Search, Plus, Pencil, Trash2, X,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
