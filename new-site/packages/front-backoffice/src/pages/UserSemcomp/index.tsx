@@ -8,6 +8,7 @@ import { fields } from "@/data/userSemcompCrudField";
 import { Tabs } from "@/constants/Tabs";
 import { userSemcompAPI } from "@/api/users";
 import type { SemcompUserType } from "@/types/SemcompUserType";
+import { useNotification } from "@/contexts/NotificationContext";
 
 export default function UsersCRUD() {
   const navigate = useNavigate();
@@ -15,11 +16,18 @@ export default function UsersCRUD() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const {showNotification} = useNotification();
 
   const fetchUsers = useCallback(async (params?: CrudQueryParams) => {
     try {
       setLoading(true);
       setError(null);
+
+      if (params?.filterField == "password" || params?.sortField == "password") {
+        showNotification(`Campo de operação inválido: ${params.filterField}`, "error");
+        return;
+      }
+        
       const response = await userSemcompAPI.getAll(
         params?.page ?? 1,
         params?.pageSize ?? 10,

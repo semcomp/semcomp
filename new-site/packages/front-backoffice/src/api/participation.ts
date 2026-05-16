@@ -10,7 +10,7 @@ export interface PresencesListResponse{
 /**
  * Mapeia dados do backend -> frontend
  */
-const mapBackendPresence = (presence: any): ParticipationType => {
+const mapBackendPresence = (presence: any): any => {
     return{
         id: `${presence.user_number}__${presence.event_name}__${presence.event_init_date}`,
         userNumber: presence.user_number,
@@ -39,15 +39,15 @@ const normalizeRFC3339 = (value: unknown): string => {
  */
 const mapFrontendPresence = (presence: ParticipationType) => {
   const normalizedUserNumber =
-    typeof presence.userNumber === "string"
-      ? parseInt(presence.userNumber, 10)
-      : presence.userNumber;
+    typeof presence.user_number === "string"
+      ? parseInt(presence.user_number, 10)
+      : presence.user_number;
 
   return {
     user_number: normalizedUserNumber,
-    event_name: presence.nameEvent,
-    event_init_date: normalizeRFC3339(presence.dateEvent),
-    email_admin: presence.userBackoffice,
+    event_name: presence.name_event,
+    event_init_date: normalizeRFC3339(presence.date_event),
+    email_admin: presence.user_backoffice,
   };
 };
 
@@ -111,6 +111,12 @@ export const participationAPI = {
         originalDateEvent: string,
         updatedPresence: ParticipationType
     ): Promise<void> => {
+        console.log("Atualizando presença:", {
+            originalUserNumber,
+            originalEventName,
+            originalDateEvent,
+            updatedPresence
+        });
         const payload = mapFrontendPresence(updatedPresence);
 
         await client.put(
@@ -124,6 +130,8 @@ export const participationAPI = {
         eventName: string,
         dateEvent: string
     ): Promise<void> => {
+        console.log("Deletando presença:", { userNumber, eventName, dateEvent });
+        
         await client.delete(
         `/admin/presences/${encodeURIComponent(userNumber)}/${encodeURIComponent(eventName)}/${encodeURIComponent(dateEvent)}`
         );
@@ -136,10 +144,10 @@ export const participationAPI = {
         adminEmail: string
     ): Promise<ParticipationType> => {
         const presence: ParticipationType = {
-            userNumber: userNumber,
-            nameEvent: eventName,
-            dateEvent: eventInitDate,
-            userBackoffice: adminEmail,
+            user_number: userNumber,
+            name_event: eventName,
+            date_event: eventInitDate,
+            user_backoffice: adminEmail,
         };
 
         const payload = mapFrontendPresence(presence);

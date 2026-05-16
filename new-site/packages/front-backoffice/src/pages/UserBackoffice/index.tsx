@@ -8,6 +8,7 @@ import { fields } from "@/data/userBackofficeCrudField";
 import { Tabs } from "@/constants/Tabs";
 import { userBackofficeAPI } from "@/api/userBackoffice";
 import type { BackofficeUserType } from "@/types/BackofficeUserType";
+import { useNotification } from "@/contexts/NotificationContext";
 
 export default function BackofficeUsersCRUD() {
   const navigate = useNavigate();
@@ -15,11 +16,18 @@ export default function BackofficeUsersCRUD() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const {showNotification} = useNotification();
 
   const fetchUsers = useCallback(async (params?: CrudQueryParams) => {
     try {
       setLoading(true);
       setError(null);
+
+      if (params?.filterField == "password" || params?.sortField == "password") {
+        showNotification(`Campo de operação inválido`, "error");
+        return;
+      }
+
       const response = await userBackofficeAPI.getAll(
         params?.page ?? 1,
         params?.pageSize ?? 10,

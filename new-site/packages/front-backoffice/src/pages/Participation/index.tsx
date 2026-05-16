@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
 import type { ParticipationType } from "@/types/ParticipationType";
-import { fields } from "@/data/participationCrudField";
+import { API_FIELD_MAP, fields } from "@/data/participationCrudField";
 import { Tabs } from "@/constants/Tabs";
 import { participationAPI } from "@/api/participation";
 import { useNotification } from "@/contexts/NotificationContext";
@@ -21,8 +21,7 @@ export default function ParticipationCRUD() {
   // Helper para gerar a chave única da linha (identificador composto)
   const resolvePresenceKey = useCallback((item: CrudItemType) => {
     const presence = item as ParticipationType;
-    // Usando userNumber conforme solicitado
-    return `${presence.userNumber}__${presence.nameEvent}__${presence.dateEvent}`;
+    return `${presence.user_number}__${presence.name_event}__${presence.date_event}`;
   }, []);
 
   // Busca de dados (Server-side)
@@ -30,12 +29,22 @@ export default function ParticipationCRUD() {
     try {
       setLoading(true);
       setError(null);
+
+
+      const sortFieldApi = API_FIELD_MAP[params?.sortField ?? ""] || params?.sortField || "event_init_date";
+      const filterFieldApi = params?.filterField ? (API_FIELD_MAP[params.filterField] || params.filterField) : "user_number";
+      
+      if (filterFieldApi == "event_init_date") {
+        showNotification(`A busca por esse campo está desativada`, "error");
+        return;
+      }
+
       const response = await participationAPI.getAll(
         params?.page ?? 1,
         params?.pageSize ?? 10,
-        params?.sortField ?? "event_init_date",
+        sortFieldApi,
         params?.sortOrder ?? "asc",
-        params?.filterField && params?.filterValue ? params.filterField : undefined,
+        filterFieldApi,
         params?.filterValue || undefined
       );
       
@@ -82,9 +91,9 @@ export default function ParticipationCRUD() {
       if (!originalPresence) return;
 
       await participationAPI.update(
-        originalPresence.userNumber, // Identificador original
-        originalPresence.nameEvent,
-        originalPresence.dateEvent,
+        originalPresence.user_number, 
+        originalPresence.name_event,
+        originalPresence.date_event,
         typedItem
       );
 
@@ -105,9 +114,9 @@ export default function ParticipationCRUD() {
       if (!presence) return;
 
       await participationAPI.delete(
-        presence.userNumber, 
-        presence.nameEvent,
-        presence.dateEvent
+        presence.user_number, 
+        presence.name_event,
+        presence.date_event
       );
 
       setData((prev) => prev.filter((p) => resolvePresenceKey(p) !== itemKey));

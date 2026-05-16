@@ -22,6 +22,12 @@ export default function Events() {
     try {
       setLoading(true);
       setError(null);
+
+      if (params?.filterField == "dateInit" || params?.filterField == "dateEnd") {
+        showNotification(`A busca por esse campo está desativada`, "error");
+        return;
+      }
+
       const response = await eventsAPI.getAll(
         params?.page ?? 1,
         params?.pageSize ?? 10,
