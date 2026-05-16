@@ -61,7 +61,7 @@ export default function UsersCRUD() {
         return;
       }
 
-      await userSemcompAPI.update(typedItem.id, {
+      await userSemcompAPI.update(typedItem.user_number, {
         name: typedItem.name,
         email: typedItem.email,
         ...(typedItem.password && { password: typedItem.password }),
@@ -128,11 +128,11 @@ export default function UsersCRUD() {
             {error}
           </div>
         )}
-        {loading && data.length === 0 ? (
+        {loading && data.length === 0 && (
           <div className="flex items-center justify-center py-12">
             <p className="text-slate-400">Carregando usuários...</p>
           </div>
-        ) : (
+        )} 
           <CrudTable
             data={data}
             fields={fields}
@@ -144,7 +144,6 @@ export default function UsersCRUD() {
             totalRecords={totalRecords}
             onQueryChange={handleQueryChange}
           />
-        )}
       </div>
     </section>
   );

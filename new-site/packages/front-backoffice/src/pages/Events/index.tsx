@@ -144,11 +144,11 @@ export default function Events() {
             {error}
           </div>
         )}
-        {loading && data.length === 0 ? (
+        {loading && data.length === 0 && (
           <div className="flex items-center justify-center py-12">
             <p className="text-slate-400">Carregando eventos...</p>
           </div>
-        ) : (
+        )}
           <CrudTable
             data={data}
             fields={fields}
@@ -162,7 +162,6 @@ export default function Events() {
             totalRecords={totalRecords}
             onQueryChange={handleQueryChange}
           />
-        )}
       </div>
     </section>
   );

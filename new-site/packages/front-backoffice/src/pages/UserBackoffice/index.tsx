@@ -126,11 +126,11 @@ export default function BackofficeUsersCRUD() {
             {error}
           </div>
         )}
-        {loading && data.length === 0 ? (
+        {loading && data.length === 0 && (
           <div className="flex items-center justify-center py-12">
             <p className="text-slate-400">Carregando usuários do backoffice...</p>
           </div>
-        ) : (
+        )} 
           <CrudTable
             data={data}
             fields={fields}
@@ -142,7 +142,6 @@ export default function BackofficeUsersCRUD() {
             totalRecords={totalRecords}
             onQueryChange={handleQueryChange}
           />
-        )}
       </div>
     </section>
   );
