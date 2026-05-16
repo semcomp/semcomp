@@ -62,24 +62,35 @@ const mapToBackendEvent = (event: EventType) => {
   return mapped;
 };
 
+const fieldMap: Record<string, string> = {
+  nameEvent: "name",
+  dateInit: "init_date",
+  dateEnd: "end_date",
+  local: "location",
+  hasPresence: "has_attendance",
+  type: "type",
+  description: "description",
+};
+
 /**
  * API para gerenciar eventos
  */
+
 export const eventsAPI = {
-  /**
-   * Lista todos os eventos com paginação e filtros
-   */
   getAll: async (
     page = 1,
-    limit = 50,
+    limit = 10,
     sortBy = "init_date",
     sortOrder = "asc",
     searchBy?: string,
     searchValue?: string
   ): Promise<EventsListResponse> => {
-    let url = `/events?page=${page}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
-    if (searchBy && searchValue) {
-      url += `&search_by=${searchBy}&search_value=${searchValue}`;
+    const backendSortBy = fieldMap[sortBy] ?? sortBy;
+    const backendSearchBy = searchBy ? (fieldMap[searchBy] ?? searchBy) : undefined;
+
+    let url = `/events?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
+    if (backendSearchBy && searchValue) {
+      url += `&search_by=${backendSearchBy}&search_value=${searchValue}`;
     }
     const response = await client.get<any>(url);
     return {
@@ -87,6 +98,7 @@ export const eventsAPI = {
       events: response.data.events.map(mapBackendEvent),
     };
   },
+
 
   /**
    * Busca um evento específico

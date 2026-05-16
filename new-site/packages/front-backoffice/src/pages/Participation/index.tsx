@@ -1,39 +1,55 @@
 import { CrudTable } from "@/components/CrudTable";
-import { useState, useEffect } from "react";
+import type { CrudQueryParams } from "@/types/CrudItem";
+import type { CrudItemType } from "@/types/CrudItem";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
 import type { ParticipationType } from "@/types/ParticipationType";
-import { fields } from "@/data/participationCrudField";
-import type { CrudItemType } from "@/types/CrudItem";
+import { API_FIELD_MAP, fields } from "@/data/participationCrudField";
 import { Tabs } from "@/constants/Tabs";
-import { participationsAPI } from "@/api/participations";
+import { participationAPI } from "@/api/participation";
 import { useNotification } from "@/contexts/NotificationContext";
 
 export default function ParticipationCRUD() {
   const navigate = useNavigate();
   const [data, setData] = useState<ParticipationType[]>([]);
-  const [, setLoading] = useState(true);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showNotification } = useNotification();
 
-  // Mostrar notificação de erro quando houver
-  useEffect(() => {
-    if (error !== null) {
-      showNotification(error as string, "warning");
-    }
-  }, [error, showNotification]);
-
-  // Buscar participações ao montar o componente
-  useEffect(() => {
-    fetchParticipations();
+  // Helper para gerar a chave única da linha (identificador composto)
+  const resolvePresenceKey = useCallback((item: CrudItemType) => {
+    const presence = item as ParticipationType;
+    return `${presence.user_number}__${presence.name_event}__${presence.date_event}`;
   }, []);
 
-  const fetchParticipations = async () => {
+  // Busca de dados (Server-side)
+  const fetchPresences = useCallback(async (params?: CrudQueryParams) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await participationsAPI.getAll();
+
+
+      const sortFieldApi = API_FIELD_MAP[params?.sortField ?? ""] || params?.sortField || "event_init_date";
+      const filterFieldApi = params?.filterField ? (API_FIELD_MAP[params.filterField] || params.filterField) : "user_number";
+      
+      if (filterFieldApi == "event_init_date") {
+        showNotification(`A busca por esse campo está desativada`, "error");
+        return;
+      }
+
+      const response = await participationAPI.getAll(
+        params?.page ?? 1,
+        params?.pageSize ?? 10,
+        sortFieldApi,
+        params?.sortOrder ?? "asc",
+        filterFieldApi,
+        params?.filterValue || undefined
+      );
+      
       setData(response.presences || []);
+      setTotalRecords(response.filtered_records ?? response.total_records ?? 0);
     } catch (err) {
       console.error("Erro ao buscar participações:", err);
       setError("Erro ao carregar participações");
@@ -41,99 +57,79 @@ export default function ParticipationCRUD() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const resolveParticipationKey = (participation: CrudItemType) => {
-    const typed = participation as ParticipationType;
-    return `${typed.nameUser}__${typed.nameEvent}__${typed.dateEvent}`;
+  // Efeito inicial para carregar dados
+  useEffect(() => {
+    fetchPresences();
+  }, [fetchPresences]);
+
+
+  const handleQueryChange = (params: CrudQueryParams) => {
+    fetchPresences(params);
   };
 
   const handleCreate = async (item: CrudItemType) => {
     try {
       const typedItem = item as ParticipationType;
-      const newParticipation = await participationsAPI.create({
-        nameUser: typedItem.nameUser,
-        nameEvent: typedItem.nameEvent,
-        dateEvent: typedItem.dateEvent,
-        userBackoffice: typedItem.userBackoffice,
-      });
-      setData((prev) => [...prev, newParticipation]);
-      
-      // Recarregar dados do servidor para garantir sincronização
-      await fetchParticipations();
-      
-      showNotification("Participação criada com sucesso!", "success");
+      const createdPresence = await participationAPI.create(typedItem);
+
+      setData((prev) => [...prev, createdPresence]);
+      setTotalRecords((prev) => prev + 1);
+      showNotification("Presença criada com sucesso", "success");
     } catch (err: any) {
-      console.error("Erro ao criar participação:", err);
-      // Tentar extrair mensagem de erro de diferentes fontes
-      const errorMessage = 
-        err.message || 
-        err.response?.data?.message || 
-        err.response?.data?.error ||
-        "Erro ao criar participação";
-      setError(errorMessage);
-      showNotification(errorMessage, "error");
+      const msg = err.response?.data?.message || "Erro ao criar presença";
+      showNotification(msg, "error");
     }
   };
 
   const handleEdit = async (item: CrudItemType, itemKey: string) => {
     try {
       const typedItem = item as ParticipationType;
-      const originalParticipation = data.find((p) => resolveParticipationKey(p) === itemKey);
-      if (!originalParticipation) {
-        throw new Error("Participação original não encontrada");
-      }
+      const originalPresence = data.find((p) => resolvePresenceKey(p) === itemKey);
 
-      await participationsAPI.update(
-        originalParticipation.nameUser,
-        originalParticipation.nameEvent,
-        originalParticipation.dateEvent,
+      if (!originalPresence) return;
+
+      await participationAPI.update(
+        originalPresence.user_number, 
+        originalPresence.name_event,
+        originalPresence.date_event,
         typedItem
       );
 
-      // Após sucesso, recarregar dados do servidor
-      await fetchParticipations();
-      
-      showNotification("Participação atualizada com sucesso!", "success");
+      setData((prev) =>
+        prev.map((p) => (resolvePresenceKey(p) === itemKey ? typedItem : p))
+      );
+
+      showNotification("Presença editada com sucesso", "success");
     } catch (err: any) {
-      console.error("Erro ao editar participação:", err);
-      const errorMessage = 
-        err.message || 
-        err.response?.data?.message || 
-        err.response?.data?.error ||
-        "Erro ao editar participação";
-      setError(errorMessage);
-      showNotification(errorMessage, "error");
+      const msg = err.response?.data?.message || "Erro ao editar presença";
+      showNotification(msg, "error");
     }
   };
 
   const handleDelete = async (itemKey: string) => {
     try {
-      const participation = data.find((p) => resolveParticipationKey(p) === itemKey);
-      if (!participation) return;
+      const presence = data.find((p) => resolvePresenceKey(p) === itemKey);
+      if (!presence) return;
 
-      await participationsAPI.delete(
-        participation.nameUser,
-        participation.nameEvent,
-        participation.dateEvent
+      await participationAPI.delete(
+        presence.user_number, 
+        presence.name_event,
+        presence.date_event
       );
-      setData((prev) => prev.filter((p) => resolveParticipationKey(p) !== itemKey));
-      showNotification("Participação deletada com sucesso!", "success");
+
+      setData((prev) => prev.filter((p) => resolvePresenceKey(p) !== itemKey));
+      setTotalRecords((prev) => prev - 1);
+      showNotification("Presença deletada com sucesso", "success");
     } catch (err: any) {
-      console.error("Erro ao deletar participação:", err);
-      const errorMessage = 
-        err.message || 
-        err.response?.data?.message || 
-        err.response?.data?.error ||
-        "Erro ao deletar participação";
-      setError(errorMessage);
-      showNotification(errorMessage, "error");
+      const msg = err.response?.data?.message || "Erro ao deletar presença";
+      showNotification(msg, "error");
     }
   };
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6 overflow-x-auto scrollbar-hide">
-      {/* Header card situando a página */}
       <BannerCard
         icon={Tabs.find((tab) => tab.key === "participation")?.icon}
         iconClassName="text-violet-400"
@@ -147,16 +143,28 @@ export default function ParticipationCRUD() {
         descriptionClassName="text-slate-400 mt-1"
       />
 
-      {/* Tabela de participações */}
       <div className="rounded-xl border border-border bg-card/80 p-5">
+        {error && (
+            <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
+              {error}
+            </div>
+          )}
+          {loading && data.length === 0 && (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-slate-400">Carregando eventos...</p>
+            </div>
+          )}
         <CrudTable
           data={data}
           fields={fields}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onCreate={handleCreate}
-          getItemKey={resolveParticipationKey}
+          getItemKey={resolvePresenceKey}
           entityLabel="participação"
+          serverSide
+          totalRecords={totalRecords}
+          onQueryChange={handleQueryChange}
         />
       </div>
     </section>

@@ -47,7 +47,7 @@ export interface CrudTableProps {
   onQueryChange?: (params: CrudQueryParams) => void;
 }
 
-const PAGE_SIZE_OPTIONS = [2, 5, 10, 20, 50];
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
 
 export function CrudTable({
   data,
@@ -132,11 +132,13 @@ export function CrudTable({
 
   // Notifica o pai quando qualquer parâmetro de query muda (modo server-side)
   useEffect(() => {
-    if (!serverSide || !onQueryChange) return;
     if (!isMounted.current) {
       isMounted.current = true;
-      return;
+      return () => { isMounted.current = false; };
     }
+    
+    if (!serverSide || !onQueryChange) return;
+    console.log("Query changed:", { page, pageSize, sortField, sortOrder, filterField, filter });
     onQueryChange({ page, pageSize, sortField, sortOrder, filterField, filterValue: filter });
   }, [page, pageSize, sortField, sortOrder, filterField, filter]);
 
@@ -335,12 +337,12 @@ export function CrudTable({
             <Input
               placeholder={`Filtrar por ${fields.find(f => f.value === filterField)?.label ?? "campo"}…`}
               value={filter}
-              onChange={e => handleFilterChange(e.target.value)}
+              onChange={e => {handleFilterChange(e.target.value); if (serverSide && onQueryChange) onQueryChange({ page: 1, pageSize, sortField, sortOrder, filterField, filterValue: e.target.value });}}
               className="pl-9 bg-muted/40 border-muted/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
             />
             {filter && (
               <button
-                onClick={() => handleFilterChange("")}
+                onClick={() => {handleFilterChange(""); if (serverSide && onQueryChange) onQueryChange({ page: 1, pageSize, sortField, sortOrder, filterField, filterValue: "" });}}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
@@ -479,7 +481,7 @@ export function CrudTable({
                 <TableHead
                   key={f.value}
                   className="cursor-pointer select-none text-muted-foreground text-xs font-semibold uppercase tracking-wider hover:text-primary transition-colors"
-                  onClick={() => handleSort(f.value)}
+                  onClick={() => {handleSort(f.value); if (serverSide && onQueryChange) onQueryChange({ page: 1, pageSize, sortField, sortOrder, filterField, filterValue: filter });} }
                 >
                   {f.label}
                   <SortIcon field={f.value} />
