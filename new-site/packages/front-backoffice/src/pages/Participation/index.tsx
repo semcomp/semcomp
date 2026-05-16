@@ -144,6 +144,16 @@ export default function ParticipationCRUD() {
       />
 
       <div className="rounded-xl border border-border bg-card/80 p-5">
+        {error && (
+            <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
+              {error}
+            </div>
+          )}
+          {loading && data.length === 0 && (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-slate-400">Carregando eventos...</p>
+            </div>
+          )}
         <CrudTable
           data={data}
           fields={fields}
