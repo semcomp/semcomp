@@ -33,7 +33,7 @@ type PresenceListQuery struct {
 }
 
 type PresenceListResult struct {
-	Presences       []Presence
-	TotalRecords    int64
-	FilteredRecords int64
+	Presences       []Presence	`json:"presences"`
+	TotalRecords    int64				`json:"total_records"`
+	FilteredRecords int64				`json:"filtered_records"`	
 }
