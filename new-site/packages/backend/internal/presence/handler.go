@@ -74,12 +74,12 @@ func (h *PresenceHandler) GetPresences(c *gin.Context) {
 }
 
 // GetPresenceByNameEventandInitDate retorna uma presença específica buscando por nome, evento e data de início.
-func (h *PresenceHandler) GetPresenceByNameEventandInitDate(c *gin.Context) {
-	name := c.Param("name")
+func (h *PresenceHandler) GetPresenceByUserEventandInitDate(c *gin.Context) {
+	userNumber := c.Param("userNumber")
 	eventName := c.Param("eventName")
 	eventInitDate := c.Param("eventInitDate")
 
-	presence, err := h.presenceService.GetPresenceByNameEventandInitDate(name, eventName, eventInitDate)
+	presence, err := h.presenceService.GetPresenceByUserEventandInitDate(userNumber, eventName, eventInitDate)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
 			c.Set("responseMessage", "Formato de data inválido")
@@ -101,8 +101,8 @@ func (h *PresenceHandler) GetPresenceByNameEventandInitDate(c *gin.Context) {
 }
 
 // UpdatePresenceByNameEventandInitDate atualiza uma presença existente identificada por nome, evento e data de início.
-func (h *PresenceHandler) UpdatePresenceByNameEventandInitDate(c *gin.Context) {
-	name := c.Param("name")
+func (h *PresenceHandler) UpdatePresenceByUserEventandInitDate(c *gin.Context) {
+	userNumber := c.Param("userNumber")
 	eventName := c.Param("eventName")
 	eventInitDate := c.Param("eventInitDate")
 
@@ -113,7 +113,7 @@ func (h *PresenceHandler) UpdatePresenceByNameEventandInitDate(c *gin.Context) {
 		return
 	}
 
-	err := h.presenceService.UpdatePresenceByNameEventandInitDate(name, eventName, eventInitDate, request)
+	err := h.presenceService.UpdatePresenceByUserEventandInitDate(userNumber, eventName, eventInitDate, request)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
 			c.Set("responseMessage", "Data inválida. Use o formato RFC3339")
@@ -145,12 +145,12 @@ func (h *PresenceHandler) UpdatePresenceByNameEventandInitDate(c *gin.Context) {
 }
 
 // DeletePresenceByNameEventandInitDate remove uma presença identificada por nome, evento e data de início.
-func (h *PresenceHandler) DeletePresenceByNameEventandInitDate(c *gin.Context) {
-	name := c.Param("name")
+func (h *PresenceHandler) DeletePresenceByUserEventandInitDate(c *gin.Context) {
+	userNumber := c.Param("userNumber")
 	eventName := c.Param("eventName")
 	eventInitDate := c.Param("eventInitDate")
 
-	err := h.presenceService.DeletePresenceByNameEventandInitDate(name, eventName, eventInitDate)
+	err := h.presenceService.DeletePresenceByUserEventandInitDate(userNumber, eventName, eventInitDate)
 	if err != nil {
 		if errors.Is(err, ErrInvalidEventDate) {
 			c.Set("responseMessage", "Data inválida. Use o formato RFC3339")

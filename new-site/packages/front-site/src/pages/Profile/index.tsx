@@ -54,7 +54,7 @@ let events: Evento[] = [
     data: "2026-05-16",
     horaStart: "19:00",
     horaEnd: "23:00",
-    linkInscricao: ""
+    linkInscricao: "https://forms.gle/9Am3Hwijdyw7r91h8"
   },
 ];
 
@@ -121,11 +121,11 @@ export default function Profile({
     ? "shadow-[inset_0_-180px_40px_-40px_theme(colors.semcompDarkBlue/100%)]"
     : "shadow-[inset_0_-180px_40px_-40px_theme(colors.semcompMidLight/100%)]";
 
-  // Retirado o useEffect de sobrescrita hardcoded params para não conflitar com API
   useEffect(() => {
-    // Apenas garante que se o QR mudar explicitamente externamente, atualize
-    setQrData(qrValue);
-  }, [qrValue]);
+    if(userCode != code){
+      setQrData(userCode);
+    }
+  }, [userCode]);
 
   // Card de Evento -Mobile
   const EventCardMobile = ({ ev }: { ev: Evento }) => {

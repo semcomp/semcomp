@@ -92,6 +92,8 @@ func applySearchFilter(dbQuery *gorm.DB, query EventListQuery) *gorm.DB {
 		return dbQuery.Where("description ILIKE ?", "%"+query.SearchValue+"%")
 	case "init_date":
 		return dbQuery.Where("init_date = ?", query.SearchValue)
+	case "end_date":
+		return dbQuery.Where("init_date = ?", query.SearchValue)
 	case "has_attendance":
 		return dbQuery.Where("has_attendance = ?", query.SearchValue)
 	default:
@@ -103,6 +105,7 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 	allowedSortFields := []string{
 		"name",
 		"init_date",
+		"end_date",
 		"type",
 		"location",
 		"description",
