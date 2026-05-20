@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import useWindowDimensions from "@/hooks/useWindowDimensions";
-import { useTheme } from "@/contexts/useTheme";
+import { useSectionStyles } from "@/hooks/useSectionStyles";
+import { ANIMATIONS, ANIMATION_VIEWPORT } from "@/lib/animations";
 import { FaLinkedin, FaInstagram } from "react-icons/fa";
 import SemcompInfo from "../../../lib/constants/SemcompInfo"
 import LogoSemcomp from "../../../assets/img/semcomp/logo_default_branco.webp"
@@ -10,45 +10,33 @@ type ContatoSectionProps = {
 };
 
 const ContatoSection = ({ className }: ContatoSectionProps) => {
-  const { width } = useWindowDimensions();
-  const { isDarkMode } = useTheme();
-
-  const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
-  const sectionPadding = width > 768 ? "py-16" : "py-10";
-  const headingSize = width > 768 ? "text-3xl" : "text-xl";
-
-  const fadeIn = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-  };
+  const { textColor, isDarkMode } = useSectionStyles();
 
   return (
     <footer
       id="contato"
-      className={`border-t border-white/10 ${sectionPadding} ${className}`}
+      className={`border-t border-white/10 py-10 md:py-16 ${className}`}
     >
       <div className="mx-auto max-w-[80%] flex flex-col md:flex-row items-center md:items-start justify-between">
 
         <div className="text-center md:text-left">
           <motion.h2
-            className={`${headingSize} font-extrabold mb-4`}
+            className="text-xl md:text-3xl font-extrabold mb-4"
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
+            viewport={ANIMATION_VIEWPORT}
+            variants={ANIMATIONS.softFadeIn}
           >
             <span className={`${textColor}`}>TEM ALGUMA DÚVIDA? <br/> FALE CONOSCO</span>
-            
           </motion.h2>
 
           <motion.div
             className={`flex flex-col gap-1 ${textColor}`}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
+            viewport={ANIMATION_VIEWPORT}
+            variants={ANIMATIONS.softFadeIn}
           >
-
             <a
               href={`mailto:${SemcompInfo.ORGANIZING_COMMITTEE_EMAIL}`}
               className="hover:underline"
@@ -69,8 +57,8 @@ const ContatoSection = ({ className }: ContatoSectionProps) => {
           className="flex gap-3 pt-10"
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeIn}
+          viewport={ANIMATION_VIEWPORT}
+          variants={ANIMATIONS.softFadeIn}
         >
           <a
             href={SemcompInfo.ORGANIZING_COMMITTEE_INSTAGRAM_LINK}
@@ -103,7 +91,6 @@ const ContatoSection = ({ className }: ContatoSectionProps) => {
 
       <div className="mt-10 text-center text-sm opacity-70">
         © {new Date().getFullYear()} Semcomp — ICMC USP — Feito com {isDarkMode ? "🤍": "💙"} por <a href="https://codelab.icmc.usp.br/" className={`no-underline hover:underline hover:decoration ${isDarkMode ? "text-[#5fccad]" : "text-[#488578]"}`}>USPCodelab Sanca</a>  
-
       </div>
     </footer>
   );
