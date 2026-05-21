@@ -1,8 +1,8 @@
 package event
 
 import (
+	"backend/internal/apierrors"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Esses vars de erro serão retirados posteriormente
 var (
 	ErrInvalidEventDate = errors.New("invalid event date format")
 	ErrEventNotFound    = errors.New("event not found")
@@ -34,9 +35,9 @@ func NewEventService(repo EventRepository) EventService {
 
 func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
 	if _, err := s.repo.GetByNameAndInitTime(request.Name, request.InitDate); err == nil {
-		return nil, ErrEventConflict
+		return nil, apierrors.ConflictError("Evento já existe", err)
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao verificar evento já existente", err)
 	}
 
 	newEvent := Event{
@@ -50,7 +51,7 @@ func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
 	}
 
 	if err := s.repo.Create(&newEvent); err != nil {
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao criar evento", err)
 	}
 
 	return &newEvent, nil
@@ -59,15 +60,15 @@ func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
 func (s *eventService) GetEventByNameAndInitDate(name string, initDate string) (*Event, error) {
 	initTime, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
-		return nil, ErrInvalidEventDate
+		return nil, apierrors.ValidationError("Data inválida. Use o formato RFC3339", err)
 	}
 
 	event, err := s.repo.GetByNameAndInitTime(name, initTime)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrEventNotFound
+			return nil, apierrors.NotFoundError("Evento não encontrado", err)
 		}
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao buscar evento", err)
 	}
 
 	return event, nil
@@ -76,15 +77,15 @@ func (s *eventService) GetEventByNameAndInitDate(name string, initDate string) (
 func (s *eventService) DeleteEventByNameAndInitDate(name string, initDate string) error {
 	initTime, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
-		return ErrInvalidEventDate
+		return apierrors.ValidationError("Data inválida. Use o formato RFC3339", err)
 	}
 
 	err = s.repo.DeleteByNameAndInitTime(name, initTime)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrEventNotFound
+			return apierrors.NotFoundError("Evento não encontrado", err)
 		}
-		return err
+		return apierrors.InternalServerError("Erro ao remover evento", err)
 	}
 
 	return nil
@@ -93,14 +94,14 @@ func (s *eventService) DeleteEventByNameAndInitDate(name string, initDate string
 func (s *eventService) UpdateEventByNameAndInitDate(name string, initDate string, request UpdateEventRequest) (*Event, error) {
 	originalInitTime, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
-		return nil, ErrInvalidEventDate
+		return nil, apierrors.ValidationError("Data inválida. Use o formato RFC3339", err)
 	}
 
 	if name != request.Name || !originalInitTime.Equal(request.InitDate) {
 		if _, err := s.repo.GetByNameAndInitTime(request.Name, request.InitDate); err == nil {
-			return nil, ErrEventConflict
+			return nil, apierrors.ConflictError("Evento já existe", err)
 		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, err
+			return nil, apierrors.InternalServerError("Erro ao verificar evento já existente", err)
 		}
 	}
 
@@ -117,9 +118,9 @@ func (s *eventService) UpdateEventByNameAndInitDate(name string, initDate string
 	err = s.repo.UpdateByNameAndInitTime(name, originalInitTime, &event)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrEventNotFound
+			return nil, apierrors.NotFoundError("Evento não encontrado", err)
 		}
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao atualizar evento", err)
 	}
 
 	return &event, nil
@@ -127,11 +128,11 @@ func (s *eventService) UpdateEventByNameAndInitDate(name string, initDate string
 
 func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*EventListResult, error) {
 	if page < 1 {
-		return nil, fmt.Errorf("Page deve ser maior que 0")
+		return nil, apierrors.ValidationError("Page deve ser maior que 0", nil)
 	}
 
 	if limit < 1 {
-		return nil, fmt.Errorf("Limit deve ser maior que 0")
+		return nil, apierrors.ValidationError("Limit deve ser maior que 0", nil)
 	}
 
 	if sortBy == "" {
@@ -148,7 +149,7 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 	allowedSortFields := map[string]bool{
 		"name":           true,
 		"init_date":      true,
-		"end_date":      true,
+		"end_date":       true,
 		"type":           true,
 		"location":       true,
 		"description":    true,
@@ -156,15 +157,15 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 	}
 
 	if !allowedSortFields[sortBy] {
-		return nil, fmt.Errorf("Parametro 'sort_by' inválido")
+		return nil, apierrors.ValidationError("Parametro 'sort_by' inválido", nil)
 	}
 
 	if sortOrder != "asc" && sortOrder != "desc" {
-		return nil, fmt.Errorf("Parametro 'sort_order' inválido")
+		return nil, apierrors.ValidationError("Parametro 'sort_order' inválido", nil)
 	}
 
 	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
-		return nil, fmt.Errorf("Parametro 'search_by' e 'search_value' devem ser fornecidos juntos")
+		return nil, apierrors.ValidationError("Parametro 'search_by' e 'search_value' devem ser fornecidos juntos", nil)
 	}
 
 	if searchBy != "" {
@@ -173,7 +174,7 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 		allowedSearchFields := map[string]bool{
 			"name":           true,
 			"init_date":      true,
-			"end_date":      true,
+			"end_date":       true,
 			"type":           true,
 			"location":       true,
 			"description":    true,
@@ -181,13 +182,13 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 		}
 
 		if !allowedSearchFields[searchBy] {
-			return nil, fmt.Errorf("Parametro 'search_by' inválido")
+			return nil, apierrors.ValidationError("Parametro 'search_by' inválido", nil)
 		}
 
 		if searchBy == "init_date" {
 			parsedInitDate, err := time.Parse(time.RFC3339, searchValue)
 			if err != nil {
-				return nil, fmt.Errorf("Parametro 'search_value' inválido para init_date, use RFC3339")
+				return nil, apierrors.ValidationError("Parametro 'search_value' inválido para init_date, use RFC3339", nil)
 			}
 			searchValue = parsedInitDate.Format(time.RFC3339)
 		}
@@ -195,14 +196,14 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 		if searchBy == "end_date" {
 			parsedEndDate, err := time.Parse(time.RFC3339, searchValue)
 			if err != nil {
-				return nil, fmt.Errorf("invalid search_value for end_date, use RFC3339")
+				return nil, apierrors.ValidationError("Parametro 'search_value' inválido para end_date, use RFC3339", nil)
 			}
 			searchValue = parsedEndDate.Format(time.RFC3339)
 		}
 
 		if searchBy == "has_attendance" {
 			if _, err := strconv.ParseBool(searchValue); err != nil {
-				return nil, fmt.Errorf("Parametro 'search_value' inválido para has_attendance")
+				return nil, apierrors.ValidationError("Parametro 'search_value' inválido para has_attendance", nil)
 			}
 		}
 	}
