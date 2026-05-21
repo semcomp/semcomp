@@ -29,13 +29,13 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 	if err != nil {
 
 		if errors.Is(err, ErrEventConflict) {
-      		c.Set("responseMessage", "Evento já existe")
+			c.Set("responseMessage", "Evento já existe")
 			c.JSON(http.StatusConflict, gin.H{"error": "Evento já existe"})
 			return
 		}
 
-    c.Set("internalError", err)
-    c.Set("responseMessage", "Erro ao criar evento")
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro ao criar evento")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar evento"})
 		return
 	}
@@ -65,7 +65,7 @@ func (h *EventHandler) GetEventByNameAndInitDate(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Evento não encontrado"})
 			return
 		}
-    c.Set("internalError", err)
+		c.Set("internalError", err)
 		c.Set("responseMessage", "Erro ao buscar evento")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao obter evento"})
 		return
@@ -91,7 +91,7 @@ func (h *EventHandler) DeleteEventByNameAndInitDate(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Evento não encontrado"})
 			return
 		}
-    c.Set("internalError", err)
+		c.Set("internalError", err)
 		c.Set("responseMessage", "Erro na remoção do evento")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao remover evento"})
 		return
@@ -124,7 +124,7 @@ func (h *EventHandler) UpdateEventByNameAndInitDate(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Evento não encontrado"})
 			return
 		}
-    c.Set("internalError", err)
+		c.Set("internalError", err)
 		c.Set("responseMessage", "Erro ao atualizar evento")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao atualizar evento"})
 		return
@@ -163,7 +163,7 @@ func (h *EventHandler) GetEvents(c *gin.Context) {
 
 	result, err := h.eventService.GetEvents(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
-    c.Set("responseMessage", "Erro ao listar eventos")
+		c.Set("responseMessage", "Erro ao listar eventos")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Erro na requisição ao listar eventos"})
 		return
 	}
