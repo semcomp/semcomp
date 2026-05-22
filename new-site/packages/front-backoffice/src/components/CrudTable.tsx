@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   ChevronDown, ChevronUp, ChevronsUpDown, ScanQrCode, Search, Plus, Pencil, Trash2, X,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
@@ -20,6 +20,15 @@ export interface CrudField {
   multiValueOptions?: string[];
 }
 
+export interface CrudQueryParams {
+  page: number;
+  pageSize: number;
+  sortField: string;
+  sortOrder: "asc" | "desc";
+  filterField: string;
+  filterValue: string;
+}
+
 export interface CrudTableProps {
   data: CrudItemType[];
   fields: CrudField[];
@@ -30,9 +39,15 @@ export interface CrudTableProps {
   getItemKey?: (item: CrudItemType) => string;
   entityLabel?: string;
   defaultPageSize?: number;
+  /** Ativa modo server-side: filtragem/sort/paginação são delegados ao pai */
+  serverSide?: boolean;
+  /** Total de registros no servidor (usado para calcular páginas no modo server-side) */
+  totalRecords?: number;
+  /** Callback chamado sempre que page, pageSize, sort ou filtro mudam (modo server-side) */
+  onQueryChange?: (params: CrudQueryParams) => void;
 }
 
-const PAGE_SIZE_OPTIONS = [2, 5, 10, 20, 50];
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100, 200];
 
 export function CrudTable({
   data,
@@ -44,6 +59,9 @@ export function CrudTable({
   getItemKey,
   entityLabel = "item",
   defaultPageSize = 10,
+  serverSide = false,
+  totalRecords,
+  onQueryChange,
 }: CrudTableProps) {
   const [filter, setFilter] = useState("");
   const [filterField, setFilterField] = useState(fields[0]?.value ?? "name");
@@ -92,6 +110,14 @@ export function CrudTable({
     return fieldKey || JSON.stringify(item);
   };
 
+  // formata a hora vinda do GET do backend para deixar como valor no input
+  const formatDateForInput = (val: unknown): string => {
+    if (!val || typeof val !== "string") return "";
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return val;
+    return d.toISOString().slice(0, 16);
+  };
+
   const toggleMultiValue = (fieldValue: string, option: string) => {
     setFormData((prev) => {
       const current = normalizeToStringArray(prev[fieldValue]);
@@ -100,6 +126,13 @@ export function CrudTable({
       return { ...prev, [fieldValue]: next };
     });
   };
+
+
+  // Notifica o pai quando qualquer parâmetro de query muda (modo server-side)
+  useEffect(() => {
+    if (!serverSide || !onQueryChange) return;
+    onQueryChange({ page, pageSize, sortField, sortOrder, filterField, filterValue: filter });
+  }, [page, pageSize, sortField, sortOrder, filterField, filter]);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -122,7 +155,9 @@ export function CrudTable({
     setPage(1);
   };
 
+  // Modo local: filtra e ordena no cliente
   const filteredAll = useMemo(() => {
+    if (serverSide) return data; // server já entregou os dados corretos
     let result = [...data];
     if (filter.trim()) {
       result = result.filter(item => {
@@ -154,15 +189,18 @@ export function CrudTable({
       return formatForCompare(aVal).localeCompare(formatForCompare(bVal), "pt-BR", { numeric: true }) * direction;
     });
     return result;
-  }, [data, filter, filterField, sortField, sortOrder]);
+  }, [data, filter, filterField, sortField, sortOrder, serverSide]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredAll.length / pageSize));
+  // No modo server-side o total vem do backend; no local é o array filtrado
+  const effectiveTotal = serverSide ? (totalRecords ?? data.length) : filteredAll.length;
+  const totalPages = Math.max(1, Math.ceil(effectiveTotal / pageSize));
   const safePage = Math.min(page, totalPages);
 
   const paginated = useMemo(() => {
+    if (serverSide) return data; // backend já paginiu
     const start = (safePage - 1) * pageSize;
     return filteredAll.slice(start, start + pageSize);
-  }, [filteredAll, safePage, pageSize]);
+  }, [filteredAll, safePage, pageSize, serverSide, data]);
 
   const openEdit = (item: CrudItemType) => {
     setSelectedItem(item);
@@ -198,7 +236,6 @@ export function CrudTable({
 
   const renderCell = (item: CrudItemType, field: CrudField) => {
     const raw = (item as Record<string, unknown>)[field.value];
-
     const val = String(raw ?? "—");
 
     if (field.type === "multivalue") {
@@ -215,6 +252,14 @@ export function CrudTable({
       );
     }
 
+    // formata o valor de data passado ja como UTC vindo do back ou do input 
+    // e oculta a timezone tambem deixando em estilo short
+    if (field.type === "date") {
+      return <span className="text-foreground">
+        {isNaN(Date.parse(val)) ? val : new Date(val).toISOString().slice(0, 16).replace("T", " ")}
+        </span>;
+    }
+
     // For long text fields, ensure word-based wrapping in table cells
     if (field.type === "text" && val.length > 30) {
       return (
@@ -226,6 +271,7 @@ export function CrudTable({
       const cls = field.selectVariants[val] ?? "bg-muted/50 text-foreground";
       return <Badge className={`text-xs font-medium px-2 py-0.5 ${cls}`}>{val}</Badge>;
     }
+
     // Se o texto for muito longo, quebra em múltiplas linhas e limita largura
     if (typeof val === "string" && val.length > 40) {
       return (
@@ -237,8 +283,8 @@ export function CrudTable({
     return <span className="text-foreground">{val}</span>;
   };
 
-  const startItem = filteredAll.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
-  const endItem = Math.min(safePage * pageSize, filteredAll.length);
+  const startItem = effectiveTotal === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const endItem = serverSide ? Math.min(safePage * pageSize, effectiveTotal) : Math.min(safePage * pageSize, filteredAll.length);
 
   const getPageNumbers = (): (number | "...")[] => {
     if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -283,12 +329,12 @@ export function CrudTable({
             <Input
               placeholder={`Filtrar por ${fields.find(f => f.value === filterField)?.label ?? "campo"}…`}
               value={filter}
-              onChange={e => handleFilterChange(e.target.value)}
+              onChange={e => {handleFilterChange(e.target.value); if (serverSide && onQueryChange) onQueryChange({ page , pageSize, sortField, sortOrder, filterField, filterValue: e.target.value });}}
               className="pl-9 bg-muted/40 border-muted/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
             />
             {filter && (
               <button
-                onClick={() => handleFilterChange("")}
+                onClick={() => {handleFilterChange(""); if (serverSide && onQueryChange) onQueryChange({ page , pageSize, sortField, sortOrder, filterField, filterValue: "" });}}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
@@ -312,10 +358,10 @@ export function CrudTable({
         {/* Info + Quantidade por página */}
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span>
-            {filteredAll.length === 0
+            {effectiveTotal === 0
               ? "Nenhum registro"
-              : `${startItem}–${endItem} de ${filteredAll.length} registro${filteredAll.length !== 1 ? "s" : ""}`}
-            {filter && filteredAll.length !== data.length && (
+              : `${startItem}–${endItem} de ${effectiveTotal} registro${effectiveTotal !== 1 ? "s" : ""}`}
+            {!serverSide && filter && filteredAll.length !== data.length && (
               <span className="ml-1 text-slate-600">(filtrado de {data.length})</span>
             )}
           </span>
@@ -323,7 +369,7 @@ export function CrudTable({
             <span className="text-slate-600">Por página:</span>
             <Select
               value={String(pageSize)}
-              onValueChange={v => { setPageSize(Number(v)); setPage(1); }}
+              onValueChange={v => { setPageSize(Number(v)); setPage(1); if (serverSide && onQueryChange) onQueryChange({ page , pageSize: Number(v), sortField, sortOrder, filterField, filterValue: filter }); }}
             >
               <SelectTrigger className="h-7 w-14 bg-muted/40 border-muted/30 text-foreground text-xs px-2">
                 <SelectValue />
@@ -427,7 +473,7 @@ export function CrudTable({
                 <TableHead
                   key={f.value}
                   className="cursor-pointer select-none text-muted-foreground text-xs font-semibold uppercase tracking-wider hover:text-primary transition-colors"
-                  onClick={() => handleSort(f.value)}
+                  onClick={() => {handleSort(f.value); if (serverSide && onQueryChange) onQueryChange({ page, pageSize, sortField, sortOrder, filterField, filterValue: filter });} }
                 >
                   {f.label}
                   <SortIcon field={f.value} />
@@ -576,6 +622,22 @@ export function CrudTable({
                       />
                     )}
                   </div>
+                ) : f.type === "date" ? (
+                  // input de datahora inicio
+                  <Input 
+                    type="datetime-local"
+                    lang="pt-BR"
+                    id={`create-${f.value}`}
+                    value={formatDateForInput(formData[f.value])} // formatação do value vindo do state já salvo
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData((d) => ({
+                        ...d,
+                        [f.value]: val ? new Date(val + "Z").toISOString() : "", // alteração gera salvamento no state
+                      }));
+                    }}
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+                  />
                 ) : (
                   f.value.toLowerCase().includes("desc") || f.value.toLowerCase().includes("obs") || f.value.toLowerCase().includes("coment") ? (
                     <textarea
@@ -676,6 +738,21 @@ export function CrudTable({
                       />
                     )}
                   </div>
+                ) : f.type === "date" ? (
+                  // input de datahora fim
+                  <Input
+                    type="datetime-local"
+                    lang="pt-BR"
+                    value={formatDateForInput(formData[f.value])} //formatação do value do input vindo do state
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData((d) => ({
+                        ...d,
+                        [f.value]: val ? new Date(val + "Z").toISOString() : "", // alteração gera salvamento no state
+                      }));
+                    }}
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+                  />
                 ) : (
                   f.value.toLowerCase().includes("desc") || f.value.toLowerCase().includes("obs") || f.value.toLowerCase().includes("coment") ? (
                     <textarea

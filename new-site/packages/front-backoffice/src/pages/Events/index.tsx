@@ -1,6 +1,7 @@
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
-import { useState, useEffect } from "react";
+import type { CrudQueryParams } from "@/components/CrudTable";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs } from "@/constants/Tabs";
 import { fields } from "@/data/eventsCrudField";
@@ -12,28 +13,31 @@ import { useNotification } from "@/contexts/NotificationContext";
 export default function Events() {
   const navigate = useNavigate();
   const [data, setData] = useState<EventType[]>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showNotification } = useNotification();
 
-  useEffect(() => {
-    if (error !== null) {
-      // Verifica se o erro realmente existe para gerar a notificação
-      showNotification(error as string, "warning");
-    }
-  }, [error]);
-
-  // Buscar eventos ao montar o componente
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async (params?: CrudQueryParams) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await eventsAPI.getAll();
+
+      if (params?.filterField == "dateInit" || params?.filterField == "dateEnd") {
+        showNotification(`A busca por esse campo está desativada`, "error");
+        return;
+      }
+
+      const response = await eventsAPI.getAll(
+        params?.page ?? 1,
+        params?.pageSize ?? 10,
+        params?.sortField ?? "init_date",
+        params?.sortOrder ?? "asc",
+        params?.filterField && params?.filterValue ? params.filterField : undefined,
+        params?.filterValue || undefined,
+      );
       setData(response.events || []);
+      setTotalRecords(response.filtered_records ?? response.total_records ?? 0);
     } catch (err) {
       console.error("Erro ao buscar eventos:", err);
       setError("Erro ao carregar eventos");
@@ -41,6 +45,14 @@ export default function Events() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const handleQueryChange = (params: CrudQueryParams) => {
+    fetchEvents(params);
   };
 
   const resolveEventKey = (event: CrudItemType) => {
@@ -60,12 +72,12 @@ export default function Events() {
         typedItem
       );
 
-      // Atualizar estado local
       setData((prev) =>
         prev.map((event) =>
           resolveEventKey(event) === itemKey ? typedItem : event
         )
       );
+      showNotification("Evento editado com sucesso", "success");
     } catch (err) {
       console.error("Erro ao editar evento:", err);
       setError("Erro ao editar evento");
@@ -81,6 +93,8 @@ export default function Events() {
       setData((prev) =>
         prev.filter((event) => resolveEventKey(event) !== itemKey)
       );
+      setTotalRecords(prev => prev - 1);
+      showNotification("Evento removido com sucesso", "success");
     } catch (err) {
       console.error("Erro ao deletar evento:", err);
       setError("Erro ao deletar evento");
@@ -92,6 +106,8 @@ export default function Events() {
       const typedItem = item as EventType;
       const createdEvent = await eventsAPI.create(typedItem);
       setData((prev) => [...prev, createdEvent]);
+      setTotalRecords(prev => prev + 1);
+      showNotification("Evento criado com sucesso", "success");
     } catch (err: any) {
       console.log(err);
       setError(err.response?.data?.message || "Erro ao criar evento");
@@ -115,7 +131,6 @@ export default function Events() {
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6">
-      {/* Header card situando a página em que está */}
       <BannerCard
         icon={Tabs.find((tab) => tab.key === "events")?.icon}
         iconClassName="text-violet-400"
@@ -129,18 +144,17 @@ export default function Events() {
         descriptionClassName="text-slate-400 mt-1"
       />
 
-      {/* Tabela de Eventos */}
       <div className="rounded-xl border border-border bg-card/80 p-5">
         {error && (
           <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
             {error}
           </div>
         )}
-        {loading ? (
+        {loading && data.length === 0 && (
           <div className="flex items-center justify-center py-12">
             <p className="text-slate-400">Carregando eventos...</p>
           </div>
-        ) : (
+        )}
           <CrudTable
             data={data}
             fields={fields}
@@ -150,8 +164,10 @@ export default function Events() {
             onAction={handleAction}
             getItemKey={resolveEventKey}
             entityLabel="evento"
+            serverSide
+            totalRecords={totalRecords}
+            onQueryChange={handleQueryChange}
           />
-        )}
       </div>
     </section>
   );
