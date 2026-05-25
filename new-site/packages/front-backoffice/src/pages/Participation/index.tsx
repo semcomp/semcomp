@@ -60,14 +60,13 @@ export default function ParticipationCRUD() {
   }, []);
 
   // Efeito inicial para carregar dados
-  useEffect(() => {
-    fetchPresences();
-  }, [fetchPresences]);
+  // useEffect(() => {
+  //   fetchPresences();
+  // }, [fetchPresences]);
 
-
-  const handleQueryChange = (params: CrudQueryParams) => {
+  const handleQueryChange = useCallback((params: CrudQueryParams) => {
     fetchPresences(params);
-  };
+  }, [fetchPresences]);
 
   const handleCreate = async (item: CrudItemType) => {
     try {

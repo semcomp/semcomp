@@ -47,13 +47,13 @@ export default function Events() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  // useEffect(() => {
+  //   fetchEvents();
+  // }, []);
 
-  const handleQueryChange = (params: CrudQueryParams) => {
+  const handleQueryChange = useCallback((params: CrudQueryParams) => {
     fetchEvents(params);
-  };
+  }, [fetchEvents]);
 
   const resolveEventKey = (event: CrudItemType) => {
     const typedEvent = event as EventType;
