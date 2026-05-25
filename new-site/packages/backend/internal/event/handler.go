@@ -1,9 +1,10 @@
 package event
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
+
+	"backend/internal/apierrors"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,23 +21,13 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 	var request CreateEventRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Set("responseMessage", "Dados inválidos")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
 		return
 	}
 
 	event, err := h.eventService.CreateEvent(request)
 	if err != nil {
-
-		if errors.Is(err, ErrEventConflict) {
-			c.Set("responseMessage", "Evento já existe")
-			c.JSON(http.StatusConflict, gin.H{"error": "Evento já existe"})
-			return
-		}
-
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro ao criar evento")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar evento"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Evento criado com sucesso!")
@@ -49,25 +40,7 @@ func (h *EventHandler) GetEventByNameAndInitDate(c *gin.Context) {
 
 	event, err := h.eventService.GetEventByNameAndInitDate(name, initDate)
 	if err != nil {
-		if errors.Is(err, ErrEventConflict) {
-			c.JSON(http.StatusConflict, gin.H{"error": "Evento já existe"})
-			return
-		}
-
-		if errors.Is(err, ErrInvalidEventDate) {
-			c.Set("responseMessage", "Data inválida. Use o formato RFC3339")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
-			return
-		}
-
-		if errors.Is(err, ErrEventNotFound) {
-			c.Set("responseMessage", "Evento não encontrado")
-			c.JSON(http.StatusNotFound, gin.H{"error": "Evento não encontrado"})
-			return
-		}
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro ao buscar evento")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao obter evento"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Evento encontrado com sucesso!")
@@ -80,20 +53,7 @@ func (h *EventHandler) DeleteEventByNameAndInitDate(c *gin.Context) {
 
 	err := h.eventService.DeleteEventByNameAndInitDate(name, initDate)
 	if err != nil {
-		if errors.Is(err, ErrInvalidEventDate) {
-			c.Set("responseMessage", "Data inválida. Use o formato RFC3339")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
-			return
-		}
-
-		if errors.Is(err, ErrEventNotFound) {
-			c.Set("responseMessage", "Evento não encontrado")
-			c.JSON(http.StatusNotFound, gin.H{"error": "Evento não encontrado"})
-			return
-		}
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro na remoção do evento")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao remover evento"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Evento removido com sucesso!")
@@ -106,29 +66,16 @@ func (h *EventHandler) UpdateEventByNameAndInitDate(c *gin.Context) {
 
 	var request UpdateEventRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Set("responseMessage", "Dados inválidos")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
 		return
 	}
 
 	event, err := h.eventService.UpdateEventByNameAndInitDate(name, initDate, request)
 	if err != nil {
-		if errors.Is(err, ErrInvalidEventDate) {
-			c.Set("responseMessage", "Data inválida. Use o formato RFC3339")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
-			return
-		}
-
-		if errors.Is(err, ErrEventNotFound) {
-			c.Set("responseMessage", "Evento não encontrado")
-			c.JSON(http.StatusNotFound, gin.H{"error": "Evento não encontrado"})
-			return
-		}
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro ao atualizar evento")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao atualizar evento"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
+
 	c.Set("responseMessage", "Evento atualizado com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Evento atualizado com sucesso!", "event": event})
 }
@@ -144,8 +91,7 @@ func (h *EventHandler) GetEvents(c *gin.Context) {
 	if pageQuery := c.Query("page"); pageQuery != "" {
 		parsedPage, err := strconv.Atoi(pageQuery)
 		if err != nil {
-			c.Set("responseMessage", "Parâmetro 'page' inválido")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'page' inválido"})
+			apierrors.HandleAPIError(c, apierrors.ValidationError("Parâmetro 'page' inválido", err))
 			return
 		}
 		page = parsedPage
@@ -154,8 +100,7 @@ func (h *EventHandler) GetEvents(c *gin.Context) {
 	if limitQuery := c.Query("limit"); limitQuery != "" {
 		parsedLimit, err := strconv.Atoi(limitQuery)
 		if err != nil {
-			c.Set("responseMessage", "Parâmetro 'limit' inválido")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'limit' inválido"})
+			apierrors.HandleAPIError(c, apierrors.ValidationError("Parâmetro 'limit' inválido", err))
 			return
 		}
 		limit = parsedLimit
@@ -163,8 +108,7 @@ func (h *EventHandler) GetEvents(c *gin.Context) {
 
 	result, err := h.eventService.GetEvents(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
-		c.Set("responseMessage", "Erro ao listar eventos")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Erro na requisição ao listar eventos"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Eventos listados com sucesso!")

@@ -27,7 +27,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	var request LoginUserRequest
 	errReq := c.ShouldBindJSON(&request)
 	if errReq != nil {
-    c.Set("responseMessage", "Requisição de login JSON inválida")
+		c.Set("responseMessage", "Requisição de login JSON inválida")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Requisição JSON inválida"})
 		return
 	}
@@ -47,18 +47,18 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 			return
 		}
 		if errors.Is(errLogin, user.ErrTokenGeneration) {
-      c.Set("internalError", errLogin)
+			c.Set("internalError", errLogin)
 			c.Set("responseMessage", "Erro de autenticação")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao gerar token de autenticação"})
 			return
 		}
 		if errors.Is(errLogin, user.ErrInternalServerError) {
-      c.Set("internalError", errLogin)
+			c.Set("internalError", errLogin)
 			c.Set("responseMessage", "Erro interno do servidor")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha no servidor"})
 			return
 		}
-    c.Set("internalError", errLogin)
+		c.Set("internalError", errLogin)
 		c.Set("responseMessage", "Erro interno do servidor")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha no servidor"})
 		return
@@ -77,7 +77,7 @@ func (h *AuthHandler) ProfileHandler() gin.HandlerFunc {
 		userNumber := c.MustGet("userNumber").(uint)
 		user, err := h.userService.GetUserByID(uint(userNumber))
 		if err != nil {
-      c.Set("internalError", err)
+			c.Set("internalError", err)
 			c.Set("responseMessage", "Falha na busca do perfil")
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Falha ao buscar perfil"})
 			return

@@ -1,6 +1,11 @@
 package apierrors
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 type APIError struct {
 	Code    string `json:"code"`
@@ -66,4 +71,21 @@ func ForbiddenError(message string, err error) *APIError {
 		Status:  http.StatusForbidden,
 		Err:     err,
 	}
+}
+
+func HandleAPIError(c *gin.Context, err error) {
+	var apiErr *APIError
+
+	// Se o erro for do tipo APIError, use as informações para responder
+	if errors.As(err, &apiErr) {
+		c.Set("responseMessage", apiErr.Message)
+		c.JSON(apiErr.Status, apiErr)
+		return
+	}
+
+	// Se o erro não for do tipo APIError, responda com um erro genérico de servidor
+	internalErr := InternalServerError("Erro interno do servidor", err)
+	c.Set("internalError", err)
+	c.Set("responseMessage", internalErr.Message)
+	c.JSON(internalErr.Status, internalErr)
 }
