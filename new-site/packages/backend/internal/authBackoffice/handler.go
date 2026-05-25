@@ -1,9 +1,9 @@
 package authBackoffice
 
 import (
-	"errors"
 	"net/http"
 
+	"backend/internal/apierrors"
 	userBackoffice "backend/internal/userBackoffice"
 
 	"github.com/gin-gonic/gin"
@@ -27,27 +27,19 @@ func (h *AuthBackofficeHandler) LoginBackofficeHandler(c *gin.Context) {
 	var request LoginUserBackofficeRequest
 	errReq := c.ShouldBindJSON(&request)
 	if errReq != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "JSON inválido"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("JSON inválido", errReq))
 		return
 	}
 
 	errValidate := validate.Struct(request)
 	if errValidate != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Dados de login inválidos"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados de login inválidos", errValidate))
 		return
 	}
 
 	backofficeRecord, token, errLogin := h.authBackofficeService.Login(request)
 	if errLogin != nil {
-		if errors.Is(errLogin, ErrInvalidCredentials) {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Email e/ou senha incorretos"})
-			return
-		}
-		if errLogin.Error() == "token generation failed" {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Falha ao gerar token"})
-			return
-		}
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Falha no servidor"})
+		apierrors.HandleAPIError(c, errLogin)
 		return
 	}
 

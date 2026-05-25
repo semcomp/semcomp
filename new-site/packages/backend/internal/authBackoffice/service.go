@@ -10,11 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var (
-	ErrEmailAlreadyExists = errors.New("email already exists")
-	ErrInvalidCredentials = errors.New("invalid email or password")
-)
-
 type AuthBackofficeService interface {
 	Login(request LoginUserBackofficeRequest) (*userBackoffice.UserBackoffice, string, error)
 }

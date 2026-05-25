@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"errors"
 	"net/http"
 
+	"backend/internal/apierrors"
 	user "backend/internal/user"
 
 	"github.com/gin-gonic/gin"
@@ -27,40 +27,19 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	var request LoginUserRequest
 	errReq := c.ShouldBindJSON(&request)
 	if errReq != nil {
-		c.Set("responseMessage", "Requisição de login JSON inválida")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Requisição JSON inválida"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Requisição inválida", errReq))
 		return
 	}
 
 	errValidate := validate.Struct(request)
 	if errValidate != nil {
-		c.Set("responseMessage", "Invalid auth request: "+errValidate.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Requisição inválida"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Requisição inválida", errValidate))
 		return
 	}
 
 	safeUser, token, errLogin := h.authService.Login(request)
 	if errLogin != nil {
-		if errors.Is(errLogin, user.ErrInvalidCredentials) {
-			c.Set("responseMessage", "Email e/ou senha inválidos")
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Email e/ou senha inválidos"})
-			return
-		}
-		if errors.Is(errLogin, user.ErrTokenGeneration) {
-			c.Set("internalError", errLogin)
-			c.Set("responseMessage", "Erro de autenticação")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao gerar token de autenticação"})
-			return
-		}
-		if errors.Is(errLogin, user.ErrInternalServerError) {
-			c.Set("internalError", errLogin)
-			c.Set("responseMessage", "Erro interno do servidor")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha no servidor"})
-			return
-		}
-		c.Set("internalError", errLogin)
-		c.Set("responseMessage", "Erro interno do servidor")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha no servidor"})
+		apierrors.HandleAPIError(c, errLogin)
 		return
 	}
 
@@ -77,9 +56,7 @@ func (h *AuthHandler) ProfileHandler() gin.HandlerFunc {
 		userNumber := c.MustGet("userNumber").(uint)
 		user, err := h.userService.GetUserByID(uint(userNumber))
 		if err != nil {
-			c.Set("internalError", err)
-			c.Set("responseMessage", "Falha na busca do perfil")
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Falha ao buscar perfil"})
+			apierrors.HandleAPIError(c, err)
 			return
 		}
 

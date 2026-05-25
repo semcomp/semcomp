@@ -11,12 +11,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var (
-	ErrInvalidEventDate  = errors.New("invalid event date format")
-	ErrPresenceNotFound  = errors.New("presence not found")
-	ErrInvalidUserNumber = errors.New("invalid user number")
-)
-
 type PresenceService interface {
 	CreatePresence(request CreatePresenceRequest) (*Presence, error)
 	GetPresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) (*Presence, error)
@@ -62,7 +56,7 @@ func (s *presenceService) GetPresenceByUserEventandInitDate(userNumber string, e
 	presence, err := s.repo.GetByUserEventandInitDate(num, eventName, initDateParsed)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, apierrors.NotFoundError("Presença não encontrada", ErrPresenceNotFound)
+			return nil, apierrors.NotFoundError("Presença não encontrada", err)
 		}
 		return nil, apierrors.InternalServerError("Erro ao buscar presença", err)
 	}

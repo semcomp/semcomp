@@ -10,13 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Esses vars de erro serão retirados posteriormente
-var (
-	ErrInvalidEventDate = errors.New("invalid event date format")
-	ErrEventNotFound    = errors.New("event not found")
-	ErrEventConflict    = errors.New("event conflict")
-)
-
 type EventService interface {
 	CreateEvent(request CreateEventRequest) (*Event, error)
 	GetEventByNameAndInitDate(name string, date string) (*Event, error)

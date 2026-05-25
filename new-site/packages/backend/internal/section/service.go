@@ -9,10 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var (
-	ErrSectionNotFound = errors.New("section not found")
-)
-
 type SectionService interface {
 	CreateSection(request CreateSectionRequest) (*Section, error)
 	GetSectionByName(name string) (*Section, error)
