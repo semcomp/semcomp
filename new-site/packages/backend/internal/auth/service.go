@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 
+	"backend/internal/apierrors"
 	"backend/internal/providers"
 	"backend/internal/user"
 )
@@ -25,19 +26,19 @@ func (s *authService) Login(request LoginUserRequest) (*user.SafeUser, string, e
 	userRecord, errUser := s.userRepository.GetByEmail(request.Email)
 	if errUser != nil {
 		if errors.Is(errUser, user.ErrInvalidCredentials) {
-			return nil, "", user.ErrInvalidCredentials
+			return nil, "", apierrors.UnauthorizedError("Credenciais inválidas", errUser)
 		}
-		return nil, "", user.ErrInternalServerError
+		return nil, "", apierrors.InternalServerError("Erro ao buscar usuário", errUser)
 	}
 
 	errPassword := s.passwordProvider.Compare(userRecord.PasswordHash, request.Password)
 	if errPassword != nil {
-		return nil, "", user.ErrInvalidCredentials
+		return nil, "", apierrors.UnauthorizedError("Credenciais inválidas", errPassword)
 	}
 
 	token, errToken := s.jwtProvider.Generate(userRecord.UserNumber, userRecord.Email)
 	if errToken != nil {
-		return nil, "", user.ErrTokenGeneration
+		return nil, "", apierrors.InternalServerError("Erro ao gerar token de autenticação", errToken)
 	}
 
 	safeUser := user.ToSafeUser(userRecord)

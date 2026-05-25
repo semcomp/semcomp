@@ -1,11 +1,10 @@
 package userBackoffice
 
 import (
-	"errors"
-	"fmt"
 	"os"
 	"strings"
 
+	"backend/internal/apierrors"
 	"backend/internal/providers"
 )
 
@@ -32,7 +31,7 @@ func (s *userBackofficeService) InitializeAdmin() error {
 	password := os.Getenv("ADMIN_PASSWORD")
 
 	if email == "" || password == "" {
-		return errors.New("Variáveis de ambiente não definidas para o usuário admin")
+		return apierrors.ValidationError("Variáveis de ambiente não definidas para o usuário admin", nil)
 	}
 
 	_, err := s.repo.GetByEmail(email)
@@ -47,7 +46,7 @@ func (s *userBackofficeService) InitializeAdmin() error {
 
 	_, err = s.CreateUser(admin)
 	if err != nil {
-		return errors.New("Falha na criação do usuário admin: " + err.Error())
+		return apierrors.InternalServerError("Falha na criação do usuário admin", err)
 	}
 
 	return nil
@@ -56,12 +55,12 @@ func (s *userBackofficeService) InitializeAdmin() error {
 func (s *userBackofficeService) CreateUser(request CreateUserBackofficeRequest) (*SafeUserB, error) {
 	_, err := s.repo.GetByEmail(request.Email)
 	if err == nil {
-		return nil, errors.New("E-mail já cadastrado")
+		return nil, apierrors.ConflictError("E-mail já cadastrado", err)
 	}
 
 	hashedPassword, err := s.passwordProvider.Hash(request.Password)
 	if err != nil {
-		return nil, errors.New("Erro ao processar a senha")
+		return nil, apierrors.InternalServerError("Erro ao processar a senha", err)
 	}
 
 	newUser := UserBackoffice{
@@ -70,7 +69,7 @@ func (s *userBackofficeService) CreateUser(request CreateUserBackofficeRequest) 
 	}
 
 	if err := s.repo.Create(&newUser); err != nil {
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao criar usuário", err)
 	}
 
 	safe := ToSafeUserB(&newUser)
@@ -80,11 +79,11 @@ func (s *userBackofficeService) CreateUser(request CreateUserBackofficeRequest) 
 func (s *userBackofficeService) GetAllUsers(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*UserBListResult, error) {
 
 	if page < 1 {
-		return nil, fmt.Errorf("Parâmetro inválido de 'page'")
+		return nil, apierrors.ValidationError("Parâmetro inválido de 'page'", nil)
 	}
 
 	if limit < 1 {
-		return nil, fmt.Errorf("Parâmetro inválido de 'limit'")
+		return nil, apierrors.ValidationError("Parâmetro inválido de 'limit'", nil)
 	}
 
 	if sortBy == "" {
@@ -104,15 +103,15 @@ func (s *userBackofficeService) GetAllUsers(page int, limit int, sortBy string, 
 	}
 
 	if !allowedSortFields[sortBy] {
-		return nil, fmt.Errorf("Parâmetro inválido de 'sort_by'")
+		return nil, apierrors.ValidationError("Parâmetro inválido de 'sort_by'", nil)
 	}
 
 	if sortOrder != "asc" && sortOrder != "desc" {
-		return nil, fmt.Errorf("Parâmetro inválido de 'sort_order'")
+		return nil, apierrors.ValidationError("Parâmetro inválido de 'sort_order'", nil)
 	}
 
 	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
-		return nil, fmt.Errorf("Os parâmetros 'search_by' e 'seacrh_value' devem ser enviados juntos")
+		return nil, apierrors.ValidationError("Os parâmetros 'search_by' e 'search_value' devem ser enviados juntos", nil)
 	}
 
 	if searchBy != "" {
@@ -123,7 +122,7 @@ func (s *userBackofficeService) GetAllUsers(page int, limit int, sortBy string, 
 		}
 
 		if !allowedSearchFields[searchBy] {
-			return nil, fmt.Errorf("Parâmetro inválido de 'search_by'")
+			return nil, apierrors.ValidationError("Parâmetro inválido de 'search_by'", nil)
 		}
 	}
 
@@ -140,7 +139,7 @@ func (s *userBackofficeService) GetAllUsers(page int, limit int, sortBy string, 
 
 	usersB, err := s.repo.GetAll(query)
 	if err != nil {
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao buscar usuários", err)
 	}
 
 	return usersB, nil
@@ -149,7 +148,7 @@ func (s *userBackofficeService) GetAllUsers(page int, limit int, sortBy string, 
 func (s *userBackofficeService) GetUserByEmail(email string) (*SafeUserB, error) {
 	user, err := s.repo.GetByEmail(email)
 	if err != nil {
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao buscar usuário", err)
 	}
 
 	safe := ToSafeUserB(user)
@@ -160,14 +159,14 @@ func (s *userBackofficeService) GetUserByEmail(email string) (*SafeUserB, error)
 func (s *userBackofficeService) UpdateUser(email string, request UpdateUserBackofficeRequest) error {
 	user, err := s.repo.GetByEmail(email)
 	if err != nil {
-		return err
+		return apierrors.InternalServerError("Erro ao buscar usuário", err)
 	}
 
 	user.Email = request.Email
 	if request.Password != "" {
 		hashedPassword, err := s.passwordProvider.Hash(request.Password)
 		if err != nil {
-			return errors.New("Erro ao processar a senha")
+			return apierrors.InternalServerError("Erro ao processar a senha", err)
 		}
 		user.PasswordHash = hashedPassword
 	}

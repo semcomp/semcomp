@@ -2,10 +2,10 @@ package user
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
+	"backend/internal/apierrors"
 	"backend/internal/providers"
 )
 
@@ -40,12 +40,12 @@ func NewUserService(repo UserRepository, passwordProvider providers.PasswordProv
 func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 	_, err := s.repo.GetByEmail(request.Email)
 	if err == nil {
-		return nil, ErrEmailAlreadyExists
+		return nil, apierrors.ConflictError("Email já cadastrado", err)
 	}
 
 	hashedPassword, err := s.passwordProvider.Hash(request.Password)
 	if err != nil {
-		return nil, errors.New("Erro ao processar a senha")
+		return nil, apierrors.InternalServerError("Erro ao processar a senha", err)
 	}
 
 	newUser := User{
@@ -56,7 +56,7 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 	}
 
 	if err := s.repo.Create(&newUser); err != nil {
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao criar usuário", err)
 	}
 
 	safe := ToSafeUser(&newUser)
@@ -67,11 +67,11 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*UserListResult, error) {
 
 	if page < 1 {
-		return nil, fmt.Errorf("Valor de 'page' inválido")
+		return nil, apierrors.ValidationError("Valor de 'page' inválido", nil)
 	}
 
 	if limit < 1 {
-		return nil, fmt.Errorf("Valor de 'limit' inválido")
+		return nil, apierrors.ValidationError("Valor de 'limit' inválido", nil)
 	}
 
 	if sortBy == "" {
@@ -94,15 +94,15 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 	}
 
 	if !allowedSortFields[sortBy] {
-		return nil, fmt.Errorf("Parâmetro 'sort_by' inválido")
+		return nil, apierrors.ValidationError("Parâmetro 'sort_by' inválido", nil)
 	}
 
 	if sortOrder != "asc" && sortOrder != "desc" {
-		return nil, fmt.Errorf("Parâmetro 'sort_order' inválido")
+		return nil, apierrors.ValidationError("Parâmetro 'sort_order' inválido", nil)
 	}
 
 	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
-		return nil, fmt.Errorf("Para realizar uma busca, envie 'search_by' juntamente com 'search_value' ")
+		return nil, apierrors.ValidationError("Para realizar uma busca, envie 'search_by' juntamente com 'search_value' ", nil)
 	}
 
 	if searchBy != "" {
@@ -116,18 +116,18 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 		}
 
 		if !allowedSearchFields[searchBy] {
-			return nil, fmt.Errorf("Parâmetro 'search_by' inválido")
+			return nil, apierrors.ValidationError("Parâmetro 'search_by' inválido", nil)
 		}
 
 		if searchBy == "presence_rate" {
 			if _, err := strconv.ParseFloat(searchValue, 64); err != nil {
-				return nil, fmt.Errorf("Valor inválido para busca por 'presence_rate' ")
+				return nil, apierrors.ValidationError("Valor inválido para busca por 'presence_rate' ", nil)
 			}
 		}
 
 		if searchBy == "user_number" {
 			if _, err := strconv.Atoi(searchValue); err != nil {
-				return nil, fmt.Errorf("Valor inválido para busca por 'user_number' ")
+				return nil, apierrors.ValidationError("Valor inválido para busca por 'user_number' ", nil)
 			}
 		}
 	}
@@ -145,7 +145,7 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 
 	users, err := s.repo.GetAll(query)
 	if err != nil {
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao recuperar usuários", err)
 	}
 
 	return users, nil
@@ -155,7 +155,7 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 func (s *userService) GetUserByID(id uint) (*SafeUser, error) {
 	user, err := s.repo.GetByID(id)
 	if err != nil {
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao buscar usuário", err)
 	}
 
 	safe := ToSafeUser(user)
@@ -166,7 +166,7 @@ func (s *userService) GetUserByID(id uint) (*SafeUser, error) {
 func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 	user, err := s.repo.GetByID(id)
 	if err != nil {
-		return err
+		return apierrors.InternalServerError("Erro ao buscar usuário", err)
 	}
 
 	user.Name = request.Name
@@ -176,7 +176,7 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 	if request.Password != "" {
 		hashedPassword, err := s.passwordProvider.Hash(request.Password)
 		if err != nil {
-			return errors.New("Erro ao processar a senha")
+			return apierrors.InternalServerError("Erro ao processar a senha", err)
 		}
 		user.PasswordHash = hashedPassword
 	}
