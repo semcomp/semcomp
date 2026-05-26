@@ -7,6 +7,7 @@ import (
 	"backend/internal/event"
 	"backend/internal/log"
 	"backend/internal/middleware"
+	"backend/internal/permission"
 	"backend/internal/presence"
 	"backend/internal/providers"
 	"backend/internal/section"
@@ -23,7 +24,7 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -50,31 +51,46 @@ func main() {
 
 	logRepo := log.NewRepository(db)
 	logService := log.NewService(logRepo)
-  
-	userBackofficeRepo 	  := userBackoffice.NewUserBackofficeRepository(db)
+
+	userBackofficeRepo := userBackoffice.NewUserBackofficeRepository(db)
 	userBackofficeService := userBackoffice.NewUserBackofficeService(userBackofficeRepo, passwordProvider)
 	userBackofficeHandler := userBackoffice.NewUserBackofficeHandler(userBackofficeService)
+
+	permissionRepo := permission.NewPermissionRepository(db)
+	permissionService := permission.NewPermissionService(permissionRepo)
+	permissionHandler := permission.NewPermissionHandler(permissionService, sectionService, userBackofficeService)
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
 
 	authBackofficeService := authBackoffice.NewAuthBackofficeService(userBackofficeRepo, passwordProvider, jwtProvider)
-	authBackofficeHandler := authBackoffice.NewAuthBackofficeHandler(authBackofficeService, userBackofficeService)
+	authBackofficeHandler := authBackoffice.NewAuthBackofficeHandler(authBackofficeService, userBackofficeService, permissionService)
 
+	// Inicialização de valores base de seções para o banco de dados
+	if err := sectionService.InitializeSections(); err != nil {
+		panic("Failed to initialize sections in backoffice: " + err.Error())
+	}
+
+	// Inicialização de valores base de admin para o banco de dados
 	if err := userBackofficeService.InitializeAdmin(); err != nil {
-        panic("Failed to initialize admin in backoffice: " + err.Error())
-    }
+		panic("Failed to initialize admin in backoffice: " + err.Error())
+	}
+
+	// Inicialização de valores base de permissões para o banco de dados
+	if err := permissionService.InitializePermissions(); err != nil {
+		panic("Failed to initialize admin's permissions in backoffice: " + err.Error())
+	}
 
 	r := gin.Default()
 	r.Use(middleware.AuditMiddleware(logService))
 
 	r.Use(cors.New(cors.Config{
-        AllowOrigins: []string{"http://localhost:5173", "http://localhost:5174", "https://semcomp.icmc.usp.br"},
-        AllowMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowHeaders:   []string{"Origin", "Content-Type", "Authorization"},
-        AllowCredentials: true,
-        ExposeHeaders:    []string{"Content-Length"},
-    }))
+		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:5174", "https://semcomp.icmc.usp.br"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+		ExposeHeaders:    []string{"Content-Length"},
+	}))
 
 	// Rotas Públicas
 	r.POST("/register", userHandler.CreateUser)
@@ -122,6 +138,13 @@ func main() {
 	backofficeRoutes.GET("/usersBackoffice/:email", userBackofficeHandler.GetUserByEmail)
 	backofficeRoutes.PUT("/usersBackoffice/:email", userBackofficeHandler.UpdateUser)
 	backofficeRoutes.DELETE("/usersBackoffice/:email", userBackofficeHandler.DeleteUser)
+
+	backofficeRoutes.POST("/permissions", permissionHandler.CreatePermission)
+	backofficeRoutes.GET("/permissions", permissionHandler.GetPermissions)
+	backofficeRoutes.GET("/permissions/user/:user", permissionHandler.GetPermissionByUser)
+	backofficeRoutes.GET("/permissions/section/:section", permissionHandler.GetPermissionBySection)
+	backofficeRoutes.PUT("/permissions/:user/:section", permissionHandler.UpdatePermissionByUserSection)
+	backofficeRoutes.DELETE("/permissions/:user/:section", permissionHandler.DeletePermissionByUserSection)
 
 	r.Run(":4000")
 }
