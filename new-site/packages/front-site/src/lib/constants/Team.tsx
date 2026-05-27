@@ -19,7 +19,7 @@ const TEAM: TeamType = {
           nome: "Pedro Lunkes",
           position: "Presidente",
           linkedin: "https://www.linkedin.com/in/pedro-lunkes-villela-25a55224b",
-        },
+        }
       ],
     },
     {

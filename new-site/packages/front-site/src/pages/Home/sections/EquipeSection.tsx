@@ -13,6 +13,7 @@ const EquipeSection = (props: EquipeSectionProps) => {
   const { isDarkMode } = useTheme();
 
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
+  const color = isDarkMode ? "semcompOffWhite" : "semcompMidLightBlue";
   const sectionPadding = width > 768 ? "py-20" : "py-10";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
   const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompDarkBlue/80";
@@ -27,18 +28,23 @@ const EquipeSection = (props: EquipeSectionProps) => {
   return (
     <section id="equipe" className={`${props.className} ${sectionPadding}`}>
       <div className="mx-auto max-w-[80%]">
+
       <motion.h2
-        className={`${headingSize} font-extrabold mb-10`}
+        className={`${headingSize} font-extrabold mb-7 text-center`}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
         variants={fadeIn}
       >
-        <span className={`${textColor} font-extrabold`}>NOSSA</span>{" "}
+        <span className={`${textColor} font-extrabold`}>Conheça nossa</span>{" "}
         <span className={`bg-clip-text text-transparent bg-linear-to-r ${gradientFrom} ${gradientVia} ${gradientTo} font-extrabold`}>
-          EQUIPE
+          Equipe
         </span>
       </motion.h2>
+
+      <p className="opacity-70 text-justify mb-5">A edição da SEMCOMP deste ano é construída com o esforço e dedicação de aproximadamente X membros, organizados em 8 frentes distintas, além da presidência.</p>
+      <hr className={`w-full border border-${color} mb-7`} />
+
       <motion.div
         initial="hidden"
         whileInView="visible"

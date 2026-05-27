@@ -2,21 +2,27 @@ import React from "react"
 import { FaLinkedin } from "react-icons/fa";
 import type { TeamType } from "@/types/TeamType";
 import { useTheme } from "@/contexts/useTheme";
-
+import { Button, buttonVariants } from "@/components/ui/Button";
 
 
 export default function TeamGrid({ data }: { data: TeamType }) {
   const { isDarkMode } = useTheme();
+
   const [currentDepartment, setCurrentDepartment] = React.useState(0);
+  const [showAll, setShowAll] = React.useState(false);
 
-  const frentes = data.frente.map((item) => [item.nomeDaFrente]);
+  const currentMembers = data.frente[currentDepartment].membros;
 
-  function changePictures(index: number) {
+  const visibleMembers = showAll
+    ? currentMembers
+    : currentMembers.slice(0, 10);
+
+
+  function changeDepartment(index: number) {
     setCurrentDepartment(index);
-  }
 
-  const firstRow = frentes.slice(0, 4);
-  const secondRow = frentes.slice(4, 9);
+    setShowAll(false);
+  }
 
   const images = import.meta.glob("@/assets/img/team/*.webp", {
     eager: true,
@@ -30,61 +36,82 @@ export default function TeamGrid({ data }: { data: TeamType }) {
 
   return (
     <div className="flex flex-col gap-4 items-center w-full">
-      {/* linha de 4 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 w-full">
-        {firstRow.map(([department], index) => (
-          <button
-            key={index}
-            className={`w-full min-h-14 p-3 sm:p-4 md:p-5 rounded-md flex items-center justify-center text-center text-sm sm:text-base text-semcompOffWhite font-semibold shadow-md transition-transform transform hover:scale-105 ${currentDepartment === index ? "bg-semcompAlmostDarkBlue hover:bg-semcompAlmostDarkBlue" : "bg-semcompMidLightBlue hover:bg-semcompMidDarkBlue"}`}
-            onClick={() => changePictures(index)}
+
+      {/* Filtragem de Membros */}
+      <div className="flex justify-between w-full">
+        <div className="flex gap-3">
+          <Button className={`${buttonVariants({ variant: "outline", size: "lg" })} cursor-pointer bg-green`}>Todos</Button>
+          <Button className={`${buttonVariants({ variant: "outline", size: "lg" })} cursor-pointer bg-green`}>Coordenador(es)</Button>
+          <Button className={`${buttonVariants({ variant: "outline", size: "lg" })} cursor-pointer bg-green`}>Membros</Button>
+        </div>
+
+        <div className="flex">
+          <p className="flex items-center">Escolha a frente:</p>
+          <select
+            className="ml-3 rounded-md px-3 py-2 bg-[#003050] text-white"
+            value={currentDepartment}
+            onChange={(e) => changeDepartment(Number(e.target.value))}
           >
-            {department}
-          </button>
-        ))}
+            {data.frente.map((frente, index) => (
+              <option key={index} value={index}>
+                {frente.nomeDaFrente}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {/* linha de 5 */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6 w-full">
-        {secondRow.map(([department], index) => (
-          <button
-            key={index + 4}
-            className={`w-full min-h-14 p-3 sm:p-4 md:p-5 rounded-md flex items-center justify-center text-center text-sm sm:text-base text-semcompOffWhite font-semibold shadow-md transition-transform transform hover:scale-105 ${currentDepartment === index + 4 ? "bg-semcompAlmostDarkBlue hover:bg-semcompAlmostDarkBlue" : "bg-semcompMidLightBlue hover:bg-semcompMidDarkBlue"} `}
-            onClick={() => changePictures(index + 4)}
-          >
-            {department}
-          </button>
-        ))}
-      </div>
+      {/* Os Membros */}
+      <div className="bg-[#00000033] w-full rounded-xl p-10 pb-15">
 
-      <div
-        key={currentDepartment}
-        className="flex flex-wrap gap-6 sm:gap-8 justify-center pt-6 sm:pt-10 transition-all duration-500 transform animate-slide w-full"
-      >
-        {data.frente[currentDepartment].membros.map((member) => (
-          <div key={member.nome} className="flex flex-col items-center w-36 sm:w-40 md:w-44 text-center justify-items-center hover:scale-105 transition-transform cursor-pointer">
-            <img
-              src={getPhoto(member.nome)}
-              alt={member.nome}
-              loading="lazy"
-              decoding="async"
-              sizes="(max-width: 640px) 112px, (max-width: 768px) 144px, 160px"
-              className="w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 object-cover justify-center rounded-3xl"
-            />
-            <div className="mt-2 font-bold">
-              {member.nome.split(' ').slice(0, -1).join(' ')}
-              <br />
-              {member.nome.split(' ').slice(-1)[0]}
-            </div>
-            <div className={`flex flex-wrap justify-center text-xs sm:text-sm w-full ${textColor} `}>{member.position}</div>
-            {member.linkedin && (
-              <FaLinkedin
-                className="mx-auto mt-2 text-[#0A66C2] hover:text-[#004182] cursor-pointer"
-                size={24}
-                onClick={() => window.open(member.linkedin, "_blank")}
+        <div
+          className="
+            flex flex-wrap justify-center gap-8 gap-y-6 w-full pr-4
+          "
+        >
+          {visibleMembers.map((member, index) => (
+            <div
+              key={index}
+              className=" bg-[#003050] rounded-xl p-5 flex flex-col items-center text-center w-full max-w-[260px] shadow-[16px_16px_0px_0px_#0B2639]"
+            >
+              <img
+                src={getPhoto(member.nome) || "/fallback.webp"}
+                alt={member.nome}
+                className="w-32 h-32 object-cover rounded-full"
               />
-            )}
+
+              <p className="mt-4 font-bold text-lg">
+                {member.nome}
+              </p>
+
+              <span className={`text-xs sm:text-sm ${textColor}`}>
+                {member.position}
+              </span>
+
+              {member.linkedin && (
+                <a
+                  href={member.linkedin}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4"
+                >
+                  <FaLinkedin size={24} />
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {currentMembers.length > 10 && (
+          <div className="flex justify-center">
+            <Button
+              className="mt-8 cursor-pointer"
+              onClick={() => setShowAll(!showAll)}
+            >
+              {showAll ? "Ver menos" : "Ver mais"}
+            </Button>
           </div>
-        ))}
+        )}
       </div>
 
     </div>
