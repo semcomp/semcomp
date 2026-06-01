@@ -10,6 +10,7 @@ import (
 )
 
 type SectionService interface {
+	InitializeSections() error
 	CreateSection(request CreateSectionRequest) (*Section, error)
 	GetSectionByName(name string) (*Section, error)
 	DeleteSectionByName(name string) error
@@ -23,6 +24,39 @@ type sectionService struct {
 
 func NewSectionService(repo SectionRepository) SectionService {
 	return &sectionService{repo: repo}
+}
+
+func GetInitialSections() []CreateSectionRequest {
+	return []CreateSectionRequest{
+		{"Seções", "Observe as seções dos eventos da Semcomp."},
+		{"Eventos", "Gerencie os eventos da Semcomp."},
+		{"Usuários Backoffice", "Gerencie os usuários com acesso ao sistema de backoffice."},
+		{"Usuários Semcomp", "Gerencie os usuários participantes da Semcomp."},
+		{"Participações", "Gerencie as participações dos usuários nos eventos da Semcomp."},
+		{"Permissões", "Gerencie as permissões de acesso dos usuários ao sistema."},
+	}
+}
+
+func (s *sectionService) InitializeSections() error {
+	sections := GetInitialSections()
+
+	// Verifica se cada seção está cadastrada antes de tentar inserir novamente
+	for i := range sections {
+		_, err := s.repo.GetByName(sections[i].Name)
+		if err == nil {
+			continue
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("erro ao buscar seção %q durante a inicialização: %w", sections[i].Name, err)
+		}
+
+		_, err = s.CreateSection(sections[i])
+		if err != nil {
+			return fmt.Errorf("erro ao criar seção %q durante a inicialização: %w", sections[i].Name, err)
+		}
+	}
+
+	return nil
 }
 
 func (s *sectionService) CreateSection(request CreateSectionRequest) (*Section, error) {
