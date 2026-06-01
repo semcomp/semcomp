@@ -2,6 +2,7 @@ package section
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"backend/internal/apierrors"

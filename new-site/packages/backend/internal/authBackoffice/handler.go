@@ -1,11 +1,12 @@
 package authBackoffice
 
 import (
+	"errors"
 	"net/http"
 
-	permission "backend/internal/permission"
 	"backend/internal/apierrors"
-	userBackoffice "backend/internal/userBackoffice"
+	"backend/internal/permission"
+	"backend/internal/userBackoffice"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
