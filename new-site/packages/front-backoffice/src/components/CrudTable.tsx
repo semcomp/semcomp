@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   ChevronDown, ChevronUp, ChevronsUpDown, ScanQrCode, Search, Plus, Pencil, Trash2, X,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
@@ -47,7 +47,7 @@ export interface CrudTableProps {
   onQueryChange?: (params: CrudQueryParams) => void;
 }
 
-const PAGE_SIZE_OPTIONS = [2, 5, 10, 20, 50];
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100, 200];
 
 export function CrudTable({
   data,
@@ -127,16 +127,10 @@ export function CrudTable({
     });
   };
 
-  // Ref para evitar notificar o pai na montagem inicial (modo server-side)
-  const isMounted = useRef(false);
 
   // Notifica o pai quando qualquer parâmetro de query muda (modo server-side)
   useEffect(() => {
     if (!serverSide || !onQueryChange) return;
-    if (!isMounted.current) {
-      isMounted.current = true;
-      return;
-    }
     onQueryChange({ page, pageSize, sortField, sortOrder, filterField, filterValue: filter });
   }, [page, pageSize, sortField, sortOrder, filterField, filter]);
 
@@ -262,7 +256,7 @@ export function CrudTable({
     // e oculta a timezone tambem deixando em estilo short
     if (field.type === "date") {
       return <span className="text-foreground">
-        {isNaN(Date.parse(val)) ? val : new Date(val).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+        {isNaN(Date.parse(val)) ? val : new Date(val).toISOString().slice(0, 16).replace("T", " ")}
         </span>;
     }
 
@@ -335,12 +329,12 @@ export function CrudTable({
             <Input
               placeholder={`Filtrar por ${fields.find(f => f.value === filterField)?.label ?? "campo"}…`}
               value={filter}
-              onChange={e => handleFilterChange(e.target.value)}
+              onChange={e => {handleFilterChange(e.target.value); if (serverSide && onQueryChange) onQueryChange({ page , pageSize, sortField, sortOrder, filterField, filterValue: e.target.value });}}
               className="pl-9 bg-muted/40 border-muted/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
             />
             {filter && (
               <button
-                onClick={() => handleFilterChange("")}
+                onClick={() => {handleFilterChange(""); if (serverSide && onQueryChange) onQueryChange({ page , pageSize, sortField, sortOrder, filterField, filterValue: "" });}}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
@@ -375,7 +369,7 @@ export function CrudTable({
             <span className="text-slate-600">Por página:</span>
             <Select
               value={String(pageSize)}
-              onValueChange={v => { setPageSize(Number(v)); setPage(1); if (serverSide && onQueryChange) onQueryChange({ page: 1, pageSize: Number(v), sortField, sortOrder, filterField, filterValue: filter }); }}
+              onValueChange={v => { setPageSize(Number(v)); setPage(1); if (serverSide && onQueryChange) onQueryChange({ page , pageSize: Number(v), sortField, sortOrder, filterField, filterValue: filter }); }}
             >
               <SelectTrigger className="h-7 w-14 bg-muted/40 border-muted/30 text-foreground text-xs px-2">
                 <SelectValue />
@@ -479,7 +473,7 @@ export function CrudTable({
                 <TableHead
                   key={f.value}
                   className="cursor-pointer select-none text-muted-foreground text-xs font-semibold uppercase tracking-wider hover:text-primary transition-colors"
-                  onClick={() => handleSort(f.value)}
+                  onClick={() => {handleSort(f.value); if (serverSide && onQueryChange) onQueryChange({ page, pageSize, sortField, sortOrder, filterField, filterValue: filter });} }
                 >
                   {f.label}
                   <SortIcon field={f.value} />

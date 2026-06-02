@@ -148,6 +148,7 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 	allowedSortFields := map[string]bool{
 		"name":           true,
 		"init_date":      true,
+		"end_date":      true,
 		"type":           true,
 		"location":       true,
 		"description":    true,
@@ -172,6 +173,7 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 		allowedSearchFields := map[string]bool{
 			"name":           true,
 			"init_date":      true,
+			"end_date":      true,
 			"type":           true,
 			"location":       true,
 			"description":    true,
@@ -188,6 +190,14 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 				return nil, fmt.Errorf("invalid search_value for init_date, use RFC3339")
 			}
 			searchValue = parsedInitDate.Format(time.RFC3339)
+		}
+
+		if searchBy == "end_date" {
+			parsedEndDate, err := time.Parse(time.RFC3339, searchValue)
+			if err != nil {
+				return nil, fmt.Errorf("invalid search_value for end_date, use RFC3339")
+			}
+			searchValue = parsedEndDate.Format(time.RFC3339)
 		}
 
 		if searchBy == "has_attendance" {

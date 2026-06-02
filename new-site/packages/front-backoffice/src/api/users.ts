@@ -11,6 +11,7 @@ type SafeSemcompUser = {
 const mapBackendUser = (user: SafeSemcompUser): SemcompUserType => {
   return {
     id: user.user_number,
+    user_number: user.user_number,
     name: user.name,
     email: user.email,
     presence_rate: user.presence_rate,
@@ -89,7 +90,7 @@ export const userSemcompAPI = {
    * Cria um usuário
    */
   create: async (
-    data: Omit<SemcompUserType, "id" | "presence_rate">
+    data: Omit<SemcompUserType, "id" | "presence_rate" | "user_number">
   ): Promise<SemcompUserType> => {
     const response = await client.post<{ message: string; user: SafeSemcompUser }>(
       "/admin/users",
@@ -107,7 +108,7 @@ export const userSemcompAPI = {
    */
   update: async (
     id: string,
-    data: Partial<Omit<SemcompUserType, "id">>
+    data: Partial<Omit<SemcompUserType, "id" | "user_number">>
   ): Promise<{ message: string }> => {
     const response = await client.put<{ message: string }>(
       `/admin/users/${id}`,
