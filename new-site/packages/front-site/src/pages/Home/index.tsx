@@ -1,5 +1,4 @@
 import MainEntrance from "@/components/MainEntrance";
-import SemcompTagline from "@/components/SemcompTagline";
 import { useTheme } from "@/contexts/useTheme";
 import SobreSection from "@/pages/Home/sections/SobreSection";
 import PatrocinadoresSection from "@/pages/Home/sections/PatrocinadoresSection";
@@ -17,7 +16,6 @@ export default function HomePage() {
   return (
     <div className={`w-full font-poppins ${bgColor}`}>
       <MainEntrance />
-      <SemcompTagline />
       <main>
 
         <SobreSection className={`${sectionStyles}`} />

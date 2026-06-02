@@ -2,9 +2,7 @@ import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import { IoMenu } from "react-icons/io5";
 import { ChevronRight } from "lucide-react";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
-import { useTheme } from "@/contexts/useTheme";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/useAuth";
 
 type TabKey = "home" | "cronograma" | "perfil";
 
@@ -15,12 +13,8 @@ const allTabs: Array<{ key: TabKey; label: string; path: string }> = [
 ];
 
 export default function Header() {
-  const { isDarkMode } = useTheme();
   const { width } = useWindowDimensions();
   const location = useLocation();
-  
-  //Simulação de Login
-  const { isAuthenticated } = useAuth(); 
 
   //Filtro de abas
   const visibleTabs = allTabs.filter((tab) => {// ajustar isso depois para mostrar o perfil apenas para autenticados

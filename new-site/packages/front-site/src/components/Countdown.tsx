@@ -13,7 +13,7 @@ function computeRemaining(to: Date) {
 export default function Countdown({ target }: { target: Date }) {
   const [left, setLeft] = useState(() => computeRemaining(target));
 
-  useEffect(() {
+  useEffect(() => {
     const id = setInterval(() => setLeft(computeRemaining(target)), 1000);
     return () => clearInterval(id);
   }, [target]);

@@ -143,16 +143,29 @@ export default function MainEntrance() {
 
       {/* Scroll indicator */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1, duration: 0.6 }}
-        className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10"
-      >
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ 
+            opacity: 1, 
+            y: [0, -10, 0]
+          }}
+          transition={{ 
+            opacity: { delay: 1, duration: 0.6 },
+            y: {
+              delay: 1,
+              duration: 0.8, 
+              repeat: Infinity,
+              repeatType: "loop",
+              ease: "easeInOut",
+              repeatDelay: 0.2
+            }
+          }}
+          className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10"
+        >
         <button
           onClick={scrollToContent}
           className="flex flex-col items-center text-semcompOffWhite hover:text-semcompOffWhite/80 focus:outline-none text-2xl font-light"
         >
-          V
+          v
         </button>
       </motion.div>
       
