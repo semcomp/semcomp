@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	//Adicionar "backend/internal/apierrors" depois
 	"github.com/gin-gonic/gin"
 )
 
@@ -49,7 +50,7 @@ func setupRouter(h *PresenceHandler) *gin.Engine {
 	return r
 }
 
-func TestHandler_CreatePresence_Success(t *testing.T) {
+func TestHandlerCreatePresence_Success(t *testing.T) {
 	svc := &mockPresenceService{
 		CreatePresenceFunc: func(req CreatePresenceRequest) (*Presence, error) {
 			return &Presence{UserNumber: req.UserNumber, EventName: req.EventName, EventInitDate: req.EventInitDate, EmailAdmin: req.EmailAdmin}, nil
@@ -74,10 +75,10 @@ func TestHandler_CreatePresence_Success(t *testing.T) {
 	}
 }
 
-func TestHandler_GetPresence_NotFound(t *testing.T) {
+func TestHandlerGetPresence_NotFound(t *testing.T) {
 	svc := &mockPresenceService{
 		GetPresenceByUserEventandInitDateFunc: func(_, _, _ string) (*Presence, error) {
-			return nil, ErrPresenceNotFound
+			return nil, ErrPresenceNotFound //Depois substituir por apierrors.NotFoundError("Presenca não encontrada", nil)
 		},
 	}
 	router := setupRouter(NewPresenceHandler(svc))
@@ -91,10 +92,44 @@ func TestHandler_GetPresence_NotFound(t *testing.T) {
 	}
 }
 
-func TestHandler_DeletePresence_InvalidDate(t *testing.T) {
+func TestHandlerGetPresence_ValidationError(t *testing.T) {
+	svc := &mockPresenceService{
+		GetPresenceByUserEventandInitDateFunc: func(_, _, _ string) (*Presence, error) {
+			return nil, ErrInvalidEventDate //Depois substituir por apierrors.ValidationError("Data do evento inválida", nil)
+		},
+	}
+	router := setupRouter(NewPresenceHandler(svc))
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/admin/presences/123/Evento/data-invalida", nil)
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest { // 400
+		t.Errorf("esperava 400, got %d", w.Code)
+	}
+}
+
+func TestHandlerDeletePresence_NotFound(t *testing.T) {
 	svc := &mockPresenceService{
 		DeletePresenceByUserEventandInitDateFunc: func(_, _, _ string) error {
-			return ErrInvalidEventDate
+			return ErrPresenceNotFound //Depois substituir por apierrors.NotFoundError("Presenca não encontrada", nil)
+		},
+	}
+	router := setupRouter(NewPresenceHandler(svc))
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodDelete, "/admin/presences/123/Evento/2024-01-01T00:00:00Z", nil)
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("esperava 404, got %d", w.Code)
+	}
+}
+
+func TestHandlerDeletePresence_ValidationError(t *testing.T) {
+	svc := &mockPresenceService{
+		DeletePresenceByUserEventandInitDateFunc: func(_, _, _ string) error {
+			return ErrInvalidEventDate //Depois substituir por apierrors.ValidationError("Data do evento inválida", nil)
 		},
 	}
 	router := setupRouter(NewPresenceHandler(svc))
@@ -108,10 +143,44 @@ func TestHandler_DeletePresence_InvalidDate(t *testing.T) {
 	}
 }
 
-func TestHandler_GetPresences_ServiceError(t *testing.T) {
+func TestHandlerUpdatePresence_NotFound(t *testing.T) {
+	svc := &mockPresenceService{
+		UpdatePresenceByUserEventandInitDateFunc: func(_, _, _ string, _ UpdatePresenceRequest) error {
+			return ErrPresenceNotFound //Depois substituir por apierrors.NotFoundError("Presenca não encontrada", nil)
+		},
+	}
+	router := setupRouter(NewPresenceHandler(svc))
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodPut, "/admin/presences/123/Evento/2024-01-01T00:00:00Z", nil)
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("esperava 404, got %d", w.Code)
+	}
+}
+
+func TestHandlerUpdatePresence_ValidationError(t *testing.T) {
+	svc := &mockPresenceService{
+		UpdatePresenceByUserEventandInitDateFunc: func(_, _, _ string, _ UpdatePresenceRequest) error {
+			return ErrInvalidEventDate //Depois substituir por apierrors.ValidationError("Data do evento inválida", nil)
+		},
+	}
+	router := setupRouter(NewPresenceHandler(svc))
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodPut, "/admin/presences/123/Evento/data-invalida", nil)
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("esperava 400, got %d", w.Code)
+	}
+}
+
+func TestHandlerGetPresences_ServiceError(t *testing.T) {
 	svc := &mockPresenceService{
 		GetPresencesFunc: func(_, _ int, _, _, _, _ string) (*PresenceListResult, error) {
-			return nil, errors.New("invalid sort_by parameter")
+			return nil, errors.New("invalid sort_by parameter") //Depois substituir por apierrors.ValidationError("Parâmetros inválidos", nil)
 		},
 	}
 	router := setupRouter(NewPresenceHandler(svc))

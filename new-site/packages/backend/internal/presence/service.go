@@ -2,7 +2,6 @@ package presence
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +13,7 @@ var (
 	ErrInvalidEventDate  = errors.New("invalid event date format")
 	ErrPresenceNotFound  = errors.New("presence not found")
 	ErrInvalidUserNumber = errors.New("invalid user number")
+	ErrValidationError   = errors.New("validation error")
 )
 
 type PresenceService interface {
@@ -123,11 +123,11 @@ func (s *presenceService) UpdatePresenceByUserEventandInitDate(userNumber string
 
 func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*PresenceListResult, error) {
 	if page < 1 {
-		return nil, fmt.Errorf("page must be greater than 0")
+		return nil, ErrValidationError
 	}
 
 	if limit < 1 {
-		return nil, fmt.Errorf("limit must be greater than 0")
+		return nil, ErrValidationError
 	}
 
 	if sortBy == "" {
@@ -142,42 +142,42 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 	sortOrder = strings.ToLower(sortOrder)
 
 	allowedSortFields := map[string]bool{
-		"user_number":      true,
-		"event_name":       true,
-		"event_init_date":  true,
-		"email_admin":      true,
+		"user_number":     true,
+		"event_name":      true,
+		"event_init_date": true,
+		"email_admin":     true,
 	}
 
 	if !allowedSortFields[sortBy] {
-		return nil, fmt.Errorf("invalid sort_by parameter")
+		return nil, ErrValidationError
 	}
 
 	if sortOrder != "asc" && sortOrder != "desc" {
-		return nil, fmt.Errorf("invalid sort_order parameter")
+		return nil, ErrValidationError
 	}
 
 	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
-		return nil, fmt.Errorf("search_by and search_value must be provided together")
+		return nil, ErrValidationError
 	}
 
 	if searchBy != "" {
 		searchBy = strings.ToLower(searchBy)
 
 		allowedSearchFields := map[string]bool{
-			"user_number":      true,
-			"event_name":       true,
-			"email_admin":      true,
-			"event_init_date":  true,
+			"user_number":     true,
+			"event_name":      true,
+			"email_admin":     true,
+			"event_init_date": true,
 		}
 
 		if !allowedSearchFields[searchBy] {
-			return nil, fmt.Errorf("invalid search_by parameter")
+			return nil, ErrValidationError
 		}
 
 		if searchBy == "event_init_date" {
 			parsedDateTime, err := time.Parse(time.RFC3339, searchValue)
 			if err != nil {
-				return nil, fmt.Errorf("invalid search_value for event_init_date, use RFC3339")
+				return nil, ErrInvalidEventDate
 			}
 			searchValue = parsedDateTime.Format(time.RFC3339)
 		}
