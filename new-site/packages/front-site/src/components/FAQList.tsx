@@ -16,11 +16,11 @@ export default function FAQList({ faqs }: { faqs: Array<{ Q: string; A: string }
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.1, duration: 0.5 }}
-            className="bg-semcompOffWhite rounded-xl shadow-md overflow-hidden hover:scale-110 transition-transform duration-300 cursor-pointer"
+            className="bg-semcompOffWhite rounded-xl shadow-md overflow-hidden hover:scale-110 transition-transform duration-300"
           >
             <button
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
-              className="w-full flex items-center justify-between p-6 text-sm md:text-lg text-left"
+              className="w-full flex items-center justify-between p-6 text-sm md:text-lg text-left cursor-pointer"
             >
               <span className="text-semcompDarkBlue">{faq.Q}</span>
               <motion.span
