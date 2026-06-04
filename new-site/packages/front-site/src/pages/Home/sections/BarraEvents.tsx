@@ -7,7 +7,7 @@ import iconGameNight from "@/assets/img/Home/IconsEvents/iconGameNight.svg"
 export default function BarraEvents(){
 
     const ClassName_divEvent = "gap-2 flex flex-col w-30 justify-center";
-    const ClassName_img = "h-20 mb-2";
+    const ClassName_img = "h-15 mb-2";
     const ClassName_p = "text-center text-lg text-semcompLightBlue";
 
     return (

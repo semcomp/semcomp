@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useRef } from "react"
 import { FaLinkedin } from "react-icons/fa";
 import type { TeamType } from "@/types/TeamType";
 import { useTheme } from "@/contexts/useTheme";
@@ -11,6 +11,7 @@ export default function TeamGrid({ data }: { data: TeamType }) {
   const { isDarkMode } = useTheme();
   const { width } = useWindowDimensions();
 
+  const membersSectionRef = useRef<HTMLDivElement>(null);
   const [currentDepartment, setCurrentDepartment] = React.useState(0);
   const [showAll, setShowAll] = React.useState(false);
 
@@ -52,6 +53,13 @@ export default function TeamGrid({ data }: { data: TeamType }) {
 
     setShowAll(false);
     setMemberFilter("todos");
+
+    setTimeout(() => {
+      membersSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
   }
 
   const images = import.meta.glob("@/assets/img/team/*.webp", {
@@ -70,7 +78,10 @@ export default function TeamGrid({ data }: { data: TeamType }) {
   const textColor = isDarkMode ? "text-semcompOffWhite/50" : "text-semcompDarkBlue/60";
 
   return (
-    <div className="flex flex-col gap-4 items-center w-full">
+    <div
+      ref={membersSectionRef}
+      className="flex flex-col gap-4 items-center w-full scroll-mt-80"
+    >
 
       {/* Filtragem de Membros */}
       <div className="flex justify-between w-full">
@@ -148,7 +159,7 @@ export default function TeamGrid({ data }: { data: TeamType }) {
       <div 
       className={`
         ${(showAll === false && filteredMembers.length > membersPerPage) ? "h-125" : ""}
-        bg-[#091e2e] w-full rounded-xl p-10 pb-15 relative overflow-hidden
+        bg-[#091e2e] w-full rounded-xl p-10 pb-15 relative overflow-hidden transition-all duration-700 ease-in-out
         `}
       > 
         {/* Gradiente escondendo +membros */}

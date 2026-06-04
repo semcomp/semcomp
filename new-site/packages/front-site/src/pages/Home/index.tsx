@@ -26,6 +26,7 @@ export default function HomePage() {
         </div>
 
         <EquipeSection className={sectionStyles} />
+        
         <BarraEvents className={sectionStyles} />
 
         <div className={`${isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompLightBlue"}`}>
