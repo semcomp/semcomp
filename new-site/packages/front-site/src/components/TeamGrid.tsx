@@ -147,12 +147,16 @@ export default function TeamGrid({ data }: { data: TeamType }) {
       {/* Os Membros */}
       <div 
       className={`
-        ${showAll === false ? "h-125" : ""}
+        ${(showAll === false && filteredMembers.length > membersPerPage) ? "h-125" : ""}
         bg-[#091e2e] w-full rounded-xl p-10 pb-15 relative overflow-hidden
         `}
       > 
         {/* Gradiente escondendo +membros */}
-        <div className=" left-0 bottom-0 w-[100%] h-[25%] rounded-xl absolute bg-gradient-to-t from-[#091e2e] via-[#091e2e] via-30% to-transparent">
+        <div 
+          className={`
+            ${(showAll === false && filteredMembers.length < membersPerPage) ? "hidden" : "absolute"}
+            left-0 bottom-0 w-[100%] h-[25%] rounded-xl bg-gradient-to-t from-[#091e2e] via-[#091e2e] via-30% to-transparent`}
+          >
         </div>
 
         <div className="flex flex-wrap justify-center gap-8 gap-y-6 w-full pr-4">

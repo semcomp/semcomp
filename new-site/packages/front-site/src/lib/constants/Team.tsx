@@ -125,7 +125,11 @@ const TEAM: TeamType = {
     {
       nomeDaFrente: "Financeiro",
       membros: [
-        
+        {
+          nome: "Ana Júlia França",
+          position: "Coordenadora de Financeiro",
+          linkedin: "https://www.linkedin.com/in/anajulia-franca",
+        },
       ],
     },
     {
