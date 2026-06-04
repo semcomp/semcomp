@@ -14,7 +14,7 @@ const EquipeSection = (props: EquipeSectionProps) => {
 
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
   const color = isDarkMode ? "semcompOffWhite" : "semcompMidLightBlue";
-  const sectionPadding = width > 768 ? "py-20" : "py-10";
+  const sectionPadding = width > 768 ? "py-30" : "py-10";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
   const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompDarkBlue/80";
   const gradientVia  = isDarkMode ? "via-semcompLightBlue" : "via-semcompDarkBlue";
@@ -24,6 +24,12 @@ const EquipeSection = (props: EquipeSectionProps) => {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
   };
+
+  const totalMembers = TEAM.frente.reduce(
+    (total, frente) => total + frente.membros.length,
+    0
+  );
+  const totalDepartments = TEAM.frente.length - 1; //excluindo presidência
 
   return (
     <section id="equipe" className={`${props.className} ${sectionPadding}`}>
@@ -42,7 +48,7 @@ const EquipeSection = (props: EquipeSectionProps) => {
         </span>
       </motion.h2>
 
-      <p className="opacity-70 text-justify mb-5">A edição da SEMCOMP deste ano é construída com o esforço e dedicação de aproximadamente X membros, organizados em 8 frentes distintas, além da presidência.</p>
+      <p className="opacity-70 text-justify mb-5">A edição da SEMCOMP deste ano é construída com o esforço e dedicação de aproximadamente {totalMembers} membros, organizados em {totalDepartments} frentes distintas, além da presidência.</p>
       <hr className={`w-full border border-${color} mb-7`} />
 
       <motion.div

@@ -85,16 +85,47 @@ const TEAM: TeamType = {
           position: "Coordenador de Site",
           linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
         },
+        {
+          nome: "Quito",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Sofia",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Henrique",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Daniel",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Paffaro",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Jhonatan",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Kenzo",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
       ],
     },
     {
       nomeDaFrente: "Financeiro",
       membros: [
-        {
-          nome: "Ana Júlia França",
-          position: "Coordenadora de Financeiro",
-          linkedin: "https://www.linkedin.com/in/anajulia-franca",
-        },
+        
       ],
     },
     {
