@@ -3,6 +3,7 @@ import { useTheme } from "@/contexts/useTheme";
 import SobreSection from "@/pages/Home/sections/SobreSection";
 import PatrocinadoresSection from "@/pages/Home/sections/PatrocinadoresSection";
 import EquipeSection from "@/pages/Home/sections/EquipeSection";
+import BarraEvents from "@/pages/Home/sections/BarraEvents";
 import FAQSection from "@/pages/Home/sections/FAQSection";
 import ContatoSection from "@/pages/Home/sections/ContatoSection";
 import { SPONSORS } from "@/constants/Sponsors";
@@ -25,6 +26,7 @@ export default function HomePage() {
         </div>
 
         <EquipeSection className={sectionStyles} />
+        <BarraEvents className={sectionStyles} />
 
         <div className={`${isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompLightBlue"}`}>
         <FAQSection className={sectionStyles} />
