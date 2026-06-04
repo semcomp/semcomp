@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import Carousel from "@/components/ui/Carousel";
 import FotoSemcompMain from "@/assets/img/Home/Hero/Semcomp.avif";
+import LogoSemcomp from "@/assets/img/semcomp/logo_default_preto.png";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 
@@ -42,9 +43,14 @@ const SobreSection = (props: SobreProps) => {
   };
 
   return (
-    <section id="sobre" className={`${props.className} w-full`}>
+    <section id="sobre" className={`${props.className} w-full bg-[#003050] overflow-hidden`}>
       <div className={`${sectionMargin}`}> </div>
-      <div className="mx-auto max-w-[80%]">
+      <div className="mx-auto max-w-[80%] relative">
+        <img
+          src={LogoSemcomp}
+          alt="Logo Semcomp"
+          className="absolute w-180 h-180 pointer-events-none opacity-10 z-0 left-2/2 top-1/3 -translate-x-1/2 -translate-y-1/2"
+        />
       <motion.h2
         className={`${headingSize} font-extrabold mb-6 `}
         initial="hidden"
@@ -56,26 +62,9 @@ const SobreSection = (props: SobreProps) => {
         <span className={`bg-clip-text font-poppins-extrabold text-transparent bg-linear-to-r ${gradientFrom} ${gradientVia} ${gradientTo} font-extrabold`}>
           SEMCOMP
         </span>
+        
       </motion.h2>
       <div className="grid grid-cols-1 2xl:grid-cols-2 gap-12 items-start p-0">
-        <motion.div
-          className="self-start"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeIn}
-        >
-          <Carousel
-            images={
-              CAROUSEL_IMAGES.length
-                ? CAROUSEL_IMAGES
-                : [
-                    { src: FotoSemcompMain, alt: "Uma foto com toda a equipe da Semcomp 28" },
-                  ]
-            }
-          />
-        </motion.div>
-
         <motion.div
           className="self-start"
           initial="hidden"
@@ -93,6 +82,27 @@ const SobreSection = (props: SobreProps) => {
             Nosso propósito é ampliar as perspectivas de carreira dos estudantes, promovendo o contato direto com grandes nomes da indústria e da pesquisa no Brasil. Queremos que cada participante aproveite ao máximo a maior semana de computação do país.
           </p>
         </motion.div>
+         
+        <motion.div
+          className="self-start relative"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeIn}
+        >
+          <div className="relative z-20">
+            <Carousel
+              images={
+                CAROUSEL_IMAGES.length
+                  ? CAROUSEL_IMAGES
+                  : [
+                      { src: FotoSemcompMain, alt: "Uma foto com toda a equipe da Semcomp 28" },
+                    ]
+              }
+            />
+          </div>
+        </motion.div>
+        
       </div>
       </div>
     </section>

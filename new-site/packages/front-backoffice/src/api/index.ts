@@ -8,6 +8,6 @@ export { userBackofficeAPI } from "./userBackoffice";
 export { userSemcompAPI } from "./users";
 export { eventsAPI } from "./events";
 export { sectionsAPI } from "./sections";
-export { participationsAPI } from "./participations";
+export { participationAPI } from "./participation";
 export { default as client } from "./client";
 export type { LoginResponse, RegisterResponse, ProfileResponse, ApiError } from "@/types/APIResponseType";
