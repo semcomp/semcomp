@@ -162,10 +162,10 @@ export default function TeamGrid({ data }: { data: TeamType }) {
         bg-[#091e2e] w-full rounded-xl p-10 pb-15 relative overflow-hidden transition-all duration-700 ease-in-out
         `}
       > 
-        {/* Gradiente escondendo +membros */}
+        {/* Gradiente escondendo + membros */}
         <div 
           className={`
-            ${(showAll === false && filteredMembers.length < membersPerPage) ? "hidden" : "absolute"}
+            ${(showAll === false) ? "hidden" : "absolute"}
             left-0 bottom-0 w-[100%] h-[25%] rounded-xl bg-gradient-to-t from-[#091e2e] via-[#091e2e] via-30% to-transparent`}
           >
         </div>

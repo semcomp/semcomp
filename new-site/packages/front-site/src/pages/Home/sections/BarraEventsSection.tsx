@@ -1,10 +1,10 @@
-import iconPalestras from "@/assets/img/Home/IconsEvents/iconPalestras.svg"
-import iconMinicursos from "@/assets/img/Home/IconsEvents/iconMinicursos.svg"
-import iconConcursos from "@/assets/img/Home/IconsEvents/iconConcursos.svg"
-import iconHackaton from "@/assets/img/Home/IconsEvents/iconHackaton.svg"
-import iconGameNight from "@/assets/img/Home/IconsEvents/iconGameNight.svg"
+import iconPalestras from "@/assets/img/Home/Icons/iconPalestras.svg"
+import iconMinicursos from "@/assets/img/Home/Icons/iconMinicursos.svg"
+import iconConcursos from "@/assets/img/Home/Icons/iconConcursos.svg"
+import iconHackaton from "@/assets/img/Home/Icons/iconHackaton.svg"
+import iconGameNight from "@/assets/img/Home/Icons/iconGameNight.svg"
 
-export default function BarraEvents(){
+export default function BarraEventsSection(){
 
     const ClassName_divEvent = "gap-2 flex flex-col w-30 justify-center";
     const ClassName_img = "h-15 mb-2";

@@ -3,8 +3,9 @@ import { useTheme } from "@/contexts/useTheme";
 import SobreSection from "@/pages/Home/sections/SobreSection";
 import PatrocinadoresSection from "@/pages/Home/sections/PatrocinadoresSection";
 import EquipeSection from "@/pages/Home/sections/EquipeSection";
-import BarraEvents from "@/pages/Home/sections/BarraEvents";
+import BarraEventsSection from "@/pages/Home/sections/BarraEventsSection";
 import FAQSection from "@/pages/Home/sections/FAQSection";
+import TornarPatrocinadorSection from "@/pages/Home/sections/TornarPatrocinadorSection"
 import ContatoSection from "@/pages/Home/sections/ContatoSection";
 import { SPONSORS } from "@/constants/Sponsors";
 
@@ -27,11 +28,13 @@ export default function HomePage() {
 
         <EquipeSection className={sectionStyles} />
         
-        <BarraEvents className={sectionStyles} />
+        <BarraEventsSection />
 
         <div className={`${isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompLightBlue"}`}>
-        <FAQSection className={sectionStyles} />
+          <FAQSection className={sectionStyles} />
         </div>
+        
+        <TornarPatrocinadorSection className={sectionStyles} />
         
         <ContatoSection className="mx-auto py-5"  />
       </main>
