@@ -18,9 +18,9 @@ const tileStyle: React.CSSProperties = {
   background: "rgba(19, 45, 71, 0.9)",
   color: "#d6ecff",
   fontFamily: "'Barlow Condensed', sans-serif",
-  fontWeight: 900,
+  fontWeight: 750,
   letterSpacing: "0.03em",
-  padding: "1.2rem 1.6rem",
+  padding: "2rem 2.5rem",
   minHeight: "80px", 
   minWidth: "90px",
   textAlign: "center",
@@ -76,9 +76,9 @@ export default function MainEntrance() {
         sizes="100vw"
         className="absolute inset-0 h-full w-full object-cover"
       />
-      <div className="absolute inset-0 bg-semcompOffBlack/60" />
+      <div className="absolute inset-0 bg-gradient-to-b from-semcompOffBlack/40 to-semcompOffBlack/80" />
 
-      <div className="relative z-10 w-full h-full px-4 md:px-16 flex items-center max-w-7xl mx-auto">
+      <div className="relative z-10 w-full h-full flex items-center ml-[10%] mx-auto">
         <div className="flex flex-col gap-8 md:gap-12">
 
           {/* Logo e título */}
@@ -126,7 +126,7 @@ export default function MainEntrance() {
                 <div
                   style={{
                     ...tileStyle,
-                    fontSize: "clamp(2rem, 4vw, 3.7rem)",
+                    fontSize: "clamp(1.5rem, 3vw, 2rem)",
                   }}
                 >
                   {String(value).padStart(2, "0")}

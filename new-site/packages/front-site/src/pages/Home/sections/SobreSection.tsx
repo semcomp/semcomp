@@ -30,10 +30,14 @@ const SobreSection = (props: SobreProps) => {
   const { width } = useWindowDimensions();
   const { isDarkMode } = useTheme();
 
-  const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
-  const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompDarkBlue/80";
-  const gradientVia  = isDarkMode ? "via-semcompLightBlue"        : "via-semcompDarkBlue";
-  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompOffBlack";
+  const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompMidDarkBlue";
+  const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompMidDarkBlue";
+  const gradientVia  = isDarkMode ? "via-semcompLightBlue" : "via-semcompMidLightBlue";
+  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompMidLightBlue";
+  const backgroundColor = isDarkMode ? "semcompAlmostDarkBlue" : "semcompLightBlue";
+  const filtroCor = isDarkMode 
+      ? "none" 
+      : "invert(45%) sepia(35%) saturate(1100%) hue-rotate(164deg) brightness(93%) contrast(88%)"; // semcompMidLightBlue
   const sectionMargin = width > 768 ? "my-20" : "my-10";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
 
@@ -43,13 +47,14 @@ const SobreSection = (props: SobreProps) => {
   };
 
   return (
-    <section id="sobre" className={`${props.className} w-full bg-[#003050] overflow-hidden`}>
+    <section id="sobre" className={`${props.className} w-full bg-${backgroundColor} overflow-hidden pb-40`}>
       <div className={`${sectionMargin}`}> </div>
       <div className="mx-auto max-w-[80%] relative">
         <img
           src={LogoSemcomp}
           alt="Logo Semcomp"
           className="absolute w-180 h-180 pointer-events-none opacity-10 z-0 left-2/2 top-1/3 -translate-x-1/2 -translate-y-1/2"
+          style={{ filter: filtroCor }}
         />
       <motion.h2
         className={`${headingSize} font-extrabold mb-6 `}

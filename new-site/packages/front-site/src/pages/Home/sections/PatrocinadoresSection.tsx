@@ -3,6 +3,8 @@ import type { SponsorType } from "@/types/SponsorType";
 import logo1 from "@/assets/img/Patrocinadores/logo_patrocinador1.png";
 import logo2 from "@/assets/img/Patrocinadores/logo_patrocinador2.png";
 import logo3 from "@/assets/img/Patrocinadores/logo_patrocinador3.png";
+import { useTheme } from "@/contexts/useTheme";
+
 
 type PatrocinadoresProps = {
   sponsors: SponsorType[];
@@ -19,8 +21,13 @@ const PatrocinadoresSection = ({}: PatrocinadoresProps) => {
   const targetSpeedRef = useRef(1);
   const rafRef = useRef<number>(0);
   const isHoveringRef = useRef(false);
+  
+  const { isDarkMode } = useTheme();
+  const backgroundColorFront = isDarkMode ? "semcompMidDarkBlue" : "semcompMidLightBlue";
+  const backgroundColorBack = isDarkMode ? "#0F486D" : "#2c6e94";
+  const textColor = isDarkMode ? "semcompOffWhite" : "semcompLightBlue";
 
-  const NORMAL_SPEED = 1;
+  const NORMAL_SPEED = 0.5;
   const TRACK_LOOP_WIDTH_FRACTION = 1 / 3;
 
   useEffect(() => {
@@ -62,16 +69,16 @@ const PatrocinadoresSection = ({}: PatrocinadoresProps) => {
   return (
     <section
       className="w-full overflow-hidden"
-      style={{ backgroundColor: "#0F486D" }}
+      style={{ backgroundColor: backgroundColorBack }}
     >
+
       {/* Header */}
       <div
-        className="w-full py-4 px-4 sm:px-8 lg:px-16"
-        style={{ backgroundColor: "#105079" }}
+        className={`w-full py-4 px-4 sm:px-8 lg:px-16 bg-${backgroundColorFront}`}
       >
         <h2
-          className="text-center text-3xl sm:text-1xl lg:text-1xl"
-          style={{ fontFamily: "Poppins, sans-serif", color: "#4BA1D3" }}
+          className={`text-center text-3xl sm:text-1xl lg:text-1xl text-${textColor}`}
+          style={{ fontFamily: "Poppins, sans-serif"}}
         >
           Nossos Patrocinadores
         </h2>

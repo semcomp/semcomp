@@ -165,12 +165,12 @@ export default function TeamGrid({ data }: { data: TeamType }) {
         {/* Gradiente escondendo + membros */}
         <div 
           className={`
-            ${(showAll === false) ? "hidden" : "absolute"}
+            ${(showAll === true) ? "hidden" : "absolute"}
             left-0 bottom-0 w-[100%] h-[25%] rounded-xl bg-gradient-to-t from-[#091e2e] via-[#091e2e] via-30% to-transparent`}
           >
         </div>
 
-        <div className="flex flex-wrap justify-center gap-8 gap-y-6 w-full pr-4">
+        <div className="flex flex-wrap justify-center gap-8 gap-y-6 w-full pb-8">
           {visibleMembers.length > 0 ? (
             visibleMembers.map((member, index) => (
               <div
@@ -214,7 +214,7 @@ export default function TeamGrid({ data }: { data: TeamType }) {
         </div>
 
         {filteredMembers.length > membersPerPage && (
-          <div className="left-1/2 -translate-x-1/2 bottom-10 absolute">
+          <div className="left-1/2 -translate-x-1/2 bottom-5 absolute">
             <Button
               className="mt-8 cursor-pointer"
               onClick={() => setShowAll(!showAll)}
