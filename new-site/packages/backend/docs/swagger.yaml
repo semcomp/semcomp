@@ -1,0 +1,63 @@
+basePath: /
+definitions:
+  auth.LoginUserRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+host: localhost:4000
+info:
+  contact: {}
+  description: API do backend da Semcomp.
+  title: Semcomp API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Autentica um usuário participante e retorna o token JWT do site
+        público
+      parameters:
+      - description: Credenciais de login
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: JSON ou requisição inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Email e/ou senha inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login de participante
+      tags:
+      - Auth Público
+swagger: "2.0"
