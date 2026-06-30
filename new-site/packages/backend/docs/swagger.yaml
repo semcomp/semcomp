@@ -11,6 +11,47 @@ definitions:
     - email
     - password
     type: object
+  user.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  user.SafeUser:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      presence_rate:
+        type: number
+      user_number:
+        type: string
+    type: object
+  user.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      presence_rate:
+        minimum: 0
+        type: number
+    required:
+    - email
+    - name
+    type: object
 host: localhost:4000
 info:
   contact: {}
@@ -18,6 +59,188 @@ info:
   title: Semcomp API
   version: "1.0"
 paths:
+  /admin/users:
+    get:
+      consumes:
+      - application/json
+      description: Retorna uma lista paginada de usuários cadastrados
+      parameters:
+      - default: 1
+        description: Página atual
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limite de itens por página
+        in: query
+        name: limit
+        type: integer
+      - default: name
+        description: Campo de ordenação
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: Ordem (asc/desc)
+        in: query
+        name: sort_order
+        type: string
+      - description: Campo de busca
+        in: query
+        name: search_by
+        type: string
+      - description: Valor de busca
+        in: query
+        name: search_value
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de usuários paginada
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetro inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Lista usuários
+      tags:
+      - User Backoffice
+  /admin/users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove um usuário do sistema
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário removido com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Usuário não existe
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deleta usuário
+      tags:
+      - User Backoffice
+    get:
+      consumes:
+      - application/json
+      description: Retorna os dados de um usuário específico
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário encontrado
+          schema:
+            $ref: '#/definitions/user.SafeUser'
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Usuário não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca usuário por ID
+      tags:
+      - User Backoffice
+    put:
+      consumes:
+      - application/json
+      description: Altera os dados de um usuário existente
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados para atualização
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário atualizado com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dados ou ID inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Email já cadastrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza usuário
+      tags:
+      - User Backoffice
   /login:
     post:
       consumes:
@@ -60,4 +283,45 @@ paths:
       summary: Login de participante
       tags:
       - Auth Público
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Cadastra um participante no sistema
+      parameters:
+      - description: Dados de cadastro
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Usuário criado com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: E-mail já cadastrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria um novo usuário
+      tags:
+      - User
 swagger: "2.0"
