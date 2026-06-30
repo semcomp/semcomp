@@ -26,7 +26,7 @@ func NewUserHandler(userService UserService) *UserHandler {
 // CreateUser processa o payload JSON e tenta criar um novo usuário.
 // @Summary Cria um novo usuário
 // @Description Cadastra um participante no sistema
-// @Tags User
+// @Tags Usuários (Participantes)
 // @Accept json
 // @Produce json
 // @Param request body user.CreateUserRequest true "Dados de cadastro"
@@ -79,7 +79,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 // GetAllUsers retorna todos os usuários cadastrados.
 // @Summary Lista usuários
 // @Description Retorna uma lista paginada de usuários cadastrados
-// @Tags User Backoffice
+// @Tags Usuários (Participantes)
 // @Accept json
 // @Produce json
 // @Param page query int false "Página atual" default(1)
@@ -145,7 +145,7 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 // GetUserByID retorna um usuário específico buscando pelo seu ID passado na URL.
 // @Summary Busca usuário por ID
 // @Description Retorna os dados de um usuário específico
-// @Tags User Backoffice
+// @Tags Usuários (Participantes)
 // @Accept json
 // @Produce json
 // @Param id path int true "ID do usuário"
@@ -182,7 +182,7 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 // UpdateUser atualiza os dados de um usuário existente buscando pelo ID fornecido na URL.
 // @Summary Atualiza usuário
 // @Description Altera os dados de um usuário existente
-// @Tags User Backoffice
+// @Tags Usuários (Participantes)
 // @Accept json
 // @Produce json
 // @Param id path int true "ID do usuário"
@@ -250,7 +250,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 // DeleteUser remove um usuário do sistema identificando-o pelo ID na URL.
 // @Summary Deleta usuário
 // @Description Remove um usuário do sistema
-// @Tags User Backoffice
+// @Tags Usuários (Participantes)
 // @Accept json
 // @Produce json
 // @Param id path int true "ID do usuário"

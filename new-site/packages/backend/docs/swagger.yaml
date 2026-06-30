@@ -11,6 +11,110 @@ definitions:
     - email
     - password
     type: object
+  authBackoffice.LoginUserBackofficeRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  event.CreateEventRequest:
+    properties:
+      description:
+        type: string
+      end_date:
+        type: string
+      has_attendance:
+        type: boolean
+      init_date:
+        type: string
+      location:
+        type: string
+      name:
+        maxLength: 200
+        type: string
+      type:
+        maxLength: 50
+        type: string
+    required:
+    - end_date
+    - init_date
+    - name
+    type: object
+  event.Event:
+    properties:
+      description:
+        type: string
+      end_date:
+        type: string
+      has_attendance:
+        type: boolean
+      init_date:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  event.UpdateEventRequest:
+    properties:
+      description:
+        type: string
+      end_date:
+        type: string
+      has_attendance:
+        type: boolean
+      init_date:
+        type: string
+      location:
+        type: string
+      name:
+        maxLength: 200
+        type: string
+      type:
+        maxLength: 50
+        type: string
+    required:
+    - end_date
+    - init_date
+    - name
+    type: object
+  permission.Permission:
+    properties:
+      permission_type:
+        description: '"RW" ou "R"'
+        type: string
+      section:
+        $ref: '#/definitions/section.Section'
+      section_name:
+        type: string
+      user:
+        $ref: '#/definitions/userBackoffice.UserBackoffice'
+      user_email:
+        type: string
+    type: object
+  permission.PermissionRequest:
+    properties:
+      permission_type:
+        maxLength: 2
+        type: string
+      section_name:
+        maxLength: 200
+        type: string
+      user_email:
+        maxLength: 150
+        type: string
+    required:
+    - permission_type
+    - section_name
+    - user_email
+    type: object
   presence.CreatePresenceRequest:
     properties:
       email_admin:
@@ -126,6 +230,40 @@ definitions:
     - email
     - name
     type: object
+  userBackoffice.CreateUserBackofficeRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  userBackoffice.SafeUserB:
+    properties:
+      email:
+        type: string
+    type: object
+  userBackoffice.UpdateUserBackofficeRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  userBackoffice.UserBackoffice:
+    properties:
+      email:
+        type: string
+      passwordHash:
+        type: string
+    type: object
 host: localhost:4000
 info:
   contact: {}
@@ -133,6 +271,468 @@ info:
   title: Semcomp API
   version: "1.0"
 paths:
+  /admin/events:
+    post:
+      consumes:
+      - application/json
+      description: Cadastra um evento no sistema
+      parameters:
+      - description: Dados do evento
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/event.CreateEventRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Evento criado com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Evento já existe
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cria um novo evento
+      tags:
+      - Event Backoffice
+  /admin/events/{eventName}/{initDate}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove um evento do sistema
+      parameters:
+      - description: Nome do evento
+        in: path
+        name: eventName
+        required: true
+        type: string
+      - description: Data de início do evento (RFC3339)
+        in: path
+        name: initDate
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Evento removido com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Data inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Evento não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Deleta evento
+      tags:
+      - Event Backoffice
+    put:
+      consumes:
+      - application/json
+      description: Altera os dados de um evento existente
+      parameters:
+      - description: Nome do evento
+        in: path
+        name: eventName
+        required: true
+        type: string
+      - description: Data de início do evento (RFC3339)
+        in: path
+        name: initDate
+        required: true
+        type: string
+      - description: Dados para atualização
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/event.UpdateEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Evento atualizado com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos ou data inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Evento não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza evento
+      tags:
+      - Event Backoffice
+  /admin/login:
+    post:
+      consumes:
+      - application/json
+      description: Autentica um usuário administrador e retorna o token JWT com permissões
+      parameters:
+      - description: Credenciais de login
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/authBackoffice.LoginUserBackofficeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login realizado
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: JSON ou requisição inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Email e/ou senha inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login do backoffice
+      tags:
+      - Auth Backoffice
+  /admin/permissions:
+    get:
+      consumes:
+      - application/json
+      description: Retorna uma lista paginada de permissões cadastradas
+      parameters:
+      - default: 1
+        description: Página atual
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limite de itens por página
+        in: query
+        name: limit
+        type: integer
+      - default: user_email
+        description: Campo de ordenação
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: Ordem (asc/desc)
+        in: query
+        name: sort_order
+        type: string
+      - description: Campo de busca
+        in: query
+        name: search_by
+        type: string
+      - description: Valor de busca
+        in: query
+        name: search_value
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de permissões paginada
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetro inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lista permissões
+      tags:
+      - Permission Backoffice
+    post:
+      consumes:
+      - application/json
+      description: Vincula uma permissão (R ou RW) de um usuário do backoffice a uma
+        seção
+      parameters:
+      - description: Dados da permissão
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/permission.PermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Permissão criada com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos, seção/usuário inexistente ou tipo inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cria uma nova permissão
+      tags:
+      - Permission Backoffice
+  /admin/permissions/{user}/{section}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove uma permissão do sistema
+      parameters:
+      - description: Email do usuário do backoffice
+        in: path
+        name: user
+        required: true
+        type: string
+      - description: Nome da seção
+        in: path
+        name: section
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Permissão removida com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Permissão não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Deleta permissão
+      tags:
+      - Permission Backoffice
+    put:
+      consumes:
+      - application/json
+      description: Altera os dados de uma permissão existente identificada por usuário
+        e seção
+      parameters:
+      - description: Email do usuário do backoffice
+        in: path
+        name: user
+        required: true
+        type: string
+      - description: Nome da seção
+        in: path
+        name: section
+        required: true
+        type: string
+      - description: Dados para atualização
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/permission.PermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Permissão atualizada com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dados inválidos, seção/usuário inexistente ou tipo inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Permissão não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza permissão
+      tags:
+      - Permission Backoffice
+  /admin/permissions/section/{section}:
+    get:
+      consumes:
+      - application/json
+      description: Retorna as permissões vinculadas a uma seção
+      parameters:
+      - description: Nome da seção
+        in: path
+        name: section
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Permissões encontradas
+          schema:
+            items:
+              $ref: '#/definitions/permission.Permission'
+            type: array
+        "400":
+          description: Seção inexistente
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Permissão não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Busca permissões por seção
+      tags:
+      - Permission Backoffice
+  /admin/permissions/user/{user}:
+    get:
+      consumes:
+      - application/json
+      description: Retorna as permissões vinculadas a um usuário do backoffice
+      parameters:
+      - description: Email do usuário do backoffice
+        in: path
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Permissões encontradas
+          schema:
+            items:
+              $ref: '#/definitions/permission.Permission'
+            type: array
+        "400":
+          description: Usuário inexistente
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Permissão não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Busca permissões por usuário
+      tags:
+      - Permission Backoffice
   /admin/presences:
     get:
       consumes:
@@ -662,7 +1262,7 @@ paths:
       - BearerAuth: []
       summary: Lista usuários
       tags:
-      - User Backoffice
+      - Usuários (Participantes)
   /admin/users/{id}:
     delete:
       consumes:
@@ -705,7 +1305,7 @@ paths:
       - BearerAuth: []
       summary: Deleta usuário
       tags:
-      - User Backoffice
+      - Usuários (Participantes)
     get:
       consumes:
       - application/json
@@ -745,7 +1345,7 @@ paths:
       - BearerAuth: []
       summary: Busca usuário por ID
       tags:
-      - User Backoffice
+      - Usuários (Participantes)
     put:
       consumes:
       - application/json
@@ -793,7 +1393,332 @@ paths:
       - BearerAuth: []
       summary: Atualiza usuário
       tags:
-      - User Backoffice
+      - Usuários (Participantes)
+  /admin/usersBackoffice:
+    get:
+      consumes:
+      - application/json
+      description: Retorna uma lista paginada de usuários administradores
+      parameters:
+      - default: 1
+        description: Página atual
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limite de itens por página
+        in: query
+        name: limit
+        type: integer
+      - default: email
+        description: Campo de ordenação
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: Ordem (asc/desc)
+        in: query
+        name: sort_order
+        type: string
+      - description: Campo de busca
+        in: query
+        name: search_by
+        type: string
+      - description: Valor de busca
+        in: query
+        name: search_value
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de usuários paginada
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetro inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lista usuários do backoffice
+      tags:
+      - Usuários (Admins)
+    post:
+      consumes:
+      - application/json
+      description: Cadastra um novo usuário administrador no backoffice
+      parameters:
+      - description: Dados de cadastro
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/userBackoffice.CreateUserBackofficeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Usuário criado com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cria usuário do backoffice
+      tags:
+      - Usuários (Admins)
+  /admin/usersBackoffice/{email}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove um usuário administrador do sistema
+      parameters:
+      - description: Email do usuário
+        in: path
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário removido com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Usuário não existe ou erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Deleta usuário do backoffice
+      tags:
+      - Usuários (Admins)
+    get:
+      consumes:
+      - application/json
+      description: Retorna os dados de um usuário administrador específico
+      parameters:
+      - description: Email do usuário
+        in: path
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário encontrado
+          schema:
+            $ref: '#/definitions/userBackoffice.SafeUserB'
+        "404":
+          description: Usuário não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Busca usuário do backoffice por email
+      tags:
+      - Usuários (Admins)
+    put:
+      consumes:
+      - application/json
+      description: Altera os dados de um usuário administrador existente
+      parameters:
+      - description: Email do usuário
+        in: path
+        name: email
+        required: true
+        type: string
+      - description: Dados para atualização
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/userBackoffice.UpdateUserBackofficeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário atualizado com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza usuário do backoffice
+      tags:
+      - Usuários (Admins)
+  /api/profile:
+    get:
+      description: Retorna os dados do usuário autenticado via token JWT
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Entrada Permitida
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Perfil do usuário
+      tags:
+      - Auth Público
+  /event/{eventName}/{initDate}:
+    get:
+      consumes:
+      - application/json
+      description: Retorna os dados de um evento específico
+      parameters:
+      - description: Nome do evento
+        in: path
+        name: eventName
+        required: true
+        type: string
+      - description: Data de início do evento (RFC3339)
+        in: path
+        name: initDate
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Evento encontrado
+          schema:
+            $ref: '#/definitions/event.Event'
+        "400":
+          description: Data inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Evento não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Evento já existe
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca evento por nome e data
+      tags:
+      - Event Público
+  /events:
+    get:
+      consumes:
+      - application/json
+      description: Retorna uma lista paginada de eventos cadastrados
+      parameters:
+      - default: 1
+        description: Página atual
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limite de itens por página
+        in: query
+        name: limit
+        type: integer
+      - default: init_date
+        description: Campo de ordenação
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: Ordem (asc/desc)
+        in: query
+        name: sort_order
+        type: string
+      - description: Campo de busca
+        in: query
+        name: search_by
+        type: string
+      - description: Valor de busca
+        in: query
+        name: search_value
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de eventos paginada
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetro inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Lista eventos
+      tags:
+      - Event Público
   /login:
     post:
       consumes:
@@ -876,7 +1801,7 @@ paths:
             type: object
       summary: Cria um novo usuário
       tags:
-      - User
+      - Usuários (Participantes)
 securityDefinitions:
   BearerAuth:
     description: 'Insira o token no formato: Bearer {seu_token}'
