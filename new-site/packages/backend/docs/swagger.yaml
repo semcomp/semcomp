@@ -58,6 +58,33 @@ definitions:
     - event_name
     - user_number
     type: object
+  section.CreateSectionRequest:
+    properties:
+      description:
+        type: string
+      name:
+        maxLength: 200
+        type: string
+    required:
+    - name
+    type: object
+  section.Section:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  section.UpdateSectionRequest:
+    properties:
+      description:
+        type: string
+      name:
+        maxLength: 200
+        type: string
+    required:
+    - name
+    type: object
   user.CreateUserRequest:
     properties:
       email:
@@ -364,6 +391,219 @@ paths:
       summary: Atualiza presença
       tags:
       - Presence Backoffice
+  /admin/sections:
+    get:
+      consumes:
+      - application/json
+      description: Retorna uma lista paginada de seções cadastradas
+      parameters:
+      - default: 1
+        description: Página atual
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limite de itens por página
+        in: query
+        name: limit
+        type: integer
+      - default: name
+        description: Campo de ordenação
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: Ordem (asc/desc)
+        in: query
+        name: sort_order
+        type: string
+      - description: Campo de busca
+        in: query
+        name: search_by
+        type: string
+      - description: Valor de busca
+        in: query
+        name: search_value
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de seções paginada
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetro inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lista seções
+      tags:
+      - Section Backoffice
+    post:
+      consumes:
+      - application/json
+      description: Cadastra uma seção no sistema
+      parameters:
+      - description: Dados da seção
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/section.CreateSectionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Seção criada com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cria uma nova seção
+      tags:
+      - Section Backoffice
+  /admin/sections/{sectionName}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove uma seção do sistema
+      parameters:
+      - description: Nome da seção
+        in: path
+        name: sectionName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Seção removida com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Seção não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Deleta seção
+      tags:
+      - Section Backoffice
+    get:
+      consumes:
+      - application/json
+      description: Retorna os dados de uma seção específica
+      parameters:
+      - description: Nome da seção
+        in: path
+        name: sectionName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Seção encontrada
+          schema:
+            $ref: '#/definitions/section.Section'
+        "404":
+          description: Seção não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Busca seção por nome
+      tags:
+      - Section Backoffice
+    put:
+      consumes:
+      - application/json
+      description: Altera os dados de uma seção existente
+      parameters:
+      - description: Nome da seção
+        in: path
+        name: sectionName
+        required: true
+        type: string
+      - description: Dados para atualização
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/section.UpdateSectionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Seção atualizada com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Seção não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza seção
+      tags:
+      - Section Backoffice
   /admin/users:
     get:
       consumes:
