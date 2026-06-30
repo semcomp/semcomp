@@ -27,6 +27,10 @@ import (
 // @description API do backend da Semcomp.
 // @host localhost:4000
 // @BasePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Insira o token no formato: Bearer {seu_token}
 func main() {
 	db, errDB := database.ConnectDB()
 	if errDB != nil {

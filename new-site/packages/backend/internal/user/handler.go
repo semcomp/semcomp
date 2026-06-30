@@ -91,6 +91,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 // @Success 200 {object} map[string]interface{} "Lista de usuários paginada"
 // @Failure 400 {object} map[string]string "Parâmetro inválido"
 // @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
 // @Router /admin/users [get]
 func (h *UserHandler) GetAllUsers(c *gin.Context) {
 	page := 1
@@ -152,6 +153,7 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 // @Failure 400 {object} map[string]string "ID inválido"
 // @Failure 404 {object} map[string]string "Usuário não encontrado"
 // @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
 // @Router /admin/users/{id} [get]
 func (h *UserHandler) GetUserByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -189,6 +191,7 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 // @Failure 400 {object} map[string]string "Dados ou ID inválidos"
 // @Failure 409 {object} map[string]string "Email já cadastrado"
 // @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
 // @Router /admin/users/{id} [put]
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -255,6 +258,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 // @Failure 400 {object} map[string]string "ID inválido"
 // @Failure 404 {object} map[string]string "Usuário não existe"
 // @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
 // @Router /admin/users/{id} [delete]
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
