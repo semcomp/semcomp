@@ -11,6 +11,53 @@ definitions:
     - email
     - password
     type: object
+  presence.CreatePresenceRequest:
+    properties:
+      email_admin:
+        maxLength: 255
+        type: string
+      event_init_date:
+        type: string
+      event_name:
+        maxLength: 200
+        type: string
+      user_number:
+        type: integer
+    required:
+    - email_admin
+    - event_init_date
+    - event_name
+    - user_number
+    type: object
+  presence.Presence:
+    properties:
+      email_admin:
+        type: string
+      event_init_date:
+        type: string
+      event_name:
+        type: string
+      user_number:
+        type: integer
+    type: object
+  presence.UpdatePresenceRequest:
+    properties:
+      email_admin:
+        maxLength: 255
+        type: string
+      event_init_date:
+        type: string
+      event_name:
+        maxLength: 200
+        type: string
+      user_number:
+        type: integer
+    required:
+    - email_admin
+    - event_init_date
+    - event_name
+    - user_number
+    type: object
   user.CreateUserRequest:
     properties:
       email:
@@ -59,6 +106,264 @@ info:
   title: Semcomp API
   version: "1.0"
 paths:
+  /admin/presences:
+    get:
+      consumes:
+      - application/json
+      description: Retorna uma lista paginada de presenças registradas
+      parameters:
+      - default: 1
+        description: Página atual
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limite de itens por página
+        in: query
+        name: limit
+        type: integer
+      - default: event_init_date
+        description: Campo de ordenação
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: Ordem (asc/desc)
+        in: query
+        name: sort_order
+        type: string
+      - description: Campo de busca
+        in: query
+        name: search_by
+        type: string
+      - description: Valor de busca
+        in: query
+        name: search_value
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de presenças paginada
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetro inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lista presenças
+      tags:
+      - Presence Backoffice
+    post:
+      consumes:
+      - application/json
+      description: Registra a presença de um usuário em um evento
+      parameters:
+      - description: Dados da presença
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presence.CreatePresenceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Presença criada com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cria uma nova presença
+      tags:
+      - Presence Backoffice
+  /admin/presences/{userNumber}/{eventName}/{eventInitDate}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove uma presença do sistema identificada pela chave composta
+      parameters:
+      - description: Número do usuário
+        in: path
+        name: userNumber
+        required: true
+        type: string
+      - description: Nome do evento
+        in: path
+        name: eventName
+        required: true
+        type: string
+      - description: Data de início do evento (RFC3339)
+        in: path
+        name: eventInitDate
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Presença removida com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Data inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Presença não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Deleta presença
+      tags:
+      - Presence Backoffice
+    get:
+      consumes:
+      - application/json
+      description: Retorna uma presença específica pelo número do usuário, nome do
+        evento e data de início
+      parameters:
+      - description: Número do usuário
+        in: path
+        name: userNumber
+        required: true
+        type: string
+      - description: Nome do evento
+        in: path
+        name: eventName
+        required: true
+        type: string
+      - description: Data de início do evento (RFC3339)
+        in: path
+        name: eventInitDate
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Presença encontrada
+          schema:
+            $ref: '#/definitions/presence.Presence'
+        "400":
+          description: Data inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Presença não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Busca presença por chave composta
+      tags:
+      - Presence Backoffice
+    put:
+      consumes:
+      - application/json
+      description: Altera os dados de uma presença existente identificada pela chave
+        composta
+      parameters:
+      - description: Número do usuário
+        in: path
+        name: userNumber
+        required: true
+        type: string
+      - description: Nome do evento
+        in: path
+        name: eventName
+        required: true
+        type: string
+      - description: Data de início do evento (RFC3339)
+        in: path
+        name: eventInitDate
+        required: true
+        type: string
+      - description: Dados para atualização
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presence.UpdatePresenceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Presença atualizada com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dados inválidos ou data inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Presença não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza presença
+      tags:
+      - Presence Backoffice
   /admin/users:
     get:
       consumes:
@@ -113,6 +418,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Lista usuários
       tags:
       - User Backoffice
@@ -154,6 +461,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Deleta usuário
       tags:
       - User Backoffice
@@ -192,6 +501,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Busca usuário por ID
       tags:
       - User Backoffice
@@ -238,6 +549,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Atualiza usuário
       tags:
       - User Backoffice
@@ -324,4 +637,10 @@ paths:
       summary: Cria um novo usuário
       tags:
       - User
+securityDefinitions:
+  BearerAuth:
+    description: 'Insira o token no formato: Bearer {seu_token}'
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
