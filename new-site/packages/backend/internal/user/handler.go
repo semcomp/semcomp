@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"backend/internal/token"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -224,4 +226,121 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	}
 	c.Set("responseMessage", "Usuário removido com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Usuário removido com sucesso!"})
+}
+
+// VerifyEmailHandler verifica o e-mail do usuário a partir do token.
+func (h *UserHandler) VerifyEmailHandler(c *gin.Context) {
+	tokenPlain := c.Query("token")
+	if tokenPlain == "" {
+		c.Set("responseMessage", "Token não fornecido")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token não fornecido"})
+		return
+	}
+
+	userNumber := c.MustGet("userNumber").(uint)
+
+	err := h.userService.VerifyEmail(tokenPlain, userNumber)
+	if err != nil {
+		if errors.Is(err, token.ErrInvalidToken) {
+			c.Set("responseMessage", "Token inválido")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Token inválido"})
+			return
+		}
+		if errors.Is(err, token.ErrTokenExpired) {
+			c.Set("responseMessage", "Token expirado")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Token expirado"})
+			return
+		}
+		if errors.Is(err, token.ErrTokenUsed) {
+			c.Set("responseMessage", "Token já utilizado")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Token já utilizado"})
+			return
+		}
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro interno do servidor")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
+		return
+	}
+
+	c.Set("responseMessage", "E-mail verificado com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "E-mail verificado com sucesso!"})
+}
+
+// ForgotPasswordHandler solicita a recuperação de senha.
+func (h *UserHandler) ForgotPasswordHandler(c *gin.Context) {
+	var request ForgotPasswordRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		if validationErrs, ok := err.(validator.ValidationErrors); ok {
+			c.Set("responseMessage", "Dados inválidos")
+			fieldErr := validationErrs[0]
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",
+					fieldErr.Field(), fieldErr.Tag()),
+			})
+			return
+		}
+		c.Set("responseMessage", "Dados inválidos")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "E-mail inválido"})
+		return
+	}
+
+	_ = h.userService.RequestPasswordReset(request.Email)
+
+	c.Set("responseMessage", "Se o e-mail existir, você receberá um link de recuperação.")
+	c.JSON(http.StatusOK, gin.H{"message": "Se o e-mail existir, você receberá um link de recuperação."})
+}
+
+// ResetPasswordHandler redefina a senha do usuário.
+func (h *UserHandler) ResetPasswordHandler(c *gin.Context) {
+	var request ResetPasswordRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		if unmarshalErr, ok := err.(*json.UnmarshalTypeError); ok {
+			c.Set("responseMessage", "Dados inválidos")
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": fmt.Sprintf("O campo '%s' recebeu um valor do tipo %s, mas esperava %s",
+					unmarshalErr.Field, unmarshalErr.Value, unmarshalErr.Type),
+			})
+			return
+		}
+
+		if validationErrs, ok := err.(validator.ValidationErrors); ok {
+			c.Set("responseMessage", "Dados inválidos")
+			fieldErr := validationErrs[0]
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",
+					fieldErr.Field(), fieldErr.Tag()),
+			})
+			return
+		}
+
+		c.Set("responseMessage", "Dados inválidos")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		return
+	}
+
+	err := h.userService.ResetPassword(request.Token, request.NewPassword)
+	if err != nil {
+		if errors.Is(err, token.ErrInvalidToken) {
+			c.Set("responseMessage", "Token inválido")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Token inválido"})
+			return
+		}
+		if errors.Is(err, token.ErrTokenExpired) {
+			c.Set("responseMessage", "Token expirado")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Token expirado"})
+			return
+		}
+		if errors.Is(err, token.ErrTokenUsed) {
+			c.Set("responseMessage", "Token já utilizado")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Token já utilizado"})
+			return
+		}
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro interno do servidor")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
+		return
+	}
+
+	c.Set("responseMessage", "Senha redefinida com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "Senha redefinida com sucesso!"})
 }

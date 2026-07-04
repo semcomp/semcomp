@@ -5,14 +5,17 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
+	"backend/internal/mailer"
 	"backend/internal/providers"
+	"backend/internal/token"
 )
 
 var (
-	ErrEmailAlreadyExists = errors.New("email já cadastrado")
-	ErrInvalidCredentials = errors.New("email e/ou senha inválido(s)")
-	ErrTokenGeneration    = errors.New("geração do token falhou")
+	ErrEmailAlreadyExists  = errors.New("email já cadastrado")
+	ErrInvalidCredentials  = errors.New("email e/ou senha inválido(s)")
+	ErrTokenGeneration     = errors.New("geração do token falhou")
 	ErrInternalServerError = errors.New("erro interno")
 )
 
@@ -23,17 +26,28 @@ type UserService interface {
 	GetUserByID(id uint) (*SafeUser, error)
 	UpdateUser(id uint, request UpdateUserRequest) error
 	DeleteUser(id uint) error
+
+	VerifyEmail(tokenPlain string, userID uint) error
+	RequestPasswordReset(email string) error
+	ResetPassword(tokenPlain string, newPassword string) error
 }
 
 // userService é a implementação concreta de UserService.
 type userService struct {
 	repo             UserRepository
 	passwordProvider providers.PasswordProvider
+	tokenRepo        token.Repository
+	mailer           *mailer.Mailer
 }
 
 // NewUserService inicializa e retorna uma nova instância de UserService.
-func NewUserService(repo UserRepository, passwordProvider providers.PasswordProvider) UserService {
-	return &userService{repo: repo, passwordProvider: passwordProvider}
+func NewUserService(repo UserRepository, passwordProvider providers.PasswordProvider, tokenRepo token.Repository, mailer *mailer.Mailer) UserService {
+	return &userService{
+		repo:             repo,
+		passwordProvider: passwordProvider,
+		tokenRepo:        tokenRepo,
+		mailer:           mailer,
+	}
 }
 
 // CreateUser valida duplicatas, criptografa a senha e salva o novo usuário.
@@ -49,15 +63,34 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 	}
 
 	newUser := User{
-		Name:         request.Name,
-		Email:        request.Email,
-		PasswordHash: hashedPassword,
-		PresenceRate: 0.0,
+		Name:          request.Name,
+		Email:         request.Email,
+		PasswordHash:  hashedPassword,
+		PresenceRate:  0.0,
+		EmailVerified: false,
 	}
 
 	if err := s.repo.Create(&newUser); err != nil {
 		return nil, err
 	}
+
+	plainToken, hash, err := token.GenerateToken()
+	if err != nil {
+		return nil, ErrTokenGeneration
+	}
+
+	verificationToken := token.Token{
+		UserID:    newUser.UserNumber,
+		TokenHash: hash,
+		Type:      token.EmailVerification,
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+
+	if err := s.tokenRepo.Create(&verificationToken); err != nil {
+		return nil, err
+	}
+
+	s.mailer.SendVerificationEmail(newUser.Name, newUser.Email, plainToken)
 
 	safe := ToSafeUser(&newUser)
 	return &safe, nil
@@ -187,4 +220,105 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 // DeleteUser remove um usuário do sistema a partir do seu ID.
 func (s *userService) DeleteUser(id uint) error {
 	return s.repo.Delete(id)
+}
+
+func (s *userService) VerifyEmail(tokenPlain string, userID uint) error {
+	hash := token.HashToken(tokenPlain)
+
+	t, err := s.tokenRepo.FindByHash(hash)
+	if err != nil {
+		return err
+	}
+
+	if t.UserID != userID {
+		return token.ErrInvalidToken
+	}
+
+	if t.UsedAt != nil {
+		return token.ErrTokenUsed
+	}
+
+	if time.Now().After(t.ExpiresAt) {
+		return token.ErrTokenExpired
+	}
+
+	user, err := s.repo.GetByID(t.UserID)
+	if err != nil {
+		return ErrInternalServerError
+	}
+
+	user.EmailVerified = true
+	if err := s.repo.Update(user); err != nil {
+		return err
+	}
+
+	return s.tokenRepo.MarkUsed(t.ID)
+}
+
+func (s *userService) RequestPasswordReset(email string) error {
+	userRecord, err := s.repo.GetByEmail(email)
+	if err != nil {
+		if errors.Is(err, ErrInvalidCredentials) {
+			return nil
+		}
+		return err
+	}
+
+	if err := s.tokenRepo.DeleteByUserAndType(userRecord.UserNumber, token.PasswordReset); err != nil {
+		return err
+	}
+
+	plainToken, hash, err := token.GenerateToken()
+	if err != nil {
+		return ErrTokenGeneration
+	}
+
+	resetToken := token.Token{
+		UserID:    userRecord.UserNumber,
+		TokenHash: hash,
+		Type:      token.PasswordReset,
+		ExpiresAt: time.Now().Add(30 * time.Minute),
+	}
+
+	if err := s.tokenRepo.Create(&resetToken); err != nil {
+		return err
+	}
+
+	s.mailer.SendPasswordResetEmail(userRecord.Name, userRecord.Email, plainToken)
+
+	return nil
+}
+
+func (s *userService) ResetPassword(tokenPlain string, newPassword string) error {
+	hash := token.HashToken(tokenPlain)
+
+	t, err := s.tokenRepo.FindByHash(hash)
+	if err != nil {
+		return err
+	}
+
+	if t.UsedAt != nil {
+		return token.ErrTokenUsed
+	}
+
+	if time.Now().After(t.ExpiresAt) {
+		return token.ErrTokenExpired
+	}
+
+	user, err := s.repo.GetByID(t.UserID)
+	if err != nil {
+		return ErrInternalServerError
+	}
+
+	hashedPassword, err := s.passwordProvider.Hash(newPassword)
+	if err != nil {
+		return errors.New("erro ao processar a senha")
+	}
+
+	user.PasswordHash = hashedPassword
+	if err := s.repo.Update(user); err != nil {
+		return err
+	}
+
+	return s.tokenRepo.MarkUsed(t.ID)
 }

@@ -1,16 +1,21 @@
 package main
 
 import (
+	"os"
+	"strconv"
+
 	"backend/internal/auth"
 	"backend/internal/authBackoffice"
 	"backend/internal/database"
 	"backend/internal/event"
 	"backend/internal/log"
+	"backend/internal/mailer"
 	"backend/internal/middleware"
 	"backend/internal/permission"
 	"backend/internal/presence"
 	"backend/internal/providers"
 	"backend/internal/section"
+	"backend/internal/token"
 	"backend/internal/user"
 	"backend/internal/userBackoffice"
 
@@ -24,7 +29,7 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &token.Token{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -33,8 +38,27 @@ func main() {
 	passwordProvider := providers.NewBcryptProvider()
 	jwtProvider := providers.NewJWTProvider()
 
+	tokenRepo := token.NewRepository(db)
+
+	smtpPort := 587
+	if portStr := os.Getenv("SMTP_PORT"); portStr != "" {
+		if p, err := strconv.Atoi(portStr); err == nil {
+			smtpPort = p
+		}
+	}
+
+	m := mailer.NewMailer(mailer.Config{
+		SMTP: mailer.SMTPConfig{
+			Host:     os.Getenv("SMTP_HOST"),
+			Port:     smtpPort,
+			Username: os.Getenv("SMTP_USERNAME"),
+			Password: os.Getenv("SMTP_PASSWORD"),
+		},
+		BaseURL: os.Getenv("BASE_URL"),
+	})
+
 	userRepo := user.NewUserRepository(db)
-	userService := user.NewUserService(userRepo, passwordProvider)
+	userService := user.NewUserService(userRepo, passwordProvider, tokenRepo, m)
 	userHandler := user.NewUserHandler(userService)
 
 	eventRepo := event.NewEventRepository(db)
@@ -95,7 +119,8 @@ func main() {
 	// Rotas Públicas
 	r.POST("/register", userHandler.CreateUser)
 	r.POST("/login", authHandler.LoginHandler)
-
+	r.POST("/forgot-password", userHandler.ForgotPasswordHandler)
+	r.POST("/reset-password", userHandler.ResetPasswordHandler)
 	r.GET("/events", eventHandler.GetEvents)
 	r.GET("/event/:eventName/:initDate", eventHandler.GetEventByNameAndInitDate)
 
@@ -103,6 +128,7 @@ func main() {
 	authRoutes := r.Group("/api")
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
+	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 
 	// Rota Login Backoffice
 	adminRoutes := r.Group("/admin")

@@ -39,7 +39,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	safeUser, token, errLogin := h.authService.Login(request)
+	safeUser, tokenStr, errLogin := h.authService.Login(request)
 	if errLogin != nil {
 		if errors.Is(errLogin, user.ErrInvalidCredentials) {
 			c.Set("responseMessage", "Invalid email or password")
@@ -68,7 +68,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
 		"user":    safeUser,
-		"token":   token,
+		"token":   tokenStr,
 	})
 }
 
