@@ -5,3 +5,4 @@ config/
 .env
 new-site/packages/front-site/src/constants/DebugMode.tsx
 new-site/packages/front-backoffice/src/constants/DebugMode.tsx
+.context_brain/
