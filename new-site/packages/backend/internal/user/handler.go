@@ -24,6 +24,17 @@ func NewUserHandler(userService UserService) *UserHandler {
 }
 
 // CreateUser processa o payload JSON e tenta criar um novo usuário.
+// @Summary Cria um novo usuário
+// @Description Cadastra um participante no sistema
+// @Tags Usuários (Participantes)
+// @Accept json
+// @Produce json
+// @Param request body user.CreateUserRequest true "Dados de cadastro"
+// @Success 201 {object} map[string]interface{} "Usuário criado com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 409 {object} map[string]string "E-mail já cadastrado"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Router /register [post]
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var request CreateUserRequest
 
@@ -66,6 +77,22 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 }
 
 // GetAllUsers retorna todos os usuários cadastrados.
+// @Summary Lista usuários
+// @Description Retorna uma lista paginada de usuários cadastrados
+// @Tags Usuários (Participantes)
+// @Accept json
+// @Produce json
+// @Param page query int false "Página atual" default(1)
+// @Param limit query int false "Limite de itens por página" default(10)
+// @Param sort_by query string false "Campo de ordenação" default(name)
+// @Param sort_order query string false "Ordem (asc/desc)" default(asc)
+// @Param search_by query string false "Campo de busca"
+// @Param search_value query string false "Valor de busca"
+// @Success 200 {object} map[string]interface{} "Lista de usuários paginada"
+// @Failure 400 {object} map[string]string "Parâmetro inválido"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/users [get]
 func (h *UserHandler) GetAllUsers(c *gin.Context) {
 	page := 1
 	limit := 10
@@ -116,6 +143,18 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 }
 
 // GetUserByID retorna um usuário específico buscando pelo seu ID passado na URL.
+// @Summary Busca usuário por ID
+// @Description Retorna os dados de um usuário específico
+// @Tags Usuários (Participantes)
+// @Accept json
+// @Produce json
+// @Param id path int true "ID do usuário"
+// @Success 200 {object} user.SafeUser "Usuário encontrado"
+// @Failure 400 {object} map[string]string "ID inválido"
+// @Failure 404 {object} map[string]string "Usuário não encontrado"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/users/{id} [get]
 func (h *UserHandler) GetUserByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -141,6 +180,19 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 }
 
 // UpdateUser atualiza os dados de um usuário existente buscando pelo ID fornecido na URL.
+// @Summary Atualiza usuário
+// @Description Altera os dados de um usuário existente
+// @Tags Usuários (Participantes)
+// @Accept json
+// @Produce json
+// @Param id path int true "ID do usuário"
+// @Param request body user.UpdateUserRequest true "Dados para atualização"
+// @Success 200 {object} map[string]string "Usuário atualizado com sucesso"
+// @Failure 400 {object} map[string]string "Dados ou ID inválidos"
+// @Failure 409 {object} map[string]string "Email já cadastrado"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/users/{id} [put]
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -196,6 +248,18 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 }
 
 // DeleteUser remove um usuário do sistema identificando-o pelo ID na URL.
+// @Summary Deleta usuário
+// @Description Remove um usuário do sistema
+// @Tags Usuários (Participantes)
+// @Accept json
+// @Produce json
+// @Param id path int true "ID do usuário"
+// @Success 200 {object} map[string]string "Usuário removido com sucesso"
+// @Failure 400 {object} map[string]string "ID inválido"
+// @Failure 404 {object} map[string]string "Usuário não existe"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/users/{id} [delete]
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

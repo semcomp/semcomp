@@ -5,7 +5,7 @@
   import QrScanner from "qr-scanner";
   import { useEffect, useRef, useState } from "react";
   import { useLocation, useNavigate, useParams } from "react-router-dom";
-  import { presenceAPI } from "@/api/presence.ts"
+  import { participationAPI } from "@/api/participation"
   import { useNotification } from "@/contexts/NotificationContext";
   import { useAuth } from "@/contexts/AuthContext";
 
@@ -47,7 +47,7 @@
       try {
         setError("");
         
-        await presenceAPI.createByQRCode(
+        await participationAPI.createByQRCode(
           userNumber,
           resolvedEventName,
           resolvedDateTime,

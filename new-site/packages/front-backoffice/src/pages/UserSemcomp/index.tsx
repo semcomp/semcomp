@@ -1,30 +1,43 @@
 import { CrudTable } from "@/components/CrudTable";
+import type { CrudQueryParams } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
 import { fields } from "@/data/userSemcompCrudField";
 import { Tabs } from "@/constants/Tabs";
 import { userSemcompAPI } from "@/api/users";
 import type { SemcompUserType } from "@/types/SemcompUserType";
+import { useNotification } from "@/contexts/NotificationContext";
 
 export default function UsersCRUD() {
   const navigate = useNavigate();
   const [data, setData] = useState<SemcompUserType[]>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const {showNotification} = useNotification();
 
-  // Buscar usuários ao montar o componente
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async (params?: CrudQueryParams) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await userSemcompAPI.getAll();
+
+      if (params?.filterField == "password" || params?.sortField == "password") {
+        showNotification(`Campo de operação inválido: ${params.filterField}`, "error");
+        return;
+      }
+        
+      const response = await userSemcompAPI.getAll(
+        params?.page ?? 1,
+        params?.pageSize ?? 10,
+        params?.sortField ?? "name",
+        params?.sortOrder ?? "asc",
+        params?.filterField && params?.filterValue ? params.filterField : undefined,
+        params?.filterValue || undefined,
+      );
       setData(response.users || []);
+      setTotalRecords(response.filtered_records ?? response.total_records ?? 0);
     } catch (err) {
       console.error("Erro ao buscar usuários:", err);
       setError("Erro ao carregar usuários");
@@ -32,6 +45,14 @@ export default function UsersCRUD() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleQueryChange = (params: CrudQueryParams) => {
+    fetchUsers(params);
   };
 
   const handleEdit = async (item: CrudItemType) => {
@@ -48,14 +69,13 @@ export default function UsersCRUD() {
         return;
       }
 
-      await userSemcompAPI.update(typedItem.id, {
+      await userSemcompAPI.update(typedItem.user_number, {
         name: typedItem.name,
         email: typedItem.email,
         ...(typedItem.password && { password: typedItem.password }),
         presence_rate: presenceRate,
       });
 
-      // Atualizar estado local
       setData(prev => prev.map(i => i.id === item.id ? typedItem : i));
     } catch (err) {
       console.error("Erro ao editar usuário:", err);
@@ -87,23 +107,16 @@ export default function UsersCRUD() {
         password: typedItem.password,
       });
 
-      setData((prev) => [
-        ...prev,
-        {
-          ...newUser,
-          password: "",
-        },
-      ]);
+      setData((prev) => [...prev, { ...newUser, password: "" }]);
+      setTotalRecords(prev => prev + 1);
     } catch (err) {
       console.error("Erro ao criar usuário:", err);
       setError("Erro ao criar usuário");
     }
   };
 
-
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6 overflow-x-auto scrollbar-hide">
-      {/* Header card com situando a página */}
       <BannerCard
         icon={Tabs.find(tab => tab.key === "users-semcomp")?.icon}
         iconClassName="text-violet-400"
@@ -117,18 +130,17 @@ export default function UsersCRUD() {
         descriptionClassName="text-slate-400 mt-1"
       />
 
-      {/* Tabela com os usuários */}
       <div className="rounded-xl border border-border bg-card/80 p-5">
         {error && (
           <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
             {error}
           </div>
         )}
-        {loading ? (
+        {loading && data.length === 0 && (
           <div className="flex items-center justify-center py-12">
             <p className="text-slate-400">Carregando usuários...</p>
           </div>
-        ) : (
+        )} 
           <CrudTable
             data={data}
             fields={fields}
@@ -136,8 +148,10 @@ export default function UsersCRUD() {
             onDelete={handleDelete}
             onCreate={handleCreate}
             entityLabel="usuário"
+            serverSide
+            totalRecords={totalRecords}
+            onQueryChange={handleQueryChange}
           />
-        )}
       </div>
     </section>
   );

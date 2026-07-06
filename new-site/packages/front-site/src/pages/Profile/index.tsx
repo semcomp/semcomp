@@ -34,28 +34,15 @@ type Evento = EventType & {
   linkInscricao?: string;
 };
 
-const events: Evento[] = [
-  {
-    name: "Inteligência de Enxames aplicada a Robótica",
-    type: "Minicurso",
-    description: "Inteligência de Enxames aplicada a Robótica - Prof. Doutor Eduardo do Valle Simões",
-    dateInit: "2026-05-16T14:00:00Z",
-    dateEnd: "2026-05-16T18:00:00Z",
-    location: "ICMC",
-    has_attendance: true,
-    linkInscricao: "https://docs.google.com/forms/d/e/1FAIpQLScc0O2bcAs18cSS-mXkCS5mmJCVZ5BU37d4I8pDTANGiMCY0g/viewform",
-  },
-  {
-    name: "Escape Room",
-    type: "Escape Room",
-    description: "Monte uma equipe e participe do nosso Escape Room!",
-    dateInit: "2026-05-16T19:00:00Z",
-    dateEnd: "2026-05-16T23:00:00Z",
-    location: "ICMC",
-    has_attendance: false,
-    linkInscricao: "https://forms.gle/9Am3Hwijdyw7r91h8",
+interface ProfileProps {
+  name?: string;
+  email?: string;
+  code?: string;
+  qrValue?: string;
+  event?: string;
+}
 
-  },
+let events: Evento[] = [
 ];
 interface ProfileProps extends UserType {
   event?: string;
