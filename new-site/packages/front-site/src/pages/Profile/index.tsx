@@ -39,23 +39,6 @@ interface ProfileProps {
 }
 
 let events: Evento[] = [
-  {
-    tipo: "Minicurso",
-    description:
-      "Inteligência de Enxames aplicada a Robótica - Prof. Doutor Eduardo do Valle Simões",
-    data: "2026-05-16",
-    horaStart: "14:00",
-    horaEnd: "18:00",
-    linkInscricao: "https://docs.google.com/forms/d/e/1FAIpQLScc0O2bcAs18cSS-mXkCS5mmJCVZ5BU37d4I8pDTANGiMCY0g/viewform"
-  },
-  {
-    tipo: "Escape Room",
-    description: "Monte uma equipe e participe do nosso Escape Room!",
-    data: "2026-05-16",
-    horaStart: "19:00",
-    horaEnd: "23:00",
-    linkInscricao: "https://forms.gle/9Am3Hwijdyw7r91h8"
-  },
 ];
 
 function formatarDataDynamic(dataIso: string) {

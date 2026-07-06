@@ -4,18 +4,12 @@ import { IoMenu } from "react-icons/io5";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/useAuth";
+// import { useAuth } from "@/contexts/useAuth";
 
-const COFFEE_FORM_URL = "https://forms.gle/VnA9hhQcyZTqDzqr7";
-
-type TabKey = "home" | "cronograma" | "coffee" | "login" | "profile" ;
+type TabKey = "home";
 
 const allTabs: Array<{ key: TabKey; label: string; path: string }> = [
   { key: "home", label: "HOME", path: "/" },
-  { key: "cronograma", label: "CRONOGRAMA", path: "/cronograma" },
-  { key: "coffee", label: "COFFEE", path: "/coffee" }, 
-  { key: "login", label: "LOGIN", path: "/login" },
-  { key: "profile", label: "PROFILE", path: "/profile" },
 ];
 
 export default function Header() {
@@ -24,14 +18,16 @@ export default function Header() {
   const location = useLocation();
   
   //Simulação de Login
-  const { isAuthenticated } = useAuth(); 
+  // const { isAuthenticated } = useAuth(); 
 
   //Filtro de abas
-  const visibleTabs = allTabs.filter((tab) => {
-    if (tab.key === "profile") return isAuthenticated;
-    if (tab.key === "login") return !isAuthenticated;
-    return true;
-  });
+  const visibleTabs = allTabs;
+
+  // const visibleTabs = allTabs.filter((tab) => {
+  //   if (tab.key === "profile") return isAuthenticated;
+  //   if (tab.key === "login") return !isAuthenticated;
+  //   return true;
+  // });
 
   //Achar a ativa
   const activeTabObj = visibleTabs.find((t) => t.path === location.pathname);
@@ -39,10 +35,6 @@ export default function Header() {
 
   const btnRefs = useRef<Record<TabKey, HTMLAnchorElement | null>>({
     home: null,
-    cronograma: null,
-    coffee: null,
-    login: null,
-    profile: null,
   });
 
   const navRef = useRef<HTMLElement | null>(null);
@@ -90,20 +82,20 @@ export default function Header() {
             {isMenuOpen && (
               <nav className="absolute top-full right-0 mt-3 w-48 bg-semcompDarkBlue border border-white/10 shadow-xl flex flex-col items-center gap-1 p-4 rounded-xl">
                 {visibleTabs.map((tab) => (
-                  tab.key === "coffee" ? (
-                    <a
-                      key={tab.key}
-                      href={COFFEE_FORM_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => setIsMenuOpen(false)}
-                      className={`px-3 py-2 text-sm font-bold transition-all ${
-                        active === tab.key ? "text-semcompOffWhite" : "text-white/60"
-                      }`}
-                    >
-                      {tab.label}
-                    </a>
-                  ) : (
+                  // tab.key === "coffee" ? (
+                  //   <a
+                  //     key={tab.key}
+                  //     href={COFFEE_FORM_URL}
+                  //     target="_blank"
+                  //     rel="noopener noreferrer"
+                  //     onClick={() => setIsMenuOpen(false)}
+                  //     className={`px-3 py-2 text-sm font-bold transition-all ${
+                  //       active === tab.key ? "text-semcompOffWhite" : "text-white/60"
+                  //     }`}
+                  //   >
+                  //     {tab.label}
+                  //   </a>
+                  // ) : (
                     <Link
                       key={tab.key}
                       to={tab.path}
@@ -115,7 +107,9 @@ export default function Header() {
                       {tab.label}
                     </Link>
                   )
-                ))}
+                //)
+                )
+                }
               </nav>
             )}
           </div>
@@ -127,20 +121,20 @@ export default function Header() {
               style={{ left: indicator.left, width: indicator.width }}
             />
             {visibleTabs.map((tab) => (
-              tab.key === "coffee" ? (
-                <a
-                  key={tab.key}
-                  href={COFFEE_FORM_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  ref={(el) => { btnRefs.current[tab.key] = el; }}
-                  className={`relative px-4 py-2 text-sm font-bold transition-all duration-200 ${
-                    active === tab.key ? "text-semcompOffWhite scale-105" : "text-semcompOffWhite/70 hover:text-white"
-                  }`}
-                >
-                  {tab.label}
-                </a>
-              ) : (
+              // tab.key === "coffee" ? (
+              //   <a
+              //     key={tab.key}
+              //     href={COFFEE_FORM_URL}
+              //     target="_blank"
+              //     rel="noopener noreferrer"
+              //     ref={(el) => { btnRefs.current[tab.key] = el; }}
+              //     className={`relative px-4 py-2 text-sm font-bold transition-all duration-200 ${
+              //       active === tab.key ? "text-semcompOffWhite scale-105" : "text-semcompOffWhite/70 hover:text-white"
+              //     }`}
+              //   >
+              //     {tab.label}
+              //   </a>
+              // ) : (
                 <Link
                   key={tab.key}
                   to={tab.path}
@@ -152,7 +146,9 @@ export default function Header() {
                   {tab.label}
                 </Link>
               )
-            ))}
+            //)
+            )
+            }
           </nav>
         )}
       </div>
