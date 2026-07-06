@@ -1,6 +1,7 @@
 package userBackoffice
 
 import (
+	"backend/internal/apierrors"
 	"net/http"
 	"strconv"
 
@@ -31,17 +32,17 @@ func (h *UserBackofficeHandler) CreateUser(c *gin.Context) {
 	var request CreateUserBackofficeRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		if len(request.Password) < 8 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "A senha deve conter no mínimo 8 caracteres"})
+		if len(request.Password) < 8 { // Isso deveria estar no service
+			apierrors.HandleAPIError(c, apierrors.ValidationError("A senha deve conter no mínimo 8 caracteres", err))
 			return
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Campo e-mail fora do padrão"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
 		return
 	}
 
 	safeUser, err := h.userBackofficeService.CreateUser(request)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 
@@ -77,7 +78,7 @@ func (h *UserBackofficeHandler) GetAllUsers(c *gin.Context) {
 	if pageQuery := c.Query("page"); pageQuery != "" {
 		parsedPage, err := strconv.Atoi(pageQuery)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'page' inválido"})
+			apierrors.HandleAPIError(c, apierrors.ValidationError("Parâmetro 'page' inválido", err))
 			return
 		}
 		page = parsedPage
@@ -86,7 +87,7 @@ func (h *UserBackofficeHandler) GetAllUsers(c *gin.Context) {
 	if limitQuery := c.Query("limit"); limitQuery != "" {
 		parsedLimit, err := strconv.Atoi(limitQuery)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'limit' inválido"})
+			apierrors.HandleAPIError(c, apierrors.ValidationError("Parâmetro 'limit' inválido", err))
 			return
 		}
 		limit = parsedLimit
@@ -94,7 +95,7 @@ func (h *UserBackofficeHandler) GetAllUsers(c *gin.Context) {
 
 	result, err := h.userBackofficeService.GetAllUsers(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 
@@ -127,7 +128,7 @@ func (h *UserBackofficeHandler) GetUserByEmail(c *gin.Context) {
 
 	user, err := h.userBackofficeService.GetUserByEmail(email)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, user)
@@ -151,16 +152,16 @@ func (h *UserBackofficeHandler) UpdateUser(c *gin.Context) {
 
 	var request UpdateUserBackofficeRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		if len(request.Password) < 8 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "A senha deve conter no mínimo 8 caracteres"})
+		if len(request.Password) < 8 { // Deveria estar no service
+			apierrors.HandleAPIError(c, apierrors.ValidationError("A senha deve conter no mínimo 8 caracteres", err))
 			return
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Campo e-mail fora do padrão"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
 		return
 	}
 
 	if err := h.userBackofficeService.UpdateUser(email, request); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Usuário atualizado com sucesso!"})
@@ -181,12 +182,12 @@ func (h *UserBackofficeHandler) DeleteUser(c *gin.Context) {
 	email := c.Param("email")
 
 	if _, err := h.userBackofficeService.GetUserByEmail(email); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Usuário a ser deletado não existe"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 
 	if err := h.userBackofficeService.DeleteUser(email); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Usuário removido com sucesso!"})

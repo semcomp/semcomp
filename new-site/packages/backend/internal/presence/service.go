@@ -6,14 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
-)
+	"backend/internal/apierrors"
 
-var (
-	ErrInvalidEventDate  = errors.New("invalid event date format")
-	ErrPresenceNotFound  = errors.New("presence not found")
-	ErrInvalidUserNumber = errors.New("invalid user number")
-	ErrValidationError   = errors.New("validation error")
+	"gorm.io/gorm"
 )
 
 type PresenceService interface {
@@ -33,6 +28,12 @@ func NewPresenceService(repo PresenceRepository) PresenceService {
 }
 
 func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presence, error) {
+	str := strconv.Itoa(int(request.UserNumber))
+	_, err := s.GetPresenceByUserEventandInitDate(str, request.EventName, request.EventInitDate.Format(time.RFC3339))
+	if err == nil {
+		return nil, apierrors.ConflictError("Presença já cadastrada", err)
+	}
+	
 	newPresence := Presence{
 		UserNumber:    request.UserNumber,
 		EventName:     request.EventName,
@@ -40,9 +41,9 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 		EmailAdmin:    request.EmailAdmin,
 	}
 
-	err := s.repo.Create(&newPresence)
+	err = s.repo.Create(&newPresence)
 	if err != nil {
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao criar presença", err)
 	}
 	return &newPresence, nil
 }
@@ -50,20 +51,20 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 func (s *presenceService) GetPresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) (*Presence, error) {
 	initDateParsed, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
-		return nil, ErrInvalidEventDate
+		return nil, apierrors.ValidationError("Data do evento inválida", err)
 	}
 
 	num, err := strconv.ParseInt(userNumber, 10, 64)
 	if err != nil {
-		return nil, ErrInvalidUserNumber
+		return nil, apierrors.ValidationError("Número do usuário inválido", err)
 	}
 
 	presence, err := s.repo.GetByUserEventandInitDate(num, eventName, initDateParsed)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrPresenceNotFound
+			return nil, apierrors.NotFoundError("Presença não encontrada", err)
 		}
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao buscar presença", err)
 	}
 
 	return presence, nil
@@ -73,20 +74,20 @@ func (s *presenceService) GetPresenceByUserEventandInitDate(userNumber string, e
 func (s *presenceService) DeletePresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) error {
 	initDateParsed, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
-		return ErrInvalidEventDate
+		return apierrors.ValidationError("Data do evento inválida", err)
 	}
 
 	num, err := strconv.ParseInt(userNumber, 10, 64)
 	if err != nil {
-		return ErrInvalidUserNumber
+		return apierrors.ValidationError("Número do usuário inválido", err)
 	}
 
 	err = s.repo.DeleteByUserEventandInitDate(num, eventName, initDateParsed)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrPresenceNotFound
+			return apierrors.NotFoundError("Presença não encontrada", err)
 		}
-		return err
+		return apierrors.InternalServerError("Erro ao deletar presença", err)
 	}
 
 	return nil
@@ -95,12 +96,12 @@ func (s *presenceService) DeletePresenceByUserEventandInitDate(userNumber string
 func (s *presenceService) UpdatePresenceByUserEventandInitDate(userNumber string, eventName string, initDate string, request UpdatePresenceRequest) error {
 	initDateParsed, err := time.Parse(time.RFC3339, initDate)
 	if err != nil {
-		return ErrInvalidEventDate
+		return apierrors.ValidationError("Data do evento inválida", err)
 	}
 
 	num, err := strconv.ParseInt(userNumber, 10, 64)
 	if err != nil {
-		return ErrInvalidUserNumber
+		return apierrors.ValidationError("Número do usuário inválido", err)
 	}
 
 	updatePresence := Presence{
@@ -113,9 +114,9 @@ func (s *presenceService) UpdatePresenceByUserEventandInitDate(userNumber string
 	err = s.repo.UpdateByUserEventandInitDate(num, eventName, initDateParsed, &updatePresence)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrPresenceNotFound
+			return apierrors.NotFoundError("Presença não encontrada", err)
 		}
-		return err
+		return apierrors.InternalServerError("Erro ao atualizar presença", err)
 	}
 
 	return nil
@@ -123,11 +124,11 @@ func (s *presenceService) UpdatePresenceByUserEventandInitDate(userNumber string
 
 func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*PresenceListResult, error) {
 	if page < 1 {
-		return nil, ErrValidationError
+		return nil, apierrors.ValidationError("Page deve ser maior que 0", nil)
 	}
 
 	if limit < 1 {
-		return nil, ErrValidationError
+		return nil, apierrors.ValidationError("Limit deve ser maior que 0", nil)
 	}
 
 	if sortBy == "" {
@@ -149,15 +150,15 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 	}
 
 	if !allowedSortFields[sortBy] {
-		return nil, ErrValidationError
+		return nil, apierrors.ValidationError("Parâmetro 'sort_by' inválido", nil)
 	}
 
 	if sortOrder != "asc" && sortOrder != "desc" {
-		return nil, ErrValidationError
+		return nil, apierrors.ValidationError("Parâmetro 'sort_order' inválido", nil)
 	}
 
 	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
-		return nil, ErrValidationError
+		return nil, apierrors.ValidationError("Parâmetro 'search_by' e 'search_value' devem ser fornecidos juntos", nil)
 	}
 
 	if searchBy != "" {
@@ -171,13 +172,13 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 		}
 
 		if !allowedSearchFields[searchBy] {
-			return nil, ErrValidationError
+			return nil, apierrors.ValidationError("Parâmetro 'search_by' inválido", nil)
 		}
 
 		if searchBy == "event_init_date" {
 			parsedDateTime, err := time.Parse(time.RFC3339, searchValue)
 			if err != nil {
-				return nil, ErrInvalidEventDate
+				return nil, apierrors.ValidationError("Parâmetro 'search_value' inválido para 'event_init_date', use o formato RFC3339", nil)
 			}
 			searchValue = parsedDateTime.Format(time.RFC3339)
 		}
