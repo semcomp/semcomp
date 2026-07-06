@@ -13,6 +13,9 @@ restart:
 	docker compose -p $(PROJECT) down
 	docker compose -p $(PROJECT) --env-file ./backend/.env  up -d --build
 
+reset:
+	docker compose -p $(PROJECT) --env-file ./backend/.env down -v 
+
 logs:
 	docker compose -p $(PROJECT) logs -f
 
