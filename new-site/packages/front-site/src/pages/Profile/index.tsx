@@ -9,24 +9,28 @@ import { useAuth } from "@/contexts/useAuth";
 import { authAPI } from "@/api";
 import { ChevronDown } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
+import type { EventType } from "@/types/EventType"
+import type { UserType } from "@/types/UserType"
+import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate"
+import { useNavigate } from "react-router-dom";
 
+// O seguinte processamento fica fora do componente para evitar recriar/importar as imagens a cada renderização
+// Carrega automaticamente todas as imagens da pasta Hero e monta uma lista de imagens disponíveis
 const _heroModules = import.meta.glob(
   "/src/assets/img/Home/Hero/*",
   { eager: true }
 ) as Record<string, { default: string }>;
+
 const HERO_IMAGES = Object.values(_heroModules)
   .map((m) => m.default as string)
   .filter((src) => /\.(webp)$/i.test(src));
+
+// Escolhe uma imagem aleatória da lista
 const pickRandomHero = () =>
   HERO_IMAGES.length ? HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)] : FotoSemcompMain;
 
 
-type Evento = {
-  tipo: string;
-  description: string;
-  data: string;
-  horaStart: string;
-  horaEnd: string;
+type Evento = EventType & {
   linkInscricao?: string;
 };
 
@@ -40,26 +44,16 @@ interface ProfileProps {
 
 let events: Evento[] = [
 ];
-
-function formatarDataDynamic(dataIso: string) {
-  const dateObj = new Date(dataIso + "T12:00:00");
-  const dataFormatada = dateObj.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-  });
-  const diaDaSemana = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
-  return {
-    data: dataFormatada,
-    diaSemana: diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1), 
-  };
+interface ProfileProps extends UserType {
+  event?: string;
 }
 
 export default function Profile({
+  user_number = 0,
   name = "Nome do usuário",
   email = "E-mail do usuário",
-  code = "Código",
-  qrValue = "Um código QR genérico para teste",
-  event = "SEMCOMP",
+  presence_rate = 0,
+  event = "SEMCOMP"
 }: ProfileProps) {
   const { width } = useWindowDimensions();
   const { isDarkMode } = useTheme();
@@ -68,29 +62,45 @@ export default function Profile({
   const [activeTab, setActiveTab] = useState<"qr" | "account">("qr");
   const [userName, setUserName] = useState(name);
   const [userEmail, setUserEmail] = useState(email);
-  const [userCode, setUserCode] = useState(code);
-  const [qrData, setQrData] = useState(qrValue);
-  const [presencePercent, setPresencePercent] = useState<number>(16);
+  const [userCode, setUserCode] = useState<number>(user_number);
+  const [presencePercent, setPresencePercent] = useState<number>(presence_rate);
   const [openSubscription, setOpenSubscription] = useState<number>(-1)
 
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [heroSrc] = useState<string>(() => pickRandomHero());
 
-  // buscar dados do perfil na montagem da pagina
+  // buscar dados do perfil na montagem da pagina - bloqueia acesso se não estiver logado
   useEffect(() => {
     async function fetchProfile() { // função de busca
+
+      // bloqueia acesso sem login
+      if (!isAuthenticated) {
+        navigate("/login", { replace: true });
+        return;
+      }
+
       try {
         const response = await authAPI.getProfile(); // chama a API do perfil e insere as infos
+        
         setUserName(response.name || name); 
         setUserEmail(response.email || email);
-        setUserCode(response.user_number?.toString() || code);
-        setPresencePercent(response.presence_rate || 0);
+        setUserCode(response.user_number || 0);
+        setPresencePercent(response.presence_rate ?? 0);
       } catch (err) { // caputura de erro
         console.error("Erro ao buscar o perfil", err);
+
+        // token inválido / expirado
+        logout();
+
+        showNotification(
+          "Sua sessão expirou. Faça login novamente.",
+          "warning"
+        );
       }
     }
     fetchProfile(); // chamada da função
-  }, []);
+  }, [isAuthenticated, navigate, logout, showNotification, name, email]);
 
   // Variáveis do Desktop original
   const bgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompOffWhite";
@@ -104,15 +114,10 @@ export default function Profile({
     ? "shadow-[inset_0_-180px_40px_-40px_theme(colors.semcompDarkBlue/100%)]"
     : "shadow-[inset_0_-180px_40px_-40px_theme(colors.semcompMidLight/100%)]";
 
-  useEffect(() => {
-    if(userCode != code){
-      setQrData(userCode);
-    }
-  }, [userCode]);
-
-  // Card de Evento -Mobile
+  // Card de Evento - Versão Mobile
   const EventCardMobile = ({ ev }: { ev: Evento }) => {
-    const { data, diaSemana } = formatarDataDynamic(ev.data);
+    const data = formatDate(ev.dateInit, 2);
+    const diaSemana = formatWeekDay(ev.dateInit);
 
     // Lógica Dark Mode para os cards de evento
     const cardBgColor = isDarkMode
@@ -123,18 +128,18 @@ export default function Profile({
       <div className={`border rounded-xl p-4 mb-3 ${cardBgColor} flex flex-col items-start`}>
         <div className="w-full">
           <div className="flex items-start gap-2">
-            <span className="font-bold whitespace-nowrap">{ev.tipo}</span>
+            <span className="font-bold whitespace-nowrap">{ev.type}</span>
             <span className="opacity-60">|</span>
             <p className="text-sm leading-relaxed opacity-90 wrap-break-words">{ev.description}</p>
           </div>
-          <p className="mt-2 text-sm opacity-80 font-medium">
-            {diaSemana} ({data}), {ev.horaStart} às {ev.horaEnd}
+          <p className="mt-3 text-sm opacity-80 font-medium text-center">
+            {diaSemana} ({data}), {formatTime(ev.dateInit)} às {formatTime(ev.dateEnd)}
           </p>
           <hr className="mb-2 mt-2"/>
         </div>  
         <div className={`w-full flex flex-row justify-center ${cardBgColor}/90 rounded-sm`}>
           <button
-            className="cursor-pointer w-full"
+            className="cursor-pointer w-full p-2"
             onClick={()=>  ev.linkInscricao ? window.open(ev.linkInscricao, "_blank") : showNotification("Este evento ainda não está aberto para inscrições.")}
           >
             Inscreva-se
@@ -144,7 +149,7 @@ export default function Profile({
     );
   };
 
-  // Mobile e Tablet (< 1280px)
+  // Página Completa - Versão Mobile e Tablet (< 1280px)
   if (width < 1280) {
     // Variáveis de Tema para Mobile
     const mMainBg = isDarkMode
@@ -243,7 +248,7 @@ export default function Profile({
                   <div className="absolute bottom-0 left-0 w-12 h-12 border-b-8 border-l-8 border-[#548EAB]" />
 
                   <div className="bg-white p-2">
-                    <QRCode value={qrData} size={180} fgColor="#0B2639" />
+                    <QRCode value={userCode.toString()} size={180} fgColor="#0B2639" />
                   </div>
                 </div>
 
@@ -291,13 +296,25 @@ export default function Profile({
                   </h3>
                   <div className="relative w-full h-6 bg-black/10 rounded-full overflow-hidden">
                     <div
-                      className="absolute inset-y-0 left-0 h-full bg-semcompDarkBlue flex items-center justify-end pr-2 transition-all duration-1000"
-                      style={{ width: `${Math.max(presencePercent, 15)}%` }}
+                      className={`absolute inset-y-0 left-0 h-full bg-semcompDarkBlue transition-all duration-1000 ${
+                        presencePercent > 15
+                          ? "flex items-center justify-end pr-2"
+                          : ""
+                      }`}
+                      style={{ width: `${presencePercent}%` }}
                     >
-                      <span className="text-white text-[10px] font-bold">
-                        {presencePercent}%
-                      </span>
+                      {presencePercent > 15 && (
+                        <span className="text-white text-[10px] font-bold">
+                          {presencePercent}%
+                        </span>
+                      )}
                     </div>
+
+                    {presencePercent <= 15 && (
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 text-semcompDarkBlue text-[10px] font-bold">
+                        {presencePercent}%
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -343,7 +360,7 @@ export default function Profile({
                 : "bg-white border-semcompDarkBlue/20"
             }`}
           >
-            <img src={heroSrc} className="w-full h-56 object-cover brightness-[0.7]" />
+            <img src={heroSrc} className="w-full h-56 object-cover brightness-[0.7]" alt="SEMCOMP Beta"/>
             <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
               <img
                 src={imgLogoBranco}
@@ -397,9 +414,11 @@ export default function Profile({
     );
   }
 
-  // construção do QRcode
+  // Main Section: QR Code / Minha Conta - Versão Desktop
   const qrAndAccountCard = (
-    <div className="h-full w-full pt-5 bg-gray-300 flex flex-col text-semcompDarkBlue rounder-2xl">
+    <div className="h-full w-full pt-5 bg-gray-300 flex flex-col text-semcompDarkBlue">
+
+      {/* Tab Seletora */}
       <div className="flex mx-auto mb-5 w-[60%] rounded-full m-3 p-1 gap-1 border-2 border-semcompOffWhite/20 bg-semcompMidLight/20">
         <button
           onClick={() => setActiveTab("qr")}
@@ -438,7 +457,7 @@ export default function Profile({
             <div className="absolute bottom-0 left-0 w-10 h-10 border-l-15 border-b-15 border-semcompMidLightBlue" />
             <div className="bg-linear-to-br from-semcompMidLight to-semcompOffWhite p-4 -m-2">
               <QRCode
-                value={qrData}
+                value={userCode.toString()}
                 size={width >= 1280 ? 220 : 200}
                 fgColor="#0B2639"
                 bgColor="transparent"
@@ -482,24 +501,6 @@ export default function Profile({
               </span>
               <span className="text-sm text-foreground/90">{userEmail}</span>
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcomp-900">
-                Tipo de Cadastro
-              </span>
-              <span className="text-sm text-foreground/90">
-                Aluno USP / Visitante
-              </span>
-            </div>
-            <div className="flex flex-col text-left">
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-bold text-semcomp-900">
-                  Cargo
-                </span>
-              </div>
-              <span className="text-sm text-foreground/90">
-                Participante da Semcomp Beta
-              </span>
-            </div>
           </div>
 
           <button className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8"
@@ -534,7 +535,7 @@ export default function Profile({
 
           <button
             onClick={logout}
-            className="mt-6 text-xs w-[30%] text-white font-medium mx-auto bg-destructive/50 hover:text-semcompOffWhite hover:bg-destructive/60 transition-colors py-2 px-3 rounded-lg "
+            className="mt-6 text-xs text-white font-medium mx-auto bg-destructive/50 hover:text-semcompOffWhite hover:bg-destructive/60 transition-colors py-2 px-3 rounded-lg "
           >
             Sair da conta
           </button>
@@ -543,7 +544,7 @@ export default function Profile({
     </div>
   );
 
-  // pagina para telas de computador
+  // Página Completa - Versão Desktop
   if (width >= 1280) {
     return (
       <div className={`${bgColor} ${textColor} min-h-screen`}>
@@ -624,7 +625,10 @@ export default function Profile({
             <div className="w-full flex flex-col gap-4 mb-20">
               {events && events.length > 0 ? (
                 events.map((evento, index) => {
-                  const { data, diaSemana } = formatarDataDynamic(evento.data);
+                  
+                  const data = formatDate(evento.dateInit, 2);
+                  const diaSemana = formatWeekDay(evento.dateInit);
+
                   return (
                     <div
                       key={index}
@@ -637,7 +641,7 @@ export default function Profile({
                       >
                         <div className="w-1/2 flex flex-col text-left gap-1 items-start pr-4">
                           <span className="font-bold text-lg shrink-0">
-                            {evento.tipo}
+                            {evento.type}
                           </span>
                           <span className="text-sm font-medium wrap-break-words flex-1 opacity-90">
                             {evento.description}
@@ -657,7 +661,7 @@ export default function Profile({
                             </span>
                           </div>
                           <span className="text-sm font-medium opacity-80 flex items-center gap-2">
-                            {evento.horaStart} às {evento.horaEnd}
+                            {formatTime(evento.dateInit)} às {formatTime(evento.dateEnd)}
                             <ChevronDown 
                               className={`transition-transform duration-300 ${openSubscription === index ? "rotate-180" : ""} ${isDarkMode ? "text-white" : "text-black"}`} 
                               size={20} 
