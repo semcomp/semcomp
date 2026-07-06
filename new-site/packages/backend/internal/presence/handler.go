@@ -20,6 +20,17 @@ func NewPresenceHandler(presenceService PresenceService) *PresenceHandler {
 }
 
 // CreatePresence processa o payload JSON e tenta criar uma nova presença.
+// @Summary Cria uma nova presença
+// @Description Registra a presença de um usuário em um evento
+// @Tags Presence Backoffice
+// @Accept json
+// @Produce json
+// @Param request body presence.CreatePresenceRequest true "Dados da presença"
+// @Success 201 {object} map[string]interface{} "Presença criada com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/presences [post]
 func (h *PresenceHandler) CreatePresence(c *gin.Context) {
 	var request CreatePresenceRequest
 
@@ -41,6 +52,22 @@ func (h *PresenceHandler) CreatePresence(c *gin.Context) {
 }
 
 // GetPresences retorna a lista paginada de presenças com suporte a filtros e ordenação.
+// @Summary Lista presenças
+// @Description Retorna uma lista paginada de presenças registradas
+// @Tags Presence Backoffice
+// @Accept json
+// @Produce json
+// @Param page query int false "Página atual" default(1)
+// @Param limit query int false "Limite de itens por página" default(10)
+// @Param sort_by query string false "Campo de ordenação" default(event_init_date)
+// @Param sort_order query string false "Ordem (asc/desc)" default(asc)
+// @Param search_by query string false "Campo de busca"
+// @Param search_value query string false "Valor de busca"
+// @Success 200 {object} map[string]interface{} "Lista de presenças paginada"
+// @Failure 400 {object} map[string]string "Parâmetro inválido"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/presences [get]
 func (h *PresenceHandler) GetPresences(c *gin.Context) {
 	pageStr := c.DefaultQuery("page", "1")
 	limitStr := c.DefaultQuery("limit", "10")
@@ -74,6 +101,20 @@ func (h *PresenceHandler) GetPresences(c *gin.Context) {
 }
 
 // GetPresenceByNameEventandInitDate retorna uma presença específica buscando por nome, evento e data de início.
+// @Summary Busca presença por chave composta
+// @Description Retorna uma presença específica pelo número do usuário, nome do evento e data de início
+// @Tags Presence Backoffice
+// @Accept json
+// @Produce json
+// @Param userNumber path string true "Número do usuário"
+// @Param eventName path string true "Nome do evento"
+// @Param eventInitDate path string true "Data de início do evento (RFC3339)"
+// @Success 200 {object} presence.Presence "Presença encontrada"
+// @Failure 400 {object} map[string]string "Data inválida"
+// @Failure 404 {object} map[string]string "Presença não encontrada"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/presences/{userNumber}/{eventName}/{eventInitDate} [get]
 func (h *PresenceHandler) GetPresenceByUserEventandInitDate(c *gin.Context) {
 	userNumber := c.Param("userNumber")
 	eventName := c.Param("eventName")
@@ -101,6 +142,21 @@ func (h *PresenceHandler) GetPresenceByUserEventandInitDate(c *gin.Context) {
 }
 
 // UpdatePresenceByNameEventandInitDate atualiza uma presença existente identificada por nome, evento e data de início.
+// @Summary Atualiza presença
+// @Description Altera os dados de uma presença existente identificada pela chave composta
+// @Tags Presence Backoffice
+// @Accept json
+// @Produce json
+// @Param userNumber path string true "Número do usuário"
+// @Param eventName path string true "Nome do evento"
+// @Param eventInitDate path string true "Data de início do evento (RFC3339)"
+// @Param request body presence.UpdatePresenceRequest true "Dados para atualização"
+// @Success 200 {object} map[string]string "Presença atualizada com sucesso"
+// @Failure 400 {object} map[string]string "Dados inválidos ou data inválida"
+// @Failure 404 {object} map[string]string "Presença não encontrada"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/presences/{userNumber}/{eventName}/{eventInitDate} [put]
 func (h *PresenceHandler) UpdatePresenceByUserEventandInitDate(c *gin.Context) {
 	userNumber := c.Param("userNumber")
 	eventName := c.Param("eventName")
@@ -145,6 +201,20 @@ func (h *PresenceHandler) UpdatePresenceByUserEventandInitDate(c *gin.Context) {
 }
 
 // DeletePresenceByNameEventandInitDate remove uma presença identificada por nome, evento e data de início.
+// @Summary Deleta presença
+// @Description Remove uma presença do sistema identificada pela chave composta
+// @Tags Presence Backoffice
+// @Accept json
+// @Produce json
+// @Param userNumber path string true "Número do usuário"
+// @Param eventName path string true "Nome do evento"
+// @Param eventInitDate path string true "Data de início do evento (RFC3339)"
+// @Success 200 {object} map[string]string "Presença removida com sucesso"
+// @Failure 400 {object} map[string]string "Data inválida"
+// @Failure 404 {object} map[string]string "Presença não encontrada"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/presences/{userNumber}/{eventName}/{eventInitDate} [delete]
 func (h *PresenceHandler) DeletePresenceByUserEventandInitDate(c *gin.Context) {
 	userNumber := c.Param("userNumber")
 	eventName := c.Param("eventName")

@@ -22,6 +22,17 @@ func NewAuthHandler(authService AuthService, userService user.UserService) *Auth
 	return &AuthHandler{authService: authService, userService: userService}
 }
 
+// @Summary Login de participante
+// @Description Autentica um usuário participante e retorna o token JWT do site público
+// @Tags Auth Público
+// @Accept json
+// @Produce json
+// @Param request body LoginUserRequest true "Credenciais de login"
+// @Success 200 {object} map[string]interface{} "Login successful"
+// @Failure 400 {object} map[string]string "JSON ou requisição inválida"
+// @Failure 401 {object} map[string]string "Email e/ou senha inválidos"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Router /login [post]
 func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	// Verifica request body e decodifica para struct
 	var request LoginUserRequest
@@ -72,6 +83,15 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	})
 }
 
+// ProfileHandler retorna os dados do perfil do usuário autenticado.
+// @Summary Perfil do usuário
+// @Description Retorna os dados do usuário autenticado via token JWT
+// @Tags Auth Público
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Entrada Permitida"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /api/profile [get]
 func (h *AuthHandler) ProfileHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userNumber := c.MustGet("userNumber").(uint)

@@ -24,6 +24,18 @@ func NewAuthBackofficeHandler(authBackofficeService AuthBackofficeService, userB
 	return &AuthBackofficeHandler{authBackofficeService: authBackofficeService, userBackofficeService: userBackofficeService, permissionService: permissionService}
 }
 
+// LoginBackofficeHandler autentica um usuário do backoffice.
+// @Summary Login do backoffice
+// @Description Autentica um usuário administrador e retorna o token JWT com permissões
+// @Tags Auth Backoffice
+// @Accept json
+// @Produce json
+// @Param request body authBackoffice.LoginUserBackofficeRequest true "Credenciais de login"
+// @Success 200 {object} map[string]interface{} "Login realizado"
+// @Failure 400 {object} map[string]string "JSON ou requisição inválida"
+// @Failure 401 {object} map[string]string "Email e/ou senha inválidos"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Router /admin/login [post]
 func (h *AuthBackofficeHandler) LoginBackofficeHandler(c *gin.Context) {
 	// Verifica request body e decodifica para struct
 	var request LoginUserBackofficeRequest

@@ -16,6 +16,17 @@ func NewUserBackofficeHandler(userBackofficeService UserBackofficeService) *User
 }
 
 // CreateUser insere novos dados de usuário.
+// @Summary Cria usuário do backoffice
+// @Description Cadastra um novo usuário administrador no backoffice
+// @Tags Usuários (Admins)
+// @Accept json
+// @Produce json
+// @Param request body userBackoffice.CreateUserBackofficeRequest true "Dados de cadastro"
+// @Success 201 {object} map[string]interface{} "Usuário criado com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/usersBackoffice [post]
 func (h *UserBackofficeHandler) CreateUser(c *gin.Context) {
 	var request CreateUserBackofficeRequest
 
@@ -39,6 +50,22 @@ func (h *UserBackofficeHandler) CreateUser(c *gin.Context) {
 
 // GetAllUsers retorna os dados de todos os usuários do backoffice,
 // considerando os valores de ordenação e busca passados por parâmetro.
+// @Summary Lista usuários do backoffice
+// @Description Retorna uma lista paginada de usuários administradores
+// @Tags Usuários (Admins)
+// @Accept json
+// @Produce json
+// @Param page query int false "Página atual" default(1)
+// @Param limit query int false "Limite de itens por página" default(10)
+// @Param sort_by query string false "Campo de ordenação" default(email)
+// @Param sort_order query string false "Ordem (asc/desc)" default(asc)
+// @Param search_by query string false "Campo de busca"
+// @Param search_value query string false "Valor de busca"
+// @Success 200 {object} map[string]interface{} "Lista de usuários paginada"
+// @Failure 400 {object} map[string]string "Parâmetro inválido"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/usersBackoffice [get]
 func (h *UserBackofficeHandler) GetAllUsers(c *gin.Context) {
 	page := 1
 	limit := 10
@@ -85,6 +112,16 @@ func (h *UserBackofficeHandler) GetAllUsers(c *gin.Context) {
 }
 
 // GetUserByEmail retorna os dados de um usuário do sistema.
+// @Summary Busca usuário do backoffice por email
+// @Description Retorna os dados de um usuário administrador específico
+// @Tags Usuários (Admins)
+// @Accept json
+// @Produce json
+// @Param email path string true "Email do usuário"
+// @Success 200 {object} userBackoffice.SafeUserB "Usuário encontrado"
+// @Failure 404 {object} map[string]string "Usuário não encontrado"
+// @Security BearerAuth
+// @Router /admin/usersBackoffice/{email} [get]
 func (h *UserBackofficeHandler) GetUserByEmail(c *gin.Context) {
 	email := c.Param("email")
 
@@ -97,6 +134,18 @@ func (h *UserBackofficeHandler) GetUserByEmail(c *gin.Context) {
 }
 
 // UpdateUser altera os dados de um usuário do sistema identificando-o pelo email na URL.
+// @Summary Atualiza usuário do backoffice
+// @Description Altera os dados de um usuário administrador existente
+// @Tags Usuários (Admins)
+// @Accept json
+// @Produce json
+// @Param email path string true "Email do usuário"
+// @Param request body userBackoffice.UpdateUserBackofficeRequest true "Dados para atualização"
+// @Success 200 {object} map[string]string "Usuário atualizado com sucesso"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/usersBackoffice/{email} [put]
 func (h *UserBackofficeHandler) UpdateUser(c *gin.Context) {
 	email := c.Param("email")
 
@@ -118,6 +167,16 @@ func (h *UserBackofficeHandler) UpdateUser(c *gin.Context) {
 }
 
 // DeleteUser remove um usuário do sistema identificando-o pelo email na URL.
+// @Summary Deleta usuário do backoffice
+// @Description Remove um usuário administrador do sistema
+// @Tags Usuários (Admins)
+// @Accept json
+// @Produce json
+// @Param email path string true "Email do usuário"
+// @Success 200 {object} map[string]string "Usuário removido com sucesso"
+// @Failure 500 {object} map[string]string "Usuário não existe ou erro interno"
+// @Security BearerAuth
+// @Router /admin/usersBackoffice/{email} [delete]
 func (h *UserBackofficeHandler) DeleteUser(c *gin.Context) {
 	email := c.Param("email")
 
