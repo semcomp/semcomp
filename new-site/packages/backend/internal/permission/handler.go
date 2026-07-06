@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"backend/internal/apierrors"
 	"backend/internal/section"
 	"backend/internal/userBackoffice"
 	"github.com/gin-gonic/gin"
@@ -36,8 +37,7 @@ func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 	}
 
 	if _, err := h.userBackofficeService.GetUserByEmail(request.UserEmail); err != nil {
-		c.Set("responseMessage", "Usuário do Backoffice inexistente")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Usuário do Backoffice inexistente"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 
@@ -49,9 +49,7 @@ func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 
 	permission, err := h.permissionService.CreatePermission(request)
 	if err != nil {
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro interno do servidor")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Permissão criada com sucesso!")
@@ -105,21 +103,13 @@ func (h *PermissionHandler) GetPermissionByUser(c *gin.Context) {
 	user := c.Param("user")
 
 	if _, err := h.userBackofficeService.GetUserByEmail(user); err != nil {
-		c.Set("responseMessage", "Usuário do Backoffice inexistente")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Usuário do Backoffice inexistente"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 
 	permission, err := h.permissionService.GetPermissionByUser(user)
 	if err != nil {
-		if errors.Is(err, ErrPermissionNotFound) {
-			c.Set("responseMessage", "Permissão não encontrada")
-			c.JSON(http.StatusNotFound, gin.H{"error": "Permissão não encontrada"})
-			return
-		}
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro interno do servidor")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Permissão encontrada com sucesso!")
@@ -130,21 +120,13 @@ func (h *PermissionHandler) GetPermissionBySection(c *gin.Context) {
 	section := c.Param("section")
 
 	if _, err := h.sectionService.GetSectionByName(section); err != nil {
-		c.Set("responseMessage", "Seção inexistente")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Seção inexistente"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 
 	permission, err := h.permissionService.GetPermissionBySection(section)
 	if err != nil {
-		if errors.Is(err, ErrPermissionNotFound) {
-			c.Set("responseMessage", "Permissão não encontrada")
-			c.JSON(http.StatusNotFound, gin.H{"error": "Permissão não encontrada"})
-			return
-		}
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro interno do servidor")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Permissão encontrada com sucesso!")

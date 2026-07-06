@@ -28,6 +28,12 @@ func NewPresenceService(repo PresenceRepository) PresenceService {
 }
 
 func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presence, error) {
+	str := strconv.Itoa(int(request.UserNumber))
+	_, err := s.GetPresenceByUserEventandInitDate(str, request.EventName, request.EventInitDate.Format(time.RFC3339))
+	if err == nil {
+		return nil, apierrors.ConflictError("Presença já cadastrada", err)
+	}
+	
 	newPresence := Presence{
 		UserNumber:    request.UserNumber,
 		EventName:     request.EventName,
@@ -35,7 +41,7 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 		EmailAdmin:    request.EmailAdmin,
 	}
 
-	err := s.repo.Create(&newPresence)
+	err = s.repo.Create(&newPresence)
 	if err != nil {
 		return nil, apierrors.InternalServerError("Erro ao criar presença", err)
 	}

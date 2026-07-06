@@ -61,6 +61,11 @@ func (s *sectionService) InitializeSections() error {
 }
 
 func (s *sectionService) CreateSection(request CreateSectionRequest) (*Section, error) {
+	_, err := s.GetSectionByName(request.Name)
+	if err == nil {
+		return nil, apierrors.ConflictError("Seção já cadastrada", err)
+	}
+	
 	newSection := Section{
 		Name:        request.Name,
 		Description: request.Description,
