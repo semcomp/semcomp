@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"backend/internal/apierrors"
+
 	"gorm.io/gorm"
 )
 
-var (
-	ErrSectionNotFound = errors.New("section not found")
-)
-
 type SectionService interface {
+	InitializeSections() error
 	CreateSection(request CreateSectionRequest) (*Section, error)
 	GetSectionByName(name string) (*Section, error)
 	DeleteSectionByName(name string) error
@@ -28,13 +27,51 @@ func NewSectionService(repo SectionRepository) SectionService {
 	return &sectionService{repo: repo}
 }
 
+func GetInitialSections() []CreateSectionRequest {
+	return []CreateSectionRequest{
+		{"Seções", "Observe as seções dos eventos da Semcomp."},
+		{"Eventos", "Gerencie os eventos da Semcomp."},
+		{"Usuários Backoffice", "Gerencie os usuários com acesso ao sistema de backoffice."},
+		{"Usuários Semcomp", "Gerencie os usuários participantes da Semcomp."},
+		{"Participações", "Gerencie as participações dos usuários nos eventos da Semcomp."},
+		{"Permissões", "Gerencie as permissões de acesso dos usuários ao sistema."},
+	}
+}
+
+func (s *sectionService) InitializeSections() error {
+	sections := GetInitialSections()
+
+	// Verifica se cada seção está cadastrada antes de tentar inserir novamente
+	for i := range sections {
+		_, err := s.repo.GetByName(sections[i].Name)
+		if err == nil {
+			continue
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("erro ao buscar seção %q durante a inicialização: %w", sections[i].Name, err)
+		}
+
+		_, err = s.CreateSection(sections[i])
+		if err != nil {
+			return fmt.Errorf("erro ao criar seção %q durante a inicialização: %w", sections[i].Name, err)
+		}
+	}
+
+	return nil
+}
+
 func (s *sectionService) CreateSection(request CreateSectionRequest) (*Section, error) {
+	_, err := s.GetSectionByName(request.Name)
+	if err == nil {
+		return nil, apierrors.ConflictError("Seção já cadastrada", err)
+	}
+	
 	newSection := Section{
 		Name:        request.Name,
 		Description: request.Description,
 	}
 	if err := s.repo.Create(&newSection); err != nil {
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao criar seção", err)
 	}
 	return &newSection, nil
 }
@@ -43,9 +80,9 @@ func (s *sectionService) GetSectionByName(name string) (*Section, error) {
 	section, err := s.repo.GetByName(name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrSectionNotFound
+			return nil, apierrors.NotFoundError("Seção não encontrada", err)
 		}
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao buscar seção", err)
 	}
 	return section, nil
 }
@@ -54,9 +91,9 @@ func (s *sectionService) DeleteSectionByName(name string) error {
 	err := s.repo.DeleteByName(name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrSectionNotFound
+			return apierrors.NotFoundError("Seção não encontrada", err)
 		}
-		return err
+		return apierrors.InternalServerError("Erro ao deletar seção", err)
 	}
 	return nil
 }
@@ -69,19 +106,19 @@ func (s *sectionService) UpdateSectionByName(name string, request UpdateSectionR
 	err := s.repo.UpdateByName(name, &section)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrSectionNotFound
+			return nil, apierrors.NotFoundError("Seção não encontrada", err)
 		}
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao atualizar seção", err)
 	}
 	return &section, nil
 }
 
 func (s *sectionService) GetSections(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*SectionListResult, error) {
 	if page < 1 {
-		return nil, fmt.Errorf("page must be greater than 0")
+		return nil, apierrors.ValidationError("Page deve ser maior que 0", nil)
 	}
 	if limit < 1 {
-		return nil, fmt.Errorf("limit must be greater than 0")
+		return nil, apierrors.ValidationError("Limit deve ser maior que 0", nil)
 	}
 
 	if sortBy == "" {
@@ -99,14 +136,14 @@ func (s *sectionService) GetSections(page int, limit int, sortBy string, sortOrd
 		"description": true,
 	}
 	if !allowedSortFields[sortBy] {
-		return nil, fmt.Errorf("invalid sort_by parameter")
+		return nil, apierrors.ValidationError("Parâmetro 'sort_by' inválido", nil)
 	}
 	if sortOrder != "asc" && sortOrder != "desc" {
-		return nil, fmt.Errorf("invalid sort_order parameter")
+		return nil, apierrors.ValidationError("Parâmetro 'sort_order' inválido", nil)
 	}
 
 	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
-		return nil, fmt.Errorf("search_by and search_value must be provided together")
+		return nil, apierrors.ValidationError("Parâmetro 'search_by' e 'search_value' devem ser fornecidos juntos", nil)
 	}
 
 	if searchBy != "" {
@@ -116,7 +153,7 @@ func (s *sectionService) GetSections(page int, limit int, sortBy string, sortOrd
 			"description": true,
 		}
 		if !allowedSearchFields[searchBy] {
-			return nil, fmt.Errorf("invalid search_by parameter")
+			return nil, apierrors.ValidationError("Parâmetro 'search_by' inválido", nil)
 		}
 	}
 

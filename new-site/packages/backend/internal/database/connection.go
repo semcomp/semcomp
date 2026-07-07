@@ -28,14 +28,14 @@ func ConnectDB() (*gorm.DB, error) {
 		PreferSimpleProtocol: true,
 	}), &gorm.Config{})
 	if err != nil {
-		fmt.Printf("Error connecting to database: %v", err)
+		fmt.Printf("Erro ao conectar ao banco de dados: %v", err)
 		return nil, err
 	}
 
 	// Configura o pool de conexões
 	sqlDB, err := db.DB()
 	if err != nil {
-		fmt.Printf("Error getting database instance: %v", err)
+		fmt.Printf("Erro ao obter instância do banco de dados: %v", err)
 		return nil, err
 	}
 	sqlDB.SetMaxOpenConns(maxOpenConns)
@@ -50,7 +50,7 @@ func ConnectDB() (*gorm.DB, error) {
 func getEnv(key string) string {
 	value := os.Getenv(key)
 	if value == "" {
-		panic(fmt.Sprintf("Warning: Environment variable %s is not set\n", key))
+		panic(fmt.Errorf("variável de ambiente %q não está definida", key))
 	}
 	return value
 }

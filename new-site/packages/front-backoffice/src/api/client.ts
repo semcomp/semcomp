@@ -43,7 +43,16 @@ client.interceptors.response.use(
     }
     return response;
   },
-  (error: AxiosError) => Promise.reject(error)
+  
+  (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("semcomp-backoffice-token");
+
+      window.location.href = "/admin/login";
+    }
+
+    return Promise.reject(error);
+  }
 );
 
 export default client;
