@@ -1,7 +1,7 @@
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
 import type { CrudQueryParams } from "@/components/CrudTable";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs } from "@/constants/Tabs";
 import { fields } from "@/data/eventsCrudField";
