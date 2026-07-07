@@ -5,7 +5,6 @@ import LoginPage from "@/pages/Login";
 import HomePage from "@/pages/Home";
 import EventsCRUD from "@/pages/Events";
 import QRCodeReader from "@/pages/Events/QRCodeReader";
-import Sections from "@/pages/Section";
 import SemcompUsersCRUD from "@/pages/UserSemcomp";
 import BackofficeUsersCRUD from "@/pages/UserBackoffice";
 import ParticipationCRUD from "@/pages/Participation";
@@ -32,10 +31,6 @@ export const router = createBrowserRouter(
             {
               path: "/home",
               element: <HomePage />,
-            },
-            {
-              path: "/sections",
-              element: <Sections />,
             },
             {
               path: "/events",

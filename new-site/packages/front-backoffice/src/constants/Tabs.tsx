@@ -1,4 +1,4 @@
-import { Calendar, UserCog, User, Key, Search, Hand } from "lucide-react";
+import { Calendar, UserCog, User, Key, Hand } from "lucide-react";
 
 export const Tabs: {
   key: string;
@@ -9,15 +9,6 @@ export const Tabs: {
   bg: string;
   hoverBg: string;
 } [] = [
-  {
-    key: "sections",
-    label: "Seções",
-    description: "Observe as seções dos eventos da Semcomp.",
-    pageNavigate: "/sections",
-    icon: <Search className="w-5 h-5" />,
-    bg: "bg-primary/15",
-    hoverBg: "bg-primary/25",
-  },
   {
     key: "events",
     label: "Eventos",

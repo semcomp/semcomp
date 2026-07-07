@@ -34,12 +34,13 @@ Define os 6 módulos de CRUD exibidos como cards na Home do backoffice:
 
 | key | Label | Rota | Ícone Lucide |
 |---|---|---|---|
-| `sections` | Seções | `/sections` | Search |
 | `events` | Eventos | `/events` | Calendar |
 | `backoffice-users` | Usuários Backoffice | `/backoffice-users` | UserCog |
 | `users-semcomp` | Usuários Semcomp | `/semcomp-users` | User |
 | `participation` | Participações | `/participation` | Hand |
 | `permissions` | Permissões | `/permissions` | Key |
+
+> A aba `sections` foi removida — seções deixaram de ser uma entidade gerenciável.
 
 ## API Barrel
 Arquivo: `src/api/index.ts`  

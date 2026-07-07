@@ -11,24 +11,26 @@ RBAC simples por seção. Admins (`UserBackoffice`) recebem `"R"` ou `"RW"` por 
 ## Modelo de Permissão
 
 Struct: [[Backend_Models#Permission]]  
-Chave composta: `UserEmail (FK → users_backoffice) + SectionName (FK → sections)`
+Chave composta: `UserEmail (FK → users_backoffice) + SectionName (string — sem FK)`
 
 | Campo | Valores | Semântica |
 |---|---|---|
 | `PermissionType` | `"R"` | leitura somente |
 | `PermissionType` | `"RW"` | leitura e escrita |
 
-### 6 Seções Padrão (seeds de startup)
-Definidas em `permission/service.go → GetInitialPermissions(email)`:
+### 6 Seções Padrão (definidas em código)
+Definidas em `permission/model.go → KnownSections`:
 
 | Seção | Tab no front |
 |---|---|
-| `"Seções"` | `/sections` |
+| `"Seções"` | *(tab removida)* |
 | `"Eventos"` | `/events` |
 | `"Usuários Backoffice"` | `/backoffice-users` |
 | `"Usuários Semcomp"` | `/semcomp-users` |
 | `"Participações"` | `/participation` |
 | `"Permissões"` | `/permissions` |
+
+> Seções deixaram de ser uma entidade do banco de dados. A lista `KnownSections` no pacote `permission` é a única fonte da verdade — igual ao padrão `KnownResources` do projeto USP_WEB.
 
 Admin padrão (via `ADMIN_EMAIL` env) recebe `"RW"` em todas as 6 via `InitializePermissions()` na startup.
 
@@ -39,11 +41,12 @@ Admin padrão (via `ADMIN_EMAIL` env) recebe `"RW"` em todas as 6 via `Initializ
 Arquivo: `internal/permission/handler.go`  
 Antes de `CreatePermission` e `UpdatePermissionByUserSection`, o handler valida:
 
-1. `sectionService.GetSectionByName(request.SectionName)` → 400 se seção inexistente
+1. `slices.Contains(KnownSections, request.SectionName)` → 400 se seção não está na lista de código
 2. `userBackofficeService.GetUserByEmail(request.UserEmail)` → 400 se admin inexistente
 3. `request.PermissionType ∈ {"R", "RW"}` → 400 se valor inválido
 
-Essas validações **não estão na struct de request** — ocorrem no handler, não no middleware de binding.
+Essas validações **não estão na struct de request** — ocorrem no handler, não no middleware de binding.  
+`sectionService` foi removido de `PermissionHandler` — não há mais dependência do módulo `section`.
 
 ---
 

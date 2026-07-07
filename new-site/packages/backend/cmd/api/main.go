@@ -10,9 +10,9 @@ import (
 	"backend/internal/permission"
 	"backend/internal/presence"
 	"backend/internal/providers"
-	"backend/internal/section"
 	"backend/internal/user"
 	"backend/internal/userBackoffice"
+	"net/http"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -37,10 +37,13 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
+
+	// Drop FK constraint from permissions to sections table (sections are now defined in code)
+	_ = db.Exec("ALTER TABLE permissions DROP CONSTRAINT IF EXISTS fk_permissions_section").Error
 
 	// Inicializa as camadas da aplicação (Repository -> Service -> Handler)
 	passwordProvider := providers.NewBcryptProvider()
@@ -58,10 +61,6 @@ func main() {
 	presenceService := presence.NewPresenceService(presenceRepo)
 	presenceHandler := presence.NewPresenceHandler(presenceService)
 
-	sectionRepo := section.NewSectionRepository(db)
-	sectionService := section.NewSectionService(sectionRepo)
-	sectionHandler := section.NewSectionHandler(sectionService)
-
 	logRepo := log.NewRepository(db)
 	logService := log.NewService(logRepo)
 
@@ -71,18 +70,13 @@ func main() {
 
 	permissionRepo := permission.NewPermissionRepository(db)
 	permissionService := permission.NewPermissionService(permissionRepo)
-	permissionHandler := permission.NewPermissionHandler(permissionService, sectionService, userBackofficeService)
+	permissionHandler := permission.NewPermissionHandler(permissionService, userBackofficeService)
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
 
 	authBackofficeService := authBackoffice.NewAuthBackofficeService(userBackofficeRepo, passwordProvider, jwtProvider)
 	authBackofficeHandler := authBackoffice.NewAuthBackofficeHandler(authBackofficeService, userBackofficeService, permissionService)
-
-	// Inicialização de valores base de seções para o banco de dados
-	if err := sectionService.InitializeSections(); err != nil {
-		panic("Failed to initialize sections in backoffice: " + err.Error())
-	}
 
 	// Inicialização de valores base de admin para o banco de dados
 	if err := userBackofficeService.InitializeAdmin(); err != nil {
@@ -143,11 +137,13 @@ func main() {
 	backofficeRoutes.PUT("/presences/:userNumber/:eventName/:eventInitDate", presenceHandler.UpdatePresenceByUserEventandInitDate)
 	backofficeRoutes.DELETE("/presences/:userNumber/:eventName/:eventInitDate", presenceHandler.DeletePresenceByUserEventandInitDate)
 
-	backofficeRoutes.POST("/sections", sectionHandler.CreateSection)
-	backofficeRoutes.GET("/sections", sectionHandler.GetSections)
-	backofficeRoutes.GET("/sections/:sectionName", sectionHandler.GetSectionByName)
-	backofficeRoutes.PUT("/sections/:sectionName", sectionHandler.UpdateSectionByName)
-	backofficeRoutes.DELETE("/sections/:sectionName", sectionHandler.DeleteSectionByName)
+	backofficeRoutes.GET("/sections", func(c *gin.Context) {
+		sections := make([]gin.H, 0, len(permission.KnownSections))
+		for _, name := range permission.KnownSections {
+			sections = append(sections, gin.H{"name": name})
+		}
+		c.JSON(http.StatusOK, gin.H{"sections": sections})
+	})
 
 	backofficeRoutes.POST("/usersBackoffice", userBackofficeHandler.CreateUser)
 	backofficeRoutes.GET("/usersBackoffice", userBackofficeHandler.GetAllUsers)

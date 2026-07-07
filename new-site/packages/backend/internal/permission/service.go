@@ -24,6 +24,7 @@ type PermissionService interface {
 	DeletePermissionByUserSection(user string, section string) error
 	UpdatePermissionByUserSection(user string, section string, request PermissionRequest) error
 	GetPermissions(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*PermissionListResult, error)
+	GetKnownSections() []string
 }
 
 type permissionService struct {
@@ -76,12 +77,20 @@ func (s *permissionService) InitializePermissions() error {
 	return nil
 }
 
+func (s *permissionService) GetKnownSections() []string {
+	return KnownSections
+}
+
 func (s *permissionService) CreatePermission(request PermissionRequest) (*Permission, error) {
+	if !slices.Contains(KnownSections, request.SectionName) {
+		return nil, apierrors.ValidationError("Seção inexistente", nil)
+	}
+
 	_, err := s.GetPermissionByUserSection(request.UserEmail, request.SectionName)
 	if err == nil {
 		return nil, apierrors.ConflictError("Permissão já cadastrada", err)
 	}
-	
+
 	newPermission := Permission{
 		UserEmail:      request.UserEmail,
 		SectionName:    request.SectionName,
@@ -144,6 +153,10 @@ func (s *permissionService) DeletePermissionByUserSection(user string, section s
 }
 
 func (s *permissionService) UpdatePermissionByUserSection(user string, section string, request PermissionRequest) error {
+	if !slices.Contains(KnownSections, request.SectionName) {
+		return apierrors.ValidationError("Seção inexistente", nil)
+	}
+
 	updatePermission := Permission{
 		UserEmail:      request.UserEmail,
 		SectionName:    request.SectionName,

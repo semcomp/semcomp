@@ -3,22 +3,21 @@ package permission
 import (
 	"errors"
 	"net/http"
+	"slices"
 	"strconv"
 
 	"backend/internal/apierrors"
-	"backend/internal/section"
 	"backend/internal/userBackoffice"
 	"github.com/gin-gonic/gin"
 )
 
 type PermissionHandler struct {
 	permissionService     PermissionService
-	sectionService        section.SectionService
 	userBackofficeService userBackoffice.UserBackofficeService
 }
 
-func NewPermissionHandler(permissionService PermissionService, sectionService section.SectionService, userBService userBackoffice.UserBackofficeService) *PermissionHandler {
-	return &PermissionHandler{permissionService: permissionService, sectionService: sectionService, userBackofficeService: userBService}
+func NewPermissionHandler(permissionService PermissionService, userBService userBackoffice.UserBackofficeService) *PermissionHandler {
+	return &PermissionHandler{permissionService: permissionService, userBackofficeService: userBService}
 }
 
 // CreatePermission processa o payload JSON e tenta criar uma nova permissão.
@@ -42,7 +41,7 @@ func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.sectionService.GetSectionByName(request.SectionName); err != nil {
+	if !slices.Contains(KnownSections, request.SectionName) {
 		c.Set("responseMessage", "Seção inexistente")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Seção inexistente"})
 		return
@@ -174,8 +173,9 @@ func (h *PermissionHandler) GetPermissionByUser(c *gin.Context) {
 func (h *PermissionHandler) GetPermissionBySection(c *gin.Context) {
 	section := c.Param("section")
 
-	if _, err := h.sectionService.GetSectionByName(section); err != nil {
-		apierrors.HandleAPIError(c, err)
+	if !slices.Contains(KnownSections, section) {
+		c.Set("responseMessage", "Seção inexistente")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Seção inexistente"})
 		return
 	}
 
@@ -214,7 +214,7 @@ func (h *PermissionHandler) UpdatePermissionByUserSection(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.sectionService.GetSectionByName(request.SectionName); err != nil {
+	if !slices.Contains(KnownSections, request.SectionName) {
 		c.Set("responseMessage", "Seção inexistente")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Seção inexistente"})
 		return

@@ -1,17 +1,26 @@
 package permission
 
 import (
-	"backend/internal/section"
 	"backend/internal/userBackoffice"
 )
+
+// KnownSections lists the backoffice sections that permissions apply to.
+// Add a new entry here whenever a new section is added to the backoffice.
+var KnownSections = []string{
+	"Seções",
+	"Eventos",
+	"Usuários Backoffice",
+	"Usuários Semcomp",
+	"Participações",
+	"Permissões",
+}
 
 type Permission struct {
 	UserEmail      string `gorm:"size:150;primaryKey" json:"user_email"`
 	SectionName    string `gorm:"size:200;primaryKey" json:"section_name"`
 	PermissionType string `gorm:"size:2;not null" json:"permission_type"` // "RW" ou "R"
 
-	User    *userBackoffice.UserBackoffice `gorm:"foreignKey:UserEmail" json:",omitempty"`
-	Section *section.Section               `gorm:"foreignKey:SectionName" json:",omitempty"`
+	User *userBackoffice.UserBackoffice `gorm:"foreignKey:UserEmail" json:",omitempty"`
 }
 
 type PermissionRequest struct {
