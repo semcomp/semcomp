@@ -34,13 +34,6 @@ type Evento = EventType & {
   linkInscricao?: string;
 };
 
-interface ProfileProps {
-  name?: string;
-  email?: string;
-  code?: string;
-  qrValue?: string;
-  event?: string;
-}
 
 let events: Evento[] = [
 ];
