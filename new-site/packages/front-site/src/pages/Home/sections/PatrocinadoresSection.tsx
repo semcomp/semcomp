@@ -1,10 +1,19 @@
-import { useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { gsap } from "@/lib/gsap";
 import type { SponsorType } from "@/types/SponsorType";
-import logo1 from "@/assets/img/Patrocinadores/logo_patrocinador1.png";
-import logo2 from "@/assets/img/Patrocinadores/logo_patrocinador2.png";
-import logo3 from "@/assets/img/Patrocinadores/logo_patrocinador3.png";
+import { sponsorsAPI, getSponsorImageUrl } from "@/api/sponsors";
+import type { Sponsor } from "@/api/sponsors";
 import { useTheme } from "@/contexts/useTheme";
+import LogoLoop from "@/components/ui/LogoLoop";
 
+const _groupModules = import.meta.glob(
+  "/src/assets/img/extension-groups/*",
+  { eager: true }
+) as Record<string, { default: string }>;
+
+const EXTENSION_GROUP_IMAGES = Object.values(_groupModules).map(
+  (m) => m.default as string
+);
 
 type PatrocinadoresProps = {
   sponsors: SponsorType[];
@@ -12,104 +21,72 @@ type PatrocinadoresProps = {
 };
 
 const PatrocinadoresSection = ({}: PatrocinadoresProps) => {
-  const logoFiles = [logo1, logo2, logo3];
-  const logos = [...logoFiles, ...logoFiles, ...logoFiles, ...logoFiles, ...logoFiles, ...logoFiles, ...logoFiles, ...logoFiles, ...logoFiles, ...logoFiles, ...logoFiles];
-
-  const trackRef = useRef<HTMLDivElement>(null);
-  const positionRef = useRef(0);
-  const speedRef = useRef(1); // px por frame
-  const targetSpeedRef = useRef(1);
-  const rafRef = useRef<number>(0);
-  const isHoveringRef = useRef(false);
-  
+  const [sponsors, setSponsors] = useState<Sponsor[]>(
+    EXTENSION_GROUP_IMAGES.map((src, i) => ({
+      ID: i,
+      name: `Grupo de Extensão ${i + 1}`,
+      logo: src,
+    }))
+  );
   const { isDarkMode } = useTheme();
-  const backgroundColorFront = isDarkMode ? "semcompMidDarkBlue" : "semcompMidLightBlue";
-  const backgroundColorBack = isDarkMode ? "#0F486D" : "#2c6e94";
-  const textColor = isDarkMode ? "semcompOffWhite" : "semcompLightBlue";
-
-  const NORMAL_SPEED = 0.5;
-  const TRACK_LOOP_WIDTH_FRACTION = 1 / 3;
+  const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-
-    const animate = () => {
-      // Suaviza a velocidade em direção ao alvo
-      speedRef.current += (targetSpeedRef.current - speedRef.current) * 0.04;
-
-      positionRef.current -= speedRef.current;
-
-      const totalWidth = track.scrollWidth;
-      const loopWidth = totalWidth * TRACK_LOOP_WIDTH_FRACTION;
-
-      if (Math.abs(positionRef.current) >= loopWidth) {
-        positionRef.current += loopWidth;
-      }
-
-      track.style.transform = `translateX(${positionRef.current}px)`;
-      rafRef.current = requestAnimationFrame(animate);
-    };
-
-    rafRef.current = requestAnimationFrame(animate);
-
-    return () => cancelAnimationFrame(rafRef.current);
+    sponsorsAPI
+      .getAll()
+      .then((data) => { if (data.length > 0) setSponsors(data); })
+      .catch(() => {});
   }, []);
 
-  const handleMouseEnter = () => {
-    isHoveringRef.current = true;
-    targetSpeedRef.current = 0;
-  };
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from('.patroc-heading', {
+        opacity: 0,
+        y: -16,
+        duration: 0.6,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: '.patroc-heading', start: 'top 90%', once: true },
+      });
+    }, sectionRef);
+    return () => ctx.revert();
+  }, []);
 
-  const handleMouseLeave = () => {
-    isHoveringRef.current = false;
-    targetSpeedRef.current = NORMAL_SPEED;
-  };
+  if (sponsors.length === 0) return null;
+
+  const backgroundColorBack = isDarkMode ? "#0F486D" : "#2c6e94";
+
+  const logoItems = sponsors.map((sponsor) => ({
+    src: getSponsorImageUrl(sponsor.logo),
+    alt: sponsor.name,
+    title: sponsor.name,
+  }));
 
   return (
     <section
+      ref={sectionRef}
       className="w-full overflow-hidden"
       style={{ backgroundColor: backgroundColorBack }}
     >
-
-      {/* Header */}
-      <div
-        className={`w-full py-4 px-4 sm:px-8 lg:px-16 bg-${backgroundColorFront}`}
-      >
-        <h2
-          className={`text-center text-3xl sm:text-1xl lg:text-1xl text-${textColor}`}
-          style={{ fontFamily: "Poppins, sans-serif"}}
-        >
+      <div className="patroc-heading w-full py-4 px-4 sm:px-8 lg:px-16 bg-semcompMidLightBlue dark:bg-semcompMidDarkBlue">
+        <h2 className="font-poppins text-center text-xl sm:text-2xl text-semcompLightBlue dark:text-semcompOffWhite">
           Nossos Patrocinadores
         </h2>
       </div>
 
-      {/* Scrolling logos */}
-      <div
-        className="relative w-full overflow-hidden pb-4"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        <div
-          ref={trackRef}
-          className="flex items-center gap-22"
-          style={{ width: "max-content", willChange: "transform" }}
-        >
-          {logos.map((src, index) => (
-            <div
-              key={index}
-              className="flex-shrink-0 flex items-center justify-center"
-              style={{ opacity: 0.35 }}
-            >
-              <img
-                src={src}
-                alt={`Patrocinador ${(index % logoFiles.length) + 1}`}
-                className="h-36 w-auto object-contain"
-                style={{ filter: "brightness(0) invert(1)" }}
-              />
-            </div>
-          ))}
-        </div>
+      <div className="py-10">
+        <LogoLoop
+          logos={logoItems}
+          speed={80}
+          direction="left"
+          logoHeight={100}
+          logoWidth={180}
+          gap={72}
+          hoverSpeed={0}
+          fadeOut
+          fadeOutColor={backgroundColorBack}
+          isDarkMode={true}
+          ariaLabel="Patrocinadores da Semcomp"
+        />
       </div>
     </section>
   );

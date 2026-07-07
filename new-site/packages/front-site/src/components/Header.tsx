@@ -1,32 +1,30 @@
 import { useLayoutEffect, useRef, useState, useEffect } from "react";
-import { IoMenu } from "react-icons/io5";
-import { ChevronRight } from "lucide-react";
+import { Menu } from "lucide-react";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { Link, useLocation } from "react-router-dom";
-import { useTheme } from "@/contexts/useTheme";
+// import { useAuth } from "@/contexts/useAuth";
 
-type TabKey = "home" | "cronograma" | "perfil";
+type TabKey = "home";
 
 const allTabs: Array<{ key: TabKey; label: string; path: string }> = [
   { key: "home", label: "HOME", path: "/" },
-  { key: "cronograma", label: "CRONOGRAMA", path: "/cronograma" },
-  { key: "perfil", label: "PERFIL", path: "/perfil" },
 ];
 
 export default function Header() {
   const { width } = useWindowDimensions();
   const location = useLocation();
-
-  const { isDarkMode } = useTheme();
-
-  const textColor = isDarkMode ? "semcompOffWhite" : "semcompMidLightBlue";
-  const backgroundColor = isDarkMode ? "semcompDarkBlue/90" : "semcompOffWhite";
+  
+  //Simulação de Login
+  // const { isAuthenticated } = useAuth(); 
 
   //Filtro de abas
-  const visibleTabs = allTabs.filter((tab) => {// ajustar isso depois para mostrar o perfil apenas para autenticados
-    if (tab.key === "perfil") return true; // Sempre mostrar "Perfil", mesmo para não autenticados
-    return true;
-  });
+  const visibleTabs = allTabs;
+
+  // const visibleTabs = allTabs.filter((tab) => {
+  //   if (tab.key === "profile") return isAuthenticated;
+  //   if (tab.key === "login") return !isAuthenticated;
+  //   return true;
+  // });
 
   //Achar a ativa
   const activeTabObj = visibleTabs.find((t) => t.path === location.pathname);
@@ -34,8 +32,6 @@ export default function Header() {
 
   const btnRefs = useRef<Record<TabKey, HTMLAnchorElement | null>>({
     home: null,
-    cronograma: null,
-    perfil: null,
   });
 
   const navRef = useRef<HTMLElement | null>(null);
@@ -75,7 +71,7 @@ export default function Header() {
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      hasScrolled ? `bg-${backgroundColor} backdrop-blur-sm shadow-lg` : "bg-transparent"
+      hasScrolled ? "bg-semcompMidLightBlue dark:bg-semcompDarkBlue backdrop-blur-sm shadow-lg" : "bg-transparent"
     }`}>
       <div className="mx-auto flex w-[80%] items-center justify-end pt-5 pb-5">
 
@@ -85,23 +81,39 @@ export default function Header() {
               className="text-semcompOffWhite text-2xl"
               onClick={() => setIsMenuOpen((prev) => !prev)}
             >
-              <IoMenu />
+              <Menu />
             </button>
             {isMenuOpen && (
               <nav className={`absolute top-full right-0 mt-3 w-48 bg-semcompDarkBlue/80 backdrop-blur-sm border border-white/10 shadow-xl flex flex-col items-center gap-1 p-4 rounded-xl`}>
                 {visibleTabs.map((tab) => (
-                  <Link
-                    key={tab.key}
-                    to={tab.path}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`px-3 py-2 text-sm font-bold transition-all flex items-center gap-2 ${
-                      active === tab.key ? "text-semcompOffWhite" : "text-white/60"
-                    }`}
-                  >
-                    {tab.label}
-                    {tab.key === "perfil" && <ChevronRight size={16} />}
-                  </Link>
-                ))}
+                  // tab.key === "coffee" ? (
+                  //   <a
+                  //     key={tab.key}
+                  //     href={COFFEE_FORM_URL}
+                  //     target="_blank"
+                  //     rel="noopener noreferrer"
+                  //     onClick={() => setIsMenuOpen(false)}
+                  //     className={`px-3 py-2 text-sm font-bold transition-all ${
+                  //       active === tab.key ? "text-semcompOffWhite" : "text-white/60"
+                  //     }`}
+                  //   >
+                  //     {tab.label}
+                  //   </a>
+                  // ) : (
+                    <Link
+                      key={tab.key}
+                      to={tab.path}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`px-3 py-2 text-sm font-bold transition-all ${
+                        active === tab.key ? "text-semcompOffWhite" : "text-white/60"
+                      }`}
+                    >
+                      {tab.label}
+                    </Link>
+                  )
+                //)
+                )
+                }
               </nav>
             )}
           </div>
@@ -110,30 +122,39 @@ export default function Header() {
             {/* Barrinha indicadora */}
             <span
               className={`absolute bottom-0 h-0.5 transition-all duration-300 ease-out
-                ${hasScrolled ? `bg-${textColor}` : `bg-white`}
+                ${hasScrolled ? "bg-semcompDarkBlue dark:bg-semcompLightBlue" : "bg-white"}
               `}
               style={{ left: indicator.left, width: indicator.width }}
             />
             {visibleTabs.map((tab) => (
-              <Link
-                key={tab.key}
-                to={tab.path}
-                ref={(el) => { btnRefs.current[tab.key] = el; }}
-                className={`relative px-4 py-2 text-sm font-bold transition-all duration-200 flex items-center gap-2 
-                  ${hasScrolled 
-                    ? (active === tab.key 
-                        ? `text-${textColor} scale-105` 
-                        : `text-${textColor} opacity-70 hover:text-${textColor}`)
-                    : (active === tab.key 
-                        ? "text-white scale-105" 
-                        : "text-white/70 hover:text-white")
-                  }
-                `}
-              >
-                {tab.label}
-                {tab.key === "perfil" && <ChevronRight size={16} />}
-              </Link>
-            ))}
+              // tab.key === "coffee" ? (
+              //   <a
+              //     key={tab.key}
+              //     href={COFFEE_FORM_URL}
+              //     target="_blank"
+              //     rel="noopener noreferrer"
+              //     ref={(el) => { btnRefs.current[tab.key] = el; }}
+              //     className={`relative px-4 py-2 text-sm font-bold transition-all duration-200 ${
+              //       active === tab.key ? "text-semcompOffWhite scale-105" : "text-semcompOffWhite/70 hover:text-white"
+              //     }`}
+              //   >
+              //     {tab.label}
+              //   </a>
+              // ) : (
+                <Link
+                  key={tab.key}
+                  to={tab.path}
+                  ref={(el) => { btnRefs.current[tab.key] = el; }}
+                  className={`relative px-4 py-2 text-sm font-bold transition-all duration-200 ${
+                    active === tab.key ? "text-semcompOffWhite scale-105" : "text-semcompOffWhite/70 hover:text-white"
+                  }`}
+                >
+                  {tab.label}
+                </Link>
+              )
+            //)
+            )
+            }
           </nav>
         )}
       </div>

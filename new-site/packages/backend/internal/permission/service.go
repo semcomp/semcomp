@@ -7,6 +7,8 @@ import (
 	"slices"
 	"strings"
 
+	"backend/internal/apierrors"
+
 	"gorm.io/gorm"
 )
 
@@ -75,15 +77,20 @@ func (s *permissionService) InitializePermissions() error {
 }
 
 func (s *permissionService) CreatePermission(request PermissionRequest) (*Permission, error) {
+	_, err := s.GetPermissionByUserSection(request.UserEmail, request.SectionName)
+	if err == nil {
+		return nil, apierrors.ConflictError("Permissão já cadastrada", err)
+	}
+	
 	newPermission := Permission{
 		UserEmail:      request.UserEmail,
 		SectionName:    request.SectionName,
 		PermissionType: request.PermissionType,
 	}
 
-	err := s.repo.Create(&newPermission)
+	err = s.repo.Create(&newPermission)
 	if err != nil {
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao criar permissão", err)
 	}
 	return &newPermission, nil
 }
@@ -92,9 +99,9 @@ func (s *permissionService) GetPermissionByUser(user string) ([]Permission, erro
 	permissions, err := s.repo.GetByUser(user)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return permissions, ErrPermissionNotFound
+			return permissions, apierrors.NotFoundError("Permissões não encontradas para esse usuário", err)
 		}
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao buscar permissão do usuário", err)
 	}
 
 	return permissions, nil
@@ -104,9 +111,21 @@ func (s *permissionService) GetPermissionBySection(section string) ([]Permission
 	permissions, err := s.repo.GetBySection(section)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return permissions, ErrPermissionNotFound
+			return permissions, apierrors.NotFoundError("Não há usuários com essas permissões cadastradas", err)
 		}
-		return nil, err
+		return nil, apierrors.InternalServerError("Erro ao buscar usuários com essa permissão", err)
+	}
+
+	return permissions, nil
+}
+
+func (s *permissionService) GetPermissionByUserSection(user string, section string) (*Permission, error) {
+	permissions, err := s.repo.GetByUserSection(user, section)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apierrors.NotFoundError("Permissão não encontrada", err)
+		}
+		return nil, apierrors.InternalServerError("Erro ao encontrar permissão", err)
 	}
 
 	return permissions, nil
@@ -116,9 +135,9 @@ func (s *permissionService) DeletePermissionByUserSection(user string, section s
 	err := s.repo.DeleteByUserSection(user, section)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrPermissionNotFound
+			return apierrors.NotFoundError("Permissão não encontrada", err)
 		}
-		return err
+		return apierrors.InternalServerError("Erro ao deletar permissão", err)
 	}
 
 	return nil
@@ -134,9 +153,9 @@ func (s *permissionService) UpdatePermissionByUserSection(user string, section s
 	err := s.repo.UpdateByUserSection(user, section, &updatePermission)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrPermissionNotFound
+			return apierrors.NotFoundError("Permissão não encontrada", err)
 		}
-		return err
+		return apierrors.InternalServerError("Erro ao atualizar permissão", err)
 	}
 
 	return nil
@@ -144,11 +163,11 @@ func (s *permissionService) UpdatePermissionByUserSection(user string, section s
 
 func (s *permissionService) GetPermissions(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*PermissionListResult, error) {
 	if page < 1 {
-		return nil, fmt.Errorf("page must be greater than 0")
+		return nil, fmt.Errorf("valor de 'page' deve ser maior que 0")
 	}
 
 	if limit < 1 {
-		return nil, fmt.Errorf("limit must be greater than 0")
+		return nil, fmt.Errorf("valor de 'limit' deve ser maior que 0")
 	}
 
 	if sortBy == "" {
@@ -169,15 +188,15 @@ func (s *permissionService) GetPermissions(page int, limit int, sortBy string, s
 	}
 
 	if !allowedSortFields[sortBy] {
-		return nil, fmt.Errorf("invalid sort_by parameter")
+		return nil, fmt.Errorf("parâmetro 'sort_by' inválido")
 	}
 
 	if sortOrder != "asc" && sortOrder != "desc" {
-		return nil, fmt.Errorf("invalid sort_order parameter")
+		return nil, fmt.Errorf("parâmetro 'sort_order' inválido")
 	}
 
 	if (searchBy == "" && searchValue != "") || (searchBy != "" && searchValue == "") {
-		return nil, fmt.Errorf("search_by and search_value must be provided together")
+		return nil, fmt.Errorf("'search_by' e 'search_value' devem ser enviados juntos")
 	}
 
 	if searchBy != "" {
@@ -190,7 +209,7 @@ func (s *permissionService) GetPermissions(page int, limit int, sortBy string, s
 		}
 
 		if !allowedSearchFields[searchBy] {
-			return nil, fmt.Errorf("invalid search_by parameter")
+			return nil, fmt.Errorf("parâmetro 'search_by' inválido")
 		}
 	}
 

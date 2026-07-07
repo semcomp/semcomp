@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
-import FotoSemcompMain from "@/assets/img/Home/Hero/Semcomp.avif";
-import imgLogoBranco from "@/assets/img/semcomp/logo_default_branco.webp";
 import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/useAuth";
 import { authAPI } from "@/api";
@@ -14,48 +12,24 @@ import type { UserType } from "@/types/UserType"
 import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate"
 import { useNavigate } from "react-router-dom";
 
-// O seguinte processamento fica fora do componente para evitar recriar/importar as imagens a cada renderização
-// Carrega automaticamente todas as imagens da pasta Hero e monta uma lista de imagens disponíveis
-const _heroModules = import.meta.glob(
-  "/src/assets/img/Home/Hero/*",
-  { eager: true }
-) as Record<string, { default: string }>;
+const HERO_IMAGES = [
+  "/img/Home/Hero/Banner1.webp",
+  "/img/Home/Hero/Banner2.webp",
+  "/img/Home/Hero/Palestra1.webp",
+  "/img/Home/Hero/Palestra2.webp",
+  "/img/Home/Hero/Semcomp.webp",
+];
 
-const HERO_IMAGES = Object.values(_heroModules)
-  .map((m) => m.default as string)
-  .filter((src) => /\.(webp)$/i.test(src));
-
-// Escolhe uma imagem aleatória da lista
 const pickRandomHero = () =>
-  HERO_IMAGES.length ? HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)] : FotoSemcompMain;
+  HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)];
 
 
 type Evento = EventType & {
   linkInscricao?: string;
 };
 
-const events: Evento[] = [
-  {
-    name: "Inteligência de Enxames aplicada a Robótica",
-    type: "Minicurso",
-    description: "Inteligência de Enxames aplicada a Robótica - Prof. Doutor Eduardo do Valle Simões",
-    dateInit: "2026-05-16T14:00:00Z",
-    dateEnd: "2026-05-16T18:00:00Z",
-    location: "ICMC",
-    has_attendance: true,
-    linkInscricao: "https://docs.google.com/forms/d/e/1FAIpQLScc0O2bcAs18cSS-mXkCS5mmJCVZ5BU37d4I8pDTANGiMCY0g/viewform",
-  },
-  {
-    name: "Escape Room",
-    type: "Escape Room",
-    description: "Monte uma equipe e participe do nosso Escape Room!",
-    dateInit: "2026-05-16T19:00:00Z",
-    dateEnd: "2026-05-16T23:00:00Z",
-    location: "ICMC",
-    has_attendance: false,
-    linkInscricao: "https://forms.gle/9Am3Hwijdyw7r91h8",
 
-  },
+let events: Evento[] = [
 ];
 interface ProfileProps extends UserType {
   event?: string;
@@ -83,62 +57,35 @@ export default function Profile({
   const navigate = useNavigate();
   const [heroSrc] = useState<string>(() => pickRandomHero());
 
-  // buscar dados do perfil na montagem da pagina - bloqueia acesso se não estiver logado
   useEffect(() => {
-    async function fetchProfile() { // função de busca
-
-      // bloqueia acesso sem login
+    async function fetchProfile() {
       if (!isAuthenticated) {
         navigate("/login", { replace: true });
         return;
       }
 
       try {
-        const response = await authAPI.getProfile(); // chama a API do perfil e insere as infos
-        
-        setUserName(response.name || name); 
+        const response = await authAPI.getProfile();
+        setUserName(response.name || name);
         setUserEmail(response.email || email);
         setUserCode(response.user_number || 0);
         setPresencePercent(response.presence_rate ?? 0);
-      } catch (err) { // caputura de erro
+      } catch (err) {
         console.error("Erro ao buscar o perfil", err);
-
-        // token inválido / expirado
         logout();
-
-        showNotification(
-          "Sua sessão expirou. Faça login novamente.",
-          "warning"
-        );
+        showNotification("Sua sessão expirou. Faça login novamente.", "warning");
       }
     }
-    fetchProfile(); // chamada da função
+    fetchProfile();
   }, [isAuthenticated, navigate, logout, showNotification, name, email]);
 
-  // Variáveis do Desktop original
-  const bgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompOffWhite";
-  const textColor = isDarkMode
-    ? "text-semcompOffWhite"
-    : "text-semcompDarkBlue";
-  const headerBgWithOpacity = isDarkMode
-    ? "bg-semcompDarkBlue/80"
-    : "bg-semcompMidDarkBlue/80";
-  const shadowClass = isDarkMode
-    ? "shadow-[inset_0_-180px_40px_-40px_theme(colors.semcompDarkBlue/100%)]"
-    : "shadow-[inset_0_-180px_40px_-40px_theme(colors.semcompMidLight/100%)]";
-
-  // Card de Evento - Versão Mobile
+  // EventCardMobile — inline dark: variants
   const EventCardMobile = ({ ev }: { ev: Evento }) => {
     const data = formatDate(ev.dateInit, 2);
     const diaSemana = formatWeekDay(ev.dateInit);
 
-    // Lógica Dark Mode para os cards de evento
-    const cardBgColor = isDarkMode
-      ? "bg-white/10 border-white/20 text-white"
-      : "bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue";
-
     return (
-      <div className={`border rounded-xl p-4 mb-3 ${cardBgColor} flex flex-col items-start`}>
+      <div className="border rounded-xl p-4 mb-3 bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white flex flex-col items-start">
         <div className="w-full">
           <div className="flex items-start gap-2">
             <span className="font-bold whitespace-nowrap">{ev.type}</span>
@@ -149,11 +96,11 @@ export default function Profile({
             {diaSemana} ({data}), {formatTime(ev.dateInit)} às {formatTime(ev.dateEnd)}
           </p>
           <hr className="mb-2 mt-2"/>
-        </div>  
-        <div className={`w-full flex flex-row justify-center ${cardBgColor}/90 rounded-sm`}>
+        </div>
+        <div className="w-full flex flex-row justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
           <button
             className="cursor-pointer w-full p-2"
-            onClick={()=>  ev.linkInscricao ? window.open(ev.linkInscricao, "_blank") : showNotification("Este evento ainda não está aberto para inscrições.")}
+            onClick={() => ev.linkInscricao ? window.open(ev.linkInscricao, "_blank") : showNotification("Este evento ainda não está aberto para inscrições.")}
           >
             Inscreva-se
           </button>
@@ -162,45 +109,10 @@ export default function Profile({
     );
   };
 
-  // Página Completa - Versão Mobile e Tablet (< 1280px)
+  // Versão Mobile/Tablet (< 1280px)
   if (width < 1280) {
-    // Variáveis de Tema para Mobile
-    const mMainBg = isDarkMode
-      ? "bg-semcompAlmostDarkBlue"
-      : "bg-semcompOffWhite";
-    const mGradientTo = isDarkMode
-      ? "to-semcompAlmostDarkBlue"
-      : "to-semcompOffWhite";
-
-    // Tabs
-    const mTabsContainer = isDarkMode
-      ? "bg-black/40 border-white/20"
-      : "bg-semcompMidLightBlue/40 border-semcompDarkBlue/20";
-    const mTabActive = isDarkMode
-      ? "bg-[#D9D9D9] text-[#0B2639]"
-      : "bg-semcompDarkBlue text-semcompOffWhite";
-    const mTabInactive = isDarkMode ? "text-white" : "text-semcompDarkBlue";
-
-    // Cards
-    const mMainCardBg = isDarkMode
-      ? "bg-[#D9D9D9] text-[#0B2639]"
-      : "bg-gray-200 text-semcompDarkBlue border border-semcompDarkBlue/10 shadow-lg";
-    const mFallbackBg = isDarkMode
-      ? "bg-[#B7C9D3] border-[#0B2639]/10"
-      : "bg-semcompMidLightBlue/20 border-semcompDarkBlue/20";
-
-    // Seções
-    const mOverflowBg = isDarkMode
-      ? "bg-semcompDarkBlue text-semcompOffWhite"
-      : "bg-semcompMidLightBlue text-semcompOffWhite";
-    const mInscricoesBg = isDarkMode
-      ? "bg-[#1A3A4F] border-white/10"
-      : "bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue";
-
     return (
-      <div
-        className={`min-h-screen ${mMainBg} font-poppins pb-10 transition-colors duration-300`}
-      >
+      <div className="min-h-screen bg-semcompOffWhite dark:bg-semcompAlmostDarkBlue font-poppins pb-10 transition-colors duration-300">
         {/* Header com Background */}
         <div className="relative h-80 w-full overflow-hidden bg-black">
           <img
@@ -209,20 +121,18 @@ export default function Profile({
             alt="Semcomp Banner"
           />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <img src={imgLogoBranco} alt="SEMCOMP Logo" className="w-1/2 max-w-50 object-contain drop-shadow-2xl" />
+            <img src="/img/semcomp/logo_default_branco.webp" alt="SEMCOMP Logo" className="w-1/2 max-w-50 object-contain drop-shadow-2xl" />
           </div>
-          <div
-            className={`absolute inset-0 bg-linear-to-b from-transparent ${mGradientTo}`}
-          />
+          <div className="absolute inset-0 bg-linear-to-b from-transparent to-semcompOffWhite dark:to-semcompAlmostDarkBlue" />
 
           {/* Tabs Seletoras */}
-          <div
-            className={`absolute bottom-10 left-1/2 -translate-x-1/2 flex backdrop-blur-md rounded-full p-1 border w-[80%] max-w-xs z-20 ${mTabsContainer}`}
-          >
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex backdrop-blur-md rounded-full p-1 border w-[80%] max-w-xs z-20 bg-semcompMidLightBlue/40 border-semcompDarkBlue/20 dark:bg-black/40 dark:border-white/20">
             <button
               onClick={() => setActiveTab("qr")}
               className={`flex-1 py-2 text-sm rounded-full transition-all font-bold ${
-                activeTab === "qr" ? mTabActive : `${mTabInactive} opacity-80`
+                activeTab === "qr"
+                  ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
+                  : "text-semcompDarkBlue dark:text-white opacity-80"
               }`}
             >
               QR Code
@@ -231,8 +141,8 @@ export default function Profile({
               onClick={() => setActiveTab("account")}
               className={`flex-1 py-2 text-sm rounded-full transition-all font-bold ${
                 activeTab === "account"
-                  ? mTabActive
-                  : `${mTabInactive} opacity-80`
+                  ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
+                  : "text-semcompDarkBlue dark:text-white opacity-80"
               }`}
             >
               Minha Conta
@@ -240,11 +150,9 @@ export default function Profile({
           </div>
         </div>
 
-        {/* Conteúdo Principal (Card Central) */}
+        {/* Conteúdo Principal */}
         <div className="px-5 -mt-6 relative z-10">
-          <div
-            className={`${mMainCardBg} rounded-3xl p-6 md:p-8 flex flex-col items-center shadow-2xl min-h-100`}
-          >
+          <div className="bg-gray-200 text-semcompDarkBlue border border-semcompDarkBlue/10 shadow-lg dark:bg-[#D9D9D9] dark:text-[#0B2639] dark:border-0 dark:shadow-none rounded-3xl p-6 md:p-8 flex flex-col items-center shadow-2xl min-h-100">
             {activeTab === "qr" && (
               <>
                 <h1 className="text-2xl font-bold mb-1">Meu QR Code</h1>
@@ -254,12 +162,9 @@ export default function Profile({
                   sua presença
                 </p>
 
-                {/* Frame do QR Code */}
                 <div className="relative p-6 mb-6">
-                  {/* Cantoneiras customizadas */}
                   <div className="absolute top-0 right-0 w-12 h-12 border-t-8 border-r-8 border-[#548EAB]" />
                   <div className="absolute bottom-0 left-0 w-12 h-12 border-b-8 border-l-8 border-[#548EAB]" />
-
                   <div className="bg-white p-2">
                     <QRCode value={userCode.toString()} size={180} fgColor="#0B2639" />
                   </div>
@@ -267,10 +172,7 @@ export default function Profile({
 
                 <p className="font-bold text-lg mb-6 text-center">{userName}</p>
 
-                {/* Fallback Code */}
-                <div
-                  className={`${mFallbackBg} rounded-xl p-4 w-full flex flex-row items-center justify-between gap-4 border`}
-                >
+                <div className="bg-semcompMidLightBlue/20 border-semcompDarkBlue/20 dark:bg-[#B7C9D3] dark:border-[#0B2639]/10 rounded-xl p-4 w-full flex flex-row items-center justify-between gap-4 border">
                   <p className="text-[10px] md:text-xs leading-tight flex-1">
                     Caso dê algum problema ao scannear, forneça o código:
                   </p>
@@ -283,46 +185,32 @@ export default function Profile({
 
             {activeTab === "account" && (
               <div className="w-full flex flex-col animate-in fade-in duration-300">
-                <h2 className="text-2xl font-bold text-center mb-6">
-                  Minha Conta
-                </h2>
+                <h2 className="text-2xl font-bold text-center mb-6">Minha Conta</h2>
 
                 <div className="flex flex-col space-y-4 mb-6">
                   <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70">
-                      Nome Completo:
-                    </span>
+                    <span className="text-xs font-bold opacity-70">Nome Completo:</span>
                     <span className="text-sm font-medium">{userName}</span>
                   </div>
                   <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70">
-                      E-mail:
-                    </span>
+                    <span className="text-xs font-bold opacity-70">E-mail:</span>
                     <span className="text-sm font-medium">{userEmail}</span>
                   </div>
                 </div>
 
-                {/* Barra de Progresso Mobile */}
                 <div className="bg-white/50 rounded-xl p-4 mb-6 border border-black/10">
-                  <h3 className="text-center text-sm font-bold mb-3">
-                    Minha Presença
-                  </h3>
+                  <h3 className="text-center text-sm font-bold mb-3">Minha Presença</h3>
                   <div className="relative w-full h-6 bg-black/10 rounded-full overflow-hidden">
                     <div
                       className={`absolute inset-y-0 left-0 h-full bg-semcompDarkBlue transition-all duration-1000 ${
-                        presencePercent > 15
-                          ? "flex items-center justify-end pr-2"
-                          : ""
+                        presencePercent > 15 ? "flex items-center justify-end pr-2" : ""
                       }`}
                       style={{ width: `${presencePercent}%` }}
                     >
                       {presencePercent > 15 && (
-                        <span className="text-white text-[10px] font-bold">
-                          {presencePercent}%
-                        </span>
+                        <span className="text-white text-[10px] font-bold">{presencePercent}%</span>
                       )}
                     </div>
-
                     {presencePercent <= 15 && (
                       <div className="absolute right-2 top-1/2 -translate-y-1/2 text-semcompDarkBlue text-[10px] font-bold">
                         {presencePercent}%
@@ -332,13 +220,10 @@ export default function Profile({
                 </div>
 
                 <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
-                  onClick={() => {showNotification("Entre em contato com a organização", "info")}}>
+                  onClick={() => showNotification("Entre em contato com a organização", "info")}>
                   Editar Informações
                 </button>
-                <button
-                  className="w-full text-red-600 font-bold text-sm py-2"
-                  onClick={logout}
-                >
+                <button className="w-full text-red-600 font-bold text-sm py-2" onClick={logout}>
                   Sair da conta
                 </button>
               </div>
@@ -347,18 +232,10 @@ export default function Profile({
         </div>
 
         {/* Seção Overflow */}
-        <div
-          className={`mt-12 pt-10 pb-10 px-5 text-center transition-colors ${mOverflowBg}`}
-        >
+        <div className="mt-12 pt-10 pb-10 px-5 text-center transition-colors bg-semcompMidLightBlue text-semcompOffWhite dark:bg-semcompDarkBlue">
           <h2 className="text-3xl font-bold mb-1 flex items-center justify-center gap-2">
             SEMCOMP Beta 2026
-            <span
-              className={`flex items-center justify-center w-5 h-5 rounded-full border text-xs font-normal ${
-                isDarkMode
-                  ? "border-white/60 text-white/60"
-                  : "border-semcompDarkBlue/60 text-semcompDarkBlue/60"
-              }`}
-            >
+            <span className="flex items-center justify-center w-5 h-5 rounded-full border text-xs font-normal border-semcompDarkBlue/60 text-semcompDarkBlue/60 dark:border-white/60 dark:text-white/60">
               ?
             </span>
           </h2>
@@ -366,31 +243,15 @@ export default function Profile({
             Você sabia que vem por aí a prévia da maior semana acadêmica de computação do Brasil?
           </p>
 
-          <div
-            className={`relative rounded-2xl overflow-hidden mb-4 border ${
-              isDarkMode
-                ? "bg-black/50 border-white/10"
-                : "bg-white border-semcompDarkBlue/20"
-            }`}
-          >
+          <div className="relative rounded-2xl overflow-hidden mb-4 border bg-white border-semcompDarkBlue/20 dark:bg-black/50 dark:border-white/10">
             <img src={heroSrc} className="w-full h-56 object-cover brightness-[0.7]" alt="SEMCOMP Beta"/>
             <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
-              <img
-                src={imgLogoBranco}
-                className="w-32 mb-2 drop-shadow-2xl"
-                alt="Logo"
-              />
-              <h3 className="text-2xl font-black tracking-widest drop-shadow-lg text-white">
-                SEMCOMP Beta
-              </h3>
+              <img src="/img/semcomp/logo_default_branco.webp" className="w-32 mb-2 drop-shadow-2xl" alt="Logo" />
+              <h3 className="text-2xl font-black tracking-widest drop-shadow-lg text-white">SEMCOMP Beta</h3>
             </div>
           </div>
 
-          <div
-            className={`border-t pt-4 px-2 ${
-              isDarkMode ? "border-white/20" : "border-semcompDarkBlue/20"
-            }`}
-          >
+          <div className="border-t pt-4 px-2 border-semcompDarkBlue/20 dark:border-white/20">
             <p className="text-[11px] leading-relaxed text-justify opacity-90">
               A SEMCOMP Beta é uma prévia de um evento ainda maior - a Semana de
               Computação da USP São Carlos. Ela acontecerá no dia 16 de maio e
@@ -398,26 +259,17 @@ export default function Profile({
               break e a nossa famosa gamenight. Participe e faça parte dessa
               experiência única!
             </p>
-            {/* <button className="mt-4 underline text-sm font-semibold hover:opacity-70">
-              Entrar no Grupo da Casa
-            </button> */}
           </div>
         </div>
 
         {/* Seção Inscrições */}
         <div className="mt-12 mb-12 px-5">
-          <div
-            className={`rounded-3xl p-6 border shadow-xl transition-colors ${mInscricoesBg}`}
-          >
-            <h2 className="text-2xl font-bold text-center mb-6">
-              Inscrições em Eventos
-            </h2>
+          <div className="rounded-3xl p-6 border shadow-xl transition-colors bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue dark:bg-[#1A3A4F] dark:border-white/10 dark:text-semcompOffWhite">
+            <h2 className="text-2xl font-bold text-center mb-6">Inscrições em Eventos</h2>
             {events.length > 0 ? (
               events.map((ev, i) => <EventCardMobile key={i} ev={ev} />)
             ) : (
-              <p className="opacity-60 text-center text-sm italic">
-                Nenhuma inscrição encontrada.
-              </p>
+              <p className="opacity-60 text-center text-sm italic">Nenhuma inscrição encontrada.</p>
             )}
           </div>
         </div>
@@ -427,11 +279,10 @@ export default function Profile({
     );
   }
 
-  // Main Section: QR Code / Minha Conta - Versão Desktop
+  // QR Code / Minha Conta - Versão Desktop
   const qrAndAccountCard = (
     <div className="h-full w-full pt-5 bg-gray-300 flex flex-col text-semcompDarkBlue">
 
-      {/* Tab Seletora */}
       <div className="flex mx-auto mb-5 w-[60%] rounded-full m-3 p-1 gap-1 border-2 border-semcompOffWhite/20 bg-semcompMidLight/20">
         <button
           onClick={() => setActiveTab("qr")}
@@ -457,9 +308,7 @@ export default function Profile({
 
       {activeTab === "qr" && (
         <div className="px-6 pb-8 bg-semcompOffWhite/50 mx-auto pt-8 h-full flex flex-col items-center overflow-y-auto">
-          <h1 className="text-2xl text-semcompMidDarkBlue font-bold mb-1">
-            Meu QR Code
-          </h1>
+          <h1 className="text-2xl text-semcompMidDarkBlue font-bold mb-1">Meu QR Code</h1>
           <p className="text-md text-semcompDarkBlue/75 text-center mb-6 leading-relaxed">
             Utilize seu QR durante a{" "}
             <span className="text-semcompMidBlue font-semibold">{event}</span>{" "}
@@ -483,9 +332,7 @@ export default function Profile({
             <p className="text-xs text-semcompDarkBlue/75 leading-tight">
               Caso de algum problema ao scannear, forneca o codigo:
             </p>
-            <p className="text-xl font-bold tracking-[0.2em] whitespace-nowrap">
-              {userCode}
-            </p>
+            <p className="text-xl font-bold tracking-[0.2em] whitespace-nowrap">{userCode}</p>
           </div>
         </div>
       )}
@@ -493,31 +340,25 @@ export default function Profile({
       {activeTab === "account" && (
         <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300 overflow-y-auto">
           <div className="text-center mb-6">
-            <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">
-              Minha Conta
-            </h2>
-            <p className="text-md text-semcompDarkBlue/75">
-              Veja abaixo, seus dados e presença
-            </p>
+            <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">Minha Conta</h2>
+            <p className="text-md text-semcompDarkBlue/75">Veja abaixo, seus dados e presença</p>
           </div>
 
           <div className="flex flex-col space-y-4 mb-6">
             <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcomp-900">
-                Nome Completo:
-              </span>
+              <span className="text-sm font-bold text-semcomp-900">Nome Completo:</span>
               <span className="text-sm text-foreground/90">{userName}</span>
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcomp-900">
-                E-mail:
-              </span>
+              <span className="text-sm font-bold text-semcomp-900">E-mail:</span>
               <span className="text-sm text-foreground/90">{userEmail}</span>
             </div>
           </div>
 
-          <button className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8"
-           onClick={() => {showNotification("Entre em contato com a organização", "info")}}>
+          <button
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8"
+            onClick={() => showNotification("Entre em contato com a organização", "info")}
+          >
             Editar Informações
           </button>
 
@@ -533,9 +374,7 @@ export default function Profile({
                 style={{ width: `${presencePercent}%` }}
               >
                 {presencePercent > 15 && (
-                  <span className="text-semcompLightBlue text-xs font-bold">
-                    {presencePercent}%
-                  </span>
+                  <span className="text-semcompLightBlue text-xs font-bold">{presencePercent}%</span>
                 )}
               </div>
               {presencePercent <= 15 && (
@@ -548,7 +387,7 @@ export default function Profile({
 
           <button
             onClick={logout}
-            className="mt-6 text-xs text-white font-medium mx-auto bg-destructive/50 hover:text-semcompOffWhite hover:bg-destructive/60 transition-colors py-2 px-3 rounded-lg "
+            className="mt-6 text-xs text-white font-medium mx-auto bg-destructive/50 hover:text-semcompOffWhite hover:bg-destructive/60 transition-colors py-2 px-3 rounded-lg"
           >
             Sair da conta
           </button>
@@ -557,12 +396,12 @@ export default function Profile({
     </div>
   );
 
-  // Página Completa - Versão Desktop
+  // Versão Desktop
   if (width >= 1280) {
     return (
-      <div className={`${bgColor} ${textColor} min-h-screen`}>
+      <div className="bg-semcompOffWhite text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite min-h-screen">
         <div
-          className={`h-[calc(90vh-70px)] w-full bg-cover bg-center ${shadowClass} flex flex-row justify-center items-center gap-10 font-poppins`}
+          className="h-[calc(90vh-70px)] w-full bg-cover bg-center flex flex-row justify-center items-center gap-10 font-poppins"
           style={{
             backgroundImage: `url(${heroSrc})`,
             boxShadow: isDarkMode
@@ -574,33 +413,21 @@ export default function Profile({
             {qrAndAccountCard}
           </div>
 
-          <div
-            className={`h-[85%] w-[28%] ${headerBgWithOpacity} flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10`}
-          >
-            <h1 className="text-center text-3xl font-bold pb-4">
-              SEMCOMP Beta 2026
-            </h1>
+          <div className="h-[85%] w-[28%] bg-semcompMidDarkBlue/80 dark:bg-semcompDarkBlue/80 flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10">
+            <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP Beta 2026</h1>
             <p className="text-center text-md pb-2">
-              Você sabia que vem por aí a prévia da maior semana acadêmica de
-              computação do Brasil?
+              Você sabia que vem por aí a prévia da maior semana acadêmica de computação do Brasil?
             </p>
-            <div
-              className="relative h-[50%] bg-cover bg-center bg-black"
-            >
+            <div className="relative h-[50%] bg-cover bg-center bg-black">
               <img src={heroSrc} className="absolute inset-0 w-full h-full object-cover opacity-60" alt="background"/>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <img
-                  className="h-[80%] drop-shadow-2xl"
-                  src={imgLogoBranco}
-                  alt="Logo"
-                />
+                <img className="h-[80%] drop-shadow-2xl" src="/img/semcomp/logo_default_branco.webp" alt="Logo" />
               </div>
-
               <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 whitespace-nowrap font-bold text-2xl z-10 text-white drop-shadow-md">
                 SEMCOMP Beta
               </span>
             </div>
-            <hr className=" border-semcompOffWhite mt-6 mb-3" />
+            <hr className="border-semcompOffWhite mt-6 mb-3" />
             <span className="text-sm text-justify">
               A SEMCOMP Beta é uma prévia de um evento ainda maior - a Semana de
               Computação da USP São Carlos. Ela acontecerá no dia 16 de maio e
@@ -611,96 +438,56 @@ export default function Profile({
           </div>
         </div>
 
-        <div
-          className={`min-h-[60vh] ${
-            isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompMidLightBlue"
-          }  flex flex-col justify-center items-center font-poppins pt-24 pb-24`}
-        >
-          <div
-            className={`border-2 h-[80%] w-[60%] rounded-2xl pt-12 pb-10 pl-16 pr-16 flex flex-col justify-center items-center ${
-              isDarkMode
-                ? "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompOffWhite"
-                : "bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue"
-            }`}
-          >
+        <div className="min-h-[60vh] bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue flex flex-col justify-center items-center font-poppins pt-24 pb-24">
+          <div className="border-2 h-[80%] w-[60%] rounded-2xl pt-12 pb-10 pl-16 pr-16 flex flex-col justify-center items-center bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue dark:bg-semcompMidDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite">
             <h1 className="font-bold text-2xl mb-6">Inscrições em Eventos</h1>
             <div className="w-full flex flex-row justify-between font-bold">
               <span>Evento</span>
               <span>Data/Horário</span>
             </div>
-            <hr
-              className={`w-full border mt-3 mb-3 ${
-                isDarkMode
-                  ? "border-semcompOffWhite"
-                  : "border-semcompAlmostDarkBlue"
-              }`}
-            />
+            <hr className="w-full border mt-3 mb-3 border-semcompAlmostDarkBlue dark:border-semcompOffWhite" />
             <div className="w-full flex flex-col gap-4 mb-20">
               {events && events.length > 0 ? (
                 events.map((evento, index) => {
-                  
                   const data = formatDate(evento.dateInit, 2);
                   const diaSemana = formatWeekDay(evento.dateInit);
 
                   return (
-                    <div
-                      key={index}
-                      className="flex flex-col justify-center items-center"
-                    >
+                    <div key={index} className="flex flex-col justify-center items-center">
                       <div
-                        className={`w-full flex flex-row justify-between items-center py-3 px-6 ${openSubscription === index ? "rounded-t-lg bg-black/15 shadow-inner" : "rounded-lg bg-black/5 hover:bg-black/10"}
-                        transition-all duration-300 cursor-pointer`}
-                        onClick={()=>setOpenSubscription(openSubscription === index ? -1 : index)}
+                        className={`w-full flex flex-row justify-between items-center py-3 px-6 ${openSubscription === index ? "rounded-t-lg bg-black/15 shadow-inner" : "rounded-lg bg-black/5 hover:bg-black/10"} transition-all duration-300 cursor-pointer`}
+                        onClick={() => setOpenSubscription(openSubscription === index ? -1 : index)}
                       >
                         <div className="w-1/2 flex flex-col text-left gap-1 items-start pr-4">
-                          <span className="font-bold text-lg shrink-0">
-                            {evento.type}
-                          </span>
-                          <span className="text-sm font-medium wrap-break-words flex-1 opacity-90">
-                            {evento.description}
-                          </span>
+                          <span className="font-bold text-lg shrink-0">{evento.type}</span>
+                          <span className="text-sm font-medium wrap-break-words flex-1 opacity-90">{evento.description}</span>
                         </div>
                         <div className="w-auto flex flex-col items-end shrink-0 gap-1">
                           <div className="flex flex-row gap-3 items-center">
                             <span className="font-semibold text-md">{data}</span>
-                            <span
-                              className={`text-xs px-3 py-1 font-bold rounded-full ${
-                                isDarkMode
-                                  ? "bg-semcompOffWhite text-semcompMidDarkBlue"
-                                  : "bg-semcompDarkBlue text-semcompOffWhite capitalize"
-                              } `}
-                            >
+                            <span className="text-xs px-3 py-1 font-bold rounded-full bg-semcompDarkBlue text-semcompOffWhite capitalize dark:bg-semcompOffWhite dark:text-semcompMidDarkBlue">
                               {diaSemana}
                             </span>
                           </div>
                           <span className="text-sm font-medium opacity-80 flex items-center gap-2">
                             {formatTime(evento.dateInit)} às {formatTime(evento.dateEnd)}
-                            <ChevronDown 
-                              className={`transition-transform duration-300 ${openSubscription === index ? "rotate-180" : ""} ${isDarkMode ? "text-white" : "text-black"}`} 
-                              size={20} 
+                            <ChevronDown
+                              className={`transition-transform duration-300 ${openSubscription === index ? "rotate-180" : ""} text-black dark:text-white`}
+                              size={20}
                             />
                           </span>
                         </div>
                       </div>
-                      {
-                        openSubscription === index && (
-                          <div className={`w-full p-6 flex flex-row items-center justify-center rounded-b-lg border-t border-black/10 shadow-lg transition-all animate-in fade-in duration-300 ${
-                            isDarkMode 
-                              ? "bg-black/20" 
-                              : "bg-black/5"
-                          }`}>
-                              <button className={`px-8 py-3 rounded-xl font-bold uppercase tracking-wide shadow-md hover:-translate-y-1 transition-all duration-300 ${
-                                isDarkMode 
-                                  ? "bg-semcompOffWhite text-semcompDarkBlue hover:bg-white hover:shadow-white/20" 
-                                  : "bg-semcompDarkBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-semcompDarkBlue/40"
-                                }`}
-                                onClick={()=>  evento.linkInscricao ? window.open(evento.linkInscricao, "_blank") : showNotification("Este evento ainda não está aberto para inscrições.")}
-                              >
-                                  Inscreva-se
-                              </button>
-                            </div>
-                        )
-                      }
+                      {openSubscription === index && (
+                        <div className="w-full p-6 flex flex-row items-center justify-center rounded-b-lg border-t border-black/10 shadow-lg transition-all animate-in fade-in duration-300 bg-black/5 dark:bg-black/20">
+                          <button
+                            className="px-8 py-3 rounded-xl font-bold uppercase tracking-wide shadow-md hover:-translate-y-1 transition-all duration-300 bg-semcompDarkBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-semcompDarkBlue/40 dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white dark:hover:shadow-white/20"
+                            onClick={() => evento.linkInscricao ? window.open(evento.linkInscricao, "_blank") : showNotification("Este evento ainda não está aberto para inscrições.")}
+                          >
+                            Inscreva-se
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })
@@ -719,7 +506,7 @@ export default function Profile({
     );
   }
 
-  // Fallback View original
+  // Fallback
   return (
     <div className="flex justify-center p-4 min-h-screen bg-semcompMidDarkBlue/90 items-center font-poppins">
       <div className="w-full max-w-85 rounded-2xl overflow-hidden shadow-xl animate-in fade-in zoom-in duration-300">

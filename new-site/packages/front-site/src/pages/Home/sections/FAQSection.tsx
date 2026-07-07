@@ -1,68 +1,60 @@
-import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
+import { gsap } from "@/lib/gsap";
 import FAQList from "@/components/FAQList";
 import FAQS from "@/lib/constants/FAQS";
-import useWindowDimensions from "@/hooks/useWindowDimensions";
-import { useTheme } from "@/contexts/useTheme";
-import LogoSemcomp from "@/assets/img/semcomp/logo_default_preto.png";
+import RevealHeading from "@/components/ui/RevealHeading";
+import SectionWatermark from "@/components/ui/SectionWatermark";
 
 type FAQSectionProps = {
   className?: string;
-}
+};
 
-const FAQSection = (props: FAQSectionProps) => {
-  const { width } = useWindowDimensions();
-  const { isDarkMode } = useTheme();
+const FAQSection = ({ className }: FAQSectionProps) => {
+  const sectionRef = useRef<HTMLElement>(null);
 
-  const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
-  const sectionPadding = width > 768 ? "py-30" : "py-10";
-  const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompDarkBlue/80";
-  const gradientVia  = isDarkMode ? "via-semcompLightBlue" : "via-semcompDarkBlue";
-  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompOffBlack";
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from('.faq-item', {
+        opacity: 0,
+        x: -28,
+        duration: 0.5,
+        stagger: 0.07,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: '.faq-list', start: 'top 85%' },
+      });
+    }, sectionRef);
 
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-  };
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <section id="faq" className={`${props.className} ${sectionPadding} relative overflow-hidden`}>
-      <img
-        src={LogoSemcomp}
-        alt="Logo Semcomp"
-        className="absolute w-200 h-200 pointer-events-none opacity-10 z-0 right-0 top-0 translate-x-1/2 -translate-y-1/2 rotate-220"
+    <section
+      ref={sectionRef}
+      id="faq"
+      className={`${className} py-10 md:py-30 relative overflow-hidden`}
+    >
+      <SectionWatermark
+        src="/img/decorative/lines_circled.png"
+        className="w-full md:w-[80vw] opacity-[0.07] right-0 top-0 -translate-y-1/4"
+        style={{ mixBlendMode: 'multiply' }}
+      />
+      <SectionWatermark
+        src="/img/decorative/lines.png"
+        className="w-full md:w-[70vw] opacity-[0.06] left-0 bottom-0 translate-y-1/4"
+        style={{ mixBlendMode: 'multiply' }}
       />
 
-      <img
-        src={LogoSemcomp}
-        alt="Logo Semcomp"
-        className="absolute w-200 h-200 pointer-events-none opacity-10 z-0 left-0 bottom-0 -translate-x-1/2 translate-y-1/2 rotate-220"
-      />
+      <div className="section-container">
+        <RevealHeading
+          words={[{ text: 'PERGUNTAS' }, { text: 'FREQUENTES', gradient: true }]}
+          plainClass="text-semcompDarkBlue dark:text-semcompOffWhite"
+          gradientClass="bg-linear-to-r from-semcompDarkBlue/80 via-semcompDarkBlue to-semcompOffBlack dark:from-semcompLightBlue/80 dark:via-semcompLightBlue dark:to-semcompOffWhite"
+          className="text-2xl md:text-4xl font-extrabold mb-10 text-center font-poppins relative z-10"
+        />
 
-      <div className="mx-auto max-w-[80%]">
-        
-        <motion.h2
-          className={`${headingSize} font-extrabold mb-10 text-center z-20 relative`}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeIn}
-        >
-          <span className={`${textColor} font-extrabold`}>PERGUNTAS</span>{" "}
-          <span className={`bg-clip-text text-transparent bg-linear-to-r ${gradientFrom} ${gradientVia} ${gradientTo} font-extrabold`}>
-            FREQUENTES
-          </span>
-        </motion.h2>
-
-        <motion.div
-          className="z-20 relative"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeIn}
-        >
+        <div className="faq-list relative z-10">
           <FAQList faqs={FAQS} />
-        </motion.div>
+        </div>
       </div>
     </section>
   );

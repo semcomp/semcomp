@@ -1,156 +1,83 @@
-import {useState, useEffect} from "react"
+import { useState, useEffect, useMemo, useCallback, memo, type ReactElement } from "react";
 import { eventsAPI } from "@/api/events";
-import type { EventType } from "@/types/EventType.ts"
+import type { EventType } from "@/types/EventType.ts";
 import type { EventWithColumn } from "@/types/EventWithColumn.ts";
 import { useTheme } from "@/contexts/useTheme";
 import { formatTime } from "@/lib/utils/formatDate";
-import imagemFundo from "@/assets/img/backgrounds/schedule.jpg";
 
-function ordenarEventosPorData(events: EventType[]): EventType[]{
-  const EventsCopy = [...events];
-  
-  EventsCopy.sort((a, b) => {
-    return new Date(a.dateInit).getTime() - new Date(b.dateInit).getTime();
+/**
+ * Agrupa e distribui os eventos em colunas quando há sobreposição de horários.
+ * Utiliza uma variação do algoritmo de partição de intervalos (Interval Partitioning).
+ */
+const processEvents = (events: EventType[]): EventWithColumn[][] => {
+  if (!events || events.length === 0) return [];
+
+  const sorted = [...events].sort((a, b) =>
+    new Date(a.dateInit).getTime() - new Date(b.dateInit).getTime()
+  );
+
+  const groups: EventType[][] = [];
+  let currentGroup: EventType[] = [];
+  let currentEnd = 0;
+
+  for (const event of sorted) {
+    const start = new Date(event.dateInit).getTime();
+    const end = new Date(event.dateEnd).getTime();
+
+    if (currentGroup.length === 0 || start < currentEnd) {
+      currentGroup.push(event);
+      currentEnd = Math.max(currentEnd, end);
+    } else {
+      groups.push(currentGroup);
+      currentGroup = [event];
+      currentEnd = end;
+    }
+  }
+  if (currentGroup.length > 0) groups.push(currentGroup);
+
+  return groups.map((group) => {
+    if (group.length === 1) return [{ ...group[0], column: "full" }];
+
+    if (group.length === 2) {
+      return [
+        { ...group[0], column: "left" },
+        { ...group[1], column: "right" }
+      ];
+    }
+
+    const specialEvent = group.reduce((prev, curr) => {
+      const prevDuration = new Date(prev.dateEnd).getTime() - new Date(prev.dateInit).getTime();
+      const currDuration = new Date(curr.dateEnd).getTime() - new Date(curr.dateInit).getTime();
+      if (currDuration > prevDuration) return curr;
+      if (currDuration === prevDuration && new Date(curr.dateInit).getTime() < new Date(prev.dateInit).getTime()) return curr;
+      return prev;
+    });
+
+    return group.map((evento) => ({
+      ...evento,
+      column: evento === specialEvent ? "right" : "left"
+    }));
   });
+};
 
-  return EventsCopy;
-}
-
-// Essa função necessida dos eventos já ordenados
-function agruparEventosCoincidentes(events: EventType[]): EventType[][]{
-  if (events.length === 0) return [];
-
-  const resultado: EventType[][] = [];
-  let grupoAtual: EventType[] = [];
-
-  // controla até onde o grupo atual vai
-  let fimAtual = 0;
-
-  for (const evento of events) {
-    const inicio = new Date(evento.dateInit).getTime();
-    const fim = new Date(evento.dateEnd).getTime();
-
-    // se o grupo está vazio, começa
-    if (grupoAtual.length === 0) {
-      grupoAtual.push(evento);
-      fimAtual = fim;
-      continue;
-    }
-
-    // se sobrepõe ao grupo atual
-    if (inicio < fimAtual) {
-      grupoAtual.push(evento);
-
-      fimAtual = Math.max(fimAtual, fim);
-    } 
-    // não sobrepõe, fecha grupo e cria outro
-    else {
-      resultado.push(grupoAtual);
-      grupoAtual = [evento];
-      fimAtual = fim;
-    }
-  }
-
-  // adiciona último grupo
-  if (grupoAtual.length > 0) {
-    resultado.push(grupoAtual);
-  }
-
-  return resultado;
-}
-
-function definirColuna(events: EventType[]): EventWithColumn[][]{
-  const grupos: EventType[][] = agruparEventosCoincidentes(events);
-  const resultado: EventWithColumn[][] = [];
-
-  for(const grupo of grupos){
-    if (grupo.length === 1) {
-      const grupoModificado: EventWithColumn[] = [
-        {
-          ...grupo[0],
-          column: "full"
-        }
-      ];
-      resultado.push(grupoModificado);
-
-    }else if(grupo.length === 2){
-      const grupoModificado: EventWithColumn[] = [
-        {
-          ...grupo[0],
-          column: "left"
-        },
-        {
-          ...grupo[1],
-          column: "right"
-        }
-      ];
-
-      resultado.push(grupoModificado);
-    }else{
-      const grupoModificado: EventWithColumn[] = [];
-
-      // 1. encontrar o evento "especial"
-      let eventoEspecial = grupo[0];
-
-      for (const evento of grupo) {
-        const inicioAtual = new Date(evento.dateInit).getTime();
-        const fimAtual = new Date(evento.dateEnd).getTime();
-        const duracaoAtual = fimAtual - inicioAtual;
-
-        const inicioEspecial = new Date(eventoEspecial.dateInit).getTime();
-        const fimEspecial = new Date(eventoEspecial.dateEnd).getTime();
-        const duracaoEspecial = fimEspecial - inicioEspecial;
-
-        if (
-          duracaoAtual > duracaoEspecial ||
-          (duracaoAtual === duracaoEspecial && inicioAtual < inicioEspecial)
-        ) {
-          eventoEspecial = evento;
-        }
-      }
-
-      // 2. montar o grupo com colunas
-      for (const evento of grupo) {
-        grupoModificado.push({
-          ...evento,
-          column: evento === eventoEspecial ? "right" : "left"
-        });
-      }
-
-      resultado.push(grupoModificado);
-
-    }
-  }
-
-  return resultado;
-}
-
-function processarEventos(events: EventType[]): EventWithColumn[][]{
-    const ordenados = ordenarEventosPorData(events);
-    const grupoEventosComColuna = definirColuna(ordenados);
-
-    return grupoEventosComColuna;
-}
-
-function EventButton({
+const EventButton = memo(function EventButton({
   evento,
   onClick,
   cardClasses,
-  captionClasses
+  captionClasses,
 }: {
   evento: EventWithColumn;
-  onClick: () => void;
+  onClick: (evento: EventWithColumn) => void;
   cardClasses: string;
   captionClasses: string;
-}) {
+}): ReactElement {
   return (
     <button
       type="button"
       className={`group w-full rounded-xl border px-4 py-4 text-center transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md h-full ${cardClasses}`}
-      onClick={onClick}
+      onClick={() => onClick(evento)}
     >
       <p className="font-poppins-bold text-base md:text-lg">{evento.name}</p>
-
       <p className={`mt-1 text-sm ${captionClasses}`}>
         {formatTime(evento.dateInit)} - {formatTime(evento.dateEnd)}
       </p>
@@ -160,14 +87,15 @@ function EventButton({
           <div className="flex flex-col items-center gap-3 text-center">
             {evento.image && (
               <div className="w-full flex justify-center">
-                <img 
-                  src={evento.image} 
+                <img
+                  src={evento.image}
                   alt={evento.name}
+                  loading="lazy"
                   className="h-32 w-auto max-w-xs rounded-lg object-cover"
                 />
               </div>
             )}
-            <p className={`text-sm text-center leading-relaxed wrap-break-word ${captionClasses}`}>
+            <p className={`text-sm text-center leading-relaxed break-words ${captionClasses}`}>
               {evento.description || "Mais detalhes deste evento."}
             </p>
           </div>
@@ -175,71 +103,99 @@ function EventButton({
       </div>
     </button>
   );
+});
+
+function EventModal({
+  selected,
+  onClose,
+  captionClasses,
+}: {
+  selected: EventWithColumn | null;
+  onClose: () => void;
+  captionClasses: string;
+}): ReactElement | null {
+  if (!selected) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border p-6 shadow-2xl border-semcompLightBlue bg-white text-semcompDarkBlue dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue dark:text-semcompOffWhite"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="font-poppins-bold text-xl">{selected.name}</h2>
+        {formatTime(selected.dateInit) && (
+          <p className={`mt-1 text-sm ${captionClasses}`}>{formatTime(selected.dateInit)}</p>
+        )}
+        <p className="mt-3 text-center text-sm leading-relaxed md:text-base">
+          {selected.description || "Sem descrição."}
+        </p>
+        <button
+          className="mt-6 inline-flex rounded-lg px-4 py-2 text-sm font-semibold transition-colors bg-semcompMidDarkBlue text-semcompOffWhite hover:bg-semcompAlmostDarkBlue dark:hover:bg-semcompMidLightBlue"
+          onClick={onClose}
+        >
+          Fechar
+        </button>
+      </div>
+    </div>
+  );
 }
 
-export default function CronogramaPage() {
-
-  const [selected, setSelected] = useState<EventWithColumn | null>(null);
-  const [events, setEvents] = useState<EventType[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function CronogramaPage(): ReactElement {
   const { isDarkMode } = useTheme();
 
-  const pageClasses = isDarkMode
-    ? "bg-semcompDarkBlue text-semcompOffWhite"
-    : "bg-semcompOffWhite text-semcompDarkBlue";
+  const [events, setEvents] = useState<EventType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState<EventWithColumn | null>(null);
 
-  const cardClasses = isDarkMode
-    ? "border-semcompMidDarkBlue bg-semcompAlmostDarkBlue/75 hover:bg-semcompAlmostDarkBlue"
-    : "border-semcompLightBlue bg-white/70 hover:bg-white";
+  const cardClasses = "border-semcompLightBlue bg-white/70 hover:bg-white dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 dark:hover:bg-semcompAlmostDarkBlue";
+  const captionClasses = "text-semcompMidDarkBlue/85 dark:text-semcompLightBlue/90";
+  const gradientColor = isDarkMode ? "#002D5E" : "#004F7C";
 
-  const captionClasses = isDarkMode ? "text-semcompLightBlue/90" : "text-semcompMidDarkBlue/85";
-  const glowPrimaryClass = isDarkMode ? "bg-semcompMidLightBlue/10" : "bg-semcompMidLightBlue/15";
-  const glowSecondaryClass = isDarkMode ? "bg-semcompLightBlue/5" : "bg-semcompAlmostDarkBlue/8";
-
-  // Buscar eventos da API
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
         const response = await eventsAPI.getAllEvents();
-        console.log("Eventos recebidos da API:", response);
         setEvents(response.events || []);
       } catch (error) {
-        console.error("Erro ao buscar eventos:", error);
+        console.error("Erro ao buscar eventos do banco de dados:", error);
         setEvents([]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchEvents();
   }, []);
 
-  const GrupoEventosProcessados: EventWithColumn[][] = processarEventos(events);
+  const processedEventGroups = useMemo(() => processEvents(events), [events]);
 
-  // Cores do gradiente baseadas no modo
-  const gradientColor = isDarkMode ? "#002D5E" : "#004F7C"; // semcompDarkBlue / semcompOffWhite
+  const handleSelectEvent = useCallback((evento: EventWithColumn) => {
+    setSelectedEvent(evento);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedEvent(null);
+  }, []);
 
   return (
-    <section 
-      className={`relative min-h-screen w-full overflow-hidden font-poppins ${pageClasses}`}
-      style={{
-        backgroundImage: `
-          linear-gradient(
-            to top,
-            ${gradientColor} 10%,
-            ${gradientColor}00 100%
-          ),
-          url('${imagemFundo}')
-        `,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-      }}
-    >
-      <div className="pointer-events-none absolute inset-0">
-        <div className={`absolute -left-10 top-6 h-100 w-100 rounded-full blur-[110px] ${glowPrimaryClass}`} />
-        <div className={`absolute -right-10 bottom-4 h-100 w-100 rounded-full blur-[120px] ${glowSecondaryClass}`} />
+    <section className="relative min-h-[calc(100vh-70px)] w-full overflow-x-hidden font-poppins isolate text-semcompDarkBlue dark:text-semcompOffWhite">
+
+      <div
+        className="fixed inset-0 z-0 bg-cover bg-center bg-semcompOffWhite dark:bg-semcompDarkBlue"
+        style={{
+          backgroundImage: `
+            linear-gradient(to top, ${gradientColor} 10%, ${gradientColor}00 100%),
+            url('/img/backgrounds/schedule.jpg')
+          `,
+        }}
+      />
+
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute -left-32 top-6 h-[500px] w-[500px] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-semcompMidLightBlue/20 dark:from-semcompMidLightBlue/15 to-transparent" />
+        <div className="absolute -right-32 bottom-4 h-[500px] w-[500px] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-semcompAlmostDarkBlue/12 dark:from-semcompLightBlue/8 to-transparent" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-5xl px-4 py-10 md:px-6 md:py-14">
@@ -252,71 +208,48 @@ export default function CronogramaPage() {
           </p>
         </header>
 
-        {/* Popup */}
-        {selected && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
-            onClick={() => setSelected(null)}
-          >
-            <div
-              className={`w-full max-w-md rounded-2xl border p-6 shadow-2xl ${isDarkMode ? "border-semcompMidDarkBlue bg-semcompAlmostDarkBlue text-semcompOffWhite" : "border-semcompLightBlue bg-white text-semcompDarkBlue"}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="font-poppins-bold text-xl">{selected.name}</h2>
-              {formatTime(selected.dateInit) && (
-                <p className={`mt-1 text-sm ${captionClasses}`}>{formatTime(selected.dateInit)}</p>
-              )}
-              <p className="mt-3 text-center text-sm leading-relaxed md:text-base">
-                {selected.description || "Sem descrição."}
-              </p>
-              <button
-                className={`mt-6 inline-flex rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${isDarkMode ? "bg-semcompMidDarkBlue text-semcompOffWhite hover:bg-semcompMidLightBlue" : "bg-semcompMidDarkBlue text-semcompOffWhite hover:bg-semcompAlmostDarkBlue"}`}
-                onClick={() => setSelected(null)}
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        )}
+        <EventModal
+          selected={selectedEvent}
+          onClose={handleCloseModal}
+          captionClasses={captionClasses}
+        />
 
         <div className="space-y-3">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <p className="text-semcompOffWhite/70">Carregando eventos...</p>
+              <p className="text-white/70">Carregando eventos...</p>
             </div>
           ) : events.length === 0 ? (
             <div className="flex items-center justify-center py-12">
-              <p className="text-semcompOffWhite/70">Nenhum evento disponível no momento.</p>
+              <p className="text-white/70">Nenhum evento disponível no momento.</p>
             </div>
           ) : (
-            GrupoEventosProcessados.map((grupo, rowIndex) => {
-              const left = grupo.filter(e => e.column === "left");
-              const right = grupo.filter(e => e.column === "right");
-              const full = grupo.filter(e => e.column === "full");
+            processedEventGroups.map((grupo, rowIndex) => {
+              const left = grupo.filter((e) => e.column === "left");
+              const right = grupo.filter((e) => e.column === "right");
+              const full = grupo.filter((e) => e.column === "full");
 
               return (
-                <div key={rowIndex} className="grid gap-3 md:grid-cols-2">
-
-                  {full.length > 0 && full.map((evento) => (
-                    <div key={evento.name} className="col-span-2">
-                      <EventButton
-                        evento={evento}
-                        onClick={() => setSelected(evento)}
-                        cardClasses={cardClasses}
-                        captionClasses={captionClasses}
-                      />
-                    </div>
-                  ))}
-
-                  {full.length === 0 && (
+                <div key={`group-${rowIndex}`} className="grid gap-3 md:grid-cols-2">
+                  {full.length > 0 ? (
+                    full.map((evento) => (
+                      <div key={evento.name} className="col-span-2">
+                        <EventButton
+                          evento={evento}
+                          onClick={handleSelectEvent}
+                          cardClasses={cardClasses}
+                          captionClasses={captionClasses}
+                        />
+                      </div>
+                    ))
+                  ) : (
                     <>
                       <div className="flex flex-col gap-3 h-full">
                         {left.map((evento) => (
-                          <div className="flex-1">
+                          <div key={evento.name} className="flex-1">
                             <EventButton
-                              key={evento.name}
                               evento={evento}
-                              onClick={() => setSelected(evento)}
+                              onClick={handleSelectEvent}
                               cardClasses={cardClasses}
                               captionClasses={captionClasses}
                             />
@@ -326,11 +259,10 @@ export default function CronogramaPage() {
 
                       <div className="flex flex-col gap-3 h-full">
                         {right.map((evento) => (
-                          <div className="flex-1">
+                          <div key={evento.name} className="flex-1">
                             <EventButton
-                              key={evento.name}
                               evento={evento}
-                              onClick={() => setSelected(evento)}
+                              onClick={handleSelectEvent}
                               cardClasses={cardClasses}
                               captionClasses={captionClasses}
                             />
