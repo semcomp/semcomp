@@ -16,6 +16,13 @@ export const router = createBrowserRouter([
           return { Component: HomePage };
         },
       },
+      {
+        path: "test-file-upload",
+        lazy: async () => {
+          const { default: FileUploadDemo } = await import("@/pages/FileUploadDemo");
+          return { Component: FileUploadDemo };
+        },
+      },
       // {
       //   path: "cronograma",
       //   lazy: async () => {
