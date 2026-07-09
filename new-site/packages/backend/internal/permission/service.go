@@ -54,7 +54,11 @@ func (s *permissionService) InitializePermissions() error {
 	permissions := GetInitialPermissions(email)
 	curPermissions, err := s.GetPermissionByUser(email)
 	if err != nil {
-		if errors.Is(err, ErrPermissionNotFound) || errors.Is(err, gorm.ErrRecordNotFound) {
+		var apiErr *apierrors.APIError
+		notFound := errors.Is(err, ErrPermissionNotFound) ||
+			errors.Is(err, gorm.ErrRecordNotFound) ||
+			(errors.As(err, &apiErr) && apiErr.Code == "not_found")
+		if notFound {
 			curPermissions = []Permission{}
 		} else {
 			return errors.New("erro na inicialização das permissões")
@@ -81,7 +85,7 @@ func (s *permissionService) CreatePermission(request PermissionRequest) (*Permis
 	if err == nil {
 		return nil, apierrors.ConflictError("Permissão já cadastrada", err)
 	}
-	
+
 	newPermission := Permission{
 		UserEmail:      request.UserEmail,
 		SectionName:    request.SectionName,
