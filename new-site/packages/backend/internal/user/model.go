@@ -1,6 +1,9 @@
 package user
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 type User struct {
 	// TODO: Para a semcompona, atualizar o model
@@ -9,12 +12,27 @@ type User struct {
 	Email        string  `gorm:"size:150;unique;not null" json:"email"`
 	PasswordHash string  `gorm:"size:255;not null"`
 	PresenceRate float64 `gorm:"not null" json:"presence_rate"`
+
+	EmailVerified              bool   `gorm:"not null;default:false" json:"email_verified"`
+	VerificationTokenHash      string `gorm:"size:255"`
+	VerificationTokenExpiresAt *time.Time
+	VerificationSentAt         *time.Time
+	VerificationWindowStartAt  *time.Time
+	VerificationSendCount      int `gorm:"not null;default:0"`
 }
 
 type CreateUserRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=8"`
+}
+
+type VerifyEmailRequest struct {
+	Token string `json:"token" binding:"required"`
+}
+
+type ResendVerificationRequest struct {
+	Email string `json:"email" binding:"required,email"`
 }
 
 type UpdateUserRequest struct {

@@ -1,8 +1,10 @@
 package user
 
 import (
+	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"backend/internal/apierrors"
 	"backend/internal/providers"
@@ -15,24 +17,54 @@ type UserService interface {
 	GetUserByID(id uint) (*SafeUser, error)
 	UpdateUser(id uint, request UpdateUserRequest) error
 	DeleteUser(id uint) error
+	VerifyEmail(rawToken string) error
+	ResendVerification(email string) error
 }
 
 // userService é a implementação concreta de UserService.
 type userService struct {
-	repo             UserRepository
-	passwordProvider providers.PasswordProvider
+	repo                    UserRepository
+	passwordProvider        providers.PasswordProvider
+	tokenProvider           providers.TokenProvider
+	mailProvider            providers.MailProvider
+	emailValidationProvider providers.EmailValidationProvider
 }
 
 // NewUserService inicializa e retorna uma nova instância de UserService.
-func NewUserService(repo UserRepository, passwordProvider providers.PasswordProvider) UserService {
-	return &userService{repo: repo, passwordProvider: passwordProvider}
+func NewUserService(
+	repo UserRepository,
+	passwordProvider providers.PasswordProvider,
+	tokenProvider providers.TokenProvider,
+	mailProvider providers.MailProvider,
+	emailValidationProvider providers.EmailValidationProvider,
+) UserService {
+	return &userService{
+		repo:                    repo,
+		passwordProvider:        passwordProvider,
+		tokenProvider:           tokenProvider,
+		mailProvider:            mailProvider,
+		emailValidationProvider: emailValidationProvider,
+	}
 }
 
-// CreateUser valida duplicatas, criptografa a senha e salva o novo usuário.
+// CreateUser valida duplicatas, criptografa a senha e salva o novo usuário, disparando
+// o e-mail de confirmação. Se o e-mail já existir mas ainda não tiver sido confirmado,
+// reenvia um novo link para a conta existente em vez de criar um duplicado (sem
+// sobrescrever nome/senha, para não permitir que outra pessoa assuma a conta pendente).
 func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
-	_, err := s.repo.GetByEmail(request.Email)
+	if err := s.emailValidationProvider.Validate(request.Email); err != nil {
+		return nil, apierrors.ValidationError("E-mail inválido", err)
+	}
+
+	existingUser, err := s.repo.GetByEmail(request.Email)
 	if err == nil {
-		return nil, apierrors.ConflictError("Email já cadastrado", err)
+		if existingUser.EmailVerified {
+			return nil, apierrors.ConflictError("Email já cadastrado", nil)
+		}
+
+		s.regenerateAndSendVerification(existingUser)
+		safe := ToSafeUser(existingUser)
+		return &safe, nil
 	}
 
 	hashedPassword, err := s.passwordProvider.Hash(request.Password)
@@ -51,8 +83,124 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 		return nil, apierrors.InternalServerError("Erro ao criar usuário", err)
 	}
 
+	s.regenerateAndSendVerification(&newUser)
+
 	safe := ToSafeUser(&newUser)
 	return &safe, nil
+}
+
+// VerifyEmail confirma o e-mail de um usuário a partir do token bruto recebido pelo link.
+// É idempotente: verificar um token de uma conta já confirmada retorna sucesso.
+func (s *userService) VerifyEmail(rawToken string) error {
+	hash := s.tokenProvider.Hash(rawToken)
+
+	u, err := s.repo.GetByVerificationTokenHash(hash)
+	if err != nil {
+		return apierrors.NotFoundError("Link de verificação inválido ou expirado", err)
+	}
+
+	if u.EmailVerified {
+		return nil
+	}
+
+	if u.VerificationTokenExpiresAt == nil || time.Now().After(*u.VerificationTokenExpiresAt) {
+		return apierrors.NotFoundError("Link de verificação inválido ou expirado", nil)
+	}
+
+	u.EmailVerified = true
+	if err := s.repo.Update(u); err != nil {
+		return apierrors.InternalServerError("Erro ao confirmar e-mail", err)
+	}
+
+	return nil
+}
+
+// ResendVerification reenvia o link de confirmação para o e-mail informado. Sempre
+// retorna sucesso (nil), independente de o e-mail existir, já estar verificado ou ter
+// atingido o cooldown/limite diário de reenvios — evita vazar quais e-mails estão
+// cadastrados no sistema.
+func (s *userService) ResendVerification(email string) error {
+	if err := s.emailValidationProvider.Validate(email); err != nil {
+		return nil
+	}
+
+	existingUser, err := s.repo.GetByEmail(email)
+	if err != nil {
+		return nil
+	}
+
+	if existingUser.EmailVerified {
+		return nil
+	}
+
+	s.regenerateAndSendVerification(existingUser)
+	return nil
+}
+
+// regenerateAndSendVerification gera um novo token de verificação, aplica cooldown e
+// limite diário de reenvios, persiste os campos e dispara o e-mail. Falhas de geração,
+// persistência ou envio são silenciosamente ignoradas (best-effort) — o usuário sempre
+// pode solicitar um novo reenvio depois.
+func (s *userService) regenerateAndSendVerification(u *User) {
+	now := time.Now()
+
+	if u.VerificationSentAt != nil && now.Sub(*u.VerificationSentAt) < verificationResendCooldown() {
+		return
+	}
+
+	windowStart := u.VerificationWindowStartAt
+	sendCount := u.VerificationSendCount
+	if windowStart == nil || now.Sub(*windowStart) > 24*time.Hour {
+		windowStart = &now
+		sendCount = 0
+	}
+
+	if sendCount >= verificationMaxResendsPerDay() {
+		return
+	}
+
+	raw, hash, err := s.tokenProvider.Generate()
+	if err != nil {
+		return
+	}
+
+	expiresAt := now.Add(verificationTokenTTL())
+
+	u.VerificationTokenHash = hash
+	u.VerificationTokenExpiresAt = &expiresAt
+	u.VerificationSentAt = &now
+	u.VerificationWindowStartAt = windowStart
+	u.VerificationSendCount = sendCount + 1
+
+	if err := s.repo.Update(u); err != nil {
+		return
+	}
+
+	_ = s.mailProvider.SendVerificationEmail(u.Email, u.Name, raw)
+}
+
+func verificationTokenTTL() time.Duration {
+	hours, err := strconv.Atoi(os.Getenv("EMAIL_VERIFICATION_TOKEN_EXPIRES_IN_HOURS"))
+	if err != nil || hours <= 0 {
+		hours = 24
+	}
+	return time.Duration(hours) * time.Hour
+}
+
+func verificationResendCooldown() time.Duration {
+	seconds, err := strconv.Atoi(os.Getenv("EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS"))
+	if err != nil || seconds <= 0 {
+		seconds = 60
+	}
+	return time.Duration(seconds) * time.Second
+}
+
+func verificationMaxResendsPerDay() int {
+	maxResends, err := strconv.Atoi(os.Getenv("EMAIL_VERIFICATION_MAX_RESENDS_PER_DAY"))
+	if err != nil || maxResends <= 0 {
+		maxResends = 5
+	}
+	return maxResends
 }
 
 // GetAllUsers recupera todos os usuários repassando a chamada para a camada de repositório.
