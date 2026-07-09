@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { gsap } from '@/lib/gsap';
 import { Button, buttonVariants } from "@/components/ui/Button";
-import iconMessage from "@/assets/img/Home/Icons/iconMessage.svg";
+import { Mail } from "lucide-react";
 import SectionWatermark from "@/components/ui/SectionWatermark";
 import { useTheme } from '@/contexts/useTheme';
 import { PREVIOUS_SPONSORS } from '@/lib/constants/previousSponsors';
@@ -10,7 +10,7 @@ const RAIN_LOGOS = PREVIOUS_SPONSORS;
 
 const IMPACT_PHRASES = [
   "Mais de 30 empresas parceiras.",
-  "Mais de uma década de história.",
+  "Mais de duas décadas de história.",
   "Sua empresa pode ser a próxima.",
 ];
 
@@ -90,18 +90,14 @@ export default function TornarPatrocinadorSection({ className }: PatrocinadoresS
       ref={sectionRef}
       className={`bg-semcompLightBlue dark:bg-semcompMidDarkBlue relative overflow-hidden ${className}`}
     >
+
       <SectionWatermark
-        src="/img/decorative/lines_circled.png"
-        className="w-full bottom-0 left-0 translate-y-1/3 dark:hidden"
-        style={{ mixBlendMode: 'multiply', opacity: 0.4 }}
-      />
-      <SectionWatermark
-        src="/img/decorative/lines_circled.png"
-        className="w-full bottom-0 left-0 translate-y-1/3 hidden dark:block"
-        style={{ mixBlendMode: 'screen', opacity: 0.1 }}
+        src="/img/decorative/lines.png"
+        className="w-[60vw] md:w-100 right-5 md:right-20 bottom-4 sobre-watermark-light
+          mix-blend-multiply opacity-15
+          dark:mix-blend-screen dark:opacity-10"
       />
 
-      {/* ── Animation overlay ────────────────────────────────────────────────── */}
       <div
         ref={overlayRef}
         aria-hidden="true"
@@ -158,7 +154,7 @@ export default function TornarPatrocinadorSection({ className }: PatrocinadoresS
 
           <div className="w-full">
             <div className="flex gap-5 items-center mb-2">
-              <img src={iconMessage} alt="ícone de envio de contato" className="h-5 dark:invert" />
+              <Mail className="h-5 w-5 text-semcompDarkBlue dark:text-semcompOffWhite" />
               <h3 className="text-semcompDarkBlue dark:text-semcompOffWhite text-sm sm:text-[18px]">Preencha e entraremos em contato!</h3>
             </div>
             <hr className="border border-semcompMidLightBlue/50 dark:border-semcompOffWhite" />
@@ -205,24 +201,34 @@ export default function TornarPatrocinadorSection({ className }: PatrocinadoresS
             </div>
 
             <div className="flex justify-between gap-2">
-              <Button
-                className={`
-                  ${buttonVariants({ variant: "ghost", size: "lg" })}
-                  cursor-pointer bg-semcompMidLightBlue/20 dark:bg-[#003050] text-semcompDarkBlue dark:text-semcompOffWhite flex-1 sm:flex-none sm:w-32.5 h-12.5 -translate-x-0.5
-                `}
-              >
-                Limpar
-              </Button>
+                <Button
+                  className={`
+                    ${buttonVariants({ variant: "ghost", size: "lg" })}
+                    cursor-pointer flex-1 sm:flex-none sm:w-32.5 h-12.5 -translate-x-0.5
+                    transition-transform duration-200 hover:scale-102
+                    
+                    bg-semcompDarkBlue/90 text-semcompOffWhite hover:bg-semcompDarkBlue hover:text-semcompOffWhite/90
+                    
+                    dark:bg-semcompAlmostDarkBlue dark:text-semcompLightBlue dark:hover:bg-semcompDarkBlue dark:hover:text-semcompOffWhite
+                  `}
+                >
+                  Limpar
+                </Button>
 
-              <Button
-                className={`
-                  ${buttonVariants({ variant: "ghost", size: "lg" })}
-                  cursor-pointer bg-semcompDarkBlue dark:bg-semcompOffWhite text-semcompOffWhite dark:text-semcompMidDarkBlue font-extrabold flex-1 sm:flex-none sm:w-50 h-12.5
-                `}
-              >
-                Enviar Mensagem
-              </Button>
-            </div>
+                <Button
+                  className={`
+                    ${buttonVariants({ variant: "ghost", size: "lg" })}
+                    cursor-pointer font-extrabold flex-1 sm:flex-none sm:w-50 h-12.5 -translate-x-0.5
+                    transition-transform duration-200 hover:scale-102
+                
+                    bg-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/90 text-semcompOffWhite/90 hover:text-semcompOffWhite/90
+                    
+                    dark:bg-semcompLightBlue dark:text-semcompDarkBlue dark:hover:bg-semcompOffWhite
+                  `}
+                >
+                  Enviar Mensagem
+                </Button>
+              </div>
           </div>
         </div>
 

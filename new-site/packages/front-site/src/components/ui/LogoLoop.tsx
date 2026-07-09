@@ -235,15 +235,21 @@ export const LogoLoop = React.memo<LogoLoopProps>(
       if (effectiveHoverSpeed !== undefined) setIsHovered(false);
     }, [effectiveHoverSpeed]);
 
-    const hasHoverEffect = !!isDarkMode || scaleOnHover;
+    const hasHoverEffect = isDarkMode !== undefined || scaleOnHover;
+
+    const liClassName = useMemo(() => cx(
+      'leading-none',
+      hasHoverEffect && 'group',
+    ), [hasHoverEffect]);
 
     /** Classes da <img> — filtro + transição + hover effect */
     const imgClassName = useMemo(() => cx(
       'block object-contain pointer-events-none select-none [-webkit-user-drag:none]',
       'transition-[filter,opacity,transform] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none will-change-[filter,opacity,transform]',
-      
-      isDarkMode && '[filter:grayscale(1)_brightness(0.35)_invert(1)] opacity-80 group-hover:[filter:drop-shadow(0_0_0_transparent)] group-hover:opacity-100 group-hover:scale-[1.15] group-hover:origin-center',
-      !isDarkMode && scaleOnHover && 'group-hover:scale-[1.2] group-hover:origin-center',
+
+      isDarkMode === true && '[@media(hover:hover)]:[filter:grayscale(1)_brightness(0.35)_invert(1)] [@media(hover:hover)]:opacity-80 [@media(hover:hover)]:group-hover:[filter:brightness(1.2)_drop-shadow(0_0_14px_rgba(255,255,255,0.4))] [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-hover:scale-[1.15] [@media(hover:hover)]:group-hover:origin-center',
+      isDarkMode === false && '[@media(hover:hover)]:[filter:grayscale(1)_brightness(0.35)_invert(1)] [@media(hover:hover)]:opacity-100 [@media(hover:hover)]:group-hover:[filter:brightness(1.2)_drop-shadow(0_0_12px_rgba(0,0,0,0.6))] [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-hover:scale-[1.15] [@media(hover:hover)]:group-hover:origin-center',
+      isDarkMode === undefined && scaleOnHover && 'group-hover:scale-[1.2] group-hover:origin-center',
     ), [isDarkMode, scaleOnHover]);
 
     /** Style inline da <img> — dimensões do box */
@@ -269,17 +275,14 @@ export const LogoLoop = React.memo<LogoLoopProps>(
 
     const effectiveFadeColor = fadeOutColor ?? '#ffffff';
 
-    // ── Render helpers ────────────────────────────────────────────────────────
-
     const renderLogoItem = useCallback(
       (item: LogoItem, key: React.Key) => {
-        // Render customizado pelo consumer
         if (renderItem) {
           return (
             <li
               key={key}
               role="listitem"
-              className={cx('leading-none', hasHoverEffect && 'group')}
+              className={liClassName}
               style={itemStyle}
             >
               {renderItem(item, key)}
@@ -331,14 +334,14 @@ export const LogoLoop = React.memo<LogoLoopProps>(
           <li
             key={key}
             role="listitem"
-            className={cx('leading-none', hasHoverEffect && 'group')}
+            className={liClassName}
             style={itemStyle}
           >
             {itemContent}
           </li>
         );
       },
-      [renderItem, hasHoverEffect, imgClassName, imgStyle, itemStyle]
+      [renderItem, liClassName, imgClassName, imgStyle, itemStyle]
     );
 
     const logoLists = useMemo(
@@ -373,7 +376,6 @@ export const LogoLoop = React.memo<LogoLoopProps>(
         )}
         style={containerStyle}
       >
-        {/* Fade esquerda / topo */}
         {fadeOut && (
           <div
             aria-hidden="true"
@@ -391,7 +393,6 @@ export const LogoLoop = React.memo<LogoLoopProps>(
           />
         )}
 
-        {/* Track animado via RAF */}
         <div
           ref={trackRef}
           className={cx(
@@ -404,7 +405,6 @@ export const LogoLoop = React.memo<LogoLoopProps>(
           {logoLists}
         </div>
 
-        {/* Fade direita / fundo */}
         {fadeOut && (
           <div
             aria-hidden="true"

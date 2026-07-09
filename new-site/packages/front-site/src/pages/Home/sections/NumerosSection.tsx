@@ -4,10 +4,10 @@ import SectionWatermark from '@/components/ui/SectionWatermark';
 
 const STATS = [
   { value: 2280,  prefix: '+', suffix: '',  label: 'estudantes de graduação\ne pós-graduação' },
-  { value: 830,   prefix: '+', suffix: '',  label: 'alunos do ICMC com\npresença garantida' },
+  { value: 830,   prefix: '+', suffix: '',  label: 'alunos presentes de\ncursos de tecnologia' },
   { value: 10000, prefix: '+', suffix: '',  label: 'estudantes no campus\nUSP São Carlos' },
   { value: 29,    prefix: '',  suffix: 'ª', label: 'edições da maior semana\nde computação do Brasil' },
-  { value: 16,    prefix: '',  suffix: '',  label: 'laboratórios exclusivos\nno ICMC' },
+  { value: 16,    prefix: '',  suffix: '',  label: 'laboratórios de\npesquisa no ICMC' },
   { value: 450,   prefix: '',  suffix: '',  label: 'artigos científicos\npublicados por ano' },
 ];
 
@@ -58,17 +58,13 @@ export default function NumerosSection() {
   return (
     <section
       ref={sectionRef}
-      className="bg-semcompLightBlue dark:bg-semcompAlmostDarkBlue relative overflow-hidden py-24 px-4"
+      className="bg-semcompOffWhite dark:bg-semcompMidDarkBlue relative overflow-hidden py-24 px-4"
     >
       <SectionWatermark
         src="/img/decorative/setas.png"
-        className="w-[70vw] md:w-[50vw] right-0 top-1/2 -translate-y-1/2 translate-x-1/4 dark:hidden"
-        style={{ mixBlendMode: 'multiply', opacity: 0.45 }}
-      />
-      <SectionWatermark
-        src="/img/decorative/setas.png"
-        className="w-[70vw] md:w-[50vw] right-0 top-1/2 -translate-y-1/2 translate-x-1/4 hidden dark:block"
-        style={{ mixBlendMode: 'screen', opacity: 0.18 }}
+        className="w-[70vw] md:w-[50vw] right-0 top-1/2 -translate-y-1/2 translate-x-1/4
+          mix-blend-multiply opacity-55
+          dark:mix-blend-screen dark:opacity-15"
       />
 
       <div className="relative z-10 section-container-wide">

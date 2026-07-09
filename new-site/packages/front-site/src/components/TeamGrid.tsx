@@ -138,7 +138,7 @@ export default function TeamGrid({ data }: { data: TeamType }) {
         <div
           className={`
             ${(showAll === true) ? "hidden" : "absolute"}
-            left-0 bottom-0 w-[100%] h-[25%] rounded-xl bg-gradient-to-t from-semcompLightBlue dark:from-[#091e2e] via-30% to-transparent`}
+            left-0 bottom-0 w-full h-[25%] rounded-xl bg-gradient-to-t from-semcompLightBlue dark:from-[#091e2e] via-30% to-transparent`}
         />
 
         <div ref={cardsRef} className="flex flex-wrap justify-center gap-8 gap-y-6 w-full pb-8">
@@ -168,7 +168,7 @@ export default function TeamGrid({ data }: { data: TeamType }) {
                     href={member.linkedin}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-4 text-semcompMidDarkBlue dark:text-semcompLightBlue"
+                    className="mt-4 text-semcompMidDarkBlue dark:text-semcompLightBlue hover:scale-105 transition-transform duration-200"
                   >
                     <Linkedin size={24} />
                   </a>

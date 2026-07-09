@@ -16,11 +16,11 @@ const FAQSection = ({ className }: FAQSectionProps) => {
     const ctx = gsap.context(() => {
       gsap.from('.faq-item', {
         opacity: 0,
-        x: -28,
+        y: 16,
         duration: 0.5,
         stagger: 0.07,
         ease: 'power2.out',
-        scrollTrigger: { trigger: '.faq-list', start: 'top 85%' },
+        scrollTrigger: { trigger: '.faq-list', start: 'top 85%', once: true },
       });
     }, sectionRef);
 
@@ -31,7 +31,7 @@ const FAQSection = ({ className }: FAQSectionProps) => {
     <section
       ref={sectionRef}
       id="faq"
-      className={`${className} py-10 md:py-30 relative overflow-hidden`}
+      className={`${className} w-full py-10 md:py-30 relative overflow-hidden`}
     >
       <SectionWatermark
         src="/img/decorative/lines_circled.png"
@@ -44,17 +44,15 @@ const FAQSection = ({ className }: FAQSectionProps) => {
         style={{ mixBlendMode: 'multiply' }}
       />
 
-      <div className="section-container">
+      <div className="section-container relative z-10">
         <RevealHeading
           words={[{ text: 'PERGUNTAS' }, { text: 'FREQUENTES', gradient: true }]}
           plainClass="text-semcompDarkBlue dark:text-semcompOffWhite"
           gradientClass="bg-linear-to-r from-semcompDarkBlue/80 via-semcompDarkBlue to-semcompOffBlack dark:from-semcompLightBlue/80 dark:via-semcompLightBlue dark:to-semcompOffWhite"
-          className="text-2xl md:text-4xl font-extrabold mb-10 text-center font-poppins relative z-10"
+          className="text-2xl md:text-4xl font-extrabold mb-10 text-center font-poppins"
         />
 
-        <div className="faq-list relative z-10">
-          <FAQList faqs={FAQS} />
-        </div>
+        <FAQList className="faq-list w-[90%] md:w-[80%] lg:w-[70%] mx-auto" faqs={FAQS} />
       </div>
     </section>
   );

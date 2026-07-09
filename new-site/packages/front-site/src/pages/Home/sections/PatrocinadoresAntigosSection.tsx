@@ -13,7 +13,7 @@ export default function PatrocinadoresAntigosSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const { isDarkMode } = useTheme();
 
-  const fadeOutColor = isDarkMode ? "#003050" : "#D2EDFF";
+  const fadeOutColor = isDarkMode ? "#0B2639" : "#357BA3";
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -57,18 +57,16 @@ export default function PatrocinadoresAntigosSection() {
   return (
     <section
       ref={sectionRef}
-      className="bg-semcompLightBlue dark:bg-semcompAlmostDarkBlue relative overflow-hidden py-24"
+      className="bg-semcompMidLightBlue dark:bg-semcompDarkBlue relative overflow-hidden py-24"
     >
-      <SectionWatermark
-        src="/img/decorative/lines.png"
-        className="w-full md:w-[65vw] top-1/2 -translate-y-1/2 right-0 translate-x-1/4 dark:hidden"
-        style={{ mixBlendMode: 'multiply', opacity: 0.45 }}
-      />
-      <SectionWatermark
-        src="/img/decorative/lines.png"
-        className="w-full md:w-[65vw] top-1/2 -translate-y-1/2 right-0 translate-x-1/4 hidden dark:block"
-        style={{ mixBlendMode: 'screen', opacity: 0.14 }}
-      />
+            <SectionWatermark
+              src="/img/decorative/lines_curved.png"
+              className="w-[60vw] md:w-100 right-2/3 bottom-1/3 sobre-watermark-light
+                mix-blend-multiply opacity-12
+                dark:mix-blend-screen dark:opacity-5"
+            />
+      
+
 
       <div className="relative z-10">
         <div className="pastsp-heading section-container-wide text-center px-4 mb-12">
@@ -118,8 +116,8 @@ export default function PatrocinadoresAntigosSection() {
           </div>
         </div>
 
-        <p className="pastsp-footer text-center mt-12 text-sm text-semcompDarkBlue/45 dark:text-semcompOffWhite/35 font-poppins px-4">
-          {PREVIOUS_SPONSORS.length}+ parceiros ao longo de mais de uma década de Semcomp.
+        <p className="pastsp-footer text-center mt-12 text-sm text-semcompDarkBlue/85 dark:text-semcompOffWhite/55 font-poppins px-4">
+          {PREVIOUS_SPONSORS.length}+ parceiros distintos ao longo de uma década de Semcomp.
         </p>
       </div>
     </section>

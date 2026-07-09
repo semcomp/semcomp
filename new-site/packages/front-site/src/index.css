@@ -197,7 +197,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-section);
   margin-bottom: 1rem;
-  color: var(--color-semcompMidDarkBlue);
+  color: var(--color-semcompDarkBlue);
 
   @variant dark {
     color: color-mix(in oklch, var(--color-semcompLightBlue) 50%, transparent);
