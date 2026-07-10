@@ -17,8 +17,21 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+
+	_ "backend/docs"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title Semcomp API
+// @version 1.0
+// @description API do backend da Semcomp.
+// @host localhost:4000
+// @BasePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Insira o token no formato: Bearer {seu_token}
 func main() {
 	db, errDB := database.ConnectDB()
 	if errDB != nil {
@@ -96,6 +109,9 @@ func main() {
 		AllowCredentials: true,
 		ExposeHeaders:    []string{"Content-Length"},
 	}))
+
+	// Rota para acessar a interface web do Swagger
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Rotas Públicas
 	r.POST("/register", userHandler.CreateUser)

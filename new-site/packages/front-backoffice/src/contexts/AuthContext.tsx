@@ -52,7 +52,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      isAuthenticated: user !== null,
+      isAuthenticated:
+        user !== null &&
+        !!localStorage.getItem("semcomp-backoffice-token"),
       user,
       login: async (email: string, password: string) => {
         try {
