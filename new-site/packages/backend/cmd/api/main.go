@@ -7,6 +7,7 @@ import (
 	"backend/internal/event"
 	"backend/internal/log"
 	"backend/internal/middleware"
+	"backend/internal/payment"
 	"backend/internal/permission"
 	"backend/internal/presence"
 	"backend/internal/providers"
@@ -24,7 +25,7 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &payment.Payment{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -59,6 +60,10 @@ func main() {
 	permissionRepo := permission.NewPermissionRepository(db)
 	permissionService := permission.NewPermissionService(permissionRepo)
 	permissionHandler := permission.NewPermissionHandler(permissionService, sectionService, userBackofficeService)
+
+	paymentRepo := payment.NewPaymentRepository(db)
+	paymentService := payment.NewPaymentService(paymentRepo)
+	paymentHandler := payment.NewPaymentHandler(paymentService)
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
@@ -99,10 +104,15 @@ func main() {
 	r.GET("/events", eventHandler.GetEvents)
 	r.GET("/event/:eventName/:initDate", eventHandler.GetEventByNameAndInitDate)
 
+	r.POST("/webhook/mercadopago", paymentHandler.Webhook)
+
 	// Rotas Protegidas (Exigem Autenticação)
 	authRoutes := r.Group("/api")
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
+
+	authRoutes.POST("/payments", paymentHandler.CreatePayment)
+	authRoutes.GET("/payments", paymentHandler.ListByUser)
 
 	// Rota Login Backoffice
 	adminRoutes := r.Group("/admin")
