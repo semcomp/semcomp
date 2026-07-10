@@ -43,8 +43,17 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 	newUser := User{
 		Name:         request.Name,
 		Email:        request.Email,
-		PasswordHash: hashedPassword,
-		PresenceRate: 0.0,
+		PasswordHash:  hashedPassword,
+		Age:           request.Age,
+		Gender:        request.Gender,
+		City:          request.City,
+		Education:     request.Education,
+		HasPapfe:      request.HasPapfe,
+		Disabilities:  append([]string(nil), request.Disabilities...),
+		Profession:    request.Profession,
+		Linkedin:      request.Linkedin,
+		Telegram:      request.Telegram,
+		PresenceRate:  0.0,
 	}
 
 	if err := s.repo.Create(&newUser); err != nil {
@@ -79,10 +88,17 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 
 	// Definição dos campos possíveis para ordenação
 	allowedSortFields := map[string]bool{
-		"name":          true,
-		"email":         true,
-		"presence_rate": true,
-		"user_number":   true,
+		"user_number":  true,
+		"name":         true,
+		"email":        true,
+		"age":          true,
+		"gender":       true,
+		"city":         true,
+		"education":    true,
+		"has_papfe":    true,
+		"profession":   true,
+		"linkedin":     true,
+		"telegram":     true,
 	}
 
 	if !allowedSortFields[sortBy] {
@@ -101,25 +117,39 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 		searchBy = strings.ToLower(searchBy)
 
 		allowedSearchFields := map[string]bool{
-			"name":          true,
-			"email":         true,
-			"presence_rate": true,
-			"user_number":   true,
+			"user_number":  true,
+			"name":         true,
+			"email":        true,
+			"age":          true,
+			"gender":       true,
+			"city":         true,
+			"education":    true,
+			"has_papfe":    true,
+			"disabilities": true,
+			"profession":   true,
+			"linkedin":     true,
+			"telegram":     true,
 		}
 
 		if !allowedSearchFields[searchBy] {
 			return nil, apierrors.ValidationError("Parâmetro 'search_by' inválido", nil)
 		}
 
-		if searchBy == "presence_rate" {
-			if _, err := strconv.ParseFloat(searchValue, 64); err != nil {
-				return nil, apierrors.ValidationError("Valor inválido para busca por 'presence_rate' ", nil)
+		if searchBy == "age" {
+			if _, err := strconv.Atoi(searchValue); err != nil {
+				return nil, apierrors.ValidationError("Valor inválido para busca por 'age' ", nil)
 			}
 		}
 
 		if searchBy == "user_number" {
 			if _, err := strconv.Atoi(searchValue); err != nil {
 				return nil, apierrors.ValidationError("Valor inválido para busca por 'user_number' ", nil)
+			}
+		}
+
+		if searchBy == "has_papfe" {
+			if _, err := strconv.ParseBool(searchValue); err != nil {
+				return nil, apierrors.ValidationError("Valor inválido para busca por 'has_papfe' ", nil)
 			}
 		}
 	}
@@ -163,15 +193,15 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 
 	user.Name = request.Name
 	user.Email = request.Email
-	user.PresenceRate = request.PresenceRate // TODO: adicionar lógica para contabilização da presença
-
-	if request.Password != "" {
-		hashedPassword, err := s.passwordProvider.Hash(request.Password)
-		if err != nil {
-			return apierrors.InternalServerError("Erro ao processar a senha", err)
-		}
-		user.PasswordHash = hashedPassword
-	}
+	user.Age = request.Age
+	user.Gender = request.Gender
+	user.City = request.City
+	user.Education = request.Education
+	user.HasPapfe = request.HasPapfe
+	user.Disabilities = append([]string(nil), request.Disabilities...)
+	user.Profession = request.Profession
+	user.Linkedin = request.Linkedin
+	user.Telegram = request.Telegram
 
 	return s.repo.Update(user)
 }
