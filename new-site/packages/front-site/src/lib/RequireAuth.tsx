@@ -5,7 +5,7 @@ export default function RequireAuth() {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
-  if (!isAuthenticated) {
+  if (isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 

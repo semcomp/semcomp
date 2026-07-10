@@ -1,5 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
-// import RequireAuth from "@/lib/RequireAuth";
+import RequireAuth from "@/lib/RequireAuth";
 
 export const router = createBrowserRouter([
   {
@@ -30,18 +30,32 @@ export const router = createBrowserRouter([
       //     return { Component: LoginPage };
       //   },
       // },
-      // {
-      //   element: <RequireAuth />,
-      //   children: [
-      //     {
-      //       path: "profile",
-      //       lazy: async () => {
-      //         const { default: ProfilePage } = await import("@/pages/Profile");
-      //         return { Component: ProfilePage };
-      //       }
-      //     },
-      //   ],
-      // },
+      {
+        element: <RequireAuth />,
+        children: [
+          // {
+          //   path: "profile",
+          //   lazy: async () => {
+          //     const { default: ProfilePage } = await import("@/pages/Profile");
+          //     return { Component: ProfilePage };
+          //   }
+          // },
+          {
+            path: "loja",
+            lazy: async () => {
+              const { default: StorePage } = await import("@/pages/Store/StorePage");
+              return { Component: StorePage };
+            }
+          },
+          {
+            path: "loja/carrinho",
+            lazy: async () => {
+              const { default: CartPage } = await import("@/pages/Store/Cart");
+              return { Component: CartPage };
+            }
+          },
+        ],
+      },
       {
         path: "*",
         lazy: async () => {

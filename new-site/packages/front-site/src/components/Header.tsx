@@ -4,13 +4,11 @@ import { IoMenu } from "react-icons/io5";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 import { Link, useLocation } from "react-router-dom";
-// import { useAuth } from "@/contexts/useAuth";
+import { useAuth } from "@/contexts/useAuth";
 
-type TabKey = "home";
+type TabKey = "home" | "loja";
 
-const allTabs: Array<{ key: TabKey; label: string; path: string }> = [
-  { key: "home", label: "HOME", path: "/" },
-];
+
 
 export default function Header() {
   const { isDarkMode } = useTheme();
@@ -18,16 +16,17 @@ export default function Header() {
   const location = useLocation();
   
   //Simulação de Login
-  // const { isAuthenticated } = useAuth(); 
+  const { isAuthenticated } = useAuth();
+
+  const allTabs: Array<{ key: TabKey; label: string; path: string; status: boolean }> = [
+    { key: "home", label: "HOME", path: "/", status: true }, 
+    { key: "loja", label: "LOJA", path: "/loja", status: isAuthenticated}
+  ];
 
   //Filtro de abas
-  const visibleTabs = allTabs;
+  //const visibleTabs = allTabs;
 
-  // const visibleTabs = allTabs.filter((tab) => {
-  //   if (tab.key === "profile") return isAuthenticated;
-  //   if (tab.key === "login") return !isAuthenticated;
-  //   return true;
-  // });
+  const visibleTabs = allTabs.filter(tab => tab.status)
 
   //Achar a ativa
   const activeTabObj = visibleTabs.find((t) => t.path === location.pathname);
@@ -35,6 +34,7 @@ export default function Header() {
 
   const btnRefs = useRef<Record<TabKey, HTMLAnchorElement | null>>({
     home: null,
+    loja: null,
   });
 
   const navRef = useRef<HTMLElement | null>(null);

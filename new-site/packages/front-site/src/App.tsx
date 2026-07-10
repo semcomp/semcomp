@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { Outlet } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
+import { CartProvider } from "./contexts/CartContext";
 
 function App() {
 
@@ -19,6 +20,7 @@ function App() {
     <NotificationProvider>
     <ThemeProvider>
       <AuthProvider>
+        <CartProvider>
         
           <Header />
           <main className="w-full">
@@ -27,6 +29,7 @@ function App() {
 
 
           <DarkModeToggle />
+        </CartProvider>
       </AuthProvider>
     </ThemeProvider>
     </NotificationProvider>

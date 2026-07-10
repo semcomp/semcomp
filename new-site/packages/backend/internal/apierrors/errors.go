@@ -18,6 +18,10 @@ func (e *APIError) Error() string {
 	return e.Message
 }
 
+func (e *APIError) Unwrap() error {
+	return e.Err
+}
+
 func ValidationError(message string, err error) *APIError {
 	return &APIError{
 		Code:    "validation_error",

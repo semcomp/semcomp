@@ -18,16 +18,20 @@ export default function Modal({
   size = "lg",
   closeOnBackdrop = true,
 }: ModalProps) {
-  if (typeof document === "undefined") return null;
-  if (!open) return null;
-
+  // Sempre chamar hooks incondicionalmente (regra do React)
   useEffect(() => {
+    if (!open) return;
+
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
     return () => {
       document.body.style.overflow = prev;
     };
-  }, []);
+  }, [open]);
+
+  if (typeof document === "undefined") return null;
+  if (!open) return null;
 
   const sizeClass = {
     sm: "max-w-md",
