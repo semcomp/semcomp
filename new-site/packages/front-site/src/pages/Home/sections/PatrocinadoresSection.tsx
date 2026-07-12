@@ -1,19 +1,18 @@
 import { useState, useEffect, useRef } from "react";
-import { gsap } from "@/lib/gsap";
 import type { SponsorType } from "@/types/SponsorType";
 import { sponsorsAPI, getSponsorImageUrl } from "@/api/sponsors";
 import type { Sponsor } from "@/api/sponsors";
 import { useTheme } from "@/contexts/useTheme";
 import LogoLoop from "@/components/ui/LogoLoop";
 
-const _groupModules = import.meta.glob(
-  "/src/assets/img/extension-groups/*",
-  { eager: true }
-) as Record<string, { default: string }>;
-
-const EXTENSION_GROUP_IMAGES = Object.values(_groupModules).map(
-  (m) => m.default as string
-);
+const EXTENSION_GROUP_IMAGES = [
+  "/img/extension-groups/codelab.svg",
+  "/img/extension-groups/data.png",
+  "/img/extension-groups/fog.png",
+  "/img/extension-groups/ganesh.png",
+  "/img/extension-groups/gema.png",
+  "/img/extension-groups/pet.png",
+];
 
 type PatrocinadoresProps = {
   sponsors: SponsorType[];
@@ -38,19 +37,6 @@ const PatrocinadoresSection = ({}: PatrocinadoresProps) => {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from('.patroc-heading', {
-        opacity: 0,
-        y: -16,
-        duration: 0.6,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: '.patroc-heading', start: 'top 90%', once: true },
-      });
-    }, sectionRef);
-    return () => ctx.revert();
-  }, []);
-
   if (sponsors.length === 0) return null;
 
   const backgroundColorBack = isDarkMode ? "#0F486D" : "#2c6e94";
@@ -67,7 +53,7 @@ const PatrocinadoresSection = ({}: PatrocinadoresProps) => {
       className="w-full overflow-hidden"
       style={{ backgroundColor: backgroundColorBack }}
     >
-      <div className="patroc-heading w-full py-4 px-4 sm:px-8 lg:px-16 bg-semcompMidLightBlue dark:bg-semcompMidDarkBlue">
+      <div className="w-full py-4 px-4 sm:px-8 lg:px-16 bg-semcompMidLightBlue dark:bg-semcompMidDarkBlue">
         <h2 className="font-poppins text-center text-xl sm:text-2xl text-semcompLightBlue dark:text-semcompOffWhite">
           Nossos Patrocinadores
         </h2>

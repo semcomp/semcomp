@@ -1,61 +1,44 @@
-/**
- * Carrega e seleciona o melhor logo de cada patrocinador anterior.
- * Importado por PatrocinadoresAntigosSection e TornarPatrocinadorSection.
- */
-
-const _allModules = import.meta.glob(
-  '/src/assets/img/previous_sponsors/**/*.{svg,png,webp}',
-  { eager: true }
-) as Record<string, { default: string }>;
-
-function isMonochrome(filename: string): boolean {
-  const f = filename.toLowerCase();
-  return (
-    f.includes('white') || f.includes('branco') || f.includes('negativ') ||
-    f.includes('_neg') || f.includes('neg_') || f.includes('preto') ||
-    f.includes('black') || f.includes('simpleicons') || f.includes('cinza') || f.includes('gray')
-  );
-}
-
-function isIconOnly(filename: string): boolean {
-  const f = filename.toLowerCase();
-  return (
-    (f.includes('icon') || f.includes('icone') || f.startsWith('icon')) &&
-    !f.includes('iconape')
-  );
-}
-
-function pickBestLogo(srcs: string[]): string | undefined {
-  const score = (src: string): number => {
-    const fn = src.split('/').pop() ?? '';
-    let s = 0;
-    if (src.endsWith('.svg')) s += 4;
-    if (src.endsWith('.png')) s += 2;
-    if (isMonochrome(fn)) s -= 5;
-    if (isIconOnly(fn))   s -= 3;
-    const f = fn.toLowerCase();
-    if (f.includes('original') || f.includes('colorid') || f.includes('principal')) s += 3;
-    if (f.includes('full') || f.includes('horizontal')) s += 2;
-    if (f.includes('dark')) s += 1;
-    return s;
-  };
-  return [...srcs].sort((a, b) => score(b) - score(a))[0];
-}
-
-const _companiesMap = new Map<string, string[]>();
-for (const [path, mod] of Object.entries(_allModules)) {
-  const match = path.match(/previous_sponsors\/([^/]+)\//);
-  if (!match) continue;
-  const company = match[1];
-  if (!_companiesMap.has(company)) _companiesMap.set(company, []);
-  _companiesMap.get(company)!.push(mod.default as string);
-}
-
 export type SponsorLogo = { src: string; alt: string; title: string };
 
-export const PREVIOUS_SPONSORS: SponsorLogo[] = Array.from(_companiesMap.entries())
-  .map(([name, srcs]) => {
-    const src = pickBestLogo(srcs);
-    return src ? { src, alt: name, title: name } : null;
-  })
-  .filter((s): s is SponsorLogo => s !== null);
+const p = (company: string, file: string): SponsorLogo => ({
+  src: `/img/previous_sponsors/${encodeURIComponent(company)}/${encodeURIComponent(file)}`,
+  alt: company,
+  title: company,
+});
+
+export const PREVIOUS_SPONSORS: SponsorLogo[] = [
+  p("Acad Arena",        "LogoGradient@4x.png"),
+  p("Accenture",         "icon-light.svg"),
+  p("Alliage",           "path194.svg"),
+  p("Alura",             "alura-light.svg"),
+  p("AMD",               "full-dark.svg"),
+  p("BemAgro",           "icone colorido para fundos escuros-web.svg"),
+  p("BTG Pactual",       "BTGT.0002.DE.191118.OriginaisEletronicos_POS_CMYK_BTGPACTUAL_semrespiro.png"),
+  p("CI&T",              "full-light.svg"),
+  p("Cohere",            "full-light.svg"),
+  p("CPqD",              "full-light.svg"),
+  p("CSD",               "CSD branco.svg"),
+  p("Desktop",           "LOGO 1.png"),
+  p("EloGroup",          "logo.svg"),
+  p("Ernst & Young",     "wikimedia-ey-logo-2019.svg"),
+  p("Fundação Estudar",  "FE_aplicação.png"),
+  p("Goldman Sachs",     "goldman-sachs-1.svg"),
+  p("Google",            "full-light.svg"),
+  p("Griaule",           "logo-griaule-cmyk-blue - notext.svg"),
+  p("idwall",            "full-light.svg"),
+  p("Inoa",              "Logo Horizontal Cores clean 300dpi - com margem.png"),
+  p("Intel Software",    "icon-light.svg"),
+  p("Loggi",             "logodownload-1.png"),
+  p("LuizaLabs",         "iconape-1.png"),
+  p("Neon",              "neon.logo (2).png"),
+  p("Pagar.me",          "full-light.svg"),
+  p("Porto Seguro",      "Porto Seguros_RGB_Horizontal-01.svg"),
+  p("ProFUSION",         "Asset 52.svg"),
+  p("Qive",              "Qive_originais de marca-03.png"),
+  p("Raizen",            "wikimedia-original.svg"),
+  p("Serasa",            "wikimedia-original.svg"),
+  p("Tractian",          "seeklogo-preview.png"),
+  p("Venturus",          "venturus.png"),
+  p("Visagio",           "Logo-Grupo-Off.png"),
+  p("Yara International","full-light.svg"),
+];

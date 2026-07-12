@@ -1,0 +1,13 @@
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000" viewBox="0 0 1000 1000">
+  <defs>
+    <linearGradient id="linear-gradient" x1="368.58" y1="435.79" x2="806.68" y2="435.79" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#033"/>
+      <stop offset="1" stop-color="#1db954"/>
+    </linearGradient>
+  </defs>
+  <title>icone colorido para fundos escuros</title>
+  <g>
+    <path d="M752.2,430.5,500,178.2,368.6,309.7,752.2,693.3h0A185.8,185.8,0,0,0,752.2,430.5Z" style="fill: url(#linear-gradient)"/>
+    <path d="M500,178.2,247.8,430.5a185.8,185.8,0,0,0,0,262.8h0L631.4,309.7Z" style="fill: #1db954"/>
+  </g>
+</svg>
