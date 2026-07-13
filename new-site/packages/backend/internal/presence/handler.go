@@ -1,6 +1,7 @@
 package presence
 
 import (
+	"backend/internal/apierrors"
 	"errors"
 	"net/http"
 	"strconv"
@@ -20,20 +21,28 @@ func NewPresenceHandler(presenceService PresenceService) *PresenceHandler {
 }
 
 // CreatePresence processa o payload JSON e tenta criar uma nova presença.
+// @Summary Cria uma nova presença
+// @Description Registra a presença de um usuário em um evento
+// @Tags Presence Backoffice
+// @Accept json
+// @Produce json
+// @Param request body presence.CreatePresenceRequest true "Dados da presença"
+// @Success 201 {object} map[string]interface{} "Presença criada com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/presences [post]
 func (h *PresenceHandler) CreatePresence(c *gin.Context) {
 	var request CreatePresenceRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Set("responseMessage", "Dados inválidos")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados da requisição inválidos", err))
 		return
 	}
 
 	presence, err := h.presenceService.CreatePresence(request)
 	if err != nil {
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro interno do servidor")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Presença criada com sucesso!")
@@ -41,6 +50,22 @@ func (h *PresenceHandler) CreatePresence(c *gin.Context) {
 }
 
 // GetPresences retorna a lista paginada de presenças com suporte a filtros e ordenação.
+// @Summary Lista presenças
+// @Description Retorna uma lista paginada de presenças registradas
+// @Tags Presence Backoffice
+// @Accept json
+// @Produce json
+// @Param page query int false "Página atual" default(1)
+// @Param limit query int false "Limite de itens por página" default(10)
+// @Param sort_by query string false "Campo de ordenação" default(event_init_date)
+// @Param sort_order query string false "Ordem (asc/desc)" default(asc)
+// @Param search_by query string false "Campo de busca"
+// @Param search_value query string false "Valor de busca"
+// @Success 200 {object} map[string]interface{} "Lista de presenças paginada"
+// @Failure 400 {object} map[string]string "Parâmetro inválido"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/presences [get]
 func (h *PresenceHandler) GetPresences(c *gin.Context) {
 	pageStr := c.DefaultQuery("page", "1")
 	limitStr := c.DefaultQuery("limit", "10")
@@ -51,22 +76,19 @@ func (h *PresenceHandler) GetPresences(c *gin.Context) {
 
 	page, err := strconv.Atoi(pageStr)
 	if err != nil || page < 1 {
-		c.Set("responseMessage", "Parâmetro 'page' inválido")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'page' inválido"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Parâmetro 'page' inválido", err))
 		return
 	}
 
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit < 1 {
-		c.Set("responseMessage", "Parâmetro 'limit' inválido")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetro 'limit' inválido"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Parâmetro 'limit' inválido", err))
 		return
 	}
 
 	result, err := h.presenceService.GetPresences(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
-		c.Set("responseMessage", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Presenças listadas com sucesso!")
@@ -74,6 +96,20 @@ func (h *PresenceHandler) GetPresences(c *gin.Context) {
 }
 
 // GetPresenceByNameEventandInitDate retorna uma presença específica buscando por nome, evento e data de início.
+// @Summary Busca presença por chave composta
+// @Description Retorna uma presença específica pelo número do usuário, nome do evento e data de início
+// @Tags Presence Backoffice
+// @Accept json
+// @Produce json
+// @Param userNumber path string true "Número do usuário"
+// @Param eventName path string true "Nome do evento"
+// @Param eventInitDate path string true "Data de início do evento (RFC3339)"
+// @Success 200 {object} presence.Presence "Presença encontrada"
+// @Failure 400 {object} map[string]string "Data inválida"
+// @Failure 404 {object} map[string]string "Presença não encontrada"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/presences/{userNumber}/{eventName}/{eventInitDate} [get]
 func (h *PresenceHandler) GetPresenceByUserEventandInitDate(c *gin.Context) {
 	userNumber := c.Param("userNumber")
 	eventName := c.Param("eventName")
@@ -81,19 +117,7 @@ func (h *PresenceHandler) GetPresenceByUserEventandInitDate(c *gin.Context) {
 
 	presence, err := h.presenceService.GetPresenceByUserEventandInitDate(userNumber, eventName, eventInitDate)
 	if err != nil {
-		if errors.Is(err, ErrInvalidEventDate) {
-			c.Set("responseMessage", "invalid event date format")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid event date format"})
-			return
-		}
-		if errors.Is(err, ErrPresenceNotFound) {
-			c.Set("responseMessage", "presence not found")
-			c.JSON(http.StatusNotFound, gin.H{"error": "presence not found"})
-			return
-		}
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro interno do servidor")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Presença encontrada com sucesso!")
@@ -101,6 +125,21 @@ func (h *PresenceHandler) GetPresenceByUserEventandInitDate(c *gin.Context) {
 }
 
 // UpdatePresenceByNameEventandInitDate atualiza uma presença existente identificada por nome, evento e data de início.
+// @Summary Atualiza presença
+// @Description Altera os dados de uma presença existente identificada pela chave composta
+// @Tags Presence Backoffice
+// @Accept json
+// @Produce json
+// @Param userNumber path string true "Número do usuário"
+// @Param eventName path string true "Nome do evento"
+// @Param eventInitDate path string true "Data de início do evento (RFC3339)"
+// @Param request body presence.UpdatePresenceRequest true "Dados para atualização"
+// @Success 200 {object} map[string]string "Presença atualizada com sucesso"
+// @Failure 400 {object} map[string]string "Dados inválidos ou data inválida"
+// @Failure 404 {object} map[string]string "Presença não encontrada"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/presences/{userNumber}/{eventName}/{eventInitDate} [put]
 func (h *PresenceHandler) UpdatePresenceByUserEventandInitDate(c *gin.Context) {
 	userNumber := c.Param("userNumber")
 	eventName := c.Param("eventName")
@@ -108,36 +147,22 @@ func (h *PresenceHandler) UpdatePresenceByUserEventandInitDate(c *gin.Context) {
 
 	var request UpdatePresenceRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Set("responseMessage", "Dados inválidos")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados da requisição inválidos", err))
 		return
 	}
 
 	err := h.presenceService.UpdatePresenceByUserEventandInitDate(userNumber, eventName, eventInitDate, request)
 	if err != nil {
-		if errors.Is(err, ErrInvalidEventDate) {
-			c.Set("responseMessage", "Data inválida. Use o formato RFC3339")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
-			return
-		}
-		if errors.Is(err, ErrPresenceNotFound) {
-			c.Set("responseMessage", "Presença não pôde ser computada.")
-			c.JSON(http.StatusNotFound, gin.H{"error": "Presença não pôde ser computada."})
-			return
-		}
 
 		// Detecta PostgreSQL a violção de chave primária
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
-				c.Set("responseMessage", "Já existe presença com essa chave")
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Já existe presença com essa chave"})
+				apierrors.HandleAPIError(c, apierrors.ConflictError("Presença já existe para este usuário, evento e data de início", err))
 				return
 			}
 		}
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro interno do servidor")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Presença atualizada com sucesso!")
@@ -145,6 +170,20 @@ func (h *PresenceHandler) UpdatePresenceByUserEventandInitDate(c *gin.Context) {
 }
 
 // DeletePresenceByNameEventandInitDate remove uma presença identificada por nome, evento e data de início.
+// @Summary Deleta presença
+// @Description Remove uma presença do sistema identificada pela chave composta
+// @Tags Presence Backoffice
+// @Accept json
+// @Produce json
+// @Param userNumber path string true "Número do usuário"
+// @Param eventName path string true "Nome do evento"
+// @Param eventInitDate path string true "Data de início do evento (RFC3339)"
+// @Success 200 {object} map[string]string "Presença removida com sucesso"
+// @Failure 400 {object} map[string]string "Data inválida"
+// @Failure 404 {object} map[string]string "Presença não encontrada"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/presences/{userNumber}/{eventName}/{eventInitDate} [delete]
 func (h *PresenceHandler) DeletePresenceByUserEventandInitDate(c *gin.Context) {
 	userNumber := c.Param("userNumber")
 	eventName := c.Param("eventName")
@@ -152,19 +191,7 @@ func (h *PresenceHandler) DeletePresenceByUserEventandInitDate(c *gin.Context) {
 
 	err := h.presenceService.DeletePresenceByUserEventandInitDate(userNumber, eventName, eventInitDate)
 	if err != nil {
-		if errors.Is(err, ErrInvalidEventDate) {
-			c.Set("responseMessage", "Data inválida. Use o formato RFC3339")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Data inválida. Use o formato RFC3339"})
-			return
-		}
-		if errors.Is(err, ErrPresenceNotFound) {
-			c.Set("responseMessage", "Remoção de presença não pôde ser computada.")
-			c.JSON(http.StatusNotFound, gin.H{"error": "Remoção de presença não pôde ser computada."})
-			return
-		}
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro interno do servidor")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Presença removida com sucesso!")
