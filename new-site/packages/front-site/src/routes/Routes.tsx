@@ -23,13 +23,13 @@ export const router = createBrowserRouter([
       //     return { Component: CronogramaPage };
       //   },
       // },
-      // {
-      //   path: "login",
-      //   lazy: async () => {
-      //     const { default: LoginPage } = await import("@/pages/Login");
-      //     return { Component: LoginPage };
-      //   },
-      // },
+      {
+        path: "login",
+        lazy: async () => {
+          const { default: LoginPage } = await import("@/pages/Login");
+          return { Component: LoginPage };
+        },
+      },
       // {
       //   element: <RequireAuth />,
       //   children: [
