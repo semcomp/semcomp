@@ -1,5 +1,5 @@
 import { Linkedin, Instagram } from "lucide-react";
-import SemcompInfo from "../../../lib/constants/SemcompInfo";
+import SEMCOMPInfo from "../../../lib/constants/SEMCOMPInfo";
 import SectionWatermark from "@/components/ui/SectionWatermark";
 
 type ContatoSectionProps = { className?: string };
@@ -22,18 +22,18 @@ const ContatoSection = ({ className }: ContatoSectionProps) => (
           </span>
         </h2>
         <div className="flex flex-col gap-1 text-semcompDarkBlue dark:text-semcompOffWhite">
-          <a href={`mailto:${SemcompInfo.ORGANIZING_COMMITTEE_EMAIL}`} className="hover:underline">
-            {SemcompInfo.ORGANIZING_COMMITTEE_EMAIL}
+          <a href={`mailto:${SEMCOMPInfo.ORGANIZING_COMMITTEE_EMAIL}`} className="hover:underline">
+            {SEMCOMPInfo.ORGANIZING_COMMITTEE_EMAIL}
           </a>
-          <a href={`mailto:${SemcompInfo.ORGANIZING_COMMITTEE_PATROCINIO_EMAIL}`} className="hover:underline">
-            {SemcompInfo.ORGANIZING_COMMITTEE_PATROCINIO_EMAIL}
+          <a href={`mailto:${SEMCOMPInfo.ORGANIZING_COMMITTEE_PATROCINIO_EMAIL}`} className="hover:underline">
+            {SEMCOMPInfo.ORGANIZING_COMMITTEE_PATROCINIO_EMAIL}
           </a>
         </div>
       </div>
 
       <div className="flex gap-3 pt-10">
         <a
-          href={SemcompInfo.ORGANIZING_COMMITTEE_INSTAGRAM_LINK}
+          href={SEMCOMPInfo.ORGANIZING_COMMITTEE_INSTAGRAM_LINK}
           target="_blank"
           rel="noopener noreferrer"
           className="text-semcompDarkBlue dark:text-semcompOffWhite hover:scale-110 transition"
@@ -41,7 +41,7 @@ const ContatoSection = ({ className }: ContatoSectionProps) => (
           <Instagram size={36} />
         </a>
         <a
-          href={SemcompInfo.ORGANIZING_COMMITTEE_LINKEDIN_LINK}
+          href={SEMCOMPInfo.ORGANIZING_COMMITTEE_LINKEDIN_LINK}
           target="_blank"
           rel="noopener noreferrer"
           className="text-semcompDarkBlue dark:text-semcompOffWhite hover:scale-110 transition"
@@ -54,7 +54,7 @@ const ContatoSection = ({ className }: ContatoSectionProps) => (
     <div className="flex pt-10 gap-5 justify-center dark:invert-0 invert-75">
       <img
         src="/img/semcomp/logo_default_branco.webp"
-        alt="Logo da Semcomp"
+        alt="Logo da SEMCOMP"
         loading="lazy"
         decoding="async"
         className="h-18 w-18"
@@ -62,7 +62,7 @@ const ContatoSection = ({ className }: ContatoSectionProps) => (
     </div>
 
     <div className="mt-10 text-center text-sm opacity-70">
-      © {new Date().getFullYear()} Semcomp — ICMC USP — Feito com 🤍 por{" "}
+      © {new Date().getFullYear()} SEMCOMP — ICMC USP — Feito com 🤍 por{" "}
       <a href="https://codelab.icmc.usp.br/" className="no-underline hover:underline text-[#488578] dark:text-[#5fccad]">
         USPCodelab Sanca
       </a>

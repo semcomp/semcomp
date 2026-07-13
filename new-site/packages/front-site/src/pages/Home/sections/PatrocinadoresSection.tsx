@@ -71,7 +71,7 @@ const PatrocinadoresSection = ({}: PatrocinadoresProps) => {
           fadeOut
           fadeOutColor={backgroundColorBack}
           isDarkMode={true}
-          ariaLabel="Patrocinadores da Semcomp"
+          ariaLabel="Patrocinadores da SEMCOMP"
         />
       </div>
     </section>

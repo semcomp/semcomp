@@ -24,7 +24,7 @@ type Props = {
  *
  * Uso:
  * <SectionWatermark
- *   src={LogoSemcomp}
+ *   src={LogoSEMCOMP}
  *   className="w-[38vw] right-0 top-1/2 -translate-y-1/2 opacity-[0.04]"
  *   style={{ filter: 'brightness(0) invert(1)' }}
  * />

@@ -25,7 +25,7 @@ export default function PatrocinadoresAntigosSection() {
           <h2 className="text-3xl md:text-4xl font-extrabold font-poppins text-semcompDarkBlue dark:text-semcompOffWhite">
             Quem já confiou na{' '}
             <span className="bg-clip-text text-transparent bg-linear-to-r from-semcompDarkBlue to-semcompMidDarkBlue dark:from-semcompMidLightBlue dark:to-semcompLightBlue">
-              Semcomp
+              SEMCOMP
             </span>
           </h2>
         </div>
@@ -44,7 +44,7 @@ export default function PatrocinadoresAntigosSection() {
             fadeOut
             fadeOutColor={fadeOutColor}
             isDarkMode={isDarkMode}
-            ariaLabel="Patrocinadores anteriores da Semcomp — grupo 1"
+            ariaLabel="Patrocinadores anteriores da SEMCOMP — grupo 1"
           />
           <LogoLoop
             logos={ROW_2}
@@ -57,12 +57,12 @@ export default function PatrocinadoresAntigosSection() {
             fadeOut
             fadeOutColor={fadeOutColor}
             isDarkMode={isDarkMode}
-            ariaLabel="Patrocinadores anteriores da Semcomp — grupo 2"
+            ariaLabel="Patrocinadores anteriores da SEMCOMP — grupo 2"
           />
         </div>
 
         <p className="text-center mt-12 text-sm text-semcompDarkBlue/85 dark:text-semcompOffWhite/55 font-poppins px-4">
-          {PREVIOUS_SPONSORS.length}+ parceiros distintos ao longo de uma década de Semcomp.
+          {PREVIOUS_SPONSORS.length}+ parceiros distintos ao longo de uma década de SEMCOMP.
         </p>
       </div>
     </section>

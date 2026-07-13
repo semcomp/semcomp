@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import SemcompInfo from "../lib/constants/SemcompInfo";
+import SEMCOMPInfo from "../lib/constants/SEMCOMPInfo";
 
 const HERO_IMAGES = [
   "/img/Home/Hero/Banner1.webp",
   "/img/Home/Hero/Banner2.webp",
   "/img/Home/Hero/Palestra1.webp",
   "/img/Home/Hero/Palestra2.webp",
-  "/img/Home/Hero/Semcomp.webp",
+  "/img/Home/Hero/SEMCOMP.webp",
 ];
 const pickRandomHero = () => HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)];
 
@@ -63,7 +63,7 @@ export default function MainEntrance() {
         <div className="absolute inset-x-0 w-full h-full">
           <img
             src={heroSrc}
-            alt={`SEMCOMP ${SemcompInfo.EDITION}`}
+            alt={`SEMCOMP ${SEMCOMPInfo.EDITION}`}
             loading="eager"
             decoding="async"
             fetchPriority="high"
@@ -78,19 +78,19 @@ export default function MainEntrance() {
         <div className="flex flex-col gap-8 md:gap-12">
 
           <div className="flex items-center gap-6">
-            <img src="/img/semcomp/logo_default_branco.webp" alt="Logo da Semcomp" className="h-24 w-24 md:h-42 md:w-42 flex-shrink-0" />
+            <img src="/img/semcomp/logo_default_branco.webp" alt="Logo da SEMCOMP" className="h-24 w-24 md:h-42 md:w-42 flex-shrink-0" />
             <div className="flex flex-col justify-center">
               <h1 className="text-5xl md:text-8xl font-comfortaa text-semcompOffWhite leading-tight">
                 semcomp
               </h1>
               <p className="text-xl md:text-4xl font-poppins font-bold text-semcompLightBlue/90 tracking-[-0.03em]">
-                Edição {SemcompInfo.EDITION}
+                Edição {SEMCOMPInfo.EDITION}
               </p>
             </div>
           </div>
 
           <p className="text-lg md:text-3xl font-poppins text-semcompLightBlue">
-            {SemcompInfo.DATES_STRING}
+            {SEMCOMPInfo.DATES_STRING}
           </p>
 
           <div className="flex items-end gap-1 sm:gap-2">

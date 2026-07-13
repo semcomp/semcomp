@@ -1,7 +1,7 @@
 export async function getTerms(): Promise<string> {
-  return `Política de Privacidade - Semcomp USP
+  return `Política de Privacidade - SEMCOMP USP
 Esta política é válida a partir de Maio de 2026.
-A Semcomp USP leva a sua privacidade a sério e zela pela segurança e proteção de dados de todos os seus parceiros e usuários do site https://semcomp.icmc.usp.br/.
+A SEMCOMP USP leva a sua privacidade a sério e zela pela segurança e proteção de dados de todos os seus parceiros e usuários do site https://semcomp.icmc.usp.br/.
 Esta Política de Privacidade destina-se a informá-lo sobre o modo como nós utilizamos e divulgamos informações coletadas em suas visitas ao nosso site e em mensagens que trocamos com você. Esta Política aplica-se somente a informações coletadas por meio do site.
 AO ACESSAR O SITE, ENVIAR COMUNICAÇÕES OU FORNECER QUALQUER TIPO DE DADO PESSOAL, VOCÊ DECLARA ESTAR CIENTE COM RELAÇÃO AOS TERMOS AQUI PREVISTOS E DE ACORDO COM A POLÍTICA DE PRIVACIDADE.
 Se você tiver alguma dúvida sobre o uso de Dados Pessoais, entre em contato com semcomp@icmc.usp.br.

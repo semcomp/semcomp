@@ -6,7 +6,7 @@ const STATS = [
   { value: 2280,  prefix: '+', suffix: '',  label: 'estudantes de graduação\ne pós-graduação' },
   { value: 830,   prefix: '+', suffix: '',  label: 'alunos presentes de\ncursos de tecnologia' },
   { value: 10000, prefix: '+', suffix: '',  label: 'estudantes no campus\nUSP São Carlos' },
-  { value: 29,    prefix: '',  suffix: 'ª', label: 'edições da maior semana\nde computação do Brasil' },
+  { value: 29,    prefix: '',  suffix: 'ª', label: 'edição da maior semana\nde computação do Brasil' },
   { value: 16,    prefix: '',  suffix: '',  label: 'laboratórios de\npesquisa no ICMC' },
   { value: 450,   prefix: '',  suffix: '',  label: 'artigos científicos\npublicados por ano' },
 ];
@@ -46,9 +46,9 @@ export default function NumerosSection() {
       />
       <div className="relative z-10 section-container-wide">
         <div className="text-center mb-16">
-          <p className="section-eyebrow">Por que investir na Semcomp?</p>
+          <p className="section-eyebrow">Por que investir na SEMCOMP?</p>
           <h2 className="text-3xl md:text-5xl font-extrabold font-poppins text-semcompDarkBlue dark:text-semcompOffWhite">
-            A Semcomp em{' '}
+            A SEMCOMP em{' '}
             <span className="bg-clip-text text-transparent bg-linear-to-r from-semcompMidDarkBlue to-semcompDarkBlue dark:from-semcompMidLightBlue dark:via-semcompLightBlue dark:to-semcompOffWhite">
               números
             </span>

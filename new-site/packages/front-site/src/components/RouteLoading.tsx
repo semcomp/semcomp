@@ -37,7 +37,7 @@ export default function RouteLoading() {
 
           <div className="mt-8 flex justify-center">
             <span className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest bg-semcompMidLightBlue/10 text-semcompMidDarkBlue/50 dark:bg-semcompMidLightBlue/15 dark:text-semcompLightBlue/70">
-              Semcomp 2026
+              SEMCOMP 2026
             </span>
           </div>
         </div>

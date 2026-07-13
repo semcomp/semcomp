@@ -5,7 +5,7 @@ const altFromPath = (name: string) =>
   name.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 const CAROUSEL_IMAGES = [
-  "Context", "Feira", "Hackathon", "Integracao", "palestra", "Pergunta", "Semcomp28",
+  "Context", "Feira", "Hackathon", "Integracao", "palestra", "Pergunta", "SEMCOMP28",
 ].map((name) => ({ src: `/img/Home/Carousel/${name}.webp`, alt: altFromPath(name) }));
 
 type SobreProps = { className?: string };
@@ -33,7 +33,7 @@ const SobreSection = ({ className }: SobreProps) => (
       <div className="grid grid-cols-1 2xl:grid-cols-2 gap-12 items-start p-0">
         <div className="self-start">
           <p className="mb-4 text-semcompMidDarkBlue dark:text-semcompOffWhite font-poppins text-justify">
-            A Semcomp (Semana Acadêmica de Computação) é organizada por estudantes dos cursos de Ciência da
+            A SEMCOMP (Semana Acadêmica de Computação) é organizada por estudantes dos cursos de Ciência da
             Computação, Sistemas de Informação e Ciência de Dados do Instituto de Ciências Matemáticas e de
             Computação (ICMC) da USP São Carlos — cidade, inclusive, reconhecida como a Capital da Tecnologia.
           </p>

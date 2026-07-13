@@ -17,7 +17,7 @@ const HERO_IMAGES = [
   "/img/Home/Hero/Banner2.webp",
   "/img/Home/Hero/Palestra1.webp",
   "/img/Home/Hero/Palestra2.webp",
-  "/img/Home/Hero/Semcomp.webp",
+  "/img/Home/Hero/SEMCOMP.webp",
 ];
 
 const pickRandomHero = () =>
@@ -118,7 +118,7 @@ export default function Profile({
           <img
             src={heroSrc}
             className="absolute inset-0 w-full h-full object-cover opacity-60"
-            alt="Semcomp Banner"
+            alt="SEMCOMP Banner"
           />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <img src="/img/semcomp/logo_default_branco.webp" alt="SEMCOMP Logo" className="w-1/2 max-w-50 object-contain drop-shadow-2xl" />

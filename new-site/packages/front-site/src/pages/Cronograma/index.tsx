@@ -204,7 +204,7 @@ export default function CronogramaPage(): ReactElement {
             Cronograma
           </h1>
           <p className="animate-slide [animation-delay:120ms] animation-duration-[900ms] fill-mode-[both] mt-2 text-sm text-white md:text-base">
-            Programação completa da Semcomp.
+            Programação completa da SEMCOMP.
           </p>
         </header>
 
