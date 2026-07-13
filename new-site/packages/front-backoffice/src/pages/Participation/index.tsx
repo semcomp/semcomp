@@ -1,7 +1,7 @@
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudQueryParams } from "@/types/CrudItem";
 import type { CrudItemType } from "@/types/CrudItem";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
 import type { ParticipationType } from "@/types/ParticipationType";
@@ -60,14 +60,13 @@ export default function ParticipationCRUD() {
   }, []);
 
   // Efeito inicial para carregar dados
-  useEffect(() => {
-    fetchPresences();
-  }, [fetchPresences]);
+  // useEffect(() => {
+  //   fetchPresences();
+  // }, [fetchPresences]);
 
-
-  const handleQueryChange = (params: CrudQueryParams) => {
+  const handleQueryChange = useCallback((params: CrudQueryParams) => {
     fetchPresences(params);
-  };
+  }, [fetchPresences]);
 
   const handleCreate = async (item: CrudItemType) => {
     try {

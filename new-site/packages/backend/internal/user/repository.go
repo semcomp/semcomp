@@ -1,6 +1,7 @@
 package user
 
 import (
+	"backend/internal/apierrors"
 	"errors"
 	"fmt"
 	"slices"
@@ -40,7 +41,7 @@ func (r *userRepository) GetByID(id uint) (*User, error) {
 	err := r.db.First(&user, id).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, ErrInvalidCredentials
+		return nil, apierrors.NotFoundError("Usuário não encontrado", err)
 	}
 
 	return &user, err
@@ -52,7 +53,7 @@ func (r *userRepository) GetByEmail(email string) (*User, error) {
 	err := r.db.Where("email = ?", email).First(&user).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, ErrInvalidCredentials
+		return nil, apierrors.ValidationError("Email não encontrado", err)
 	}
 
 	return &user, err

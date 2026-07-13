@@ -9,13 +9,54 @@ export function formatTime(dateTime:string): string{
     })
 }
 
-// formatação de 2026-05-16T08:00:00Z para "16 de Maio"
-export function formatDate(dateTime:string): string{
+// formatação de 2026-05-16T08:00:00Z para:
+// type 1: "16 de Maio" 
+// type 2: "16/05"
+// type 3: "16/05/2026"
+export function formatDate(
+    dateTime: string,
+    type: number
+): string {
     const date = new Date(dateTime);
 
-    return date.toLocaleDateString("pt-BR", {
-        day: "numeric",
-        month: "long",
-        timeZone: "UTC"
-    })
+    if (type === 1) {
+        return date.toLocaleDateString("pt-BR", {
+            day: "numeric",
+            month: "long",
+            timeZone: "UTC"
+        });
+    }
+
+    if (type === 2) {
+        return date.toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            timeZone: "UTC"
+        });
+    }
+
+    if (type === 3) {
+        return date.toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "2-digit",
+            timeZone: "UTC"
+        });
+    }
+
+    return "";
+}
+
+// Formatação de 2026-05-16T08:00:00Z para "Sábado"
+export function formatWeekDay(dateTime: string): string {
+    const date = new Date(dateTime);
+
+    const diaSemana = date.toLocaleDateString("pt-BR", {
+        weekday: "long",
+    });
+
+    return (
+        diaSemana.charAt(0).toUpperCase() +
+        diaSemana.slice(1)
+    );
 }
