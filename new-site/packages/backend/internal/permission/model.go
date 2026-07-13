@@ -4,10 +4,27 @@ import (
 	"backend/internal/userBackoffice"
 )
 
+// PermissionLevel is a typed wrapper around the string values stored in the DB ("R" / "RW").
+type PermissionLevel string
+
+const (
+	PermR  PermissionLevel = "R"
+	PermRW PermissionLevel = "RW"
+)
+
+var levelOrder = map[PermissionLevel]int{
+	PermR:  1,
+	PermRW: 2,
+}
+
+// HasLevel returns true when actual satisfies the required minimum level.
+func HasLevel(actual, required PermissionLevel) bool {
+	return levelOrder[actual] >= levelOrder[required]
+}
+
 // KnownSections lists the backoffice sections that permissions apply to.
 // Add a new entry here whenever a new section is added to the backoffice.
 var KnownSections = []string{
-	"Seções",
 	"Eventos",
 	"Usuários Backoffice",
 	"Usuários Semcomp",

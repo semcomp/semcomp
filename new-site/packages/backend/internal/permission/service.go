@@ -25,6 +25,9 @@ type PermissionService interface {
 	UpdatePermissionByUserSection(user string, section string, request PermissionRequest) error
 	GetPermissions(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*PermissionListResult, error)
 	GetKnownSections() []string
+	// CheckPermission returns true when email holds at least the required level for section.
+	// A missing permission record is treated as no access (returns false, nil).
+	CheckPermission(email, section string, required PermissionLevel) (bool, error)
 }
 
 type permissionService struct {
@@ -37,7 +40,6 @@ func NewPermissionService(repo PermissionRepository) PermissionService {
 
 func GetInitialPermissions(email string) []PermissionRequest {
 	return []PermissionRequest{
-		{email, "Seções", "RW"},
 		{email, "Eventos", "RW"},
 		{email, "Usuários Backoffice", "RW"},
 		{email, "Usuários Semcomp", "RW"},
@@ -79,6 +81,17 @@ func (s *permissionService) InitializePermissions() error {
 
 func (s *permissionService) GetKnownSections() []string {
 	return KnownSections
+}
+
+func (s *permissionService) CheckPermission(email, section string, required PermissionLevel) (bool, error) {
+	perm, err := s.repo.GetByUserSection(email, section)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return HasLevel(PermissionLevel(perm.PermissionType), required), nil
 }
 
 func (s *permissionService) CreatePermission(request PermissionRequest) (*Permission, error) {

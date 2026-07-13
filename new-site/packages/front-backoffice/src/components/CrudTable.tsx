@@ -65,6 +65,8 @@ export interface CrudTableProps {
   onEdit: (item: CrudItemType, itemKey: string) => void;
   onDelete: (id: string) => void;
   onCreate?: (item: CrudItemType) => void;
+  /** Quando false, oculta os botões de criar, editar e excluir */
+  canWrite?: boolean;
   onAction?: (item: CrudItemType, itemKey: string) => void;
   getItemKey?: (item: CrudItemType) => string;
   entityLabel?: string;
@@ -92,6 +94,7 @@ export function CrudTable({
   serverSide = false,
   totalRecords,
   onQueryChange,
+  canWrite = true,
 }: CrudTableProps) {
   const [filter, setFilter] = useState("");
   const [filterField, setFilterField] = useState(fields[0]?.value ?? "name");
@@ -448,7 +451,7 @@ export function CrudTable({
             )}
           </div>
         </div>
-        {onCreate && (
+        {canWrite && onCreate && (
           <Button
             onClick={openCreate}
             className="bg-primary hover:bg-primary/90 text-foreground rounded-xl gap-2 shrink-0"
@@ -667,24 +670,28 @@ export function CrudTable({
                           <ScanQrCode className="w-3.5 h-3.5" />
                         </Button>
                       )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => openEdit(item)}
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
-                        title="Editar"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => openDelete(item)}
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
-                        title="Excluir"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                      {canWrite && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openEdit(item)}
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
+                            title="Editar"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openDelete(item)}
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                            title="Excluir"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

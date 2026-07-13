@@ -9,8 +9,10 @@ import { Tabs } from "@/constants/Tabs";
 import { userSemcompAPI } from "@/api/users";
 import type { SemcompUserType } from "@/types/SemcompUserType";
 import { useNotification } from "@/contexts/NotificationContext";
+import { useHasPermission } from "@/contexts/AuthContext";
 
 export default function UsersCRUD() {
+  const canWrite = useHasPermission("Usuários Semcomp", "RW");
   const navigate = useNavigate();
   const [data, setData] = useState<SemcompUserType[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -151,6 +153,7 @@ export default function UsersCRUD() {
             serverSide
             totalRecords={totalRecords}
             onQueryChange={handleQueryChange}
+            canWrite={canWrite}
           />
       </div>
     </section>

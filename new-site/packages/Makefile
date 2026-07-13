@@ -35,7 +35,11 @@ bash-backend:
 	docker compose -p $(PROJECT) exec backend sh
 
 psql:
-	docker compose -p $(PROJECT) exec db psql -U semcomp -d SemcompDB
+	docker compose -p $(PROJECT) exec db sh -c 'psql -U $$DB_USER -d $$DB_NAME'
+
+reset:
+	docker compose -p $(PROJECT) down -v
+	make restart
 
 logs-db:
 	docker compose -p $(PROJECT) logs -f db

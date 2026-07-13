@@ -127,28 +127,20 @@ func (h *PermissionHandler) GetPermissions(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// GetPermissionByUser retorna as permissões de um usuário específico do backoffice.
-// @Summary Busca permissões por usuário
-// @Description Retorna as permissões vinculadas a um usuário do backoffice
+// GetMyPermissions retorna as permissões do admin autenticado, lidas do token JWT.
+// @Summary Busca minhas permissões
+// @Description Retorna as permissões do próprio admin autenticado
 // @Tags Permission Backoffice
-// @Accept json
 // @Produce json
-// @Param user path string true "Email do usuário do backoffice"
 // @Success 200 {array} permission.Permission "Permissões encontradas"
-// @Failure 400 {object} map[string]string "Usuário inexistente"
 // @Failure 404 {object} map[string]string "Permissão não encontrada"
 // @Failure 500 {object} map[string]string "Erro interno"
 // @Security BearerAuth
-// @Router /admin/permissions/user/{user} [get]
-func (h *PermissionHandler) GetPermissionByUser(c *gin.Context) {
-	user := c.Param("user")
+// @Router /admin/permissions/me [get]
+func (h *PermissionHandler) GetMyPermissions(c *gin.Context) {
+	email := c.MustGet("email").(string)
 
-	if _, err := h.userBackofficeService.GetUserByEmail(user); err != nil {
-		apierrors.HandleAPIError(c, err)
-		return
-	}
-
-	permission, err := h.permissionService.GetPermissionByUser(user)
+	permission, err := h.permissionService.GetPermissionByUser(email)
 	if err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
