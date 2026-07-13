@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs } from "@/constants/Tabs";
-import { permissionsAPI, userBackofficeAPI } from "@/api";
+import { permissionsAPI } from "@/api";
 import type { BackofficePermission } from "@/types/APIResponseType";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -37,7 +37,7 @@ interface UserRow {
 
 function levelOf(perms: BackofficePermission[], section: string): PermLevel {
   const found = perms.find(p => p.section_name === section);
-  if (!found) return "—";
+  if (!found || !found.permission_type) return "—";
   return found.permission_type as PermLevel;
 }
 
@@ -60,10 +60,7 @@ export default function PermissionsCRUD() {
   const fetchAll = useCallback(async () => {
     try {
       setLoading(true);
-      const [usersRes, perms] = await Promise.all([
-        userBackofficeAPI.getAll(1, 1000),
-        permissionsAPI.getAll(),
-      ]);
+      const perms = await permissionsAPI.getAll();
 
       const permsByEmail = new Map<string, BackofficePermission[]>();
       for (const p of perms) {
@@ -72,12 +69,7 @@ export default function PermissionsCRUD() {
         permsByEmail.set(p.user_email, list);
       }
 
-      setRows(
-        usersRes.users.map(u => ({
-          email: u.email,
-          perms: permsByEmail.get(u.email) ?? [],
-        }))
-      );
+      setRows([...permsByEmail.entries()].map(([email, userPerms]) => ({ email, perms: userPerms })));
     } catch {
       notify("Erro ao carregar permissões.", "warning");
     } finally {
@@ -104,16 +96,11 @@ export default function PermissionsCRUD() {
           const newLevel = editLevels[key] ?? "—";
           if (oldLevel === newLevel) return;
 
-          if (newLevel === "—") {
-            await permissionsAPI.remove(editTarget.email, key);
-          } else if (oldLevel === "—") {
-            await permissionsAPI.create(editTarget.email, key, newLevel);
-          } else {
-            await permissionsAPI.update(
-              editTarget.email, key,
-              editTarget.email, key, newLevel
-            );
-          }
+          await permissionsAPI.update(
+            editTarget.email, key,
+            editTarget.email, key,
+            newLevel === "—" ? null : newLevel,
+          );
         })
       );
 

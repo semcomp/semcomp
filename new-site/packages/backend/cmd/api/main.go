@@ -61,12 +61,13 @@ func main() {
 	logRepo := log.NewRepository(db)
 	logService := log.NewService(logRepo)
 
-	userBackofficeRepo := userBackoffice.NewUserBackofficeRepository(db)
-	userBackofficeService := userBackoffice.NewUserBackofficeService(userBackofficeRepo, passwordProvider)
-	userBackofficeHandler := userBackoffice.NewUserBackofficeHandler(userBackofficeService)
-
 	permissionRepo := permission.NewPermissionRepository(db)
 	permissionService := permission.NewPermissionService(permissionRepo)
+
+	userBackofficeRepo := userBackoffice.NewUserBackofficeRepository(db)
+	userBackofficeService := userBackoffice.NewUserBackofficeService(userBackofficeRepo, passwordProvider, permissionService.SeedUserPermissions)
+	userBackofficeHandler := userBackoffice.NewUserBackofficeHandler(userBackofficeService)
+
 	permissionHandler := permission.NewPermissionHandler(permissionService, userBackofficeService)
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)

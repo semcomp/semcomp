@@ -129,7 +129,7 @@ export function useAuth() {
 export function useHasPermission(section: string, level: "R" | "RW"): boolean {
   const { permissions } = useAuth();
   const entry = permissions.find(p => p.section_name === section);
-  if (!entry) return false;
+  if (!entry || !entry.permission_type) return false;
   if (level === "R") return true; // "R" ou "RW" satisfazem leitura
   return entry.permission_type === "RW";
 }

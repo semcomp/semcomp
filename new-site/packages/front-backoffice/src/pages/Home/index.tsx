@@ -13,7 +13,7 @@ export default function HomePage() {
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 
   const visibleTabs = Tabs.filter(tab =>
-    permissions.some(p => p.section_name === tab.section)
+    permissions.some(p => p.section_name === tab.section && p.permission_type !== null)
   );
 
   return (

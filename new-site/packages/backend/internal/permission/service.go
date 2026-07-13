@@ -18,6 +18,9 @@ var (
 
 type PermissionService interface {
 	InitializePermissions() error
+	// SeedUserPermissions cria entradas nulas para todas as seções conhecidas para o usuário,
+	// caso ainda não existam. Deve ser chamado ao criar um novo usuário backoffice.
+	SeedUserPermissions(email string) error
 	CreatePermission(request PermissionRequest) (*Permission, error)
 	GetPermissionByUser(user string) ([]Permission, error)
 	GetPermissionBySection(section string) ([]Permission, error)
@@ -26,7 +29,7 @@ type PermissionService interface {
 	GetPermissions(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*PermissionListResult, error)
 	GetKnownSections() []string
 	// CheckPermission returns true when email holds at least the required level for section.
-	// A missing permission record is treated as no access (returns false, nil).
+	// A missing permission record or a null permission_type is treated as no access.
 	CheckPermission(email, section string, required PermissionLevel) (bool, error)
 }
 
@@ -38,14 +41,38 @@ func NewPermissionService(repo PermissionRepository) PermissionService {
 	return &permissionService{repo: repo}
 }
 
+func strPtr(s string) *string { return &s }
+
 func GetInitialPermissions(email string) []PermissionRequest {
+	rw := strPtr("RW")
 	return []PermissionRequest{
-		{email, "Eventos", "RW"},
-		{email, "Usuários Backoffice", "RW"},
-		{email, "Usuários Semcomp", "RW"},
-		{email, "Participações", "RW"},
-		{email, "Permissões", "RW"},
+		{email, "Eventos", rw},
+		{email, "Usuários Backoffice", rw},
+		{email, "Usuários Semcomp", rw},
+		{email, "Participações", rw},
+		{email, "Permissões", rw},
 	}
+}
+
+func (s *permissionService) SeedUserPermissions(email string) error {
+	existing, err := s.repo.GetByUser(email)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	existingMap := make(map[string]bool, len(existing))
+	for _, p := range existing {
+		existingMap[p.SectionName] = true
+	}
+
+	for _, section := range KnownSections {
+		if !existingMap[section] {
+			if err := s.repo.Create(&Permission{UserEmail: email, SectionName: section}); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (s *permissionService) InitializePermissions() error {
@@ -67,7 +94,7 @@ func (s *permissionService) InitializePermissions() error {
 	// Verifica se cada permissão já está cadastrada antes de cadastrar novamente
 	for i := range permissions {
 		if !slices.ContainsFunc(curPermissions, func(p Permission) bool {
-			return p.UserEmail == permissions[i].UserEmail && p.SectionName == permissions[i].SectionName
+			return p.UserEmail == permissions[i].UserEmail && p.SectionName == permissions[i].SectionName && p.PermissionType != nil
 		}) {
 			_, err := s.CreatePermission(permissions[i])
 			if err != nil {
@@ -91,7 +118,10 @@ func (s *permissionService) CheckPermission(email, section string, required Perm
 		}
 		return false, err
 	}
-	return HasLevel(PermissionLevel(perm.PermissionType), required), nil
+	if perm.PermissionType == nil {
+		return false, nil
+	}
+	return HasLevel(PermissionLevel(*perm.PermissionType), required), nil
 }
 
 func (s *permissionService) CreatePermission(request PermissionRequest) (*Permission, error) {
@@ -99,9 +129,25 @@ func (s *permissionService) CreatePermission(request PermissionRequest) (*Permis
 		return nil, apierrors.ValidationError("Seção inexistente", nil)
 	}
 
-	_, err := s.GetPermissionByUserSection(request.UserEmail, request.SectionName)
+	if request.PermissionType == nil || (*request.PermissionType != "R" && *request.PermissionType != "RW") {
+		return nil, apierrors.ValidationError("Tipo de permissão inválido", nil)
+	}
+
+	existing, err := s.GetPermissionByUserSection(request.UserEmail, request.SectionName)
 	if err == nil {
-		return nil, apierrors.ConflictError("Permissão já cadastrada", err)
+		if existing.PermissionType != nil {
+			return nil, apierrors.ConflictError("Permissão já cadastrada", nil)
+		}
+		// Seed entry exists with null — promote it to the requested level.
+		updateErr := s.repo.UpdateByUserSection(request.UserEmail, request.SectionName, &Permission{
+			UserEmail:      request.UserEmail,
+			SectionName:    request.SectionName,
+			PermissionType: request.PermissionType,
+		})
+		if updateErr != nil {
+			return nil, apierrors.InternalServerError("Erro ao atualizar permissão", updateErr)
+		}
+		return &Permission{UserEmail: request.UserEmail, SectionName: request.SectionName, PermissionType: request.PermissionType}, nil
 	}
 
 	newPermission := Permission{
@@ -110,8 +156,7 @@ func (s *permissionService) CreatePermission(request PermissionRequest) (*Permis
 		PermissionType: request.PermissionType,
 	}
 
-	err = s.repo.Create(&newPermission)
-	if err != nil {
+	if err := s.repo.Create(&newPermission); err != nil {
 		return nil, apierrors.InternalServerError("Erro ao criar permissão", err)
 	}
 	return &newPermission, nil
@@ -168,6 +213,10 @@ func (s *permissionService) DeletePermissionByUserSection(user string, section s
 func (s *permissionService) UpdatePermissionByUserSection(user string, section string, request PermissionRequest) error {
 	if !slices.Contains(KnownSections, request.SectionName) {
 		return apierrors.ValidationError("Seção inexistente", nil)
+	}
+
+	if request.PermissionType != nil && *request.PermissionType != "R" && *request.PermissionType != "RW" {
+		return apierrors.ValidationError("Tipo de permissão inválido", nil)
 	}
 
 	updatePermission := Permission{

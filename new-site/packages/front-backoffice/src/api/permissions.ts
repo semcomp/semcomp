@@ -44,7 +44,7 @@ export const permissionsAPI = {
     section: string,
     user_email: string,
     section_name: string,
-    permission_type: "R" | "RW"
+    permission_type: "R" | "RW" | null
   ): Promise<void> => {
     await client.put(
       `/admin/permissions/${encodeURIComponent(user)}/${encodeURIComponent(section)}`,

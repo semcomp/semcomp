@@ -9,7 +9,7 @@ export interface BackofficeUser {
 export interface BackofficePermission {
   user_email: string;
   section_name: string;
-  permission_type: "R" | "RW";
+  permission_type: "R" | "RW" | null;
 }
 
 export interface LoginResponse {

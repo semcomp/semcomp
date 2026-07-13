@@ -52,7 +52,7 @@ func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 		return
 	}
 
-	if request.PermissionType != "R" && request.PermissionType != "RW" {
+	if request.PermissionType == nil || (*request.PermissionType != "R" && *request.PermissionType != "RW") {
 		c.Set("responseMessage", "Valor de Permissão inválido")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Valor de Permissão inválido"})
 		return
@@ -218,7 +218,7 @@ func (h *PermissionHandler) UpdatePermissionByUserSection(c *gin.Context) {
 		return
 	}
 
-	if request.PermissionType != "R" && request.PermissionType != "RW" {
+	if request.PermissionType != nil && (*request.PermissionType != "R" && *request.PermissionType != "RW") {
 		c.Set("responseMessage", "Valor de Permissão inválido")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Valor de Permissão inválido"})
 		return
