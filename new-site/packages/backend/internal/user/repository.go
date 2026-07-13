@@ -15,6 +15,7 @@ type UserRepository interface {
 	Create(user *User) error
 	GetByID(id uint) (*User, error)
 	GetByEmail(email string) (*User, error)
+	GetByVerificationTokenHash(hash string) (*User, error)
 	GetAll(query UserListQuery) (*UserListResult, error)
 	Update(user *User) error
 	Delete(id uint) error
@@ -54,6 +55,18 @@ func (r *userRepository) GetByEmail(email string) (*User, error) {
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, apierrors.ValidationError("Email não encontrado", err)
+	}
+
+	return &user, err
+}
+
+// GetByVerificationTokenHash busca um usuário pelo hash do token de verificação de e-mail.
+func (r *userRepository) GetByVerificationTokenHash(hash string) (*User, error) {
+	var user User
+	err := r.db.Where("verification_token_hash = ?", hash).First(&user).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apierrors.NotFoundError("Token de verificação não encontrado", err)
 	}
 
 	return &user, err

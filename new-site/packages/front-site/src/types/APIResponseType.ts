@@ -15,6 +15,14 @@ export interface RegisterResponse {
   user: UserType;
 }
 
+export interface VerifyEmailResponse {
+  message: string;
+}
+
+export interface ResendVerificationResponse {
+  message: string;
+}
+
 export interface ProfileResponse {
   ok: boolean;
   message: string;

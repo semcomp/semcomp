@@ -60,8 +60,74 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		apierrors.HandleAPIError(c, err)
 		return
 	}
-	c.Set("responseMessage", "Usuário criado com sucesso!")
-	c.JSON(http.StatusCreated, gin.H{"message": "Usuário criado com sucesso!", "user": safeUser})
+	message := "Cadastro realizado! Verifique seu e-mail para confirmar sua conta."
+	c.Set("responseMessage", message)
+	c.JSON(http.StatusCreated, gin.H{"message": message, "user": safeUser})
+}
+
+// VerifyEmail confirma o e-mail de um usuário a partir do token recebido por link.
+// @Summary Confirma e-mail de um usuário
+// @Description Valida o token de verificação enviado por e-mail e ativa a conta
+// @Tags Usuários (Participantes)
+// @Accept json
+// @Produce json
+// @Param request body user.VerifyEmailRequest true "Token de verificação"
+// @Success 200 {object} map[string]string "E-mail confirmado com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 404 {object} map[string]string "Token inválido ou expirado"
+// @Router /verify-email [post]
+func (h *UserHandler) VerifyEmail(c *gin.Context) {
+	var request VerifyEmailRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		if validationErrs, ok := err.(validator.ValidationErrors); ok {
+			apierrors.HandleAPIError(c, apierrors.ValidationError(fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",
+				validationErrs[0].Field(), validationErrs[0].Tag()), err))
+			return
+		}
+		return
+	}
+
+	if err := h.userService.VerifyEmail(request.Token); err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	message := "E-mail confirmado com sucesso!"
+	c.Set("responseMessage", message)
+	c.JSON(http.StatusOK, gin.H{"message": message})
+}
+
+// ResendVerification reenvia o e-mail de confirmação de conta.
+// @Summary Reenvia e-mail de confirmação
+// @Description Reenvia o link de confirmação de e-mail, se aplicável
+// @Tags Usuários (Participantes)
+// @Accept json
+// @Produce json
+// @Param request body user.ResendVerificationRequest true "E-mail do usuário"
+// @Success 200 {object} map[string]string "Se o e-mail estiver cadastrado e pendente de confirmação, um novo link foi enviado"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Router /resend-verification [post]
+func (h *UserHandler) ResendVerification(c *gin.Context) {
+	var request ResendVerificationRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		if validationErrs, ok := err.(validator.ValidationErrors); ok {
+			apierrors.HandleAPIError(c, apierrors.ValidationError(fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",
+				validationErrs[0].Field(), validationErrs[0].Tag()), err))
+			return
+		}
+		return
+	}
+
+	if err := h.userService.ResendVerification(request.Email); err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	message := "Se o e-mail estiver cadastrado e pendente de confirmação, um novo link foi enviado."
+	c.Set("responseMessage", message)
+	c.JSON(http.StatusOK, gin.H{"message": message})
 }
 
 // GetAllUsers retorna todos os usuários cadastrados.
@@ -253,28 +319,11 @@ func (h *UserHandler) VerifyEmailHandler(c *gin.Context) {
 		return
 	}
 
-	userNumber := c.MustGet("userNumber").(uint)
-
-	err := h.userService.VerifyEmail(tokenPlain, userNumber)
+	err := h.userService.VerifyEmail(tokenPlain)
 	if err != nil {
-		if errors.Is(err, token.ErrInvalidToken) {
-			c.Set("responseMessage", "Token inválido")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Token inválido"})
-			return
-		}
-		if errors.Is(err, token.ErrTokenExpired) {
-			c.Set("responseMessage", "Token expirado")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Token expirado"})
-			return
-		}
-		if errors.Is(err, token.ErrTokenUsed) {
-			c.Set("responseMessage", "Token já utilizado")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Token já utilizado"})
-			return
-		}
 		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro interno do servidor")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
+		c.Set("responseMessage", "Link de verificação inválido ou expirado")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Link de verificação inválido ou expirado"})
 		return
 	}
 

@@ -42,14 +42,27 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
+	// Usado para "adotar" contas já existentes como verificadas logo abaixo, já que a
+	// coluna email_verified é nova e não deve bloquear o login de usuários antigos.
+	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
+
 	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &token.Token{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
 
+	if !hadEmailVerifiedColumn {
+		if err := db.Exec("UPDATE users SET email_verified = true").Error; err != nil {
+			panic("Failed to grandfather existing users as email-verified: " + err.Error())
+		}
+	}
+
 	// Inicializa as camadas da aplicação (Repository -> Service -> Handler)
 	passwordProvider := providers.NewBcryptProvider()
 	jwtProvider := providers.NewJWTProvider()
+	tokenProvider := providers.NewTokenProvider()
+	mailProvider := providers.NewMailProvider()
+	emailValidationProvider := providers.NewEmailValidationProvider()
 
 	tokenRepo := token.NewRepository(db)
 
@@ -64,14 +77,14 @@ func main() {
 		SMTP: mailer.SMTPConfig{
 			Host:     os.Getenv("SMTP_HOST"),
 			Port:     smtpPort,
-			Username: os.Getenv("SMTP_USERNAME"),
+			Username: os.Getenv("SMTP_USER"),
 			Password: os.Getenv("SMTP_PASSWORD"),
 		},
-		BaseURL: os.Getenv("BASE_URL"),
+		BaseURL: os.Getenv("FRONTEND_URL"),
 	})
 
 	userRepo := user.NewUserRepository(db)
-	userService := user.NewUserService(userRepo, passwordProvider, tokenRepo, m)
+	userService := user.NewUserService(userRepo, passwordProvider, tokenProvider, mailProvider, emailValidationProvider, tokenRepo, m)
 	userHandler := user.NewUserHandler(userService)
 
 	eventRepo := event.NewEventRepository(db)
@@ -137,6 +150,9 @@ func main() {
 	r.POST("/login", authHandler.LoginHandler)
 	r.POST("/forgot-password", userHandler.ForgotPasswordHandler)
 	r.POST("/reset-password", userHandler.ResetPasswordHandler)
+	r.POST("/verify-email", userHandler.VerifyEmail)
+	r.POST("/resend-verification", userHandler.ResendVerification)
+
 	r.GET("/events", eventHandler.GetEvents)
 	r.GET("/event/:eventName/:initDate", eventHandler.GetEventByNameAndInitDate)
 

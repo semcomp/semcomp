@@ -39,6 +39,10 @@ psql:
 
 logs-db:
 	docker compose -p $(PROJECT) logs -f db
+
+reset:
+	docker compose -p $(PROJECT) down -v
+	docker compose -p $(PROJECT) --env-file ./backend/.env  up -d --build
 	
 ps:
 	docker compose -p $(PROJECT) ps

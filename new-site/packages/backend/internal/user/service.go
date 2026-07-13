@@ -2,6 +2,8 @@ package user
 
 import (
 	"errors"
+	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -27,35 +29,62 @@ type UserService interface {
 	GetUserByID(id uint) (*SafeUser, error)
 	UpdateUser(id uint, request UpdateUserRequest) error
 	DeleteUser(id uint) error
-
-	VerifyEmail(tokenPlain string, userID uint) error
+	VerifyEmail(rawToken string) error
+	ResendVerification(email string) error
 	RequestPasswordReset(email string) error
 	ResetPassword(tokenPlain string, newPassword string) error
 }
 
 // userService é a implementação concreta de UserService.
 type userService struct {
-	repo             UserRepository
-	passwordProvider providers.PasswordProvider
-	tokenRepo        token.Repository
-	mailer           *mailer.Mailer
+	repo                    UserRepository
+	passwordProvider        providers.PasswordProvider
+	tokenProvider           providers.TokenProvider
+	mailProvider            providers.MailProvider
+	emailValidationProvider providers.EmailValidationProvider
+	tokenRepo               token.Repository
+	mailer                  *mailer.Mailer
 }
 
 // NewUserService inicializa e retorna uma nova instância de UserService.
-func NewUserService(repo UserRepository, passwordProvider providers.PasswordProvider, tokenRepo token.Repository, mailer *mailer.Mailer) UserService {
+func NewUserService(
+	repo UserRepository,
+	passwordProvider providers.PasswordProvider,
+	tokenProvider providers.TokenProvider,
+	mailProvider providers.MailProvider,
+	emailValidationProvider providers.EmailValidationProvider,
+	tokenRepo token.Repository,
+	mailer *mailer.Mailer,
+) UserService {
 	return &userService{
-		repo:             repo,
-		passwordProvider: passwordProvider,
-		tokenRepo:        tokenRepo,
-		mailer:           mailer,
+		repo:                    repo,
+		passwordProvider:        passwordProvider,
+		tokenProvider:           tokenProvider,
+		mailProvider:            mailProvider,
+		emailValidationProvider: emailValidationProvider,
+		tokenRepo:               tokenRepo,
+		mailer:                  mailer,
 	}
 }
 
-// CreateUser valida duplicatas, criptografa a senha e salva o novo usuário.
+// CreateUser valida duplicatas, criptografa a senha e salva o novo usuário, disparando
+// o e-mail de confirmação. Se o e-mail já existir mas ainda não tiver sido confirmado,
+// reenvia um novo link para a conta existente em vez de criar um duplicado (sem
+// sobrescrever nome/senha, para não permitir que outra pessoa assuma a conta pendente).
 func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
-	_, err := s.repo.GetByEmail(request.Email)
+	if err := s.emailValidationProvider.Validate(request.Email); err != nil {
+		return nil, apierrors.ValidationError("E-mail inválido", err)
+	}
+
+	existingUser, err := s.repo.GetByEmail(request.Email)
 	if err == nil {
-		return nil, apierrors.ConflictError("Email já cadastrado", err)
+		if existingUser.EmailVerified {
+			return nil, apierrors.ConflictError("Email já cadastrado", nil)
+		}
+
+		s.regenerateAndSendVerification(existingUser)
+		safe := ToSafeUser(existingUser)
+		return &safe, nil
 	}
 
 	hashedPassword, err := s.passwordProvider.Hash(request.Password)
@@ -75,26 +104,129 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 		return nil, apierrors.InternalServerError("Erro ao criar usuário", err)
 	}
 
-	plainToken, hash, err := token.GenerateToken()
-	if err != nil {
-		return nil, ErrTokenGeneration
-	}
-
-	verificationToken := token.Token{
-		UserID:    newUser.UserNumber,
-		TokenHash: hash,
-		Type:      token.EmailVerification,
-		ExpiresAt: time.Now().Add(24 * time.Hour),
-	}
-
-	if err := s.tokenRepo.Create(&verificationToken); err != nil {
-		return nil, err
-	}
-
-	s.mailer.SendVerificationEmail(newUser.Name, newUser.Email, plainToken)
+	s.regenerateAndSendVerification(&newUser)
 
 	safe := ToSafeUser(&newUser)
 	return &safe, nil
+}
+
+// VerifyEmail confirma o e-mail de um usuário a partir do token bruto recebido pelo link.
+// É idempotente: verificar um token de uma conta já confirmada retorna sucesso.
+func (s *userService) VerifyEmail(rawToken string) error {
+	hash := s.tokenProvider.Hash(rawToken)
+
+	u, err := s.repo.GetByVerificationTokenHash(hash)
+	if err != nil {
+		return apierrors.NotFoundError("Link de verificação inválido ou expirado", err)
+	}
+
+	if u.EmailVerified {
+		return nil
+	}
+
+	if u.VerificationTokenExpiresAt == nil || time.Now().After(*u.VerificationTokenExpiresAt) {
+		return apierrors.NotFoundError("Link de verificação inválido ou expirado", nil)
+	}
+
+	u.EmailVerified = true
+	if err := s.repo.Update(u); err != nil {
+		return apierrors.InternalServerError("Erro ao confirmar e-mail", err)
+	}
+
+	return nil
+}
+
+// ResendVerification reenvia o link de confirmação para o e-mail informado. Sempre
+// retorna sucesso (nil), independente de o e-mail existir, já estar verificado ou ter
+// atingido o cooldown/limite diário de reenvios — evita vazar quais e-mails estão
+// cadastrados no sistema.
+func (s *userService) ResendVerification(email string) error {
+	if err := s.emailValidationProvider.Validate(email); err != nil {
+		return nil
+	}
+
+	existingUser, err := s.repo.GetByEmail(email)
+	if err != nil {
+		return nil
+	}
+
+	if existingUser.EmailVerified {
+		return nil
+	}
+
+	s.regenerateAndSendVerification(existingUser)
+	return nil
+}
+
+// regenerateAndSendVerification gera um novo token de verificação, aplica cooldown e
+// limite diário de reenvios, persiste os campos e dispara o e-mail. Falhas de geração,
+// persistência ou envio são silenciosamente ignoradas (best-effort) — o usuário sempre
+// pode solicitar um novo reenvio depois.
+func (s *userService) regenerateAndSendVerification(u *User) {
+	now := time.Now()
+
+	if u.VerificationSentAt != nil && now.Sub(*u.VerificationSentAt) < verificationResendCooldown() {
+		remaining := verificationResendCooldown() - now.Sub(*u.VerificationSentAt)
+		log.Printf("[email] cooldown ativo para %s — tente novamente em %.0fs", u.Email, remaining.Seconds())
+		return
+	}
+
+	windowStart := u.VerificationWindowStartAt
+	sendCount := u.VerificationSendCount
+	if windowStart == nil || now.Sub(*windowStart) > 24*time.Hour {
+		windowStart = &now
+		sendCount = 0
+	}
+
+	if sendCount >= verificationMaxResendsPerDay() {
+		log.Printf("[email] limite diário de reenvios atingido para %s (%d/%d)", u.Email, sendCount, verificationMaxResendsPerDay())
+		return
+	}
+
+	raw, hash, err := s.tokenProvider.Generate()
+	if err != nil {
+		return
+	}
+
+	expiresAt := now.Add(verificationTokenTTL())
+
+	u.VerificationTokenHash = hash
+	u.VerificationTokenExpiresAt = &expiresAt
+	u.VerificationSentAt = &now
+	u.VerificationWindowStartAt = windowStart
+	u.VerificationSendCount = sendCount + 1
+
+	if err := s.repo.Update(u); err != nil {
+		return
+	}
+
+	if err := s.mailProvider.SendVerificationEmail(u.Email, u.Name, raw); err != nil {
+		log.Printf("[email] falha ao enviar verificação para %s: %v", u.Email, err)
+	}
+}
+
+func verificationTokenTTL() time.Duration {
+	hours, err := strconv.Atoi(os.Getenv("EMAIL_VERIFICATION_TOKEN_EXPIRES_IN_HOURS"))
+	if err != nil || hours <= 0 {
+		hours = 24
+	}
+	return time.Duration(hours) * time.Hour
+}
+
+func verificationResendCooldown() time.Duration {
+	seconds, err := strconv.Atoi(os.Getenv("EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS"))
+	if err != nil || seconds <= 0 {
+		seconds = 60
+	}
+	return time.Duration(seconds) * time.Second
+}
+
+func verificationMaxResendsPerDay() int {
+	maxResends, err := strconv.Atoi(os.Getenv("EMAIL_VERIFICATION_MAX_RESENDS_PER_DAY"))
+	if err != nil || maxResends <= 0 {
+		maxResends = 5
+	}
+	return maxResends
 }
 
 // GetAllUsers recupera todos os usuários repassando a chamada para a camada de repositório.
@@ -221,39 +353,6 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 // DeleteUser remove um usuário do sistema a partir do seu ID.
 func (s *userService) DeleteUser(id uint) error {
 	return s.repo.Delete(id)
-}
-
-func (s *userService) VerifyEmail(tokenPlain string, userID uint) error {
-	hash := token.HashToken(tokenPlain)
-
-	t, err := s.tokenRepo.FindByHash(hash)
-	if err != nil {
-		return err
-	}
-
-	if t.UserID != userID {
-		return token.ErrInvalidToken
-	}
-
-	if t.UsedAt != nil {
-		return token.ErrTokenUsed
-	}
-
-	if time.Now().After(t.ExpiresAt) {
-		return token.ErrTokenExpired
-	}
-
-	user, err := s.repo.GetByID(t.UserID)
-	if err != nil {
-		return ErrInternalServerError
-	}
-
-	user.EmailVerified = true
-	if err := s.repo.Update(user); err != nil {
-		return err
-	}
-
-	return s.tokenRepo.MarkUsed(t.ID)
 }
 
 func (s *userService) RequestPasswordReset(email string) error {

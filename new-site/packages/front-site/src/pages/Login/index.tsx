@@ -301,6 +301,9 @@ import TermsModal from "@/components/TermsModal";
 import { getTerms } from "@/mock/terms";
 import { useNavigate } from "react-router";
 import fallbackLoginHero from "@/assets/img/Login/Palestra.avif";
+import { isValidEmail } from "@/utils/validateEmail";
+
+const RESEND_COOLDOWN_SECONDS = 60;
 
 const _loginModules = import.meta.glob(
     "/src/assets/img/Login/*",
@@ -335,6 +338,10 @@ export default function LoginPage(): ReactElement {
     const [termsOpen, setTermsOpen] = useState(false);
     const [termsContent, setTermsContent] = useState<string | null>(null);
 
+    const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
+    const [resendCooldown, setResendCooldown] = useState(0);
+    const [resending, setResending] = useState(false);
+
     const openTerms = useCallback(async () => {
         setTermsOpen(true);
         if (!termsContent) {
@@ -345,13 +352,18 @@ export default function LoginPage(): ReactElement {
 
     const { isAuthenticated, login } = useAuth();
     const navigate = useNavigate();
-    
+
+    // Só roda na montagem: evita que este efeito redirecione para "/" logo após um
+    // login bem-sucedido nesta própria página, competindo com o navigate("/profile")
+    // que o AuthContext já dispara. O propósito aqui é apenas afastar quem *chega*
+    // em /login já autenticado.
     useEffect(() => {
         if (isAuthenticated) {
             showNotification("Você já está logado!", "info");
             navigate("/");
         }
-    }, [isAuthenticated, navigate, showNotification]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const resetForm = useCallback(() => {
         setEmail("");
@@ -361,8 +373,22 @@ export default function LoginPage(): ReactElement {
         setAcceptTerms(false);
     }, []);
 
+    // Evita que o painel de "verifique seu e-mail" vaze entre os modos login/cadastro
+    useEffect(() => {
+        setPendingVerificationEmail(null);
+        setResendCooldown(0);
+    }, [isLogin]);
+
+    useEffect(() => {
+        if (resendCooldown <= 0) return;
+        const interval = setInterval(() => {
+            setResendCooldown((seconds) => Math.max(0, seconds - 1));
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [resendCooldown]);
+
     const validate = useCallback((): string | null => {
-        if (!email.includes("@")) return "Insira um e-mail válido.";
+        if (!isValidEmail(email)) return "Insira um e-mail válido.";
         if (password.length < 8) return "A senha deve ter ao menos 8 caracteres.";
         if (isLogin === false) {
             if (name.trim().length === 0) return "Informe seu nome.";
@@ -384,6 +410,22 @@ export default function LoginPage(): ReactElement {
         }
     }, [showNotification]);
 
+    const handleResend = useCallback(async () => {
+        if (!pendingVerificationEmail || resendCooldown > 0) return;
+        setResending(true);
+        try {
+            const response = await authAPI.resendVerification(pendingVerificationEmail);
+            showNotification(response.message, "success");
+            setResendCooldown(RESEND_COOLDOWN_SECONDS);
+        } catch (err: any) {
+            const message =
+              err?.response?.data?.error || err?.response?.data?.message || err?.message || "Erro ao reenviar e-mail";
+            showNotification(message, "warning");
+        } finally {
+            setResending(false);
+        }
+    }, [pendingVerificationEmail, resendCooldown, showNotification]);
+
     const handleSubmit = useCallback(
         async (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
@@ -395,22 +437,20 @@ export default function LoginPage(): ReactElement {
 
             setLoading(true);
             try {
-                let ok = false;
                 if (isLogin) {
-                    ok = await login(email, password);
+                    const result = await login(email, password);
+                    if (result.status === 403) {
+                        setPendingVerificationEmail(email);
+                    }
                 } else {
                     if (!acceptTerms) {
                         showNotification("Você deve aceitar os termos de serviço para criar uma conta.", "warning");
                         setLoading(false);
                         return;
                     }
-                    ok = await register(email, name, password);
-                }
-
-                if (ok) {
-                    showNotification(isLogin ? "Login bem-sucedido!" : "Registro bem-sucedido!", "success");
-                    if (!isLogin) {
-                        setIsLogin(true);
+                    const ok = await register(email, name, password);
+                    if (ok) {
+                        setPendingVerificationEmail(email);
                     }
                 }
             } catch (err) {
@@ -419,11 +459,42 @@ export default function LoginPage(): ReactElement {
                 setLoading(false);
             }
         },
-        [validate, isLogin, email, password, name, showNotification, login, register, acceptTerms, setIsLogin]
+        [validate, isLogin, email, password, name, showNotification, login, register, acceptTerms]
+    );
+
+    // Painel exibido após cadastro bem-sucedido ou tentativa de login com e-mail não
+    // confirmado, permitindo reenviar o link de verificação.
+    const pendingVerificationPanel = (
+        <div className={`w-full max-w-sm flex flex-col items-center justify-center p-6 text-center ${textColor}`}>
+            <h2 className="text-lg font-bold mb-2">Verifique seu e-mail</h2>
+            <p className={`text-sm mb-6 ${!isDarkMode ? "text-white" : ""}`}>
+                Enviamos um link de confirmação para <strong>{pendingVerificationEmail}</strong>.
+                Verifique sua caixa de entrada (e o spam) para ativar sua conta.
+            </p>
+            <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending || resendCooldown > 0}
+                className="w-full px-3 py-3 rounded-md bg-semcompMidDarkBlue text-white text-sm font-bold disabled:opacity-50 hover:brightness-110 transition-all"
+            >
+                {resendCooldown > 0
+                    ? `Reenviar e-mail (${resendCooldown}s)`
+                    : resending
+                        ? "Enviando..."
+                        : "Reenviar e-mail"}
+            </button>
+            <button
+                type="button"
+                onClick={() => setPendingVerificationEmail(null)}
+                className={`mt-4 text-sm underline ${!isDarkMode ? "text-white" : ""}`}
+            >
+                Voltar
+            </button>
+        </div>
     );
 
     // Conteúdo do formulário otimizado e com margens mais compactas (p-6, mt-3, mb-2)
-    const formContent = (
+    const formContent = pendingVerificationEmail ? pendingVerificationPanel : (
         <div className={`w-full max-w-sm flex flex-col items-center justify-center p-6 ${textColor}`}>
             <SegmentedControl islogin={isLogin} setIslogin={setIsLogin} hook={resetForm}/>
             <form onSubmit={handleSubmit} aria-live="polite" className="w-full mt-1">

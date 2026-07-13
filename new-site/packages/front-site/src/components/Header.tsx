@@ -6,10 +6,12 @@ import { useTheme } from "@/contexts/useTheme";
 import { Link, useLocation } from "react-router-dom";
 // import { useAuth } from "@/contexts/useAuth";
 
-type TabKey = "home";
+type TabKey = "home" | "profile" | "login";
 
 const allTabs: Array<{ key: TabKey; label: string; path: string }> = [
   { key: "home", label: "HOME", path: "/" },
+  { key: "profile", label: "PERFIL", path: "/profile" },
+  { key: "login", label: "LOGIN", path: "/login" },
 ];
 
 export default function Header() {
@@ -35,6 +37,8 @@ export default function Header() {
 
   const btnRefs = useRef<Record<TabKey, HTMLAnchorElement | null>>({
     home: null,
+    profile: null,
+    login: null,
   });
 
   const navRef = useRef<HTMLElement | null>(null);
