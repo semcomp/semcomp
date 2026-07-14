@@ -1,25 +1,19 @@
-import { Calendar, UserCog, User, Key, Search, Hand } from "lucide-react";
+import { Calendar, UserCog, User, Key, Hand } from "lucide-react";
 
+// section deve coincidir com KnownSections em backend/internal/permission/model.go
 export const Tabs: {
   key: string;
+  section: string;
   label: string;
   description: string;
   icon: React.ReactNode;
   pageNavigate: string;
   bg: string;
   hoverBg: string;
-} [] = [
-  {
-    key: "sections",
-    label: "Seções",
-    description: "Observe as seções dos eventos da Semcomp.",
-    pageNavigate: "/sections",
-    icon: <Search className="w-5 h-5" />,
-    bg: "bg-primary/15",
-    hoverBg: "bg-primary/25",
-  },
+}[] = [
   {
     key: "events",
+    section: "Eventos",
     label: "Eventos",
     description: "Gerencie os eventos da Semcomp.",
     pageNavigate: "/events",
@@ -29,6 +23,7 @@ export const Tabs: {
   },
   {
     key: "backoffice-users",
+    section: "Usuários Backoffice",
     label: "Usuários Backoffice",
     description: "Gerencie os usuários com acesso ao sistema de backoffice.",
     pageNavigate: "/backoffice-users",
@@ -38,6 +33,7 @@ export const Tabs: {
   },
   {
     key: "users-semcomp",
+    section: "Usuários Semcomp",
     label: "Usuários Semcomp",
     description: "Gerencie os usuários participantes da Semcomp.",
     pageNavigate: "/semcomp-users",
@@ -47,6 +43,7 @@ export const Tabs: {
   },
   {
     key: "participation",
+    section: "Participações",
     label: "Participações",
     description: "Gerencie as participações dos usuários nos eventos da Semcomp.",
     pageNavigate: "/participation",
@@ -56,11 +53,12 @@ export const Tabs: {
   },
   {
     key: "permissions",
+    section: "Permissões",
     label: "Permissões",
     description: "Gerencie as permissões de acesso dos usuários ao sistema.",
     pageNavigate: "/permissions",
     icon: <Key className="w-5 h-5" />,
     bg: "bg-primary/15",
     hoverBg: "bg-primary/25",
-  }
+  },
 ];

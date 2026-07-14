@@ -28,7 +28,6 @@ type Evento = EventType & {
   linkInscricao?: string;
 };
 
-
 let events: Evento[] = [
 ];
 interface ProfileProps extends UserType {

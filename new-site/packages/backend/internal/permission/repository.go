@@ -62,7 +62,7 @@ func (r *permissionRepository) GetBySection(section string) ([]Permission, error
 
 func (r *permissionRepository) GetByUserSection(user string, section string) (*Permission, error) {
 	var permissions Permission
-	err := r.db.Where("section_name = ? AND user_email = ?", section, user).Find(&permissions).Error
+	err := r.db.Where("section_name = ? AND user_email = ?", section, user).First(&permissions).Error
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (r *permissionRepository) UpdateByUserSection(user string, section string, 
 	}
 
 	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
+		return r.db.Create(updatedPermission).Error
 	}
 
 	return nil

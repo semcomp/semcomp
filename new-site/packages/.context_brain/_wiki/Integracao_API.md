@@ -76,9 +76,9 @@ Interceptor response (sucesso): normaliza token renovado (remove prefixo `"Beare
 - **Front**: `front-backoffice/src/api/auth.ts` → `authAPI.login(email, pw)`
 - **Backend**: `internal/authBackoffice/handler.go` → `LoginBackofficeHandler`
 - Payload: `{ email: string, password: string }`
-- Resposta: `{ message: string, user: SafeUserB, permissions: Permission[], token: string }`
-- `permissions` é retornado junto no payload de login — não há rota separada para buscar permissões no front
-- Usado em: [[Front_Hooks_e_Estados#AuthContext_Backoffice]] → redireciona para `/home`
+- Resposta: `{ message: string, user: SafeUserB, permissions: BackofficePermission[], token: string }`
+- `permissions` é salvo no `AuthContext` (state + `localStorage["semcomp-backoffice-permissions"]`) e usado para guards de rota e filtragem de cards na Home
+- Usado em: [[Backoffice_Contextos_e_Lib#AuthContext]] → redireciona para `/home`
 
 ---
 
@@ -152,19 +152,26 @@ Arquivo front: `front-backoffice/src/api/userBackoffice.ts` (export: `userBackof
 Entidade: [[Backend_Models#UserBackoffice]]
 
 ### Permissions_Backoffice
-⚠️ **Frontend NÃO integrado** — página usa `samplePermissions` (mock local). Não existe `permissionsAPI` no barrel nem arquivo dedicado.  
-Backend tem os endpoints implementados e funcionais:
+Arquivo front: `front-backoffice/src/api/permissions.ts` (export: `permissionsAPI`)
 
-| Método | Path | Handler backend |
-|---|---|---|
-| POST | `/admin/permissions` | `CreatePermission` |
-| GET | `/admin/permissions` | `GetPermissions` |
-| GET | `/admin/permissions/user/:user` | `GetPermissionByUser` |
-| GET | `/admin/permissions/section/:section` | `GetPermissionBySection` |
-| PUT | `/admin/permissions/:user/:section` | `UpdatePermissionByUserSection` |
-| DELETE | `/admin/permissions/:user/:section` | `DeletePermissionByUserSection` |
+| Método | Path | Guard backend | Função front | Handler backend |
+|---|---|---|---|---|
+| GET | `/admin/permissions?page=1&limit=10000` | `PermR "Permissões"` | `permissionsAPI.getAll()` | `GetPermissions` |
+| GET | `/admin/permissions/me` | nenhum (JWT apenas) | `permissionsAPI.getMe()` | `GetMyPermissions` |
+| GET | `/admin/permissions/section/:section` | `PermR "Permissões"` | *(não exposto no front)* | `GetPermissionBySection` |
+| POST | `/admin/permissions` | `PermRW "Permissões"` | `permissionsAPI.create(email, section, type)` | `CreatePermission` |
+| PUT | `/admin/permissions/:user/:section` | `PermRW "Permissões"` | `permissionsAPI.update(user, section, ...)` | `UpdatePermissionByUserSection` |
+| DELETE | `/admin/permissions/:user/:section` | `PermRW "Permissões"` | `permissionsAPI.remove(user, section)` | `DeletePermissionByUserSection` |
 
-Entidade: [[Backend_Models#Permission]]
+**Notas:**
+- `getMe` bate em `/admin/permissions/me` — backend lê o email do JWT, sem URL param; trata 404 como `[]`
+- A página `/permissions` usa abordagem **matrix** (usuários × seções), não CrudTable
+- Salvar faz diff e chama apenas os endpoints necessários (create/update/remove por seção alterada)
+- Tipo: `BackofficePermission = { user_email, section_name, permission_type: "R" | "RW" }` em `src/types/APIResponseType.ts`
+- Todas as rotas backoffice (exceto `GET /permissions/me`) têm `RequirePermission` middleware no backend
+
+Entidade: [[Backend_Models#Permission]]  
+→ Fluxo completo: [[Feature_Controle_de_Acesso_e_Permissions]]
 
 ---
 
@@ -205,5 +212,5 @@ Entidade: [[Backend_Models#Permission]]
 **front-site** (`src/api/index.ts`): exporta apenas `authAPI`, `client`, types  
 → `eventsAPI` é importado diretamente de `@/api/events` nas páginas
 
-**front-backoffice** (`src/api/index.ts`): exporta `authAPI`, `userBackofficeAPI`, `userSemcompAPI`, `eventsAPI`, `sectionsAPI`, `participationAPI`, `client`, types  
-→ `permissionsAPI` **ausente** (ver [[index#Avisos de Integrações Pendentes]])
+**front-backoffice** (`src/api/index.ts`): exporta `authAPI`, `userBackofficeAPI`, `userSemcompAPI`, `eventsAPI`, `sectionsAPI`, `participationAPI`, `permissionsAPI`, `client`, types  
+→ `permissionsAPI.getMe()` é o método usado por `refreshPermissions` no `AuthContext`
