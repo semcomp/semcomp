@@ -6,6 +6,8 @@ import (
 
 	"backend/internal/apierrors"
 	"backend/internal/providers"
+
+	"github.com/lib/pq"
 )
 
 // UserService define as regras de negócio para operações relacionadas a usuários.
@@ -49,7 +51,7 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 		City:          request.City,
 		Education:     request.Education,
 		HasPapfe:      request.HasPapfe,
-		Disabilities:  append([]string(nil), request.Disabilities...),
+		Disabilities:  append([]string(nil), pq.StringArray(request.Disabilities)...),
 		Profession:    request.Profession,
 		Linkedin:      request.Linkedin,
 		Telegram:      request.Telegram,
@@ -198,7 +200,7 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 	user.City = request.City
 	user.Education = request.Education
 	user.HasPapfe = request.HasPapfe
-	user.Disabilities = append([]string(nil), request.Disabilities...)
+	user.Disabilities = append([]string(nil), pq.StringArray(request.Disabilities)...)
 	user.Profession = request.Profession
 	user.Linkedin = request.Linkedin
 	user.Telegram = request.Telegram

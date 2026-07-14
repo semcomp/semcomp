@@ -1,6 +1,9 @@
 package user
 
-import "fmt"
+import (
+	"fmt"
+ 	"github.com/lib/pq"
+)
 
 type User struct {
 	UserNumber      uint     `gorm:"primaryKey;not null" json:"user_number"`
@@ -12,7 +15,7 @@ type User struct {
 	City            string   `gorm:"size:100;not null" json:"city"`
 	Education       string   `gorm:"size:100;not null" json:"education"`
 	HasPapfe        bool     `gorm:"not null" json:"hasPapfe"`
-	Disabilities    []string `gorm:"type:text[];not null;default:'{}'" json:"disabilities"`
+	Disabilities    pq.StringArray `gorm:"type:text[];not null;default:'{}'" json:"disabilities"`
 	Profession      *string  `gorm:"size:120" json:"profession,omitempty"`
 	Linkedin        *string  `gorm:"size:255" json:"linkedin,omitempty"`
 	Telegram        *string  `gorm:"size:255" json:"telegram,omitempty"`
@@ -27,7 +30,7 @@ type CreateUserRequest struct {
 	Gender       string   `json:"gender" binding:"required"`
 	City         string   `json:"city" binding:"required"`
 	Education    string   `json:"education" binding:"required"`
-	HasPapfe     bool     `json:"hasPapfe" binding:"required"`
+	HasPapfe     bool     `json:"hasPapfe" binding:"oneof=true false"`
 	Disabilities []string `json:"disabilities" binding:"required"`
 	Profession   *string  `json:"profession,omitempty"`
 	Linkedin     *string  `json:"linkedin,omitempty"`

@@ -670,6 +670,8 @@ export default function LoginPage(): ReactElement {
                 education, profession, linkedin, telegram, hasPapfe,
                 disabilities: hasDisability ? disabilities : []
             };
+
+            console.log(hasPapfe)
             
             const response = await authAPI.register(payload.name, payload.email, payload.password, payload.age, payload.gender, payload.city, payload.education, payload.hasPapfe, payload.disabilities, payload.profession, payload.linkedin, payload.telegram);
             showNotification(response.message || "Registro realizado!", "success");
