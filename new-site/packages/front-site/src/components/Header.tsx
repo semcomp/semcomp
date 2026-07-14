@@ -1,8 +1,6 @@
-import { useLayoutEffect, useRef, useState } from "react";
-import LogoSemcomp from "../assets/img/semcomp/logo_default_branco.webp";
-import { IoMenu } from "react-icons/io5";
+import { useLayoutEffect, useRef, useState, useEffect } from "react";
+import { Menu } from "lucide-react";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
-import { useTheme } from "@/contexts/useTheme";
 import { Link, useLocation } from "react-router-dom";
 // import { useAuth } from "@/contexts/useAuth";
 
@@ -13,7 +11,6 @@ const allTabs: Array<{ key: TabKey; label: string; path: string }> = [
 ];
 
 export default function Header() {
-  const { isDarkMode } = useTheme();
   const { width } = useWindowDimensions();
   const location = useLocation();
   
@@ -40,6 +37,16 @@ export default function Header() {
   const navRef = useRef<HTMLElement | null>(null);
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setHasScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useLayoutEffect(() => {
     const el = btnRefs.current[active];
@@ -61,15 +68,12 @@ export default function Header() {
   }, [active, width, visibleTabs.length]); // Adicionado dependências específicas
 
   const isMobile = width < 768;
-  const headerColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidLightBlue";
 
   return (
-    <header className={`sticky top-0 z-50 border-b ${headerColor} transition-all duration-300 ease-in-out`}>
-      <div className="mx-auto flex w-full items-center justify-between px-4 py-3 md:px-6 md:py-4">
-        <div className="flex items-center gap-2">
-          <img src={LogoSemcomp} alt="Logo da Semcomp" className="h-6 w-auto md:h-8" />
-          <h1 className="text-lg font-display text-semcompOffWhite md:text-xl">semcomp</h1>
-        </div>
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      hasScrolled ? "bg-semcompMidLightBlue dark:bg-semcompDarkBlue backdrop-blur-sm shadow-lg" : "bg-transparent"
+    }`}>
+      <div className="mx-auto flex w-[80%] items-center justify-end pt-5 pb-5">
 
         {isMobile ? (
           <div className="relative">
@@ -77,10 +81,10 @@ export default function Header() {
               className="text-semcompOffWhite text-2xl"
               onClick={() => setIsMenuOpen((prev) => !prev)}
             >
-              <IoMenu />
+              <Menu />
             </button>
             {isMenuOpen && (
-              <nav className="absolute top-full right-0 mt-3 w-48 bg-semcompDarkBlue border border-white/10 shadow-xl flex flex-col items-center gap-1 p-4 rounded-xl">
+              <nav className={`absolute top-full right-0 mt-3 w-48 bg-semcompDarkBlue/80 backdrop-blur-sm border border-white/10 shadow-xl flex flex-col items-center gap-1 p-4 rounded-xl`}>
                 {visibleTabs.map((tab) => (
                   // tab.key === "coffee" ? (
                   //   <a
@@ -117,7 +121,9 @@ export default function Header() {
           <nav ref={navRef} className="relative flex items-center gap-2 p-1">
             {/* Barrinha indicadora */}
             <span
-              className="absolute bottom-0 h-0.5 bg-semcompOffWhite transition-all duration-300 ease-out"
+              className={`absolute bottom-0 h-0.5 transition-all duration-300 ease-out
+                ${hasScrolled ? "bg-semcompDarkBlue dark:bg-semcompLightBlue" : "bg-white"}
+              `}
               style={{ left: indicator.left, width: indicator.width }}
             />
             {visibleTabs.map((tab) => (

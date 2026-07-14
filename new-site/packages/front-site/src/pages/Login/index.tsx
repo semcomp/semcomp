@@ -289,7 +289,6 @@
 //         </>
 //     );
 // }
-import { useTheme } from "@/contexts/useTheme";
 import { useEffect, useState, type ReactElement } from "react";
 import { useCallback } from "react";
 import SegmentedControl, { useSegmentedControl } from "@/components/ui/Segcontrol";
@@ -300,30 +299,18 @@ import { authAPI } from "@/api";
 import TermsModal from "@/components/TermsModal";
 import { getTerms } from "@/mock/terms";
 import { useNavigate } from "react-router";
-import fallbackLoginHero from "@/assets/img/Login/Palestra.avif";
-
-const _loginModules = import.meta.glob(
-    "/src/assets/img/Login/*",
-    { eager: true }
-) as Record<string, { default: string }>;
-
-const LOGIN_IMAGES = Object.values(_loginModules)
-    .map((m) => m.default as string)
-    .filter((s) => /\.(webp)$/i.test(s));
+const LOGIN_IMAGES = [
+    "/img/Login/Integracao.webp",
+    "/img/Login/Palestra.webp",
+];
 
 const pickRandomLoginHero = () =>
-    LOGIN_IMAGES.length
-        ? LOGIN_IMAGES[Math.floor(Math.random() * LOGIN_IMAGES.length)]
-        : fallbackLoginHero;
+    LOGIN_IMAGES[Math.floor(Math.random() * LOGIN_IMAGES.length)];
 
 export default function LoginPage(): ReactElement {
     const { isLogin, setIsLogin } = useSegmentedControl();
-    const { isDarkMode } = useTheme();
     const [loginHeroSrc] = useState<string>(() => pickRandomLoginHero());
-    
-    const bgColor = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompOffWhite";
-    const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
-   
+
     const [loading, setLoading] = useState(false);
     const { showNotification } = useNotification();
 
@@ -424,11 +411,11 @@ export default function LoginPage(): ReactElement {
 
     // Conteúdo do formulário otimizado e com margens mais compactas (p-6, mt-3, mb-2)
     const formContent = (
-        <div className={`w-full max-w-sm flex flex-col items-center justify-center p-6 ${textColor}`}>
+        <div className="w-full max-w-sm flex flex-col items-center justify-center p-6 text-semcompDarkBlue dark:text-semcompOffWhite">
             <SegmentedControl islogin={isLogin} setIslogin={setIsLogin} hook={resetForm}/>
             <form onSubmit={handleSubmit} aria-live="polite" className="w-full mt-1">
-                {isLogin === false && ( 
-                    <label className={`block mb-2 ${!isDarkMode ? "text-white" : ""}`}>
+                {isLogin === false && (
+                    <label className="block mb-2 text-white">
                         <Input
                             label="Nome Completo"
                             value={name}
@@ -440,7 +427,7 @@ export default function LoginPage(): ReactElement {
                     </label>
                 )}
 
-                <label className={`block mb-2 ${!isDarkMode ? "text-white" : ""}`}>
+                <label className="block mb-2 text-white">
                     <Input
                         label="Email"
                         type="email"
@@ -452,9 +439,9 @@ export default function LoginPage(): ReactElement {
                     />
                 </label>
 
-                <label className={`block mb-1 ${!isDarkMode ? "text-white" : ""}`}>
+                <label className="block mb-1 text-white">
                     <Input
-                        label="Senha"                        
+                        label="Senha"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -466,7 +453,7 @@ export default function LoginPage(): ReactElement {
 
                 {isLogin === false && (
                     <>
-                        <label className={`block mb-2 ${!isDarkMode ? "text-white" : ""}`}>
+                        <label className="block mb-2 text-white">
                             <Input
                                 label="Confirmar senha"
                                 type="password"
@@ -506,17 +493,12 @@ export default function LoginPage(): ReactElement {
         </div>
     );
 
-    const bgContainer = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidLightBlue";
-    const mobileShadow = isDarkMode 
-        ? "shadow-[-10px_-15px_0px_0px_#163756,15px_-40px_0px_0px_#0e2a44]" 
-        : "shadow-[-10px_-15px_0px_0px_#b3cde0,15px_-40px_0px_0px_#dbe9f4]";
-
     return (
         <>
-            <div className={`h-[calc(100vh-80px)] w-full flex items-center justify-center ${bgColor} overflow-hidden`}>
-                
-                {/* 1. MODO DESKTOP (Travado em h-[600px] para nunca quebrar ou criar rolagem) */}
-                <div className={`hidden min-[1280px]:flex ${bgContainer} h-[650px] w-[95%] max-w-[1150px] rounded-3xl shadow-xl overflow-hidden`}>
+            <div className="h-[calc(100vh-80px)] w-full flex items-center justify-center bg-semcompOffWhite dark:bg-semcompMidDarkBlue overflow-hidden">
+
+                {/* 1. MODO DESKTOP */}
+                <div className="hidden min-[1280px]:flex bg-semcompMidLightBlue dark:bg-semcompDarkBlue h-[650px] w-[95%] max-w-[1150px] rounded-3xl shadow-xl overflow-hidden">
                     <div className="w-1/2 bg-gray-300 relative">
                         <img
                             src={loginHeroSrc}
@@ -529,20 +511,20 @@ export default function LoginPage(): ReactElement {
                     </div>
                 </div>
 
-                {/* 2. MODO TABLET / IPAD (Travado em h-[600px] para evitar rolagem vertical no iPad) */}
-                <div className={`hidden min-[800px]:flex min-[1280px]:hidden relative ${bgContainer} w-[90%] max-w-[500px] h-[650px] rounded-3xl shadow-xl items-center justify-center overflow-hidden`}>
+                {/* 2. MODO TABLET */}
+                <div className="hidden min-[800px]:flex min-[1280px]:hidden relative bg-semcompMidLightBlue dark:bg-semcompDarkBlue w-[90%] max-w-[500px] h-[650px] rounded-3xl shadow-xl items-center justify-center overflow-hidden">
                     <img
                         src={loginHeroSrc}
                         alt="Background Tablet"
-                        className={`absolute inset-0 w-full h-full object-cover ${isDarkMode ? "opacity-40 brightness-50" : "opacity-90 brightness-50"}`}
+                        className="absolute inset-0 w-full h-full object-cover opacity-90 brightness-50 dark:opacity-40"
                     />
-                    <div className={`relative z-10 ${isDarkMode ? "bg-semcompOffWhite/10" : "bg-semcompMidLightBlue/30"} backdrop-blur-md rounded-2xl shadow-2xl m-4`}>
+                    <div className="relative z-10 bg-semcompMidLightBlue/30 dark:bg-semcompOffWhite/10 backdrop-blur-md rounded-2xl shadow-2xl m-4">
                         {formContent}
                     </div>
                 </div>
 
                 {/* 3. MODO MOBILE */}
-                <div className={`flex min-[800px]:hidden ${bgContainer} w-[80%] min-h-[500px] rounded-3xl flex-col items-center justify-center p-4 ${mobileShadow}`}>
+                <div className="flex min-[800px]:hidden bg-semcompMidLightBlue dark:bg-semcompDarkBlue w-[80%] min-h-[500px] rounded-3xl flex-col items-center justify-center p-4 shadow-[-10px_-15px_0px_0px_#b3cde0,15px_-40px_0px_0px_#dbe9f4] dark:shadow-[-10px_-15px_0px_0px_#163756,15px_-40px_0px_0px_#0e2a44]">
                     {formContent}
                 </div>
 

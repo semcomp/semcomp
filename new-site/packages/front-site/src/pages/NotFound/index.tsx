@@ -1,26 +1,13 @@
 import { Link } from "react-router-dom";
-import { useTheme } from "@/contexts/useTheme";
 
 export default function NotFoundPage() {
-  const { isDarkMode } = useTheme();
-
-  const container = isDarkMode
-    ? "bg-semcompDarkBlue text-semcompOffWhite"
-    : "bg-semcompOffWhite text-semcompDarkBlue";
-
-  const card = isDarkMode
-    ? "border-semcompMidLightBlue/30 bg-semcompAlmostDarkBlue/50"
-    : "border-semcompMidLightBlue/30 bg-white";
-
-  const subtitle = isDarkMode ? "text-semcompLightBlue" : "text-semcompMidDarkBlue";
-
   return (
-    <section className={`flex h-screen w-full items-center justify-center px-4 py-10 ${container}`}>
-      <div className={`w-full max-w-xl rounded-3xl border p-8 text-center shadow-lg ${card} -translate-y-20`}>
+    <section className="flex h-screen w-full items-center justify-center px-4 py-10 bg-semcompOffWhite text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite">
+      <div className="w-full max-w-xl rounded-3xl border border-semcompMidLightBlue/30 p-8 text-center shadow-lg bg-white dark:bg-semcompAlmostDarkBlue/50 -translate-y-20">
         <p className="font-poppins text-sm font-bold uppercase tracking-[0.2em] text-semcompMidLightBlue">Erro 404</p>
         <h1 className="mt-3 font-poppins text-4xl font-extrabold md:text-5xl">Página não encontrada</h1>
-        <p className={`mt-4 font-poppins text-sm md:text-base ${subtitle}`}>
-          O link que você tentou acessar não existe ou foi movido.
+        <p className="mt-4 font-poppins text-sm md:text-base text-semcompMidDarkBlue dark:text-semcompLightBlue">
+            O link que você tentou acessar não existe ou foi movido.
         </p>
 
         <div className="mt-8 flex items-center justify-center gap-3">
