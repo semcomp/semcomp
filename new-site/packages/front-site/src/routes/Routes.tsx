@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 // import RequireAuth from "@/lib/RequireAuth";
+import FeatureGuard from "@/components/FeatureGuard";
 
 export const router = createBrowserRouter([
   {
@@ -16,29 +17,46 @@ export const router = createBrowserRouter([
           return { Component: HomePage };
         },
       },
+      {
+        element: <FeatureGuard featureKey="cronograma" />,
+        children: [
+          {
+            path: "cronograma",
+            lazy: async () => {
+              const { default: CronogramaPage } = await import(
+                "@/pages/Cronograma"
+              );
+              return { Component: CronogramaPage };
+            },
+          },
+        ],
+      },
+      {
+        element: <FeatureGuard featureKey="login" />,
+        children: [
+          {
+            path: "login",
+            lazy: async () => {
+              const { default: LoginPage } = await import("@/pages/Login");
+              return { Component: LoginPage };
+            },
+          },
+        ],
+      },
       // {
-      //   path: "cronograma",
-      //   lazy: async () => {
-      //     const { default: CronogramaPage } = await import("@/pages/Cronograma");
-      //     return { Component: CronogramaPage };
-      //   },
-      // },
-      // {
-      //   path: "login",
-      //   lazy: async () => {
-      //     const { default: LoginPage } = await import("@/pages/Login");
-      //     return { Component: LoginPage };
-      //   },
-      // },
-      // {
-      //   element: <RequireAuth />,
+      //   element: <FeatureGuard featureKey="profile" />,
       //   children: [
       //     {
-      //       path: "profile",
-      //       lazy: async () => {
-      //         const { default: ProfilePage } = await import("@/pages/Profile");
-      //         return { Component: ProfilePage };
-      //       }
+      //       element: <RequireAuth />,
+      //       children: [
+      //         {
+      //           path: "profile",
+      //           lazy: async () => {
+      //             const { default: ProfilePage } = await import("@/pages/Profile");
+      //             return { Component: ProfilePage };
+      //           },
+      //         },
+      //       ],
       //     },
       //   ],
       // },
