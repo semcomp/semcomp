@@ -7,6 +7,7 @@ import (
 	"backend/internal/event"
 	"backend/internal/log"
 	"backend/internal/middleware"
+	"backend/internal/pages"
 	"backend/internal/permission"
 	"backend/internal/presence"
 	"backend/internal/providers"
@@ -64,6 +65,9 @@ func main() {
 	permissionRepo := permission.NewPermissionRepository(db)
 	permissionService := permission.NewPermissionService(permissionRepo)
 
+	pagesService := pages.NewService([]string{"home", "login", "cronograma", "profile", "riddle"})
+	pagesHandler := pages.NewPagesHandler(pagesService)
+
 	userBackofficeRepo := userBackoffice.NewUserBackofficeRepository(db)
 	userBackofficeService := userBackoffice.NewUserBackofficeService(userBackofficeRepo, passwordProvider, permissionService.SeedUserPermissions)
 	userBackofficeHandler := userBackoffice.NewUserBackofficeHandler(userBackofficeService)
@@ -106,6 +110,9 @@ func main() {
 
 	r.GET("/events", eventHandler.GetEvents)
 	r.GET("/event/:eventName/:initDate", eventHandler.GetEventByNameAndInitDate)
+
+	r.GET("/pages/availability", pagesHandler.GetAllPagesAvailabilityHandler)
+	r.GET("/pages/:page/availability", pagesHandler.GetPageAvailabilityHandler)
 
 	// Rotas Semcomp - Protegidas
 	authRoutes := r.Group("/api")
@@ -160,6 +167,9 @@ func main() {
 	admin.POST("/permissions", permMW("Permissões", permission.PermRW), permissionHandler.CreatePermission)
 	admin.PUT("/permissions/:user/:section", permMW("Permissões", permission.PermRW), permissionHandler.UpdatePermissionByUserSection)
 	admin.DELETE("/permissions/:user/:section", permMW("Permissões", permission.PermRW), permissionHandler.DeletePermissionByUserSection)
+
+	// Páginas
+	admin.PUT("/pages/:page/availability", permMW("Páginas", permission.PermRW), pagesHandler.SetPageAvailabilityHandler)
 
 	r.Run(":4000")
 }
