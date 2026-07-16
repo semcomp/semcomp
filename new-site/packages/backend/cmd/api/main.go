@@ -9,6 +9,7 @@ import (
 	"backend/internal/middleware"
 	"backend/internal/permission"
 	"backend/internal/presence"
+	"backend/internal/product"
 	"backend/internal/providers"
 	"backend/internal/user"
 	"backend/internal/userBackoffice"
@@ -37,7 +38,7 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -57,6 +58,10 @@ func main() {
 	presenceRepo := presence.NewPresenceRepository(db)
 	presenceService := presence.NewPresenceService(presenceRepo)
 	presenceHandler := presence.NewPresenceHandler(presenceService)
+
+	productRepo := product.NewProductRepository(db)
+	productService := product.NewProductService(productRepo)
+	productHandler := product.NewProductHandler(productService)
 
 	logRepo := log.NewRepository(db)
 	logService := log.NewService(logRepo)
@@ -150,6 +155,13 @@ func main() {
 	admin.POST("/usersBackoffice", permMW("Usuários Backoffice", permission.PermRW), userBackofficeHandler.CreateUser)
 	admin.PUT("/usersBackoffice/:email", permMW("Usuários Backoffice", permission.PermRW), userBackofficeHandler.UpdateUser)
 	admin.DELETE("/usersBackoffice/:email", permMW("Usuários Backoffice", permission.PermRW), userBackofficeHandler.DeleteUser)
+
+	// Produtos
+	admin.GET("/products", permMW("Produtos", permission.PermR), productHandler.GetProducts)
+	admin.GET("/products/:id", permMW("Produtos", permission.PermR), productHandler.GetProductByID)
+	admin.POST("/products", permMW("Produtos", permission.PermRW), productHandler.CreateProduct)
+	admin.PUT("/products/:id", permMW("Produtos", permission.PermRW), productHandler.UpdateProductByID)
+	admin.DELETE("/products/:id", permMW("Produtos", permission.PermRW), productHandler.DeleteProductByID)
 
 	// Permissões
 	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode
