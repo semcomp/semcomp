@@ -17,7 +17,7 @@ func NewPagesHandler(service Service) *PagesHandler {
 }
 
 type SetPageAvailabilityRequest struct {
-	Available bool `json:"available" binding:"required"`
+	Available bool `json:"available"`
 }
 
 // GetAllPagesAvailabilityHandler returns the availability of all pages.

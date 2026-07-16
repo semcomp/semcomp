@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { FeatureKey } from "@/types/FeatureKeyType";
+import { pagesAPI } from "@/api/pages";
 
 type FeatureFlags = Record<FeatureKey, boolean>;
 
@@ -33,8 +34,7 @@ export function FeatureFlagsProvider({
   useEffect(() => {
     async function fetchFeatures() {
       try {
-        const response = await fetch("SUA_API_URL/api/features"); // Precisa ajustar a URL
-        const data = await response.json();
+        const data = await pagesAPI.getAllAvailability();
 
         // Garante que a home sempre estará ativa por segurança
         setFeatures({ ...defaultFlags, ...data, home: true });
