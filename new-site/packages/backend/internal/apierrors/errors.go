@@ -18,6 +18,7 @@ func (e *APIError) Error() string {
 	return e.Message
 }
 
+// Unwrap exposes the underlying error so errors.Is/As can traverse the chain.
 func (e *APIError) Unwrap() error {
 	return e.Err
 }

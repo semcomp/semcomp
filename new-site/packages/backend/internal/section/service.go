@@ -35,6 +35,7 @@ func GetInitialSections() []CreateSectionRequest {
 		{"Usuários Semcomp", "Gerencie os usuários participantes da Semcomp."},
 		{"Participações", "Gerencie as participações dos usuários nos eventos da Semcomp."},
 		{"Permissões", "Gerencie as permissões de acesso dos usuários ao sistema."},
+		{"Produtos", "Gerencie os produtos da Semcomp."},
 	}
 }
 

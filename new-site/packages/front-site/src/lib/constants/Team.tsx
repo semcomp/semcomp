@@ -19,7 +19,7 @@ const TEAM: TeamType = {
           nome: "Pedro Lunkes",
           position: "Presidente",
           linkedin: "https://www.linkedin.com/in/pedro-lunkes-villela-25a55224b",
-        },
+        }
       ],
     },
     {
@@ -83,6 +83,41 @@ const TEAM: TeamType = {
         {
           nome: "Pedro Perez",
           position: "Coordenador de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Quito",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Sofia",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Henrique",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Daniel",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Paffaro",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Jhonatan",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Kenzo",
+          position: "Membro de Site",
           linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
         },
       ],

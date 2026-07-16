@@ -9,8 +9,10 @@ import { BannerCard } from "@/components/BannerCard";
 import type { EventType } from "@/types/EventType";
 import { eventsAPI } from "@/api/events";
 import { useNotification } from "@/contexts/NotificationContext";
+import { useHasPermission } from "@/contexts/AuthContext";
 
 export default function Events() {
+  const canWrite = useHasPermission("Eventos", "RW");
   const navigate = useNavigate();
   const [data, setData] = useState<EventType[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -167,6 +169,7 @@ export default function Events() {
             serverSide
             totalRecords={totalRecords}
             onQueryChange={handleQueryChange}
+            canWrite={canWrite}
           />
       </div>
     </section>

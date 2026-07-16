@@ -69,11 +69,14 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 
 ### permission
 - Arquivo: `internal/permission/handler.go`
-- Rotas backoffice: `GET/POST /admin/permissions`, `GET /admin/permissions/user/:user`, `GET /admin/permissions/section/:section`, `PUT/DELETE /admin/permissions/:user/:section`
+- Rotas backoffice: `GET/POST /admin/permissions`, `GET /admin/permissions/me`, `GET /admin/permissions/section/:section`, `PUT/DELETE /admin/permissions/:user/:section`
+- `GetMyPermissions`: lê email do contexto JWT — sem URL param, sem validação de existência do usuário
 - Handler valida existência da seção e do usuário backoffice antes de criar/atualizar
 - Valida `PermissionType ∈ {"R", "RW"}` no handler
+- `PermissionLevel` type (`PermR` / `PermRW`) + `HasLevel(actual, required)` em `model.go`
+- `CheckPermission(email, section, required)` em `service.go` — usado pelo middleware
 - Entidade: [[Backend_Models#Permission]]
-- `InitializePermissions()` — inicializa permissões do admin padrão na startup
+- `InitializePermissions()` — inicializa permissões do admin padrão (5 seções, nível `RW`) na startup
 
 ### log
 - Arquivos: `internal/log/model.go` + `internal/log/repository.go` + `internal/log/service.go`
@@ -85,7 +88,10 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - `middleware/auth.go`:
   - `AuthMiddleware`: valida Bearer JWT site → injeta `userNumber(uint)` + `email(string)` no contexto Gin
   - `AuthBackofficeMiddleware`: valida Bearer JWT backoffice → injeta apenas `email(string)`
-- Ambos retornam 401 se token ausente/inválido
+- `middleware/permission.go`:
+  - `RequirePermission(permSvc, section, required)`: lê `email` do contexto Gin → chama `permSvc.CheckPermission` → 403 se nível insuficiente
+  - Deve rodar após `AuthBackofficeMiddleware`
+- Ambos os auth middleware retornam 401 se token ausente/inválido
 
 ### providers
 - `providers/jwt_provider.go` — interface `JWTProvider` com 4 métodos: `Generate`, `Parse`, `GenerateToBackoffice`, `ParseToBackoffice`
@@ -119,5 +125,7 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 | Site autenticado | `AuthMiddleware` | `/api` | `GET /api/profile` |
 | Admin público | — | `/admin` | `POST /admin/login` |
 | Backoffice | `AuthBackofficeMiddleware` | `/admin/` | users, events, presences, sections, usersBackoffice, permissions |
+
+> Todas as rotas backoffice (exceto `GET /permissions/me`) carregam também `RequirePermission(section, level)` via helper `permMW` definido em `main.go`.
 
 → Mapeamento detalhado endpoint por endpoint: [[Integracao_API]]

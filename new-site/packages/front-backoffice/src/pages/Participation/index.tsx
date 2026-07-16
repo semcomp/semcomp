@@ -9,8 +9,10 @@ import { API_FIELD_MAP, fields } from "@/data/participationCrudField";
 import { Tabs } from "@/constants/Tabs";
 import { participationAPI } from "@/api/participation";
 import { useNotification } from "@/contexts/NotificationContext";
+import { useHasPermission } from "@/contexts/AuthContext";
 
 export default function ParticipationCRUD() {
+  const canWrite = useHasPermission("Participações", "RW");
   const navigate = useNavigate();
   const [data, setData] = useState<ParticipationType[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -164,6 +166,7 @@ export default function ParticipationCRUD() {
           serverSide
           totalRecords={totalRecords}
           onQueryChange={handleQueryChange}
+          canWrite={canWrite}
         />
       </div>
     </section>

@@ -7,6 +7,7 @@ import (
 	"backend/internal/apierrors"
 	"backend/internal/permission"
 	"backend/internal/userBackoffice"
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -63,15 +64,16 @@ func (h *AuthBackofficeHandler) LoginBackofficeHandler(c *gin.Context) {
 	// Busca das permissões referentes a esse usuário
 	permissions, err := h.permissionService.GetPermissionByUser(backofficeRecord.Email)
 	if err != nil {
- 		if errors.Is(err, permission.ErrPermissionNotFound) {
- 			message = "Login realizado, mas você não possui permissões"
- 		} else {
- 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Erro na obtenção das permissões do usuário"})
- 			return
- 		}
- 	} else if len(permissions) == 0 {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Usuário existe mas ainda não tem permissões cadastradas — login liberado com permissões vazias
+			message = "Login realizado, mas você não possui permissões"
+		} else {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Erro na obtenção das permissões do usuário"})
+			return
+		}
+	} else if len(permissions) == 0 {
 		message = "Login realizado, mas você não possui permissões"
-	} 
+	}
 
 	// Confirmacao de login do usuario do backoffice (passa o token para o cliente)
 	c.Header("Content-Type", "application/json")
