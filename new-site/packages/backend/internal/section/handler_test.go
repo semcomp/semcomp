@@ -1,6 +1,7 @@
 package section
 
 import (
+	"backend/internal/apierrors"
 	"bytes"
 	"encoding/json"
 	"net/http"
@@ -100,7 +101,7 @@ func TestHandlerCreateSection_InvalidBody(t *testing.T) {
 func TestHandlerCreateSection_ServiceError(t *testing.T) {
 	mockService := &MockSectionService{
 		CreateSectionFunc: func(request CreateSectionRequest) (*Section, error) {
-			return nil, ErrSectionNotFound // simula erro interno
+			return nil, apierrors.InternalServerError("Não foi possivel criar a secao", nil)
 		},
 	}
 	handler := NewSectionHandler(mockService)
@@ -143,7 +144,7 @@ func TestHandlerGetSectionByName_Success(t *testing.T) {
 func TestHandlerGetSectionByName_NotFound(t *testing.T) {
 	mockService := &MockSectionService{
 		GetSectionByNameFunc: func(name string) (*Section, error) {
-			return nil, ErrSectionNotFound
+			return nil, apierrors.NotFoundError("Seção não encontrada", nil)
 		},
 	}
 	handler := NewSectionHandler(mockService)
@@ -208,7 +209,7 @@ func TestHandlerDeleteSectionByName_Success(t *testing.T) {
 func TestHandlerDeleteSectionByName_NotFound(t *testing.T) {
 	mockService := &MockSectionService{
 		DeleteSectionByNameFunc: func(name string) error {
-			return ErrSectionNotFound
+			return apierrors.NotFoundError("Seção não encontrada", nil)
 		},
 	}
 	handler := NewSectionHandler(mockService)
@@ -287,7 +288,7 @@ func TestHandlerUpdateSectionByName_InvalidBody(t *testing.T) {
 func TestHandlerUpdateSectionByName_NotFound(t *testing.T) {
 	mockService := &MockSectionService{
 		UpdateSectionByNameFunc: func(name string, request UpdateSectionRequest) (*Section, error) {
-			return nil, ErrSectionNotFound
+			return nil, apierrors.NotFoundError("Seção não encontrada", nil)
 		},
 	}
 	handler := NewSectionHandler(mockService)

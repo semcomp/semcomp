@@ -9,7 +9,8 @@ import (
 	"testing"
 	"time"
 
-	//Adicionar "backend/internal/apierrors" depois
+	"backend/internal/apierrors"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -78,7 +79,7 @@ func TestHandlerCreatePresence_Success(t *testing.T) {
 func TestHandlerGetPresence_NotFound(t *testing.T) {
 	svc := &mockPresenceService{
 		GetPresenceByUserEventandInitDateFunc: func(_, _, _ string) (*Presence, error) {
-			return nil, ErrPresenceNotFound //Depois substituir por apierrors.NotFoundError("Presenca não encontrada", nil)
+			return nil, apierrors.NotFoundError("Presenca não encontrada", nil)
 		},
 	}
 	router := setupRouter(NewPresenceHandler(svc))
@@ -95,7 +96,7 @@ func TestHandlerGetPresence_NotFound(t *testing.T) {
 func TestHandlerGetPresence_ValidationError(t *testing.T) {
 	svc := &mockPresenceService{
 		GetPresenceByUserEventandInitDateFunc: func(_, _, _ string) (*Presence, error) {
-			return nil, ErrInvalidEventDate //Depois substituir por apierrors.ValidationError("Data do evento inválida", nil)
+			return nil, apierrors.ValidationError("Data do evento inválida", nil)
 		},
 	}
 	router := setupRouter(NewPresenceHandler(svc))
@@ -112,7 +113,7 @@ func TestHandlerGetPresence_ValidationError(t *testing.T) {
 func TestHandlerDeletePresence_NotFound(t *testing.T) {
 	svc := &mockPresenceService{
 		DeletePresenceByUserEventandInitDateFunc: func(_, _, _ string) error {
-			return ErrPresenceNotFound //Depois substituir por apierrors.NotFoundError("Presenca não encontrada", nil)
+			return apierrors.NotFoundError("Presenca não encontrada", nil)
 		},
 	}
 	router := setupRouter(NewPresenceHandler(svc))
@@ -129,7 +130,7 @@ func TestHandlerDeletePresence_NotFound(t *testing.T) {
 func TestHandlerDeletePresence_ValidationError(t *testing.T) {
 	svc := &mockPresenceService{
 		DeletePresenceByUserEventandInitDateFunc: func(_, _, _ string) error {
-			return ErrInvalidEventDate //Depois substituir por apierrors.ValidationError("Data do evento inválida", nil)
+			return apierrors.ValidationError("Data do evento inválida", nil)
 		},
 	}
 	router := setupRouter(NewPresenceHandler(svc))
@@ -146,7 +147,7 @@ func TestHandlerDeletePresence_ValidationError(t *testing.T) {
 func TestHandlerUpdatePresence_NotFound(t *testing.T) {
 	svc := &mockPresenceService{
 		UpdatePresenceByUserEventandInitDateFunc: func(_, _, _ string, _ UpdatePresenceRequest) error {
-			return ErrPresenceNotFound //Depois substituir por apierrors.NotFoundError("Presenca não encontrada", nil)
+			return apierrors.NotFoundError("Presenca não encontrada", nil)
 		},
 	}
 	router := setupRouter(NewPresenceHandler(svc))
@@ -163,7 +164,7 @@ func TestHandlerUpdatePresence_NotFound(t *testing.T) {
 func TestHandlerUpdatePresence_ValidationError(t *testing.T) {
 	svc := &mockPresenceService{
 		UpdatePresenceByUserEventandInitDateFunc: func(_, _, _ string, _ UpdatePresenceRequest) error {
-			return ErrInvalidEventDate //Depois substituir por apierrors.ValidationError("Data do evento inválida", nil)
+			return apierrors.ValidationError("Data do evento inválida", nil)
 		},
 	}
 	router := setupRouter(NewPresenceHandler(svc))

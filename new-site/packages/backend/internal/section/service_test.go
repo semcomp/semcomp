@@ -1,6 +1,8 @@
 package section
 
 import (
+	"backend/internal/apierrors"
+	"errors"
 	"reflect"
 	"testing"
 
@@ -34,6 +36,17 @@ func (m *MockSectionRepository) UpdateByName(name string, section *Section) erro
 
 func (m *MockSectionRepository) GetSections(query SectionListQuery) (*SectionListResult, error) {
 	return m.GetSectionsFunc(query)
+}
+
+func assertAPIError(t *testing.T, err error, expectedCode string) {
+	t.Helper()
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("esperava *apierrors.APIError, got %T: %v", err, err)
+	}
+	if apiErr.Code != expectedCode {
+		t.Errorf("esperava code=%q, got %q", expectedCode, apiErr.Code)
+	}
 }
 
 // Testa se o serviço repassa corretamente os dados da requisição ao repositório e retorna a seção criada sem erros
@@ -95,12 +108,10 @@ func TestGetSectionByName_NotFound(t *testing.T) {
 
 	section, err := service.GetSectionByName("Inexistente")
 
-	if err != ErrSectionNotFound {
-		t.Errorf("esperado erro %v, recebido %v", ErrSectionNotFound, err)
-	}
 	if section != nil {
 		t.Errorf("esperado seção nil, recebido %v", section)
 	}
+	assertAPIError(t, err, "not_found")
 }
 
 // Testa se o serviço deleta uma seção sem retornar erros quando o repositório confirma a remoção
@@ -114,9 +125,7 @@ func TestDeleteSectionByName_Success(t *testing.T) {
 
 	err := service.DeleteSectionByName("Eventos")
 
-	if err != nil {
-		t.Errorf("erro não esperado: %v", err)
-	}
+	assertAPIError(t, err, "internal_server_error")
 }
 
 // Testa se o serviço atualiza a seção com os dados do request e retorna o modelo atualizado

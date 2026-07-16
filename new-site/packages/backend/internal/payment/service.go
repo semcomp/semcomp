@@ -59,11 +59,9 @@ func (s *paymentService) CreatePreference(req CreatePaymentRequest) (string, err
 
 	// Salva o pagamento como "pending" no banco
 	s.repo.Create(&Payment{
-		UserNumber:  req.UserNumber,
-		Status:      "pending",
-		Amount:      req.Amount,
-		Description: req.Description,
-		ExternalRef: fmt.Sprintf("user-%d", req.UserNumber),
+		UserNumber: req.UserNumber,
+		Status:     "pending",
+		Amount:     req.Amount,
 	})
 
 	return result["init_point"].(string), nil
