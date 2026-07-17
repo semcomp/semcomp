@@ -104,12 +104,16 @@ func main() {
 	// Rota para acessar a interface web do Swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Rotas Semcomp - Públicas
-	r.POST("/register", userHandler.CreateUser)
-	r.POST("/login", authHandler.LoginHandler)
+	pageMW := func(page string) gin.HandlerFunc {
+		return middleware.RequirePageAvailable(pagesService, page)
+	}
 
-	r.GET("/events", eventHandler.GetEvents)
-	r.GET("/event/:eventName/:initDate", eventHandler.GetEventByNameAndInitDate)
+	// Rotas Semcomp - Públicas
+	r.POST("/register", pageMW("login"), userHandler.CreateUser)
+	r.POST("/login", pageMW("login"), authHandler.LoginHandler)
+
+	r.GET("/events", pageMW("cronograma"), eventHandler.GetEvents)
+	r.GET("/event/:eventName/:initDate", pageMW("cronograma"), eventHandler.GetEventByNameAndInitDate)
 
 	r.GET("/pages/availability", pagesHandler.GetAllPagesAvailabilityHandler)
 	r.GET("/pages/:page/availability", pagesHandler.GetPageAvailabilityHandler)
