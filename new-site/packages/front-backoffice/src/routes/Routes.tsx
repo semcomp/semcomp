@@ -1,11 +1,11 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import App from "@/App";
 import RequireAuth from "@/lib/RequireAuth";
+import RequirePermission from "@/lib/RequirePermission";
 import LoginPage from "@/pages/Login";
 import HomePage from "@/pages/Home";
 import EventsCRUD from "@/pages/Events";
 import QRCodeReader from "@/pages/Events/QRCodeReader";
-import Sections from "@/pages/Section";
 import SemcompUsersCRUD from "@/pages/UserSemcomp";
 import BackofficeUsersCRUD from "@/pages/UserBackoffice";
 import ParticipationCRUD from "@/pages/Participation";
@@ -34,37 +34,32 @@ export const router = createBrowserRouter(
               element: <HomePage />,
             },
             {
-              path: "/sections",
-              element: <Sections />,
+              element: <RequirePermission section="Eventos" />,
+              children: [
+                { path: "/events", element: <EventsCRUD /> },
+                { path: "/events/:nameEvent/:datetime/qrcode-reader", element: <QRCodeReader /> },
+              ],
             },
             {
-              path: "/events",
-              element: <EventsCRUD />,
+              element: <RequirePermission section="Usuários Semcomp" />,
+              children: [{ path: "/semcomp-users", element: <SemcompUsersCRUD /> }],
             },
             {
-              path: "/events/:nameEvent/:datetime/qrcode-reader",
-              element: <QRCodeReader />,
+              element: <RequirePermission section="Usuários Backoffice" />,
+              children: [{ path: "/backoffice-users", element: <BackofficeUsersCRUD /> }],
             },
             {
-              path: "/semcomp-users",
-              element: <SemcompUsersCRUD />,
+              element: <RequirePermission section="Participações" />,
+              children: [{ path: "/participation", element: <ParticipationCRUD /> }],
             },
             {
-              path: "/backoffice-users",
-              element: <BackofficeUsersCRUD />,
-            },
-            {
-              path: "/participation",
-              element: <ParticipationCRUD />,
-            },
-            {
-              path: "/permissions",
-              element: <PermissionsCRUD />,
+              element: <RequirePermission section="Permissões" />,
+              children: [{ path: "/permissions", element: <PermissionsCRUD /> }],
             },
             {
               path: "*",
               element: <NotFoundPage />,
-            }
+            },
           ],
         },
       ],

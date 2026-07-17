@@ -14,7 +14,6 @@ import (
 	"backend/internal/permission"
 	"backend/internal/presence"
 	"backend/internal/providers"
-	"backend/internal/section"
 	"backend/internal/token"
 	"backend/internal/user"
 	"backend/internal/userBackoffice"
@@ -23,6 +22,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	_ "backend/docs"
+
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -46,7 +46,7 @@ func main() {
 	// coluna email_verified é nova e não deve bloquear o login de usuários antigos.
 	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &section.Section{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &token.Token{})
+	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &token.Token{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -95,31 +95,23 @@ func main() {
 	presenceService := presence.NewPresenceService(presenceRepo)
 	presenceHandler := presence.NewPresenceHandler(presenceService)
 
-	sectionRepo := section.NewSectionRepository(db)
-	sectionService := section.NewSectionService(sectionRepo)
-	sectionHandler := section.NewSectionHandler(sectionService)
-
 	logRepo := log.NewRepository(db)
 	logService := log.NewService(logRepo)
 
-	userBackofficeRepo := userBackoffice.NewUserBackofficeRepository(db)
-	userBackofficeService := userBackoffice.NewUserBackofficeService(userBackofficeRepo, passwordProvider)
-	userBackofficeHandler := userBackoffice.NewUserBackofficeHandler(userBackofficeService)
-
 	permissionRepo := permission.NewPermissionRepository(db)
 	permissionService := permission.NewPermissionService(permissionRepo)
-	permissionHandler := permission.NewPermissionHandler(permissionService, sectionService, userBackofficeService)
+
+	userBackofficeRepo := userBackoffice.NewUserBackofficeRepository(db)
+	userBackofficeService := userBackoffice.NewUserBackofficeService(userBackofficeRepo, passwordProvider, permissionService.SeedUserPermissions)
+	userBackofficeHandler := userBackoffice.NewUserBackofficeHandler(userBackofficeService)
+
+	permissionHandler := permission.NewPermissionHandler(permissionService, userBackofficeService)
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
 
 	authBackofficeService := authBackoffice.NewAuthBackofficeService(userBackofficeRepo, passwordProvider, jwtProvider)
 	authBackofficeHandler := authBackoffice.NewAuthBackofficeHandler(authBackofficeService, userBackofficeService, permissionService)
-
-	// Inicialização de valores base de seções para o banco de dados
-	if err := sectionService.InitializeSections(); err != nil {
-		panic("Failed to initialize sections in backoffice: " + err.Error())
-	}
 
 	// Inicialização de valores base de admin para o banco de dados
 	if err := userBackofficeService.InitializeAdmin(); err != nil {
@@ -145,7 +137,7 @@ func main() {
 	// Rota para acessar a interface web do Swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Rotas Públicas
+	// Rotas Semcomp - Públicas
 	r.POST("/register", userHandler.CreateUser)
 	r.POST("/login", authHandler.LoginHandler)
 	r.POST("/forgot-password", userHandler.ForgotPasswordHandler)
@@ -156,53 +148,60 @@ func main() {
 	r.GET("/events", eventHandler.GetEvents)
 	r.GET("/event/:eventName/:initDate", eventHandler.GetEventByNameAndInitDate)
 
-	// Rotas Protegidas (Exigem Autenticação)
+	// Rotas Semcomp - Protegidas
 	authRoutes := r.Group("/api")
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 
-	// Rota Login Backoffice
+	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")
 	adminRoutes.POST("/login", authBackofficeHandler.LoginBackofficeHandler)
 
-	// Rotas Backoffice (Exigem Autenticação)
-	backofficeRoutes := adminRoutes.Group("/")
-	backofficeRoutes.Use(middleware.AuthBackofficeMiddleware(jwtProvider))
-	backofficeRoutes.PUT("/users/:id", userHandler.UpdateUser)
-	backofficeRoutes.DELETE("/users/:id", userHandler.DeleteUser)
-	backofficeRoutes.GET("/users", userHandler.GetAllUsers)
-	backofficeRoutes.GET("/users/:id", userHandler.GetUserByID)
-	backofficeRoutes.POST("/users", userHandler.CreateUser)
+	// Rotas Backoffice - Protegidas
+	admin := adminRoutes.Group("/")
+	admin.Use(middleware.AuthBackofficeMiddleware(jwtProvider))
 
-	backofficeRoutes.POST("/events", eventHandler.CreateEvent)
-	backofficeRoutes.PUT("/events/:eventName/:initDate", eventHandler.UpdateEventByNameAndInitDate)
-	backofficeRoutes.DELETE("/events/:eventName/:initDate", eventHandler.DeleteEventByNameAndInitDate)
+	permMW := func(section string, level permission.PermissionLevel) gin.HandlerFunc {
+		return middleware.RequirePermission(permissionService, section, level)
+	}
 
-	backofficeRoutes.POST("/presences", presenceHandler.CreatePresence)
-	backofficeRoutes.GET("/presences", presenceHandler.GetPresences)
-	backofficeRoutes.GET("/presences/:userNumber/:eventName/:eventInitDate", presenceHandler.GetPresenceByUserEventandInitDate)
-	backofficeRoutes.PUT("/presences/:userNumber/:eventName/:eventInitDate", presenceHandler.UpdatePresenceByUserEventandInitDate)
-	backofficeRoutes.DELETE("/presences/:userNumber/:eventName/:eventInitDate", presenceHandler.DeletePresenceByUserEventandInitDate)
+	// Usuários Semcomp
+	admin.GET("/users", permMW("Usuários Semcomp", permission.PermR), userHandler.GetAllUsers)
+	admin.GET("/users/:id", permMW("Usuários Semcomp", permission.PermR), userHandler.GetUserByID)
+	admin.POST("/users", permMW("Usuários Semcomp", permission.PermRW), userHandler.CreateUser)
+	admin.PUT("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.UpdateUser)
+	admin.DELETE("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.DeleteUser)
 
-	backofficeRoutes.POST("/sections", sectionHandler.CreateSection)
-	backofficeRoutes.GET("/sections", sectionHandler.GetSections)
-	backofficeRoutes.GET("/sections/:sectionName", sectionHandler.GetSectionByName)
-	backofficeRoutes.PUT("/sections/:sectionName", sectionHandler.UpdateSectionByName)
-	backofficeRoutes.DELETE("/sections/:sectionName", sectionHandler.DeleteSectionByName)
+	// Eventos
+	admin.POST("/events", permMW("Eventos", permission.PermRW), eventHandler.CreateEvent)
+	// GET nos eventos - Consulta pública via GET /events
+	admin.PUT("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.UpdateEventByNameAndInitDate)
+	admin.DELETE("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.DeleteEventByNameAndInitDate)
 
-	backofficeRoutes.POST("/usersBackoffice", userBackofficeHandler.CreateUser)
-	backofficeRoutes.GET("/usersBackoffice", userBackofficeHandler.GetAllUsers)
-	backofficeRoutes.GET("/usersBackoffice/:email", userBackofficeHandler.GetUserByEmail)
-	backofficeRoutes.PUT("/usersBackoffice/:email", userBackofficeHandler.UpdateUser)
-	backofficeRoutes.DELETE("/usersBackoffice/:email", userBackofficeHandler.DeleteUser)
+	// Participações
+	admin.GET("/presences", permMW("Participações", permission.PermR), presenceHandler.GetPresences)
+	admin.GET("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermR), presenceHandler.GetPresenceByUserEventandInitDate)
+	admin.POST("/presences", permMW("Participações", permission.PermRW), presenceHandler.CreatePresence)
+	admin.PUT("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermRW), presenceHandler.UpdatePresenceByUserEventandInitDate)
+	admin.DELETE("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermRW), presenceHandler.DeletePresenceByUserEventandInitDate)
 
-	backofficeRoutes.POST("/permissions", permissionHandler.CreatePermission)
-	backofficeRoutes.GET("/permissions", permissionHandler.GetPermissions)
-	backofficeRoutes.GET("/permissions/user/:user", permissionHandler.GetPermissionByUser)
-	backofficeRoutes.GET("/permissions/section/:section", permissionHandler.GetPermissionBySection)
-	backofficeRoutes.PUT("/permissions/:user/:section", permissionHandler.UpdatePermissionByUserSection)
-	backofficeRoutes.DELETE("/permissions/:user/:section", permissionHandler.DeletePermissionByUserSection)
+	// Usuários Backoffice
+	admin.GET("/usersBackoffice", permMW("Usuários Backoffice", permission.PermR), userBackofficeHandler.GetAllUsers)
+	admin.GET("/usersBackoffice/:email", permMW("Usuários Backoffice", permission.PermR), userBackofficeHandler.GetUserByEmail)
+	admin.POST("/usersBackoffice", permMW("Usuários Backoffice", permission.PermRW), userBackofficeHandler.CreateUser)
+	admin.PUT("/usersBackoffice/:email", permMW("Usuários Backoffice", permission.PermRW), userBackofficeHandler.UpdateUser)
+	admin.DELETE("/usersBackoffice/:email", permMW("Usuários Backoffice", permission.PermRW), userBackofficeHandler.DeleteUser)
+
+	// Permissões
+	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode
+	// consultar suas próprias permissões (email lido do JWT, não do URL)
+	admin.GET("/permissions/me", permissionHandler.GetMyPermissions)
+	admin.GET("/permissions", permMW("Permissões", permission.PermR), permissionHandler.GetPermissions)
+	admin.GET("/permissions/section/:section", permMW("Permissões", permission.PermR), permissionHandler.GetPermissionBySection)
+	admin.POST("/permissions", permMW("Permissões", permission.PermRW), permissionHandler.CreatePermission)
+	admin.PUT("/permissions/:user/:section", permMW("Permissões", permission.PermRW), permissionHandler.UpdatePermissionByUserSection)
+	admin.DELETE("/permissions/:user/:section", permMW("Permissões", permission.PermRW), permissionHandler.DeletePermissionByUserSection)
 
 	r.Run(":4000")
 }

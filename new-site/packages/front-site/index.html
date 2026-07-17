@@ -4,10 +4,21 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./src/assets/img/semcomp/logo_default_preto.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Semcomp</title>
+    <title>SEMCOMP</title>
   </head>
   <body>
     <div id="root"></div>
+    <!-- Aplica .dark no <html> antes do React montar — evita flash de tema errado -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('semcomp-theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var dark = stored === 'dark' || (!stored && prefersDark);
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (_) {}
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import type {
   NotificationProps,
   NotificationType,
@@ -31,24 +30,22 @@ export function Notification({
   const p = (palette as any)[type] ?? palette.info;
 
   return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.25 }}
-          className="fixed left-1/2 top-6 z-50 -translate-x-1/2 max-w-xl w-[min(90%,600px)] rounded-lg shadow-lg"
-          style={{ backgroundColor: p.light, borderTop: `4px solid ${p.dark}` }}
-        >
-          <div className="px-4 py-3 text-center">
-            <p className="m-0 text-sm font-semibold" style={{ color: p.text }}>
-              {message}
-            </p>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div
+      className={`
+        fixed left-1/2 top-6 z-50 -translate-x-1/2 max-w-xl w-[min(90%,600px)]
+        rounded-lg shadow-lg transition-[opacity,transform] duration-300 ease-out
+        ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'}
+      `}
+      style={{ backgroundColor: p.light, borderTop: `4px solid ${p.dark}` }}
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <div className="px-4 py-3 text-center">
+        <p className="m-0 text-sm font-semibold" style={{ color: p.text }}>
+          {message}
+        </p>
+      </div>
+    </div>
   );
 }
 

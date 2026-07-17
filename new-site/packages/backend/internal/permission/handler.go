@@ -3,22 +3,21 @@ package permission
 import (
 	"errors"
 	"net/http"
+	"slices"
 	"strconv"
 
 	"backend/internal/apierrors"
-	"backend/internal/section"
 	"backend/internal/userBackoffice"
 	"github.com/gin-gonic/gin"
 )
 
 type PermissionHandler struct {
 	permissionService     PermissionService
-	sectionService        section.SectionService
 	userBackofficeService userBackoffice.UserBackofficeService
 }
 
-func NewPermissionHandler(permissionService PermissionService, sectionService section.SectionService, userBService userBackoffice.UserBackofficeService) *PermissionHandler {
-	return &PermissionHandler{permissionService: permissionService, sectionService: sectionService, userBackofficeService: userBService}
+func NewPermissionHandler(permissionService PermissionService, userBService userBackoffice.UserBackofficeService) *PermissionHandler {
+	return &PermissionHandler{permissionService: permissionService, userBackofficeService: userBService}
 }
 
 // CreatePermission processa o payload JSON e tenta criar uma nova permissão.
@@ -42,7 +41,7 @@ func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.sectionService.GetSectionByName(request.SectionName); err != nil {
+	if !slices.Contains(KnownSections, request.SectionName) {
 		c.Set("responseMessage", "Seção inexistente")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Seção inexistente"})
 		return
@@ -53,7 +52,7 @@ func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 		return
 	}
 
-	if request.PermissionType != "R" && request.PermissionType != "RW" {
+	if request.PermissionType == nil || (*request.PermissionType != "R" && *request.PermissionType != "RW") {
 		c.Set("responseMessage", "Valor de Permissão inválido")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Valor de Permissão inválido"})
 		return
@@ -128,28 +127,20 @@ func (h *PermissionHandler) GetPermissions(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// GetPermissionByUser retorna as permissões de um usuário específico do backoffice.
-// @Summary Busca permissões por usuário
-// @Description Retorna as permissões vinculadas a um usuário do backoffice
+// GetMyPermissions retorna as permissões do admin autenticado, lidas do token JWT.
+// @Summary Busca minhas permissões
+// @Description Retorna as permissões do próprio admin autenticado
 // @Tags Permission Backoffice
-// @Accept json
 // @Produce json
-// @Param user path string true "Email do usuário do backoffice"
 // @Success 200 {array} permission.Permission "Permissões encontradas"
-// @Failure 400 {object} map[string]string "Usuário inexistente"
 // @Failure 404 {object} map[string]string "Permissão não encontrada"
 // @Failure 500 {object} map[string]string "Erro interno"
 // @Security BearerAuth
-// @Router /admin/permissions/user/{user} [get]
-func (h *PermissionHandler) GetPermissionByUser(c *gin.Context) {
-	user := c.Param("user")
+// @Router /admin/permissions/me [get]
+func (h *PermissionHandler) GetMyPermissions(c *gin.Context) {
+	email := c.MustGet("email").(string)
 
-	if _, err := h.userBackofficeService.GetUserByEmail(user); err != nil {
-		apierrors.HandleAPIError(c, err)
-		return
-	}
-
-	permission, err := h.permissionService.GetPermissionByUser(user)
+	permission, err := h.permissionService.GetPermissionByUser(email)
 	if err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
@@ -174,8 +165,9 @@ func (h *PermissionHandler) GetPermissionByUser(c *gin.Context) {
 func (h *PermissionHandler) GetPermissionBySection(c *gin.Context) {
 	section := c.Param("section")
 
-	if _, err := h.sectionService.GetSectionByName(section); err != nil {
-		apierrors.HandleAPIError(c, err)
+	if !slices.Contains(KnownSections, section) {
+		c.Set("responseMessage", "Seção inexistente")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Seção inexistente"})
 		return
 	}
 
@@ -214,7 +206,7 @@ func (h *PermissionHandler) UpdatePermissionByUserSection(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.sectionService.GetSectionByName(request.SectionName); err != nil {
+	if !slices.Contains(KnownSections, request.SectionName) {
 		c.Set("responseMessage", "Seção inexistente")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Seção inexistente"})
 		return
@@ -226,7 +218,7 @@ func (h *PermissionHandler) UpdatePermissionByUserSection(c *gin.Context) {
 		return
 	}
 
-	if request.PermissionType != "R" && request.PermissionType != "RW" {
+	if request.PermissionType != nil && (*request.PermissionType != "R" && *request.PermissionType != "RW") {
 		c.Set("responseMessage", "Valor de Permissão inválido")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Valor de Permissão inválido"})
 		return

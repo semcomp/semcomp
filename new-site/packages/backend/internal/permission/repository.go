@@ -97,7 +97,7 @@ func (r *permissionRepository) UpdateByUserSection(user string, section string, 
 	}
 
 	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
+		return r.db.Create(updatedPermission).Error
 	}
 
 	return nil

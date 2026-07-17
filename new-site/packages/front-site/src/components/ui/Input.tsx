@@ -6,15 +6,14 @@ type InputProps = {
     label: string
     type?: string
     value: string
-    isDarkMode?: boolean
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     placeholder?: string
     required?: boolean
   }
 
   // Componente de input customizado que já com estilizações
-
   export default function Input({
+
     label,
     type = "text",
     value,

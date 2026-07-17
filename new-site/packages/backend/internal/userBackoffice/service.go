@@ -20,10 +20,11 @@ type UserBackofficeService interface {
 type userBackofficeService struct {
 	repo             UserBackofficeRepository
 	passwordProvider providers.PasswordProvider
+	onUserCreated    func(email string) error
 }
 
-func NewUserBackofficeService(repo UserBackofficeRepository, passwordProvider providers.PasswordProvider) UserBackofficeService {
-	return &userBackofficeService{repo: repo, passwordProvider: passwordProvider}
+func NewUserBackofficeService(repo UserBackofficeRepository, passwordProvider providers.PasswordProvider, onUserCreated func(email string) error) UserBackofficeService {
+	return &userBackofficeService{repo: repo, passwordProvider: passwordProvider, onUserCreated: onUserCreated}
 }
 
 func (s *userBackofficeService) InitializeAdmin() error {
@@ -70,6 +71,10 @@ func (s *userBackofficeService) CreateUser(request CreateUserBackofficeRequest) 
 
 	if err := s.repo.Create(&newUser); err != nil {
 		return nil, apierrors.InternalServerError("Erro ao criar usuário", err)
+	}
+
+	if s.onUserCreated != nil {
+		_ = s.onUserCreated(newUser.Email)
 	}
 
 	safe := ToSafeUserB(&newUser)

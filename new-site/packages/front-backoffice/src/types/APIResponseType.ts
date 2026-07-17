@@ -6,10 +6,17 @@ export interface BackofficeUser {
   email: string;
 }
 
+export interface BackofficePermission {
+  user_email: string;
+  section_name: string;
+  permission_type: "R" | "RW" | null;
+}
+
 export interface LoginResponse {
   message: string;
   user: BackofficeUser;
   token: string;
+  permissions: BackofficePermission[];
 }
 
 export interface RegisterResponse {

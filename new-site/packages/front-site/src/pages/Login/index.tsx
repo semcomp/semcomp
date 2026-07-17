@@ -583,7 +583,7 @@ export default function LoginPage(): ReactElement {
         : "shadow-[-10px_-15px_0px_0px_#b3cde0,15px_-40px_0px_0px_#dbe9f4]";
 
     return (
-        <>
+        <div>
             <div className={`h-[calc(100vh-80px)] w-full flex items-center justify-center ${bgColor} overflow-hidden`}>
                 
                 {/* 1. MODO DESKTOP (Travado em h-[600px] para nunca quebrar ou criar rolagem) */}
@@ -620,6 +620,6 @@ export default function LoginPage(): ReactElement {
             </div>
 
             <TermsModal open={termsOpen} onClose={() => setTermsOpen(false)} content={termsContent} />
-        </>
+        </div>
     );
 }

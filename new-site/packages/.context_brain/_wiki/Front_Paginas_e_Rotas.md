@@ -64,13 +64,12 @@ Porta dev: **5174** | `basename: "/admin"` | Router: React Router v6 (static imp
 |---|---|---|---|---|
 | `/login` | `pages/Login/index.tsx` | — | [[Integracao_API#POST_admin_login]] | ✅ |
 | `/home` | `pages/Home/index.tsx` | `RequireAuth` | — (só navegação) | ✅ |
-| `/sections` | `pages/Section/index.tsx` | `RequireAuth` | [[Integracao_API#Sections_Backoffice]] | ✅ |
-| `/events` | `pages/Events/index.tsx` | `RequireAuth` | [[Integracao_API#Events_Backoffice]] | ✅ |
-| `/events/:nameEvent/:datetime/qrcode-reader` | `pages/Events/QRCodeReader/index.tsx` | `RequireAuth` | [[Integracao_API#POST_admin_presences]] | ✅ |
-| `/semcomp-users` | `pages/UserSemcomp/index.tsx` | `RequireAuth` | [[Integracao_API#Users_Backoffice]] | ✅ |
-| `/backoffice-users` | `pages/UserBackoffice/index.tsx` | `RequireAuth` | [[Integracao_API#UsersBackoffice_Backoffice]] | ✅ |
-| `/participation` | `pages/Participation/index.tsx` | `RequireAuth` | [[Integracao_API#Presences_Backoffice]] | ✅ |
-| `/permissions` | `pages/Permission/index.tsx` | `RequireAuth` | ⚠️ mock (`samplePermissions`) | ❌ TODO |
+| `/events` | `pages/Events/index.tsx` | `RequireAuth` + `RequirePermission "Eventos"` | [[Integracao_API#Events_Backoffice]] | ✅ |
+| `/events/:nameEvent/:datetime/qrcode-reader` | `pages/Events/QRCodeReader/index.tsx` | `RequireAuth` + `RequirePermission "Eventos"` | [[Integracao_API#POST_admin_presences]] | ✅ |
+| `/semcomp-users` | `pages/UserSemcomp/index.tsx` | `RequireAuth` + `RequirePermission "Usuários Semcomp"` | [[Integracao_API#Users_Backoffice]] | ✅ |
+| `/backoffice-users` | `pages/UserBackoffice/index.tsx` | `RequireAuth` + `RequirePermission "Usuários Backoffice"` | [[Integracao_API#UsersBackoffice_Backoffice]] | ✅ |
+| `/participation` | `pages/Participation/index.tsx` | `RequireAuth` + `RequirePermission "Participações"` | [[Integracao_API#Presences_Backoffice]] | ✅ |
+| `/permissions` | `pages/Permission/index.tsx` | `RequireAuth` + `RequirePermission "Permissões"` | [[Integracao_API#Permissions_Backoffice]] | ✅ |
 | `*` | `pages/NotFound/index.tsx` | `RequireAuth` | — | — |
 
 ### Home do Backoffice (`/home`) — Tabs de Navegação
@@ -79,7 +78,6 @@ Exibe cards clicáveis, um por Tab, que navegam para cada CRUD:
 
 | Tab key | Label | Rota |
 |---|---|---|
-| `sections` | Seções | `/sections` |
 | `events` | Eventos | `/events` |
 | `backoffice-users` | Usuários Backoffice | `/backoffice-users` |
 | `users-semcomp` | Usuários Semcomp | `/semcomp-users` |
