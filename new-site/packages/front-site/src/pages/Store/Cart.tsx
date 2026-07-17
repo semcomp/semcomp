@@ -144,7 +144,7 @@ export default function CartPage() {
             >
               {items.map((item) => (
                 <motion.div
-                  key={item.id}
+                  key={item.cartKey}
                   variants={fadeIn}
                   className={`flex gap-4 rounded-2xl border ${cardBorder} ${cardBg} p-4 sm:p-5 ${cardShadow}`}
                 >
@@ -162,11 +162,29 @@ export default function CartPage() {
                         <h3 className={`font-poppins font-bold leading-tight ${textColor}`}>
                           {item.name}
                         </h3>
-                        <p className={`text-xs ${mutedText}`}>{formatBRL(item.price)}/un</p>
+                        {/* Opções selecionadas */}
+                        {item.size && (
+                          <p className={`text-xs ${mutedText} mt-0.5`}>
+                            Tamanho: <span className="font-semibold">{item.size}</span>
+                          </p>
+                        )}
+                        {item.dateTime && (
+                          <p className={`text-xs ${mutedText} mt-0.5`}>
+                            🕐 {new Date(item.dateTime).toLocaleDateString("pt-BR", {
+                              day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit"
+                            })}
+                          </p>
+                        )}
+                        {item.isBabydoll && (
+                          <p className={`text-xs ${mutedText} mt-0.5`}>
+                            Modelo: <span className="font-semibold">Babydoll</span>
+                          </p>
+                        )}
+                        <p className={`text-xs ${mutedText} mt-0.5`}>{formatBRL(item.price)}/un</p>
                       </div>
                       <button
                         type="button"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item.cartKey)}
                         aria-label={`Remover ${item.name}`}
                         className={`shrink-0 rounded-full p-2 ${mutedText} hover:bg-red-500/10 hover:text-red-500 transition-colors cursor-pointer`}
                       >
@@ -181,7 +199,7 @@ export default function CartPage() {
                       >
                         <button
                           type="button"
-                          onClick={() => updateQuantity(item.id, -1)}
+                          onClick={() => updateQuantity(item.cartKey, -1)}
                           aria-label="Diminuir"
                           className={`w-8 h-8 rounded-full border ${cardBorder} flex items-center justify-center ${textColor} hover:bg-semcompLightBlue/20 transition-colors cursor-pointer`}
                         >
@@ -192,7 +210,7 @@ export default function CartPage() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => updateQuantity(item.id, 1)}
+                          onClick={() => updateQuantity(item.cartKey, 1)}
                           aria-label="Aumentar"
                           className={`w-8 h-8 rounded-full border ${cardBorder} flex items-center justify-center ${textColor} hover:bg-semcompLightBlue/20 transition-colors cursor-pointer`}
                         >

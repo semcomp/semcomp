@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/contexts/useTheme";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Modal from "@/components/ui/Modal";
-import { useCart } from "@/contexts/CartContext";
-import { ShoppingCart, Minus, Plus, X, ShoppingBag, Package } from "lucide-react";
+import { useCart, type AddToCartParams } from "@/contexts/CartContext";
+import { ShoppingCart, Minus, Plus, X, ShoppingBag, Package, Loader2 } from "lucide-react";
+import { productsAPI } from "@/api/products";
+import type { Product, ProductType } from "@/types/ProductType";
 
 // ─── Tipos ────────────────────────────────────────────────
 interface StoreItem {
@@ -17,75 +19,84 @@ interface StoreItem {
   priceValue: number;
   badge?: string;
   image: string;
+  /** Categoria raw (KIT | COFFEE | COMBO) */
+  rawType: ProductType;
+  /** Opções disponíveis para o produto */
+  availableSizes: string[];
+  availableDateTimes: string[];
+  /** Opções pré-selecionadas */
+  defaultSize?: string;
+  defaultDateTime?: string;
+  isBabydoll?: boolean;
 }
 
-// ─── Mock ─────────────────────────────────────────────────
-const MOCK_ITEMS: StoreItem[] = [
-  {
-    id: "1",
-    name: "Camiseta SEMCOMP",
-    category: "Vestuário",
-    description:
-      "Camiseta oficial da Semcomp com tecido 100% algodão e estampa exclusiva. Disponível nos tamanhos P ao GG.",
-    price: "R$ 59,90",
-    priceValue: 59.9,
-    badge: "Novo",
-    image: "https://placehold.co/600x400/0B2639/FAFDFF?text=Camiseta",
-  },
-  {
-    id: "2",
-    name: "Caneca Térmica",
-    category: "Acessórios",
-    description:
-      "Caneca térmica de 350ml com o logo da Semcomp. Mantém sua bebida na temperatura ideal por horas.",
-    price: "R$ 39,90",
-    priceValue: 39.9,
-    badge: "Popular",
-    image: "https://placehold.co/600x400/105079/FAFDFF?text=Caneca",
-  },
-  {
-    id: "3",
-    name: "Kit Adesivos",
-    category: "Papelaria",
-    description:
-      "Pack com 10 adesivos exclusivos da Semcomp para personalizar seu notebook, celular e cadernos.",
-    price: "R$ 14,90",
-    priceValue: 14.9,
-    image: "https://placehold.co/600x400/357BA3/FAFDFF?text=Adesivos",
-  },
-  {
-    id: "4",
-    name: "Moletom Semcomp",
-    category: "Vestuário",
-    description:
-      "Moletom quentinho com capuz e forro interno felpado, perfeito para os dias frios de palestras.",
-    price: "R$ 129,90",
-    priceValue: 129.9,
-    badge: "Premium",
-    image: "https://placehold.co/600x400/003050/D2EDFF?text=Moletom",
-  },
-  {
-    id: "5",
-    name: "Garrafa Squeeze",
-    category: "Acessórios",
-    description:
-      "Garrafa reutilizável de 500ml em aço inox, ideal para se manter hidratado durante o evento.",
-    price: "R$ 34,90",
-    priceValue: 34.9,
-    image: "https://placehold.co/600x400/0B2639/D2EDFF?text=Squeeze",
-  },
-  {
-    id: "6",
-    name: "Poster Oficial",
-    category: "Decoração",
-    description:
-      "Pôster tamanho A3 com a arte oficial da Semcomp. Edição limitada — garanta já o seu!",
-    price: "R$ 19,90",
-    priceValue: 19.9,
-    badge: "Limitado",
-    image: "https://placehold.co/600x400/105079/D2EDFF?text=Poster",
-  },
-];
+function collectComboDateTimes(product: Product, productById: Map<number, Product>): string[] {
+  if (product.type !== "COMBO" || !product.combo_items?.length) return [];
+
+  const dateTimes = new Set<string>();
+  for (const comboItem of product.combo_items) {
+    const referencedProduct = productById.get(comboItem.item_id);
+    if (referencedProduct?.type === "COFFEE" && referencedProduct.coffee?.date_time) {
+      dateTimes.add(referencedProduct.coffee.date_time);
+    }
+  }
+
+  return [...dateTimes];
+}
+
+// ─── Helpers ──────────────────────────────────────────────
+function formatBRL(value: number): string {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+const SIZES = ["PP", "P", "M", "G", "GG", "XG"];
+
+function productToStoreItem(p: Product, productById: Map<number, Product>): StoreItem {
+  const categoryMap: Record<string, string> = {
+    KIT: "Kit",
+    COFFEE: "Coffee Break",
+    COMBO: "Combo",
+  };
+
+  const name = p.kit?.name ?? p.coffee?.name ?? p.type;
+  const availableDateTimes =
+    p.type === "COMBO"
+      ? collectComboDateTimes(p, productById)
+      : p.coffee?.date_time
+        ? [p.coffee.date_time]
+        : [];
+  const description = p.kit
+    ? `${p.kit.size} · ${p.kit.color}${p.kit.is_babydoll ? " · Babydoll" : ""}`
+    : p.type === "COMBO"
+      ? `Combo com ${p.combo_items?.length ?? 0} itens`
+      : "Coffee Break da Semcomp";
+
+  return {
+    id: String(p.id),
+    name,
+    category: categoryMap[p.type] ?? p.type,
+    description,
+    price: formatBRL(p.price),
+    priceValue: p.price,
+    image: `https://placehold.co/600x400/0B2639/FAFDFF?text=${encodeURIComponent(name)}`,
+    rawType: p.type,
+    availableSizes: SIZES,
+    availableDateTimes,
+    defaultSize: p.kit?.size ?? undefined,
+    defaultDateTime: availableDateTimes[0] ?? undefined,
+    isBabydoll: p.kit?.is_babydoll ?? undefined,
+  };
+}
 
 // ─── Constantes de animação ──────────────────────────────
 const fadeIn = {
@@ -124,6 +135,33 @@ export default function StorePage() {
 
   const [selected, setSelected] = useState<StoreItem | null>(null);
   const [qty, setQty] = useState(1);
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedDateTime, setSelectedDateTime] = useState<string>("");
+  const [selectedIsBabydoll, setSelectedIsBabydoll] = useState(false);
+  const [products, setProducts] = useState<StoreItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Busca produtos da API
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchProducts() {
+      try {
+        setLoading(true);
+        const data = await productsAPI.getAllProducts();
+        if (!cancelled) {
+          const selling = data.products.filter((p) => p.is_selling);
+          const productById = new Map(selling.map((p) => [p.id, p] as const));
+          setProducts(selling.map((product) => productToStoreItem(product, productById)));
+        }
+      } catch {
+        if (!cancelled) setProducts([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchProducts();
+    return () => { cancelled = true; };
+  }, []);
 
   // ─── Cores responsivas ao tema ──────────────────────────
   const bgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompLightBlue";
@@ -150,6 +188,9 @@ export default function StorePage() {
   const openModal = (item: StoreItem) => {
     setSelected(item);
     setQty(1);
+    setSelectedSize(item.defaultSize ?? (item.rawType !== "COFFEE" ? SIZES[0] : ""));
+    setSelectedDateTime(item.defaultDateTime ?? "");
+    setSelectedIsBabydoll(item.isBabydoll ?? false);
   };
 
   const closeModal = () => {
@@ -158,14 +199,18 @@ export default function StorePage() {
 
   const handleAddToCart = () => {
     if (!selected) return;
+    const params: AddToCartParams = {
+      id: selected.id,
+      name: selected.name,
+      price: selected.priceValue,
+      image: selected.image,
+      size: selectedSize || undefined,
+      dateTime: selectedDateTime || undefined,
+      isBabydoll: selectedIsBabydoll || undefined,
+    };
     // Adiciona N unidades de uma vez
     for (let i = 0; i < qty; i++) {
-      addItem({
-        id: selected.id,
-        name: selected.name,
-        price: selected.priceValue,
-        image: selected.image,
-      });
+      addItem(params);
     }
     closeModal();
   };
@@ -231,7 +276,18 @@ export default function StorePage() {
       {/* ── Grid de produtos ─────────────────────────── */}
       <section className={`${sectionBg} py-12 md:py-20 transition-colors duration-300`}>
         <div className="mx-auto max-w-[80%]">
-          {MOCK_ITEMS.length === 0 ? (
+          {loading ? (
+            <motion.div
+              initial="visible"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeIn}
+              className="flex flex-col items-center justify-center py-20"
+            >
+              <Loader2 size={48} className={`mb-4 animate-spin ${mutedText}`} />
+              <p className={`text-lg ${mutedText}`}>Carregando produtos...</p>
+            </motion.div>
+          ) : products.length === 0 ? (
             <motion.div
               initial="hidden"
               whileInView="visible"
@@ -245,13 +301,13 @@ export default function StorePage() {
             </motion.div>
           ) : (
             <motion.div
-              initial="hidden"
+              initial="visible"
               whileInView="visible"
               viewport={{ once: true, amount: 0.1 }}
               variants={stagger}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
             >
-              {MOCK_ITEMS.map((item) => (
+              {products.map((item) => (
                 <motion.article
                   key={item.id}
                   variants={fadeIn}
@@ -298,6 +354,44 @@ export default function StorePage() {
                       {item.description}
                     </p>
 
+                    {/* ── Seletor in-line no card ─────────── */}
+                    {item.rawType === "KIT" && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.availableSizes.map((s) => (
+                          <button
+                            key={s}
+                            onClick={(e) => { e.stopPropagation(); }}
+                            className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue`}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {item.rawType === "COFFEE" && item.availableDateTimes.length > 0 && (
+                      <p className={`text-xs ${mutedText2}`}>
+                        🕐 {formatDateTime(item.availableDateTimes[0])}
+                      </p>
+                    )}
+                    {item.rawType === "COMBO" && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.availableSizes.map((s) => (
+                          <button
+                            key={s}
+                            onClick={(e) => { e.stopPropagation(); }}
+                            className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue`}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                        {item.availableDateTimes.length > 0 && (
+                          <span className={`px-2.5 py-1 text-xs font-bold rounded-md border bg-semcompMidDarkBlue/10 ${cardBorder} ${mutedText}`}>
+                            🕐 {formatDateTime(item.availableDateTimes[0])}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     <button
                       type="button"
                       onClick={(e) => {
@@ -307,6 +401,9 @@ export default function StorePage() {
                           name: item.name,
                           price: item.priceValue,
                           image: item.image,
+                          size: item.defaultSize,
+                          dateTime: item.defaultDateTime,
+                          isBabydoll: item.isBabydoll,
                         });
                       }}
                       className={`mt-2 w-full rounded-full py-2.5 text-sm font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-semcompLightBlue focus:ring-offset-2 active:scale-95 shadow-md ${btnSolid}`}
@@ -368,8 +465,54 @@ export default function StorePage() {
 
               <p className={`text-sm leading-relaxed ${mutedText}`}>{selected.description}</p>
 
-              <div className={`border-t ${divider} pt-5`}>
-                {/* Quantidade */}
+              <div className={`border-t ${divider} pt-5 space-y-5`}>
+                {/* ── Seletor de Tamanho (Kit / Combo) ── */}
+                {(selected.rawType === "KIT" || selected.rawType === "COMBO") && (
+                  <div>
+                    <span className={`text-sm font-semibold ${textColor}`}>Tamanho da camiseta</span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {selected.availableSizes.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => setSelectedSize(s)}
+                          className={`min-w-11 px-3 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${
+                            selectedSize === s
+                              ? "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue shadow-md"
+                              : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/5`
+                          }`}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Seletor de Horário (Coffee / Combo) ── */}
+                {(selected.rawType === "COFFEE" || selected.rawType === "COMBO") && selected.availableDateTimes.length > 0 && (
+                  <div>
+                    <span className={`text-sm font-semibold ${textColor}`}>
+                      {selected.rawType === "COMBO" ? "Horário do Coffee Break" : "Horário do Coffee Break"}
+                    </span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {selected.availableDateTimes.map((dt) => (
+                        <button
+                          key={dt}
+                          onClick={() => setSelectedDateTime(dt)}
+                          className={`px-3 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${
+                            selectedDateTime === dt
+                              ? "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue shadow-md"
+                              : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/5`
+                          }`}
+                        >
+                          🕐 {formatDateTime(dt)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Quantidade ──────────────────────── */}
                 <div className="flex items-center justify-between">
                   <span className={`text-sm font-semibold ${textColor}`}>Quantidade</span>
                   <div className="flex items-center gap-3">
@@ -390,7 +533,7 @@ export default function StorePage() {
                 </div>
 
                 {/* Preço total */}
-                <div className={`mt-5 pt-5 border-t ${divider}`}>
+                <div className={`pt-5 border-t ${divider}`}>
                   <div className="flex items-center justify-between">
                     <span className={`font-bold ${textColor}`}>Total</span>
                     <span className={`text-2xl font-extrabold text-semcompMidDarkBlue`}>

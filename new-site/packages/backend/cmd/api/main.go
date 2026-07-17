@@ -11,6 +11,7 @@ import (
 	"backend/internal/presence"
 	"backend/internal/product"
 	"backend/internal/providers"
+	"backend/internal/section"
 	"backend/internal/user"
 	"backend/internal/userBackoffice"
 
@@ -59,6 +60,10 @@ func main() {
 	presenceService := presence.NewPresenceService(presenceRepo)
 	presenceHandler := presence.NewPresenceHandler(presenceService)
 
+	sectionRepo := section.NewSectionRepository(db)
+	sectionService := section.NewSectionService(sectionRepo)
+	sectionHandler := section.NewSectionHandler(sectionService)
+
 	productRepo := product.NewProductRepository(db)
 	productService := product.NewProductService(productRepo)
 	productHandler := product.NewProductHandler(productService)
@@ -86,9 +91,18 @@ func main() {
 		panic("Failed to initialize admin in backoffice: " + err.Error())
 	}
 
+	// Inicialização das seções base para suportar permissões e cadastros dependentes
+	if err := sectionService.InitializeSections(); err != nil {
+		panic("Failed to initialize sections: " + err.Error())
+	}
+
 	// Inicialização de valores base de permissões para o banco de dados
 	if err := permissionService.InitializePermissions(); err != nil {
 		panic("Failed to initialize admin's permissions in backoffice: " + err.Error())
+	}
+
+	if err := productService.InitializeProducts(); err != nil {
+		panic("Failed to initialize products: " + err.Error())
 	}
 
 	r := gin.Default()
@@ -111,6 +125,7 @@ func main() {
 
 	r.GET("/events", eventHandler.GetEvents)
 	r.GET("/event/:eventName/:initDate", eventHandler.GetEventByNameAndInitDate)
+	r.GET("/products", productHandler.GetProducts)
 
 	// Rotas Semcomp - Protegidas
 	authRoutes := r.Group("/api")
@@ -157,6 +172,7 @@ func main() {
 	admin.DELETE("/usersBackoffice/:email", permMW("Usuários Backoffice", permission.PermRW), userBackofficeHandler.DeleteUser)
 
 	// Produtos
+	_ = sectionHandler
 	admin.GET("/products", permMW("Produtos", permission.PermR), productHandler.GetProducts)
 	admin.GET("/products/:id", permMW("Produtos", permission.PermR), productHandler.GetProductByID)
 	admin.POST("/products", permMW("Produtos", permission.PermRW), productHandler.CreateProduct)

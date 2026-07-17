@@ -23,13 +23,20 @@ export const router = createBrowserRouter([
       //     return { Component: CronogramaPage };
       //   },
       // },
-      // {
-      //   path: "login",
-      //   lazy: async () => {
-      //     const { default: LoginPage } = await import("@/pages/Login");
-      //     return { Component: LoginPage };
-      //   },
-      // },
+      {
+        path: "login",
+        lazy: async () => {
+          const { default: LoginPage } = await import("@/pages/Login");
+          return { Component: LoginPage };
+        },
+      },
+      {
+            path: "loja",
+            lazy: async () => {
+              const { default: StorePage } = await import("@/pages/Store/StorePage");
+              return { Component: StorePage };
+            }
+          },
       {
         element: <RequireAuth />,
         children: [
@@ -40,13 +47,7 @@ export const router = createBrowserRouter([
           //     return { Component: ProfilePage };
           //   }
           // },
-          {
-            path: "loja",
-            lazy: async () => {
-              const { default: StorePage } = await import("@/pages/Store/StorePage");
-              return { Component: StorePage };
-            }
-          },
+          
           {
             path: "loja/carrinho",
             lazy: async () => {
