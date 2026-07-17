@@ -1,5 +1,20 @@
 import { createBrowserRouter } from "react-router-dom";
 import RequireAuth from "@/lib/RequireAuth";
+import { useAuth } from "@/contexts/useAuth";
+import ProfilePage from "@/pages/Profile";
+
+function ProfileRoute() {
+  const { user } = useAuth();
+
+  return (
+    <ProfilePage
+      user_number={user?.user_number}
+      name={user?.name}
+      email={user?.email}
+      presence_rate={user?.presence_rate}
+    />
+  );
+}
 
 export const router = createBrowserRouter([
   {
@@ -16,13 +31,13 @@ export const router = createBrowserRouter([
           return { Component: HomePage };
         },
       },
-      // {
-      //   path: "cronograma",
-      //   lazy: async () => {
-      //     const { default: CronogramaPage } = await import("@/pages/Cronograma");
-      //     return { Component: CronogramaPage };
-      //   },
-      // },
+      {
+        path: "cronograma",
+        lazy: async () => {
+          const { default: CronogramaPage } = await import("@/pages/Cronograma");
+          return { Component: CronogramaPage };
+        },
+      },
       {
         path: "login",
         lazy: async () => {
@@ -31,30 +46,27 @@ export const router = createBrowserRouter([
         },
       },
       {
+        element: <RequireAuth />,
+        children: [
+          {
+            path: "profile",
+            element: <ProfileRoute />,
+          },
+          {
             path: "loja",
             lazy: async () => {
               const { default: StorePage } = await import("@/pages/Store/StorePage");
               return { Component: StorePage };
-            }
+            },
           },
-      {
-        element: <RequireAuth />,
-        children: [
-          // {
-          //   path: "profile",
-          //   lazy: async () => {
-          //     const { default: ProfilePage } = await import("@/pages/Profile");
-          //     return { Component: ProfilePage };
-          //   }
-          // },
-          
           {
             path: "loja/carrinho",
             lazy: async () => {
               const { default: CartPage } = await import("@/pages/Store/Cart");
               return { Component: CartPage };
-            }
+            },
           },
+          
         ],
       },
       {

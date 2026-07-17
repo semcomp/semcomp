@@ -5,7 +5,7 @@ import { useTheme } from "@/contexts/useTheme";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Modal from "@/components/ui/Modal";
 import { useCart, type AddToCartParams } from "@/contexts/CartContext";
-import { ShoppingCart, Minus, Plus, X, ShoppingBag, Package, Loader2 } from "lucide-react";
+import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2 } from "lucide-react";
 import { productsAPI } from "@/api/products";
 import type { Product, ProductType } from "@/types/ProductType";
 
@@ -445,12 +445,6 @@ export default function StorePage() {
                     {selected.name}
                   </h2>
                 </div>
-                <button
-                  onClick={closeModal}
-                  className={`p-2 rounded-full transition-colors ${mutedText} hover:bg-semcompMidDarkBlue/10 hover:text-semcompDarkBlue cursor-pointer`}
-                >
-                  <X size={20} />
-                </button>
               </div>
 
               {selected.badge && (

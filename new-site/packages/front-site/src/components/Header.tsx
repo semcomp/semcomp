@@ -4,7 +4,7 @@ import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/useAuth";
 
-type TabKey = "home" | "loja";
+type TabKey = "home" | "loja" | "login" | "perfil";
 
 
 
@@ -17,7 +17,9 @@ export default function Header() {
 
   const allTabs: Array<{ key: TabKey; label: string; path: string; status: boolean }> = [
     { key: "home", label: "HOME", path: "/", status: true }, 
-    { key: "loja", label: "LOJA", path: "/loja", status: isAuthenticated}
+    { key: "loja", label: "LOJA", path: "/loja", status: isAuthenticated},
+    { key: "login", label: "LOGIN", path: "/login", status: !isAuthenticated},
+    { key: "perfil", label: "PERFIL", path: "/profile", status: isAuthenticated},
   ];
 
   //Filtro de abas
@@ -32,6 +34,8 @@ export default function Header() {
   const btnRefs = useRef<Record<TabKey, HTMLAnchorElement | null>>({
     home: null,
     loja: null,
+    login: null,
+    perfil: null
   });
 
   const navRef = useRef<HTMLElement | null>(null);

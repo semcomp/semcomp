@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useTheme } from "@/contexts/useTheme";
 
 type ModalProps = {
   open: boolean;
@@ -40,6 +41,9 @@ export default function Modal({
     xl: "max-w-4xl",
   }[size];
 
+  const { isDarkMode } = useTheme();
+  const mutedText = isDarkMode ? "text-semcompOffWhite/60" : "text-semcompDarkBlue/60";
+
   const modal = (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
@@ -56,7 +60,7 @@ export default function Modal({
             <button
               onClick={onClose}
               aria-label="Fechar"
-              className="text-gray-600 hover:text-gray-900 dark:text-gray-300"
+              className={`p-2 rounded-full transition-colors ${mutedText} hover:bg-semcompMidDarkBlue/10 hover:text-semcompDarkBlue cursor-pointer`}
             >
               ✕
             </button>
