@@ -1,6 +1,7 @@
 package payment
 
 import (
+	"backend/internal/apierrors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,14 +21,14 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 
 	var req CreatePaymentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados da requisição inválidos", err))
 		return
 	}
 	req.UserNumber = userNumber
 
 	initPoint, err := h.service.CreatePreference(req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar pagamento"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 
@@ -38,12 +39,12 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 func (h *PaymentHandler) Webhook(c *gin.Context) {
 	var payload WebhookPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados de requisição inválidos", err))
 		return
 	}
 
 	if err := h.service.HandleWebhook(payload); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao processar webhook"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 
@@ -56,7 +57,7 @@ func (h *PaymentHandler) ListByUser(c *gin.Context) {
 
 	payments, err := h.service.GetByUser(userNumber)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar pagamentos"})
+		apierrors.HandleAPIError(c, apierrors.NotFoundError("Pagamentos não encontrados", err))
 		return
 	}
 

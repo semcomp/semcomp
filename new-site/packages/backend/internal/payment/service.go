@@ -1,6 +1,7 @@
 package payment
 
 import (
+	"backend/internal/apierrors"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -50,7 +51,7 @@ func (s *paymentService) CreatePreference(req CreatePaymentRequest) (string, err
 
 	resp, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
-		return "", err
+		return "", apierrors.InternalServerError("Erro ao criar preferência de pagamento", err)
 	}
 	defer resp.Body.Close()
 
@@ -81,7 +82,7 @@ func (s *paymentService) HandleWebhook(payload WebhookPayload) error {
 
 	resp, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
-		return err
+		return apierrors.InternalServerError("Erro ao processar webhook", err)
 	}
 	defer resp.Body.Close()
 
