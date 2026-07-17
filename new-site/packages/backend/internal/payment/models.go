@@ -9,7 +9,7 @@ import (
 type Payment struct {
 	ID_Payment    uint      `gorm:"primaryKey;autoIncrement" json:"id"`
 	UserNumber    uint      `gorm:"not null;index" json:"user_number"`
-	MercadoPagoID string    `gorm:"size:100;unique;not null" json:"mercadopago_id"`
+	MercadoPagoID *string   `gorm:"size:100;unique;not null" json:"mercadopago_id"`
 	Status        string    `gorm:"size:50;not null;check:status_chk,status IN ('pending', 'approved', 'rejected', 'refunded')" json:"status"`
 	Amount        float64   `gorm:"not null" json:"amount"`
 	CreatedAt     time.Time `gorm:"autoCreateTime" json:"created_at"`

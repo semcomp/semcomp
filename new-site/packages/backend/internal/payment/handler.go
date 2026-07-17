@@ -17,7 +17,7 @@ func NewPaymentHandler(s PaymentService) *PaymentHandler {
 
 // POST /api/payments — cria preferência (usuário autenticado)
 func (h *PaymentHandler) CreatePayment(c *gin.Context) {
-	userNumber := c.GetUint("userNumber") // injetado pelo AuthMiddleware
+	userNumber := c.GetUint("userNumber")
 
 	var req CreatePaymentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -35,19 +35,26 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"init_point": initPoint})
 }
 
-// POST /webhook/mercadopago — público, chamado pelo MP
+// POST /webhook/mercadopago — público, chamado pelo MP.
 func (h *PaymentHandler) Webhook(c *gin.Context) {
-	var payload WebhookPayload
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados de requisição inválidos", err))
-		return
+	dataID := c.Query("data.id")
+	if dataID == "" {
+		var payload WebhookPayload
+		if err := c.ShouldBindJSON(&payload); err == nil {
+			dataID = payload.Data.ID
+		}
 	}
 
-	if err := h.service.HandleWebhook(payload); err != nil {
+	xSignature := c.GetHeader("x-signature")
+	xRequestID := c.GetHeader("x-request-id")
+
+	if err := h.service.HandleWebhook(dataID, xSignature, xRequestID); err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
 	}
 
+	// Sempre responder 200 rapidamente para o MP não ficar reenviando
+	// em caso de erros já tratados
 	c.JSON(http.StatusOK, gin.H{"message": "OK"})
 }
 
