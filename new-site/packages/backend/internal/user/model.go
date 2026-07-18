@@ -39,7 +39,7 @@ type CreateUserRequest struct {
 	Gender       string   `json:"gender" binding:"required"`
 	City         string   `json:"city" binding:"required"`
 	Education    string   `json:"education" binding:"required"`
-	HasPapfe     bool     `json:"hasPapfe" binding:"oneof=true false"`
+	HasPapfe     bool     `json:"hasPapfe"`
 	Disabilities []string `json:"disabilities" binding:"required"`
 	Profession   *string  `json:"profession,omitempty"`
 	Linkedin     *string  `json:"linkedin,omitempty"`
@@ -61,7 +61,7 @@ type UpdateUserRequest struct {
 	Gender       string   `json:"gender" binding:"required"`
 	City         string   `json:"city" binding:"required"`
 	Education    string   `json:"education" binding:"required"`
-	HasPapfe     bool     `json:"hasPapfe" binding:"required"`
+	HasPapfe     bool     `json:"hasPapfe"`
 	Disabilities []string `json:"disabilities" binding:"required"`
 	Profession   *string  `json:"profession,omitempty"`
 	Linkedin     *string  `json:"linkedin,omitempty"`
