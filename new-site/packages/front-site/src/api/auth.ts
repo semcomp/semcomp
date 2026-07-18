@@ -31,17 +31,44 @@ export const authAPI = {
    * @param name Nome completo
    * @param email Email do usuário
    * @param password Senha (min 8 caracteres)
+   * @param age Idade do usuário
+   * @param gender Gênero do usuário
+   * @param city Cidade do usuário
+   * @param education Nível de educação do usuário
+   * @param hasPapfe Boleano que indica se o usuário recebe apoio pafpe
+   * @param disabilities Vetor de deficiências do usuário
+   * @param profession Profissão do usuário (opcional)
+   * @param linkedin Perfil do usuário no LinkedIn (opcional)
+   * @param telegram Nome de usuário no Telegram (opcional)
    * @returns Dados do novo usuário
    */
   register: async (
     name: string,
     email: string,
-    password: string
+    password: string,
+    age: number,
+    gender: string,
+    city: string,
+    education: string,
+    hasPapfe: boolean,
+    disabilities: string[],
+    profession?: string,
+    linkedin?: string,
+    telegram?: string,
   ): Promise<RegisterResponse> => {
     const response = await client.post<RegisterResponse>("/register", {
       name,
       email,
       password,
+      age,
+      gender,
+      city,
+      education,
+      hasPapfe,
+      disabilities,
+      profession,
+      linkedin,
+      telegram
     });
     return response.data;
   },

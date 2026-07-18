@@ -85,10 +85,19 @@ func (h *AuthHandler) ProfileHandler() gin.HandlerFunc {
 		c.Status(http.StatusOK)
 		c.Set("responseMessage", "Entrada Permitida")
 		c.JSON(http.StatusOK, gin.H{
-			"message":       "Entrada Permitida",
-			"user_number":   user.UserNumber,
-			"email":         user.Email,
-			"name":          user.Name,
+			"message":      "Entrada Permitida",
+			"user_number":  user.UserNumber,
+			"name":         user.Name,
+			"email":        user.Email,
+			"age":          user.Age,
+			"gender":       user.Gender,
+			"city":         user.City,
+			"education":    user.Education,
+			"hasPapfe":     user.HasPapfe,
+			"disabilities": user.Disabilities,
+			"profession":   user.Profession,
+			"linkedin":     user.Linkedin,
+			"telegram":     user.Telegram,
 			"presence_rate": user.PresenceRate,
 		})
 	}
