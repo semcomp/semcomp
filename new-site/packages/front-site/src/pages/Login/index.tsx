@@ -582,7 +582,7 @@ export default function LoginPage(): ReactElement {
     const [loginHeroSrc] = useState<string>(() => pickRandomLoginHero());
     
     const bgColor = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompMidLightBlue/60";
-    const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
+    const textColor =  "text-semcompOffWhite";
     const inputBg = isDarkMode ? "bg-semcompDarkBlue text-white border-gray-600" : "bg-white text-gray-800 border-gray-300";
    
     const [loading, setLoading] = useState(false);
@@ -789,12 +789,12 @@ export default function LoginPage(): ReactElement {
     );
 
     const formContent = pendingVerificationEmail ? pendingVerificationPanel : (
-        <div className={`w-full ${isLogin ? "max-w-sm" : "max-w-lg"} flex flex-col items-center py-6 px-8 ${textColor} transition-all duration-300`}>
+        <div className={`w-full ${isLogin ? "max-w-sm" : "max-w-lg"} flex flex-col items-center py-6 px-6 ${textColor} transition-all duration-300`}>
             <SegmentedControl islogin={isLogin} setIslogin={setIsLogin} hook={resetForm}/>
 
             <form onSubmit={handleSubmit} aria-live="polite" className="w-full mt-4 flex flex-col">
                 {/* Área scrollável sem barra visível */}
-                <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] space-y-3 max-h-[520px] pr-0.5">
+                <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden px-3 [-ms-overflow-style:none] [scrollbar-width:none] space-y-3 max-h-[520px]">
 
                     {/* === MODO LOGIN === */}
                     {isLogin && (
@@ -906,7 +906,7 @@ export default function LoginPage(): ReactElement {
                                 <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} className="w-4 h-4 rounded accent-semcompMidDarkBlue cursor-pointer" />
                                 <span>
                                     Concordo com os{' '}
-                                    <button type="button" onClick={openTerms} className="underline font-semibold text-semcompMidDarkBlue dark:text-semcompOffWhite hover:brightness-110">
+                                    <button type="button" onClick={openTerms} className="underline font-semibold text-semcompOffWhite hover:brightness-110">
                                         Termos de Serviço
                                     </button>
                                 </span>
