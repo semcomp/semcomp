@@ -581,7 +581,7 @@ export default function LoginPage(): ReactElement {
     const { isDarkMode } = useTheme();
     const [loginHeroSrc] = useState<string>(() => pickRandomLoginHero());
     
-    const bgColor = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompOffWhite";
+    const bgColor = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompMidLightBlue/60";
     const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
     const inputBg = isDarkMode ? "bg-semcompDarkBlue text-white border-gray-600" : "bg-white text-gray-800 border-gray-300";
    
@@ -789,162 +789,142 @@ export default function LoginPage(): ReactElement {
     );
 
     const formContent = pendingVerificationEmail ? pendingVerificationPanel : (
-        <div className={`w-full ${isLogin ? "max-w-sm" : "max-w-lg"} flex flex-col items-center justify-center p-6 ${textColor} transition-all duration-300`}>
+        <div className={`w-full ${isLogin ? "max-w-sm" : "max-w-lg"} flex flex-col items-center py-6 px-8 ${textColor} transition-all duration-300`}>
             <SegmentedControl islogin={isLogin} setIslogin={setIsLogin} hook={resetForm}/>
-            
-            {/* Altura máxima com scroll interno suave para não estourar os 650px do card */}
-            <form onSubmit={handleSubmit} aria-live="polite" className="w-full mt-4 max-h-[460px] overflow-y-auto p-1 space-y-3 scrollbar-thin scrollbar-thumb-gray-400">
-                
-                {/* === MODO LOGIN === */}
-                {isLogin && (
-                    <div className="space-y-3">
-                        <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@exemplo.com" required />
-                        <Input label="Senha" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
-                    </div>
-                )}
 
-                {/* === MODO CADASTRO (GRID 2 COLUNAS) === */}
-                {!isLogin && (
-                    <>
-                        <p className="text-xs font-bold uppercase tracking-wider opacity-70 border-b border-gray-400/30 pb-1">Dados de Acesso</p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div className="sm:col-span-2">
-                                <Input label="Nome Completo *" value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome" required />
-                            </div>
-                            <div className="sm:col-span-2">
-                                <Input label="Email *" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@exemplo.com" required />
-                            </div>
-                            <Input label="Senha *" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 8 caracteres" required />
-                            <Input label="Confirmar Senha *" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repita a senha" required />
+            <form onSubmit={handleSubmit} aria-live="polite" className="w-full mt-4 flex flex-col">
+                {/* Área scrollável sem barra visível */}
+                <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] space-y-3 max-h-[520px] pr-0.5">
+
+                    {/* === MODO LOGIN === */}
+                    {isLogin && (
+                        <div className="space-y-3">
+                            <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@exemplo.com" required />
+                            <Input label="Senha" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
                         </div>
+                    )}
 
-                        <p className="text-xs font-bold uppercase tracking-wider opacity-70 border-b border-gray-400/30 pb-1 pt-2">Dados Pessoais</p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <Input label="Idade *" type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Ex: 21" required />
-                            
-                            {/* Select de Gênero */}
-                            <div className="flex flex-col gap-1">
-                                <Select
-                                    label="Gênero *"
-                                    value={gender}
-                                    onChange={(e) => setGender(e.target.value)}
-                                    placeholder="Selecione..."
-                                    required
-                                >
-                                    <option value="Cisgênero Feminino" className="bg-semcompDarkBlue text-white">Feminino</option>
-                                    <option value="Cisgênero Masculino" className="bg-semcompDarkBlue text-white">Masculino</option>
-                                    <option value="Transgênero Feminino" className="bg-semcompDarkBlue text-white">Mulher Trans</option>
-                                    <option value="Transgênero Masculino" className="bg-semcompDarkBlue text-white">Homem Trans</option>
-                                    <option value="Não-binário" className="bg-semcompDarkBlue text-white">Não-binário</option>
-                                    <option value="Outro" className="bg-semcompDarkBlue text-white">Outro / Preferir não dizer</option>
-                                </Select>
-                            </div>
-
-                            <Input label="Cidade *" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Carlos - SP" required />
-                            
-                            {/* Select de Formação */}
-                            <div className="flex flex-col gap-1">
-                                <Select
-                                    label="Formação *"
-                                    value={education}
-                                    onChange={(e) => setEducation(e.target.value)}
-                                    placeholder="Selecione..."
-                                    required
-                                >
-                                    <option value="Ensino Médio" className="bg-semcompDarkBlue text-white">Ensino Médio</option>
-                                    <option value="Graduação em Andamento" className="bg-semcompDarkBlue text-white">Graduação (Em andamento)</option>
-                                    <option value="Graduação Concluída" className="bg-semcompDarkBlue text-white">Graduação (Concluída)</option>
-                                    <option value="Pós-graduação" className="bg-semcompDarkBlue text-white">Pós-graduação / Mestrado / Doutorado</option>
-                                </Select>
-                            </div>
-
-                            <div className="sm:col-span-2">
-                                <Input label="Profissão / Curso" value={profession} onChange={(e) => setProfession(e.target.value)} placeholder="Ex: Estudante de Computação / Desenvolvedor" />
-                            </div>
-                        </div>
-
-                        <p className="text-xs font-bold uppercase tracking-wider opacity-70 border-b border-gray-400/30 pb-1 pt-2">Acessibilidade & Permanência</p>
-                        <div className="space-y-3 bg-black/5 dark:bg-white/5 p-3 rounded-lg border border-gray-400/20">
-                            
-                            {/* Toggle PAPFE */}
-                            <label className="flex items-center justify-between cursor-pointer text-sm font-medium">
-                                <span>Possui apoio PAPFE (USP)?</span>
-                                <input type="checkbox" checked={hasPapfe} onChange={(e) => setHasPapfe(e.target.checked)} className="w-5 h-5 rounded accent-semcompMidDarkBlue cursor-pointer" />
-                            </label>
-
-                            <hr className="border-gray-400/20" />
-
-                            {/* Toggle Deficiência */}
-                            <label className="flex items-center justify-between cursor-pointer text-sm font-medium">
-                                <span>Possui alguma deficiência (PCD)?</span>
-                                <input type="checkbox" checked={hasDisability} onChange={(e) => {
-                                    setHasDisability(e.target.checked);
-                                    if (!e.target.checked) setDisabilities([]); // Limpa se desmarcar
-                                }} className="w-5 h-5 rounded accent-semcompMidDarkBlue cursor-pointer" />
-                            </label>
-
-                            {/* Campo Multivalorado Condicional */}
-                            {hasDisability && (
-                                <div className="pt-2 animate-fadeIn">
-                                    <label className="text-xs font-semibold block mb-1">Qual(is) deficiência(s)? *</label>
-                                    <div className="flex gap-2">
-                                        <input 
-                                            type="text" 
-                                            value={currentDisability} 
-                                            onChange={(e) => setCurrentDisability(e.target.value)}
-                                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddDisability(); } }}
-                                            placeholder="Digite e clique em Adicionar" 
-                                            className={`flex-1 p-2 rounded-md border text-sm ${inputBg}`}
-                                        />
-                                        <button 
-                                            type="button" 
-                                            onClick={handleAddDisability}
-                                            className="px-3 py-1.5 bg-semcompMidDarkBlue text-white rounded-md text-xs font-bold hover:brightness-110"
-                                        >
-                                            + Adicionar
-                                        </button>
-                                    </div>
-
-                                    {/* Lista de Tags Adicionadas */}
-                                    <div className="flex flex-wrap gap-1.5 mt-2">
-                                        {disabilities.length === 0 && <span className="text-xs opacity-60 italic">Nenhuma adicionada ainda.</span>}
-                                        {disabilities.map((tag, idx) => (
-                                            <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-semcompMidDarkBlue text-white">
-                                                {tag}
-                                                <button type="button" onClick={() => handleRemoveDisability(tag)} className="hover:text-red-300 font-bold">×</button>
-                                            </span>
-                                        ))}
-                                    </div>
+                    {/* === MODO CADASTRO (GRID 2 COLUNAS) === */}
+                    {!isLogin && (
+                        <>
+                            <p className="text-xs font-bold uppercase tracking-wider opacity-70 border-b border-gray-400/30 pb-1">Dados de Acesso</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="sm:col-span-2">
+                                    <Input label="Nome Completo *" value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome" required />
                                 </div>
-                            )}
-                        </div>
+                                <div className="sm:col-span-2">
+                                    <Input label="Email *" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@exemplo.com" required />
+                                </div>
+                                <Input label="Senha *" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 8 caracteres" required />
+                                <Input label="Confirmar Senha *" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repita a senha" required />
+                            </div>
 
-                        <p className="text-xs font-bold uppercase tracking-wider opacity-70 border-b border-gray-400/30 pb-1 pt-2">Redes Sociais (Opcional)</p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <Input label="LinkedIn" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} placeholder="linkedin.com/in/você" />
-                            <Input label="Telegram" value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="@seuusuario" />
-                        </div>
+                            <p className="text-xs font-bold uppercase tracking-wider opacity-70 border-b border-gray-400/30 pb-1 pt-2">Dados Pessoais</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <Input label="Idade *" type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Ex: 21" required />
 
-                        {/* Termos de Serviço */}
-                        <label className="flex items-center gap-2 pt-2 text-sm">
-                            <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} className="w-4 h-4 rounded accent-semcompMidDarkBlue cursor-pointer" />
-                            <span>
-                                Concordo com os{' '}
-                                <button type="button" onClick={openTerms} className="underline font-semibold text-semcompMidDarkBlue dark:text-semcompOffWhite hover:brightness-110">
-                                    Termos de Serviço
-                                </button>
-                            </span>
-                        </label>
-                    </>
-                )}
-                               
-                <button 
-                    type="submit" 
-                    disabled={loading}
-                    className="w-full mt-4 px-3 py-3 rounded-md bg-semcompMidDarkBlue text-white text-sm font-bold disabled:opacity-50 hover:brightness-110 transition-all shadow-md sticky bottom-0 z-10"
-                >
-                    {loading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
-                </button>
+                                <div className="flex flex-col gap-1">
+                                    <Select label="Gênero *" value={gender} onChange={(e) => setGender(e.target.value)} placeholder="Selecione..." required>
+                                        <option value="Cisgênero Feminino" className="bg-semcompDarkBlue text-white">Feminino</option>
+                                        <option value="Cisgênero Masculino" className="bg-semcompDarkBlue text-white">Masculino</option>
+                                        <option value="Transgênero Feminino" className="bg-semcompDarkBlue text-white">Mulher Trans</option>
+                                        <option value="Transgênero Masculino" className="bg-semcompDarkBlue text-white">Homem Trans</option>
+                                        <option value="Não-binário" className="bg-semcompDarkBlue text-white">Não-binário</option>
+                                        <option value="Outro" className="bg-semcompDarkBlue text-white">Outro / Preferir não dizer</option>
+                                    </Select>
+                                </div>
+
+                                <Input label="Cidade *" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Carlos - SP" required />
+
+                                <div className="flex flex-col gap-1">
+                                    <Select label="Formação *" value={education} onChange={(e) => setEducation(e.target.value)} placeholder="Selecione..." required>
+                                        <option value="Ensino Médio" className="bg-semcompDarkBlue text-white">Ensino Médio</option>
+                                        <option value="Graduação em Andamento" className="bg-semcompDarkBlue text-white">Graduação (Em andamento)</option>
+                                        <option value="Graduação Concluída" className="bg-semcompDarkBlue text-white">Graduação (Concluída)</option>
+                                        <option value="Pós-graduação" className="bg-semcompDarkBlue text-white">Pós-graduação / Mestrado / Doutorado</option>
+                                    </Select>
+                                </div>
+
+                                <div className="sm:col-span-2">
+                                    <Input label="Profissão / Curso" value={profession} onChange={(e) => setProfession(e.target.value)} placeholder="Ex: Estudante de Computação / Desenvolvedor" />
+                                </div>
+                            </div>
+
+                            <p className="text-xs font-bold uppercase tracking-wider opacity-70 border-b border-gray-400/30 pb-1 pt-2">Acessibilidade & Permanência</p>
+                            <div className="space-y-3 bg-black/5 dark:bg-white/5 p-3 rounded-lg border border-gray-400/20">
+                                <label className="flex items-center justify-between cursor-pointer text-sm font-medium">
+                                    <span>Possui apoio PAPFE (USP)?</span>
+                                    <input type="checkbox" checked={hasPapfe} onChange={(e) => setHasPapfe(e.target.checked)} className="w-5 h-5 rounded accent-semcompMidDarkBlue cursor-pointer" />
+                                </label>
+
+                                <hr className="border-gray-400/20" />
+
+                                <label className="flex items-center justify-between cursor-pointer text-sm font-medium">
+                                    <span>Possui alguma deficiência (PCD)?</span>
+                                    <input type="checkbox" checked={hasDisability} onChange={(e) => {
+                                        setHasDisability(e.target.checked);
+                                        if (!e.target.checked) setDisabilities([]);
+                                    }} className="w-5 h-5 rounded accent-semcompMidDarkBlue cursor-pointer" />
+                                </label>
+
+                                {hasDisability && (
+                                    <div className="pt-2 animate-fadeIn">
+                                        <label className="text-xs font-semibold block mb-1">Qual(is) deficiência(s)? *</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={currentDisability}
+                                                onChange={(e) => setCurrentDisability(e.target.value)}
+                                                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddDisability(); } }}
+                                                placeholder="Digite e clique em Adicionar"
+                                                className={`flex-1 p-2 rounded-md border text-sm ${inputBg}`}
+                                            />
+                                            <button type="button" onClick={handleAddDisability} className="px-3 py-1.5 bg-semcompMidDarkBlue text-white rounded-md text-xs font-bold hover:brightness-110">
+                                                + Adicionar
+                                            </button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1.5 mt-2">
+                                            {disabilities.length === 0 && <span className="text-xs opacity-60 italic">Nenhuma adicionada ainda.</span>}
+                                            {disabilities.map((tag, idx) => (
+                                                <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-semcompMidDarkBlue text-white">
+                                                    {tag}
+                                                    <button type="button" onClick={() => handleRemoveDisability(tag)} className="hover:text-red-300 font-bold">×</button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <p className="text-xs font-bold uppercase tracking-wider opacity-70 border-b border-gray-400/30 pb-1 pt-2">Redes Sociais (Opcional)</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <Input label="LinkedIn" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} placeholder="linkedin.com/in/você" />
+                                <Input label="Telegram" value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="@seuusuario" />
+                            </div>
+
+                            <label className="flex items-center gap-2 pt-2 text-sm">
+                                <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} className="w-4 h-4 rounded accent-semcompMidDarkBlue cursor-pointer" />
+                                <span>
+                                    Concordo com os{' '}
+                                    <button type="button" onClick={openTerms} className="underline font-semibold text-semcompMidDarkBlue dark:text-semcompOffWhite hover:brightness-110">
+                                        Termos de Serviço
+                                    </button>
+                                </span>
+                            </label>
+                        </>
+                    )}
+                </div>
+
+                {/* Botão fora da área scrollável — nunca sobrepõe o conteúdo */}
+                <div className="pt-4 flex-shrink-0">
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full px-3 py-3 rounded-md bg-semcompMidDarkBlue text-white text-sm font-bold disabled:opacity-50 hover:brightness-110 transition-all shadow-md"
+                    >
+                        {loading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
+                    </button>
+                </div>
             </form>
         </div>
     );
@@ -959,7 +939,7 @@ export default function LoginPage(): ReactElement {
             <div className={`min-h-screen w-full flex items-center justify-center overflow-hidden`}>
                 
                 {/* 1. MODO DESKTOP (Ajuste de largura dinâmica na coluna da foto vs formulário) */}
-                <div className={`hidden min-[1280px]:flex ${bgContainer} h-[680px] w-[95%] max-w-[1150px] rounded-3xl shadow-xl overflow-hidden transition-all duration-300`}>
+                <div className={`hidden min-[1280px]:flex ${bgContainer} h-[780px] w-[95%] max-w-[1150px] rounded-3xl shadow-xl overflow-hidden transition-all duration-300`}>
                     <div className={`${isLogin ? "w-1/2" : "w-5/12"} bg-gray-300 relative transition-all duration-300`}>
                         <img src={loginHeroSrc} alt="Background Desktop" className="absolute inset-0 w-full h-full object-cover" />
                     </div>
@@ -969,7 +949,7 @@ export default function LoginPage(): ReactElement {
                 </div>
 
                 {/* 2. MODO TABLET */}
-                <div className={`hidden min-[800px]:flex min-[1280px]:hidden relative ${bgContainer} w-[90%] max-w-[600px] h-[680px] rounded-3xl shadow-xl items-center justify-center overflow-hidden`}>
+                <div className={`hidden min-[800px]:flex min-[1280px]:hidden relative ${bgContainer} w-[90%] max-w-[600px] h-[780px] rounded-3xl shadow-xl items-center justify-center overflow-hidden`}>
                     <img src={loginHeroSrc} alt="Background Tablet" className={`absolute inset-0 w-full h-full object-cover ${isDarkMode ? "opacity-40 brightness-50" : "opacity-90 brightness-50"}`} />
                     <div className={`relative z-10 ${isDarkMode ? "bg-semcompOffWhite/10" : "bg-semcompMidLightBlue/30"} backdrop-blur-md rounded-2xl shadow-2xl m-4 w-full max-w-[540px] flex justify-center`}>
                         {formContent}

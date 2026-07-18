@@ -27,8 +27,8 @@ export default function Select({
         className={`w-full px-3 py-4 rounded-md border-2 ${
           isDarkMode
             ? "border-semcompMidDarkBlue"
-            : "border-semcompOffWhite bg-semcompMidDarkBlue text-white"
-        } text-sm focus:shadow-input focus:border-none transition cursor-pointer outline-none`}
+            : "border-semcompOffWhite bg-semcompMidDarkBlue"
+        } text-sm text-white focus:shadow-input focus:border-none transition cursor-pointer outline-none`}
         value={value}
         onChange={onChange}
         required={required}

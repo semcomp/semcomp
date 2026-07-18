@@ -31,7 +31,7 @@ type InputProps = {
         <div className="text-sm mb-2">{label}</div>
         <div className="relative">
           <input
-            className={`w-full px-3 py-4 rounded-md border-2 ${isPassword ? "pr-11" : ""} ${ isDarkMode ? "border-semcompMidDarkBlue" : "border-semcompOffWhite bg-semcompMidDarkBlue"} text-sm focus:shadow-input focus:border-none transition`}
+            className={`w-full px-3 py-4 rounded-md border-2 ${isPassword ? "pr-11" : ""} ${ isDarkMode ? "border-semcompMidDarkBlue" : "border-semcompOffWhite bg-semcompMidDarkBlue"} text-sm text-white focus:shadow-input focus:border-none transition placeholder:text-white`}
             type={inputType}
             value={value}
             onChange={onChange}
