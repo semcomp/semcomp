@@ -583,8 +583,8 @@ export default function LoginPage(): ReactElement {
         : "shadow-[-10px_-15px_0px_0px_#b3cde0,15px_-40px_0px_0px_#dbe9f4]";
 
     return (
-        <div>
-            <div className={`h-[calc(100vh-80px)] w-full flex items-center justify-center ${bgColor} overflow-hidden`}>
+        <div className={`${bgColor}`}>
+            <div className={`min-h-screen w-full flex items-center justify-center overflow-hidden`}>
                 
                 {/* 1. MODO DESKTOP (Travado em h-[600px] para nunca quebrar ou criar rolagem) */}
                 <div className={`hidden min-[1280px]:flex ${bgContainer} h-[650px] w-[95%] max-w-[1150px] rounded-3xl shadow-xl overflow-hidden`}>
