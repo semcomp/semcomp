@@ -32,6 +32,14 @@ export interface ProfileResponse {
   presence_rate: number;
 }
 
+export interface ForgotPasswordResponse {
+  message: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+}
+
 export interface ApiError {
   error?: string;
   message?: string;

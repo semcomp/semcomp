@@ -5,6 +5,8 @@ import type {
   ProfileResponse,
   VerifyEmailResponse,
   ResendVerificationResponse,
+  ForgotPasswordResponse,
+  ResetPasswordResponse,
 } from "@/types/APIResponseType";
 
 /**
@@ -27,7 +29,21 @@ export const authAPI = {
   },
 
   /**
-   * Registra um novo usuário via multipart/form-data para suportar upload do comprovante PAPFE.
+   * Registra um novo usuário via multipart/form-data
+   * @param name Nome completo do usuário
+   * @param email Email do usuário
+   * @param password Senha do usuário
+   * @param age Idade do usuário
+   * @param gender Gênero do usuário
+   * @param city Cidade do usuário
+   * @param education Nível de educação do usuário
+   * @param hasPapfe Indica se o usuário possui PAPFE
+   * @param disabilities Deficiências do usuário
+   * @param profession Profissão do usuário (opcional)
+   * @param linkedin Perfil do LinkedIn do usuário (opcional)
+   * @param telegram Perfil do Telegram do usuário (opcional)
+   * @param papfeFile Comprovante PAPFE do usuário - obrigatório se hasPapfe for true, do contrário, opcional
+   * @returns Dados do usuário registrado
    */
   register: async (
     name: string,
@@ -89,6 +105,16 @@ export const authAPI = {
    */
   resendVerification: async (email: string): Promise<ResendVerificationResponse> => {
     const response = await client.post<ResendVerificationResponse>("/resend-verification", { email });
+    return response.data;
+  },
+
+  forgotPassword: async (email: string): Promise<ForgotPasswordResponse> => {
+    const response = await client.post<ForgotPasswordResponse>("/forgot-password", { email });
+    return response.data;
+  },
+
+  resetPassword: async (token: string, newPassword: string): Promise<ResetPasswordResponse> => {
+    const response = await client.post<ResetPasswordResponse>("/reset-password", { token, new_password: newPassword });
     return response.data;
   },
 };

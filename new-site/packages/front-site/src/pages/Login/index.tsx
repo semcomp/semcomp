@@ -14,6 +14,7 @@ import { isValidEmail } from "@/utils/validateEmail";
 import FileUpload from "@/components/file-upload";
 
 const RESEND_COOLDOWN_SECONDS = 60;
+const FORGOT_COOLDOWN_SECONDS = 60;
 
 const _loginModules = import.meta.glob("/src/assets/img/Login/*", { eager: true }) as Record<string, { default: string }>;
 const LOGIN_IMAGES = Object.values(_loginModules)
@@ -56,6 +57,12 @@ export default function LoginPage(): ReactElement {
     const [telegram, setTelegram] = useState("");
     const [hasPapfe, setHasPapfe] = useState(false);
     const [papfeFile, setPapfeFile] = useState<File | null>(null);
+
+    const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState("");
+    const [forgotSent, setForgotSent] = useState(false);
+    const [forgotLoading, setForgotLoading] = useState(false);
+    const [forgotCooldown, setForgotCooldown] = useState(0);
 
     const [hasDisability, setHasDisability] = useState(false);
     const [disabilities, setDisabilities] = useState<string[]>([]);
@@ -101,6 +108,9 @@ export default function LoginPage(): ReactElement {
     useEffect(() => {
         setPendingVerificationEmail(null);
         setResendCooldown(0);
+        setForgotPasswordMode(false);
+        setForgotSent(false);
+        setForgotEmail("");
     }, [isLogin]);
 
     useEffect(() => {
@@ -110,6 +120,35 @@ export default function LoginPage(): ReactElement {
         }, 1000);
         return () => clearInterval(interval);
     }, [resendCooldown]);
+
+    useEffect(() => {
+        if (forgotCooldown <= 0) return;
+        const interval = setInterval(() => {
+            setForgotCooldown((s) => Math.max(0, s - 1));
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [forgotCooldown]);
+
+    const handleForgotPassword = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!isValidEmail(forgotEmail)) {
+            showNotification("Insira um e-mail válido.", "warning");
+            return;
+        }
+        if (forgotCooldown > 0) return;
+        setForgotLoading(true);
+        try {
+            await authAPI.forgotPassword(forgotEmail);
+            setForgotSent(true);
+            setForgotCooldown(FORGOT_COOLDOWN_SECONDS);
+        } catch (err: any) {
+            const message =
+                err?.response?.data?.error || err?.response?.data?.message || err?.message || "Erro ao enviar e-mail";
+            showNotification(message, "warning");
+        } finally {
+            setForgotLoading(false);
+        }
+    }, [forgotEmail, forgotCooldown, showNotification]);
 
     const validate = useCallback((): string | null => {
         if (!isValidEmail(email)) return "Insira um e-mail válido.";
@@ -226,7 +265,56 @@ export default function LoginPage(): ReactElement {
         </div>
     );
 
-    const formContent = pendingVerificationEmail ? pendingVerificationPanel : (
+    const forgotPasswordPanel = (
+        <div className={`w-full max-w-sm flex flex-col items-center justify-center p-6 text-center ${textColor}`}>
+            <h2 className="text-lg font-bold mb-2">Recuperar senha</h2>
+            {forgotSent ? (
+                <>
+                    <p className={`text-sm mb-6 ${!isDarkMode ? "text-white" : ""}`}>
+                        Se o e-mail <strong>{forgotEmail}</strong> estiver cadastrado, você receberá um link de recuperação em breve.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => authAPI.forgotPassword(forgotEmail).then(() => setForgotCooldown(FORGOT_COOLDOWN_SECONDS)).catch(() => {})}
+                        disabled={forgotCooldown > 0}
+                        className="w-full px-3 py-3 rounded-md bg-semcompMidDarkBlue text-white text-sm font-bold disabled:opacity-50 hover:brightness-110 transition-all"
+                    >
+                        {forgotCooldown > 0 ? `Reenviar (${forgotCooldown}s)` : "Reenviar e-mail"}
+                    </button>
+                </>
+            ) : (
+                <form onSubmit={handleForgotPassword} className="w-full flex flex-col gap-3">
+                    <p className={`text-sm ${!isDarkMode ? "text-white" : ""}`}>
+                        Informe seu e-mail e enviaremos um link para redefinir sua senha.
+                    </p>
+                    <input
+                        type="email"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        placeholder="nome@exemplo.com"
+                        required
+                        className={`w-full px-3 py-3 rounded-md border text-sm ${inputBg}`}
+                    />
+                    <button
+                        type="submit"
+                        disabled={forgotLoading}
+                        className="w-full px-3 py-3 rounded-md bg-semcompMidDarkBlue text-white text-sm font-bold disabled:opacity-50 hover:brightness-110 transition-all"
+                    >
+                        {forgotLoading ? "Enviando..." : "Enviar link de recuperação"}
+                    </button>
+                </form>
+            )}
+            <button
+                type="button"
+                onClick={() => { setForgotPasswordMode(false); setForgotSent(false); setForgotEmail(""); }}
+                className={`mt-4 text-sm underline ${!isDarkMode ? "text-white" : ""}`}
+            >
+                Voltar para o login
+            </button>
+        </div>
+    );
+
+    const formContent = pendingVerificationEmail ? pendingVerificationPanel : forgotPasswordMode ? forgotPasswordPanel : (
         <div className={`w-full ${isLogin ? "max-w-sm" : "max-w-lg"} flex flex-col items-center py-6 px-6 ${textColor} transition-all duration-300`}>
             <SegmentedControl islogin={isLogin} setIslogin={setIsLogin} hook={resetForm}/>
 
@@ -239,6 +327,15 @@ export default function LoginPage(): ReactElement {
                         <div className="space-y-3">
                             <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@exemplo.com" required />
                             <Input label="Senha" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
+                            <div className="flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => { setForgotPasswordMode(true); setForgotEmail(email); }}
+                                    className={`text-xs underline opacity-70 hover:opacity-100 transition-opacity ${textColor}`}
+                                >
+                                    Esqueci minha senha
+                                </button>
+                            </div>
                         </div>
                     )}
 
