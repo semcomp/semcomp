@@ -27,20 +27,7 @@ export const authAPI = {
   },
 
   /**
-   * Registra um novo usuário
-   * @param name Nome completo
-   * @param email Email do usuário
-   * @param password Senha (min 8 caracteres)
-   * @param age Idade do usuário
-   * @param gender Gênero do usuário
-   * @param city Cidade do usuário
-   * @param education Nível de educação do usuário
-   * @param hasPapfe Boleano que indica se o usuário recebe apoio pafpe
-   * @param disabilities Vetor de deficiências do usuário
-   * @param profession Profissão do usuário (opcional)
-   * @param linkedin Perfil do usuário no LinkedIn (opcional)
-   * @param telegram Nome de usuário no Telegram (opcional)
-   * @returns Dados do novo usuário
+   * Registra um novo usuário via multipart/form-data para suportar upload do comprovante PAPFE.
    */
   register: async (
     name: string,
@@ -55,20 +42,25 @@ export const authAPI = {
     profession?: string,
     linkedin?: string,
     telegram?: string,
+    papfeFile?: File | null,
   ): Promise<RegisterResponse> => {
-    const response = await client.post<RegisterResponse>("/register", {
-      name,
-      email,
-      password,
-      age,
-      gender,
-      city,
-      education,
-      hasPapfe,
-      disabilities,
-      profession,
-      linkedin,
-      telegram
+    const fd = new FormData();
+    fd.append("name", name);
+    fd.append("email", email);
+    fd.append("password", password);
+    fd.append("age", String(age));
+    fd.append("gender", gender);
+    fd.append("city", city);
+    fd.append("education", education);
+    fd.append("hasPapfe", String(hasPapfe));
+    fd.append("disabilities", disabilities.join(", "));
+    if (profession?.trim()) fd.append("profession", profession.trim());
+    if (linkedin?.trim()) fd.append("linkedin", linkedin.trim());
+    if (telegram?.trim()) fd.append("telegram", telegram.trim());
+    if (hasPapfe && papfeFile) fd.append("papfe_document", papfeFile);
+
+    const response = await client.post<RegisterResponse>("/register", fd, {
+      headers: { "Content-Type": undefined },
     });
     return response.data;
   },

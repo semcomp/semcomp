@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // UserRepository define as operações de acesso a dados para a entidade User.
@@ -181,4 +182,33 @@ func (r *userRepository) Update(user *User) error {
 // Delete realiza a exclusão de um usuário identificando-o pelo ID.
 func (r *userRepository) Delete(id uint) error {
 	return r.db.Delete(&User{}, id).Error
+}
+
+// PapfeDocumentRepository define as operações de acesso a dados para comprovantes PAPFE.
+type PapfeDocumentRepository interface {
+	Upsert(doc *PapfeDocument) error
+	DeleteByEmail(email string) error
+}
+
+type papfeDocumentRepository struct {
+	db *gorm.DB
+}
+
+func NewPapfeDocumentRepository(db *gorm.DB) PapfeDocumentRepository {
+	return &papfeDocumentRepository{db: db}
+}
+
+// Upsert insere ou atualiza o comprovante PAPFE de um usuário (único por e-mail).
+func (r *papfeDocumentRepository) Upsert(doc *PapfeDocument) error {
+	return r.db.Omit("User").
+		Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "user_email"}},
+			DoUpdates: clause.AssignmentColumns([]string{"filename", "content_type", "data", "uploaded_at"}),
+		}).
+		Create(doc).Error
+}
+
+// DeleteByEmail remove o comprovante PAPFE associado ao e-mail informado.
+func (r *papfeDocumentRepository) DeleteByEmail(email string) error {
+	return r.db.Where("user_email = ?", email).Delete(&PapfeDocument{}).Error
 }

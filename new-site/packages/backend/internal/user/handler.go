@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -25,13 +26,25 @@ func NewUserHandler(userService UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
-// CreateUser processa o payload JSON e tenta criar um novo usuário.
+// CreateUser processa o formulário multipart e tenta criar um novo usuário.
 // @Summary Cria um novo usuário
-// @Description Cadastra um participante no sistema
+// @Description Cadastra um participante no sistema. Aceita multipart/form-data para suportar upload do comprovante PAPFE.
 // @Tags Usuários (Participantes)
-// @Accept json
+// @Accept multipart/form-data
 // @Produce json
-// @Param request body user.CreateUserRequest true "Dados de cadastro"
+// @Param name formData string true "Nome completo"
+// @Param email formData string true "E-mail"
+// @Param password formData string true "Senha (min 8 caracteres)"
+// @Param age formData int true "Idade"
+// @Param gender formData string true "Gênero"
+// @Param city formData string true "Cidade"
+// @Param education formData string true "Formação"
+// @Param hasPapfe formData bool false "Recebe PAPFE?"
+// @Param disabilities formData []string false "Lista de deficiências"
+// @Param profession formData string false "Profissão"
+// @Param linkedin formData string false "LinkedIn"
+// @Param telegram formData string false "Telegram"
+// @Param papfe_document formData file false "Comprovante PAPFE (PDF/JPEG/PNG/WebP, máx 10MB)"
 // @Success 201 {object} map[string]interface{} "Usuário criado com sucesso!"
 // @Failure 400 {object} map[string]string "Dados inválidos"
 // @Failure 409 {object} map[string]string "E-mail já cadastrado"
@@ -40,19 +53,50 @@ func NewUserHandler(userService UserService) *UserHandler {
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var request CreateUserRequest
 
-	if err := c.ShouldBindJSON(&request); err != nil {
-		if unmarshalErr, ok := err.(*json.UnmarshalTypeError); ok {
-			apierrors.HandleAPIError(c, apierrors.ValidationError(fmt.Sprintf("O campo '%s' recebeu um valor do tipo %s, mas esperava %s",
-				unmarshalErr.Field, unmarshalErr.Value, unmarshalErr.Type), err))
-			return
-		}
-
+	if err := c.ShouldBind(&request); err != nil {
 		if validationErrs, ok := err.(validator.ValidationErrors); ok {
 			apierrors.HandleAPIError(c, apierrors.ValidationError(fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",
 				validationErrs[0].Field(), validationErrs[0].Tag()), err))
 			return
 		}
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
 		return
+	}
+
+	if request.HasPapfe {
+		file, header, fileErr := c.Request.FormFile("papfe_document")
+		if fileErr != nil {
+			apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE é obrigatório quando o apoio PAPFE está marcado", fileErr))
+			return
+		}
+		defer file.Close()
+
+		if header.Size > 10*1024*1024 {
+			apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 10MB", nil))
+			return
+		}
+
+		allowedTypes := map[string]bool{
+			"application/pdf": true,
+			"image/jpeg":      true,
+			"image/png":       true,
+			"image/webp":      true,
+		}
+		contentType := header.Header.Get("Content-Type")
+		if !allowedTypes[contentType] {
+			apierrors.HandleAPIError(c, apierrors.ValidationError("Tipo de arquivo não permitido. Aceitamos PDF, JPEG, PNG ou WebP", nil))
+			return
+		}
+
+		data, err := io.ReadAll(file)
+		if err != nil {
+			apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao ler comprovante PAPFE", err))
+			return
+		}
+
+		request.PapfeFilename = header.Filename
+		request.PapfeContentType = contentType
+		request.PapfeData = data
 	}
 
 	safeUser, err := h.userService.CreateUser(request)

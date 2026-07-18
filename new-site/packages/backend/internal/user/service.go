@@ -12,8 +12,6 @@ import (
 	"backend/internal/mailer"
 	"backend/internal/providers"
 	"backend/internal/token"
-
-	"github.com/lib/pq"
 )
 
 var (
@@ -40,6 +38,7 @@ type UserService interface {
 // userService é a implementação concreta de UserService.
 type userService struct {
 	repo                    UserRepository
+	papfeRepo               PapfeDocumentRepository
 	passwordProvider        providers.PasswordProvider
 	tokenProvider           providers.TokenProvider
 	mailProvider            providers.MailProvider
@@ -51,6 +50,7 @@ type userService struct {
 // NewUserService inicializa e retorna uma nova instância de UserService.
 func NewUserService(
 	repo UserRepository,
+	papfeRepo PapfeDocumentRepository,
 	passwordProvider providers.PasswordProvider,
 	tokenProvider providers.TokenProvider,
 	mailProvider providers.MailProvider,
@@ -60,6 +60,7 @@ func NewUserService(
 ) UserService {
 	return &userService{
 		repo:                    repo,
+		papfeRepo:               papfeRepo,
 		passwordProvider:        passwordProvider,
 		tokenProvider:           tokenProvider,
 		mailProvider:            mailProvider,
@@ -103,7 +104,7 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 		City:          request.City,
 		Education:     request.Education,
 		HasPapfe:      request.HasPapfe,
-		Disabilities:  pq.StringArray(request.Disabilities),
+		Disabilities:  request.Disabilities,
 		Profession:    request.Profession,
 		Linkedin:      request.Linkedin,
 		Telegram:      request.Telegram,
@@ -113,6 +114,19 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 
 	if err := s.repo.Create(&newUser); err != nil {
 		return nil, apierrors.InternalServerError("Erro ao criar usuário", err)
+	}
+
+	if request.PapfeFilename != "" {
+		doc := &PapfeDocument{
+			UserEmail:   newUser.Email,
+			Filename:    request.PapfeFilename,
+			ContentType: request.PapfeContentType,
+			Data:        request.PapfeData,
+			UploadedAt:  time.Now(),
+		}
+		if err := s.papfeRepo.Upsert(doc); err != nil {
+			log.Printf("[papfe] falha ao salvar comprovante para %s: %v", newUser.Email, err)
+		}
 	}
 
 	s.regenerateAndSendVerification(&newUser)
@@ -374,7 +388,7 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 	user.City = request.City
 	user.Education = request.Education
 	user.HasPapfe = request.HasPapfe
-	user.Disabilities = append([]string(nil), pq.StringArray(request.Disabilities)...)
+	user.Disabilities = request.Disabilities
 	user.Profession = request.Profession
 	user.Linkedin = request.Linkedin
 	user.Telegram = request.Telegram

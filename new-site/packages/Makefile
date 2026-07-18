@@ -15,6 +15,7 @@ restart:
 
 reset:
 	docker compose -p $(PROJECT) --env-file ./backend/.env down -v 
+	make build
 
 logs:
 	docker compose -p $(PROJECT) logs -f
@@ -40,16 +41,9 @@ bash-backend:
 psql:
 	docker compose -p $(PROJECT) exec db sh -c 'psql -U $$DB_USER -d $$DB_NAME'
 
-reset:
-	docker compose -p $(PROJECT) down -v
-	make restart
 
 logs-db:
 	docker compose -p $(PROJECT) logs -f db
-
-reset:
-	docker compose -p $(PROJECT) down -v
-	docker compose -p $(PROJECT) --env-file ./backend/.env  up -d --build
 	
 ps:
 	docker compose -p $(PROJECT) ps

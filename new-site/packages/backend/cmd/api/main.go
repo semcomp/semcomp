@@ -46,7 +46,7 @@ func main() {
 	// coluna email_verified é nova e não deve bloquear o login de usuários antigos.
 	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &token.Token{})
+	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &token.Token{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -84,7 +84,8 @@ func main() {
 	})
 
 	userRepo := user.NewUserRepository(db)
-	userService := user.NewUserService(userRepo, passwordProvider, tokenProvider, mailProvider, emailValidationProvider, tokenRepo, m)
+	papfeRepo := user.NewPapfeDocumentRepository(db)
+	userService := user.NewUserService(userRepo, papfeRepo, passwordProvider, tokenProvider, mailProvider, emailValidationProvider, tokenRepo, m)
 	userHandler := user.NewUserHandler(userService)
 
 	eventRepo := event.NewEventRepository(db)

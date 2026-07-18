@@ -3,9 +3,19 @@ package user
 import (
 	"fmt"
 	"time"
-
-	"github.com/lib/pq"
 )
+
+// PapfeDocument armazena o comprovante PAPFE de um participante em tabela separada.
+// ON DELETE CASCADE garante que o comprovante é removido junto com o usuário.
+type PapfeDocument struct {
+	ID          uint      `gorm:"primaryKey;autoIncrement"`
+	UserEmail   string    `gorm:"size:150;not null;uniqueIndex"`
+	User        User      `gorm:"foreignKey:UserEmail;references:Email;constraint:OnDelete:CASCADE"`
+	Filename    string    `gorm:"size:255;not null"`
+	ContentType string    `gorm:"size:100;not null"`
+	Data        []byte    `gorm:"type:bytea;not null"`
+	UploadedAt  time.Time
+}
 
 type User struct {
 	UserNumber    uint           `gorm:"primaryKey;not null" json:"user_number"`
@@ -17,7 +27,7 @@ type User struct {
 	City          string         `gorm:"size:100;not null" json:"city"`
 	Education     string         `gorm:"size:100;not null" json:"education"`
 	HasPapfe      bool           `gorm:"not null" json:"hasPapfe"`
-	Disabilities  pq.StringArray `gorm:"type:text[];not null;default:'{}'" json:"disabilities"`
+	Disabilities  string         `gorm:"type:text;not null;default:''"   json:"disabilities"`
 	Profession    *string        `gorm:"size:120" json:"profession,omitempty"`
 	Linkedin      *string        `gorm:"size:255" json:"linkedin,omitempty"`
 	Telegram      *string        `gorm:"size:255" json:"telegram,omitempty"`
@@ -32,18 +42,23 @@ type User struct {
 }
 
 type CreateUserRequest struct {
-	Name         string   `json:"name" binding:"required"`
-	Email        string   `json:"email" binding:"required,email"`
-	Password     string   `json:"password" binding:"required,min=8"`
-	Age          int      `json:"age" binding:"required,gt=0"`
-	Gender       string   `json:"gender" binding:"required"`
-	City         string   `json:"city" binding:"required"`
-	Education    string   `json:"education" binding:"required"`
-	HasPapfe     bool     `json:"hasPapfe"`
-	Disabilities []string `json:"disabilities" binding:"required"`
-	Profession   *string  `json:"profession,omitempty"`
-	Linkedin     *string  `json:"linkedin,omitempty"`
-	Telegram     *string  `json:"telegram,omitempty"`
+	Name         string   `form:"name"         json:"name"         binding:"required"`
+	Email        string   `form:"email"        json:"email"        binding:"required,email"`
+	Password     string   `form:"password"     json:"password"     binding:"required,min=8"`
+	Age          int      `form:"age"          json:"age"          binding:"required,gt=0"`
+	Gender       string   `form:"gender"       json:"gender"       binding:"required"`
+	City         string   `form:"city"         json:"city"         binding:"required"`
+	Education    string   `form:"education"    json:"education"    binding:"required"`
+	HasPapfe     bool     `form:"hasPapfe"     json:"hasPapfe"`
+	Disabilities string   `form:"disabilities" json:"disabilities"`
+	Profession   *string  `form:"profession"   json:"profession,omitempty"`
+	Linkedin     *string  `form:"linkedin"     json:"linkedin,omitempty"`
+	Telegram     *string  `form:"telegram"     json:"telegram,omitempty"`
+
+	// Preenchidos pelo handler a partir do arquivo multipart — não serializados
+	PapfeFilename    string `form:"-" json:"-"`
+	PapfeContentType string `form:"-" json:"-"`
+	PapfeData        []byte `form:"-" json:"-"`
 }
 
 type VerifyEmailRequest struct {
@@ -62,7 +77,7 @@ type UpdateUserRequest struct {
 	City         string   `json:"city" binding:"required"`
 	Education    string   `json:"education" binding:"required"`
 	HasPapfe     bool     `json:"hasPapfe"`
-	Disabilities []string `json:"disabilities" binding:"required"`
+	Disabilities string   `json:"disabilities" binding:"required"`
 	Profession   *string  `json:"profession,omitempty"`
 	Linkedin     *string  `json:"linkedin,omitempty"`
 	Telegram     *string  `json:"telegram,omitempty"`
@@ -77,7 +92,7 @@ type SafeUser struct {
 	City          string   `json:"city"`
 	Education     string   `json:"education"`
 	HasPapfe      bool     `json:"hasPapfe"`
-	Disabilities  []string `json:"disabilities"`
+	Disabilities  string   `json:"disabilities"`
 	Profession    *string  `json:"profession,omitempty"`
 	Linkedin      *string  `json:"linkedin,omitempty"`
 	Telegram      *string  `json:"telegram,omitempty"`
@@ -95,7 +110,7 @@ func ToSafeUser(user *User) SafeUser {
 		City:          user.City,
 		Education:     user.Education,
 		HasPapfe:      user.HasPapfe,
-		Disabilities:  append([]string(nil), user.Disabilities...),
+		Disabilities:  user.Disabilities,
 		Profession:    user.Profession,
 		Linkedin:      user.Linkedin,
 		Telegram:      user.Telegram,

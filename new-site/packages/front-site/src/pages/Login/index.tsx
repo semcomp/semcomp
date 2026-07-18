@@ -11,6 +11,7 @@ import { getTerms } from "@/mock/terms";
 import { useNavigate } from "react-router";
 import fallbackLoginHero from "@/assets/img/Login/Palestra.avif";
 import { isValidEmail } from "@/utils/validateEmail";
+import FileUpload from "@/components/file-upload";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -54,6 +55,7 @@ export default function LoginPage(): ReactElement {
     const [linkedin, setLinkedin] = useState("");
     const [telegram, setTelegram] = useState("");
     const [hasPapfe, setHasPapfe] = useState(false);
+    const [papfeFile, setPapfeFile] = useState<File | null>(null);
 
     const [hasDisability, setHasDisability] = useState(false);
     const [disabilities, setDisabilities] = useState<string[]>([]);
@@ -93,7 +95,7 @@ export default function LoginPage(): ReactElement {
         setEmail(""); setPassword(""); setName(""); setConfirmPassword("");
         setAcceptTerms(false); setAge(""); setGender(""); setCity("");
         setEducation(""); setProfession(""); setLinkedin(""); setTelegram("");
-        setHasPapfe(false); setHasDisability(false); setDisabilities([]);
+        setHasPapfe(false); setPapfeFile(null); setHasDisability(false); setDisabilities([]);
     }, []);
 
     useEffect(() => {
@@ -120,21 +122,18 @@ export default function LoginPage(): ReactElement {
             if (!gender) return "Selecione seu gênero.";
             if (!education) return "Selecione sua formação.";
             if (hasDisability && disabilities.length === 0) return "Adicione ao menos uma deficiência ou desmarque a opção.";
+            if (hasPapfe && !papfeFile) return "O comprovante PAPFE é obrigatório.";
         }
         return null;
-    }, [email, password, confirmPassword, isLogin, name, age, city, gender, education, hasDisability, disabilities]);
+    }, [email, password, confirmPassword, isLogin, name, age, city, gender, education, hasDisability, disabilities, hasPapfe, papfeFile]);
 
     const register = useCallback(async () => {
         try {
-            const payload = {
-                name, email, password, age: Number(age), gender, city,
-                education, profession, linkedin, telegram, hasPapfe,
-                disabilities: hasDisability ? disabilities : []
-            };
-
-            console.log(hasPapfe)
-            
-            const response = await authAPI.register(payload.name, payload.email, payload.password, payload.age, payload.gender, payload.city, payload.education, payload.hasPapfe, payload.disabilities, payload.profession, payload.linkedin, payload.telegram);
+            const response = await authAPI.register(
+                name, email, password, Number(age), gender, city, education,
+                hasPapfe, hasDisability ? disabilities : [],
+                profession, linkedin, telegram, papfeFile,
+            );
             showNotification(response.message || "Registro realizado!", "success");
             return true;
         } catch (err: any) {
@@ -142,7 +141,7 @@ export default function LoginPage(): ReactElement {
             showNotification(message, "warning");
             return false;
         }
-    }, [name, email, password, age, gender, city, education, profession, linkedin, telegram, hasPapfe, hasDisability, disabilities, showNotification]);
+    }, [name, email, password, age, gender, city, education, profession, linkedin, telegram, hasPapfe, papfeFile, hasDisability, disabilities, showNotification]);
 
     const handleResend = useCallback(async () => {
         if (!pendingVerificationEmail || resendCooldown > 0) return;
@@ -219,10 +218,10 @@ export default function LoginPage(): ReactElement {
             </button>
             <button
                 type="button"
-                onClick={() => setPendingVerificationEmail(null)}
+                onClick={() => { setPendingVerificationEmail(null); setIsLogin(true); }}
                 className={`mt-4 text-sm underline ${!isDarkMode ? "text-white" : ""}`}
             >
-                Voltar
+                Ir para o login
             </button>
         </div>
     );
@@ -293,8 +292,24 @@ export default function LoginPage(): ReactElement {
                             <div className="space-y-3 bg-black/5 dark:bg-white/5 p-3 rounded-lg border border-gray-400/20">
                                 <label className="flex items-center justify-between cursor-pointer text-sm font-medium">
                                     <span>Possui apoio PAPFE (USP)?</span>
-                                    <input type="checkbox" checked={hasPapfe} onChange={(e) => setHasPapfe(e.target.checked)} className="w-5 h-5 rounded accent-semcompMidDarkBlue cursor-pointer" />
+                                    <input type="checkbox" checked={hasPapfe} onChange={(e) => {
+                                        setHasPapfe(e.target.checked);
+                                        if (!e.target.checked) setPapfeFile(null);
+                                    }} className="w-5 h-5 rounded accent-semcompMidDarkBlue cursor-pointer" />
                                 </label>
+
+                                {hasPapfe && (
+                                    <div className="pt-1 animate-fadeIn">
+                                        <label className="text-xs font-semibold block mb-1.5">Comprovante PAPFE *</label>
+                                        <FileUpload
+                                            onChange={setPapfeFile}
+                                            accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                            maxSizeMB={10}
+                                            label="Arraste o comprovante ou clique para selecionar"
+                                            helperText="PDF, JPEG, PNG ou WebP · máx. 10 MB"
+                                        />
+                                    </div>
+                                )}
 
                                 <hr className="border-gray-400/20" />
 
