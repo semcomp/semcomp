@@ -36,6 +36,10 @@ func (s *authService) Login(request LoginUserRequest) (*user.SafeUser, string, e
 		return nil, "", apierrors.UnauthorizedError("Credenciais inválidas", errPassword)
 	}
 
+	if !userRecord.EmailVerified {
+		return nil, "", apierrors.ForbiddenError("E-mail ainda não verificado. Verifique sua caixa de entrada ou solicite um novo link de confirmação.", nil)
+	}
+
 	token, errToken := s.jwtProvider.Generate(userRecord.UserNumber, userRecord.Email)
 	if errToken != nil {
 		return nil, "", apierrors.InternalServerError("Erro ao gerar token de autenticação", errToken)

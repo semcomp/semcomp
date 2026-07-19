@@ -1,15 +1,20 @@
 package main
 
 import (
+	"os"
+	"strconv"
+
 	"backend/internal/auth"
 	"backend/internal/authBackoffice"
 	"backend/internal/database"
 	"backend/internal/event"
 	"backend/internal/log"
+	"backend/internal/mailer"
 	"backend/internal/middleware"
 	"backend/internal/permission"
 	"backend/internal/presence"
 	"backend/internal/providers"
+	"backend/internal/token"
 	"backend/internal/user"
 	"backend/internal/userBackoffice"
 
@@ -37,17 +42,50 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	err := db.AutoMigrate(&user.User{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{})
+	// Usado para "adotar" contas já existentes como verificadas logo abaixo, já que a
+	// coluna email_verified é nova e não deve bloquear o login de usuários antigos.
+	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
+
+	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &token.Token{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
+	}
+
+	if !hadEmailVerifiedColumn {
+		if err := db.Exec("UPDATE users SET email_verified = true").Error; err != nil {
+			panic("Failed to grandfather existing users as email-verified: " + err.Error())
+		}
 	}
 
 	// Inicializa as camadas da aplicação (Repository -> Service -> Handler)
 	passwordProvider := providers.NewBcryptProvider()
 	jwtProvider := providers.NewJWTProvider()
+	tokenProvider := providers.NewTokenProvider()
+	mailProvider := providers.NewMailProvider()
+	emailValidationProvider := providers.NewEmailValidationProvider()
+
+	tokenRepo := token.NewRepository(db)
+
+	smtpPort := 587
+	if portStr := os.Getenv("SMTP_PORT"); portStr != "" {
+		if p, err := strconv.Atoi(portStr); err == nil {
+			smtpPort = p
+		}
+	}
+
+	m := mailer.NewMailer(mailer.Config{
+		SMTP: mailer.SMTPConfig{
+			Host:     os.Getenv("SMTP_HOST"),
+			Port:     smtpPort,
+			Username: os.Getenv("SMTP_USER"),
+			Password: os.Getenv("SMTP_PASSWORD"),
+		},
+		BaseURL: os.Getenv("FRONTEND_URL"),
+	})
 
 	userRepo := user.NewUserRepository(db)
-	userService := user.NewUserService(userRepo, passwordProvider)
+	papfeRepo := user.NewPapfeDocumentRepository(db)
+	userService := user.NewUserService(userRepo, papfeRepo, passwordProvider, tokenProvider, mailProvider, emailValidationProvider, tokenRepo, m)
 	userHandler := user.NewUserHandler(userService)
 
 	eventRepo := event.NewEventRepository(db)
@@ -103,6 +141,10 @@ func main() {
 	// Rotas Semcomp - Públicas
 	r.POST("/register", userHandler.CreateUser)
 	r.POST("/login", authHandler.LoginHandler)
+	r.POST("/forgot-password", userHandler.ForgotPasswordHandler)
+	r.POST("/reset-password", userHandler.ResetPasswordHandler)
+	r.POST("/verify-email", userHandler.VerifyEmail)
+	r.POST("/resend-verification", userHandler.ResendVerification)
 
 	r.GET("/events", eventHandler.GetEvents)
 	r.GET("/event/:eventName/:initDate", eventHandler.GetEventByNameAndInitDate)
@@ -111,6 +153,7 @@ func main() {
 	authRoutes := r.Group("/api")
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
+	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 
 	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")
