@@ -73,25 +73,30 @@ export const router = createBrowserRouter([
             ],  
           },
           {
-            path: "loja",
-            lazy: async () => {
-              const { default: StorePage } = await import("@/pages/Store/StorePage");
-              return { Component: StorePage };
-            },
-          },
-          {
-            path: "loja/carrinho",
-            lazy: async () => {
-              const { default: CartPage } = await import("@/pages/Store/Cart");
-              return { Component: CartPage };
-            },
-          },
-          {
-            path: "loja/checkout",
-            lazy: async () => {
-              const { default: CheckoutPage } = await import("@/pages/Store/Checkout");
-              return { Component: CheckoutPage };
-            },
+            element: <FeatureGuard featureKey="loja" />,
+            children: [
+              {
+                path: "loja",
+                lazy: async () => {
+                  const { default: StorePage } = await import("@/pages/Store/StorePage");
+                  return { Component: StorePage };
+                },
+              },
+              {
+                path: "loja/carrinho",
+                lazy: async () => {
+                  const { default: CartPage } = await import("@/pages/Store/Cart");
+                  return { Component: CartPage };
+                },
+              },
+              {
+                path: "loja/checkout",
+                lazy: async () => {
+                  const { default: CheckoutPage } = await import("@/pages/Store/Checkout");
+                  return { Component: CheckoutPage };
+                },
+              },
+            ],
           },
         ],
       },

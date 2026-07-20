@@ -109,7 +109,7 @@ func main() {
 	permissionRepo := permission.NewPermissionRepository(db)
 	permissionService := permission.NewPermissionService(permissionRepo)
 
-	pagesService := pages.NewService([]string{"home", "login", "cronograma", "profile", "riddle"})
+	pagesService := pages.NewService([]string{"home", "login", "cronograma", "profile", "riddle", "loja"})
 	pagesHandler := pages.NewPagesHandler(pagesService)
 
 	userBackofficeRepo := userBackoffice.NewUserBackofficeRepository(db)
@@ -183,9 +183,9 @@ func main() {
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 
-	authRoutes.GET("/payments", paymentHandler.ListByUser)
-	authRoutes.POST("/payments/pix", paymentHandler.CreatePix)
-	authRoutes.GET("/payments/:id/status", paymentHandler.GetStatus)
+	authRoutes.GET("/payments", pageMW("loja"), paymentHandler.ListByUser)
+	authRoutes.POST("/payments/pix", pageMW("loja"), paymentHandler.CreatePix)
+	authRoutes.GET("/payments/:id/status", pageMW("loja"), paymentHandler.GetStatus)
 
 	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")

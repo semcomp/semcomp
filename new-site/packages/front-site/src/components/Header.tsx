@@ -17,13 +17,14 @@ export default function Header() {
   const allTabs: Array<{ key: TabKey; featureKey?: FeatureKey; label: string; path: string; status: boolean }> = [
     { key: "home", featureKey: "home", label: "HOME", path: "/", status: true },
     { key: "cronograma", featureKey: "cronograma", label: "CRONOGRAMA", path: "/cronograma", status: true },
-    { key: "loja", label: "LOJA", path: "/loja", status: isAuthenticated },
+    { key: "loja", featureKey: "loja", label: "LOJA", path: "/loja", status: isAuthenticated },
     { key: "login", featureKey: "login", label: "LOGIN", path: "/login", status: !isAuthenticated },
     { key: "perfil", label: "PERFIL", path: "/profile", status: isAuthenticated },
   ];
 
   const visibleTabs = allTabs.filter(tab =>
     tab.status && (tab.featureKey ? isFeatureEnabled(tab.featureKey) : true)
+    
   );
 
   const activeTabObj = visibleTabs.find((t) => t.path === location.pathname);
