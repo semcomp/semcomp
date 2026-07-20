@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
-import RequireAuth from "@/lib/RequireAuth";
+// import RequireAuth from "@/lib/RequireAuth";
+import FeatureGuard from "@/components/FeatureGuard";
 
 export const router = createBrowserRouter([
   {
@@ -17,19 +18,48 @@ export const router = createBrowserRouter([
         },
       },
       {
-        path: "cronograma",
-        lazy: async () => {
-          const { default: CronogramaPage } = await import("@/pages/Cronograma");
-          return { Component: CronogramaPage };
-        },
+        element: <FeatureGuard featureKey="cronograma" />,
+        children: [
+          {
+            path: "cronograma",
+            lazy: async () => {
+              const { default: CronogramaPage } = await import(
+                "@/pages/Cronograma"
+              );
+              return { Component: CronogramaPage };
+            },
+          },
+        ],
       },
       {
-        path: "login",
-        lazy: async () => {
-          const { default: LoginPage } = await import("@/pages/Login");
-          return { Component: LoginPage };
-        },
+        element: <FeatureGuard featureKey="login" />,
+        children: [
+          {
+            path: "login",
+            lazy: async () => {
+              const { default: LoginPage } = await import("@/pages/Login");
+              return { Component: LoginPage };
+            },
+          },
+        ],
       },
+      // {
+      //   element: <FeatureGuard featureKey="profile" />,
+      //   children: [
+      //     {
+      //       element: <RequireAuth />,
+      //       children: [
+      //         {
+      //           path: "profile",
+      //           lazy: async () => {
+      //             const { default: ProfilePage } = await import("@/pages/Profile");
+      //             return { Component: ProfilePage };
+      //           },
+      //         },
+      //       ],
+      //     },
+      //   ],
+      // },
       {
         path: "verify-email",
         lazy: async () => {
@@ -43,18 +73,6 @@ export const router = createBrowserRouter([
           const { default: ResetPasswordPage } = await import("@/pages/ResetPassword");
           return { Component: ResetPasswordPage };
         },
-      },
-      {
-        element: <RequireAuth />,
-        children: [
-          {
-            path: "profile",
-            lazy: async () => {
-              const { default: ProfilePage } = await import("@/pages/Profile");
-              return { Component: ProfilePage };
-            }
-          },
-        ],
       },
       {
         path: "*",

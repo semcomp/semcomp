@@ -12,6 +12,11 @@ export interface BackofficePermission {
   permission_type: "R" | "RW" | null;
 }
 
+export interface PageAvailability {
+  page: string;
+  available: boolean;
+}
+
 export interface LoginResponse {
   message: string;
   user: BackofficeUser;
