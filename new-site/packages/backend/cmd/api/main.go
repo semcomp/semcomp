@@ -11,6 +11,7 @@ import (
 	"backend/internal/log"
 	"backend/internal/mailer"
 	"backend/internal/middleware"
+	"backend/internal/pages"
 	"backend/internal/payment"
 	"backend/internal/permission"
 	"backend/internal/presence"
@@ -108,6 +109,9 @@ func main() {
 	permissionRepo := permission.NewPermissionRepository(db)
 	permissionService := permission.NewPermissionService(permissionRepo)
 
+	pagesService := pages.NewService([]string{"home", "login", "cronograma", "profile", "riddle"})
+	pagesHandler := pages.NewPagesHandler(pagesService)
+
 	userBackofficeRepo := userBackoffice.NewUserBackofficeRepository(db)
 	userBackofficeService := userBackoffice.NewUserBackofficeService(userBackofficeRepo, passwordProvider, permissionService.SeedUserPermissions)
 	userBackofficeHandler := userBackoffice.NewUserBackofficeHandler(userBackofficeService)
@@ -152,19 +156,26 @@ func main() {
 	// Rota para acessar a interface web do Swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Rotas Semcomp - Públicas
-	r.POST("/register", userHandler.CreateUser)
-	r.POST("/login", authHandler.LoginHandler)
-	r.POST("/forgot-password", userHandler.ForgotPasswordHandler)
-	r.POST("/reset-password", userHandler.ResetPasswordHandler)
-	r.POST("/verify-email", userHandler.VerifyEmail)
-	r.POST("/resend-verification", userHandler.ResendVerification)
+	pageMW := func(page string) gin.HandlerFunc {
+		return middleware.RequirePageAvailable(pagesService, page)
+	}
 
-	r.GET("/events", eventHandler.GetEvents)
-	r.GET("/event/:eventName/:initDate", eventHandler.GetEventByNameAndInitDate)
+	// Rotas Semcomp - Públicas
+	r.POST("/register", pageMW("login"), userHandler.CreateUser)
+	r.POST("/login", pageMW("login"), authHandler.LoginHandler)
+	r.POST("/forgot-password", pageMW("login"), userHandler.ForgotPasswordHandler)
+	r.POST("/reset-password", pageMW("login"), userHandler.ResetPasswordHandler)
+	r.POST("/verify-email", pageMW("login"), userHandler.VerifyEmail)
+	r.POST("/resend-verification", pageMW("login"), userHandler.ResendVerification)
+
+	r.GET("/events", pageMW("cronograma"), eventHandler.GetEvents)
+	r.GET("/event/:eventName/:initDate", pageMW("cronograma"), eventHandler.GetEventByNameAndInitDate)
 	r.GET("/products", productHandler.GetProducts)
 
 	r.POST("/webhook/mercadopago", paymentHandler.Webhook)
+
+	r.GET("/pages/availability", pagesHandler.GetAllPagesAvailabilityHandler)
+	r.GET("/pages/:page/availability", pagesHandler.GetPageAvailabilityHandler)
 
 	// Rotas Semcomp - Protegidas
 	authRoutes := r.Group("/api")
@@ -231,6 +242,9 @@ func main() {
 	admin.POST("/permissions", permMW("Permissões", permission.PermRW), permissionHandler.CreatePermission)
 	admin.PUT("/permissions/:user/:section", permMW("Permissões", permission.PermRW), permissionHandler.UpdatePermissionByUserSection)
 	admin.DELETE("/permissions/:user/:section", permMW("Permissões", permission.PermRW), permissionHandler.DeletePermissionByUserSection)
+
+	// Páginas
+	admin.PUT("/pages/:page/availability", permMW("Páginas", permission.PermRW), pagesHandler.SetPageAvailabilityHandler)
 
 	r.Run(":4000")
 }

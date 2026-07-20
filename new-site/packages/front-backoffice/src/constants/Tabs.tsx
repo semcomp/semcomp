@@ -1,4 +1,4 @@
-import { Calendar, UserCog, User, Key, Hand } from "lucide-react";
+import { Calendar, UserCog, User, Key, Hand, ToggleLeft } from "lucide-react";
 
 // section deve coincidir com KnownSections em backend/internal/permission/model.go
 export const Tabs: {
@@ -58,6 +58,16 @@ export const Tabs: {
     description: "Gerencie as permissões de acesso dos usuários ao sistema.",
     pageNavigate: "/permissions",
     icon: <Key className="w-5 h-5" />,
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
+    key: "pages-availability",
+    section: "Páginas",
+    label: "Páginas",
+    description: "Habilite ou desabilite páginas do site.",
+    pageNavigate: "/pages-availability",
+    icon: <ToggleLeft className="w-5 h-5" />,
     bg: "bg-primary/15",
     hoverBg: "bg-primary/25",
   },

@@ -10,6 +10,7 @@ import SemcompUsersCRUD from "@/pages/UserSemcomp";
 import BackofficeUsersCRUD from "@/pages/UserBackoffice";
 import ParticipationCRUD from "@/pages/Participation";
 import PermissionsCRUD from "@/pages/Permission";
+import PagesAvailability from "@/pages/PagesAvailability";
 import NotFoundPage from "@/pages/NotFound";
 
 export const router = createBrowserRouter(
@@ -55,6 +56,10 @@ export const router = createBrowserRouter(
             {
               element: <RequirePermission section="Permissões" />,
               children: [{ path: "/permissions", element: <PermissionsCRUD /> }],
+            },
+            {
+              element: <RequirePermission section="Páginas" />,
+              children: [{ path: "/pages-availability", element: <PagesAvailability /> }],
             },
             {
               path: "*",
