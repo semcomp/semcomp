@@ -30,7 +30,7 @@ type Evento = EventType & {
 
 let events: Evento[] = [
 ];
-interface ProfileProps extends UserType {
+interface ProfileProps extends Partial<UserType> {
   event?: string;
 }
 

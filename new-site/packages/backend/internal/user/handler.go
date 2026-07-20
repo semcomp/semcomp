@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
+
+	"backend/internal/token"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -23,13 +26,25 @@ func NewUserHandler(userService UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
-// CreateUser processa o payload JSON e tenta criar um novo usuário.
+// CreateUser processa o formulário multipart e tenta criar um novo usuário.
 // @Summary Cria um novo usuário
-// @Description Cadastra um participante no sistema
+// @Description Cadastra um participante no sistema. Aceita multipart/form-data para suportar upload do comprovante PAPFE.
 // @Tags Usuários (Participantes)
-// @Accept json
+// @Accept multipart/form-data
 // @Produce json
-// @Param request body user.CreateUserRequest true "Dados de cadastro"
+// @Param name formData string true "Nome completo"
+// @Param email formData string true "E-mail"
+// @Param password formData string true "Senha (min 8 caracteres)"
+// @Param age formData int true "Idade"
+// @Param gender formData string true "Gênero"
+// @Param city formData string true "Cidade"
+// @Param education formData string true "Formação"
+// @Param hasPapfe formData bool false "Recebe PAPFE?"
+// @Param disabilities formData []string false "Lista de deficiências"
+// @Param profession formData string false "Profissão"
+// @Param linkedin formData string false "LinkedIn"
+// @Param telegram formData string false "Telegram"
+// @Param papfe_document formData file false "Comprovante PAPFE (PDF/JPEG/PNG/WebP, máx 10MB)"
 // @Success 201 {object} map[string]interface{} "Usuário criado com sucesso!"
 // @Failure 400 {object} map[string]string "Dados inválidos"
 // @Failure 409 {object} map[string]string "E-mail já cadastrado"
@@ -38,13 +53,77 @@ func NewUserHandler(userService UserService) *UserHandler {
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var request CreateUserRequest
 
-	if err := c.ShouldBindJSON(&request); err != nil {
-		if unmarshalErr, ok := err.(*json.UnmarshalTypeError); ok {
-			apierrors.HandleAPIError(c, apierrors.ValidationError(fmt.Sprintf("O campo '%s' recebeu um valor do tipo %s, mas esperava %s",
-				unmarshalErr.Field, unmarshalErr.Value, unmarshalErr.Type), err))
+	if err := c.ShouldBind(&request); err != nil {
+		if validationErrs, ok := err.(validator.ValidationErrors); ok {
+			apierrors.HandleAPIError(c, apierrors.ValidationError(fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",
+				validationErrs[0].Field(), validationErrs[0].Tag()), err))
+			return
+		}
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
+		return
+	}
+
+	if request.HasPapfe {
+		file, header, fileErr := c.Request.FormFile("papfe_document")
+		if fileErr != nil {
+			apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE é obrigatório quando o apoio PAPFE está marcado", fileErr))
+			return
+		}
+		defer file.Close()
+
+		if header.Size > 10*1024*1024 {
+			apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 10MB", nil))
 			return
 		}
 
+		allowedTypes := map[string]bool{
+			"application/pdf": true,
+			"image/jpeg":      true,
+			"image/png":       true,
+			"image/webp":      true,
+		}
+		contentType := header.Header.Get("Content-Type")
+		if !allowedTypes[contentType] {
+			apierrors.HandleAPIError(c, apierrors.ValidationError("Tipo de arquivo não permitido. Aceitamos PDF, JPEG, PNG ou WebP", nil))
+			return
+		}
+
+		data, err := io.ReadAll(file)
+		if err != nil {
+			apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao ler comprovante PAPFE", err))
+			return
+		}
+
+		request.PapfeFilename = header.Filename
+		request.PapfeContentType = contentType
+		request.PapfeData = data
+	}
+
+	safeUser, err := h.userService.CreateUser(request)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	message := "Cadastro realizado! Verifique seu e-mail para confirmar sua conta."
+	c.Set("responseMessage", message)
+	c.JSON(http.StatusCreated, gin.H{"message": message, "user": safeUser})
+}
+
+// VerifyEmail confirma o e-mail de um usuário a partir do token recebido por link.
+// @Summary Confirma e-mail de um usuário
+// @Description Valida o token de verificação enviado por e-mail e ativa a conta
+// @Tags Usuários (Participantes)
+// @Accept json
+// @Produce json
+// @Param request body user.VerifyEmailRequest true "Token de verificação"
+// @Success 200 {object} map[string]string "E-mail confirmado com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 404 {object} map[string]string "Token inválido ou expirado"
+// @Router /verify-email [post]
+func (h *UserHandler) VerifyEmail(c *gin.Context) {
+	var request VerifyEmailRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
 		if validationErrs, ok := err.(validator.ValidationErrors); ok {
 			apierrors.HandleAPIError(c, apierrors.ValidationError(fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",
 				validationErrs[0].Field(), validationErrs[0].Tag()), err))
@@ -53,13 +132,46 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	safeUser, err := h.userService.CreateUser(request)
-	if err != nil {
+	if err := h.userService.VerifyEmail(request.Token); err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
 	}
-	c.Set("responseMessage", "Usuário criado com sucesso!")
-	c.JSON(http.StatusCreated, gin.H{"message": "Usuário criado com sucesso!", "user": safeUser})
+
+	message := "E-mail confirmado com sucesso!"
+	c.Set("responseMessage", message)
+	c.JSON(http.StatusOK, gin.H{"message": message})
+}
+
+// ResendVerification reenvia o e-mail de confirmação de conta.
+// @Summary Reenvia e-mail de confirmação
+// @Description Reenvia o link de confirmação de e-mail, se aplicável
+// @Tags Usuários (Participantes)
+// @Accept json
+// @Produce json
+// @Param request body user.ResendVerificationRequest true "E-mail do usuário"
+// @Success 200 {object} map[string]string "Se o e-mail estiver cadastrado e pendente de confirmação, um novo link foi enviado"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Router /resend-verification [post]
+func (h *UserHandler) ResendVerification(c *gin.Context) {
+	var request ResendVerificationRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		if validationErrs, ok := err.(validator.ValidationErrors); ok {
+			apierrors.HandleAPIError(c, apierrors.ValidationError(fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",
+				validationErrs[0].Field(), validationErrs[0].Tag()), err))
+			return
+		}
+		return
+	}
+
+	if err := h.userService.ResendVerification(request.Email); err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	message := "Se o e-mail estiver cadastrado e pendente de confirmação, um novo link foi enviado."
+	c.Set("responseMessage", message)
+	c.JSON(http.StatusOK, gin.H{"message": message})
 }
 
 // GetAllUsers retorna todos os usuários cadastrados.
@@ -240,4 +352,104 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	}
 	c.Set("responseMessage", "Usuário removido com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Usuário removido com sucesso!"})
+}
+
+// VerifyEmailHandler verifica o e-mail do usuário a partir do token.
+func (h *UserHandler) VerifyEmailHandler(c *gin.Context) {
+	tokenPlain := c.Query("token")
+	if tokenPlain == "" {
+		c.Set("responseMessage", "Token não fornecido")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token não fornecido"})
+		return
+	}
+
+	err := h.userService.VerifyEmail(tokenPlain)
+	if err != nil {
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Link de verificação inválido ou expirado")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Link de verificação inválido ou expirado"})
+		return
+	}
+
+	c.Set("responseMessage", "E-mail verificado com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "E-mail verificado com sucesso!"})
+}
+
+// ForgotPasswordHandler solicita a recuperação de senha.
+func (h *UserHandler) ForgotPasswordHandler(c *gin.Context) {
+	var request ForgotPasswordRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		if validationErrs, ok := err.(validator.ValidationErrors); ok {
+			c.Set("responseMessage", "Dados inválidos")
+			fieldErr := validationErrs[0]
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",
+					fieldErr.Field(), fieldErr.Tag()),
+			})
+			return
+		}
+		c.Set("responseMessage", "Dados inválidos")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "E-mail inválido"})
+		return
+	}
+
+	_ = h.userService.RequestPasswordReset(request.Email)
+
+	c.Set("responseMessage", "Se o e-mail existir, você receberá um link de recuperação.")
+	c.JSON(http.StatusOK, gin.H{"message": "Se o e-mail existir, você receberá um link de recuperação."})
+}
+
+// ResetPasswordHandler redefina a senha do usuário.
+func (h *UserHandler) ResetPasswordHandler(c *gin.Context) {
+	var request ResetPasswordRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		if unmarshalErr, ok := err.(*json.UnmarshalTypeError); ok {
+			c.Set("responseMessage", "Dados inválidos")
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": fmt.Sprintf("O campo '%s' recebeu um valor do tipo %s, mas esperava %s",
+					unmarshalErr.Field, unmarshalErr.Value, unmarshalErr.Type),
+			})
+			return
+		}
+
+		if validationErrs, ok := err.(validator.ValidationErrors); ok {
+			c.Set("responseMessage", "Dados inválidos")
+			fieldErr := validationErrs[0]
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",
+					fieldErr.Field(), fieldErr.Tag()),
+			})
+			return
+		}
+
+		c.Set("responseMessage", "Dados inválidos")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		return
+	}
+
+	err := h.userService.ResetPassword(request.Token, request.NewPassword)
+	if err != nil {
+		if errors.Is(err, token.ErrInvalidToken) {
+			c.Set("responseMessage", "Token inválido")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Token inválido"})
+			return
+		}
+		if errors.Is(err, token.ErrTokenExpired) {
+			c.Set("responseMessage", "Token expirado")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Token expirado"})
+			return
+		}
+		if errors.Is(err, token.ErrTokenUsed) {
+			c.Set("responseMessage", "Token já utilizado")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Token já utilizado"})
+			return
+		}
+		c.Set("internalError", err)
+		c.Set("responseMessage", "Erro interno do servidor")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
+		return
+	}
+
+	c.Set("responseMessage", "Senha redefinida com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "Senha redefinida com sucesso!"})
 }
