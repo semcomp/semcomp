@@ -43,6 +43,7 @@ export default function Modal({
 
   const { isDarkMode } = useTheme();
   const mutedText = isDarkMode ? "text-semcompOffWhite/60" : "text-semcompDarkBlue/60";
+  const hoverClose = isDarkMode ? "hover:bg-semcompOffWhite/60 hover:text-semcompDarkBlue" : "hover:bg-semcompMidDarkBlue/10 hover:text-semcompDarkBlue";
 
   const modal = (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -60,7 +61,7 @@ export default function Modal({
             <button
               onClick={onClose}
               aria-label="Fechar"
-              className={`p-2 rounded-full transition-colors ${mutedText} hover:bg-semcompMidDarkBlue/10 hover:text-semcompDarkBlue cursor-pointer`}
+              className={`p-2 rounded-full transition-colors ${mutedText} ${hoverClose} cursor-pointer`}
             >
               ✕
             </button>

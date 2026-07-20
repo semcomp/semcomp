@@ -34,25 +34,27 @@ export default function CartPage() {
   const { items, removeItem, updateQuantity, clearCart, subtotal, totalItems } = useCart();
 
   // ─── Cores ──────────────────────────────────────────────
-  const bgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompLightBlue";
-  const sectionBg = isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompOffWhite";
+  const bgColor = isDarkMode
+    ? "bg-gradient-to-b from-semcompAlmostDarkBlue via-semcompDarkBlue to-semcompDarkBlue/80"
+    : "bg-gradient-to-b from-semcompMidLightBlue to-semcompMidLightBlue/20";
+  // Hero (header) background: gradient azul no light mode para contrastar com botões brancos do header
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
-  const mutedText = isDarkMode ? "text-semcompOffWhite/60" : "text-semcompDarkBlue/60";
+  const mutedText =   "text-semcompOffWhite/80";
   const mutedText2 = isDarkMode ? "text-semcompOffWhite/40" : "text-semcompDarkBlue/40";
   const cardBg = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-white";
-  const cardBorder = isDarkMode ? "border-white/10" : "border-gray-200";
+  const cardBorder = isDarkMode ? "border-white/10" : "border-semcompMidLightBlue/20";
   const cardShadow = isDarkMode
     ? "shadow-[0_8px_40px_rgba(0,0,0,0.5)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.65)]"
-    : "shadow-[0_8px_40px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.2)]";
+    : "shadow-[0_8px_40px_rgba(53,123,163,0.08)] hover:shadow-[0_12px_48px_rgba(53,123,163,0.12)]";
   // Botão sólido com cores invertidas (igual ao floating mobile da loja)
   const btnSolid = isDarkMode
     ? "bg-semcompOffWhite text-semcompMidDarkBlue hover:bg-gray-200 hover:shadow-[0_0_24px_rgba(255,255,255,0.25)]"
-    : "bg-semcompMidDarkBlue text-semcompOffWhite hover:bg-semcompDarkBlue hover:shadow-[0_0_24px_rgba(0,48,80,0.45)]";
+    : "bg-semcompMidLightBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-[0_0_18px_rgba(53,123,163,0.22)]";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompDarkBlue/80";
-  const gradientVia = isDarkMode ? "via-semcompLightBlue" : "via-semcompDarkBlue";
-  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompOffBlack";
-  const divider = isDarkMode ? "border-white/10" : "border-gray-200";
+  const gradientFrom = isDarkMode ? "from-semcompMidLightBlue/90" : "from-semcompMidLightBlue/90";
+  const gradientVia = isDarkMode ? "via-semcompMidLightBlue/80" : "via-semcompMidDarkBlue";
+  const gradientTo = isDarkMode ? "to-semcompMidLightBlue" : "to-semcompMidDarkBlue";
+  const divider = isDarkMode ? "border-white/10" : "border-semcompMidLightBlue/30";
 
   // ─── Carrinho vazio ─────────────────────────────────────
   if (items.length === 0) {
@@ -66,7 +68,7 @@ export default function CartPage() {
           variants={fadeIn}
           className="flex flex-col items-center gap-6 px-4 text-center"
         >
-          <div className={`rounded-full ${sectionBg} p-8 shadow-[0_6px_32px_rgba(0,0,0,0.12)]`}>
+          <div className={`rounded-full p-8 shadow-[0_6px_32px_rgba(0,0,0,0.12)]`}>
             <ShoppingBag size={72} className={mutedText2} />
           </div>
 
@@ -79,7 +81,7 @@ export default function CartPage() {
             </span>
           </h1>
 
-          <p className={`max-w-xs ${mutedText}`}>
+          <p className={`max-w-xs ${isDarkMode ? "text-semcompOffWhite/60" : "text-semcompMidDarkBlue"}`}>
             Explore nosso catálogo e adicione seus produtos favoritos.
           </p>
 
@@ -98,7 +100,7 @@ export default function CartPage() {
   return (
     <div className={`w-full min-h-screen font-poppins ${bgColor} transition-colors duration-300`}>
       {/* ── Header ───────────────────────────────────── */}
-      <section className="pt-28 pb-8 md:pt-36 md:pb-12">
+      <section className={`pt-28 pb-8 md:pt-36 md:pb-12`}>
         <div className="mx-auto max-w-[80%]">
           <motion.div
             initial="hidden"
@@ -115,7 +117,7 @@ export default function CartPage() {
             </Link>
 
             <h1 className={`${headingSize} font-extrabold mb-2`}>
-              <span className={`${textColor} font-poppins`}>MEU</span>{" "}
+              <span className={`text-semcompOffWhite font-poppins`}>MEU</span>{" "}
               <span
                 className={`bg-clip-text font-poppins text-transparent bg-linear-to-r ${gradientFrom} ${gradientVia} ${gradientTo}`}
               >
@@ -131,7 +133,7 @@ export default function CartPage() {
       </section>
 
       {/* ── Conteúdo ─────────────────────────────────── */}
-      <section className={`${sectionBg} py-10 md:py-16 transition-colors duration-300`}>
+      <section className={`py-10 md:py-16 transition-colors duration-300`}>
         <div className="mx-auto max-w-[80%]">
           <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
             {/* Lista de itens */}
@@ -170,7 +172,7 @@ export default function CartPage() {
                         )}
                         {item.dateTime && (
                           <p className={`text-xs ${mutedText} mt-0.5`}>
-                            🕐 {new Date(item.dateTime).toLocaleDateString("pt-BR", {
+                            {new Date(item.dateTime).toLocaleDateString("pt-BR", {
                               day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit"
                             })}
                           </p>
@@ -186,7 +188,7 @@ export default function CartPage() {
                         type="button"
                         onClick={() => removeItem(item.cartKey)}
                         aria-label={`Remover ${item.name}`}
-                        className={`shrink-0 rounded-full p-2 ${mutedText} hover:bg-red-500/10 hover:text-red-500 transition-colors cursor-pointer`}
+                        className={`shrink-0 rounded-full p-2 ${isDarkMode? "text-semcompOffWhite/80" : "text-semcompAlmostDarkBlue"} hover:bg-red-500/10 hover:text-red-500 transition-colors cursor-pointer`}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -201,7 +203,7 @@ export default function CartPage() {
                           type="button"
                           onClick={() => updateQuantity(item.cartKey, -1)}
                           aria-label="Diminuir"
-                          className={`w-8 h-8 rounded-full border ${cardBorder} flex items-center justify-center ${textColor} hover:bg-semcompLightBlue/20 transition-colors cursor-pointer`}
+                          className={`w-8 h-8 rounded-full border ${cardBorder} flex items-center justify-center ${textColor} hover:bg-semcompMidLightBlue/20 transition-colors cursor-pointer`}
                         >
                           <Minus size={14} />
                         </button>
@@ -212,7 +214,7 @@ export default function CartPage() {
                           type="button"
                           onClick={() => updateQuantity(item.cartKey, 1)}
                           aria-label="Aumentar"
-                          className={`w-8 h-8 rounded-full border ${cardBorder} flex items-center justify-center ${textColor} hover:bg-semcompLightBlue/20 transition-colors cursor-pointer`}
+                          className={`w-8 h-8 rounded-full border ${cardBorder} flex items-center justify-center ${textColor} hover:bg-semcompMidLightBlue/20 transition-colors cursor-pointer`}
                         >
                           <Plus size={14} />
                         </button>
@@ -248,9 +250,11 @@ export default function CartPage() {
                     <span>Subtotal</span>
                     <span className={`font-bold ${textColor}`}>{formatBRL(subtotal)}</span>
                   </div>
-                  <div className={`flex justify-between ${mutedText}`}>
-                    <span>Frete</span>
-                    <span className={`font-bold text-green-600 dark:text-green-400`}>Grátis</span>
+                  <div className={`flex flex-col gap-0.5 ${mutedText}`}>
+                    <span>Retirada</span>
+                    <span className={`text-xs font-bold text-green-600 dark:text-green-400 leading-snug`}>
+                      Informações sobre a retirada serão disponibilizadas no mural de avisos!
+                    </span>
                   </div>
                   <div className={`flex justify-between border-t ${divider} pt-4`}>
                     <span className={`text-base font-extrabold ${textColor}`}>Total</span>
@@ -262,7 +266,7 @@ export default function CartPage() {
 
                 <button
                   type="button"
-                  className={`mt-6 flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-semcompLightBlue focus:ring-offset-2 active:scale-95 shadow-lg ${btnSolid}`}
+                  className={`mt-6 flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-semcompMidLightBlue focus:ring-offset-2 active:scale-95 shadow-lg ${btnSolid}`}
                 >
                   Finalizar Pedido
                   <ArrowRight size={18} />

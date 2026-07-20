@@ -164,24 +164,28 @@ export default function StorePage() {
   }, []);
 
   // ─── Cores responsivas ao tema ──────────────────────────
-  const bgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompLightBlue";
-  const sectionBg = isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompOffWhite";
+  //const bgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompLightBlue";
+  const heroBg = isDarkMode
+    ? "bg-gradient-to-b from-semcompDarkBlue to-semcompMidDarkBlue"
+    : "bg-gradient-to-b from-semcompMidLightBlue to-semcompMidLightBlue/20";
+  //const sectionBg = isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompLightBlue/20";
+  const priceColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompMidDarkBlue"
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
   const mutedText = isDarkMode ? "text-semcompOffWhite/60" : "text-semcompDarkBlue/60";
-  const mutedText2 = isDarkMode ? "text-semcompOffWhite/40" : "text-semcompDarkBlue/40";
+  const mutedText2 = isDarkMode ? "text-semcompOffWhite/60" : "text-semcompDarkBlue/60";
   const cardBg = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-white";
   const cardBorder = isDarkMode ? "border-white/10" : "border-gray-200";
   const cardShadow = isDarkMode
     ? "shadow-[0_8px_40px_rgba(0,0,0,0.5)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.65)]"
     : "shadow-[0_8px_40px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.2)]";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompDarkBlue/80";
-  const gradientVia = isDarkMode ? "via-semcompLightBlue" : "via-semcompDarkBlue";
-  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompOffBlack";
+  const gradientFrom = isDarkMode ? "from-semcompMidLightBlue/90" : "from-semcompLightBlue/80";
+  const gradientVia = isDarkMode ? "via-semcompMidLightBlue/80" : "via-semcompLightBlue";
+  const gradientTo = isDarkMode ? "to-semcompMidLightBlue" : "to-semcompLightBlue";
   // Botão sólido com cores invertidas (igual ao floating mobile)
   const btnSolid = isDarkMode
     ? "bg-semcompOffWhite text-semcompMidDarkBlue hover:bg-gray-200 hover:shadow-[0_0_24px_rgba(255,255,255,0.25)]"
-    : "bg-semcompMidDarkBlue text-semcompOffWhite hover:bg-semcompDarkBlue hover:shadow-[0_0_24px_rgba(0,48,80,0.45)]";
+    : "bg-semcompMidLightBlue text-semcompOffWhite hover:bg-semcompDarkBlue hover:shadow-[0_0_24px_rgba(0,48,80,0.45)]";
   const divider = isDarkMode ? "border-white/10" : "border-gray-200";
 
   // ─── Handlers ───────────────────────────────────────────
@@ -216,9 +220,9 @@ export default function StorePage() {
   };
 
   return (
-    <div className={`w-full min-h-screen font-poppins ${bgColor} transition-colors duration-300`}>
+    <div className={`w-full min-h-screen font-poppins ${heroBg} transition-colors duration-300`}>
       {/* ── Header da página ─────────────────────────── */}
-      <section className="pt-28 pb-10 md:pt-36 md:pb-16">
+      <section className={`pt-28 pb-10 md:pt-36 md:pb-16`}>
         <div className="mx-auto max-w-[80%]">
           <motion.div
             initial="hidden"
@@ -228,12 +232,12 @@ export default function StorePage() {
             className="flex flex-col md:flex-row md:items-end md:justify-between"
           >
             <div>
-              <p className={`text-sm font-semibold uppercase tracking-widest ${mutedText} mb-2`}>
+              <p className={`text-sm font-semibold uppercase tracking-widest text-semcompOffWhite/60 mb-2`}>
                 Monte seu pedido
               </p>
 
               <h1 className={`${headingSize} font-extrabold mb-4`}>
-                <span className={`${textColor} font-poppins`}>NOSSA</span>{" "}
+                <span className={`text-semcompOffWhite font-poppins`}>NOSSA</span>{" "}
                 <span
                   className={`bg-clip-text font-poppins text-transparent bg-linear-to-r ${gradientFrom} ${gradientVia} ${gradientTo}`}
                 >
@@ -241,7 +245,7 @@ export default function StorePage() {
                 </span>
               </h1>
 
-              <p className={`max-w-2xl text-base md:text-lg leading-relaxed ${mutedText}`}>
+              <p className={`max-w-2xl text-base md:text-lg leading-relaxed text-semcompOffWhite/60`}>
                 Explore nossa seleção de produtos exclusivos da Semcomp e leve um pedacinho do
                 evento com você.
               </p>
@@ -253,7 +257,7 @@ export default function StorePage() {
               className={`hidden md:flex relative items-center gap-3 rounded-2xl border ${cardBorder} ${cardBg} px-5 py-3.5 transition-all duration-300 ${cardShadow} cursor-pointer ${isDarkMode ? "shadow-[0_6px_32px_rgba(0,0,0,0.5)] hover:shadow-[0_10px_40px_rgba(0,0,0,0.65)]" : "shadow-[0_6px_32px_rgba(0,0,0,0.1)] hover:shadow-[0_10px_40px_rgba(0,0,0,0.18)]"}`}
             >
               <div className="relative">
-                <ShoppingBag size={24} className={textColor} />
+                <ShoppingBag size={24} className={`${isDarkMode ? "text-semcompOffWhite" : "text-semcompMidDarkBlue"}`} />
                 {totalItems > 0 && (
                   <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-semcompMidDarkBlue text-[10px] font-bold text-semcompOffWhite ring-2 ring-white">
                     {totalItems}
@@ -274,7 +278,7 @@ export default function StorePage() {
       </section>
 
       {/* ── Grid de produtos ─────────────────────────── */}
-      <section className={`${sectionBg} py-12 md:py-20 transition-colors duration-300`}>
+      <section className={`py-12 md:py-20 transition-colors duration-300`}>
         <div className="mx-auto max-w-[80%]">
           {loading ? (
             <motion.div
@@ -341,7 +345,7 @@ export default function StorePage() {
                       <h3 className={`font-poppins font-bold text-lg leading-tight ${textColor}`}>
                         {item.name}
                       </h3>
-                      <span className="shrink-0 font-extrabold text-lg text-semcompMidDarkBlue">
+                      <span className={`shrink-0 font-extrabold text-lg ${priceColor}`}>
                         {item.price}
                       </span>
                     </div>
@@ -370,7 +374,7 @@ export default function StorePage() {
                     )}
                     {item.rawType === "COFFEE" && item.availableDateTimes.length > 0 && (
                       <p className={`text-xs ${mutedText2}`}>
-                        🕐 {formatDateTime(item.availableDateTimes[0])}
+                        {formatDateTime(item.availableDateTimes[0])}
                       </p>
                     )}
                     {item.rawType === "COMBO" && (
@@ -571,13 +575,15 @@ export default function StorePage() {
       {totalItems > 0 && (
         <Link
           to="/loja/carrinho"
-          className={`md:hidden fixed bottom-6 left-6 z-40 flex items-center gap-3 rounded-2xl ${ isDarkMode ? "bg-semcompOffWhite" : "bg-semcompMidDarkBlue"} px-5 py-3.5 text-sm font-bold ${ isDarkMode ? "text-semcompMidDarkBlue" : "text-semcompOffWhite"} shadow-[0_8px_32px_rgba(0,48,80,0.4)] transition-all duration-300 hover:scale-105 hover:shadow-[0_12px_40px_rgba(0,48,80,0.55)] active:scale-95`}
+          className={`md:hidden fixed bottom-8 left-6 z-40 flex items-center gap-3 rounded-2xl border ${cardBorder} ${cardBg} px-5 py-3.5 text-sm font-bold ${textColor} ${cardShadow} transition-all duration-300 hover:scale-105 active:scale-95`}
         >
           <div className="relative">
             <ShoppingBag size={20} />
-            <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold text-semcompMidDarkBlue">
-              {totalItems}
-            </span>
+            {totalItems > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-semcompMidDarkBlue border-semcompOffWhite text-[10px] font-bold text-semcompOffWhite ring-2 ring-white dark:ring-semcompMidDarkBlue">
+                {totalItems}
+              </span>
+            )}
           </div>
           Ver Carrinho
         </Link>

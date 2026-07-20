@@ -125,9 +125,7 @@ export default function Header() {
           <nav ref={navRef} className="relative flex items-center gap-2 p-1">
             {/* Barrinha indicadora */}
             <span
-              className={`absolute bottom-0 h-0.5 transition-all duration-300 ease-out
-                ${hasScrolled ? "bg-semcompDarkBlue dark:bg-semcompLightBlue" : "bg-white"}
-              `}
+              className={`absolute bottom-0 h-0.5 transition-all duration-300 ease-out bg-white`}
               style={{ left: indicator.left, width: indicator.width }}
             />
             {visibleTabs.map((tab) => (
