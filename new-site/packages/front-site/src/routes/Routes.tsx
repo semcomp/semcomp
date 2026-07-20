@@ -1,20 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
 import RequireAuth from "@/lib/RequireAuth";
-import { useAuth } from "@/contexts/useAuth";
-import ProfilePage from "@/pages/Profile";
-
-function ProfileRoute() {
-  const { user } = useAuth();
-
-  return (
-    <ProfilePage
-      user_number={user?.user_number}
-      name={user?.name}
-      email={user?.email}
-      presence_rate={user?.presence_rate}
-    />
-  );
-}
 
 export const router = createBrowserRouter([
   {
@@ -46,11 +31,28 @@ export const router = createBrowserRouter([
         },
       },
       {
+        path: "verify-email",
+        lazy: async () => {
+          const { default: VerifyEmailPage } = await import("@/pages/VerifyEmail");
+          return { Component: VerifyEmailPage };
+        },
+      },
+      {
+        path: "reset-password",
+        lazy: async () => {
+          const { default: ResetPasswordPage } = await import("@/pages/ResetPassword");
+          return { Component: ResetPasswordPage };
+        },
+      },
+      {
         element: <RequireAuth />,
         children: [
           {
             path: "profile",
-            element: <ProfileRoute />,
+            lazy: async () => {
+              const { default: ProfilePage } = await import("@/pages/Profile");
+              return { Component: ProfilePage };
+            }
           },
           {
             path: "loja",
@@ -66,7 +68,6 @@ export const router = createBrowserRouter([
               return { Component: CartPage };
             },
           },
-          
         ],
       },
       {

@@ -7,7 +7,6 @@ import { useAuth } from "@/contexts/useAuth";
 type TabKey = "home" | "loja" | "login" | "perfil";
 
 
-
 export default function Header() {
   const { width } = useWindowDimensions();
   const location = useLocation();
