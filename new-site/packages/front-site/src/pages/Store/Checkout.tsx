@@ -55,7 +55,7 @@ export default function CheckoutPage() {
       return;
     }
     paymentAPI
-      .createPix(subtotal, "Semcomp - Compra de produtos")
+      .createPix(subtotal, [...new Set(items.map((i) => Number(i.id)))], "Semcomp - Compra de produtos")
       .then((data) => {
         setPixData(data);
         setStatus("pending");
