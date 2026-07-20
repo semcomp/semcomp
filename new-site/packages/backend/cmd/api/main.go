@@ -11,6 +11,7 @@ import (
 	"backend/internal/log"
 	"backend/internal/mailer"
 	"backend/internal/middleware"
+	"backend/internal/payment"
 	"backend/internal/permission"
 	"backend/internal/presence"
 	"backend/internal/product"
@@ -47,7 +48,7 @@ func main() {
 	// coluna email_verified é nova e não deve bloquear o login de usuários antigos.
 	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
 
-	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, &token.Token{})
+	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, &token.Token{}, &payment.Payment{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -113,6 +114,10 @@ func main() {
 
 	permissionHandler := permission.NewPermissionHandler(permissionService, userBackofficeService)
 
+	paymentRepo := payment.NewPaymentRepository(db)
+	paymentService := payment.NewPaymentService(paymentRepo)
+	paymentHandler := payment.NewPaymentHandler(paymentService)
+
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
 
@@ -159,11 +164,17 @@ func main() {
 	r.GET("/event/:eventName/:initDate", eventHandler.GetEventByNameAndInitDate)
 	r.GET("/products", productHandler.GetProducts)
 
+	r.POST("/webhook/mercadopago", paymentHandler.Webhook)
+
 	// Rotas Semcomp - Protegidas
 	authRoutes := r.Group("/api")
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
+
+	authRoutes.GET("/payments", paymentHandler.ListByUser)
+	authRoutes.POST("/payments/pix", paymentHandler.CreatePix)
+	authRoutes.GET("/payments/:id/status", paymentHandler.GetStatus)
 
 	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")

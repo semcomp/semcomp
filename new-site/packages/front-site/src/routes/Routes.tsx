@@ -68,6 +68,13 @@ export const router = createBrowserRouter([
               return { Component: CartPage };
             },
           },
+          {
+            path: "loja/checkout",
+            lazy: async () => {
+              const { default: CheckoutPage } = await import("@/pages/Store/Checkout");
+              return { Component: CheckoutPage };
+            },
+          },
         ],
       },
       {

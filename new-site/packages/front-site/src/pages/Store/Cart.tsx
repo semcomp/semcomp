@@ -1,8 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { useTheme } from "@/contexts/useTheme";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useCart } from "@/contexts/CartContext";
+import { paymentAPI } from "@/api/payment";
+import { useNotification } from "@/contexts/NotificationContext";
 import {
   ShoppingBag,
   Trash2,
@@ -32,6 +35,22 @@ export default function CartPage() {
   const { isDarkMode } = useTheme();
   const { width } = useWindowDimensions();
   const { items, removeItem, updateQuantity, clearCart, subtotal, totalItems } = useCart();
+  const navigate = useNavigate();
+  const { showNotification } = useNotification();
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  const handleCheckout = async () => {
+    setCheckoutLoading(true);
+    try {
+      const productIds = [...new Set(items.map((i) => Number(i.id)))];
+      const pixData = await paymentAPI.createPix(subtotal, productIds, "Semcomp - Compra de produtos");
+      navigate("/loja/checkout", { state: { pixData } });
+    } catch {
+      showNotification("Erro ao gerar PIX. Tente novamente.", "warning");
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
 
   // ─── Cores ──────────────────────────────────────────────
   const bgColor = isDarkMode
@@ -266,10 +285,12 @@ export default function CartPage() {
 
                 <button
                   type="button"
-                  className={`mt-6 flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-semcompMidLightBlue focus:ring-offset-2 active:scale-95 shadow-lg ${btnSolid}`}
+                  onClick={handleCheckout}
+                  disabled={checkoutLoading}
+                  className={`mt-6 flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-semcompMidLightBlue focus:ring-offset-2 active:scale-95 shadow-lg disabled:opacity-60 ${btnSolid}`}
                 >
-                  Finalizar Pedido
-                  <ArrowRight size={18} />
+                  {checkoutLoading ? "Gerando PIX..." : "Finalizar Pedido"}
+                  {!checkoutLoading && <ArrowRight size={18} />}
                 </button>
 
                 <p className={`mt-3 text-center text-[11px] ${mutedText2}`}>

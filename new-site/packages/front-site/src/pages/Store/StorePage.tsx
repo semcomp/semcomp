@@ -88,7 +88,7 @@ function productToStoreItem(p: Product, productById: Map<number, Product>): Stor
     description,
     price: formatBRL(p.price),
     priceValue: p.price,
-    image: `https://placehold.co/600x400/0B2639/FAFDFF?text=${encodeURIComponent(name)}`,
+    image: p.picture_url || `https://placehold.co/600x400/0B2639/FAFDFF?text=${encodeURIComponent(name)}`,
     rawType: p.type,
     availableSizes: SIZES,
     availableDateTimes,

@@ -24,6 +24,7 @@ export interface Product {
   type: ProductType;
   is_selling: boolean;
   price: number;
+  picture_url?: string;
   kit?: Kit | null;
   coffee?: Coffee | null;
   combo_items?: ComboItem[];

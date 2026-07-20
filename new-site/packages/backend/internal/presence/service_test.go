@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	//"backend/internal/apierrors"
+	"backend/internal/apierrors"
 
 	"gorm.io/gorm"
 )
@@ -34,9 +34,6 @@ func (m *mockPresenceRepository) GetPresences(q PresenceListQuery) (*PresenceLis
 	return m.GetPresencesFunc(q)
 }
 
-/*
-Funcao auxiliar para vertificar erro quando tiver apierrors.APIError
-
 func assertAPIError(t *testing.T, err error, expectedCode string) {
 	t.Helper()
 	var apiErr *apierrors.APIError
@@ -47,7 +44,6 @@ func assertAPIError(t *testing.T, err error, expectedCode string) {
 		t.Errorf("esperava code=%q, got %q", expectedCode, apiErr.Code)
 	}
 }
-*/
 
 // --- CreatePresence ---
 
@@ -72,8 +68,6 @@ func TestCreatePresence_Success(t *testing.T) {
 	}
 }
 
-/*
-
 func TestCreatePresence_RepoError(t *testing.T) {
 	repo := &mockPresenceRepository{
 		CreateFunc: func(p *Presence) error { return errors.New("db error") },
@@ -85,9 +79,8 @@ func TestCreatePresence_RepoError(t *testing.T) {
 		EventInitDate: time.Now(), EmailAdmin: "a@b.com",
 	})
 
-	//assertAPIError(t, err, "internal_server_error")
+	assertAPIError(t, err, "internal_server_error")
 }
-*/
 
 // --- GetPresence ---
 
@@ -96,10 +89,7 @@ func TestGetPresence_InvalidDate(t *testing.T) {
 
 	_, err := svc.GetPresenceByUserEventandInitDate("123", "Evento", "data-invalida")
 
-	if !errors.Is(err, ErrInvalidEventDate) {
-		t.Errorf("esperava ErrInvalidEventDate, got %v", err)
-	}
-	// Substituir por assertAPIError(t, err, "validation_error")
+	assertAPIError(t, err, "validation_error")
 }
 
 func TestGetPresence_InvalidUserNumber(t *testing.T) {
@@ -107,10 +97,7 @@ func TestGetPresence_InvalidUserNumber(t *testing.T) {
 
 	_, err := svc.GetPresenceByUserEventandInitDate("nao-numero", "Evento", time.Now().Format(time.RFC3339))
 
-	if !errors.Is(err, ErrInvalidUserNumber) {
-		t.Errorf("esperava ErrInvalidUserNumber, got %v", err)
-	}
-	//assertAPIError(t, err, "validation_error")
+	assertAPIError(t, err, "validation_error")
 }
 
 func TestGetPresence_NotFound(t *testing.T) {
@@ -123,13 +110,9 @@ func TestGetPresence_NotFound(t *testing.T) {
 
 	_, err := svc.GetPresenceByUserEventandInitDate("123", "Evento", time.Now().Format(time.RFC3339))
 
-	if !errors.Is(err, ErrPresenceNotFound) {
-		t.Errorf("esperava ErrPresenceNotFound, got %v", err)
-	}
-	//assertAPIError(t, err, "not_found")
+	assertAPIError(t, err, "not_found")
 }
 
-/*
 func TestGetPresence_RepoError(t *testing.T) {
 	repo := &mockPresenceRepository{
 		GetByUserEventandInitDateFunc: func(_ int64, _ string, _ time.Time) (*Presence, error) {
@@ -140,9 +123,8 @@ func TestGetPresence_RepoError(t *testing.T) {
 
 	_, err := svc.GetPresenceByUserEventandInitDate("123", "Evento", time.Now().Format(time.RFC3339))
 
-	//assertAPIError(t, err, "internal_server_error")
+	assertAPIError(t, err, "internal_server_error")
 }
-*/
 
 // --- DeletePresence ---
 
@@ -151,10 +133,7 @@ func TestDeletePresence_InvalidDate(t *testing.T) {
 
 	err := svc.DeletePresenceByUserEventandInitDate("123", "Evento", "invalida")
 
-	if !errors.Is(err, ErrInvalidEventDate) {
-		t.Errorf("esperava ErrInvalidEventDate, got %v", err)
-	}
-	//assertAPIError(t, err, "validation_error")
+	assertAPIError(t, err, "validation_error")
 }
 
 func TestDeletePresence_NotFound(t *testing.T) {
@@ -167,10 +146,7 @@ func TestDeletePresence_NotFound(t *testing.T) {
 
 	err := svc.DeletePresenceByUserEventandInitDate("123", "Evento", time.Now().Format(time.RFC3339))
 
-	if !errors.Is(err, ErrPresenceNotFound) {
-		t.Errorf("esperava ErrPresenceNotFound, got %v", err)
-	}
-	//assertAPIError(t, err, "not_found")
+	assertAPIError(t, err, "not_found")
 }
 
 func TestDeletePresence_Success(t *testing.T) {
@@ -200,10 +176,7 @@ func TestUpdatePresence_NotFound(t *testing.T) {
 		UserNumber: 1, EventName: "Novo", EventInitDate: time.Now(), EmailAdmin: "a@b.com",
 	})
 
-	if !errors.Is(err, ErrPresenceNotFound) {
-		t.Errorf("esperava ErrPresenceNotFound, got %v", err)
-	}
-	//assertAPIError(t, err, "not_found")
+	assertAPIError(t, err, "not_found")
 }
 
 // --- GetPresences ---
@@ -211,64 +184,43 @@ func TestUpdatePresence_NotFound(t *testing.T) {
 func TestGetPresences_InvalidPage(t *testing.T) {
 	svc := NewPresenceService(&mockPresenceRepository{})
 	_, err := svc.GetPresences(0, 10, "", "", "", "")
-	if !errors.Is(err, ErrValidationError) {
-		t.Errorf("esperava ErrValidationError, got %v", err)
-	}
-	//assertAPIError(t, err, "validation_error")
+	assertAPIError(t, err, "validation_error")
 }
 
 func TestGetPresences_InvalidLimit(t *testing.T) {
 	svc := NewPresenceService(&mockPresenceRepository{})
 	_, err := svc.GetPresences(1, 0, "", "", "", "")
-	if !errors.Is(err, ErrValidationError) {
-		t.Errorf("esperava ErrValidationError, got %v", err)
-	}
-	//assertAPIError(t, err, "validation_error")
+	assertAPIError(t, err, "validation_error")
 }
 
 func TestGetPresences_InvalidSortBy(t *testing.T) {
 	svc := NewPresenceService(&mockPresenceRepository{})
 	_, err := svc.GetPresences(1, 10, "campo_invalido", "asc", "", "")
-	if !errors.Is(err, ErrValidationError) {
-		t.Errorf("esperava ErrValidationError, got %v", err)
-	}
-	//assertAPIError(t, err, "validation_error")
+	assertAPIError(t, err, "validation_error")
 }
 
 func TestGetPresences_InvalidSortOrder(t *testing.T) {
 	svc := NewPresenceService(&mockPresenceRepository{})
 	_, err := svc.GetPresences(1, 10, "event_name", "invalido", "", "")
-	if !errors.Is(err, ErrValidationError) {
-		t.Errorf("esperava ErrValidationError, got %v", err)
-	}
-	//assertAPIError(t, err, "validation_error")
+	assertAPIError(t, err, "validation_error")
 }
 
 func TestGetPresences_SearchWithoutValue(t *testing.T) {
 	svc := NewPresenceService(&mockPresenceRepository{})
 	_, err := svc.GetPresences(1, 10, "event_name", "asc", "event_name", "")
-	if !errors.Is(err, ErrValidationError) {
-		t.Errorf("esperava ErrValidationError, got %v", err)
-	}
-	//assertAPIError(t, err, "validation_error")
+	assertAPIError(t, err, "validation_error")
 }
 
 func TestGetPresences_InvalidSearchBy(t *testing.T) {
 	svc := NewPresenceService(&mockPresenceRepository{})
 	_, err := svc.GetPresences(1, 10, "event_name", "asc", "campo_invalido", "valor")
-	if !errors.Is(err, ErrValidationError) {
-		t.Errorf("esperava ErrValidationError, got %v", err)
-	}
-	//assertAPIError(t, err, "validation_error")
+	assertAPIError(t, err, "validation_error")
 }
 
 func TestGetPresences_InvalidSearchDateFormat(t *testing.T) {
 	svc := NewPresenceService(&mockPresenceRepository{})
 	_, err := svc.GetPresences(1, 10, "event_name", "asc", "event_init_date", "nao-e-data")
-	if !errors.Is(err, ErrInvalidEventDate) {
-		t.Errorf("esperava ErrInvalidEventDate, got %v", err)
-	}
-	//assertAPIError(t, err, "validation_error")
+	assertAPIError(t, err, "validation_error")
 }
 
 func TestGetPresences_Success(t *testing.T) {
