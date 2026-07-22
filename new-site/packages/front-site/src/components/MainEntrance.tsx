@@ -6,7 +6,7 @@ const HERO_IMAGES = [
   "/img/Home/Hero/Banner2.webp",
   "/img/Home/Hero/Palestra1.webp",
   "/img/Home/Hero/Palestra2.webp",
-  "/img/Home/Hero/SEMCOMP.webp",
+  "/img/Home/Hero/Semcomp.webp",
 ];
 const pickRandomHero = () => HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)];
 
