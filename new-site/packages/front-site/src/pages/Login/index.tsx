@@ -29,7 +29,10 @@ export default function LoginPage(): ReactElement {
     const { isDarkMode } = useTheme();
     const [loginHeroSrc] = useState<string>(() => pickRandomLoginHero());
     
-    const bgColor = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-semcompMidLightBlue/60";
+    const bgColor = isDarkMode
+    ? "bg-gradient-to-b from-semcompAlmostDarkBlue via-semcompDarkBlue to-semcompDarkBlue/80"
+    : "bg-gradient-to-b from-semcompMidLightBlue to-semcompMidLightBlue/20";
+    
     const textColor =  "text-semcompOffWhite";
     const inputBg = isDarkMode ? "bg-semcompDarkBlue text-white border-gray-600" : "bg-white text-gray-800 border-gray-300";
    
@@ -319,8 +322,8 @@ export default function LoginPage(): ReactElement {
             <SegmentedControl islogin={isLogin} setIslogin={setIsLogin} hook={resetForm}/>
 
             <form onSubmit={handleSubmit} aria-live="polite" className="w-full flex flex-col">
-                {/* Área scrollável sem barra visível */}
-                <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden py-10 px-10 [-ms-overflow-style:none] [scrollbar-width:none] space-y-3 max-h-[520px]">
+                {/* Área scrollável com barra customizada */}
+                <div className="overflow-y-auto custom-scrollbar py-10 px-10 space-y-3 max-h-[520px]">
 
                     {/* === MODO LOGIN === */}
                     {isLogin && (
@@ -480,10 +483,10 @@ export default function LoginPage(): ReactElement {
         </div>
     );
 
-    const bgContainer = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidLightBlue";
+    const bgContainer = isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompMidLightBlue";
     const mobileShadow = isDarkMode 
-        ? "shadow-[-10px_-15px_0px_0px_#163756,15px_-40px_0px_0px_#0e2a44]" 
-        : "shadow-[-10px_-15px_0px_0px_#b3cde0,15px_-40px_0px_0px_#dbe9f4]";
+        ? "shadow-[12px_12px_0px_0px_#0B2639]" 
+        : "shadow-[12px_12px_0px_0px_#6a9dba]";
 
     return (
         <div className={`${bgColor}`}>
@@ -501,8 +504,8 @@ export default function LoginPage(): ReactElement {
 
                 {/* 2. MODO TABLET */}
                 <div className={`hidden min-[800px]:flex min-[1280px]:hidden relative ${bgContainer} w-[90%] max-w-[600px] h-[780px] rounded-3xl shadow-xl items-center justify-center overflow-hidden`}>
-                    <img src={loginHeroSrc} alt="Background Tablet" className={`absolute inset-0 w-full h-full object-cover ${isDarkMode ? "opacity-40 brightness-50" : "opacity-90 brightness-50"}`} />
-                    <div className={`relative z-10 ${isDarkMode ? "bg-semcompOffWhite/10" : "bg-semcompMidLightBlue/30"} backdrop-blur-md rounded-2xl shadow-2xl m-4 w-full max-w-[540px] flex justify-center`}>
+                    <img src={loginHeroSrc} alt="Background Tablet" className={`absolute inset-0 w-full h-full object-cover opacity-90 brightness-50`} />
+                    <div className={`relative z-10 ${isDarkMode ? "bg-semcompMidDarkBlue/30" : "bg-semcompMidLightBlue/30"} backdrop-blur-md rounded-2xl shadow-2xl m-4 w-full max-w-[540px] pt-4 pb-6 flex justify-center`}>
                         {formContent}
                     </div>
                 </div>

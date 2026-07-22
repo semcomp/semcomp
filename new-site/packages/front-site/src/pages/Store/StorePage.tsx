@@ -309,17 +309,17 @@ export default function StorePage() {
               whileInView="visible"
               viewport={{ once: true, amount: 0.1 }}
               variants={stagger}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-stretch"
             >
               {products.map((item) => (
                 <motion.article
                   key={item.id}
                   variants={fadeIn}
-                  className={`group cursor-pointer rounded-2xl border ${cardBorder} ${cardBg} overflow-hidden transition-all duration-300 hover:-translate-y-2 ${cardShadow}`}
+                  className={`group cursor-pointer rounded-2xl border ${cardBorder} ${cardBg} overflow-hidden transition-all duration-300 hover:-translate-y-2 ${cardShadow} flex flex-col h-full`}
                   onClick={() => openModal(item)}
                 >
                   {/* Imagem */}
-                  <div className="relative overflow-hidden aspect-4/3">
+                  <div className="relative overflow-hidden aspect-4/3 shrink-0">
                     <img
                       src={item.image}
                       alt={item.name}
@@ -339,8 +339,8 @@ export default function StorePage() {
                     )}
                   </div>
 
-                  {/* Conteúdo */}
-                  <div className="p-5 flex flex-col gap-3">
+                  {/* Conteúdo — flex-1 + flex column para o botão ficar no final */}
+                  <div className="p-5 flex flex-col gap-3 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <h3 className={`font-poppins font-bold text-lg leading-tight ${textColor}`}>
                         {item.name}
@@ -410,7 +410,7 @@ export default function StorePage() {
                           isBabydoll: item.isBabydoll,
                         });
                       }}
-                      className={`mt-2 w-full rounded-full py-2.5 text-sm font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-semcompLightBlue focus:ring-offset-2 active:scale-95 shadow-md ${btnSolid}`}
+                      className={`mt-auto w-full rounded-full py-2.5 text-sm font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-semcompLightBlue focus:ring-offset-2 active:scale-95 shadow-md ${btnSolid}`}
                     >
                       <span className="flex items-center justify-center gap-2">
                         <ShoppingCart size={18} />

@@ -4,11 +4,14 @@ import FAQList from "@/components/FAQList";
 import FAQS from "@/lib/constants/FAQS";
 import RevealHeading from "@/components/ui/RevealHeading";
 import SectionWatermark from "@/components/ui/SectionWatermark";
+import { useTheme } from "@/contexts/useTheme";
 
 type FAQSectionProps = { className?: string };
 
 const FAQSection = ({ className }: FAQSectionProps) => {
+  const { isDarkMode } = useTheme();
   const sectionRef = useRef<HTMLElement>(null);
+  const bgColor = isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompMidLightBlue";
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -27,7 +30,7 @@ const FAQSection = ({ className }: FAQSectionProps) => {
   }, []);
 
   return (
-    <section ref={sectionRef} id="faq" className={`${className} w-full py-10 md:py-30 relative overflow-hidden`}>
+    <section ref={sectionRef} id="faq" className={`${className} ${bgColor} w-full py-10 md:py-30 relative overflow-hidden`}>
       <SectionWatermark
         src="/img/decorative/lines_circled.png"
         className="w-full md:w-[80vw] opacity-[0.07] right-0 top-0 -translate-y-1/4"
@@ -41,8 +44,8 @@ const FAQSection = ({ className }: FAQSectionProps) => {
       <div className="section-container relative z-10">
         <RevealHeading
           words={[{ text: 'PERGUNTAS' }, { text: 'FREQUENTES', gradient: true }]}
-          plainClass="text-semcompDarkBlue dark:text-semcompOffWhite"
-          gradientClass="bg-linear-to-r from-semcompDarkBlue/80 via-semcompDarkBlue to-semcompOffBlack dark:from-semcompLightBlue/80 dark:via-semcompLightBlue dark:to-semcompOffWhite"
+          plainClass="text-semcompOffWhite"
+          gradientClass="bg-linear-to-r from-semcompLightBlue/80 via-semcompLightBlue to-semcompOffWhite"
           className="text-2xl md:text-4xl font-extrabold mb-10 text-center font-poppins"
         />
         <FAQList className="faq-list w-[90%] md:w-[80%] lg:w-[70%] mx-auto" faqs={FAQS} />
