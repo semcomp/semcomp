@@ -21,15 +21,37 @@ func ConnectDB() (*gorm.DB, error) {
 	maxIdleConns := 5
 	connMaxLifetime := 30 * time.Minute
 	connMaxIdleTime := 5 * time.Minute
+	const maxAttempts = 10
+	const retryDelay = 3 * time.Second
 
-	// Conecta ao banco de dados usando GORM
-	db, err := gorm.Open(postgres.New(postgres.Config{
-		DSN:                  dsn,
-		PreferSimpleProtocol: true,
-	}), &gorm.Config{})
-	if err != nil {
-		fmt.Printf("Erro ao conectar ao banco de dados: %v", err)
-		return nil, err
+	var db *gorm.DB
+	var connectErr error
+
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		db, connectErr = gorm.Open(postgres.New(postgres.Config{
+			DSN:                  dsn,
+			PreferSimpleProtocol: true,
+		}), &gorm.Config{})
+		if connectErr == nil {
+			sqlDB, sqlErr := db.DB()
+			if sqlErr == nil {
+				connectErr = sqlDB.Ping()
+			}
+		}
+
+		if connectErr == nil {
+			break
+		}
+
+		if attempt < maxAttempts {
+			fmt.Printf("Banco indisponivel, tentando novamente em %s (%d/%d): %v\n", retryDelay, attempt, maxAttempts, connectErr)
+			time.Sleep(retryDelay)
+		}
+	}
+
+	if connectErr != nil {
+		fmt.Printf("Erro ao conectar ao banco de dados: %v", connectErr)
+		return nil, connectErr
 	}
 
 	// Configura o pool de conexões

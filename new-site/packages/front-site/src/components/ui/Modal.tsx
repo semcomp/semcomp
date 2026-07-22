@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useTheme } from "@/contexts/useTheme";
 
 type ModalProps = {
   open: boolean;
@@ -18,16 +19,20 @@ export default function Modal({
   size = "lg",
   closeOnBackdrop = true,
 }: ModalProps) {
-  if (typeof document === "undefined") return null;
-  if (!open) return null;
-
+  // Sempre chamar hooks incondicionalmente (regra do React)
   useEffect(() => {
+    if (!open) return;
+
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
     return () => {
       document.body.style.overflow = prev;
     };
-  }, []);
+  }, [open]);
+
+  if (typeof document === "undefined") return null;
+  if (!open) return null;
 
   const sizeClass = {
     sm: "max-w-md",
@@ -35,6 +40,10 @@ export default function Modal({
     lg: "max-w-2xl",
     xl: "max-w-4xl",
   }[size];
+
+  const { isDarkMode } = useTheme();
+  const mutedText = isDarkMode ? "text-semcompOffWhite/60" : "text-semcompDarkBlue/60";
+  const hoverClose = isDarkMode ? "hover:bg-semcompOffWhite/60 hover:text-semcompDarkBlue" : "hover:bg-semcompMidDarkBlue/10 hover:text-semcompDarkBlue";
 
   const modal = (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -52,7 +61,7 @@ export default function Modal({
             <button
               onClick={onClose}
               aria-label="Fechar"
-              className="text-gray-600 hover:text-gray-900 dark:text-gray-300"
+              className={`p-2 rounded-full transition-colors ${mutedText} ${hoverClose} cursor-pointer`}
             >
               ✕
             </button>

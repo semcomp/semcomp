@@ -4,19 +4,23 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { Outlet } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
+import { CartProvider } from "./contexts/CartContext";
 
 function App() {
   return (
     <NotificationProvider>
-      <ThemeProvider>
-        <AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+        
           <Header />
           <main className="w-full">
             <Outlet />
           </main>
           <DarkModeToggle />
-        </AuthProvider>
-      </ThemeProvider>
+        </CartProvider>
+      </AuthProvider>
+    </ThemeProvider>
     </NotificationProvider>
   );
 }

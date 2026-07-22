@@ -315,12 +315,12 @@ export default function LoginPage(): ReactElement {
     );
 
     const formContent = pendingVerificationEmail ? pendingVerificationPanel : forgotPasswordMode ? forgotPasswordPanel : (
-        <div className={`w-full ${isLogin ? "max-w-sm" : "max-w-lg"} flex flex-col items-center py-6 px-6 ${textColor} transition-all duration-300`}>
+        <div className={`w-full ${isLogin ? "max-w-sm" : "max-w-lg"} flex flex-col items-center ${textColor} transition-all duration-300`}>
             <SegmentedControl islogin={isLogin} setIslogin={setIsLogin} hook={resetForm}/>
 
-            <form onSubmit={handleSubmit} aria-live="polite" className="w-full mt-4 flex flex-col">
+            <form onSubmit={handleSubmit} aria-live="polite" className="w-full flex flex-col">
                 {/* Área scrollável sem barra visível */}
-                <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden px-3 [-ms-overflow-style:none] [scrollbar-width:none] space-y-3 max-h-[520px]">
+                <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden py-10 px-10 [-ms-overflow-style:none] [scrollbar-width:none] space-y-3 max-h-[520px]">
 
                     {/* === MODO LOGIN === */}
                     {isLogin && (

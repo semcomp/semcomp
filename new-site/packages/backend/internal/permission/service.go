@@ -51,6 +51,7 @@ func GetInitialPermissions(email string) []PermissionRequest {
 		{email, "Usuários Semcomp", rw},
 		{email, "Participações", rw},
 		{email, "Permissões", rw},
+		{email, "Produtos", rw},
 		{email, "Páginas", rw},
 	}
 }

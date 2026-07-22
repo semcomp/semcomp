@@ -12,8 +12,10 @@ import (
 	"backend/internal/mailer"
 	"backend/internal/middleware"
 	"backend/internal/pages"
+	"backend/internal/payment"
 	"backend/internal/permission"
 	"backend/internal/presence"
+	"backend/internal/product"
 	"backend/internal/providers"
 	"backend/internal/token"
 	"backend/internal/user"
@@ -47,7 +49,7 @@ func main() {
 	// coluna email_verified é nova e não deve bloquear o login de usuários antigos.
 	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
 
-	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &token.Token{})
+	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, &token.Token{}, &payment.Payment{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -97,13 +99,17 @@ func main() {
 	presenceService := presence.NewPresenceService(presenceRepo)
 	presenceHandler := presence.NewPresenceHandler(presenceService)
 
+	productRepo := product.NewProductRepository(db)
+	productService := product.NewProductService(productRepo)
+	productHandler := product.NewProductHandler(productService)
+
 	logRepo := log.NewRepository(db)
 	logService := log.NewService(logRepo)
 
 	permissionRepo := permission.NewPermissionRepository(db)
 	permissionService := permission.NewPermissionService(permissionRepo)
 
-	pagesService := pages.NewService([]string{"home", "login", "cronograma", "profile", "riddle"})
+	pagesService := pages.NewService([]string{"home", "login", "cronograma", "profile", "riddle", "loja"})
 	pagesHandler := pages.NewPagesHandler(pagesService)
 
 	userBackofficeRepo := userBackoffice.NewUserBackofficeRepository(db)
@@ -111,6 +117,10 @@ func main() {
 	userBackofficeHandler := userBackoffice.NewUserBackofficeHandler(userBackofficeService)
 
 	permissionHandler := permission.NewPermissionHandler(permissionService, userBackofficeService)
+
+	paymentRepo := payment.NewPaymentRepository(db)
+	paymentService := payment.NewPaymentService(paymentRepo)
+	paymentHandler := payment.NewPaymentHandler(paymentService)
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
@@ -126,6 +136,10 @@ func main() {
 	// Inicialização de valores base de permissões para o banco de dados
 	if err := permissionService.InitializePermissions(); err != nil {
 		panic("Failed to initialize admin's permissions in backoffice: " + err.Error())
+	}
+
+	if err := productService.InitializeProducts(); err != nil {
+		panic("Failed to initialize products: " + err.Error())
 	}
 
 	r := gin.Default()
@@ -156,6 +170,9 @@ func main() {
 
 	r.GET("/events", pageMW("cronograma"), eventHandler.GetEvents)
 	r.GET("/event/:eventName/:initDate", pageMW("cronograma"), eventHandler.GetEventByNameAndInitDate)
+	r.GET("/products", productHandler.GetProducts)
+
+	r.POST("/webhook/mercadopago", paymentHandler.Webhook)
 
 	r.GET("/pages/availability", pagesHandler.GetAllPagesAvailabilityHandler)
 	r.GET("/pages/:page/availability", pagesHandler.GetPageAvailabilityHandler)
@@ -165,6 +182,10 @@ func main() {
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
+
+	authRoutes.GET("/payments", pageMW("loja"), paymentHandler.ListByUser)
+	authRoutes.POST("/payments/pix", pageMW("loja"), paymentHandler.CreatePix)
+	authRoutes.GET("/payments/:id/status", pageMW("loja"), paymentHandler.GetStatus)
 
 	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")
@@ -204,6 +225,13 @@ func main() {
 	admin.POST("/usersBackoffice", permMW("Usuários Backoffice", permission.PermRW), userBackofficeHandler.CreateUser)
 	admin.PUT("/usersBackoffice/:email", permMW("Usuários Backoffice", permission.PermRW), userBackofficeHandler.UpdateUser)
 	admin.DELETE("/usersBackoffice/:email", permMW("Usuários Backoffice", permission.PermRW), userBackofficeHandler.DeleteUser)
+
+	// Produtos
+	admin.GET("/products", permMW("Produtos", permission.PermR), productHandler.GetProducts)
+	admin.GET("/products/:id", permMW("Produtos", permission.PermR), productHandler.GetProductByID)
+	admin.POST("/products", permMW("Produtos", permission.PermRW), productHandler.CreateProduct)
+	admin.PUT("/products/:id", permMW("Produtos", permission.PermRW), productHandler.UpdateProductByID)
+	admin.DELETE("/products/:id", permMW("Produtos", permission.PermRW), productHandler.DeleteProductByID)
 
 	// Permissões
 	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode
