@@ -19,7 +19,7 @@ export default function Header() {
     { key: "cronograma", featureKey: "cronograma", label: "CRONOGRAMA", path: "/cronograma", status: true },
     { key: "loja", featureKey: "loja", label: "LOJA", path: "/loja", status: isAuthenticated },
     { key: "login", featureKey: "login", label: "LOGIN", path: "/login", status: !isAuthenticated },
-    { key: "perfil", label: "PERFIL", path: "/profile", status: isAuthenticated },
+    { key: "perfil", featureKey: "login", label: "PERFIL", path: "/profile", status: isAuthenticated },
   ];
 
   const visibleTabs = allTabs.filter(tab =>

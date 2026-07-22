@@ -42,13 +42,6 @@ export const router = createBrowserRouter([
             },
           },
           {
-            path: "verify-email",
-            lazy: async () => {
-              const { default: VerifyEmailPage } = await import("@/pages/VerifyEmail");
-              return { Component: VerifyEmailPage };
-            },
-          },
-          {
             path: "reset-password",
             lazy: async () => {
               const { default: ResetPasswordPage } = await import("@/pages/ResetPassword");
@@ -56,6 +49,13 @@ export const router = createBrowserRouter([
             },
           },
         ],
+      },
+      {
+        path: "verify-email",
+        lazy: async () => {
+          const { default: VerifyEmailPage } = await import("@/pages/VerifyEmail");
+          return { Component: VerifyEmailPage };
+        },
       },
       {
         element: <RequireAuth />,
