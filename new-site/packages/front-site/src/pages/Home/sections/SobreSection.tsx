@@ -5,7 +5,7 @@ const altFromPath = (name: string) =>
   name.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 const CAROUSEL_IMAGES = [
-  "Context", "Feira", "Hackathon", "Integracao", "palestra", "Pergunta", "SEMCOMP28",
+  "Context", "Feira", "Hackathon", "Integracao", "Palestra", "Pergunta", "Semcomp28",
 ].map((name) => ({ src: `/img/Home/Carousel/${name}.webp`, alt: altFromPath(name) }));
 
 type SobreProps = { className?: string };
