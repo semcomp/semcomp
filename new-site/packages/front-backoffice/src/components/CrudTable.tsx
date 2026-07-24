@@ -45,9 +45,17 @@ import {
 export interface CrudField {
   value: string;
   label: string;
-  type?: "text" | "select" | "date" | "number" | "multivalue";
+  type?:
+    | "text"
+    | "select"
+    | "date"
+    | "number"
+    | "multivalue"
+    | "boolean"
+    | "file";
   selectVariants?: Record<string, string>;
   multiValueOptions?: string[];
+  accept?: string;
 }
 
 export interface CrudQueryParams {
@@ -109,7 +117,7 @@ export function CrudTable({
   const [selectedItem, setSelectedItem] = useState<CrudItemType | null>(null);
   const [selectedItemKey, setSelectedItemKey] = useState("");
 
-  type FormValue = string | string[];
+  type FormValue = string | string[] | boolean | File | null;
   const [formData, setFormData] = useState<Record<string, FormValue>>({});
 
   // Helpers para multivalue
@@ -260,6 +268,7 @@ export function CrudTable({
     fields.forEach((f) => {
       const raw = (item as Record<string, unknown>)[f.value];
       if (f.type === "multivalue") fd[f.value] = normalizeToStringArray(raw);
+      else if (f.type === "boolean") fd[f.value] = Boolean(raw);
       else if (f.type === "date") fd[f.value] = formatDateForInput(raw);
       else fd[f.value] = String(raw ?? "");
     });
@@ -277,6 +286,8 @@ export function CrudTable({
     const fd: Record<string, FormValue> = {};
     fields.forEach((f) => {
       if (f.type === "multivalue") fd[f.value] = [];
+      else if (f.type === "boolean") fd[f.value] = false;
+      else if (f.type === "file") fd[f.value] = null;
       else if (f.type === "date") {
         const now = new Date();
         const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
@@ -833,6 +844,53 @@ export function CrudTable({
                     className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary rounded-lg w-full min-h-24 max-h-48 resize-y px-3 py-2 text-sm"
                     style={{ minWidth: "180px" }}
                   />
+                ) : f.type === "boolean" ? (
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="checkbox"
+                      id={`field-${f.value}`}
+                      checked={Boolean(formData[f.value])}
+                      onChange={(e) =>
+                        setFormData((d) => ({
+                          ...d,
+                          [f.value]: e.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded border-muted-foreground/30 text-primary focus:ring-primary"
+                    />
+                    <Label
+                      htmlFor={`field-${f.value}`}
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {f.label}
+                    </Label>
+                  </div>
+                ) : f.type === "file" ? (
+                  formData.hasPapfe ? (
+                    <div className="space-y-1">
+                      <Input
+                        type="file"
+                        accept={f.accept || ".pdf,.jpg,.jpeg,.png,.webp"}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          console.log("📎 Arquivo selecionado no input:", file);
+
+                          setFormData((prev) => ({
+                            ...prev,
+                            [f.value]: file,
+                          }));
+                        }}
+                        className="bg-muted/40 border-muted/30 text-foreground file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                      />
+                      <p className="text-[11px] text-muted-foreground">
+                        {formData[f.value] instanceof File
+                          ? `✅ Arquivo selecionado: ${
+                              (formData[f.value] as File).name
+                            }`
+                          : "Anexe o comprovante (PDF, JPG ou PNG)."}
+                      </p>
+                    </div>
+                  ) : null
                 ) : (
                   <Input
                     id={`create-${f.value}`}
@@ -996,6 +1054,45 @@ export function CrudTable({
                     className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary rounded-lg w-full min-h-24 max-h-48 resize-y px-3 py-2 text-sm"
                     style={{ minWidth: "180px" }}
                   />
+                ) : f.type === "boolean" ? (
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="checkbox"
+                      id={`field-${f.value}`}
+                      checked={Boolean(formData[f.value])}
+                      onChange={(e) =>
+                        setFormData((d) => ({
+                          ...d,
+                          [f.value]: e.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded border-muted-foreground/30 text-primary focus:ring-primary"
+                    />
+                    <Label
+                      htmlFor={`field-${f.value}`}
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {f.label}
+                    </Label>
+                  </div>
+                ) : f.type === "file" ? (
+                  formData.hasPapfe ? (
+                    <div className="space-y-1">
+                      <Input
+                        type="file"
+                        accept={f.accept || ".pdf,.jpg,.jpeg,.png,.webp"}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          setFormData((d) => ({ ...d, [f.value]: file }));
+                        }}
+                        className="bg-muted/40 border-muted/30 text-foreground file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                      />
+                      <p className="text-[11px] text-muted-foreground">
+                        Anexe o comprovante em PDF, JPEG, PNG ou WebP (máx.
+                        10MB).
+                      </p>
+                    </div>
+                  ) : null
                 ) : (
                   <Input
                     value={(formData[f.value] as string) ?? ""}
