@@ -11,6 +11,7 @@ import BackofficeUsersCRUD from "@/pages/UserBackoffice";
 import ParticipationCRUD from "@/pages/Participation";
 import PermissionsCRUD from "@/pages/Permission";
 import PagesAvailability from "@/pages/PagesAvailability";
+import SponsorsCRUD from "@/pages/Sponsors";
 import NotFoundPage from "@/pages/NotFound";
 
 export const router = createBrowserRouter(
@@ -60,6 +61,10 @@ export const router = createBrowserRouter(
             {
               element: <RequirePermission section="Páginas" />,
               children: [{ path: "/pages-availability", element: <PagesAvailability /> }],
+            },
+            {
+              element: <RequirePermission section="Patrocinadores" />,
+              children: [{ path: "/sponsors", element: <SponsorsCRUD /> }],
             },
             {
               path: "*",

@@ -77,6 +77,8 @@ export interface CrudTableProps {
   totalRecords?: number;
   /** Callback chamado sempre que page, pageSize, sort ou filtro mudam (modo server-side) */
   onQueryChange?: (params: CrudQueryParams) => void;
+  /** Quando fornecido, substitui o comportamento padrão do botão de editar (não abre o dialog interno) */
+  onEditClick?: (item: CrudItemType, itemKey: string) => void;
 }
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100, 200];
@@ -88,6 +90,7 @@ export function CrudTable({
   onDelete,
   onCreate,
   onAction,
+  onEditClick,
   getItemKey,
   entityLabel = "item",
   defaultPageSize = 10,
@@ -675,7 +678,7 @@ export function CrudTable({
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => openEdit(item)}
+                            onClick={() => onEditClick ? onEditClick(item, resolveItemKey(item)) : openEdit(item)}
                             className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
                             title="Editar"
                           >

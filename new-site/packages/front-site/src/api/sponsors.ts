@@ -1,18 +1,21 @@
 import client from "./client";
-import { BASEURL } from "@/constants/ApiURL";
 
 export interface Sponsor {
-  ID: number;
+  cnpj: string;
   name: string;
   logo: string;
+  website: string;
 }
 
 export function getSponsorImageUrl(imagePath: string): string {
   if (!imagePath) return "";
-  // URLs absolutas (http/https) ou relativas ao origin (Vite assets) → retorna direto
   if (imagePath.startsWith("http") || imagePath.startsWith("/")) return imagePath;
   const cleanPath = imagePath.startsWith("./") ? imagePath.slice(2) : imagePath;
-  return `${BASEURL}/${cleanPath}`;
+  // Paths de upload (ex: "uploads/sponsors/cnpj.png") → sempre via /api/ relativo ao origin,
+  // assim funciona tanto no Docker local quanto em produção sem depender do BASEURL.
+  if (cleanPath.startsWith("uploads/")) return `/api/${cleanPath}`;
+  // URLs externas sem protocolo (ex: "empresa.com/logo.png") → adiciona https://
+  return `https://${cleanPath}`;
 }
 
 export const sponsorsAPI = {
@@ -21,3 +24,7 @@ export const sponsorsAPI = {
     return response.data;
   },
 };
+
+export function recordSponsorClick(cnpj: string): void {
+  client.post(`/sponsors/${cnpj}/click`).catch(() => {});
+}
