@@ -79,6 +79,10 @@ export interface CrudTableProps {
   onQueryChange?: (params: CrudQueryParams) => void;
   /** Quando fornecido, substitui o comportamento padrão do botão de editar (não abre o dialog interno) */
   onEditClick?: (item: CrudItemType, itemKey: string) => void;
+  /** Ícone customizado para o botão de ação (padrão: ScanQrCode) */
+  actionIcon?: React.ReactNode;
+  /** Tooltip do botão de ação (padrão: "Coletar presença") */
+  actionTitle?: string;
 }
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100, 200];
@@ -91,6 +95,8 @@ export function CrudTable({
   onCreate,
   onAction,
   onEditClick,
+  actionIcon,
+  actionTitle = "Coletar presença",
   getItemKey,
   entityLabel = "item",
   defaultPageSize = 10,
@@ -668,9 +674,9 @@ export function CrudTable({
                           variant="ghost"
                           onClick={() => onAction(item, resolveItemKey(item))}
                           className="h-8 w-8 p-0 text-muted-foreground hover:text-secondary hover:bg-secondary/10 rounded-lg"
-                          title="Coletar presença"
+                          title={actionTitle}
                         >
-                          <ScanQrCode className="w-3.5 h-3.5" />
+                          {actionIcon ?? <ScanQrCode className="w-3.5 h-3.5" />}
                         </Button>
                       )}
                       {canWrite && (

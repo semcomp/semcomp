@@ -324,13 +324,13 @@ export default function SponsorsCRUD() {
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6">
       <BannerCard
         icon={Tabs.find((t) => t.key === "sponsors")?.icon}
-        iconClassName="text-amber-400"
+        iconClassName="text-violet-400"
         label="Patrocinadores"
         title="Gerenciamento de Patrocinadores"
         description="Cadastre, edite e remova patrocinadores. Gerencie pacotes por ano e acompanhe cliques."
         onBack={() => navigate("/home")}
-        cardClassName="border-slate-800 bg-linear-to-br from-slate-900 via-slate-900 to-amber-950/30 overflow-hidden relative"
-        labelClassName="text-xs uppercase tracking-[0.3em] text-amber-400 font-medium"
+        cardClassName="border-slate-800 bg-linear-to-br from-slate-900 via-slate-900 to-violet-950/30 overflow-hidden relative"
+        labelClassName="text-xs uppercase tracking-[0.3em] text-violet-400 font-medium"
         titleClassName="text-2xl md:text-3xl text-white font-semibold"
         descriptionClassName="text-slate-400 mt-1"
       />
@@ -374,6 +374,8 @@ export default function SponsorsCRUD() {
             const sp = data.find((s) => s.cnpj === (item as any).id);
             if (sp) openPackages(sp);
           }}
+          actionIcon={<Package className="w-3.5 h-3.5" />}
+          actionTitle="Gerenciar pacotes"
         />
       </div>
 
