@@ -67,7 +67,7 @@ export default function Modal({
             </button>
           </div>
 
-          <div className="p-4 max-h-[70vh] overflow-auto text-sm leading-relaxed text-gray-800 dark:text-gray-100">
+          <div className="p-4 max-h-[70vh] overflow-auto custom-scrollbar text-sm leading-relaxed text-gray-800 dark:text-gray-100">
             {children}
           </div>
         </div>

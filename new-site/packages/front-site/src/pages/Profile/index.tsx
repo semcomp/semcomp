@@ -306,7 +306,7 @@ export default function Profile({
       </div>
 
       {activeTab === "qr" && (
-        <div className="px-6 pb-8 bg-semcompOffWhite/50 mx-auto pt-8 h-full flex flex-col items-center overflow-y-auto">
+        <div className="px-6 pb-8 bg-semcompOffWhite/50 mx-auto pt-8 h-full flex flex-col items-center overflow-y-auto custom-scrollbar">
           <h1 className="text-2xl text-semcompMidDarkBlue font-bold mb-1">Meu QR Code</h1>
           <p className="text-md text-semcompDarkBlue/75 text-center mb-6 leading-relaxed">
             Utilize seu QR durante a{" "}
@@ -337,7 +337,7 @@ export default function Profile({
       )}
 
       {activeTab === "account" && (
-        <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300 overflow-y-auto">
+        <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300 overflow-y-auto custom-scrollbar">
           <div className="text-center mb-6">
             <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">Minha Conta</h2>
             <p className="text-md text-semcompDarkBlue/75">Veja abaixo, seus dados e presença</p>
