@@ -3,6 +3,8 @@ package authBackoffice
 import (
 	"errors"
 	"net/http"
+	"os"
+	"strconv"
 
 	"backend/internal/apierrors"
 	"backend/internal/permission"
@@ -75,13 +77,24 @@ func (h *AuthBackofficeHandler) LoginBackofficeHandler(c *gin.Context) {
 		message = "Login realizado, mas você não possui permissões"
 	}
 
-	// Confirmacao de login do usuario do backoffice (passa o token para o cliente)
-	c.Header("Content-Type", "application/json")
-	c.Status(http.StatusOK)
+	hours, err := strconv.Atoi(os.Getenv("JWT_EXPIRES_IN_HOURS"))
+	if err != nil || hours <= 0 {
+		hours = 24
+	}
+	isSecure := gin.Mode() == gin.ReleaseMode
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("semcomp-backoffice-token", token, hours*3600, "/", "", isSecure, true)
+
 	c.JSON(http.StatusOK, gin.H{
-		"message": message,
-		"user":    userBackoffice.ToSafeUserB(backofficeRecord),
+		"message":     message,
+		"user":        userBackoffice.ToSafeUserB(backofficeRecord),
 		"permissions": permissions,
-		"token":   token,
 	})
+}
+
+func (h *AuthBackofficeHandler) LogoutBackofficeHandler(c *gin.Context) {
+	isSecure := gin.Mode() == gin.ReleaseMode
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("semcomp-backoffice-token", "", -1, "/", "", isSecure, true)
+	c.JSON(http.StatusOK, gin.H{"message": "Desconectado com sucesso"})
 }

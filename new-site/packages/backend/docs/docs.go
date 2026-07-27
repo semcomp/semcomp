@@ -442,6 +442,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/permissions/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna as permissões do próprio admin autenticado",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Permission Backoffice"
+                ],
+                "summary": "Busca minhas permissões",
+                "responses": {
+                    "200": {
+                        "description": "Permissões encontradas",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/permission.Permission"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Permissão não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/admin/permissions/section/{section}": {
             "get": {
                 "security": [
@@ -481,73 +527,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Seção inexistente",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Permissão não encontrada",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/admin/permissions/user/{user}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retorna as permissões vinculadas a um usuário do backoffice",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Permission Backoffice"
-                ],
-                "summary": "Busca permissões por usuário",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Email do usuário do backoffice",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Permissões encontradas",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/permission.Permission"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Usuário inexistente",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1112,14 +1091,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/sections": {
+        "/admin/products": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retorna uma lista paginada de seções cadastradas",
+                "description": "Retorna uma lista paginada de produtos cadastrados",
                 "consumes": [
                     "application/json"
                 ],
@@ -1127,9 +1106,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Section Backoffice"
+                    "Product Backoffice"
                 ],
-                "summary": "Lista seções",
+                "summary": "Lista produtos",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1147,7 +1126,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "default": "name",
+                        "default": "id",
                         "description": "Campo de ordenação",
                         "name": "sort_by",
                         "in": "query"
@@ -1174,7 +1153,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lista de seções paginada",
+                        "description": "Lista de produtos paginada",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1206,7 +1185,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Cadastra uma seção no sistema",
+                "description": "Cadastra um produto no sistema (kit, coffee ou combo)",
                 "consumes": [
                     "application/json"
                 ],
@@ -1214,23 +1193,23 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Section Backoffice"
+                    "Product Backoffice"
                 ],
-                "summary": "Cria uma nova seção",
+                "summary": "Cria um novo produto",
                 "parameters": [
                     {
-                        "description": "Dados da seção",
+                        "description": "Dados do produto",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/section.CreateSectionRequest"
+                            "$ref": "#/definitions/product.CreateProductRequest"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Seção criada com sucesso!",
+                        "description": "Produto criado com sucesso!",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1257,14 +1236,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/sections/{sectionName}": {
+        "/admin/products/{id}": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retorna os dados de uma seção específica",
+                "description": "Retorna os dados de um produto específico, incluindo sua especialização",
                 "consumes": [
                     "application/json"
                 ],
@@ -1272,27 +1251,36 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Section Backoffice"
+                    "Product Backoffice"
                 ],
-                "summary": "Busca seção por nome",
+                "summary": "Busca produto por ID",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Nome da seção",
-                        "name": "sectionName",
+                        "type": "integer",
+                        "description": "ID do produto",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Seção encontrada",
+                        "description": "Produto encontrado",
                         "schema": {
-                            "$ref": "#/definitions/section.Section"
+                            "$ref": "#/definitions/product.Product"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "404": {
-                        "description": "Seção não encontrada",
+                        "description": "Produto não encontrado",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1317,7 +1305,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Altera os dados de uma seção existente",
+                "description": "Altera os dados de um produto existente, incluindo sua especialização",
                 "consumes": [
                     "application/json"
                 ],
@@ -1325,14 +1313,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Section Backoffice"
+                    "Product Backoffice"
                 ],
-                "summary": "Atualiza seção",
+                "summary": "Atualiza produto",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Nome da seção",
-                        "name": "sectionName",
+                        "type": "integer",
+                        "description": "ID do produto",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },
@@ -1342,13 +1330,13 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/section.UpdateSectionRequest"
+                            "$ref": "#/definitions/product.UpdateProductRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Seção atualizada com sucesso",
+                        "description": "Produto atualizado com sucesso",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1364,7 +1352,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Seção não encontrada",
+                        "description": "Produto não encontrado",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1389,7 +1377,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Remove uma seção do sistema",
+                "description": "Remove um produto do sistema (bloqueado se for item de um combo)",
                 "consumes": [
                     "application/json"
                 ],
@@ -1397,21 +1385,30 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Section Backoffice"
+                    "Product Backoffice"
                 ],
-                "summary": "Deleta seção",
+                "summary": "Deleta produto",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Nome da seção",
-                        "name": "sectionName",
+                        "type": "integer",
+                        "description": "ID do produto",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Seção removida com sucesso",
+                        "description": "Produto removido com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1420,7 +1417,16 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Seção não encontrada",
+                        "description": "Produto não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Produto referenciado em combo",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2293,9 +2299,9 @@ const docTemplate = `{
         },
         "/register": {
             "post": {
-                "description": "Cadastra um participante no sistema",
+                "description": "Cadastra um participante no sistema. Aceita multipart/form-data para suportar upload do comprovante PAPFE.",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -2306,13 +2312,93 @@ const docTemplate = `{
                 "summary": "Cria um novo usuário",
                 "parameters": [
                     {
-                        "description": "Dados de cadastro",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/user.CreateUserRequest"
-                        }
+                        "type": "string",
+                        "description": "Nome completo",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "E-mail",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha (min 8 caracteres)",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Idade",
+                        "name": "age",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Gênero",
+                        "name": "gender",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cidade",
+                        "name": "city",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Formação",
+                        "name": "education",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Recebe PAPFE?",
+                        "name": "hasPapfe",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Lista de deficiências",
+                        "name": "disabilities",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Profissão",
+                        "name": "profession",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "LinkedIn",
+                        "name": "linkedin",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Telegram",
+                        "name": "telegram",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Comprovante PAPFE (PDF/JPEG/PNG/WebP, máx 10MB)",
+                        "name": "papfe_document",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -2343,6 +2429,107 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/resend-verification": {
+            "post": {
+                "description": "Reenvia o link de confirmação de e-mail, se aplicável",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Reenvia e-mail de confirmação",
+                "parameters": [
+                    {
+                        "description": "E-mail do usuário",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.ResendVerificationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Se o e-mail estiver cadastrado e pendente de confirmação, um novo link foi enviado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/verify-email": {
+            "post": {
+                "description": "Valida o token de verificação enviado por e-mail e ativa a conta",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Confirma e-mail de um usuário",
+                "parameters": [
+                    {
+                        "description": "Token de verificação",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.VerifyEmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "E-mail confirmado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Token inválido ou expirado",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2483,11 +2670,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "permission_type": {
-                    "description": "\"RW\" ou \"R\"",
+                    "description": "nil = sem acesso, \"R\" ou \"RW\"",
                     "type": "string"
-                },
-                "section": {
-                    "$ref": "#/definitions/section.Section"
                 },
                 "section_name": {
                     "type": "string"
@@ -2503,7 +2687,6 @@ const docTemplate = `{
         "permission.PermissionRequest": {
             "type": "object",
             "required": [
-                "permission_type",
                 "section_name",
                 "user_email"
             ],
@@ -2589,13 +2772,39 @@ const docTemplate = `{
                 }
             }
         },
-        "section.CreateSectionRequest": {
+        "product.Coffee": {
+            "type": "object",
+            "properties": {
+                "date_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "product.ComboItem": {
+            "type": "object",
+            "properties": {
+                "combo_id": {
+                    "type": "integer"
+                },
+                "item_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "product.CreateCoffeeRequest": {
             "type": "object",
             "required": [
+                "date_time",
                 "name"
             ],
             "properties": {
-                "description": {
+                "date_time": {
                     "type": "string"
                 },
                 "name": {
@@ -2604,56 +2813,259 @@ const docTemplate = `{
                 }
             }
         },
-        "section.Section": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "section.UpdateSectionRequest": {
+        "product.CreateKitRequest": {
             "type": "object",
             "required": [
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 200
-                }
-            }
-        },
-        "user.CreateUserRequest": {
-            "type": "object",
-            "required": [
-                "email",
+                "color",
                 "name",
-                "password"
+                "size"
+            ],
+            "properties": {
+                "color": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "is_babydoll": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "size": {
+                    "type": "string",
+                    "maxLength": 50
+                }
+            }
+        },
+        "product.CreateProductRequest": {
+            "type": "object",
+            "required": [
+                "price",
+                "type"
+            ],
+            "properties": {
+                "coffee": {
+                    "$ref": "#/definitions/product.CreateCoffeeRequest"
+                },
+                "is_selling": {
+                    "type": "boolean"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "kit": {
+                    "$ref": "#/definitions/product.CreateKitRequest"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "type": {
+                    "enum": [
+                        "KIT",
+                        "COFFEE",
+                        "COMBO"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/product.ProductType"
+                        }
+                    ]
+                }
+            }
+        },
+        "product.Kit": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_babydoll": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "string"
+                }
+            }
+        },
+        "product.Product": {
+            "type": "object",
+            "properties": {
+                "coffee": {
+                    "$ref": "#/definitions/product.Coffee"
+                },
+                "combo_items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/product.ComboItem"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_selling": {
+                    "type": "boolean"
+                },
+                "kit": {
+                    "description": "Relacionamentos (preload)\nli que é uma boa prática usar isso aqui",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/product.Kit"
+                        }
+                    ]
+                },
+                "picture_url": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "type": {
+                    "$ref": "#/definitions/product.ProductType"
+                }
+            }
+        },
+        "product.ProductType": {
+            "type": "string",
+            "enum": [
+                "KIT",
+                "COFFEE",
+                "COMBO"
+            ],
+            "x-enum-varnames": [
+                "ProductTypeKit",
+                "ProductTypeCoffee",
+                "ProductTypeCombo"
+            ]
+        },
+        "product.UpdateCoffeeRequest": {
+            "type": "object",
+            "required": [
+                "date_time",
+                "name"
+            ],
+            "properties": {
+                "date_time": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 200
+                }
+            }
+        },
+        "product.UpdateKitRequest": {
+            "type": "object",
+            "required": [
+                "color",
+                "name",
+                "size"
+            ],
+            "properties": {
+                "color": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "is_babydoll": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "size": {
+                    "type": "string",
+                    "maxLength": 50
+                }
+            }
+        },
+        "product.UpdateProductRequest": {
+            "type": "object",
+            "required": [
+                "price",
+                "type"
+            ],
+            "properties": {
+                "coffee": {
+                    "$ref": "#/definitions/product.UpdateCoffeeRequest"
+                },
+                "is_selling": {
+                    "type": "boolean"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "kit": {
+                    "$ref": "#/definitions/product.UpdateKitRequest"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "type": {
+                    "enum": [
+                        "KIT",
+                        "COFFEE",
+                        "COMBO"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/product.ProductType"
+                        }
+                    ]
+                }
+            }
+        },
+        "user.ResendVerificationRequest": {
+            "type": "object",
+            "required": [
+                "email"
             ],
             "properties": {
                 "email": {
                     "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string",
-                    "minLength": 8
                 }
             }
         },
         "user.SafeUser": {
             "type": "object",
             "properties": {
+                "age": {
+                    "type": "integer"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "disabilities": {
+                    "type": "string"
+                },
+                "education": {
+                    "type": "string"
+                },
                 "email": {
+                    "type": "string"
+                },
+                "email_verified": {
+                    "type": "boolean"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "hasPapfe": {
+                    "type": "boolean"
+                },
+                "linkedin": {
                     "type": "string"
                 },
                 "name": {
@@ -2661,6 +3073,12 @@ const docTemplate = `{
                 },
                 "presence_rate": {
                     "type": "number"
+                },
+                "profession": {
+                    "type": "string"
+                },
+                "telegram": {
+                    "type": "string"
                 },
                 "user_number": {
                     "type": "string"
@@ -2670,23 +3088,58 @@ const docTemplate = `{
         "user.UpdateUserRequest": {
             "type": "object",
             "required": [
+                "age",
+                "city",
+                "disabilities",
+                "education",
                 "email",
+                "gender",
                 "name"
             ],
             "properties": {
+                "age": {
+                    "type": "integer"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "disabilities": {
+                    "type": "string"
+                },
+                "education": {
+                    "type": "string"
+                },
                 "email": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "hasPapfe": {
+                    "type": "boolean"
+                },
+                "linkedin": {
                     "type": "string"
                 },
                 "name": {
                     "type": "string"
                 },
-                "password": {
-                    "type": "string",
-                    "minLength": 8
+                "profession": {
+                    "type": "string"
                 },
-                "presence_rate": {
-                    "type": "number",
-                    "minimum": 0
+                "telegram": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.VerifyEmailRequest": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string"
                 }
             }
         },

@@ -14,6 +14,10 @@ import type {
  */
 
 export const authAPI = {
+  logout: async (): Promise<void> => {
+    await client.post("/logout");
+  },
+
   /**
    * Realiza login com email e senha
    * @param email Email do usuário

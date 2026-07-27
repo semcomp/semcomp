@@ -153,8 +153,10 @@ func main() {
 		ExposeHeaders:    []string{"Content-Length"},
 	}))
 
-	// Rota para acessar a interface web do Swagger
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// Rota para acessar a interface web do Swagger (protegida por autenticação do backoffice)
+	swaggerRoutes := r.Group("/swagger")
+	swaggerRoutes.Use(middleware.AuthBackofficeMiddleware(jwtProvider))
+	swaggerRoutes.GET("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	pageMW := func(page string) gin.HandlerFunc {
 		return middleware.RequirePageAvailable(pagesService, page)
@@ -163,6 +165,7 @@ func main() {
 	// Rotas Semcomp - Públicas
 	r.POST("/register", pageMW("login"), userHandler.CreateUser)
 	r.POST("/login", pageMW("login"), authHandler.LoginHandler)
+	r.POST("/logout", pageMW("login"), authHandler.LogoutHandler)
 	r.POST("/forgot-password", pageMW("login"), userHandler.ForgotPasswordHandler)
 	r.POST("/reset-password", pageMW("login"), userHandler.ResetPasswordHandler)
 	r.POST("/verify-email", pageMW("login"), userHandler.VerifyEmail)
@@ -190,6 +193,7 @@ func main() {
 	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")
 	adminRoutes.POST("/login", authBackofficeHandler.LoginBackofficeHandler)
+	adminRoutes.POST("/logout", authBackofficeHandler.LogoutBackofficeHandler)
 
 	// Rotas Backoffice - Protegidas
 	admin := adminRoutes.Group("/")

@@ -6,4 +6,14 @@ export interface SemcompUserType extends CrudItemType {
   email: string;
   password?: string;
   presence_rate: number;
+  age?: number;
+  gender?: string;
+  city?: string;
+  education?: string;
+  hasPapfe?: boolean;
+  disabilities?: string[];
+  profession?: string;
+  linkedin?: string;
+  telegram?: string;
+  papfe_document?: File | null;
 }

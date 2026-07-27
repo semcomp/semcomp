@@ -23,10 +23,11 @@ type CreatePixRequest struct {
 }
 
 type PixPaymentResponse struct {
-	PaymentID    uint    `json:"payment_id"`
-	QRCode       string  `json:"qr_code"`
-	QRCodeBase64 string  `json:"qr_code_base64"`
-	Amount       float64 `json:"amount"`
+	PaymentID      uint      `json:"payment_id"`
+	QRCode         string    `json:"qr_code"`
+	QRCodeBase64   string    `json:"qr_code_base64"`
+	Amount         float64   `json:"amount"`
+	ExpirationDate time.Time `json:"expiration_date"`
 }
 
 type WebhookPayload struct {

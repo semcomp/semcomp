@@ -5,6 +5,7 @@ export interface PixPaymentResponse {
   qr_code: string;
   qr_code_base64: string;
   amount: number;
+  expiration_date: string; // ISO 8601
 }
 
 export const paymentAPI = {

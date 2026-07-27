@@ -43,8 +43,8 @@ const EquipeSection = ({ className }: EquipeSectionProps) => {
           className="text-2xl md:text-4xl font-extrabold mb-7 text-center font-poppins"
         />
         <p className="opacity-70 text-justify mb-5">
-          A edição da SEMCOMP deste ano é construída com o esforço e dedicação de aproximadamente {totalMembers} membros,
-          organizados em {totalDepartments} frentes distintas, além da presidência.
+          A edição da SEMCOMP deste ano é construída com o esforço e dedicação de mais de 100 membros da organização,
+          distribuídos em {totalDepartments} frentes distintas, além da presidência.
         </p>
         <hr className="equipe-divider w-full border border-semcompMidLightBlue dark:border-semcompOffWhite mb-7" />
         <TeamGrid data={TEAM} />

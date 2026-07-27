@@ -24,12 +24,8 @@ const FAQS = [
       A: "Para os alunos de Ciências de Computação, Sistemas de Informação e Ciência de Dados, a presença no evento substitui a presença nas aulas que ocorreriam ao longo da semana. A presença mínima no evento corresponde a presença em 70% das palestras. Caso você estagie ou trabalhe, será possível abonar as faltas na semana através de um formulário disponibilizado no evento."
     },
     {
-      Q: "O que é overflow?",
-      A: "O Overflow é uma competição entre casas que ocorre durante toda a SEMCOMP. Todos os inscritos são separados em quatro casas e pontuam para sua casa a medida que participam de palestras, minicursos, concursos e atividades culturais. A casa com maior pontuação ao final do evento vence a SEMCOMP! "
-    },
-    {
       Q: "Como funciona o Coffe Break?",
-      A: "Os coffee breaks são pausas de intervalos com comida que acontecem ao longo da semana entre eventos. Para a SEMCOMP Beta, teremos um coffee break no meio do dia, e para a edição completa da SEMCOMP, teremos muito mais!! Os coffee breaks são momentos de descontração e socialização entre os participantes, além de uma oportunidade para recarregar as energias com um lanche delicioso!"
+      A: "Os coffee breaks são pausas de intervalos com comida que acontecem ao longo da semana entre eventos. Os coffee breaks são momentos de descontração e socialização entre os participantes, além de uma oportunidade para recarregar as energias com um lanche delicioso!"
     },
     {
       Q: "A presença na SEMCOMP conta como Atividade Acadêmica Complementar (AAC)?",
@@ -37,7 +33,7 @@ const FAQS = [
     },
     {
       Q: "Como funciona a inscrição em minicursos?",
-      A: "A inscrição nos minicursos é feita através da página dE perfil do participante em nosso site, de acordo com a disponibilidade de vagas em cada um deles. Vamos liberar as vagas em lotes, com horários diferentes, para que todos tenham oportunidade de participar! Fique atento às nossas redes sociais para não perder os anúncios de abertura de vagas!"
+      A: "A inscrição nos minicursos é feita através da página de perfil do participante em nosso site, de acordo com a disponibilidade de vagas em cada um deles. Vamos liberar as vagas em lotes, com horários diferentes, para que todos tenham oportunidade de participar! Fique atento às nossas redes sociais para não perder os anúncios de abertura de vagas!"
     }
 ]
 
