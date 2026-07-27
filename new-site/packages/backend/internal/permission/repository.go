@@ -12,6 +12,7 @@ type PermissionRepository interface {
 	Create(permission *Permission) error
 	GetByUser(user string) ([]Permission, error)
 	GetBySection(section string) ([]Permission, error)
+	GetByUserSection(user string, section string) (*Permission, error)
 	DeleteByUserSection(user string, section string) error
 	UpdateByUserSection(user string, section string, updatedPermission *Permission) error
 	GetPermissions(query PermissionListQuery) (*PermissionListResult, error)
@@ -59,6 +60,16 @@ func (r *permissionRepository) GetBySection(section string) ([]Permission, error
 	return permissions, nil
 }
 
+func (r *permissionRepository) GetByUserSection(user string, section string) (*Permission, error) {
+	var permissions Permission
+	err := r.db.Where("section_name = ? AND user_email = ?", section, user).First(&permissions).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &permissions, nil
+}
+
 func (r *permissionRepository) DeleteByUserSection(user string, section string) error {
 	result := r.db.Where("user_email = ? AND section_name = ?", user, section).Delete(&Permission{})
 	if result.Error != nil {
@@ -86,7 +97,7 @@ func (r *permissionRepository) UpdateByUserSection(user string, section string, 
 	}
 
 	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
+		return r.db.Create(updatedPermission).Error
 	}
 
 	return nil

@@ -7,12 +7,19 @@ import type { UserType } from "@/types/UserType";
 export interface LoginResponse {
   message: string;
   user: UserType;
-  token: string;
 }
 
 export interface RegisterResponse {
   message: string;
   user: UserType;
+}
+
+export interface VerifyEmailResponse {
+  message: string;
+}
+
+export interface ResendVerificationResponse {
+  message: string;
 }
 
 export interface ProfileResponse {
@@ -22,6 +29,14 @@ export interface ProfileResponse {
   email: string;
   name: string;
   presence_rate: number;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
 }
 
 export interface ApiError {

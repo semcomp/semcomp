@@ -1,12 +1,14 @@
 package user
 
 import (
+	"backend/internal/apierrors"
 	"errors"
 	"fmt"
 	"slices"
 	"strings"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // UserRepository define as operações de acesso a dados para a entidade User.
@@ -14,6 +16,7 @@ type UserRepository interface {
 	Create(user *User) error
 	GetByID(id uint) (*User, error)
 	GetByEmail(email string) (*User, error)
+	GetByVerificationTokenHash(hash string) (*User, error)
 	GetAll(query UserListQuery) (*UserListResult, error)
 	Update(user *User) error
 	Delete(id uint) error
@@ -40,7 +43,7 @@ func (r *userRepository) GetByID(id uint) (*User, error) {
 	err := r.db.First(&user, id).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, ErrInvalidCredentials
+		return nil, apierrors.NotFoundError("Usuário não encontrado", err)
 	}
 
 	return &user, err
@@ -52,7 +55,19 @@ func (r *userRepository) GetByEmail(email string) (*User, error) {
 	err := r.db.Where("email = ?", email).First(&user).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, ErrInvalidCredentials
+		return nil, apierrors.ValidationError("Email não encontrado", err)
+	}
+
+	return &user, err
+}
+
+// GetByVerificationTokenHash busca um usuário pelo hash do token de verificação de e-mail.
+func (r *userRepository) GetByVerificationTokenHash(hash string) (*User, error) {
+	var user User
+	err := r.db.Where("verification_token_hash = ?", hash).First(&user).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apierrors.NotFoundError("Token de verificação não encontrado", err)
 	}
 
 	return &user, err
@@ -70,6 +85,24 @@ func applySearchFilter(dbQuery *gorm.DB, query UserListQuery) *gorm.DB {
 		return dbQuery.Where("name ILIKE ?", "%"+query.SearchValue+"%")
 	case "email":
 		return dbQuery.Where("email ILIKE ?", "%"+query.SearchValue+"%")
+	case "age":
+		return dbQuery.Where("age = ?", query.SearchValue)
+	case "gender":
+		return dbQuery.Where("gender ILIKE ?", "%"+query.SearchValue+"%")
+	case "city":
+		return dbQuery.Where("city ILIKE ?", "%"+query.SearchValue+"%")
+	case "education":
+		return dbQuery.Where("education ILIKE ?", "%"+query.SearchValue+"%")
+	case "has_papfe":
+		return dbQuery.Where("has_papfe = ?", query.SearchValue)
+	case "disabilities":
+		return dbQuery.Where("EXISTS (SELECT 1 FROM unnest(disabilities) AS disability WHERE disability ILIKE ?)", "%"+query.SearchValue+"%")
+	case "profession":
+		return dbQuery.Where("profession ILIKE ?", "%"+query.SearchValue+"%")
+	case "linkedin":
+		return dbQuery.Where("linkedin ILIKE ?", "%"+query.SearchValue+"%")
+	case "telegram":
+		return dbQuery.Where("telegram ILIKE ?", "%"+query.SearchValue+"%")
 	case "presence_rate":
 		return dbQuery.Where("presence_rate = ?", query.SearchValue)
 	default:
@@ -79,10 +112,18 @@ func applySearchFilter(dbQuery *gorm.DB, query UserListQuery) *gorm.DB {
 
 func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 	allowedSortFields := []string{
+		"user_number",
 		"name",
 		"email",
+		"age",
+		"gender",
+		"city",
+		"education",
+		"has_papfe",
+		"profession",
+		"linkedin",
+		"telegram",
 		"presence_rate",
-		"user_number",
 	}
 
 	field := strings.ToLower(sortBy)
@@ -141,4 +182,33 @@ func (r *userRepository) Update(user *User) error {
 // Delete realiza a exclusão de um usuário identificando-o pelo ID.
 func (r *userRepository) Delete(id uint) error {
 	return r.db.Delete(&User{}, id).Error
+}
+
+// PapfeDocumentRepository define as operações de acesso a dados para comprovantes PAPFE.
+type PapfeDocumentRepository interface {
+	Upsert(doc *PapfeDocument) error
+	DeleteByEmail(email string) error
+}
+
+type papfeDocumentRepository struct {
+	db *gorm.DB
+}
+
+func NewPapfeDocumentRepository(db *gorm.DB) PapfeDocumentRepository {
+	return &papfeDocumentRepository{db: db}
+}
+
+// Upsert insere ou atualiza o comprovante PAPFE de um usuário (único por e-mail).
+func (r *papfeDocumentRepository) Upsert(doc *PapfeDocument) error {
+	return r.db.Omit("User").
+		Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "user_email"}},
+			DoUpdates: clause.AssignmentColumns([]string{"filename", "content_type", "data", "uploaded_at"}),
+		}).
+		Create(doc).Error
+}
+
+// DeleteByEmail remove o comprovante PAPFE associado ao e-mail informado.
+func (r *papfeDocumentRepository) DeleteByEmail(email string) error {
+	return r.db.Where("user_email = ?", email).Delete(&PapfeDocument{}).Error
 }

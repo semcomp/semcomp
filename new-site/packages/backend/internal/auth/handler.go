@@ -1,9 +1,11 @@
 package auth
 
 import (
-	"errors"
 	"net/http"
+	"os"
+	"strconv"
 
+	"backend/internal/apierrors"
 	user "backend/internal/user"
 
 	"github.com/gin-gonic/gin"
@@ -22,64 +24,74 @@ func NewAuthHandler(authService AuthService, userService user.UserService) *Auth
 	return &AuthHandler{authService: authService, userService: userService}
 }
 
+// @Summary Login de participante
+// @Description Autentica um usuário participante e retorna o token JWT do site público
+// @Tags Auth Público
+// @Accept json
+// @Produce json
+// @Param request body LoginUserRequest true "Credenciais de login"
+// @Success 200 {object} map[string]interface{} "Login successful"
+// @Failure 400 {object} map[string]string "JSON ou requisição inválida"
+// @Failure 401 {object} map[string]string "Email e/ou senha inválidos"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Router /login [post]
 func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	// Verifica request body e decodifica para struct
 	var request LoginUserRequest
 	errReq := c.ShouldBindJSON(&request)
 	if errReq != nil {
-		c.Set("responseMessage", "Invalid json login request")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON inválido no corpo da requisição"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Requisição inválida", errReq))
 		return
 	}
 
 	errValidate := validate.Struct(request)
 	if errValidate != nil {
-		c.Set("responseMessage", "Invalid auth request: "+errValidate.Error())
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Requisição inválida"})
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Requisição inválida", errValidate))
 		return
 	}
 
-	safeUser, token, errLogin := h.authService.Login(request)
+	safeUser, tokenStr, errLogin := h.authService.Login(request)
 	if errLogin != nil {
-		if errors.Is(errLogin, user.ErrInvalidCredentials) {
-			c.Set("responseMessage", "Invalid email or password")
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Email e/ou senha inválidos"})
-			return
-		}
-		if errors.Is(errLogin, user.ErrTokenGeneration) {
-			c.Set("internalError", errLogin)
-			c.Set("responseMessage", "Erro interno do servidor")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao gerar token de autenticação"})
-			return
-		}
-		if errors.Is(errLogin, user.ErrInternalServerError) {
-			c.Set("internalError", errLogin)
-			c.Set("responseMessage", "Erro interno do servidor")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
-			return
-		}
-		c.Set("internalError", errLogin)
-		c.Set("responseMessage", "Erro interno do servidor")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno. Tente novamente mais tarde."})
+		apierrors.HandleAPIError(c, errLogin)
 		return
 	}
 
-	// Confirmação de login do usuário (retorna token e dados do usuário)
+	hours, err := strconv.Atoi(os.Getenv("JWT_EXPIRES_IN_HOURS"))
+	if err != nil || hours <= 0 {
+		hours = 24
+	}
+	isSecure := gin.Mode() == gin.ReleaseMode
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("semcomp-site-token", tokenStr, hours*3600, "/", "", isSecure, true)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
 		"user":    safeUser,
-		"token":   token,
 	})
 }
 
+func (h *AuthHandler) LogoutHandler(c *gin.Context) {
+	isSecure := gin.Mode() == gin.ReleaseMode
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("semcomp-site-token", "", -1, "/", "", isSecure, true)
+	c.JSON(http.StatusOK, gin.H{"message": "Desconectado com sucesso"})
+}
+
+// ProfileHandler retorna os dados do perfil do usuário autenticado.
+// @Summary Perfil do usuário
+// @Description Retorna os dados do usuário autenticado via token JWT
+// @Tags Auth Público
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Entrada Permitida"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /api/profile [get]
 func (h *AuthHandler) ProfileHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userNumber := c.MustGet("userNumber").(uint)
 		user, err := h.userService.GetUserByID(uint(userNumber))
 		if err != nil {
-			c.Set("internalError", err)
-			c.Set("responseMessage", "Erro interno do servidor")
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+			apierrors.HandleAPIError(c, err)
 			return
 		}
 
@@ -88,10 +100,19 @@ func (h *AuthHandler) ProfileHandler() gin.HandlerFunc {
 		c.Status(http.StatusOK)
 		c.Set("responseMessage", "Entrada Permitida")
 		c.JSON(http.StatusOK, gin.H{
-			"message":       "Entrada Permitida",
-			"user_number":   user.UserNumber,
-			"email":         user.Email,
-			"name":          user.Name,
+			"message":      "Entrada Permitida",
+			"user_number":  user.UserNumber,
+			"name":         user.Name,
+			"email":        user.Email,
+			"age":          user.Age,
+			"gender":       user.Gender,
+			"city":         user.City,
+			"education":    user.Education,
+			"hasPapfe":     user.HasPapfe,
+			"disabilities": user.Disabilities,
+			"profession":   user.Profession,
+			"linkedin":     user.Linkedin,
+			"telegram":     user.Telegram,
 			"presence_rate": user.PresenceRate,
 		})
 	}

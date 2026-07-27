@@ -9,8 +9,10 @@ import { Tabs } from "@/constants/Tabs";
 import { userBackofficeAPI } from "@/api/userBackoffice";
 import type { BackofficeUserType } from "@/types/BackofficeUserType";
 import { useNotification } from "@/contexts/NotificationContext";
+import { useHasPermission } from "@/contexts/AuthContext";
 
 export default function BackofficeUsersCRUD() {
+  const canWrite = useHasPermission("Usuários Backoffice", "RW");
   const navigate = useNavigate();
   const [data, setData] = useState<BackofficeUserType[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -149,6 +151,7 @@ export default function BackofficeUsersCRUD() {
             serverSide
             totalRecords={totalRecords}
             onQueryChange={handleQueryChange}
+            canWrite={canWrite}
           />
       </div>
     </section>

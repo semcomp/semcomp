@@ -8,39 +8,31 @@ interface ThemeContextType {
 
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_STORAGE_KEY = "semcomp-theme";
+const THEME_KEY = "semcomp-theme";
+
+const getInitialTheme = (): boolean => {
+  if (typeof window === "undefined") return true;
+  const stored = localStorage.getItem(THEME_KEY);
+  if (stored === "light") return false;
+  if (stored === "dark") return true;
+  // Sem preferência salva → respeita o sistema operacional
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+};
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window === "undefined") return true;
-
-    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored === "light") return false;
-    if (stored === "dark") return true;
-
-    return true;
-  });
+  const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? "dark" : "light");
+    // Aplica .dark no <html> — habilita todos os dark: variants do Tailwind
+    document.documentElement.classList.toggle("dark", isDarkMode);
+    localStorage.setItem(THEME_KEY, isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
 
-  const toggleTheme = () => {
-    setIsDarkMode((prev) => !prev);
-  };
+  const toggleTheme = () => setIsDarkMode((prev) => !prev);
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
-      <div
-        className={`min-h-screen transition-colors duration-300 ${
-          isDarkMode
-            ? "bg-semcompDarkBlue text-semcompLightBlue"
-            : "bg-semcompMidLightBlue text-semcompDarkBlue"
-          }`}
-      >
-        {children}
-      </div>
+      {children}
     </ThemeContext.Provider>
   );
 };

@@ -1,52 +1,53 @@
-import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
+import { gsap } from "@/lib/gsap";
 import TeamGrid from "@/components/TeamGrid";
 import TEAM from "@/lib/constants/Team";
-import useWindowDimensions from "@/hooks/useWindowDimensions";
-import { useTheme } from "@/contexts/useTheme";
+import RevealHeading from "@/components/ui/RevealHeading";
+import SectionWatermark from "@/components/ui/SectionWatermark";
 
-type EquipeSectionProps = {
-  className?: string;
-}
+type EquipeSectionProps = { className?: string };
 
-const EquipeSection = (props: EquipeSectionProps) => {
-  const { width } = useWindowDimensions();
-  const { isDarkMode } = useTheme();
+const EquipeSection = ({ className }: EquipeSectionProps) => {
+  const sectionRef = useRef<HTMLElement>(null);
 
-  const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
-  const sectionPadding = width > 768 ? "py-20" : "py-10";
-  const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompDarkBlue/80";
-  const gradientVia  = isDarkMode ? "via-semcompLightBlue" : "via-semcompDarkBlue";
-  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompOffBlack";
-  
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-  };
+  const totalMembers = TEAM.frente.reduce((total, frente) => total + frente.membros.length, 0);
+  const totalDepartments = TEAM.frente.length - 1;
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from('.equipe-divider', {
+        scaleX: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        transformOrigin: 'left center',
+        clearProps: 'all',
+        scrollTrigger: { trigger: '.equipe-divider', start: 'top 88%', once: true },
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <section id="equipe" className={`${props.className} ${sectionPadding}`}>
-      <div className="mx-auto max-w-[80%]">
-      <motion.h2
-        className={`${headingSize} font-extrabold mb-10`}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={fadeIn}
-      >
-        <span className={`${textColor} font-extrabold`}>NOSSA</span>{" "}
-        <span className={`bg-clip-text text-transparent bg-linear-to-r ${gradientFrom} ${gradientVia} ${gradientTo} font-extrabold`}>
-          EQUIPE
-        </span>
-      </motion.h2>
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={fadeIn}
-      >
+    <section ref={sectionRef} id="equipe" className={`${className} py-10 md:py-30 relative overflow-hidden`}>
+      <SectionWatermark
+        src="/img/decorative/setas.png"
+        className="w-[60vw] md:w-[38vw] opacity-[0.06] right-0 bottom-0 translate-x-1/4 translate-y-1/4"
+        style={{ mixBlendMode: 'multiply' }}
+      />
+      <div className="section-container">
+        <RevealHeading
+          words={[{ text: 'Conheça nossa' }, { text: 'Equipe', gradient: true }]}
+          plainClass="text-semcompDarkBlue dark:text-semcompOffWhite"
+          gradientClass="bg-linear-to-r from-semcompDarkBlue/80 via-semcompDarkBlue to-semcompOffBlack dark:from-semcompLightBlue/80 dark:via-semcompLightBlue dark:to-semcompOffWhite"
+          className="text-2xl md:text-4xl font-extrabold mb-7 text-center font-poppins"
+        />
+        <p className="opacity-70 text-justify mb-5">
+          A edição da SEMCOMP deste ano é construída com o esforço e dedicação de mais de 100 membros da organização,
+          distribuídos em {totalDepartments} frentes distintas, além da presidência.
+        </p>
+        <hr className="equipe-divider w-full border border-semcompMidLightBlue dark:border-semcompOffWhite mb-7" />
         <TeamGrid data={TEAM} />
-      </motion.div>
       </div>
     </section>
   );

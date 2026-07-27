@@ -1,7 +1,7 @@
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
 import type { CrudQueryParams } from "@/components/CrudTable";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs } from "@/constants/Tabs";
 import { fields } from "@/data/eventsCrudField";
@@ -9,8 +9,10 @@ import { BannerCard } from "@/components/BannerCard";
 import type { EventType } from "@/types/EventType";
 import { eventsAPI } from "@/api/events";
 import { useNotification } from "@/contexts/NotificationContext";
+import { useHasPermission } from "@/contexts/AuthContext";
 
 export default function Events() {
+  const canWrite = useHasPermission("Eventos", "RW");
   const navigate = useNavigate();
   const [data, setData] = useState<EventType[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -47,13 +49,13 @@ export default function Events() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  // useEffect(() => {
+  //   fetchEvents();
+  // }, []);
 
-  const handleQueryChange = (params: CrudQueryParams) => {
+  const handleQueryChange = useCallback((params: CrudQueryParams) => {
     fetchEvents(params);
-  };
+  }, [fetchEvents]);
 
   const resolveEventKey = (event: CrudItemType) => {
     const typedEvent = event as EventType;
@@ -167,6 +169,7 @@ export default function Events() {
             serverSide
             totalRecords={totalRecords}
             onQueryChange={handleQueryChange}
+            canWrite={canWrite}
           />
       </div>
     </section>

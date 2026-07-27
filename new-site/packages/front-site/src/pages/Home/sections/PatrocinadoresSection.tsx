@@ -1,150 +1,87 @@
-import { motion } from "framer-motion";
-import { useState } from "react";
-import useWindowDimensions from "@/hooks/useWindowDimensions";
+import { useState, useEffect } from "react";
+import { sponsorsAPI, getSponsorImageUrl, recordSponsorClick } from "@/api/sponsors";
+import type { Sponsor } from "@/api/sponsors";
 import { useTheme } from "@/contexts/useTheme";
-import type { SponsorType } from "@/types/SponsorType";
-import SemcompInfo from "@/lib/constants/SemcompInfo";
+import LogoLoop from "@/components/ui/LogoLoop";
 
-type PatrocinadoresProps = {
-  sponsors: SponsorType[];
-  className?: string;
-}
+const GRID_THRESHOLD = 4;
 
-const PatrocinadoresSection = ({ sponsors, className }: PatrocinadoresProps) => {
-  const { width } = useWindowDimensions();
-  const { isDarkMode } = useTheme();
-
-  type FormStatus = "idle" | "loading" | "success" | "error";
-  const [status, setStatus] = useState<FormStatus>("idle");
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setStatus("loading");
-    const form = e.currentTarget;
-    const data = {
-      name: (form.elements.namedItem("name") as HTMLInputElement).value,
-      email: (form.elements.namedItem("email") as HTMLInputElement).value,
-      company: (form.elements.namedItem("company") as HTMLInputElement).value,
-      message: (form.elements.namedItem("message") as HTMLTextAreaElement).value,
-      _subject: "Novo interesse em patrocinar a Semcomp!",
-      _replyto: (form.elements.namedItem("email") as HTMLInputElement).value,
-      _template: "table",
-    };
-    try {
-      const res = await fetch(`https://formsubmit.co/ajax/${SemcompInfo.ORGANIZING_COMMITTEE_PATROCINIO_EMAIL}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (res.ok) {
-        setStatus("success");
-        form.reset();
-      } else {
-        setStatus("error");
-      }
-    } catch {
-      setStatus("error");
-    }
-  };
-
-  const titleColor = isDarkMode ? "text-semcompDarkBlue" : "text-semcompOffBlack";
-  const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
-  const constrastColor = isDarkMode ? "text-semcompOffBlack" : "text-semcompOffWhite";
-  
-  const bgColor = isDarkMode ? "bg-semcompOffWhite" : "bg-semcompDarkBlue";
-  const formsBgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompOffWhite";
-  const placeholderColor = isDarkMode ? "placeholder:text-semcompOffWhite/50" : "placeholder:text-semcompDarkBlue/50";
-  const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = isDarkMode ? "from-semcompLightBlue/80" : "from-semcompLightBlue/80";
-  const gradientVia = isDarkMode ? "via-semcompLightBlue" : "via-semcompLightBlue"
-  const gradientTo = isDarkMode ? "to-semcompOffWhite" : "to-semcompOffWhite";
-
-  const hoverColor = isDarkMode ? "hover:bg-semcompLightBlue" : "hover:bg-semcompMidDarkBlue";
-
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+function SponsorLogo({ sponsor }: { sponsor: Sponsor }) {
+  const handleClick = () => {
+    recordSponsorClick(sponsor.cnpj);
+    const url = /^https?:\/\//i.test(sponsor.website)
+      ? sponsor.website
+      : `https://${sponsor.website}`;
+    window.open(url, "_blank", "noopener noreferrer");
   };
 
   return (
-    <section id="patrocinadores" className={`w-full`} >
-    <div className={`${className}`}>
-    <div className="mx-auto max-w-[80%]">
-      
-      <motion.h2
-        className={`${headingSize} font-extrabold mb-10`}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={fadeIn}
-      >
-        <span className={`text-semcompOffWhite font-extrabold`}>NOSSOS</span>{" "}
-        <span className={`bg-clip-text font-poppins-extrabold text-transparent bg-linear-to-r ${gradientFrom} ${gradientVia} ${gradientTo} font-extrabold`}>
-          PATROCINADORES
-        </span>
-      </motion.h2>
+    <button
+      onClick={handleClick}
+      title={sponsor.name}
+      aria-label={`Visitar site de ${sponsor.name}`}
+      className="flex items-center justify-center cursor-pointer"
+    >
+      <img
+        src={getSponsorImageUrl(sponsor.logo)}
+        alt={sponsor.name}
+        className="h-16 w-auto max-w-[160px] object-contain"
+      />
+    </button>
+  );
+}
 
-      <div className="flexjustify-center  flex-wrap">
-        {sponsors.length > 0 ? (
-          sponsors.map((sponsor, index) => (
-            <motion.div
-              key={index}
-              className={`w-40 h-20 ${bgColor} flex items-center justify-center`}
-              initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-          >
-            <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full h-full flex items-center justify-center">
-            <img
-              src={sponsor.logoSrc}
-              alt={sponsor.name}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-full object-contain"
-            />
-            </a>
-          </motion.div>
-        ))): 
-        (<div className="sm:w-[95%] xl:w-full pt-10 flex items-center justify-center">
-          <div className="relative inline-block  max-w-lg">
-            <div className={`absolute -top-3 -left-3 w-[95%] h-[95%]  rounded-4xl ${formsBgColor} opacity-40`} />
-            <div className={`absolute -bottom-3 -right-3 w-[95%] h-[95%] rounded-4xl ${formsBgColor} opacity-40`} />
-            <div className={`relative z-10 ${formsBgColor} p-10 rounded-4xl`}>
-              {status === "success" ? (
-                <div className="flex flex-col items-center gap-4 py-8">
-                  <p className={`${textColor} font-extrabold text-2xl text-center`}>Mensagem enviada!</p>
-                  <p className={`${textColor} text-sm text-center opacity-80`}>Obrigado pelo interesse! Em breve entraremos em contato.</p>
-                  <button onClick={() => setStatus("idle")} className={`mt-4 px-6 py-2 ${bgColor} ${titleColor} rounded-md transition-colors duration-300`}>Enviar outra mensagem</button>
-                </div>
-              ) : (
-                <div className={`z-10 ${formsBgColor} z-40`}>
-                <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
-                  <p className="font-extrabold text-2xl text-center tracking-wide">
-                    <span className={textColor}>Torne-se um patrocinador da </span>
-                    <span className={`${textColor} bg-clip-text bg-linear-to-r `}>SEMCOMP</span>
-                  </p>
-                  <p className={`${textColor} text-sm text-center opacity-80 md:text-lg max-md:text-sm mb-2`}>Conecte sua empresa a centenas de estudantes de computação. Preencha e entraremos em contato.</p>
-                  <input type="text" name="name" placeholder="Seu nome" required className={`px-4 py-2 border border-gray-400 ${textColor} ${placeholderColor} rounded-md w-[90%] bg-transparent`} />
-                  <input type="email" name="email" placeholder="Seu email" required className={`px-4 py-2 border border-gray-400 ${textColor} ${placeholderColor} rounded-md w-[90%] bg-transparent`} />
-                  <input type="text" name="company" placeholder="Empresa" required className={`px-4 py-2 border border-gray-400 ${textColor} ${placeholderColor} rounded-md w-[90%] bg-transparent`} />
-                  <textarea name="message" placeholder="Sua mensagem" required className={`px-4 py-2 border border-gray-400 rounded-md w-[90%] max-w-sm h-32 ${textColor} ${placeholderColor} bg-transparent`}></textarea>
-                  {status === "error" && (
-                    <p className="text-red-500 text-sm text-center">Erro ao enviar. Tente novamente.</p>
-                  )}
-                  <button type="submit" disabled={status === "loading"} className={`px-6 py-2 ${bgColor} ${constrastColor} rounded-md ${hoverColor} transition-all duration-300 hover:scale-105 disabled:opacity-50`}>
-                    {status === "loading" ? "Enviando..." : "Enviar"}
-                  </button>
-                </form>
-                </div>
-              )}
-            </div>
+const PatrocinadoresSection = () => {
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const { isDarkMode } = useTheme();
+
+  useEffect(() => {
+    sponsorsAPI
+      .getAll()
+      .then((data) => setSponsors(data))
+      .catch(() => {})
+      .finally(() => setLoaded(true));
+  }, []);
+
+  if (!loaded || sponsors.length === 0) return null;
+
+  const backgroundColorBack = isDarkMode ? "#0F486D" : "#2c6e94";
+
+  return (
+    <section className="w-full overflow-hidden" style={{ backgroundColor: backgroundColorBack }}>
+      <div className="w-full py-4 px-4 sm:px-8 lg:px-16 bg-semcompMidLightBlue dark:bg-semcompMidDarkBlue">
+        <h2 className="font-poppins text-center text-xl sm:text-2xl text-semcompLightBlue dark:text-semcompOffWhite">
+          Nossos Patrocinadores
+        </h2>
+      </div>
+
+      <div className="py-10">
+        {sponsors.length < GRID_THRESHOLD ? (
+          <div className="flex flex-wrap items-center justify-center gap-10 px-8">
+            {sponsors.map((sp) => (
+              <SponsorLogo key={sp.cnpj} sponsor={sp} />
+            ))}
           </div>
-        </div>
+        ) : (
+          <LogoLoop
+            logos={sponsors.map((sp) => ({
+              node: <SponsorLogo sponsor={sp} />,
+              title: sp.name,
+            }))}
+            speed={80}
+            direction="left"
+            logoHeight={100}
+            logoWidth={180}
+            gap={72}
+            hoverSpeed={0}
+            fadeOut
+            fadeOutColor={backgroundColorBack}
+            isDarkMode={true}
+            ariaLabel="Patrocinadores da SEMCOMP"
+          />
         )}
       </div>
-    </div>
-    </div>
     </section>
   );
 };

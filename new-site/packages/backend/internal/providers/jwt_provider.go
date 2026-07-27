@@ -27,9 +27,11 @@ type AuthBackofficeTokenClaims struct {
 }
 
 var (
-	ErrJWTSecretNotConfigured = errors.New("jwt secret not configured")
-	ErrInvalidToken           = errors.New("invalid or expired token")
-	ErrInvalidTokenClaims     = errors.New("invalid token claims")
+	ErrJWTSecretNotConfigured         = errors.New("Variável de ambiente JWT_SECRET não configurada")
+	ErrJWTExpiresInHoursNotConfigured = errors.New("Variável de ambiente JWT_EXPIRES_IN_HOURS não configurada")
+	ErrExpiredToken                   = errors.New("Token expirado")
+	ErrInvalidToken                   = errors.New("Token inválido")
+	ErrInvalidTokenClaims             = errors.New("Reivindicações de token inválidas")
 )
 
 type jwtProvider struct{}
@@ -69,12 +71,16 @@ func (p *jwtProvider) Parse(token string) (*AuthTokenClaims, error) {
 	parsedToken, errParse := jwt.Parse(token, func(t *jwt.Token) (any, error) {
 		_, ok := t.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
-			return nil, fmt.Errorf("unexpected signing method")
+			return nil, fmt.Errorf("Método de assinatura inesperado")
 		}
 
 		return []byte(secret), nil
 	})
-	if errParse != nil || !parsedToken.Valid {
+
+	if errParse != nil {
+		if errors.Is(errParse, jwt.ErrTokenExpired) {
+			return nil, ErrExpiredToken
+		}
 		return nil, ErrInvalidToken
 	}
 
@@ -101,7 +107,12 @@ func (p *jwtProvider) GenerateToBackoffice(email string) (string, error) {
 	if errSecret != nil {
 		return "", errSecret
 	}
-	hours, err := strconv.Atoi(os.Getenv("JWT_EXPIRES_IN_HOURS"))
+	hoursEnv := os.Getenv("JWT_EXPIRES_IN_HOURS")
+	if hoursEnv == "" {
+		return "", ErrJWTExpiresInHoursNotConfigured
+	}
+
+	hours, err := strconv.Atoi(hoursEnv)
 	if err != nil {
 		hours = 24
 	}
@@ -126,12 +137,17 @@ func (p *jwtProvider) ParseToBackoffice(token string) (*AuthBackofficeTokenClaim
 	parsedToken, errParse := jwt.Parse(token, func(t *jwt.Token) (any, error) {
 		_, ok := t.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
-			return nil, fmt.Errorf("unexpected signing method")
+			return nil, fmt.Errorf("Método de assinatura inesperado")
 		}
 
 		return []byte(secret), nil
 	})
-	if errParse != nil || !parsedToken.Valid {
+
+	if errParse != nil {
+		if errors.Is(errParse, jwt.ErrTokenExpired) {
+			return nil, ErrExpiredToken
+		}
+
 		return nil, ErrInvalidToken
 	}
 

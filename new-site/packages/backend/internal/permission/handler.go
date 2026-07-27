@@ -3,23 +3,35 @@ package permission
 import (
 	"errors"
 	"net/http"
+	"slices"
 	"strconv"
 
-	"backend/internal/section"
+	"backend/internal/apierrors"
 	"backend/internal/userBackoffice"
 	"github.com/gin-gonic/gin"
 )
 
 type PermissionHandler struct {
 	permissionService     PermissionService
-	sectionService        section.SectionService
 	userBackofficeService userBackoffice.UserBackofficeService
 }
 
-func NewPermissionHandler(permissionService PermissionService, sectionService section.SectionService, userBService userBackoffice.UserBackofficeService) *PermissionHandler {
-	return &PermissionHandler{permissionService: permissionService, sectionService: sectionService, userBackofficeService: userBService}
+func NewPermissionHandler(permissionService PermissionService, userBService userBackoffice.UserBackofficeService) *PermissionHandler {
+	return &PermissionHandler{permissionService: permissionService, userBackofficeService: userBService}
 }
 
+// CreatePermission processa o payload JSON e tenta criar uma nova permissão.
+// @Summary Cria uma nova permissão
+// @Description Vincula uma permissão (R ou RW) de um usuário do backoffice a uma seção
+// @Tags Permission Backoffice
+// @Accept json
+// @Produce json
+// @Param request body permission.PermissionRequest true "Dados da permissão"
+// @Success 201 {object} map[string]interface{} "Permissão criada com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos, seção/usuário inexistente ou tipo inválido"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/permissions [post]
 func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 	var request PermissionRequest
 
@@ -29,19 +41,18 @@ func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.sectionService.GetSectionByName(request.SectionName); err != nil {
+	if !slices.Contains(KnownSections, request.SectionName) {
 		c.Set("responseMessage", "Seção inexistente")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Seção inexistente"})
 		return
 	}
 
 	if _, err := h.userBackofficeService.GetUserByEmail(request.UserEmail); err != nil {
-		c.Set("responseMessage", "Usuário do Backoffice inexistente")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Usuário do Backoffice inexistente"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 
-	if request.PermissionType != "R" && request.PermissionType != "RW" {
+	if request.PermissionType == nil || (*request.PermissionType != "R" && *request.PermissionType != "RW") {
 		c.Set("responseMessage", "Valor de Permissão inválido")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Valor de Permissão inválido"})
 		return
@@ -49,15 +60,30 @@ func (h *PermissionHandler) CreatePermission(c *gin.Context) {
 
 	permission, err := h.permissionService.CreatePermission(request)
 	if err != nil {
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro interno do servidor")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Permissão criada com sucesso!")
 	c.JSON(http.StatusCreated, gin.H{"message": "Permissão criada com sucesso!", "permission": permission})
 }
 
+// GetPermissions retorna a lista paginada de permissões com suporte a filtros e ordenação.
+// @Summary Lista permissões
+// @Description Retorna uma lista paginada de permissões cadastradas
+// @Tags Permission Backoffice
+// @Accept json
+// @Produce json
+// @Param page query int false "Página atual" default(1)
+// @Param limit query int false "Limite de itens por página" default(10)
+// @Param sort_by query string false "Campo de ordenação" default(user_email)
+// @Param sort_order query string false "Ordem (asc/desc)" default(asc)
+// @Param search_by query string false "Campo de busca"
+// @Param search_value query string false "Valor de busca"
+// @Success 200 {object} map[string]interface{} "Lista de permissões paginada"
+// @Failure 400 {object} map[string]string "Parâmetro inválido"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/permissions [get]
 func (h *PermissionHandler) GetPermissions(c *gin.Context) {
 	pageStr := c.DefaultQuery("page", "1")
 	limitStr := c.DefaultQuery("limit", "10")
@@ -101,35 +127,45 @@ func (h *PermissionHandler) GetPermissions(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (h *PermissionHandler) GetPermissionByUser(c *gin.Context) {
-	user := c.Param("user")
+// GetMyPermissions retorna as permissões do admin autenticado, lidas do token JWT.
+// @Summary Busca minhas permissões
+// @Description Retorna as permissões do próprio admin autenticado
+// @Tags Permission Backoffice
+// @Produce json
+// @Success 200 {array} permission.Permission "Permissões encontradas"
+// @Failure 404 {object} map[string]string "Permissão não encontrada"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/permissions/me [get]
+func (h *PermissionHandler) GetMyPermissions(c *gin.Context) {
+	email := c.MustGet("email").(string)
 
-	if _, err := h.userBackofficeService.GetUserByEmail(user); err != nil {
-		c.Set("responseMessage", "Usuário do Backoffice inexistente")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Usuário do Backoffice inexistente"})
-		return
-	}
-
-	permission, err := h.permissionService.GetPermissionByUser(user)
+	permission, err := h.permissionService.GetPermissionByUser(email)
 	if err != nil {
-		if errors.Is(err, ErrPermissionNotFound) {
-			c.Set("responseMessage", "Permissão não encontrada")
-			c.JSON(http.StatusNotFound, gin.H{"error": "Permissão não encontrada"})
-			return
-		}
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro interno do servidor")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Permissão encontrada com sucesso!")
 	c.JSON(http.StatusOK, permission)
 }
 
+// GetPermissionBySection retorna as permissões vinculadas a uma seção específica.
+// @Summary Busca permissões por seção
+// @Description Retorna as permissões vinculadas a uma seção
+// @Tags Permission Backoffice
+// @Accept json
+// @Produce json
+// @Param section path string true "Nome da seção"
+// @Success 200 {array} permission.Permission "Permissões encontradas"
+// @Failure 400 {object} map[string]string "Seção inexistente"
+// @Failure 404 {object} map[string]string "Permissão não encontrada"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/permissions/section/{section} [get]
 func (h *PermissionHandler) GetPermissionBySection(c *gin.Context) {
 	section := c.Param("section")
 
-	if _, err := h.sectionService.GetSectionByName(section); err != nil {
+	if !slices.Contains(KnownSections, section) {
 		c.Set("responseMessage", "Seção inexistente")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Seção inexistente"})
 		return
@@ -137,20 +173,28 @@ func (h *PermissionHandler) GetPermissionBySection(c *gin.Context) {
 
 	permission, err := h.permissionService.GetPermissionBySection(section)
 	if err != nil {
-		if errors.Is(err, ErrPermissionNotFound) {
-			c.Set("responseMessage", "Permissão não encontrada")
-			c.JSON(http.StatusNotFound, gin.H{"error": "Permissão não encontrada"})
-			return
-		}
-		c.Set("internalError", err)
-		c.Set("responseMessage", "Erro interno do servidor")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
+		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Permissão encontrada com sucesso!")
 	c.JSON(http.StatusOK, permission)
 }
 
+// UpdatePermissionByUserSection atualiza uma permissão existente.
+// @Summary Atualiza permissão
+// @Description Altera os dados de uma permissão existente identificada por usuário e seção
+// @Tags Permission Backoffice
+// @Accept json
+// @Produce json
+// @Param user path string true "Email do usuário do backoffice"
+// @Param section path string true "Nome da seção"
+// @Param request body permission.PermissionRequest true "Dados para atualização"
+// @Success 200 {object} map[string]string "Permissão atualizada com sucesso"
+// @Failure 400 {object} map[string]string "Dados inválidos, seção/usuário inexistente ou tipo inválido"
+// @Failure 404 {object} map[string]string "Permissão não encontrada"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/permissions/{user}/{section} [put]
 func (h *PermissionHandler) UpdatePermissionByUserSection(c *gin.Context) {
 	user := c.Param("user")
 	section := c.Param("section")
@@ -162,7 +206,7 @@ func (h *PermissionHandler) UpdatePermissionByUserSection(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.sectionService.GetSectionByName(request.SectionName); err != nil {
+	if !slices.Contains(KnownSections, request.SectionName) {
 		c.Set("responseMessage", "Seção inexistente")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Seção inexistente"})
 		return
@@ -174,7 +218,7 @@ func (h *PermissionHandler) UpdatePermissionByUserSection(c *gin.Context) {
 		return
 	}
 
-	if request.PermissionType != "R" && request.PermissionType != "RW" {
+	if request.PermissionType != nil && (*request.PermissionType != "R" && *request.PermissionType != "RW") {
 		c.Set("responseMessage", "Valor de Permissão inválido")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Valor de Permissão inválido"})
 		return
@@ -197,6 +241,19 @@ func (h *PermissionHandler) UpdatePermissionByUserSection(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Permissão atualizada com sucesso!"})
 }
 
+// DeletePermissionByUserSection remove uma permissão identificada por usuário e seção.
+// @Summary Deleta permissão
+// @Description Remove uma permissão do sistema
+// @Tags Permission Backoffice
+// @Accept json
+// @Produce json
+// @Param user path string true "Email do usuário do backoffice"
+// @Param section path string true "Nome da seção"
+// @Success 200 {object} map[string]string "Permissão removida com sucesso"
+// @Failure 404 {object} map[string]string "Permissão não encontrada"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/permissions/{user}/{section} [delete]
 func (h *PermissionHandler) DeletePermissionByUserSection(c *gin.Context) {
 	user := c.Param("user")
 	section := c.Param("section")

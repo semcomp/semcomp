@@ -10,32 +10,45 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 ---
 
 ## Visão Macro
-- [[Visao_Geral]] — monorepo, tecnologias, portas, DEBUGMODE, convenções
-
-## Backend (Go + Gin + GORM)
-- [[Backend_Arquitetura]] — 10 módulos internos, camadas, grupos de rota, startup
-- [[Backend_Models]] — todas as structs/entidades, campos, PKs e FKs *(raw)*
-
-## Frontend — Site Público (`front-site`)
-- [[Front_Paginas_e_Rotas]] — 5 rotas, seções da Home, lógica do Cronograma, Profile+QR
-- [[Front_Hooks_e_Estados]] — AuthContext, ThemeContext, NotificationContext *(raw)*
-
-## Frontend — Backoffice (`front-backoffice`)
-- [[Backoffice_Contextos_e_Lib]] — AuthContext admin, RequireAuth, Tabs (6 seções), API barrel
-- [[Front_Paginas_e_Rotas]] — 8 rotas admin com guard, 6 CRUDs
-- [[Front_Hooks_e_Estados]] — AuthContext_Backoffice *(raw)*
-
-## Integração
-- [[Integracao_API]] — todos os endpoints mapeados, mapeamento de campos, estado de integração
-
-## Features Verticais
-- [[Feature_Autenticacao_e_Sessoes]] — dois fluxos JWT, claims, erros, sessão
-- [[Feature_Controle_de_Acesso_e_Permissions]] — RBAC, seeds de seções, validação de FK, mock no front
-- [[Feature_Cronograma_e_Eventos]] — limit=1000, agrupamento por sobreposição, ListQuery/ListResult
-- [[Feature_Participacao_e_QRCode]] — câmera no backoffice, QR exibido no Profile, createByQRCode, userSemcompAPI
+- [[Visao_Geral]] — monorepo, tecnologias, portas, fluxos JWT, DEBUGMODE
 
 ---
 
-## ⚠ Integrações Pendentes (TODOs no código)
-- `front-backoffice/pages/Permission/index.tsx` — usa **mock local** (`samplePermissions`), backend não é chamado
-- Não existe `permissionsAPI` no barrel `front-backoffice/src/api/index.ts`
+## Backend
+- [[Backend_Arquitetura]] — módulos, camadas, startup, grupos de rota
+- [[Backend_Modelos_Core]] — User (todos os campos), Event, Presence, Section, AuditLog, JWT Claims, ListQuery
+- [[Backend_Modelos_Loja]] — Product (KIT/COFFEE/COMBO), Payment, DTOs de PIX
+- [[Backend_Providers]] — JWT (2 fluxos), bcrypt, email, token
+
+## Frontend — Site Público (`front-site`)
+- [[Site_Paginas_e_Rotas]] — rotas, lazy loading, FeatureGuard, RequireAuth
+- [[Site_Contextos_Auth]] — AuthContext, API client, API barrel
+- [[Site_Contextos_UI]] — ThemeContext, NotificationContext, FeatureFlagsContext, CartContext
+
+## Frontend — Backoffice (`front-backoffice`)
+- [[Backoffice_Paginas_e_Rotas]] — rotas /admin/*, guards duplos (auth + permissão)
+- [[Backoffice_Contextos_e_Lib]] — AuthContext admin, RequirePermission, Tabs (6), CrudTable, API barrel
+
+## Integração
+- [[Integracao_API_Site]] — endpoints públicos e /api/* (site), axios client
+- [[Integracao_API_Backoffice]] — endpoints /admin/* (backoffice), mapeamento de campos
+
+## Features Verticais
+- [[Feature_Autenticacao_e_Sessoes]] — dois fluxos JWT, login, sessão, localStorage
+- [[Feature_Email_e_Tokens]] — verificação de email, reset de senha, módulo token, mailer SMTP
+- [[Feature_Controle_Backend]] — RBAC: 7 KnownSections, middleware Go, validações do handler
+- [[Feature_Controle_Frontend]] — guards de rota, filtragem UI, matrix de permissões, refresh
+- [[Feature_Cronograma_e_Eventos]] — cronograma público (agrupamento), CRUD backoffice
+- [[Feature_Participacao_e_QRCode]] — scan via câmera (backoffice), QR exibido no Profile (site)
+- [[Feature_Loja_e_Pagamentos]] — produtos (KIT/COFFEE/COMBO), carrinho, checkout PIX, polling, webhook
+- [[Feature_Flags_e_Pages]] — feature toggle via API, FeatureGuard, backoffice toggle UI
+
+---
+
+## ⚠ Gaps Conhecidos
+- **Backoffice**: `"Produtos"` existe como `KnownSection` no backend (com CRUD em `/admin/products`) mas **não há página de gerenciamento no front-backoffice** — a seção existe apenas para controle de permissão futura
+- **Cart**: `CartContext` é in-memory apenas — itens são perdidos ao recarregar a página
+- **Payments**: sem operação atômica — se `createPix` falhar após criar o pagamento no MP, o status fica inconsistente
+- **Permissions (bulk)**: salvar permissões faz N chamadas paralelas com `Promise.all`; falha parcial deixa estado inconsistente sem rollback
+- **Sections**: a tab `sections` foi removida do backoffice — seções deixaram de ser gerenciáveis via UI (mas endpoint backend ainda existe)
+- **Feature Flags**: estado das flags vive **em memória no processo Go** — reiniciar o servidor reseta todas as flags para `available: true`

@@ -1,18 +1,19 @@
+import { useState } from "react"
 import { useTheme } from "@/contexts/useTheme"
+import { Eye, EyeOff } from "lucide-react"
 
 type InputProps = {
     label: string
     type?: string
     value: string
-    isDarkMode?: boolean
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     placeholder?: string
     required?: boolean
   }
 
   // Componente de input customizado que já com estilizações
-  
   export default function Input({
+
     label,
     type = "text",
     value,
@@ -21,18 +22,35 @@ type InputProps = {
     required = false,
   }: InputProps) {
     const { isDarkMode } = useTheme()
+    const isPassword = type === "password"
+    const [showPassword, setShowPassword] = useState(false)
+    const inputType = isPassword ? (showPassword ? "text" : "password") : type
+
     return (
       <div className="mb-3">
         <div className="text-sm mb-2">{label}</div>
-        <input
-          className={`w-full px-3 py-4 rounded-md border-2 ${ isDarkMode ? "border-semcompMidDarkBlue" : "border-semcompOffWhite bg-semcompMidDarkBlue"} text-sm focus:shadow-input focus:border-none transition`}
-          type={type}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          required={required}
-          aria-label={label}
-        />
+        <div className="relative">
+          <input
+            className={`w-full px-3 py-4 rounded-md border-2 ${isPassword ? "pr-11" : ""} ${ isDarkMode ? "border-semcompOffWhite bg-semcompDarkBlue" : "border-semcompOffWhite bg-semcompMidDarkBlue"} text-sm text-white focus:shadow-input focus:border-none transition placeholder:text-white`}
+            type={inputType}
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            required={required}
+            aria-label={label}
+          />
+          {isPassword && (
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute inset-y-0 right-3 flex items-center text-semcompOffWhite opacity-70 hover:opacity-100 transition"
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          )}
+        </div>
       </div>
     )
   }

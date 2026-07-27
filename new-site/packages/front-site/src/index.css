@@ -6,18 +6,24 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-semcompDarkBlue: #0B2639;
+  /* ── Paleta SEMCOMP ──────────────────────────────────────────────────────── */
+  --color-semcompDarkBlue:       #0B2639;
   --color-semcompAlmostDarkBlue: #003050;
-  --color-semcompMidDarkBlue: #105079;
-  --color-semcompMidLightBlue: #357BA3;
-  --color-semcompLightBlue: #D2EDFF;
-  --color-semcompOffWhite: #FAFDFF;
-  --color-semcompOffBlack: #000407;
+  --color-semcompMidDarkBlue:    #105079;
+  --color-semcompMidLightBlue:   #357BA3;
+  --color-semcompLightBlue:      #D2EDFF;
+  --color-semcompOffWhite:       #FAFDFF;
+  --color-semcompOffBlack:       #000407;
+
+  /* ── Fontes — geram font-comfortaa / font-poppins automaticamente ─────────── */
+  --font-comfortaa: "Comfortaa", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --font-poppins:   "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto;
+
+  /* ── Tokens de design ────────────────────────────────────────────────────── */
+  --tracking-section: 0.22em;
 }
 
 :root {
-  --font-comfortaa: "Comfortaa", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  --font-poppins: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -52,44 +58,46 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* ── Fontes locais ───────────────────────────────────────────────────────────── */
+
 @font-face {
-	font-family: 'Comfortaa';
-	src: url('./assets/fonts/Comfortaa/Comfortaa-Regular.ttf') format('truetype');
-	font-weight: 400;
-	font-style: normal;
-	font-display: swap;
+  font-family: 'Comfortaa';
+  src: url('./assets/fonts/Comfortaa/Comfortaa-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-	font-family: 'Comfortaa';
-	src: url('./assets/fonts/Comfortaa/Comfortaa-Medium.ttf') format('truetype');
-	font-weight: 500;
-	font-style: normal;
-	font-display: swap;
+  font-family: 'Comfortaa';
+  src: url('./assets/fonts/Comfortaa/Comfortaa-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-	font-family: 'Comfortaa';
-	src: url('./assets/fonts/Comfortaa/Comfortaa-SemiBold.ttf') format('truetype');
-	font-weight: 600;
-	font-style: normal;
-	font-display: swap;
+  font-family: 'Comfortaa';
+  src: url('./assets/fonts/Comfortaa/Comfortaa-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-	font-family: 'Comfortaa';
-	src: url('./assets/fonts/Comfortaa/Comfortaa-Bold.ttf') format('truetype');
-	font-weight: 700;
-	font-style: normal;
-	font-display: swap;
+  font-family: 'Comfortaa';
+  src: url('./assets/fonts/Comfortaa/Comfortaa-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-	font-family: 'Poppins';
-	src: url('./assets/fonts/Poppins/Poppins-Regular.ttf') format('truetype');
-	font-weight: 400;
-	font-style: normal;
-	font-display: swap;
+  font-family: 'Poppins';
+  src: url('./assets/fonts/Poppins/Poppins-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -108,20 +116,7 @@
   font-display: swap;
 }
 
-.font-poppins-regular {
-  font-family: "Poppins", sans-serif;
-  font-weight: 400;
-}
-
-.font-poppins-bold {
-  font-family: "Poppins", sans-serif;
-  font-weight: 700;
-}
-
-.font-poppins-extrabold {
-  font-family: "Poppins", sans-serif;
-  font-weight: 800;
-}
+/* ── Base ────────────────────────────────────────────────────────────────────── */
 
 @layer base {
   html,
@@ -142,22 +137,113 @@
 
   html {
     @apply font-sans;
+    overscroll-behavior: none;
   }
 }
 
-@layer utilities {
-  .font-comfortaa {
-    font-family: var(--font-comfortaa);
-  }
+/* ── Utilities de fonte ──────────────────────────────────────────────────────── */
+/* font-comfortaa e font-poppins são geradas automaticamente pelo @theme acima.  */
+/* As variantes com peso explícito precisam de @utility pois combinam família+peso. */
 
-  .font-poppins {
-    font-family: var(--font-poppins);
-  }
+@utility font-sans-custom {
+  font-family: var(--font-sans);
+}
 
-  .font-sans-custom {
-    font-family: var(--font-sans);
+@utility font-poppins-regular {
+  font-family: var(--font-poppins);
+  font-weight: 400;
+}
+
+@utility font-poppins-bold {
+  font-family: var(--font-poppins);
+  font-weight: 700;
+}
+
+@utility font-poppins-extrabold {
+  font-family: var(--font-poppins);
+  font-weight: 800;
+}
+
+/* ── Utilities de layout de seção ───────────────────────────────────────────── */
+
+/* Largura padrão de conteúdo de seção (80% centrado) */
+@utility section-container {
+  max-width: 80%;
+  margin-inline: auto;
+}
+
+/* Variante mais larga para seções com mais conteúdo (88% centrado) */
+@utility section-container-wide {
+  max-width: 88%;
+  margin-inline: auto;
+}
+
+/* Linha divisória entre título e conteúdo */
+@utility section-divider {
+  width: 4rem;
+  height: 3px;
+  border-radius: 9999px;
+  background-color: var(--color-semcompMidLightBlue);
+  margin-inline: auto;
+  opacity: 0.6;
+}
+
+/* Eyebrow/label acima do título principal da seção */
+@utility section-eyebrow {
+  font-family: var(--font-poppins);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-section);
+  margin-bottom: 1rem;
+  color: var(--color-semcompDarkBlue);
+
+  @variant dark {
+    color: color-mix(in oklch, var(--color-semcompLightBlue) 50%, transparent);
   }
 }
+
+/* Filtro do watermark da SobreSection: azulado no light, sem filtro no dark */
+@utility sobre-watermark-light {
+  filter: invert(45%) sepia(35%) saturate(1100%) hue-rotate(164deg) brightness(93%) contrast(88%);
+
+  @variant dark {
+    filter: none;
+  }
+}
+
+/* Gradiente de texto padrão (MidLightBlue → LightBlue) */
+@utility gradient-text {
+  background-image: linear-gradient(to right, var(--color-semcompMidLightBlue), var(--color-semcompLightBlue));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── Utilities de animação ───────────────────────────────────────────────────── */
+
+@utility animate-slide {
+  animation: slide 1s ease;
+}
+
+@keyframes slide {
+  from {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%);  }
+}
+
+/* ── Shadcn/ui theme tokens ──────────────────────────────────────────────────── */
 
 .dark {
   --background: oklch(0.145 0 0);
@@ -233,35 +319,47 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --shadow-input: 0px 0px 40px var(--color-semcompMidLightBlue), 0px 0px 20px #00A2FF, 0px 0px 10px rgb(0, 162, 255, 0.5), 0px 0px 5px #00A2FF
+  --shadow-input: 0px 0px 40px var(--color-semcompMidLightBlue), 0px 0px 20px #00A2FF, 0px 0px 10px rgb(0, 162, 255, 0.5), 0px 0px 5px #00A2FF;
 }
 
-@keyframes slide {
-  from {
-    opacity: 0;
-    transform: translateX(60px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+/* ── Scrollbar customizada ──────────────────────────────────────────────────── */
+
+/* Tema claro */
+.custom-scrollbar {
+  scrollbar-width: thin;          /* Firefox */
+  scrollbar-color: var(--color-semcompMidDarkBlue) transparent;
 }
 
-.animate-slide {
-  animation: slide 1s ease;
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-html, body {
-  overscroll-behavior: none;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-semcompMidDarkBlue);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
 
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-semcompDarkBlue);
+}
 
-  100% {
-    transform: translateX(100%);
-  }
+/* Tema escuro */
+.dark .custom-scrollbar {
+  scrollbar-color: var(--color-semcompMidDarkBlue) transparent;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-semcompMidDarkBlue);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-semcompLightBlue);
 }

@@ -1,14 +1,19 @@
-import { createContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { UserType } from "@/types/UserType";
 import { authAPI } from "@/api";
 import { useNavigate } from "react-router-dom";
 import { useNotification } from "./NotificationContext";
 
+export type LoginResult = {
+  success: boolean;
+  status?: number;
+};
+
 type AuthContextValue = {
   isAuthenticated: boolean;
   user: UserType | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<LoginResult>;
+  logout: () => Promise<void>;
 };
 
 const storageKey = "semcomp-site-auth";
@@ -55,10 +60,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const response = await authAPI.login(email, password);
 
-          // Armazena token
-          localStorage.setItem("semcomp-site-token", response.token);
-
-          // Atualiza user state 
           setUser({
             user_number: response.user.user_number,
             name: response.user.name,
@@ -67,15 +68,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           showNotification(response.message, "success");
           navigate("/profile");
-          return true;
+          return { success: true };
         } catch (err: any) {
-            const message =
-              err?.response?.data?.error || err?.response?.data?.message || err?.message || "Erro no login";
-            showNotification(message, "warning");
-          return false;
+          const message =
+            err?.response?.data?.error || err?.response?.data?.message || err?.message || "Erro no login";
+          showNotification(message, "warning");
+          return { success: false, status: err?.response?.status };
         }
       },
-      logout: () => {
+      logout: async () => {
+        try {
+          await authAPI.logout();
+        } catch {
+          // cookie cleared locally even if the server request fails
+        }
         setUser(null);
         showNotification("Desconectado com sucesso!", "success");
         navigate("/");
@@ -85,4 +91,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  return context;
 }

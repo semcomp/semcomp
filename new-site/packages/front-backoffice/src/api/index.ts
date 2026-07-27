@@ -9,5 +9,8 @@ export { userSemcompAPI } from "./users";
 export { eventsAPI } from "./events";
 export { sectionsAPI } from "./sections";
 export { participationAPI } from "./participation";
+export { permissionsAPI } from "./permissions";
+export { pagesAPI } from "./pages";
+export { sponsorsAPI } from "./sponsors";
 export { default as client } from "./client";
 export type { LoginResponse, RegisterResponse, ProfileResponse, ApiError } from "@/types/APIResponseType";

@@ -13,6 +13,10 @@ restart:
 	docker compose -p $(PROJECT) down
 	docker compose -p $(PROJECT) --env-file ./backend/.env  up -d --build
 
+reset:
+	docker compose -p $(PROJECT) --env-file ./backend/.env down -v 
+	make build
+
 logs:
 	docker compose -p $(PROJECT) logs -f
 
@@ -35,7 +39,8 @@ bash-backend:
 	docker compose -p $(PROJECT) exec backend sh
 
 psql:
-	docker compose -p $(PROJECT) exec db psql -U semcomp -d SemcompDB
+	docker compose -p $(PROJECT) exec db sh -c 'psql -U $$DB_USER -d $$DB_NAME'
+
 
 logs-db:
 	docker compose -p $(PROJECT) logs -f db

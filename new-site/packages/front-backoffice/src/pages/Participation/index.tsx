@@ -1,7 +1,7 @@
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudQueryParams } from "@/types/CrudItem";
 import type { CrudItemType } from "@/types/CrudItem";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
 import type { ParticipationType } from "@/types/ParticipationType";
@@ -9,8 +9,10 @@ import { API_FIELD_MAP, fields } from "@/data/participationCrudField";
 import { Tabs } from "@/constants/Tabs";
 import { participationAPI } from "@/api/participation";
 import { useNotification } from "@/contexts/NotificationContext";
+import { useHasPermission } from "@/contexts/AuthContext";
 
 export default function ParticipationCRUD() {
+  const canWrite = useHasPermission("Participações", "RW");
   const navigate = useNavigate();
   const [data, setData] = useState<ParticipationType[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -30,10 +32,14 @@ export default function ParticipationCRUD() {
       setLoading(true);
       setError(null);
 
+      const sortFieldApi =
+        API_FIELD_MAP[params?.sortField ?? ""] ||
+        params?.sortField ||
+        "event_init_date";
+      const filterFieldApi = params?.filterField
+        ? API_FIELD_MAP[params.filterField] || params.filterField
+        : "user_number";
 
-      const sortFieldApi = API_FIELD_MAP[params?.sortField ?? ""] || params?.sortField || "event_init_date";
-      const filterFieldApi = params?.filterField ? (API_FIELD_MAP[params.filterField] || params.filterField) : "user_number";
-      
       if (filterFieldApi == "event_init_date") {
         showNotification(`A busca por esse campo está desativada`, "error");
         return;
@@ -47,7 +53,7 @@ export default function ParticipationCRUD() {
         filterFieldApi,
         params?.filterValue || undefined
       );
-      
+
       setData(response.presences || []);
       setTotalRecords(response.filtered_records ?? response.total_records ?? 0);
     } catch (err) {
@@ -60,14 +66,16 @@ export default function ParticipationCRUD() {
   }, []);
 
   // Efeito inicial para carregar dados
-  useEffect(() => {
-    fetchPresences();
-  }, [fetchPresences]);
+  // useEffect(() => {
+  //   fetchPresences();
+  // }, [fetchPresences]);
 
-
-  const handleQueryChange = (params: CrudQueryParams) => {
-    fetchPresences(params);
-  };
+  const handleQueryChange = useCallback(
+    (params: CrudQueryParams) => {
+      fetchPresences(params);
+    },
+    [fetchPresences]
+  );
 
   const handleCreate = async (item: CrudItemType) => {
     try {
@@ -86,12 +94,14 @@ export default function ParticipationCRUD() {
   const handleEdit = async (item: CrudItemType, itemKey: string) => {
     try {
       const typedItem = item as ParticipationType;
-      const originalPresence = data.find((p) => resolvePresenceKey(p) === itemKey);
+      const originalPresence = data.find(
+        (p) => resolvePresenceKey(p) === itemKey
+      );
 
       if (!originalPresence) return;
 
       await participationAPI.update(
-        originalPresence.user_number, 
+        originalPresence.user_number,
         originalPresence.name_event,
         originalPresence.date_event,
         typedItem
@@ -114,7 +124,7 @@ export default function ParticipationCRUD() {
       if (!presence) return;
 
       await participationAPI.delete(
-        presence.user_number, 
+        presence.user_number,
         presence.name_event,
         presence.date_event
       );
@@ -145,15 +155,15 @@ export default function ParticipationCRUD() {
 
       <div className="rounded-xl border border-border bg-card/80 p-5">
         {error && (
-            <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
-              {error}
-            </div>
-          )}
-          {loading && data.length === 0 && (
-            <div className="flex items-center justify-center py-12">
-              <p className="text-slate-400">Carregando eventos...</p>
-            </div>
-          )}
+          <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
+            {error}
+          </div>
+        )}
+        {loading && data.length === 0 && (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-slate-400">Carregando eventos...</p>
+          </div>
+        )}
         <CrudTable
           data={data}
           fields={fields}
@@ -165,6 +175,7 @@ export default function ParticipationCRUD() {
           serverSide
           totalRecords={totalRecords}
           onQueryChange={handleQueryChange}
+          canWrite={canWrite}
         />
       </div>
     </section>

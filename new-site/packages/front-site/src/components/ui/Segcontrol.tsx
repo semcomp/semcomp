@@ -1,33 +1,32 @@
 import { useState } from "react";
 import { useTheme } from "@/contexts/useTheme";
 
-// Este hook exporta o state e pode ser importado em sua página
 export function useSegmentedControl() {
   const [isLogin, setIsLogin] = useState<boolean>(true);
   return { isLogin, setIsLogin };
 }
 
-// O componente em si é controlado pelas propriedades
 interface SegmentedControlProps {
   islogin: boolean;
   setIslogin: (value: boolean) => void;
-  hook?: () => void 
+  hook?: () => void
 }
 
-// Switch button que recebe um hook de login para mudança do valor do state.
-
 export default function SegmentedControl({ islogin, setIslogin, hook }: SegmentedControlProps){
-  const { isDarkMode } = useTheme()
-  
+  const { isDarkMode } = useTheme();
+
   return (
     <div className="flex items-center justify-center pb-8 pt-2">
-      {/* Container Principal */}
-      <div className={`relative flex w-64 h-15 p-1 ${isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidDarkBlue"} border border-semcompOffWhite rounded-full overflow-hidden`}>
-        
+      <div className={`relative flex w-64 h-15 p-1 rounded-full overflow-hidden border ${
+        isDarkMode
+          ? "bg-semcompDarkBlue border-semcompOffWhite"
+          : "bg-semcompMidDarkBlue border-semcompMidDarkBlue"
+      }`}>
+
         <div
-          className={`absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-semcompOffWhite rounded-full transition-transform duration-300 ease-in-out ${
-            !islogin ? 'translate-x-full' : 'translate-x-0'
-          }`}
+          className={`absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full transition-transform duration-300 ease-in-out ${
+            isDarkMode ? "bg-semcompOffWhite" : "bg-semcompOffWhite"
+          } ${!islogin ? 'translate-x-full' : 'translate-x-0'}`}
         />
 
         <button
@@ -59,4 +58,3 @@ export default function SegmentedControl({ islogin, setIslogin, hook }: Segmente
     </div>
   );
 };
-
