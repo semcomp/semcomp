@@ -56,6 +56,7 @@ export interface CrudField {
   selectVariants?: Record<string, string>;
   multiValueOptions?: string[];
   accept?: string;
+  showWhen?: { field: string; value: unknown };
 }
 
 export interface CrudQueryParams {
@@ -866,15 +867,13 @@ export function CrudTable({
                     </Label>
                   </div>
                 ) : f.type === "file" ? (
-                  formData.hasPapfe ? (
+                  (!f.showWhen || formData[f.showWhen.field] === f.showWhen.value) ? (
                     <div className="space-y-1">
                       <Input
                         type="file"
                         accept={f.accept || ".pdf,.jpg,.jpeg,.png,.webp"}
                         onChange={(e) => {
                           const file = e.target.files?.[0] || null;
-                          console.log("📎 Arquivo selecionado no input:", file);
-
                           setFormData((prev) => ({
                             ...prev,
                             [f.value]: file,
@@ -1076,7 +1075,7 @@ export function CrudTable({
                     </Label>
                   </div>
                 ) : f.type === "file" ? (
-                  formData.hasPapfe ? (
+                  (!f.showWhen || formData[f.showWhen.field] === f.showWhen.value) ? (
                     <div className="space-y-1">
                       <Input
                         type="file"

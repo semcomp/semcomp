@@ -26,11 +26,12 @@ export const fields: CrudField[] = [
     label: "Possui PAPFE?", 
     type: "boolean"
   },
-  { 
-    value: "papfe_document", 
-    label: "Comprovante PAPFE", 
+  {
+    value: "papfe_document",
+    label: "Comprovante PAPFE",
     type: "file",
-    accept: "application/pdf,image/jpeg,image/png,image/webp" 
+    accept: "application/pdf,image/jpeg,image/png,image/webp",
+    showWhen: { field: "hasPapfe", value: true },
   },
   { value: "disabilities", label: "Deficiências (PCD)", type: "multivalue" },
   { value: "linkedin", label: "LinkedIn", type: "text" },

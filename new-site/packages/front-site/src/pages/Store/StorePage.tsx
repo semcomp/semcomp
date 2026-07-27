@@ -163,12 +163,10 @@ export default function StorePage() {
     return () => { cancelled = true; };
   }, []);
 
-  // ─── Cores responsivas ao tema ──────────────────────────
-  //const bgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompLightBlue";
+  // ─── Cores ──────────────────────────
   const heroBg = isDarkMode
     ? "bg-gradient-to-b from-semcompDarkBlue to-semcompMidDarkBlue"
     : "bg-gradient-to-b from-semcompMidLightBlue to-semcompMidLightBlue/20";
-  //const sectionBg = isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompLightBlue/20";
   const priceColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompMidDarkBlue"
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
   const mutedText = isDarkMode ? "text-semcompOffWhite/60" : "text-semcompDarkBlue/60";
@@ -179,10 +177,9 @@ export default function StorePage() {
     ? "shadow-[0_8px_40px_rgba(0,0,0,0.5)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.65)]"
     : "shadow-[0_8px_40px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.2)]";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = isDarkMode ? "from-semcompMidLightBlue/90" : "from-semcompLightBlue/80";
-  const gradientVia = isDarkMode ? "via-semcompMidLightBlue/80" : "via-semcompLightBlue";
-  const gradientTo = isDarkMode ? "to-semcompMidLightBlue" : "to-semcompLightBlue";
-  // Botão sólido com cores invertidas (igual ao floating mobile)
+  const gradientFrom = isDarkMode ? "from-semcompMidLightBlue/80" : "from-semcompDarkBlue";
+  const gradientVia = isDarkMode ? "via-semcompMidLightBlue" : "via-semcompDarkBlue/80";
+  const gradientTo = isDarkMode ? "to-semcompLightBlue" : "to-semcompMidDarkBlue";
   const btnSolid = isDarkMode
     ? "bg-semcompOffWhite text-semcompMidDarkBlue hover:bg-gray-200 hover:shadow-[0_0_24px_rgba(255,255,255,0.25)]"
     : "bg-semcompMidLightBlue text-semcompOffWhite hover:bg-semcompDarkBlue hover:shadow-[0_0_24px_rgba(0,48,80,0.45)]";
@@ -383,7 +380,7 @@ export default function StorePage() {
                           <button
                             key={s}
                             onClick={(e) => { e.stopPropagation(); }}
-                            className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue`}
+                            className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${cardBorder} ${mutedText} hover:${textColor}`}
                           >
                             {s}
                           </button>

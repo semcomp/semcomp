@@ -12,7 +12,7 @@ type Service interface {
 }
 
 type service struct {
-	pages 		 []string
+	pages        []string
 	availability map[string]bool
 }
 
@@ -20,7 +20,7 @@ func NewService(pages []string) Service {
 	availability := make(map[string]bool)
 
 	for _, page := range pages {
-		availability[page] = false
+		availability[page] = true
 	}
 
 	return &service{
