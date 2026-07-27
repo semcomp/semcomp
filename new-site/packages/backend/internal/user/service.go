@@ -31,6 +31,7 @@ type UserService interface {
 	DeleteUser(id uint) error
 	GetPapfeDocument(email string) (*PapfeDocument, error)
 	UpdatePapfeDocument(email string, filename string, contentType string, data []byte) error
+	ApprovePapfeDocument(email string, approved bool) error
 	VerifyEmail(rawToken string) error
 	ResendVerification(email string) error
 	RequestPasswordReset(email string) error
@@ -420,11 +421,17 @@ func (s *userService) UpdatePapfeDocument(email string, filename string, content
 		ContentType: contentType,
 		Data:        data,
 		UploadedAt:  time.Now(),
+		IsApproved:  false,
 	}
 	if err := s.papfeRepo.Upsert(doc); err != nil {
 		return apierrors.InternalServerError("Erro ao atualizar comprovante PAPFE", err)
 	}
 	return nil
+}
+
+// ApprovePapfeDocument atualiza o status de aprovação do comprovante PAPFE de um usuário.
+func (s *userService) ApprovePapfeDocument(email string, approved bool) error {
+	return s.papfeRepo.UpdateApproval(email, approved)
 }
 
 func (s *userService) RequestPasswordReset(email string) error {

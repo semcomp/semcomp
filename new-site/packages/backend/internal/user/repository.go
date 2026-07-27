@@ -188,6 +188,7 @@ func (r *userRepository) Delete(id uint) error {
 type PapfeDocumentRepository interface {
 	FindByEmail(email string) (*PapfeDocument, error)
 	Upsert(doc *PapfeDocument) error
+	UpdateApproval(email string, approved bool) error
 	DeleteByEmail(email string) error
 }
 
@@ -217,9 +218,23 @@ func (r *papfeDocumentRepository) Upsert(doc *PapfeDocument) error {
 	return r.db.Omit("User").
 		Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "user_email"}},
-			DoUpdates: clause.AssignmentColumns([]string{"filename", "content_type", "data", "uploaded_at"}),
+			DoUpdates: clause.AssignmentColumns([]string{"filename", "content_type", "data", "uploaded_at", "is_approved"}),
 		}).
 		Create(doc).Error
+}
+
+// UpdateApproval atualiza o status de aprovação do comprovante PAPFE de um usuário.
+func (r *papfeDocumentRepository) UpdateApproval(email string, approved bool) error {
+	result := r.db.Model(&PapfeDocument{}).
+		Where("user_email = ?", email).
+		Update("is_approved", approved)
+	if result.Error != nil {
+		return apierrors.InternalServerError("Erro ao atualizar aprovação do comprovante PAPFE", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return apierrors.NotFoundError("Comprovante PAPFE não encontrado para o usuário", nil)
+	}
+	return nil
 }
 
 // DeleteByEmail remove o comprovante PAPFE associado ao e-mail informado.

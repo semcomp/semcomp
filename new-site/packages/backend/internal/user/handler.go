@@ -220,6 +220,49 @@ func (h *UserHandler) GetPapfeDocument(c *gin.Context) {
 	c.Data(http.StatusOK, doc.ContentType, doc.Data)
 }
 
+// ApprovePapfeDocument altera o status de aprovação do comprovante PAPFE de um usuário (admin).
+// @Summary Aprova/rejeita comprovante PAPFE
+// @Description Altera o status de aprovação do comprovante PAPFE de um usuário
+// @Tags Usuários (Participantes)
+// @Accept json
+// @Produce json
+// @Param id path int true "ID do usuário"
+// @Param request body user.PapfeApprovalRequest true "Status de aprovação"
+// @Success 200 {object} map[string]string "Status de aprovação atualizado com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 404 {object} map[string]string "Usuário ou comprovante não encontrado"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/users/{id}/papfe-document/approval [put]
+func (h *UserHandler) ApprovePapfeDocument(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("ID inválido", err))
+		return
+	}
+
+	var request PapfeApprovalRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
+		return
+	}
+
+	user, err := h.userService.GetUserByID(uint(id))
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	if err := h.userService.ApprovePapfeDocument(user.Email, request.Approved); err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	message := "Status de aprovação do comprovante PAPFE atualizado com sucesso!"
+	c.Set("responseMessage", message)
+	c.JSON(http.StatusOK, gin.H{"message": message})
+}
+
 // VerifyEmail confirma o e-mail de um usuário a partir do token recebido por link.
 // @Summary Confirma e-mail de um usuário
 // @Description Valida o token de verificação enviado por e-mail e ativa a conta

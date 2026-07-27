@@ -15,6 +15,7 @@ type PapfeDocument struct {
 	ContentType string    `gorm:"size:100;not null"`
 	Data        []byte    `gorm:"type:bytea;not null"`
 	UploadedAt  time.Time
+	IsApproved  bool      `gorm:"not null;default:false"`
 }
 
 type User struct {
@@ -150,4 +151,8 @@ type ForgotPasswordRequest struct {
 type ResetPasswordRequest struct {
 	Token       string `json:"token" binding:"required"`
 	NewPassword string `json:"new_password" binding:"required,min=8"`
+}
+
+type PapfeApprovalRequest struct {
+	Approved bool `json:"approved" binding:"required"`
 }
