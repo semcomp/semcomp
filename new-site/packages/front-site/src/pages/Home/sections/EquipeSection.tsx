@@ -10,7 +10,7 @@ type EquipeSectionProps = { className?: string };
 const EquipeSection = ({ className }: EquipeSectionProps) => {
   const sectionRef = useRef<HTMLElement>(null);
 
-  const totalMembers = TEAM.frente.reduce((total, frente) => total + frente.membros.length, 0);
+  // const totalMembers = TEAM.frente.reduce((total, frente) => total + frente.membros.length, 0);
   const totalDepartments = TEAM.frente.length - 1;
 
   useEffect(() => {
