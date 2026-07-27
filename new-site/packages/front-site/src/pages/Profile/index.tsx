@@ -188,12 +188,12 @@ export default function Profile({
 
                 <div className="flex flex-col space-y-4 mb-6">
                   <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70">Nome Completo:</span>
-                    <span className="text-sm font-medium">{userName}</span>
+                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">Nome Completo:</span>
+                    <span className="text-sm font-medium text-semcompDarkBlue">{userName}</span>
                   </div>
                   <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70">E-mail:</span>
-                    <span className="text-sm font-medium">{userEmail}</span>
+                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">E-mail:</span>
+                    <span className="text-sm font-medium text-semcompDarkBlue">{userEmail}</span>
                   </div>
                 </div>
 
@@ -222,7 +222,7 @@ export default function Profile({
                   onClick={() => showNotification("Entre em contato com a organização", "info")}>
                   Editar Informações
                 </button>
-                <button className="w-full text-red-600 font-bold text-sm py-2" onClick={logout}>
+                <button className="w-full text-red-700 font-bold text-sm py-2" onClick={logout}>
                   Sair da conta
                 </button>
               </div>
@@ -345,12 +345,12 @@ export default function Profile({
 
           <div className="flex flex-col space-y-4 mb-6">
             <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcomp-900">Nome Completo:</span>
-              <span className="text-sm text-foreground/90">{userName}</span>
+              <span className="text-sm font-bold text-semcompDarkBlue">Nome Completo:</span>
+              <span className="text-sm text-semcompDarkBlue">{userName}</span>
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcomp-900">E-mail:</span>
-              <span className="text-sm text-foreground/90">{userEmail}</span>
+              <span className="text-sm font-bold text-semcompDarkBlue">E-mail:</span>
+              <span className="text-sm text-semcompDarkBlue">{userEmail}</span>
             </div>
           </div>
 
@@ -361,11 +361,11 @@ export default function Profile({
             Editar Informações
           </button>
 
-          <div className="bg-muted/40 rounded-xl p-5 border border-border/50">
+          <div className="bg-semcompOffWhite/40 rounded-xl p-5 border border-border/50">
             <h3 className="text-center text-semcompMidDarkBlue text-md font-bold text-semcomp-900 mb-4">
               Minha Presença na SEMCOMP
             </h3>
-            <div className="relative w-full h-8 bg-background/50 rounded-full border-5 border-border/30 overflow-hidden">
+            <div className="relative w-full h-8 bg-semcompOffWhite/50 rounded-full border-5 border-border/30 overflow-hidden">
               <div
                 className={`absolute inset-y-0 left-0 h-full bg-semcompMidDarkBlue flex items-center transition-all duration-1000 rounded-r-full ${
                   presencePercent > 15 ? "justify-end pr-4" : "justify-start"
@@ -386,7 +386,7 @@ export default function Profile({
 
           <button
             onClick={logout}
-            className="mt-6 text-xs text-white font-medium mx-auto bg-destructive/50 hover:text-semcompOffWhite hover:bg-destructive/60 transition-colors py-2 px-3 rounded-lg"
+            className="mt-6 text-xs text-white font-medium mx-auto bg-destructive/70 hover:text-semcompOffWhite hover:bg-destructive/50 transition-colors py-2 px-3 rounded-lg"
           >
             Sair da conta
           </button>

@@ -20,7 +20,7 @@ func NewService(pages []string) Service {
 	availability := make(map[string]bool)
 
 	for _, page := range pages {
-		availability[page] = true
+		availability[page] = false
 	}
 
 	return &service{
