@@ -68,18 +68,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
     const perms = await permissionsAPI.getMe();
     if (perms !== null) {
-      // null = transient error → keep cached permissions
       setPermissions(perms);
     }
   }, [user?.email]);
 
-  // Sync permissions with the backend whenever a session is resumed from localStorage.
   const didSyncRef = useRef(false);
   useEffect(() => {
     if (didSyncRef.current) return;
     didSyncRef.current = true;
     if (user) refreshPermissions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const value = useMemo<AuthContextValue>(
@@ -124,16 +121,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
-}
-
 export function useHasPermission(section: string, level: "R" | "RW"): boolean {
   const { permissions } = useAuth();
   const entry = permissions.find(p => p.section_name === section);
   if (!entry || !entry.permission_type) return false;
   if (level === "R") return true; // "R" ou "RW" satisfazem leitura
   return entry.permission_type === "RW";
+}
+
+
+/**
+ * Hook para acessar contexto de autenticação
+ * @returns Valor do contexto (user, isAuthenticated, login, logout)
+ * @throws Erro se usado fora de AuthProvider
+ */
+export function useAuth() {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+
+  return context;
 }

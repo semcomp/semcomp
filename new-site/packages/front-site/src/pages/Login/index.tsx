@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback, type ReactElement } from "react";
 import SegmentedControl, { useSegmentedControl } from "@/components/ui/Segcontrol";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
-import { useAuth } from "@/contexts/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNotification } from "@/contexts/NotificationContext";
 import { authAPI } from "@/api";
 import TermsModal from "@/components/TermsModal";

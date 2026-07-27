@@ -153,8 +153,10 @@ func main() {
 		ExposeHeaders:    []string{"Content-Length"},
 	}))
 
-	// Rota para acessar a interface web do Swagger
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// Rota para acessar a interface web do Swagger (protegida por autenticação do backoffice)
+	swaggerRoutes := r.Group("/swagger")
+	swaggerRoutes.Use(middleware.AuthBackofficeMiddleware(jwtProvider))
+	swaggerRoutes.GET("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	pageMW := func(page string) gin.HandlerFunc {
 		return middleware.RequirePageAvailable(pagesService, page)

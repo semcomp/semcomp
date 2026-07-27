@@ -3,7 +3,7 @@ import QRCode from "react-qr-code";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 import ContatoSection from "../Home/sections/ContatoSection";
-import { useAuth } from "@/contexts/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { authAPI } from "@/api";
 import { ChevronDown } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";

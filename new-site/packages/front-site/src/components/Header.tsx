@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 import type { FeatureKey } from "@/types/FeatureKeyType";
 
