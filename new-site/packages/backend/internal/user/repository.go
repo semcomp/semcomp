@@ -186,6 +186,7 @@ func (r *userRepository) Delete(id uint) error {
 
 // PapfeDocumentRepository define as operações de acesso a dados para comprovantes PAPFE.
 type PapfeDocumentRepository interface {
+	FindByEmail(email string) (*PapfeDocument, error)
 	Upsert(doc *PapfeDocument) error
 	DeleteByEmail(email string) error
 }
@@ -196,6 +197,19 @@ type papfeDocumentRepository struct {
 
 func NewPapfeDocumentRepository(db *gorm.DB) PapfeDocumentRepository {
 	return &papfeDocumentRepository{db: db}
+}
+
+// FindByEmail busca o comprovante PAPFE de um usuário pelo e-mail.
+func (r *papfeDocumentRepository) FindByEmail(email string) (*PapfeDocument, error) {
+	var doc PapfeDocument
+	err := r.db.Where("user_email = ?", email).First(&doc).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apierrors.NotFoundError("Comprovante PAPFE não encontrado", err)
+		}
+		return nil, apierrors.InternalServerError("Erro ao buscar comprovante PAPFE", err)
+	}
+	return &doc, nil
 }
 
 // Upsert insere ou atualiza o comprovante PAPFE de um usuário (único por e-mail).

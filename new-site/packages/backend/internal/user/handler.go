@@ -185,6 +185,41 @@ func (h *UserHandler) UpdatePapfeDocument(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Comprovante PAPFE atualizado com sucesso!"})
 }
 
+// GetPapfeDocument serve o comprovante PAPFE de um usuário para download (admin).
+// @Summary Obtém comprovante PAPFE de um usuário
+// @Description Retorna o arquivo do comprovante PAPFE de um usuário específico
+// @Tags Usuários (Participantes)
+// @Produce octet-stream
+// @Param id path int true "ID do usuário"
+// @Success 200 {file} file "Arquivo do comprovante PAPFE"
+// @Failure 400 {object} map[string]string "ID inválido"
+// @Failure 404 {object} map[string]string "Usuário ou comprovante não encontrado"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/users/{id}/papfe-document [get]
+func (h *UserHandler) GetPapfeDocument(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("ID inválido", err))
+		return
+	}
+
+	user, err := h.userService.GetUserByID(uint(id))
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	doc, err := h.userService.GetPapfeDocument(user.Email)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, doc.Filename))
+	c.Data(http.StatusOK, doc.ContentType, doc.Data)
+}
+
 // VerifyEmail confirma o e-mail de um usuário a partir do token recebido por link.
 // @Summary Confirma e-mail de um usuário
 // @Description Valida o token de verificação enviado por e-mail e ativa a conta

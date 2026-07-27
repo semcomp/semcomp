@@ -203,6 +203,7 @@ func main() {
 	// Usuários Semcomp
 	admin.GET("/users", permMW("Usuários Semcomp", permission.PermR), userHandler.GetAllUsers)
 	admin.GET("/users/:id", permMW("Usuários Semcomp", permission.PermR), userHandler.GetUserByID)
+	admin.GET("/users/:id/papfe-document", permMW("Usuários Semcomp", permission.PermR), userHandler.GetPapfeDocument)
 	admin.POST("/users", permMW("Usuários Semcomp", permission.PermRW), userHandler.CreateUser)
 	admin.PUT("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.UpdateUser)
 	admin.DELETE("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.DeleteUser)
