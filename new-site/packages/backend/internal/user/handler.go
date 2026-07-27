@@ -82,7 +82,18 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 			"image/png":       true,
 			"image/webp":      true,
 		}
-		contentType := header.Header.Get("Content-Type")
+		buf := make([]byte, 512)
+		if _, err := file.Read(buf); err != nil {
+			apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao ler comprovante PAPFE", err))
+			return
+		}
+		contentType := http.DetectContentType(buf)
+
+		if _, err := file.Seek(0, io.SeekStart); err != nil {
+			apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao processar comprovante PAPFE", err))
+			return
+		}
+
 		if !allowedTypes[contentType] {
 			apierrors.HandleAPIError(c, apierrors.ValidationError("Tipo de arquivo não permitido. Aceitamos PDF, JPEG, PNG ou WebP", nil))
 			return
