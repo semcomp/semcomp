@@ -71,7 +71,7 @@ export default function Profile({
         setPresencePercent(response.presence_rate ?? 0);
       } catch (err) {
         console.error("Erro ao buscar o perfil", err);
-        logout();
+        await logout();
         showNotification("Sua sessão expirou. Faça login novamente.", "warning");
       }
     }

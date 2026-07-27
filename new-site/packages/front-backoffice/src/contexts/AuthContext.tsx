@@ -15,11 +15,12 @@ type AuthContextValue = {
   permissions: BackofficePermission[];
   refreshPermissions: () => Promise<void>;
   login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 const USER_KEY = "semcomp-backoffice-auth";
 const PERMS_KEY = "semcomp-backoffice-permissions";
+
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -83,14 +84,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      isAuthenticated: user !== null && !!localStorage.getItem("semcomp-backoffice-token"),
+      isAuthenticated: user !== null,
       user,
       permissions,
       refreshPermissions,
       login: async (email: string, password: string) => {
         try {
           const response = await authAPI.login(email, password);
-          localStorage.setItem("semcomp-backoffice-token", response.token);
           const displayName = email.split("@")[0] || "Semcomper";
           setUser({ email: response.user.email, name: displayName });
           setPermissions(response.permissions ?? []);
@@ -106,10 +106,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return false;
         }
       },
-      logout: () => {
+      logout: async () => {
+        try {
+          await authAPI.logout();
+        } catch {
+          // cookie cleared locally even if the server request fails
+        }
         setUser(null);
         setPermissions([]);
-        localStorage.removeItem("semcomp-backoffice-token");
         localStorage.removeItem(PERMS_KEY);
         navigate("/login", { replace: true });
       },

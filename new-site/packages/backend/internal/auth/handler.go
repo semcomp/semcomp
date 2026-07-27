@@ -2,6 +2,8 @@ package auth
 
 import (
 	"net/http"
+	"os"
+	"strconv"
 
 	"backend/internal/apierrors"
 	user "backend/internal/user"
@@ -54,12 +56,25 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	// Confirmação de login do usuário (retorna token e dados do usuário)
+	hours, err := strconv.Atoi(os.Getenv("JWT_EXPIRES_IN_HOURS"))
+	if err != nil || hours <= 0 {
+		hours = 24
+	}
+	isSecure := gin.Mode() == gin.ReleaseMode
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("semcomp-site-token", tokenStr, hours*3600, "/", "", isSecure, true)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
 		"user":    safeUser,
-		"token":   tokenStr,
 	})
+}
+
+func (h *AuthHandler) LogoutHandler(c *gin.Context) {
+	isSecure := gin.Mode() == gin.ReleaseMode
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("semcomp-site-token", "", -1, "/", "", isSecure, true)
+	c.JSON(http.StatusOK, gin.H{"message": "Desconectado com sucesso"})
 }
 
 // ProfileHandler retorna os dados do perfil do usuário autenticado.

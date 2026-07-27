@@ -163,6 +163,7 @@ func main() {
 	// Rotas Semcomp - Públicas
 	r.POST("/register", pageMW("login"), userHandler.CreateUser)
 	r.POST("/login", pageMW("login"), authHandler.LoginHandler)
+	r.POST("/logout", pageMW("login"), authHandler.LogoutHandler)
 	r.POST("/forgot-password", pageMW("login"), userHandler.ForgotPasswordHandler)
 	r.POST("/reset-password", pageMW("login"), userHandler.ResetPasswordHandler)
 	r.POST("/verify-email", pageMW("login"), userHandler.VerifyEmail)
@@ -190,6 +191,7 @@ func main() {
 	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")
 	adminRoutes.POST("/login", authBackofficeHandler.LoginBackofficeHandler)
+	adminRoutes.POST("/logout", authBackofficeHandler.LogoutBackofficeHandler)
 
 	// Rotas Backoffice - Protegidas
 	admin := adminRoutes.Group("/")
