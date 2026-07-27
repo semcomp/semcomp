@@ -86,6 +86,12 @@ export interface CrudTableProps {
   totalRecords?: number;
   /** Callback chamado sempre que page, pageSize, sort ou filtro mudam (modo server-side) */
   onQueryChange?: (params: CrudQueryParams) => void;
+  /** Quando fornecido, substitui o comportamento padrão do botão de editar (não abre o dialog interno) */
+  onEditClick?: (item: CrudItemType, itemKey: string) => void;
+  /** Ícone customizado para o botão de ação (padrão: ScanQrCode) */
+  actionIcon?: React.ReactNode;
+  /** Tooltip do botão de ação (padrão: "Coletar presença") */
+  actionTitle?: string;
 }
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100, 200];
@@ -97,6 +103,9 @@ export function CrudTable({
   onDelete,
   onCreate,
   onAction,
+  onEditClick,
+  actionIcon,
+  actionTitle = "Coletar presença",
   getItemKey,
   entityLabel = "item",
   defaultPageSize = 10,
@@ -677,9 +686,9 @@ export function CrudTable({
                           variant="ghost"
                           onClick={() => onAction(item, resolveItemKey(item))}
                           className="h-8 w-8 p-0 text-muted-foreground hover:text-secondary hover:bg-secondary/10 rounded-lg"
-                          title="Coletar presença"
+                          title={actionTitle}
                         >
-                          <ScanQrCode className="w-3.5 h-3.5" />
+                          {actionIcon ?? <ScanQrCode className="w-3.5 h-3.5" />}
                         </Button>
                       )}
                       {canWrite && (
@@ -687,7 +696,7 @@ export function CrudTable({
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => openEdit(item)}
+                            onClick={() => onEditClick ? onEditClick(item, resolveItemKey(item)) : openEdit(item)}
                             className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
                             title="Editar"
                           >
