@@ -1,32 +1,31 @@
 import { Link } from "react-router-dom";
 
+
 export default function NotFoundPage() {
-
-  const container = "bg-semcompDarkBlue text-semcompOffWhite"
-
-  const card = "border-semcompDarkBlue/30 bg-semcompAlmostDarkBlue/50"
-
-  const subtitle = "text-semcompLightBlue"
-
   return (
-    <section className={`flex h-screen w-full items-center justify-center px-4 py-10 ${container}`}>
-      <div className={`w-full max-w-xl rounded-3xl border p-8 text-center shadow-lg ${card} -translate-y-20`}>
-        <p className="font-poppins text-sm font-bold uppercase tracking-[0.2em] text-semcompMidLightBlue">Erro 404</p>
-        <h1 className="mt-3 font-poppins text-4xl font-extrabold md:text-5xl">Página não encontrada</h1>
-        <p className={`mt-4 font-poppins text-sm md:text-base ${subtitle}`}>
+    <section className="relative flex min-h-[calc(100vh-73px)] items-center justify-center overflow-hidden bg-background px-4 py-12">
+      <div className="absolute top-0 -left-1/4 h-96 w-96 rounded-full bg-primary/10 blur-[120px]" />
+      <div className="absolute bottom-0 -right-1/4 h-96 w-96 rounded-full bg-secondary/10 blur-[120px]" />
+
+      <div className="relative w-[80%] md:w-[60%] xl:w-[30%] rounded-3xl border border-border bg-card/40 p-10 text-center shadow-2xl backdrop-blur-sm animate-in fade-in zoom-in-95 duration-500">
+        <p className="font-poppins text-sm font-bold uppercase tracking-[0.2em] text-primary">Erro 404</p>
+        <h1 className="mt-3 font-poppins text-2xl xl:text-4xl font-extrabold text-foreground md:text-5xl">
+          Página não encontrada
+        </h1>
+        <p className="mt-4 font-poppins text-sm text-muted-foreground md:text-base">
           O link que você tentou acessar não existe ou foi movido.
         </p>
 
         <div className="mt-8 flex items-center justify-center gap-3">
           <Link
             to="/"
-            className="rounded-xl bg-semcompMidDarkBlue px-5 py-2 font-poppins text-sm font-semibold text-semcompOffWhite transition hover:bg-semcompAlmostDarkBlue"
+            className="rounded-xl bg-primary px-5 py-2 font-poppins text-sm font-semibold text-primary-foreground transition hover:opacity-90"
           >
             Voltar para Home
           </Link>
           <button
             onClick={() => window.history.back()}
-            className="rounded-xl border border-semcompMidLightBlue/40 px-5 py-2 font-poppins text-sm font-semibold transition hover:bg-semcompMidLightBlue/10"
+            className="rounded-xl border border-border px-5 py-2 font-poppins text-sm font-semibold text-foreground transition hover:bg-secondary"
           >
             Página anterior
           </button>
