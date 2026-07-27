@@ -29,6 +29,7 @@ type UserService interface {
 	GetUserByID(id uint) (*SafeUser, error)
 	UpdateUser(id uint, request UpdateUserRequest) error
 	DeleteUser(id uint) error
+	UpdatePapfeDocument(email string, filename string, contentType string, data []byte) error
 	VerifyEmail(rawToken string) error
 	ResendVerification(email string) error
 	RequestPasswordReset(email string) error
@@ -399,6 +400,21 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 // DeleteUser remove um usuário do sistema a partir do seu ID.
 func (s *userService) DeleteUser(id uint) error {
 	return s.repo.Delete(id)
+}
+
+// UpdatePapfeDocument atualiza (ou insere) o comprovante PAPFE do usuário autenticado.
+func (s *userService) UpdatePapfeDocument(email string, filename string, contentType string, data []byte) error {
+	doc := &PapfeDocument{
+		UserEmail:   email,
+		Filename:    filename,
+		ContentType: contentType,
+		Data:        data,
+		UploadedAt:  time.Now(),
+	}
+	if err := s.papfeRepo.Upsert(doc); err != nil {
+		return apierrors.InternalServerError("Erro ao atualizar comprovante PAPFE", err)
+	}
+	return nil
 }
 
 func (s *userService) RequestPasswordReset(email string) error {

@@ -120,6 +120,71 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": message, "user": safeUser})
 }
 
+// UpdatePapfeDocument permite que o usuário autenticado atualize seu comprovante PAPFE.
+// @Summary Atualiza comprovante PAPFE
+// @Description Atualiza o comprovante PAPFE do usuário autenticado. Aceita multipart/form-data.
+// @Tags Usuários (Participantes)
+// @Accept multipart/form-data
+// @Produce json
+// @Param papfe_document formData file true "Comprovante PAPFE (PDF/JPEG/PNG/WebP, máx 10MB)"
+// @Success 200 {object} map[string]string "Comprovante PAPFE atualizado com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /api/papfe-document [put]
+func (h *UserHandler) UpdatePapfeDocument(c *gin.Context) {
+	email := c.MustGet("email").(string)
+
+	file, header, fileErr := c.Request.FormFile("papfe_document")
+	if fileErr != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Comprovante PAPFE é obrigatório", fileErr))
+		return
+	}
+	defer file.Close()
+
+	if header.Size > 10*1024*1024 {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 10MB", nil))
+		return
+	}
+
+	allowedTypes := map[string]bool{
+		"application/pdf": true,
+		"image/jpeg":      true,
+		"image/png":       true,
+		"image/webp":      true,
+	}
+	buf := make([]byte, 512)
+	if _, err := file.Read(buf); err != nil {
+		apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao ler comprovante PAPFE", err))
+		return
+	}
+	contentType := http.DetectContentType(buf)
+
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao processar comprovante PAPFE", err))
+		return
+	}
+
+	if !allowedTypes[contentType] {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Tipo de arquivo não permitido. Aceitamos PDF, JPEG, PNG ou WebP", nil))
+		return
+	}
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao ler comprovante PAPFE", err))
+		return
+	}
+
+	if err := h.userService.UpdatePapfeDocument(email, header.Filename, contentType, data); err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Set("responseMessage", "Comprovante PAPFE atualizado com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "Comprovante PAPFE atualizado com sucesso!"})
+}
+
 // VerifyEmail confirma o e-mail de um usuário a partir do token recebido por link.
 // @Summary Confirma e-mail de um usuário
 // @Description Valida o token de verificação enviado por e-mail e ativa a conta

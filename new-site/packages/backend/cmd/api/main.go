@@ -182,6 +182,7 @@ func main() {
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
+	authRoutes.PUT("/papfe-document", userHandler.UpdatePapfeDocument)
 
 	authRoutes.GET("/payments", pageMW("loja"), paymentHandler.ListByUser)
 	authRoutes.POST("/payments/pix", pageMW("loja"), paymentHandler.CreatePix)
