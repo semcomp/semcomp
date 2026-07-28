@@ -78,7 +78,7 @@ export default function MainEntrance() {
         <div className="flex flex-col gap-8 md:gap-12">
 
           <div className="flex items-center gap-6">
-            <img src="/img/semcomp/logo_default_branco.webp" alt="Logo da SEMCOMP" className="h-24 w-24 md:h-42 md:w-42 flex-shrink-0" />
+            <img src="/img/semcomp/logo_default_branco.webp" alt="Logo da SEMCOMP" className="h-24 w-24 md:h-42 md:w-42 flex-shrink-0 object-contain" />
             <div className="flex flex-col justify-center">
               <h1 className="text-5xl md:text-8xl font-comfortaa text-semcompOffWhite leading-tight">
                 semcomp
