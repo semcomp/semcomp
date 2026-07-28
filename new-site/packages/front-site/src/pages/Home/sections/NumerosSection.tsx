@@ -10,10 +10,10 @@ const STATS = [
 ];
 
 const CARD_CLASS =
-  'rounded-2xl border border-semcompMidLightBlue/25 bg-white/50 backdrop-blur-sm p-6 md:p-8 text-center hover:border-semcompMidLightBlue/50 hover:bg-white/75 dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-semcompLightBlue/30 dark:hover:bg-white/[0.07] transition-colors duration-300';
+  'rounded-2xl border border-semcompMidLightBlue/25 bg-white/50 backdrop-blur-sm p-3 md:p-8 text-center hover:border-semcompMidLightBlue/50 hover:bg-white/75 dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-semcompLightBlue/30 dark:hover:bg-white/[0.07] transition-colors duration-300';
 
 const NUM_CLASS =
-  'text-sm sm:text-2xl md:text-3xl lg:text-5xl font-extrabold font-poppins leading-tight py-1 bg-clip-text text-transparent bg-linear-to-br from-semcompMidDarkBlue to-semcompDarkBlue dark:from-semcompLightBlue dark:to-semcompOffWhite mb-3';
+  'text-md sm:text-2xl md:text-3xl lg:text-5xl font-extrabold font-poppins leading-tight py-1 bg-clip-text text-transparent bg-linear-to-br from-semcompMidDarkBlue to-semcompDarkBlue dark:from-semcompLightBlue dark:to-semcompOffWhite mb-1';
 
 const LABEL_CLASS =
   'text-semcompDarkBlue/65 dark:text-semcompOffWhite/55 text-xs sm:text-xs md:text-sm font-poppins leading-snug whitespace-pre-line mt-1';
