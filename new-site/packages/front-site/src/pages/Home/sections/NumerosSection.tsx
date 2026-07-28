@@ -7,19 +7,16 @@ const STATS = [
   { value: 2280,  prefix: '+', suffix: '',  label: 'estudantes de graduação\ne pós-graduação' },
   { value: 830,   prefix: '+', suffix: '',  label: 'alunos presentes de\ncursos de tecnologia' },
   { value: 10000, prefix: '+', suffix: '',  label: 'estudantes no campus\nUSP São Carlos' },
-  { value: 29,    prefix: '',  suffix: 'ª', label: 'edição da maior semana\nde computação do Brasil' },
-  { value: 16,    prefix: '',  suffix: '',  label: 'laboratórios de\npesquisa no ICMC' },
-  { value: 450,   prefix: '',  suffix: '',  label: 'artigos científicos\npublicados por ano' },
 ];
 
 const CARD_CLASS =
-  'rounded-2xl border border-semcompMidLightBlue/25 bg-white/50 backdrop-blur-sm p-6 md:p-8 text-center hover:border-semcompMidLightBlue/50 hover:bg-white/75 dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-semcompLightBlue/30 dark:hover:bg-white/[0.07] transition-colors duration-300';
+  'rounded-2xl border border-semcompMidLightBlue/25 bg-white/50 backdrop-blur-sm p-3 md:p-8 text-center hover:border-semcompMidLightBlue/50 hover:bg-white/75 dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-semcompLightBlue/30 dark:hover:bg-white/[0.07] transition-colors duration-300';
 
 const NUM_CLASS =
-  'text-4xl sm:text-5xl md:text-6xl font-extrabold font-poppins leading-none bg-clip-text text-transparent bg-linear-to-br from-semcompMidDarkBlue to-semcompDarkBlue dark:from-semcompLightBlue dark:to-semcompOffWhite mb-3';
+  'text-md sm:text-2xl md:text-3xl lg:text-5xl font-extrabold font-poppins leading-tight py-1 bg-clip-text text-transparent bg-linear-to-br from-semcompMidDarkBlue to-semcompDarkBlue dark:from-semcompLightBlue dark:to-semcompOffWhite mb-1';
 
 const LABEL_CLASS =
-  'text-semcompDarkBlue/65 dark:text-semcompOffWhite/55 text-xs sm:text-sm font-poppins leading-snug whitespace-pre-line mt-1';
+  'text-semcompDarkBlue/65 dark:text-semcompOffWhite/55 text-xs sm:text-xs md:text-sm font-poppins leading-snug whitespace-pre-line mt-1';
 
 export default function NumerosSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -81,13 +78,13 @@ export default function NumerosSection() {
           <p className="section-eyebrow">Por que investir na SEMCOMP?</p>
           <h2 className="text-3xl md:text-5xl font-extrabold font-poppins text-semcompDarkBlue dark:text-semcompOffWhite">
             A SEMCOMP em{' '}
-            <span className="bg-clip-text text-transparent bg-linear-to-r from-semcompMidDarkBlue to-semcompDarkBlue dark:from-semcompMidLightBlue dark:via-semcompLightBlue dark:to-semcompOffWhite">
+            <span className="bg-clip-text text-transparent bg-linear-to-r from-semcompMidDarkBlue to-semcompDarkBlue dark:from-semcompMidLightBlue dark:via-semcompLightBlue dark:to-semcompOffWhite pb-1">
               números
             </span>
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-3 gap-4 md:gap-6">
           {STATS.map(({ value, prefix, suffix, label }) => (
             <div key={label} className={`stat-card ${CARD_CLASS}`}>
               <div className={NUM_CLASS}>
@@ -99,7 +96,7 @@ export default function NumerosSection() {
 
           <div
             ref={visitorCardRef}
-            className={`col-span-2 lg:col-span-3 ${CARD_CLASS} transition-opacity duration-700 ${
+            className={`col-span-3 ${CARD_CLASS} transition-opacity duration-700 ${
               visitorCount !== null ? 'opacity-100' : 'opacity-0'
             }`}
           >
