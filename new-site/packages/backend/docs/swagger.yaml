@@ -88,10 +88,8 @@ definitions:
   permission.Permission:
     properties:
       permission_type:
-        description: '"RW" ou "R"'
+        description: nil = sem acesso, "R" ou "RW"
         type: string
-      section:
-        $ref: '#/definitions/section.Section'
       section_name:
         type: string
       user:
@@ -111,7 +109,6 @@ definitions:
         maxLength: 150
         type: string
     required:
-    - permission_type
     - section_name
     - user_email
     type: object
@@ -162,73 +159,255 @@ definitions:
     - event_name
     - user_number
     type: object
-  section.CreateSectionRequest:
+  product.Coffee:
     properties:
-      description:
+      date_time:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  product.ComboItem:
+    properties:
+      combo_id:
+        type: integer
+      item_id:
+        type: integer
+    type: object
+  product.CreateCoffeeRequest:
+    properties:
+      date_time:
         type: string
       name:
         maxLength: 200
         type: string
     required:
+    - date_time
     - name
     type: object
-  section.Section:
+  product.CreateKitRequest:
     properties:
-      description:
+      color:
+        maxLength: 50
         type: string
+      is_babydoll:
+        type: boolean
+      name:
+        maxLength: 200
+        type: string
+      size:
+        maxLength: 50
+        type: string
+    required:
+    - color
+    - name
+    - size
+    type: object
+  product.CreateProductRequest:
+    properties:
+      coffee:
+        $ref: '#/definitions/product.CreateCoffeeRequest'
+      is_selling:
+        type: boolean
+      items:
+        items:
+          type: integer
+        type: array
+      kit:
+        $ref: '#/definitions/product.CreateKitRequest'
+      price:
+        type: number
+      type:
+        allOf:
+        - $ref: '#/definitions/product.ProductType'
+        enum:
+        - KIT
+        - COFFEE
+        - COMBO
+    required:
+    - price
+    - type
+    type: object
+  product.Kit:
+    properties:
+      color:
+        type: string
+      id:
+        type: integer
+      is_babydoll:
+        type: boolean
       name:
         type: string
+      size:
+        type: string
     type: object
-  section.UpdateSectionRequest:
+  product.Product:
     properties:
-      description:
+      coffee:
+        $ref: '#/definitions/product.Coffee'
+      combo_items:
+        items:
+          $ref: '#/definitions/product.ComboItem'
+        type: array
+      id:
+        type: integer
+      is_selling:
+        type: boolean
+      kit:
+        allOf:
+        - $ref: '#/definitions/product.Kit'
+        description: |-
+          Relacionamentos (preload)
+          li que é uma boa prática usar isso aqui
+      picture_url:
+        type: string
+      price:
+        type: number
+      type:
+        $ref: '#/definitions/product.ProductType'
+    type: object
+  product.ProductType:
+    enum:
+    - KIT
+    - COFFEE
+    - COMBO
+    type: string
+    x-enum-varnames:
+    - ProductTypeKit
+    - ProductTypeCoffee
+    - ProductTypeCombo
+  product.UpdateCoffeeRequest:
+    properties:
+      date_time:
         type: string
       name:
         maxLength: 200
         type: string
     required:
+    - date_time
     - name
     type: object
-  user.CreateUserRequest:
+  product.UpdateKitRequest:
+    properties:
+      color:
+        maxLength: 50
+        type: string
+      is_babydoll:
+        type: boolean
+      name:
+        maxLength: 200
+        type: string
+      size:
+        maxLength: 50
+        type: string
+    required:
+    - color
+    - name
+    - size
+    type: object
+  product.UpdateProductRequest:
+    properties:
+      coffee:
+        $ref: '#/definitions/product.UpdateCoffeeRequest'
+      is_selling:
+        type: boolean
+      items:
+        items:
+          type: integer
+        type: array
+      kit:
+        $ref: '#/definitions/product.UpdateKitRequest'
+      price:
+        type: number
+      type:
+        allOf:
+        - $ref: '#/definitions/product.ProductType'
+        enum:
+        - KIT
+        - COFFEE
+        - COMBO
+    required:
+    - price
+    - type
+    type: object
+  user.ResendVerificationRequest:
     properties:
       email:
-        type: string
-      name:
-        type: string
-      password:
-        minLength: 8
         type: string
     required:
     - email
-    - name
-    - password
     type: object
   user.SafeUser:
     properties:
+      age:
+        type: integer
+      city:
+        type: string
+      disabilities:
+        type: string
+      education:
+        type: string
       email:
+        type: string
+      email_verified:
+        type: boolean
+      gender:
+        type: string
+      hasPapfe:
+        type: boolean
+      linkedin:
         type: string
       name:
         type: string
       presence_rate:
         type: number
+      profession:
+        type: string
+      telegram:
+        type: string
       user_number:
         type: string
     type: object
   user.UpdateUserRequest:
     properties:
+      age:
+        type: integer
+      city:
+        type: string
+      disabilities:
+        type: string
+      education:
+        type: string
       email:
+        type: string
+      gender:
+        type: string
+      hasPapfe:
+        type: boolean
+      linkedin:
         type: string
       name:
         type: string
-      password:
-        minLength: 8
+      profession:
         type: string
-      presence_rate:
-        minimum: 0
-        type: number
+      telegram:
+        type: string
     required:
+    - age
+    - city
+    - disabilities
+    - education
     - email
+    - gender
     - name
+    type: object
+  user.VerifyEmailRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
     type: object
   userBackoffice.CreateUserBackofficeRequest:
     properties:
@@ -647,6 +826,35 @@ paths:
       summary: Atualiza permissão
       tags:
       - Permission Backoffice
+  /admin/permissions/me:
+    get:
+      description: Retorna as permissões do próprio admin autenticado
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Permissões encontradas
+          schema:
+            items:
+              $ref: '#/definitions/permission.Permission'
+            type: array
+        "404":
+          description: Permissão não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Busca minhas permissões
+      tags:
+      - Permission Backoffice
   /admin/permissions/section/{section}:
     get:
       consumes:
@@ -688,49 +896,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Busca permissões por seção
-      tags:
-      - Permission Backoffice
-  /admin/permissions/user/{user}:
-    get:
-      consumes:
-      - application/json
-      description: Retorna as permissões vinculadas a um usuário do backoffice
-      parameters:
-      - description: Email do usuário do backoffice
-        in: path
-        name: user
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Permissões encontradas
-          schema:
-            items:
-              $ref: '#/definitions/permission.Permission'
-            type: array
-        "400":
-          description: Usuário inexistente
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Permissão não encontrada
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Erro interno
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Busca permissões por usuário
       tags:
       - Permission Backoffice
   /admin/presences:
@@ -991,11 +1156,11 @@ paths:
       summary: Atualiza presença
       tags:
       - Presence Backoffice
-  /admin/sections:
+  /admin/products:
     get:
       consumes:
       - application/json
-      description: Retorna uma lista paginada de seções cadastradas
+      description: Retorna uma lista paginada de produtos cadastrados
       parameters:
       - default: 1
         description: Página atual
@@ -1007,7 +1172,7 @@ paths:
         in: query
         name: limit
         type: integer
-      - default: name
+      - default: id
         description: Campo de ordenação
         in: query
         name: sort_by
@@ -1029,7 +1194,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Lista de seções paginada
+          description: Lista de produtos paginada
           schema:
             additionalProperties: true
             type: object
@@ -1047,25 +1212,25 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Lista seções
+      summary: Lista produtos
       tags:
-      - Section Backoffice
+      - Product Backoffice
     post:
       consumes:
       - application/json
-      description: Cadastra uma seção no sistema
+      description: Cadastra um produto no sistema (kit, coffee ou combo)
       parameters:
-      - description: Dados da seção
+      - description: Dados do produto
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/section.CreateSectionRequest'
+          $ref: '#/definitions/product.CreateProductRequest'
       produces:
       - application/json
       responses:
         "201":
-          description: Seção criada com sucesso!
+          description: Produto criado com sucesso!
           schema:
             additionalProperties: true
             type: object
@@ -1083,31 +1248,43 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Cria uma nova seção
+      summary: Cria um novo produto
       tags:
-      - Section Backoffice
-  /admin/sections/{sectionName}:
+      - Product Backoffice
+  /admin/products/{id}:
     delete:
       consumes:
       - application/json
-      description: Remove uma seção do sistema
+      description: Remove um produto do sistema (bloqueado se for item de um combo)
       parameters:
-      - description: Nome da seção
+      - description: ID do produto
         in: path
-        name: sectionName
+        name: id
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: Seção removida com sucesso
+          description: Produto removido com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: ID inválido
           schema:
             additionalProperties:
               type: string
             type: object
         "404":
-          description: Seção não encontrada
+          description: Produto não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Produto referenciado em combo
           schema:
             additionalProperties:
               type: string
@@ -1120,28 +1297,34 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Deleta seção
+      summary: Deleta produto
       tags:
-      - Section Backoffice
+      - Product Backoffice
     get:
       consumes:
       - application/json
-      description: Retorna os dados de uma seção específica
+      description: Retorna os dados de um produto específico, incluindo sua especialização
       parameters:
-      - description: Nome da seção
+      - description: ID do produto
         in: path
-        name: sectionName
+        name: id
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: Seção encontrada
+          description: Produto encontrado
           schema:
-            $ref: '#/definitions/section.Section'
+            $ref: '#/definitions/product.Product'
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
-          description: Seção não encontrada
+          description: Produto não encontrado
           schema:
             additionalProperties:
               type: string
@@ -1154,30 +1337,30 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Busca seção por nome
+      summary: Busca produto por ID
       tags:
-      - Section Backoffice
+      - Product Backoffice
     put:
       consumes:
       - application/json
-      description: Altera os dados de uma seção existente
+      description: Altera os dados de um produto existente, incluindo sua especialização
       parameters:
-      - description: Nome da seção
+      - description: ID do produto
         in: path
-        name: sectionName
+        name: id
         required: true
-        type: string
+        type: integer
       - description: Dados para atualização
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/section.UpdateSectionRequest'
+          $ref: '#/definitions/product.UpdateProductRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Seção atualizada com sucesso
+          description: Produto atualizado com sucesso
           schema:
             additionalProperties: true
             type: object
@@ -1188,7 +1371,7 @@ paths:
               type: string
             type: object
         "404":
-          description: Seção não encontrada
+          description: Produto não encontrado
           schema:
             additionalProperties:
               type: string
@@ -1201,9 +1384,9 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Atualiza seção
+      summary: Atualiza produto
       tags:
-      - Section Backoffice
+      - Product Backoffice
   /admin/users:
     get:
       consumes:
@@ -1764,15 +1947,72 @@ paths:
   /register:
     post:
       consumes:
-      - application/json
-      description: Cadastra um participante no sistema
+      - multipart/form-data
+      description: Cadastra um participante no sistema. Aceita multipart/form-data
+        para suportar upload do comprovante PAPFE.
       parameters:
-      - description: Dados de cadastro
-        in: body
-        name: request
+      - description: Nome completo
+        in: formData
+        name: name
         required: true
-        schema:
-          $ref: '#/definitions/user.CreateUserRequest'
+        type: string
+      - description: E-mail
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Senha (min 8 caracteres)
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Idade
+        in: formData
+        name: age
+        required: true
+        type: integer
+      - description: Gênero
+        in: formData
+        name: gender
+        required: true
+        type: string
+      - description: Cidade
+        in: formData
+        name: city
+        required: true
+        type: string
+      - description: Formação
+        in: formData
+        name: education
+        required: true
+        type: string
+      - description: Recebe PAPFE?
+        in: formData
+        name: hasPapfe
+        type: boolean
+      - collectionFormat: csv
+        description: Lista de deficiências
+        in: formData
+        items:
+          type: string
+        name: disabilities
+        type: array
+      - description: Profissão
+        in: formData
+        name: profession
+        type: string
+      - description: LinkedIn
+        in: formData
+        name: linkedin
+        type: string
+      - description: Telegram
+        in: formData
+        name: telegram
+        type: string
+      - description: Comprovante PAPFE (PDF/JPEG/PNG/WebP, máx 10MB)
+        in: formData
+        name: papfe_document
+        type: file
       produces:
       - application/json
       responses:
@@ -1800,6 +2040,73 @@ paths:
               type: string
             type: object
       summary: Cria um novo usuário
+      tags:
+      - Usuários (Participantes)
+  /resend-verification:
+    post:
+      consumes:
+      - application/json
+      description: Reenvia o link de confirmação de e-mail, se aplicável
+      parameters:
+      - description: E-mail do usuário
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.ResendVerificationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Se o e-mail estiver cadastrado e pendente de confirmação, um
+            novo link foi enviado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Reenvia e-mail de confirmação
+      tags:
+      - Usuários (Participantes)
+  /verify-email:
+    post:
+      consumes:
+      - application/json
+      description: Valida o token de verificação enviado por e-mail e ativa a conta
+      parameters:
+      - description: Token de verificação
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.VerifyEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: E-mail confirmado com sucesso!
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Token inválido ou expirado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Confirma e-mail de um usuário
       tags:
       - Usuários (Participantes)
 securityDefinitions:

@@ -31,7 +31,7 @@ type InputProps = {
         <div className="text-sm mb-2">{label}</div>
         <div className="relative">
           <input
-            className={`w-full px-3 py-4 rounded-md border-2 ${isPassword ? "pr-11" : ""} ${ isDarkMode ? "border-semcompMidDarkBlue" : "border-semcompOffWhite bg-semcompMidDarkBlue"} text-sm text-white focus:shadow-input focus:border-none transition placeholder:text-white`}
+            className={`w-full px-3 py-4 rounded-md border-2 ${isPassword ? "pr-11" : ""} ${ isDarkMode ? "border-semcompOffWhite bg-semcompDarkBlue" : "border-semcompOffWhite bg-semcompMidDarkBlue"} text-sm text-white focus:shadow-input focus:border-none transition placeholder:text-white`}
             type={inputType}
             value={value}
             onChange={onChange}
@@ -43,7 +43,7 @@ type InputProps = {
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-3 flex items-center text-semcompMidDarkBlue opacity-70 hover:opacity-100 transition"
+              className="absolute inset-y-0 right-3 flex items-center text-semcompOffWhite opacity-70 hover:opacity-100 transition"
               aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
               tabIndex={-1}
             >

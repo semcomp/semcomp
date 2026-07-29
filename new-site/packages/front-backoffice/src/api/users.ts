@@ -6,9 +6,30 @@ type SafeSemcompUser = {
   name: string;
   email: string;
   presence_rate: number;
+  age?: number;
+  gender?: string;
+  city?: string;
+  education?: string;
+  hasPapfe?: boolean;
+  disabilities?: string[] | string;
+  profession?: string;
+  linkedin?: string;
+  telegram?: string;
 };
 
 const mapBackendUser = (user: SafeSemcompUser): SemcompUserType => {
+  // Trata disabilities para garantir que chegue como Array no frontend,
+  // mesmo que o backend devolva uma string separada por vírgulas
+  let parsedDisabilities: string[] = [];
+  if (Array.isArray(user.disabilities)) {
+    parsedDisabilities = user.disabilities;
+  } else if (
+    typeof user.disabilities === "string" &&
+    user.disabilities.trim() !== ""
+  ) {
+    parsedDisabilities = user.disabilities.split(",").map((d) => d.trim());
+  }
+
   return {
     id: user.user_number,
     user_number: user.user_number,
@@ -16,6 +37,15 @@ const mapBackendUser = (user: SafeSemcompUser): SemcompUserType => {
     email: user.email,
     presence_rate: user.presence_rate,
     password: "",
+    age: user.age,
+    gender: user.gender,
+    city: user.city,
+    education: user.education,
+    hasPapfe: user.hasPapfe ?? false,
+    disabilities: parsedDisabilities,
+    profession: user.profession,
+    linkedin: user.linkedin,
+    telegram: user.telegram,
   };
 };
 
@@ -90,17 +120,58 @@ export const userSemcompAPI = {
    * Cria um usuário
    */
   create: async (
-    data: Omit<SemcompUserType, "id" | "presence_rate" | "user_number">
+    data: Omit<SemcompUserType, "id" | "presence_rate" | "user_number"> & {
+      papfe_document?: File | null;
+    }
   ): Promise<SemcompUserType> => {
-    const response = await client.post<{ message: string; user: SafeSemcompUser }>(
-      "/admin/users",
-      {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-      }
-    );
-    return mapBackendUser(response.data.user);
+    const formData = new FormData();
+
+    // Campos Obrigatórios
+    formData.append("name", data.name ?? "");
+    formData.append("email", data.email ?? "");
+    formData.append("password", data.password ?? "");
+    formData.append("age", String(data.age ?? ""));
+    formData.append("gender", data.gender ?? "");
+    formData.append("city", data.city ?? "");
+    formData.append("education", data.education ?? "");
+
+    // Campos Opcionais / Booleanos
+    formData.append("hasPapfe", String(Boolean(data.hasPapfe)));
+
+    if (data.profession) formData.append("profession", data.profession);
+    if (data.linkedin) formData.append("linkedin", data.linkedin);
+    if (data.telegram) formData.append("telegram", data.telegram);
+
+    // Array de Deficiências
+    if (Array.isArray(data.disabilities)) {
+      data.disabilities.forEach((disability) => {
+        formData.append("disabilities", disability);
+      });
+    }
+
+    // Comprovante PAPFE
+    if (data.papfe_document) {
+      formData.append("papfe_document", data.papfe_document);
+    }
+
+    try {
+      const response = await client.post<{
+        message: string;
+        user: SafeSemcompUser;
+      }>(
+        "/admin/users", // Ou "/register", dependendo da sua rota de admin
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return mapBackendUser(response.data.user);
+    } catch (error) {
+      
+      throw error;
+    }
   },
 
   /**
@@ -110,16 +181,26 @@ export const userSemcompAPI = {
     id: string,
     data: Partial<Omit<SemcompUserType, "id" | "user_number">>
   ): Promise<{ message: string }> => {
+    const payload = {
+      name: data.name,
+      email: data.email,
+      ...(data.password && { password: data.password }),
+      presence_rate: normalizePresenceRate(data.presence_rate),
+      age: data.age !== undefined ? Number(data.age) : undefined,
+      gender: data.gender,
+      city: data.city,
+      education: data.education,
+      hasPapfe: data.hasPapfe,
+      disabilities: data.disabilities,
+      profession: data.profession,
+      linkedin: data.linkedin,
+      telegram: data.telegram,
+    };
+
     const response = await client.put<{ message: string }>(
       `/admin/users/${id}`,
-      {
-        name: data.name,
-        email: data.email,
-        ...(data.password && { password: data.password }),
-        presence_rate: normalizePresenceRate(data.presence_rate),
-      }
+      payload
     );
-    console.log("Resposta do backend ao atualizar usuário:", response.data);
     return response.data;
   },
 
@@ -127,7 +208,9 @@ export const userSemcompAPI = {
    * Deleta um usuário
    */
   delete: async (id: string): Promise<{ message: string }> => {
-    const response = await client.delete<{ message: string }>(`/admin/users/${id}`);
+    const response = await client.delete<{ message: string }>(
+      `/admin/users/${id}`
+    );
     return response.data;
   },
 };

@@ -7,7 +7,6 @@ import type { UserType } from "@/types/UserType";
 export interface LoginResponse {
   message: string;
   user: UserType;
-  token: string;
 }
 
 export interface RegisterResponse {

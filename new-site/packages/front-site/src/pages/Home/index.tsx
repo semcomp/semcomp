@@ -33,12 +33,6 @@ export default function HomePage() {
           <BarraEventsSection />
         </Suspense>
 
-        <div className="bg-semcompLightBlue dark:bg-semcompAlmostDarkBlue">
-          <Suspense>
-            <FAQSection className={sectionStyles} />
-          </Suspense>
-        </div>
-
         <Suspense>
           <NumerosSection />
         </Suspense>
@@ -50,6 +44,12 @@ export default function HomePage() {
         <Suspense>
           <TornarPatrocinadorSection className={sectionStyles} />
         </Suspense>
+
+        <div className="bg-semcompLightBlue dark:bg-semcompAlmostDarkBlue">
+          <Suspense>
+            <FAQSection className={sectionStyles} />
+          </Suspense>
+        </div>
 
         <Suspense>
           <ContatoSection className="mx-auto py-5" />

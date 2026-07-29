@@ -20,7 +20,6 @@ export interface PageAvailability {
 export interface LoginResponse {
   message: string;
   user: BackofficeUser;
-  token: string;
   permissions: BackofficePermission[];
 }
 
