@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTheme } from "@/contexts/useTheme";
 
 export function useSegmentedControl() {
   const [isLogin, setIsLogin] = useState<boolean>(true);
@@ -12,14 +13,20 @@ interface SegmentedControlProps {
 }
 
 export default function SegmentedControl({ islogin, setIslogin, hook }: SegmentedControlProps){
+  const { isDarkMode } = useTheme();
+
   return (
     <div className="flex items-center justify-center pb-8 pt-2">
-      <div className="relative flex w-64 h-15 p-1 bg-semcompDarkBlue dark:bg-semcompDarkBlue border border-semcompOffWhite rounded-full overflow-hidden">
+      <div className={`relative flex w-64 h-15 p-1 rounded-full overflow-hidden border ${
+        isDarkMode
+          ? "bg-semcompDarkBlue border-semcompOffWhite"
+          : "bg-semcompMidDarkBlue border-semcompMidDarkBlue"
+      }`}>
 
         <div
-          className={`absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-semcompOffWhite rounded-full transition-transform duration-300 ease-in-out ${
-            !islogin ? 'translate-x-full' : 'translate-x-0'
-          }`}
+          className={`absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full transition-transform duration-300 ease-in-out ${
+            isDarkMode ? "bg-semcompOffWhite" : "bg-semcompOffWhite"
+          } ${!islogin ? 'translate-x-full' : 'translate-x-0'}`}
         />
 
         <button

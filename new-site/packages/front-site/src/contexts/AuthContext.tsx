@@ -4,10 +4,15 @@ import { authAPI } from "@/api";
 import { useNavigate } from "react-router-dom";
 import { useNotification } from "./NotificationContext";
 
+export type LoginResult = {
+  success: boolean;
+  status?: number;
+};
+
 type AuthContextValue = {
   isAuthenticated: boolean;
   user: UserType | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<LoginResult>;
   logout: () => void;
 };
 
@@ -67,12 +72,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           showNotification(response.message, "success");
           navigate("/profile");
-          return true;
+          return { success: true };
         } catch (err: any) {
             const message =
               err?.response?.data?.error || err?.response?.data?.message || err?.message || "Erro no login";
             showNotification(message, "warning");
-          return false;
+          return { success: false, status: err?.response?.status };
         }
       },
       logout: () => {
