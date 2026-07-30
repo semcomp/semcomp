@@ -8,52 +8,55 @@ import (
 // PapfeDocument armazena o comprovante PAPFE de um participante em tabela separada.
 // ON DELETE CASCADE garante que o comprovante é removido junto com o usuário.
 type PapfeDocument struct {
-	ID          uint      `gorm:"primaryKey;autoIncrement"`
-	UserEmail   string    `gorm:"size:150;not null;uniqueIndex"`
-	User        User      `gorm:"foreignKey:UserEmail;references:Email;constraint:OnDelete:CASCADE"`
-	Filename    string    `gorm:"size:255;not null"`
-	ContentType string    `gorm:"size:100;not null"`
-	Data        []byte    `gorm:"type:bytea;not null"`
+	ID          uint   `gorm:"primaryKey;autoIncrement"`
+	UserEmail   string `gorm:"size:150;not null;uniqueIndex"`
+	User        User   `gorm:"foreignKey:UserEmail;references:Email;constraint:OnDelete:CASCADE"`
+	Filename    string `gorm:"size:255;not null"`
+	ContentType string `gorm:"size:100;not null"`
+	Data        []byte `gorm:"type:bytea;not null"`
 	UploadedAt  time.Time
 }
 
 type User struct {
-	UserNumber    uint           `gorm:"primaryKey;not null" json:"user_number"`
-	Name          string         `gorm:"size:100;not null" json:"name"`
-	Email         string         `gorm:"size:150;unique;not null" json:"email"`
-	PasswordHash  string         `gorm:"size:255;not null"`
-	Age           int            `gorm:"not null" json:"age"`
-	Gender        string         `gorm:"size:50;not null" json:"gender"`
-	City          string         `gorm:"size:100;not null" json:"city"`
-	Education     string         `gorm:"size:100;not null" json:"education"`
-	HasPapfe      bool           `gorm:"not null" json:"hasPapfe"`
-	Disabilities  string         `gorm:"type:text;not null;default:''"   json:"disabilities"`
-	Profession    *string        `gorm:"size:120" json:"profession,omitempty"`
-	Linkedin      *string        `gorm:"size:255" json:"linkedin,omitempty"`
-	Telegram      *string        `gorm:"size:255" json:"telegram,omitempty"`
-	PresenceRate  float64        `gorm:"not null" json:"presence_rate"`
+	UserNumber    uint    `gorm:"primaryKey;not null" json:"user_number"`
+	Name          string  `gorm:"size:100;not null" json:"name"`
+	Email         string  `gorm:"size:150;unique;not null" json:"email"`
+	PasswordHash  string  `gorm:"size:255;not null"`
+	Age           int     `gorm:"not null" json:"age"`
+	Gender        string  `gorm:"size:50;not null" json:"gender"`
+	City          string  `gorm:"size:100;not null" json:"city"`
+	Education     string  `gorm:"size:100;not null" json:"education"`
+	HasPapfe      bool    `gorm:"not null" json:"hasPapfe"`
+	Disabilities  string  `gorm:"type:text;not null;default:''"   json:"disabilities"`
+	Profession    *string `gorm:"size:120" json:"profession,omitempty"`
+	Linkedin      *string `gorm:"size:255" json:"linkedin,omitempty"`
+	Telegram      *string `gorm:"size:255" json:"telegram,omitempty"`
+	PresenceRate  float64 `gorm:"not null" json:"presence_rate"`
+	QuerCracha    bool    `gorm:"not null;default:false" json:"quer_cracha"`
+	PegouCamiseta bool    `gorm:"not null;default:false" json:"pegou_camiseta"`
 
-	EmailVerified              bool       `gorm:"not null;default:false" json:"email_verified"`
-	VerificationTokenHash      string     `gorm:"size:255"`
+	EmailVerified              bool   `gorm:"not null;default:false" json:"email_verified"`
+	VerificationTokenHash      string `gorm:"size:255"`
 	VerificationTokenExpiresAt *time.Time
 	VerificationSentAt         *time.Time
 	VerificationWindowStartAt  *time.Time
-	VerificationSendCount      int        `gorm:"not null;default:0"`
+	VerificationSendCount      int `gorm:"not null;default:0"`
 }
 
 type CreateUserRequest struct {
-	Name         string   `form:"name"         json:"name"         binding:"required"`
-	Email        string   `form:"email"        json:"email"        binding:"required,email"`
-	Password     string   `form:"password"     json:"password"     binding:"required,min=8"`
-	Age          int      `form:"age"          json:"age"          binding:"required,gt=0"`
-	Gender       string   `form:"gender"       json:"gender"       binding:"required"`
-	City         string   `form:"city"         json:"city"         binding:"required"`
-	Education    string   `form:"education"    json:"education"    binding:"required"`
-	HasPapfe     bool     `form:"hasPapfe"     json:"hasPapfe"`
-	Disabilities string   `form:"disabilities" json:"disabilities"`
-	Profession   *string  `form:"profession"   json:"profession,omitempty"`
-	Linkedin     *string  `form:"linkedin"     json:"linkedin,omitempty"`
-	Telegram     *string  `form:"telegram"     json:"telegram,omitempty"`
+	Name         string  `form:"name"         json:"name"         binding:"required"`
+	Email        string  `form:"email"        json:"email"        binding:"required,email"`
+	Password     string  `form:"password"     json:"password"     binding:"required,min=8"`
+	Age          int     `form:"age"          json:"age"          binding:"required,gt=0"`
+	Gender       string  `form:"gender"       json:"gender"       binding:"required"`
+	City         string  `form:"city"         json:"city"         binding:"required"`
+	Education    string  `form:"education"    json:"education"    binding:"required"`
+	HasPapfe     bool    `form:"hasPapfe"     json:"hasPapfe"`
+	Disabilities string  `form:"disabilities" json:"disabilities"`
+	Profession   *string `form:"profession"   json:"profession,omitempty"`
+	Linkedin     *string `form:"linkedin"     json:"linkedin,omitempty"`
+	Telegram     *string `form:"telegram"     json:"telegram,omitempty"`
+	QuerCracha   bool    `form:"quer_cracha"  json:"quer_cracha"`
 
 	// Preenchidos pelo handler a partir do arquivo multipart — não serializados
 	PapfeFilename    string `form:"-" json:"-"`
@@ -70,34 +73,38 @@ type ResendVerificationRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Name         string   `json:"name" binding:"required"`
-	Email        string   `json:"email" binding:"required,email"`
-	Age          int      `json:"age" binding:"required,gt=0"`
-	Gender       string   `json:"gender" binding:"required"`
-	City         string   `json:"city" binding:"required"`
-	Education    string   `json:"education" binding:"required"`
-	HasPapfe     bool     `json:"hasPapfe"`
-	Disabilities string   `json:"disabilities" binding:"required"`
-	Profession   *string  `json:"profession,omitempty"`
-	Linkedin     *string  `json:"linkedin,omitempty"`
-	Telegram     *string  `json:"telegram,omitempty"`
+	Name          string  `json:"name" binding:"required"`
+	Email         string  `json:"email" binding:"required,email"`
+	Age           int     `json:"age" binding:"required,gt=0"`
+	Gender        string  `json:"gender" binding:"required"`
+	City          string  `json:"city" binding:"required"`
+	Education     string  `json:"education" binding:"required"`
+	HasPapfe      bool    `json:"hasPapfe"`
+	Disabilities  string  `json:"disabilities" binding:"required"`
+	Profession    *string `json:"profession,omitempty"`
+	Linkedin      *string `json:"linkedin,omitempty"`
+	Telegram      *string `json:"telegram,omitempty"`
+	QuerCracha    bool    `json:"quer_cracha"`
+	PegouCamiseta bool    `json:"pegou_camiseta"`
 }
 
 type SafeUser struct {
-	UserNumber    string   `json:"user_number"`
-	Name          string   `json:"name"`
-	Email         string   `json:"email"`
-	Age           int      `json:"age"`
-	Gender        string   `json:"gender"`
-	City          string   `json:"city"`
-	Education     string   `json:"education"`
-	HasPapfe      bool     `json:"hasPapfe"`
-	Disabilities  string   `json:"disabilities"`
-	Profession    *string  `json:"profession,omitempty"`
-	Linkedin      *string  `json:"linkedin,omitempty"`
-	Telegram      *string  `json:"telegram,omitempty"`
-	PresenceRate  float64  `json:"presence_rate"`
-	EmailVerified bool     `json:"email_verified"`
+	UserNumber    string  `json:"user_number"`
+	Name          string  `json:"name"`
+	Email         string  `json:"email"`
+	Age           int     `json:"age"`
+	Gender        string  `json:"gender"`
+	City          string  `json:"city"`
+	Education     string  `json:"education"`
+	HasPapfe      bool    `json:"hasPapfe"`
+	Disabilities  string  `json:"disabilities"`
+	Profession    *string `json:"profession,omitempty"`
+	Linkedin      *string `json:"linkedin,omitempty"`
+	Telegram      *string `json:"telegram,omitempty"`
+	PresenceRate  float64 `json:"presence_rate"`
+	EmailVerified bool    `json:"email_verified"`
+	QuerCracha    bool    `json:"quer_cracha"`
+	PegouCamiseta bool    `json:"pegou_camiseta"`
 }
 
 func ToSafeUser(user *User) SafeUser {
@@ -116,6 +123,8 @@ func ToSafeUser(user *User) SafeUser {
 		Telegram:      user.Telegram,
 		PresenceRate:  user.PresenceRate,
 		EmailVerified: user.EmailVerified,
+		QuerCracha:    user.QuerCracha,
+		PegouCamiseta: user.PegouCamiseta,
 	}
 }
 

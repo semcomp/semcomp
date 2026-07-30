@@ -90,6 +90,8 @@ export default function UsersCRUD() {
         profession: typedItem.profession,
         linkedin: typedItem.linkedin,
         telegram: typedItem.telegram,
+        quer_cracha: typedItem.quer_cracha,
+        pegou_camiseta: typedItem.pegou_camiseta,
       });
 
       setData((prev) => prev.map((i) => (i.id === item.id ? typedItem : i)));
@@ -137,6 +139,7 @@ export default function UsersCRUD() {
         profession: typedItem.profession,
         linkedin: typedItem.linkedin,
         telegram: typedItem.telegram,
+        quer_cracha: typedItem.quer_cracha ?? false,
         papfe_document: typedItem.papfe_document,
       });
 

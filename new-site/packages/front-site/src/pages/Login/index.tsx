@@ -60,6 +60,7 @@ export default function LoginPage(): ReactElement {
     const [telegram, setTelegram] = useState("");
     const [hasPapfe, setHasPapfe] = useState(false);
     const [papfeFile, setPapfeFile] = useState<File | null>(null);
+    const [querCracha, setQuerCracha] = useState(false);
 
     const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
     const [forgotEmail, setForgotEmail] = useState("");
@@ -106,6 +107,7 @@ export default function LoginPage(): ReactElement {
         setAcceptTerms(false); setAge(""); setGender(""); setCity("");
         setEducation(""); setProfession(""); setLinkedin(""); setTelegram("");
         setHasPapfe(false); setPapfeFile(null); setHasDisability(false); setDisabilities([]);
+        setQuerCracha(false);
     }, []);
 
     useEffect(() => {
@@ -173,7 +175,7 @@ export default function LoginPage(): ReactElement {
         try {
             const response = await authAPI.register(
                 name, email, password, Number(age), gender, city, education,
-                hasPapfe, hasDisability ? disabilities : [],
+                hasPapfe, hasDisability ? disabilities : [], querCracha,
                 profession, linkedin, telegram, papfeFile,
             );
             showNotification(response.message || "Registro realizado!", "success");
@@ -183,7 +185,7 @@ export default function LoginPage(): ReactElement {
             showNotification(message, "warning");
             return false;
         }
-    }, [name, email, password, age, gender, city, education, profession, linkedin, telegram, hasPapfe, papfeFile, hasDisability, disabilities, showNotification]);
+    }, [name, email, password, age, gender, city, education, profession, linkedin, telegram, hasPapfe, papfeFile, hasDisability, disabilities, querCracha, showNotification]);
 
     const handleResend = useCallback(async () => {
         if (!pendingVerificationEmail || resendCooldown > 0) return;
@@ -449,6 +451,12 @@ export default function LoginPage(): ReactElement {
                                     </div>
                                 )}
                             </div>
+
+                            <p className="text-xs font-bold uppercase tracking-wider opacity-70 border-b border-gray-400/30 pb-1 pt-2">Evento</p>
+                            <label className="flex items-center justify-between cursor-pointer text-sm font-medium">
+                                <span>Deseja retirar o crachá físico no evento?</span>
+                                <input type="checkbox" checked={querCracha} onChange={(e) => setQuerCracha(e.target.checked)} className="w-5 h-5 rounded accent-semcompMidDarkBlue cursor-pointer" />
+                            </label>
 
                             <p className="text-xs font-bold uppercase tracking-wider opacity-70 border-b border-gray-400/30 pb-1 pt-2">Redes Sociais (Opcional)</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
