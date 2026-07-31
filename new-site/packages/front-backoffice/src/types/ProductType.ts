@@ -1,13 +1,9 @@
+import type { CrudItemType } from "@/types/CrudItem";
+
 export type ProductKind = "KIT" | "COFFEE" | "COMBO";
 
-export interface ProductBase {
-    id: number;
-    type: "KIT" | "COFFEE" | "COMBO";
-    is_selling: boolean;
-    price: number;   
-}
-
 export interface KitDetails {
+    id: number;
     name: string;
     size: string;
     color: string;
@@ -15,32 +11,46 @@ export interface KitDetails {
 }
 
 export interface CoffeeDetails {
+    id: number;
     name: string;
-    size: string;
     date_time: string;
 }
 
-export interface ComboDetails {
+export interface ComboItemDetails {
     combo_id: number;
     item_id: number;
 }
 
-export interface KitProduct extends ProductBase{
-    type: "KIT";
-    kit: KitDetails;
+/**
+ * Tipo do produto retornado pelo backend (formato direto da API)
+ */
+export interface ProductRaw {
+    id: number;
+    type: ProductKind;
+    is_selling: boolean;
+    price: number;
+    kit?: KitDetails | null;
+    coffee?: CoffeeDetails | null;
+    combo_items?: ComboItemDetails[] | null;
 }
 
-export interface CoffeeProduct extends ProductBase{
-    type: "COFFEE";
-    coffee: CoffeeDetails;
+/**
+ * Tipo achatado do produto para exibição na CrudTable
+ * Campos da especialização são prefixados (kit_name, coffee_name, etc.)
+ */
+export interface ProductType extends CrudItemType {
+    productId: number;
+    type: ProductKind;
+    isSelling: string;   // "true" / "false" - string para renderizar no select
+    price: string;       // string para CrudTable
+    // Kit fields
+    kitName: string;
+    kitSize: string;
+    kitColor: string;
+    kitIsBabydoll: string;
+    // Coffee fields
+    coffeeName: string;
+    coffeeDateTime: string;
+    // Combo fields
+    comboItems: string;  // IDs dos itens separados por vírgula (ex: "1, 3, 5")
 }
-
-export interface ComboProduct extends ProductBase{
-    type: "COMBO";
-    combo: ComboDetails;
-}
-
-export type ProductType = 
-    | KitProduct
-    | CoffeeProduct
-    | ComboProduct;

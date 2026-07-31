@@ -9,6 +9,7 @@ export { userSemcompAPI } from "./users";
 export { eventsAPI } from "./events";
 export { sectionsAPI } from "./sections";
 export { participationAPI } from "./participation";
+export { productsAPI } from "./products";
 export { permissionsAPI } from "./permissions";
 export { pagesAPI } from "./pages";
 export { default as client } from "./client";
