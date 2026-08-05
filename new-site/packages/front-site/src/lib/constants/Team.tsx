@@ -184,12 +184,7 @@ const TEAM: TeamType = {
           nome: "Renato Calacina Spessotto",
           position: "Membro de Patrocínio",
           linkedin: "",
-        },
-        {
-          nome: "Sofia Albuquerque Lima",
-          position: "Membro de Patrocínio",
-          linkedin: "https://www.linkedin.com/in/sofia-albuquerque-lima/",
-        },
+        }
       ],
     },
     {
@@ -213,7 +208,7 @@ const TEAM: TeamType = {
         {
           nome: "Arthur Amorim Ruschel",
           position: "Membro de Extracurriculares",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/arthur-amorim-ruschel-61870a379/",
         },
         {
           nome: "Caio Cerceau Nanni",
@@ -473,7 +468,7 @@ const TEAM: TeamType = {
         {
           nome: "Gustavo Fantato Fernandes",
           position: "Membro de Infraestrutura",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/gustavofantato",
         },
         {
           nome: "Kevin Ryoji Nakashima",
@@ -498,7 +493,7 @@ const TEAM: TeamType = {
         {
           nome: "Wiltord Nyakeruma Mosingi",
           position: "Membro de Infraestrutura",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/wiltord-mosingi-6a7bb238a?utm_source=share_via&utm_content=profile&utm_medium=member_android",
         },
       ],
     },
