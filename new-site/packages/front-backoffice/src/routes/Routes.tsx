@@ -12,6 +12,7 @@ import ParticipationCRUD from "@/pages/Participation";
 import PermissionsCRUD from "@/pages/Permission";
 import PagesAvailability from "@/pages/PagesAvailability";
 import SponsorsCRUD from "@/pages/Sponsors";
+import SalesCRUD from "@/pages/Sales";
 import NotFoundPage from "@/pages/NotFound";
 
 export const router = createBrowserRouter(
@@ -65,6 +66,10 @@ export const router = createBrowserRouter(
             {
               element: <RequirePermission section="Patrocinadores" />,
               children: [{ path: "/sponsors", element: <SponsorsCRUD /> }],
+            },
+            {
+              element: <RequirePermission section="Vendas" />,
+              children: [{ path: "/sales", element: <SalesCRUD /> }],
             },
             {
               path: "*",

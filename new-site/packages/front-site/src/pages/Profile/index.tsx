@@ -5,11 +5,13 @@ import { useTheme } from "@/contexts/useTheme";
 import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { authAPI } from "@/api";
+import { salesAPI } from "@/api/sales";
+import type { SaleResponse } from "@/api/sales";
 import { ChevronDown } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
-import type { EventType } from "@/types/EventType"
-import type { UserType } from "@/types/UserType"
-import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate"
+import type { EventType } from "@/types/EventType";
+import type { UserType } from "@/types/UserType";
+import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate";
 import { useNavigate } from "react-router-dom";
 
 const HERO_IMAGES = [
@@ -23,15 +25,49 @@ const HERO_IMAGES = [
 const pickRandomHero = () =>
   HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)];
 
-
 type Evento = EventType & {
   linkInscricao?: string;
 };
 
-let events: Evento[] = [
-];
+let events: Evento[] = [];
+
+// Tipo de exibição para uma compra na tela de perfil.
+// Derivado da SaleResponse retornada por GET /api/sales/me (uma venda pode ter vários itens).
+export interface PurchaseType {
+  id: string;
+  item: string;
+  date: string;
+  amount: number;
+  status: string;
+}
+
+const SALE_STATUS_LABELS: Record<string, string> = {
+  PENDING: "Pendente",
+  PAID: "Pago",
+  CANCELED: "Cancelado",
+  REFUNDED: "Reembolsado",
+};
+
+function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
+  const itemsLabel =
+    sale.items && sale.items.length > 0
+      ? sale.items
+          .map((it) => `${it.quantity}x ${it.product?.name ?? `Produto #${it.product_id}`}`)
+          .join(", ")
+      : "Pedido";
+
+  return {
+    id: String(sale.id),
+    item: itemsLabel,
+    date: formatDate(sale.created_at, 2),
+    amount: sale.total_amount,
+    status: SALE_STATUS_LABELS[sale.status] ?? sale.status,
+  };
+}
+
 interface ProfileProps extends Partial<UserType> {
   event?: string;
+  purchases?: PurchaseType[];
 }
 
 export default function Profile({
@@ -39,18 +75,21 @@ export default function Profile({
   name = "Nome do usuário",
   email = "E-mail do usuário",
   presence_rate = 0,
-  event = "SEMCOMP"
+  event = "SEMCOMP",
+  purchases = [], // Valor padrão para compras
 }: ProfileProps) {
   const { width } = useWindowDimensions();
   const { isDarkMode } = useTheme();
   const { showNotification } = useNotification();
 
-  const [activeTab, setActiveTab] = useState<"qr" | "account">("qr");
+  // Adicionada a aba 'purchases' no state
+  const [activeTab, setActiveTab] = useState<"qr" | "account" | "purchases">("qr");
   const [userName, setUserName] = useState(name);
   const [userEmail, setUserEmail] = useState(email);
   const [userCode, setUserCode] = useState<number>(user_number);
   const [presencePercent, setPresencePercent] = useState<number>(presence_rate);
-  const [openSubscription, setOpenSubscription] = useState<number>(-1)
+  const [userPurchases, setUserPurchases] = useState<PurchaseType[]>(purchases);
+  const [openSubscription, setOpenSubscription] = useState<number>(-1);
 
   const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -73,6 +112,17 @@ export default function Profile({
         console.error("Erro ao buscar o perfil", err);
         await logout();
         showNotification("Sua sessão expirou. Faça login novamente.", "warning");
+        return;
+      }
+
+      // Compras são buscadas em rota própria (GET /api/sales/me), que já
+      // retorna apenas os pedidos do usuário autenticado (via token/JWT no backend).
+      try {
+        const sales = await salesAPI.getMySales();
+        setUserPurchases(sales.map(mapSaleToPurchase));
+      } catch (err) {
+        console.error("Erro ao buscar as compras do usuário", err);
+        setUserPurchases([]);
       }
     }
     fetchProfile();
@@ -94,12 +144,16 @@ export default function Profile({
           <p className="mt-3 text-sm opacity-80 font-medium text-center">
             {diaSemana} ({data}), {formatTime(ev.dateInit)} às {formatTime(ev.dateEnd)}
           </p>
-          <hr className="mb-2 mt-2"/>
+          <hr className="mb-2 mt-2" />
         </div>
         <div className="w-full flex flex-row justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
           <button
             className="cursor-pointer w-full p-2"
-            onClick={() => ev.linkInscricao ? window.open(ev.linkInscricao, "_blank") : showNotification("Este evento ainda não está aberto para inscrições.")}
+            onClick={() =>
+              ev.linkInscricao
+                ? window.open(ev.linkInscricao, "_blank")
+                : showNotification("Este evento ainda não está aberto para inscrições.")
+            }
           >
             Inscreva-se
           </button>
@@ -124,11 +178,11 @@ export default function Profile({
           </div>
           <div className="absolute inset-0 bg-linear-to-b from-transparent to-semcompOffWhite dark:to-semcompAlmostDarkBlue" />
 
-          {/* Tabs Seletoras */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex backdrop-blur-md rounded-full p-1 border w-[80%] max-w-xs z-20 bg-semcompMidLightBlue/40 border-semcompDarkBlue/20 dark:bg-black/40 dark:border-white/20">
+          {/* Tabs Seletoras atualizadas para suportar 3 opções */}
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex backdrop-blur-md rounded-full p-1 border w-[90%] max-w-sm z-20 bg-semcompMidLightBlue/40 border-semcompDarkBlue/20 dark:bg-black/40 dark:border-white/20">
             <button
               onClick={() => setActiveTab("qr")}
-              className={`flex-1 py-2 text-sm rounded-full transition-all font-bold ${
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
                 activeTab === "qr"
                   ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
                   : "text-semcompDarkBlue dark:text-white opacity-80"
@@ -138,13 +192,23 @@ export default function Profile({
             </button>
             <button
               onClick={() => setActiveTab("account")}
-              className={`flex-1 py-2 text-sm rounded-full transition-all font-bold ${
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
                 activeTab === "account"
                   ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
                   : "text-semcompDarkBlue dark:text-white opacity-80"
               }`}
             >
               Minha Conta
+            </button>
+            <button
+              onClick={() => setActiveTab("purchases")}
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
+                activeTab === "purchases"
+                  ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
+                  : "text-semcompDarkBlue dark:text-white opacity-80"
+              }`}
+            >
+              Compras
             </button>
           </div>
         </div>
@@ -156,9 +220,7 @@ export default function Profile({
               <>
                 <h1 className="text-2xl font-bold mb-1">Meu QR Code</h1>
                 <p className="text-center text-sm mb-8 px-2 md:px-4">
-                  Utilize seu QR durante a{" "}
-                  <span className="font-semibold">{event}</span> para registrar
-                  sua presença
+                  Utilize seu QR durante a <span className="font-semibold">{event}</span> para registrar sua presença
                 </p>
 
                 <div className="relative p-6 mb-6">
@@ -227,6 +289,34 @@ export default function Profile({
                 </button>
               </div>
             )}
+
+            {activeTab === "purchases" && (
+              <div className="w-full flex flex-col animate-in fade-in duration-300">
+                <h2 className="text-2xl font-bold text-center mb-6">Minhas Compras</h2>
+                <div className="flex flex-col gap-4">
+                  {userPurchases && userPurchases.length > 0 ? (
+                    userPurchases.map((purchase) => (
+                      <div key={purchase.id} className="bg-white/50 border border-black/10 rounded-xl p-4">
+                        <p className="font-bold text-sm text-semcompDarkBlue">{purchase.item}</p>
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-xs font-semibold opacity-70">{purchase.date}</span>
+                          <span className="text-sm font-bold text-green-700">
+                            R$ {purchase.amount.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="mt-2 text-xs font-semibold text-semcompDarkBlue/80">
+                          Status: {purchase.status}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-center opacity-70 text-sm py-4 italic">
+                      Nenhuma compra realizada ainda.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -278,11 +368,10 @@ export default function Profile({
     );
   }
 
-  // QR Code / Minha Conta - Versão Desktop
+  // QR Code / Minha Conta / Compras - Versão Desktop
   const qrAndAccountCard = (
     <div className="h-full w-full pt-5 bg-gray-300 flex flex-col text-semcompDarkBlue">
-
-      <div className="flex mx-auto mb-5 w-[60%] rounded-full m-3 p-1 gap-1 border-2 border-semcompOffWhite/20 bg-semcompMidLight/20">
+      <div className="flex mx-auto mb-5 w-[85%] rounded-full m-3 p-1 gap-1 border-2 border-semcompOffWhite/20 bg-semcompMidLight/20">
         <button
           onClick={() => setActiveTab("qr")}
           className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 ${
@@ -302,6 +391,16 @@ export default function Profile({
           }`}
         >
           Minha Conta
+        </button>
+        <button
+          onClick={() => setActiveTab("purchases")}
+          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 ${
+            activeTab === "purchases"
+              ? "bg-semcompDarkBlue text-semcompOffWhite shadow-md font-semibold"
+              : "text-semcompDarkBlue/70 hover:text-semcompDarkBlue"
+          }`}
+        >
+          Compras
         </button>
       </div>
 
@@ -329,7 +428,7 @@ export default function Profile({
           <p className="text-center font-medium mb-6">{userName}</p>
           <div className="bg-semcompMidLightBlue/15 rounded-xl p-4 flex items-center justify-between gap-4 w-full 2xl:w-[70%] border border-semcompMidLight/40">
             <p className="text-xs text-semcompDarkBlue/75 leading-tight">
-              Caso de algum problema ao scannear, forneca o codigo:
+              Caso de algum problema ao scannear, forneça o codigo:
             </p>
             <p className="text-xl font-bold tracking-[0.2em] whitespace-nowrap">{userCode}</p>
           </div>
@@ -392,10 +491,38 @@ export default function Profile({
           </button>
         </div>
       )}
+
+      {activeTab === "purchases" && (
+        <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300 overflow-y-auto custom-scrollbar">
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">Minhas Compras</h2>
+            <p className="text-md text-semcompDarkBlue/75">Veja seu histórico de compras</p>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {userPurchases && userPurchases.length > 0 ? (
+              userPurchases.map((purchase) => (
+                <div key={purchase.id} className="bg-semcompOffWhite/60 rounded-xl p-4 border border-border/50 flex flex-col">
+                  <span className="font-bold text-semcompDarkBlue">{purchase.item}</span>
+                  <div className="flex justify-between mt-2">
+                    <span className="text-xs font-medium text-semcompDarkBlue/70">{purchase.date}</span>
+                    <span className="text-sm font-bold text-green-700">R$ {purchase.amount.toFixed(2)}</span>
+                  </div>
+                  <span className="text-xs font-semibold text-semcompDarkBlue/80 mt-1">Status: {purchase.status}</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-center opacity-70 text-sm py-6 italic">
+                Você ainda não realizou nenhuma compra.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 
-  // Versão Desktop
+  // Versão Desktop Principal
   if (width >= 1280) {
     return (
       <div className="bg-semcompOffWhite text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite min-h-screen">

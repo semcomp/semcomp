@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/contexts/useTheme";
 import { useCart } from "@/contexts/CartContext";
 import { paymentAPI, type PixPaymentResponse } from "@/api/payment";
+import { salesAPI } from "@/api/sales";
 import {
   CheckCircle2,
   XCircle,
@@ -12,6 +13,7 @@ import {
   ArrowLeft,
   Clock,
   RefreshCw,
+  FlaskConical,
 } from "lucide-react";
 
 const POLL_INTERVAL_MS = 4000;
@@ -50,6 +52,19 @@ export default function CheckoutPage() {
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Guarda o último snapshot não-vazio do carrinho, já que ele é limpo
+  // (clearCart) assim que a venda é registrada com sucesso.
+  const itemsSnapshotRef = useRef(items);
+  useEffect(() => {
+    if (items.length > 0) {
+      itemsSnapshotRef.current = items;
+    }
+  }, [items]);
+
+  // Evita registrar a mesma venda duas vezes (ex: efeito rodando de novo em StrictMode).
+  const saleCreatedRef = useRef(false);
+  const [saleError, setSaleError] = useState<string | null>(null);
 
   useEffect(() => {
     if (pixData || items.length === 0) return;
@@ -98,7 +113,6 @@ export default function CheckoutPage() {
         const { status: s } = await paymentAPI.getStatus(pixData.payment_id);
         if (s === "approved") {
           setStatus("approved");
-          clearCart();
           clearInterval(pollRef.current!);
           clearInterval(countdownRef.current!);
         } else if (s === "rejected" || s === "refunded") {
@@ -112,6 +126,49 @@ export default function CheckoutPage() {
     }, POLL_INTERVAL_MS);
     return () => clearInterval(pollRef.current!);
   }, [pixData, status]);
+
+  // Registra a venda (POST /api/sales) e só então limpa o carrinho.
+  // Chamada tanto pelo fluxo normal (pagamento aprovado via polling)
+  // quanto pelo botão de teste que bypassa a análise do pagamento.
+  const finalizeSale = useCallback(
+    async (checkoutItems: typeof items) => {
+      if (saleCreatedRef.current) return;
+      saleCreatedRef.current = true;
+      setSaleError(null);
+
+      try {
+        await salesAPI.create({
+          items: checkoutItems.map((i) => ({
+            product_id: Number(i.id),
+            quantity: i.quantity,
+          })),
+          payment_method: "PIX",
+          status: "PAID",
+        });
+        clearCart();
+      } catch (err) {
+        console.error("Erro ao registrar a venda após o pagamento", err);
+        saleCreatedRef.current = false; // permite tentar novamente
+        setSaleError(
+          "Pagamento aprovado, mas houve um erro ao registrar seu pedido. Entre em contato com a organização informando o ocorrido."
+        );
+      }
+    },
+    [clearCart]
+  );
+
+  useEffect(() => {
+    if (status === "approved") {
+      finalizeSale(itemsSnapshotRef.current);
+    }
+  }, [status, finalizeSale]);
+
+  // ─── Botão de teste: aprova o pagamento sem esperar a análise real ───
+  const handleBypassApproval = useCallback(() => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    setStatus("approved");
+  }, []);
 
   const handleCopy = useCallback(() => {
     if (!pixData?.qr_code) return;
@@ -165,6 +222,11 @@ export default function CheckoutPage() {
           <p className={`text-sm max-w-xs ${textMuted}`}>
             Seu pagamento PIX foi aprovado.
           </p>
+          {saleError && (
+            <p className="text-sm max-w-xs font-semibold text-red-400">
+              {saleError}
+            </p>
+          )}
           <Link
             to="/loja"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-semcompMidDarkBlue px-8 py-3 text-sm font-bold text-white shadow-md hover:brightness-110 transition-all"
@@ -348,6 +410,16 @@ export default function CheckoutPage() {
             ))}
           </ol>
         </motion.div>
+
+        {/* apagar */}
+        <button
+            type="button"
+            onClick={handleBypassApproval}
+            className="mt-2 inline-flex items-center gap-2 rounded-full border border-dashed border-yellow-500 px-4 py-2 text-xs font-bold text-yellow-500 hover:bg-yellow-500/10 transition-all cursor-pointer"
+          >
+            <FlaskConical size={14} />
+            [DEV] Aprovar pagamento sem análise
+          </button>
 
       </div>
     </div>

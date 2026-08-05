@@ -2,49 +2,84 @@ package sales
 
 import (
 	"backend/internal/product"
-	"backend/internal/payment"
+	"backend/internal/user"
+	"time"
 )
 
-// SaleStatus define os possíveis estados de uma venda
 type SaleStatus string
 
+const (
+	SaleStatusPending  SaleStatus = "PENDING"
+	SaleStatusPaid     SaleStatus = "PAID"
+	SaleStatusCanceled SaleStatus = "CANCELED"
+	SaleStatusRefunded SaleStatus = "REFUNDED"
+)
 
-// Sale representa o cabeçalho da venda (pedido)
+// Sale é a entidade principal da venda
 type Sale struct {
-	ID            	uint       `gorm:"primaryKey;autoIncrement" json:"id"`
-	Customer	 	string     `gorm:"size:255" json:"customer_email"`	
-	TotalAmount   	float64    `gorm:"not null" json:"total_amount"` // Soma do (Preço Unitário * Quantidade) de todos os itens
-	
-	// Relacionamentos
+	ID             uint       `gorm:"primaryKey;autoIncrement" json:"id"`
+	SaleUserNumber uint       `gorm:"column:user_number;not null" json:"user_number"`
+	Status         SaleStatus `gorm:"size:20;not null;default:'PENDING'" json:"status"`
+	TotalAmount    float64    `gorm:"not null" json:"total_amount"`
+	PaymentMethod  string     `gorm:"size:50;not null" json:"payment_method"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	User  *user.User `gorm:"foreignKey:SaleUserNumber;references:UserNumber;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"user,omitempty"`
 	Items []SaleItem `gorm:"foreignKey:SaleID;constraint:OnDelete:CASCADE" json:"items,omitempty"`
-	Payment       	payment.Payment `gorm:"foreignKey:ID_Payment" json:"payment,omitempty"`
 }
 
-// SaleItem representa a relação entre a Venda e o Produto (itens do carrinho)
+// SaleItem representa os produtos da compra com preço imutável
 type SaleItem struct {
-	ID        uint    `gorm:"primaryKey;autoIncrement" json:"id"`
-	SaleID    uint    `gorm:"not null" json:"sale_id"`
-	ProductID uint    `gorm:"not null" json:"product_id"`
-	Quantity  int     `gorm:"not null;default:1" json:"quantity"`
+	ID         uint    `gorm:"primaryKey;autoIncrement" json:"id"`
+	SaleID     uint    `gorm:"not null" json:"sale_id"`
+	ProductID  uint    `gorm:"not null" json:"product_id"`
+	Quantity   int     `gorm:"not null;default:1" json:"quantity"`
+	UnitPrice  float64 `gorm:"not null" json:"unit_price"`
 	
-	// CRÍTICO: Salvar o preço no momento da venda. 
-	// Se o preço do produto mudar no futuro, o histórico da venda não é afetado.
-	UnitPrice float64 `gorm:"not null" json:"unit_price"` 
+	// Indica se o item (ex: KIT / Camiseta) já foi retirado presencialmente
+	IsPickedUp bool    `gorm:"not null;default:false" json:"is_picked_up"`
 
-	// Relacionamento (belongs-to) para carregar os dados do produto quando necessário
-	Product product.Product `gorm:"foreignKey:ProductID" json:"product,omitempty"`
+	Product *product.Product `gorm:"foreignKey:ProductID" json:"product,omitempty"`
 }
 
 // DTOs de Requisição ---------
 
-// CreateSaleRequest é o payload que seu frontend enviará para criar uma venda
-type CreateSaleRequest struct {
-	Customer	 	string                  `json:"customer_email" binding:"omitempty,email,max=255"`
-	Items         	[]CreateSaleItemRequest `json:"items" binding:"required,min=1,dive"`
-}
-
-// CreateSaleItemRequest são os itens enviados no momento da compra
 type CreateSaleItemRequest struct {
 	ProductID uint `json:"product_id" binding:"required"`
 	Quantity  int  `json:"quantity" binding:"required,min=1"`
+}
+
+type CreateSaleRequest struct {
+	PaymentMethod string                  `json:"payment_method" binding:"required,max=50"`
+	Items         []CreateSaleItemRequest `json:"items" binding:"required,min=1,dive"`
+	Status        SaleStatus `json:"status" binding:"omitempty,oneof=PENDING PAID CANCELED REFUNDED"`
+}
+
+type UpdateSaleRequest struct {
+	Status        SaleStatus `json:"status" binding:"omitempty,oneof=PENDING PAID CANCELED REFUNDED"`
+	PaymentMethod string     `json:"payment_method" binding:"omitempty,max=50"`
+}
+
+// UpdateSaleItemPickupRequest é utilizado pelo admin para marcar a camiseta/kit como retirada
+type UpdateSaleItemPickupRequest struct {
+	IsPickedUp bool `json:"is_picked_up"`
+}
+
+// DTOs de Listagem ---------
+
+type SaleListQuery struct {
+	Limit       int
+	Offset      int
+	SortBy      string
+	SortOrder   string
+	SearchBy    string
+	SearchValue string
+}
+
+type SaleListResult struct {
+	Sales           []Sale `json:"sales"`
+	TotalRecords    int64  `json:"total_records"`
+	FilteredRecords int64  `json:"filtered_records"`
 }

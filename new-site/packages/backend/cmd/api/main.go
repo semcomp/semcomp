@@ -17,6 +17,7 @@ import (
 	"backend/internal/presence"
 	"backend/internal/product"
 	"backend/internal/providers"
+	"backend/internal/sales"
 	"backend/internal/sitestat"
 	"backend/internal/sponsor"
 	"backend/internal/token"
@@ -51,7 +52,13 @@ func main() {
 	// coluna email_verified é nova e não deve bloquear o login de usuários antigos.
 	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
 
-	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, &token.Token{}, &payment.Payment{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{}, &sitestat.SiteStat{})
+	err := db.AutoMigrate(
+		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, 
+		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, 
+		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, 
+		&token.Token{}, &payment.Payment{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{}, 
+		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{},
+	)
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -132,6 +139,10 @@ func main() {
 	siteStatService := sitestat.NewSiteStatService(siteStatRepo)
 	siteStatHandler := sitestat.NewSiteStatHandler(siteStatService)
 
+	salesRepo := sales.NewSaleRepository(db)
+	salesService := sales.NewSaleService(salesRepo, productRepo)
+	salesHandler := sales.NewSaleHandler(salesService)
+
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
 
@@ -209,6 +220,11 @@ func main() {
 	authRoutes.POST("/payments/pix", pageMW("loja"), paymentHandler.CreatePix)
 	authRoutes.GET("/payments/:id/status", pageMW("loja"), paymentHandler.GetStatus)
 
+	// Rotas de Vendas (Usuário)
+	authRoutes.POST("/sales", pageMW("loja"), salesHandler.CreateSale)
+	authRoutes.GET("/sales/profile", pageMW("loja"), salesHandler.GetMySales)
+	authRoutes.GET("/sales/:id", pageMW("loja"), salesHandler.GetSaleByID)
+
 	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")
 	adminRoutes.POST("/login", authBackofficeHandler.LoginBackofficeHandler)
@@ -255,6 +271,11 @@ func main() {
 	admin.POST("/products", permMW("Produtos", permission.PermRW), productHandler.CreateProduct)
 	admin.PUT("/products/:id", permMW("Produtos", permission.PermRW), productHandler.UpdateProductByID)
 	admin.DELETE("/products/:id", permMW("Produtos", permission.PermRW), productHandler.DeleteProductByID)
+
+	// Vendas
+	admin.GET("/sales", permMW("Vendas", permission.PermR), salesHandler.GetAllSales)
+	admin.PUT("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.UpdateSaleByID)
+	admin.DELETE("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.DeleteSaleByID)
 
 	// Permissões
 	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode
