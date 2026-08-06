@@ -25,7 +25,7 @@ export type PapfeDocumentInfo = {
   filename: string;
   content_type: string;
   uploaded_at: string;
-  is_approved: boolean;
+  is_approved: boolean | null; // null=pendente, true=aprovado, false=rejeitado
 };
 
 const mapBackendUser = (user: SafeSemcompUser): SemcompUserType => {

@@ -482,7 +482,7 @@ func (s *userService) UpdatePapfeDocument(email string, filename string, content
 		ContentType: contentType,
 		FilePath:    filePath,
 		UploadedAt:  time.Now(),
-		IsApproved:  false,
+		IsApproved:  nil, // reset para pendente ao enviar novo comprovante
 	}
 	if err := s.papfeRepo.Upsert(doc); err != nil {
 		_ = os.Remove(filePath)

@@ -272,7 +272,7 @@ func (h *UserHandler) ApprovePapfeDocument(c *gin.Context) {
 		return
 	}
 
-	if err := h.userService.ApprovePapfeDocument(user.Email, request.Approved); err != nil {
+	if err := h.userService.ApprovePapfeDocument(user.Email, *request.Approved); err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
 	}

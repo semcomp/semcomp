@@ -28,6 +28,14 @@ type ModalState =
   | { open: false }
   | { open: true; doc: PapfeDocumentInfo; blobUrl: string | null; loading: boolean };
 
+function StatusBadge({ value }: { value: boolean | null }) {
+  if (value === true)
+    return <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/20">Aprovado</Badge>;
+  if (value === false)
+    return <Badge className="bg-red-500/15 text-red-400 border-red-500/20">Rejeitado</Badge>;
+  return <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/20">Pendente</Badge>;
+}
+
 export default function PapfeDocuments() {
   const canWrite = useHasPermission("PAPFE", "RW");
   const navigate = useNavigate();
@@ -148,15 +156,7 @@ export default function PapfeDocuments() {
                   <TableCell className="text-muted-foreground">{doc.user_email}</TableCell>
                   <TableCell className="text-muted-foreground">{formatDate(doc.uploaded_at)}</TableCell>
                   <TableCell>
-                    {doc.is_approved ? (
-                      <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/20">
-                        Aprovado
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/20">
-                        Pendente
-                      </Badge>
-                    )}
+                    <StatusBadge value={doc.is_approved} />
                   </TableCell>
                   <TableCell className="text-right">
                     <Button size="sm" variant="outline" onClick={() => openModal(doc)}>
@@ -186,15 +186,7 @@ export default function PapfeDocuments() {
 
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-muted-foreground">Status atual:</span>
-                {modal.doc.is_approved ? (
-                  <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/20">
-                    Aprovado
-                  </Badge>
-                ) : (
-                  <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/20">
-                    Pendente
-                  </Badge>
-                )}
+                <StatusBadge value={modal.doc.is_approved} />
               </div>
 
               <div className="w-full h-[60vh] rounded-lg overflow-hidden border border-border bg-muted/30">
@@ -223,7 +215,7 @@ export default function PapfeDocuments() {
                   </Button>
                   <Button
                     onClick={() => handleApproval(true)}
-                    disabled={approving || modal.doc.is_approved}
+                    disabled={approving || modal.doc.is_approved === true}
                     className="bg-emerald-600 hover:bg-emerald-700 text-white"
                   >
                     Aprovar

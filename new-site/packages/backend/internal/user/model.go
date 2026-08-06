@@ -16,7 +16,7 @@ type PapfeDocument struct {
 	ContentType string    `gorm:"size:100;not null"`
 	FilePath    string    `gorm:"size:500;not null"`
 	UploadedAt  time.Time
-	IsApproved  bool      `gorm:"not null;default:false"`
+	IsApproved  *bool     `gorm:"default:null"` // nil=pendente, true=aprovado, false=rejeitado
 }
 
 type User struct {
@@ -155,7 +155,7 @@ type ResetPasswordRequest struct {
 }
 
 type PapfeApprovalRequest struct {
-	Approved bool `json:"approved" binding:"required"`
+	Approved *bool `json:"approved" binding:"required"`
 }
 
 type PapfeDocumentInfo struct {
@@ -166,5 +166,5 @@ type PapfeDocumentInfo struct {
 	Filename    string    `json:"filename"`
 	ContentType string    `json:"content_type"`
 	UploadedAt  time.Time `json:"uploaded_at"`
-	IsApproved  bool      `json:"is_approved"`
+	IsApproved  *bool     `json:"is_approved"` // nil=pendente, true=aprovado, false=rejeitado
 }
