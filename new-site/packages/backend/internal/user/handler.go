@@ -185,6 +185,25 @@ func (h *UserHandler) UpdatePapfeDocument(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Comprovante PAPFE atualizado com sucesso!"})
 }
 
+// GetAllPapfeDocuments lista metadados de todos os comprovantes PAPFE (sem bytes do arquivo).
+// @Summary Lista comprovantes PAPFE
+// @Description Retorna metadados de todos os comprovantes PAPFE cadastrados
+// @Tags Usuários (Participantes)
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Lista de comprovantes PAPFE"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/papfe-documents [get]
+func (h *UserHandler) GetAllPapfeDocuments(c *gin.Context) {
+	docs, err := h.userService.GetAllPapfeDocuments()
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	c.Set("responseMessage", "Comprovantes PAPFE listados com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"papfe_documents": docs})
+}
+
 // GetPapfeDocument serve o comprovante PAPFE de um usuário para download (admin).
 // @Summary Obtém comprovante PAPFE de um usuário
 // @Description Retorna o arquivo do comprovante PAPFE de um usuário específico
@@ -216,8 +235,8 @@ func (h *UserHandler) GetPapfeDocument(c *gin.Context) {
 		return
 	}
 
-	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, doc.Filename))
-	c.Data(http.StatusOK, doc.ContentType, doc.Data)
+	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, doc.Filename))
+	c.File(doc.FilePath)
 }
 
 // ApprovePapfeDocument altera o status de aprovação do comprovante PAPFE de um usuário (admin).

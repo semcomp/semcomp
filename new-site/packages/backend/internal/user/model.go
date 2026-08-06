@@ -7,13 +7,14 @@ import (
 
 // PapfeDocument armazena o comprovante PAPFE de um participante em tabela separada.
 // ON DELETE CASCADE garante que o comprovante é removido junto com o usuário.
+// O arquivo fica em disco (uploads/papfe/); aqui salvamos apenas o path relativo.
 type PapfeDocument struct {
 	ID          uint      `gorm:"primaryKey;autoIncrement"`
 	UserEmail   string    `gorm:"size:150;not null;uniqueIndex"`
 	User        User      `gorm:"foreignKey:UserEmail;references:Email;constraint:OnDelete:CASCADE"`
 	Filename    string    `gorm:"size:255;not null"`
 	ContentType string    `gorm:"size:100;not null"`
-	Data        []byte    `gorm:"type:bytea;not null"`
+	FilePath    string    `gorm:"size:500;not null"`
 	UploadedAt  time.Time
 	IsApproved  bool      `gorm:"not null;default:false"`
 }
@@ -155,4 +156,15 @@ type ResetPasswordRequest struct {
 
 type PapfeApprovalRequest struct {
 	Approved bool `json:"approved" binding:"required"`
+}
+
+type PapfeDocumentInfo struct {
+	ID          uint      `json:"id"`
+	UserNumber  uint      `json:"user_number"`
+	UserName    string    `json:"user_name"`
+	UserEmail   string    `json:"user_email"`
+	Filename    string    `json:"filename"`
+	ContentType string    `json:"content_type"`
+	UploadedAt  time.Time `json:"uploaded_at"`
+	IsApproved  bool      `json:"is_approved"`
 }

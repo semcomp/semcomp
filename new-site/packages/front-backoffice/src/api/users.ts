@@ -6,6 +6,18 @@ type SafeSemcompUser = {
   name: string;
   email: string;
   presence_rate: number;
+  hasPapfe: boolean;
+};
+
+export type PapfeDocumentInfo = {
+  id: number;
+  user_number: number;
+  user_name: string;
+  user_email: string;
+  filename: string;
+  content_type: string;
+  uploaded_at: string;
+  is_approved: boolean;
 };
 
 const mapBackendUser = (user: SafeSemcompUser): SemcompUserType => {
@@ -128,6 +140,28 @@ export const userSemcompAPI = {
    */
   delete: async (id: string): Promise<{ message: string }> => {
     const response = await client.delete<{ message: string }>(`/admin/users/${id}`);
+    return response.data;
+  },
+};
+
+export const papfeAPI = {
+  getAll: async (): Promise<PapfeDocumentInfo[]> => {
+    const response = await client.get<{ papfe_documents: PapfeDocumentInfo[] }>("/admin/papfe-documents");
+    return response.data.papfe_documents ?? [];
+  },
+
+  getDocument: async (userId: number): Promise<Blob> => {
+    const response = await client.get(`/admin/users/${userId}/papfe-document`, {
+      responseType: "blob",
+    });
+    return response.data as Blob;
+  },
+
+  approve: async (userId: number, approved: boolean): Promise<{ message: string }> => {
+    const response = await client.put<{ message: string }>(
+      `/admin/users/${userId}/papfe-document/approval`,
+      { approved }
+    );
     return response.data;
   },
 };

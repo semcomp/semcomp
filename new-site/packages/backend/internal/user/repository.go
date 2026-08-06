@@ -187,6 +187,7 @@ func (r *userRepository) Delete(id uint) error {
 // PapfeDocumentRepository define as operações de acesso a dados para comprovantes PAPFE.
 type PapfeDocumentRepository interface {
 	FindByEmail(email string) (*PapfeDocument, error)
+	FindAll() ([]PapfeDocumentInfo, error)
 	Upsert(doc *PapfeDocument) error
 	UpdateApproval(email string, approved bool) error
 	DeleteByEmail(email string) error
@@ -198,6 +199,20 @@ type papfeDocumentRepository struct {
 
 func NewPapfeDocumentRepository(db *gorm.DB) PapfeDocumentRepository {
 	return &papfeDocumentRepository{db: db}
+}
+
+// FindAll retorna metadados de todos os comprovantes PAPFE, com nome e número do usuário.
+func (r *papfeDocumentRepository) FindAll() ([]PapfeDocumentInfo, error) {
+	var result []PapfeDocumentInfo
+	err := r.db.Table("papfe_documents pd").
+		Select("pd.id, u.user_number, u.name AS user_name, pd.user_email, pd.filename, pd.content_type, pd.uploaded_at, pd.is_approved").
+		Joins("JOIN users u ON u.email = pd.user_email").
+		Order("pd.uploaded_at DESC").
+		Scan(&result).Error
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao listar comprovantes PAPFE", err)
+	}
+	return result, nil
 }
 
 // FindByEmail busca o comprovante PAPFE de um usuário pelo e-mail.
@@ -218,7 +233,7 @@ func (r *papfeDocumentRepository) Upsert(doc *PapfeDocument) error {
 	return r.db.Omit("User").
 		Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "user_email"}},
-			DoUpdates: clause.AssignmentColumns([]string{"filename", "content_type", "data", "uploaded_at", "is_approved"}),
+			DoUpdates: clause.AssignmentColumns([]string{"filename", "content_type", "file_path", "uploaded_at", "is_approved"}),
 		}).
 		Create(doc).Error
 }
