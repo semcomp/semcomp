@@ -2,43 +2,37 @@ import axios, { AxiosError } from "axios";
 import type { AxiosInstance } from "axios";
 import { BASEURL } from "@/constants/ApiURL";
 
-/**
- * Configuração centralizada do cliente axios
- */
+const UNAUTHENTICATED_ENDPOINTS = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/resend-verification",
+];
+
 const client: AxiosInstance = axios.create({
   baseURL: BASEURL,
   timeout: 10000,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-/**
- * Interceptador de requisição: adiciona token se disponível
- */
-client.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("semcomp-site-token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-/**
- * Interceptador de resposta: armazena novo token se fornecido
- */
 client.interceptors.response.use(
-  (response) => {
-    const newToken = response.headers.authorization;
-    if (newToken) {
-      localStorage.setItem("semcomp-site-token", newToken);
+  (response) => response,
+  (error: AxiosError) => {
+    const url = error.config?.url ?? "";
+    const isPublicEndpoint = UNAUTHENTICATED_ENDPOINTS.some((p) => url === p);
+
+    if (error.response?.status === 401 && !isPublicEndpoint) {
+      localStorage.removeItem("semcomp-site-auth");
+      window.location.href = "/login";
     }
-    return response;
-  },
-  (error: AxiosError) => Promise.reject(error)
+
+    return Promise.reject(error);
+  }
 );
 
 export default client;

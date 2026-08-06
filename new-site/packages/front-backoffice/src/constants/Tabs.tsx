@@ -1,4 +1,4 @@
-import { Calendar, UserCog, User, Key, Hand, ToggleLeft, FileCheck } from "lucide-react";
+import { Calendar, UserCog, User, Key, Hand, ToggleLeft, Handshake, FileCheck } from "lucide-react";
 
 // section deve coincidir com KnownSections em backend/internal/permission/model.go
 export const Tabs: {
@@ -68,6 +68,16 @@ export const Tabs: {
     description: "Habilite ou desabilite páginas do site.",
     pageNavigate: "/pages-availability",
     icon: <ToggleLeft className="w-5 h-5" />,
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
+    key: "sponsors",
+    section: "Patrocinadores",
+    label: "Patrocinadores",
+    description: "Gerencie os patrocinadores da Semcomp e seus pacotes por ano.",
+    pageNavigate: "/sponsors",
+    icon: <Handshake className="w-5 h-5" />,
     bg: "bg-primary/15",
     hoverBg: "bg-primary/25",
   },

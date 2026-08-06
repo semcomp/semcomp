@@ -12,7 +12,7 @@ type Service interface {
 }
 
 type service struct {
-	pages 		 []string
+	pages        []string
 	availability map[string]bool
 }
 

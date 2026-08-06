@@ -247,10 +247,11 @@ func (s *paymentService) CreatePix(userNumber uint, email string, req CreatePixR
 	}
 
 	return &PixPaymentResponse{
-		PaymentID:    payment.ID_Payment,
-		QRCode:       qrCode,
-		QRCodeBase64: qrCodeBase64,
-		Amount:       req.Amount,
+		PaymentID:      payment.ID_Payment,
+		QRCode:         qrCode,
+		QRCodeBase64:   qrCodeBase64,
+		Amount:         req.Amount,
+		ExpirationDate: payment.CreatedAt.Add(pixExpirationWindow),
 	}, nil
 }
 

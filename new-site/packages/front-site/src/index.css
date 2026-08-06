@@ -321,3 +321,45 @@
   --radius-4xl: calc(var(--radius) * 2.6);
   --shadow-input: 0px 0px 40px var(--color-semcompMidLightBlue), 0px 0px 20px #00A2FF, 0px 0px 10px rgb(0, 162, 255, 0.5), 0px 0px 5px #00A2FF;
 }
+
+/* ── Scrollbar customizada ──────────────────────────────────────────────────── */
+
+/* Tema claro */
+.custom-scrollbar {
+  scrollbar-width: thin;          /* Firefox */
+  scrollbar-color: var(--color-semcompMidDarkBlue) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-semcompMidDarkBlue);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-semcompDarkBlue);
+}
+
+/* Tema escuro */
+.dark .custom-scrollbar {
+  scrollbar-color: var(--color-semcompMidDarkBlue) transparent;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-semcompMidDarkBlue);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-semcompLightBlue);
+}

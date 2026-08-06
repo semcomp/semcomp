@@ -3,5 +3,3 @@ node_modules/
 .ds_store
 config/
 .env
-new-site/packages/front-backoffice/src/constants/DebugMode.tsx
-.context_brain/

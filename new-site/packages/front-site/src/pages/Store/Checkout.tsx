@@ -14,8 +14,11 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-const PIX_TIMEOUT_SECONDS = 30 * 60; // 30 minutos
 const POLL_INTERVAL_MS = 4000;
+
+function secondsUntil(iso: string): number {
+  return Math.max(0, Math.floor((new Date(iso).getTime() - Date.now()) / 1000));
+}
 
 function formatBRL(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -35,19 +38,19 @@ export default function CheckoutPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // PIX data pode vir via state (do carrinho) ou ser criado aqui
   const [pixData, setPixData] = useState<PixPaymentResponse | null>(
     (location.state as { pixData?: PixPaymentResponse })?.pixData ?? null
   );
   const [status, setStatus] = useState<Status>(pixData ? "pending" : "loading");
   const [copied, setCopied] = useState(false);
-  const [countdown, setCountdown] = useState(PIX_TIMEOUT_SECONDS);
+  const [countdown, setCountdown] = useState(() =>
+    pixData?.expiration_date ? secondsUntil(pixData.expiration_date) : 0
+  );
   const [error, setError] = useState<string | null>(null);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Cria o PIX se não veio via state (ex: reload de página)
   useEffect(() => {
     if (pixData || items.length === 0) return;
     if (!pixData && subtotal === 0) {
@@ -58,6 +61,7 @@ export default function CheckoutPage() {
       .createPix(subtotal, [...new Set(items.map((i) => Number(i.id)))], "Semcomp - Compra de produtos")
       .then((data) => {
         setPixData(data);
+        setCountdown(secondsUntil(data.expiration_date));
         setStatus("pending");
       })
       .catch(() => {
@@ -69,6 +73,10 @@ export default function CheckoutPage() {
   // Countdown timer
   useEffect(() => {
     if (status !== "pending") return;
+    if (countdown <= 0) {
+      setStatus("expired");
+      return;
+    }
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -123,7 +131,7 @@ export default function CheckoutPage() {
     ? "shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
     : "shadow-[0_8px_40px_rgba(53,123,163,0.1)]";
   const textPrimary = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
-  const textMuted = "text-semcompOffWhite/70";
+  const textMuted = isDarkMode ? "text-semcompOffWhite/70" : "text-semcompDarkBlue/70";
   const codeBoxBg = isDarkMode ? "bg-black/30" : "bg-semcompMidLightBlue/10";
 
   // ─── Loading ────────────────────────────────────────────
@@ -155,7 +163,7 @@ export default function CheckoutPage() {
             Pagamento confirmado!
           </h1>
           <p className={`text-sm max-w-xs ${textMuted}`}>
-            Seu pagamento PIX foi aprovado. Fique de olho no mural de avisos para informações sobre a retirada dos produtos.
+            Seu pagamento PIX foi aprovado.
           </p>
           <Link
             to="/loja"
@@ -233,7 +241,7 @@ export default function CheckoutPage() {
           {/* Valor */}
           <div className={`rounded-2xl px-6 py-3 text-center ${isDarkMode ? "bg-white/5" : "bg-semcompMidLightBlue/10"}`}>
             <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${textMuted}`}>Total</p>
-            <p className={`text-3xl font-extrabold text-semcompMidDarkBlue`}>
+            <p className={`text-3xl font-extrabold ${textPrimary}`}>
               {formatBRL(pixData?.amount ?? subtotal)}
             </p>
           </div>
@@ -323,7 +331,7 @@ export default function CheckoutPage() {
           transition={{ delay: 0.3 }}
           className={`w-full rounded-2xl border ${cardBorder} ${cardBg} ${cardShadow} p-5`}
         >
-          <h2 className={`text-xs font-bold uppercase tracking-widest mb-3 ${textMuted}`}>Como pagar</h2>
+          <h2 className={`text-xs font-bold uppercase tracking-widest mb-3 ${textPrimary}`}>Como pagar</h2>
           <ol className={`space-y-2 text-sm ${textPrimary}`}>
             {[
               "Abra o app do seu banco e acesse a seção PIX",

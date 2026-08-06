@@ -163,12 +163,10 @@ export default function StorePage() {
     return () => { cancelled = true; };
   }, []);
 
-  // ─── Cores responsivas ao tema ──────────────────────────
-  //const bgColor = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompLightBlue";
+  // ─── Cores ──────────────────────────
   const heroBg = isDarkMode
     ? "bg-gradient-to-b from-semcompDarkBlue to-semcompMidDarkBlue"
     : "bg-gradient-to-b from-semcompMidLightBlue to-semcompMidLightBlue/20";
-  //const sectionBg = isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompLightBlue/20";
   const priceColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompMidDarkBlue"
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
   const mutedText = isDarkMode ? "text-semcompOffWhite/60" : "text-semcompDarkBlue/60";
@@ -179,10 +177,9 @@ export default function StorePage() {
     ? "shadow-[0_8px_40px_rgba(0,0,0,0.5)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.65)]"
     : "shadow-[0_8px_40px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.2)]";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = isDarkMode ? "from-semcompMidLightBlue/90" : "from-semcompLightBlue/80";
-  const gradientVia = isDarkMode ? "via-semcompMidLightBlue/80" : "via-semcompLightBlue";
-  const gradientTo = isDarkMode ? "to-semcompMidLightBlue" : "to-semcompLightBlue";
-  // Botão sólido com cores invertidas (igual ao floating mobile)
+  const gradientFrom = isDarkMode ? "from-semcompMidLightBlue/80" : "from-semcompDarkBlue";
+  const gradientVia = isDarkMode ? "via-semcompMidLightBlue" : "via-semcompDarkBlue/80";
+  const gradientTo = isDarkMode ? "to-semcompLightBlue" : "to-semcompMidDarkBlue";
   const btnSolid = isDarkMode
     ? "bg-semcompOffWhite text-semcompMidDarkBlue hover:bg-gray-200 hover:shadow-[0_0_24px_rgba(255,255,255,0.25)]"
     : "bg-semcompMidLightBlue text-semcompOffWhite hover:bg-semcompDarkBlue hover:shadow-[0_0_24px_rgba(0,48,80,0.45)]";
@@ -309,17 +306,17 @@ export default function StorePage() {
               whileInView="visible"
               viewport={{ once: true, amount: 0.1 }}
               variants={stagger}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-stretch"
             >
               {products.map((item) => (
                 <motion.article
                   key={item.id}
                   variants={fadeIn}
-                  className={`group cursor-pointer rounded-2xl border ${cardBorder} ${cardBg} overflow-hidden transition-all duration-300 hover:-translate-y-2 ${cardShadow}`}
+                  className={`group cursor-pointer rounded-2xl border ${cardBorder} ${cardBg} overflow-hidden transition-all duration-300 hover:-translate-y-2 ${cardShadow} flex flex-col h-full`}
                   onClick={() => openModal(item)}
                 >
                   {/* Imagem */}
-                  <div className="relative overflow-hidden aspect-4/3">
+                  <div className="relative overflow-hidden aspect-4/3 shrink-0">
                     <img
                       src={item.image}
                       alt={item.name}
@@ -339,8 +336,8 @@ export default function StorePage() {
                     )}
                   </div>
 
-                  {/* Conteúdo */}
-                  <div className="p-5 flex flex-col gap-3">
+                  {/* Conteúdo — flex-1 + flex column para o botão ficar no final */}
+                  <div className="p-5 flex flex-col gap-3 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <h3 className={`font-poppins font-bold text-lg leading-tight ${textColor}`}>
                         {item.name}
@@ -383,7 +380,7 @@ export default function StorePage() {
                           <button
                             key={s}
                             onClick={(e) => { e.stopPropagation(); }}
-                            className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue`}
+                            className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${cardBorder} ${mutedText} hover:${textColor}`}
                           >
                             {s}
                           </button>
@@ -410,7 +407,7 @@ export default function StorePage() {
                           isBabydoll: item.isBabydoll,
                         });
                       }}
-                      className={`mt-2 w-full rounded-full py-2.5 text-sm font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-semcompLightBlue focus:ring-offset-2 active:scale-95 shadow-md ${btnSolid}`}
+                      className={`mt-auto w-full rounded-full py-2.5 text-sm font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-semcompLightBlue focus:ring-offset-2 active:scale-95 shadow-md ${btnSolid}`}
                     >
                       <span className="flex items-center justify-center gap-2">
                         <ShoppingCart size={18} />

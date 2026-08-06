@@ -16,7 +16,6 @@ import {
   Store,
 } from "lucide-react";
 
-// ─── Animação ────────────────────────────────────────────
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -30,7 +29,6 @@ function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-// ─── CartPage ─────────────────────────────────────────────
 export default function CartPage() {
   const { isDarkMode } = useTheme();
   const { width } = useWindowDimensions();
@@ -52,27 +50,23 @@ export default function CartPage() {
     }
   };
 
-  // ─── Cores ──────────────────────────────────────────────
   const bgColor = isDarkMode
     ? "bg-gradient-to-b from-semcompAlmostDarkBlue via-semcompDarkBlue to-semcompDarkBlue/80"
     : "bg-gradient-to-b from-semcompMidLightBlue to-semcompMidLightBlue/20";
-  // Hero (header) background: gradient azul no light mode para contrastar com botões brancos do header
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
-  const mutedText =   "text-semcompOffWhite/80";
-  const mutedText2 = isDarkMode ? "text-semcompOffWhite/40" : "text-semcompDarkBlue/40";
+  const mutedText = isDarkMode ? "text-semcompOffWhite/60" : "text-semcompDarkBlue/60";
   const cardBg = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-white";
   const cardBorder = isDarkMode ? "border-white/10" : "border-semcompMidLightBlue/20";
   const cardShadow = isDarkMode
     ? "shadow-[0_8px_40px_rgba(0,0,0,0.5)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.65)]"
     : "shadow-[0_8px_40px_rgba(53,123,163,0.08)] hover:shadow-[0_12px_48px_rgba(53,123,163,0.12)]";
-  // Botão sólido com cores invertidas (igual ao floating mobile da loja)
   const btnSolid = isDarkMode
     ? "bg-semcompOffWhite text-semcompMidDarkBlue hover:bg-gray-200 hover:shadow-[0_0_24px_rgba(255,255,255,0.25)]"
     : "bg-semcompMidLightBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-[0_0_18px_rgba(53,123,163,0.22)]";
   const headingSize = width > 768 ? "text-4xl" : "text-2xl";
-  const gradientFrom = isDarkMode ? "from-semcompMidLightBlue/90" : "from-semcompMidLightBlue/90";
-  const gradientVia = isDarkMode ? "via-semcompMidLightBlue/80" : "via-semcompMidDarkBlue";
-  const gradientTo = isDarkMode ? "to-semcompMidLightBlue" : "to-semcompMidDarkBlue";
+  const gradientFrom = isDarkMode ? "from-semcompMidLightBlue" : "from-semcompDarkBlue";
+  const gradientVia = isDarkMode ? "via-semcompMidLightBlue/80" : "via-semcompMidDarkBlue/90";
+  const gradientTo = isDarkMode ? "to-semcompLightBlue" : "to-semcompMidDarkBlue/60";
   const divider = isDarkMode ? "border-white/10" : "border-semcompMidLightBlue/30";
 
   // ─── Carrinho vazio ─────────────────────────────────────
@@ -88,7 +82,7 @@ export default function CartPage() {
           className="flex flex-col items-center gap-6 px-4 text-center"
         >
           <div className={`rounded-full p-8 shadow-[0_6px_32px_rgba(0,0,0,0.12)]`}>
-            <ShoppingBag size={72} className={mutedText2} />
+            <ShoppingBag size={72} className={mutedText} />
           </div>
 
           <h1 className={`${headingSize} font-extrabold`}>
@@ -183,7 +177,6 @@ export default function CartPage() {
                         <h3 className={`font-poppins font-bold leading-tight ${textColor}`}>
                           {item.name}
                         </h3>
-                        {/* Opções selecionadas */}
                         {item.size && (
                           <p className={`text-xs ${mutedText} mt-0.5`}>
                             Tamanho: <span className="font-semibold">{item.size}</span>
@@ -216,7 +209,7 @@ export default function CartPage() {
                     <div className="flex items-center justify-between mt-auto">
                       {/* Controle de quantidade */}
                       <div
-                        className={`flex h-9 items-center rounded-full border ${cardBorder} ${cardBg} px-1 shadow-sm`}
+                        className={`flex h-9 items-center rounded-full border ${cardBorder} ${cardBg} py-5 px-1 shadow-sm`}
                       >
                         <button
                           type="button"
@@ -239,7 +232,7 @@ export default function CartPage() {
                         </button>
                       </div>
 
-                      <p className={`text-base font-extrabold text-semcompMidDarkBlue`}>
+                      <p className={`text-base font-extrabold ${textColor}`}>
                         {formatBRL(item.price * item.quantity)}
                       </p>
                     </div>
@@ -271,13 +264,13 @@ export default function CartPage() {
                   </div>
                   <div className={`flex flex-col gap-0.5 ${mutedText}`}>
                     <span>Retirada</span>
-                    <span className={`text-xs font-bold text-green-600 dark:text-green-400 leading-snug`}>
-                      Informações sobre a retirada serão disponibilizadas no mural de avisos!
+                    <span className={`text-xs font-bold text-green-600/80 dark:text-green-400/80 leading-snug`}>
+                      Informações sobre a retirada serão disponibilizadas em breve, acompanhe as nossas redes sociais!
                     </span>
                   </div>
                   <div className={`flex justify-between border-t ${divider} pt-4`}>
                     <span className={`text-base font-extrabold ${textColor}`}>Total</span>
-                    <span className={`text-xl font-extrabold text-semcompMidDarkBlue`}>
+                    <span className={`text-xl font-extrabold ${textColor}`}>
                       {formatBRL(subtotal)}
                     </span>
                   </div>
@@ -293,8 +286,8 @@ export default function CartPage() {
                   {!checkoutLoading && <ArrowRight size={18} />}
                 </button>
 
-                <p className={`mt-3 text-center text-[11px] ${mutedText2}`}>
-                  Pagamento seguro processado via plataforma parceira
+                <p className={`mt-3 text-center text-[11px] ${mutedText}`}>
+                  Pagamento processado via integração com Mercado Pago. Você será redirecionado para a página de pagamento com QR Code.
                 </p>
               </div>
 
