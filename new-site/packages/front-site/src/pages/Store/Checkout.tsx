@@ -143,7 +143,7 @@ export default function CheckoutPage() {
             quantity: i.quantity,
           })),
           payment_method: "PIX",
-          status: "PAID",
+          status: "PAGO",
         });
         clearCart();
       } catch (err) {

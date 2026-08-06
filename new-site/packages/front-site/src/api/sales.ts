@@ -31,7 +31,7 @@ export interface SaleItemResponse {
 export interface SaleResponse {
   id: number;
   user_number: number;
-  status: "PENDING" | "PAID" | "CANCELED" | "REFUNDED" | string;
+  status: "PENDENTE" | "PAGO" | "CANCELADO" | "REEMBOLSADO" | string;
   total_amount: number;
   payment_method: string;
   created_at: string;
@@ -58,7 +58,7 @@ export const salesAPI = {
 
   // GET /api/sales/me — histórico de compras do usuário autenticado
   getMySales: async (): Promise<SaleResponse[]> => {
-    const response = await client.get<GetMySalesApiResponse>("/api/sales/me");
+    const response = await client.get<GetMySalesApiResponse>("/api/sales/profile");
     return response.data.sales;
   },
 

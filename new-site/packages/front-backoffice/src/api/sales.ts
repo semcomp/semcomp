@@ -38,7 +38,7 @@ export interface SaleItem {
   product?: SaleProduct;
 }
 
-export type SaleStatus = "PENDING" | "PAID" | "CANCELED" | "REFUNDED";
+export type SaleStatus = "PENDENTE" | "PAGO" | "CANCELADO" | "REEMBOLSADO";
 
 export interface Sale {
   id: number;

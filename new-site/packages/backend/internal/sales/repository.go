@@ -146,6 +146,9 @@ func (r *saleRepository) GetAll(query SaleListQuery) (*SaleListResult, error) {
 
 	dataQuery := applySaleSearchFilter(r.db.Model(&Sale{}), query)
 	err = dataQuery.
+		Preload("Items").
+		Preload("Items.Product").
+		Preload("Items.Product.Kit").
 		Preload("User").
 		Order(sortClause).
 		Limit(query.Limit).

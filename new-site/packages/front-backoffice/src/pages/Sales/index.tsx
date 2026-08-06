@@ -30,15 +30,15 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-const statusColors: Record<string, string> = {
-  PENDING: "bg-amber-900/40 text-amber-300 border-amber-700/40",
-  PAID: "bg-emerald-900/40 text-emerald-300 border-emerald-700/40",
-  CANCELED: "bg-red-900/40 text-red-300 border-red-700/40",
-  REFUNDED: "bg-blue-900/40 text-blue-300 border-blue-700/40",
-};
+// const statusColors: Record<string, string> = {
+//   PENDENTE: "bg-amber-900/40 text-amber-300 border-amber-700/40",
+//   PAGO: "bg-emerald-900/40 text-emerald-300 border-emerald-700/40",
+//   CANCELADO: "bg-red-900/40 text-red-300 border-red-700/40",
+//   REEMBOLSADO: "bg-blue-900/40 text-blue-300 border-blue-700/40",
+// };
 
 interface SaleFormState {
-  status: "PENDING" | "PAID" | "CANCELED" | "REFUNDED";
+  status: "PENDENTE" | "PAGO" | "CANCELADO" | "REEMBOLSADO";
   payment_method: string;
 }
 
@@ -58,10 +58,10 @@ function SaleForm({
           onChange={(e) => onChange({ ...value, status: e.target.value as any })}
           className="flex h-10 w-full rounded-md border border-muted/30 bg-muted/40 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          <option value="PENDING">Pendente</option>
-          <option value="PAID">Pago</option>
-          <option value="CANCELED">Cancelado</option>
-          <option value="REFUNDED">Reembolsado</option>
+          <option value="PENDENTE">Pendente</option>
+          <option value="PAGO">Pago</option>
+          <option value="CANCELADO">Cancelado</option>
+          <option value="REEMBOLSADO">Reembolsado</option>
         </select>
       </div>
 
@@ -91,7 +91,7 @@ export default function SalesCRUD() {
   // Modal de edição
   const [editOpen, setEditOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Sale | null>(null);
-  const [form, setForm] = useState<SaleFormState>({ status: "PENDING", payment_method: "" });
+  const [form, setForm] = useState<SaleFormState>({ status: "PENDENTE", payment_method: "" });
 
   // Modal de Itens (Para controle de retirada de Kits/Produtos)
   const [itemsOpen, setItemsOpen] = useState(false);
@@ -109,7 +109,7 @@ export default function SalesCRUD() {
         params?.filterField && params?.filterValue ? params.filterField : undefined,
         params?.filterValue || undefined,
       );
-      console.log(response);
+      console.log(response.sales[0]);
       setData(response.sales || []);
       setTotalRecords(response.filtered_records ?? response.total_records ?? 0);
     } catch {
@@ -203,11 +203,11 @@ export default function SalesCRUD() {
     ...sale,
     id: sale.id.toString(), // CrudTable geralmente espera ID string
     total_amount_formatted: formatCurrency(sale.total_amount),
-    status: (
-      <Badge className={`px-2 py-0.5 text-xs border ${statusColors[sale.status] || "bg-muted text-foreground"}`}>
-        {sale.status}
-      </Badge>
-    ),
+    // status: (
+    //   <Badge className={`px-2 py-0.5 text-xs border ${statusColors[sale.status] || "bg-muted text-foreground"}`}>
+    //     {sale.status}
+    //   </Badge>
+    // ),
   }));
 
   return (

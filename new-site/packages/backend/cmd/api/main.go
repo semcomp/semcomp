@@ -168,7 +168,7 @@ func main() {
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:5174", "https://semcomp.icmc.usp.br"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 		ExposeHeaders:    []string{"Content-Length"},
@@ -276,6 +276,7 @@ func main() {
 	admin.GET("/sales", permMW("Vendas", permission.PermR), salesHandler.GetAllSales)
 	admin.PUT("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.UpdateSaleByID)
 	admin.DELETE("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.DeleteSaleByID)
+	admin.PATCH("/sales/items/:id/pickup", permMW("Vendas", permission.PermRW), salesHandler.UpdateItemPickup)
 
 	// Permissões
 	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode

@@ -9,17 +9,17 @@ import (
 type SaleStatus string
 
 const (
-	SaleStatusPending  SaleStatus = "PENDING"
-	SaleStatusPaid     SaleStatus = "PAID"
-	SaleStatusCanceled SaleStatus = "CANCELED"
-	SaleStatusRefunded SaleStatus = "REFUNDED"
+	SaleStatusPending  SaleStatus = "PENDENTE"
+	SaleStatusPaid     SaleStatus = "PAGO"
+	SaleStatusCanceled SaleStatus = "CANCELADO"
+	SaleStatusRefunded SaleStatus = "REEMBOLSADO"
 )
 
 // Sale é a entidade principal da venda
 type Sale struct {
 	ID             uint       `gorm:"primaryKey;autoIncrement" json:"id"`
 	SaleUserNumber uint       `gorm:"column:user_number;not null" json:"user_number"`
-	Status         SaleStatus `gorm:"size:20;not null;default:'PENDING'" json:"status"`
+	Status         SaleStatus `gorm:"size:20;not null;default:'PENDENTE'" json:"status"`
 	TotalAmount    float64    `gorm:"not null" json:"total_amount"`
 	PaymentMethod  string     `gorm:"size:50;not null" json:"payment_method"`
 
@@ -27,7 +27,7 @@ type Sale struct {
 	UpdatedAt time.Time `json:"updated_at"`
 
 	User  *user.User `gorm:"foreignKey:SaleUserNumber;references:UserNumber;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"user,omitempty"`
-	Items []SaleItem `gorm:"foreignKey:SaleID;constraint:OnDelete:CASCADE" json:"items,omitempty"`
+	Items []SaleItem `gorm:"foreignKey:SaleID;references:ID;constraint:OnDelete:CASCADE" json:"items,omitempty"`
 }
 
 // SaleItem representa os produtos da compra com preço imutável
@@ -54,11 +54,11 @@ type CreateSaleItemRequest struct {
 type CreateSaleRequest struct {
 	PaymentMethod string                  `json:"payment_method" binding:"required,max=50"`
 	Items         []CreateSaleItemRequest `json:"items" binding:"required,min=1,dive"`
-	Status        SaleStatus `json:"status" binding:"omitempty,oneof=PENDING PAID CANCELED REFUNDED"`
+	Status        SaleStatus `json:"status" binding:"omitempty,oneof=PENDENTE PAGO CANCELADO REEMBOLSADO"`
 }
 
 type UpdateSaleRequest struct {
-	Status        SaleStatus `json:"status" binding:"omitempty,oneof=PENDING PAID CANCELED REFUNDED"`
+	Status        SaleStatus `json:"status" binding:"omitempty,oneof=PENDENTE PAGO CANCELADO REEMBOLSADO"`
 	PaymentMethod string     `json:"payment_method" binding:"omitempty,max=50"`
 }
 
