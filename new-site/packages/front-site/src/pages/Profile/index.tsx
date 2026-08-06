@@ -11,28 +11,20 @@ import type { EventType } from "@/types/EventType"
 import type { UserType } from "@/types/UserType"
 import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate"
 import { useNavigate } from "react-router-dom";
-
-const HERO_IMAGES = [
-  "/img/Home/Hero/Banner1.webp",
-  "/img/Home/Hero/Banner2.webp",
-  "/img/Home/Hero/Palestra1.webp",
-  "/img/Home/Hero/Palestra2.webp",
-  "/img/Home/Hero/Semcomp.webp",
-];
-
-const pickRandomHero = () =>
-  HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)];
+import cardImage from "@/assets/img/Profile/card.svg";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 
 type Evento = EventType & {
   linkInscricao?: string;
 };
 
-let events: Evento[] = [
+const events: Evento[] = [
 ];
 interface ProfileProps extends Partial<UserType> {
   event?: string;
 }
+
 
 export default function Profile({
   user_number = 0,
@@ -54,7 +46,6 @@ export default function Profile({
 
   const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [heroSrc] = useState<string>(() => pickRandomHero());
 
   useEffect(() => {
     async function fetchProfile() {
@@ -114,11 +105,7 @@ export default function Profile({
       <div className="min-h-screen bg-semcompOffWhite dark:bg-semcompAlmostDarkBlue font-poppins pb-10 transition-colors duration-300">
         {/* Header com Background */}
         <div className="relative h-80 w-full overflow-hidden bg-black">
-          <img
-            src={heroSrc}
-            className="absolute inset-0 w-full h-full object-cover opacity-60"
-            alt="SEMCOMP Banner"
-          />
+          <AnimatedBackground />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <img src="/img/semcomp/logo_default_branco.webp" alt="SEMCOMP Logo" className="w-1/2 max-w-50 object-contain drop-shadow-2xl" />
           </div>
@@ -231,7 +218,9 @@ export default function Profile({
         </div>
 
         {/* Seção Overflow */}
-        <div className="mt-12 pt-10 pb-10 px-5 text-center transition-colors bg-semcompMidLightBlue text-semcompOffWhite dark:bg-semcompDarkBlue">
+        <div
+          className="mt-12 pt-10 pb-10 px-5 text-center transition-colors text-semcompOffWhite  bg-semcompMidDarkBlue dark:bg-semcompDarkBlue"
+        >
           <h2 className="text-3xl font-bold mb-1 flex items-center justify-center gap-2">
             SEMCOMP Beta 2026
             <span className="flex items-center justify-center w-5 h-5 rounded-full border text-xs font-normal border-semcompDarkBlue/60 text-semcompDarkBlue/60 dark:border-white/60 dark:text-white/60">
@@ -242,12 +231,8 @@ export default function Profile({
             Você sabia que vem por aí a prévia da maior semana acadêmica de computação do Brasil?
           </p>
 
-          <div className="relative rounded-2xl overflow-hidden mb-4 border bg-white border-semcompDarkBlue/20 dark:bg-black/50 dark:border-white/10">
-            <img src={heroSrc} className="w-full h-56 object-cover brightness-[0.7]" alt="SEMCOMP Beta"/>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
-              <img src="/img/semcomp/logo_default_branco.webp" className="w-32 mb-2 drop-shadow-2xl" alt="Logo" />
-              <h3 className="text-2xl font-black tracking-widest drop-shadow-lg text-white">SEMCOMP Beta</h3>
-            </div>
+          <div className="relative rounded-2xl overflow-hidden mb-4">
+            <img src={cardImage} className="w-full h-56 object-cover" alt="SEMCOMP Beta"/>
           </div>
 
           <div className="border-t pt-4 px-2 border-semcompDarkBlue/20 dark:border-white/20">
@@ -400,31 +385,25 @@ export default function Profile({
     return (
       <div className="bg-semcompOffWhite text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite min-h-screen">
         <div
-          className="h-[calc(90vh-70px)] w-full bg-cover bg-center flex flex-row justify-center items-center gap-10 font-poppins"
+          className="relative overflow-hidden h-[calc(90vh-70px)] w-full flex flex-row justify-center items-center gap-10 font-poppins"
           style={{
-            backgroundImage: `url(${heroSrc})`,
             boxShadow: isDarkMode
               ? "inset 0 -160px 60px -40px rgba(11, 38, 57, 0.8)"
               : "inset 0 -180px 40px -40px rgba(53, 123, 163, 0.6)",
           }}
         >
-          <div className="h-[85%] w-[28%] bg-semcompOffWhite rounded-sm overflow-hidden shadow-xl">
+          <AnimatedBackground />
+          <div className="content-over-background h-[85%] w-[28%] bg-semcompOffWhite rounded-sm overflow-hidden shadow-xl">
             {qrAndAccountCard}
           </div>
 
-          <div className="h-[85%] w-[28%] bg-semcompMidDarkBlue/80 dark:bg-semcompDarkBlue/80 flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10">
+          <div className="content-over-background h-[85%] w-[28%] bg-semcompMidDarkBlue dark:bg-semcompDarkBlue flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10">
             <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP Beta 2026</h1>
             <p className="text-center text-md pb-2">
               Você sabia que vem por aí a prévia da maior semana acadêmica de computação do Brasil?
             </p>
-            <div className="relative h-[50%] bg-cover bg-center bg-black">
-              <img src={heroSrc} className="absolute inset-0 w-full h-full object-cover opacity-60" alt="background"/>
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <img className="h-[80%] drop-shadow-2xl" src="/img/semcomp/logo_default_branco.webp" alt="Logo" />
-              </div>
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 whitespace-nowrap font-bold text-2xl z-10 text-white drop-shadow-md">
-                SEMCOMP Beta
-              </span>
+            <div className="relative h-[50%] bg-semcompOffWhite dark:bg-semcompDarkBlue overflow-hidden rounded-xl">
+              <img src={cardImage} className="absolute inset-0 w-full h-full object-cover" alt="background"/>
             </div>
             <hr className="border-semcompOffWhite mt-6 mb-3" />
             <span className="text-sm text-justify">
