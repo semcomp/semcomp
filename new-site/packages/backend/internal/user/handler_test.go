@@ -38,6 +38,24 @@ func (m *MockUserService) VerifyEmail(rawToken string) error { return m.VerifyEm
 func (m *MockUserService) ResendVerification(email string) error {
 	return m.ResendVerificationFunc(email)
 }
+func (m *MockUserService) GetAllPapfeDocuments() ([]PapfeDocumentInfo, error) {
+	panic("not implemented in mock")
+}
+func (m *MockUserService) GetPapfeDocument(email string) (*PapfeDocument, error) {
+	panic("not implemented in mock")
+}
+func (m *MockUserService) UpdatePapfeDocument(email string, filename string, contentType string, data []byte) error {
+	panic("not implemented in mock")
+}
+func (m *MockUserService) ApprovePapfeDocument(email string, approved bool) error {
+	panic("not implemented in mock")
+}
+func (m *MockUserService) RequestPasswordReset(email string) error {
+	panic("not implemented in mock")
+}
+func (m *MockUserService) ResetPassword(tokenPlain string, newPassword string) error {
+	panic("not implemented in mock")
+}
 
 func setupVerificationRouter(handler *UserHandler) *gin.Engine {
 	gin.SetMode(gin.TestMode)

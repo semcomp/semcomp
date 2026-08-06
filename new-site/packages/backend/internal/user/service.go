@@ -1,9 +1,12 @@
 package user
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -29,6 +32,10 @@ type UserService interface {
 	GetUserByID(id uint) (*SafeUser, error)
 	UpdateUser(id uint, request UpdateUserRequest) error
 	DeleteUser(id uint) error
+	GetAllPapfeDocuments() ([]PapfeDocumentInfo, error)
+	GetPapfeDocument(email string) (*PapfeDocument, error)
+	UpdatePapfeDocument(email string, filename string, contentType string, data []byte) error
+	ApprovePapfeDocument(email string, approved bool) error
 	VerifyEmail(rawToken string) error
 	ResendVerification(email string) error
 	RequestPasswordReset(email string) error
@@ -117,15 +124,21 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 	}
 
 	if request.PapfeFilename != "" {
-		doc := &PapfeDocument{
-			UserEmail:   newUser.Email,
-			Filename:    request.PapfeFilename,
-			ContentType: request.PapfeContentType,
-			Data:        request.PapfeData,
-			UploadedAt:  time.Now(),
-		}
-		if err := s.papfeRepo.Upsert(doc); err != nil {
-			log.Printf("[papfe] falha ao salvar comprovante para %s: %v", newUser.Email, err)
+		filePath, fileErr := savePapfeFile(request.PapfeData, request.PapfeContentType)
+		if fileErr != nil {
+			log.Printf("[papfe] falha ao salvar arquivo para %s: %v", newUser.Email, fileErr)
+		} else {
+			doc := &PapfeDocument{
+				UserEmail:   newUser.Email,
+				Filename:    request.PapfeFilename,
+				ContentType: request.PapfeContentType,
+				FilePath:    filePath,
+				UploadedAt:  time.Now(),
+			}
+			if err := s.papfeRepo.Upsert(doc); err != nil {
+				log.Printf("[papfe] falha ao salvar comprovante para %s: %v", newUser.Email, err)
+				_ = os.Remove(filePath)
+			}
 		}
 	}
 
@@ -399,6 +412,92 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 // DeleteUser remove um usuário do sistema a partir do seu ID.
 func (s *userService) DeleteUser(id uint) error {
 	return s.repo.Delete(id)
+}
+
+const papfeUploadDir = "uploads/papfe"
+
+func contentTypeToExt(ct string) string {
+	switch ct {
+	case "application/pdf":
+		return ".pdf"
+	case "image/jpeg":
+		return ".jpg"
+	case "image/png":
+		return ".png"
+	case "image/webp":
+		return ".webp"
+	default:
+		return ""
+	}
+}
+
+// savePapfeFile grava os bytes em disco e retorna o path relativo (uploads/papfe/<hex><ext>).
+func savePapfeFile(data []byte, contentType string) (string, error) {
+	if err := os.MkdirAll(papfeUploadDir, 0755); err != nil {
+		return "", err
+	}
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	filename := hex.EncodeToString(b) + contentTypeToExt(contentType)
+	filePath := filepath.Join(papfeUploadDir, filename)
+	if err := os.WriteFile(filePath, data, 0644); err != nil {
+		return "", err
+	}
+	return filePath, nil
+}
+
+// GetAllPapfeDocuments retorna metadados de todos os comprovantes PAPFE cadastrados.
+func (s *userService) GetAllPapfeDocuments() ([]PapfeDocumentInfo, error) {
+	docs, err := s.papfeRepo.FindAll()
+	if err != nil {
+		return nil, err
+	}
+	return docs, nil
+}
+
+// GetPapfeDocument retorna o comprovante PAPFE de um usuário pelo e-mail.
+func (s *userService) GetPapfeDocument(email string) (*PapfeDocument, error) {
+	doc, err := s.papfeRepo.FindByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	return doc, nil
+}
+
+// UpdatePapfeDocument atualiza (ou insere) o comprovante PAPFE do usuário autenticado.
+// O arquivo anterior é removido do disco antes de salvar o novo.
+func (s *userService) UpdatePapfeDocument(email string, filename string, contentType string, data []byte) error {
+	oldDoc, _ := s.papfeRepo.FindByEmail(email)
+
+	filePath, err := savePapfeFile(data, contentType)
+	if err != nil {
+		return apierrors.InternalServerError("Erro ao salvar comprovante PAPFE em disco", err)
+	}
+
+	doc := &PapfeDocument{
+		UserEmail:   email,
+		Filename:    filename,
+		ContentType: contentType,
+		FilePath:    filePath,
+		UploadedAt:  time.Now(),
+		IsApproved:  nil, // reset para pendente ao enviar novo comprovante
+	}
+	if err := s.papfeRepo.Upsert(doc); err != nil {
+		_ = os.Remove(filePath)
+		return apierrors.InternalServerError("Erro ao atualizar comprovante PAPFE", err)
+	}
+
+	if oldDoc != nil && oldDoc.FilePath != "" && oldDoc.FilePath != filePath {
+		_ = os.Remove(oldDoc.FilePath)
+	}
+	return nil
+}
+
+// ApprovePapfeDocument atualiza o status de aprovação do comprovante PAPFE de um usuário.
+func (s *userService) ApprovePapfeDocument(email string, approved bool) error {
+	return s.papfeRepo.UpdateApproval(email, approved)
 }
 
 func (s *userService) RequestPasswordReset(email string) error {

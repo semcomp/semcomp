@@ -26,7 +26,7 @@ export function Notification({ message, type = "info", visible, duration = 2500,
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.25 }}
-          className="fixed left-1/2 top-6 z-50 -translate-x-1/2 w-[min(90vw,500px)] min-w-70 rounded-lg shadow-lg"
+          className="fixed left-1/2 top-6 z-[9999] -translate-x-1/2 w-[min(90vw,500px)] min-w-70 rounded-lg shadow-lg"
           style={{ backgroundColor: p.light, borderTop: `4px solid ${p.dark}` }}
         >
           <div className="px-6 py-4 text-center">
