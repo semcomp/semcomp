@@ -205,7 +205,7 @@ func NewPapfeDocumentRepository(db *gorm.DB) PapfeDocumentRepository {
 func (r *papfeDocumentRepository) FindAll() ([]PapfeDocumentInfo, error) {
 	var result []PapfeDocumentInfo
 	err := r.db.Table("papfe_documents pd").
-		Select("pd.id, u.user_number, u.name AS user_name, pd.user_email, pd.filename, pd.content_type, pd.uploaded_at, pd.is_approved").
+		Select("u.user_number, u.name AS user_name, pd.user_email, pd.filename, pd.content_type, pd.uploaded_at, pd.is_approved").
 		Joins("JOIN users u ON u.email = pd.user_email").
 		Order("pd.uploaded_at DESC").
 		Scan(&result).Error

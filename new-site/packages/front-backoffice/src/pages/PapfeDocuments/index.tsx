@@ -1,6 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
+import { CrudTable } from "@/components/CrudTable";
+import type { CrudField } from "@/components/CrudTable";
+import type { CrudItemType } from "@/types/CrudItem";
 import { Tabs } from "@/constants/Tabs";
 import { papfeAPI } from "@/api/users";
 import type { PapfeDocumentInfo } from "@/api/users";
@@ -8,6 +11,7 @@ import { useNotification } from "@/contexts/NotificationContext";
 import { useHasPermission } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Eye } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,14 +19,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 type ModalState =
   | { open: false }
@@ -36,6 +32,41 @@ function StatusBadge({ value }: { value: boolean | null }) {
   return <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/20">Pendente</Badge>;
 }
 
+const FIELDS: CrudField[] = [
+  { value: "user_name", label: "Participante" },
+  { value: "uploaded_at", label: "Enviado em", type: "date" },
+  {
+    value: "status",
+    label: "Status",
+    type: "select",
+    selectVariants: {
+      Pendente: "bg-amber-500/15 text-amber-400 border-amber-500/20",
+      Aprovado: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+      Rejeitado: "bg-red-500/15 text-red-400 border-red-500/20",
+    },
+  },
+];
+
+interface PapfeRow extends CrudItemType {
+  user_name: string;
+  user_email: string;
+  uploaded_at: string;
+  status: string;
+}
+
+const toRow = (doc: PapfeDocumentInfo): PapfeRow => ({
+  id: String(doc.id),
+  user_name: doc.user_name,
+  user_email: doc.user_email,
+  uploaded_at: doc.uploaded_at,
+  status:
+    doc.is_approved === true
+      ? "Aprovado"
+      : doc.is_approved === false
+      ? "Rejeitado"
+      : "Pendente",
+});
+
 export default function PapfeDocuments() {
   const canWrite = useHasPermission("PAPFE", "RW");
   const navigate = useNavigate();
@@ -45,6 +76,8 @@ export default function PapfeDocuments() {
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [approving, setApproving] = useState(false);
+
+  const rows = useMemo(() => documents.map(toRow), [documents]);
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -75,10 +108,13 @@ export default function PapfeDocuments() {
   };
 
   const closeModal = () => {
-    if (modal.open && modal.blobUrl) {
-      URL.revokeObjectURL(modal.blobUrl);
-    }
+    if (modal.open && modal.blobUrl) URL.revokeObjectURL(modal.blobUrl);
     setModal({ open: false });
+  };
+
+  const handleAction = (item: CrudItemType) => {
+    const doc = documents.find((d) => String(d.id) === item.id);
+    if (doc) openModal(doc);
   };
 
   const handleApproval = async (approved: boolean) => {
@@ -97,22 +133,13 @@ export default function PapfeDocuments() {
       );
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        "Erro ao atualizar aprovação";
+        (err as { response?: { data?: { error?: string } } })?.response?.data
+          ?.error ?? "Erro ao atualizar aprovação";
       showNotification(msg, "error");
     } finally {
       setApproving(false);
     }
   };
-
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6 overflow-x-auto scrollbar-hide">
@@ -130,44 +157,22 @@ export default function PapfeDocuments() {
       />
 
       <div className="rounded-xl border border-border bg-card/80 p-5">
-        {loading ? (
+        {loading && rows.length === 0 && (
           <div className="flex items-center justify-center py-12">
             <p className="text-slate-400">Carregando comprovantes...</p>
           </div>
-        ) : documents.length === 0 ? (
-          <div className="flex items-center justify-center py-12">
-            <p className="text-slate-400">Nenhum comprovante PAPFE cadastrado.</p>
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Participante</TableHead>
-                <TableHead>E-mail</TableHead>
-                <TableHead>Enviado em</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {documents.map((doc) => (
-                <TableRow key={doc.id}>
-                  <TableCell className="font-medium">{doc.user_name}</TableCell>
-                  <TableCell className="text-muted-foreground">{doc.user_email}</TableCell>
-                  <TableCell className="text-muted-foreground">{formatDate(doc.uploaded_at)}</TableCell>
-                  <TableCell>
-                    <StatusBadge value={doc.is_approved} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button size="sm" variant="outline" onClick={() => openModal(doc)}>
-                      Ver documento
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
         )}
+        <CrudTable
+          data={rows}
+          fields={FIELDS}
+          onEdit={() => {}}
+          onDelete={() => {}}
+          canWrite={false}
+          onAction={handleAction}
+          actionIcon={<Eye className="w-3.5 h-3.5" />}
+          actionTitle="Ver documento"
+          entityLabel="comprovante"
+        />
       </div>
 
       <Dialog open={modal.open} onOpenChange={(open) => { if (!open) closeModal(); }}>
@@ -178,9 +183,7 @@ export default function PapfeDocuments() {
           {modal.open && (
             <>
               <DialogHeader>
-                <DialogTitle>
-                  Comprovante de {modal.doc.user_name}
-                </DialogTitle>
+                <DialogTitle>Comprovante de {modal.doc.user_name}</DialogTitle>
                 <p className="text-sm text-muted-foreground">{modal.doc.user_email}</p>
               </DialogHeader>
 
