@@ -12,10 +12,11 @@ const (
 
 // Product é a entidade base de um produto
 type Product struct {
-	ID        uint        `gorm:"primaryKey;autoIncrement" json:"id"`
-	Type      ProductType `gorm:"size:10;not null" json:"type"`
-	IsSelling bool        `gorm:"not null" json:"is_selling"`
-	Price     float64     `gorm:"not null" json:"price"`
+	ID         uint        `gorm:"primaryKey;autoIncrement" json:"id"`
+	Type       ProductType `gorm:"size:10;not null" json:"type"`
+	IsSelling  bool        `gorm:"not null" json:"is_selling"`
+	Price      float64     `gorm:"not null" json:"price"`
+	PictureURL string      `gorm:"size:255" json:"picture_url"`
 
 	// Relacionamentos (preload)
 	// li que é uma boa prática usar isso aqui

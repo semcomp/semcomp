@@ -1,5 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
-// import RequireAuth from "@/lib/RequireAuth";
+import RequireAuth from "@/lib/RequireAuth";
 import FeatureGuard from "@/components/FeatureGuard";
 
 export const router = createBrowserRouter([
@@ -41,25 +41,15 @@ export const router = createBrowserRouter([
               return { Component: LoginPage };
             },
           },
+          {
+            path: "reset-password",
+            lazy: async () => {
+              const { default: ResetPasswordPage } = await import("@/pages/ResetPassword");
+              return { Component: ResetPasswordPage };
+            },
+          },
         ],
       },
-      // {
-      //   element: <FeatureGuard featureKey="profile" />,
-      //   children: [
-      //     {
-      //       element: <RequireAuth />,
-      //       children: [
-      //         {
-      //           path: "profile",
-      //           lazy: async () => {
-      //             const { default: ProfilePage } = await import("@/pages/Profile");
-      //             return { Component: ProfilePage };
-      //           },
-      //         },
-      //       ],
-      //     },
-      //   ],
-      // },
       {
         path: "verify-email",
         lazy: async () => {
@@ -68,11 +58,47 @@ export const router = createBrowserRouter([
         },
       },
       {
-        path: "reset-password",
-        lazy: async () => {
-          const { default: ResetPasswordPage } = await import("@/pages/ResetPassword");
-          return { Component: ResetPasswordPage };
-        },
+        element: <RequireAuth />,
+        children: [
+          {
+            element: <FeatureGuard featureKey="login" />,
+            children: [
+              {
+                path: "profile",
+                lazy: async () => {
+                  const { default: ProfilePage } = await import("@/pages/Profile");
+                  return { Component: ProfilePage };
+                },
+              }
+            ],  
+          },
+          {
+            element: <FeatureGuard featureKey="loja" />,
+            children: [
+              {
+                path: "loja",
+                lazy: async () => {
+                  const { default: StorePage } = await import("@/pages/Store/StorePage");
+                  return { Component: StorePage };
+                },
+              },
+              {
+                path: "loja/carrinho",
+                lazy: async () => {
+                  const { default: CartPage } = await import("@/pages/Store/Cart");
+                  return { Component: CartPage };
+                },
+              },
+              {
+                path: "loja/checkout",
+                lazy: async () => {
+                  const { default: CheckoutPage } = await import("@/pages/Store/Checkout");
+                  return { Component: CheckoutPage };
+                },
+              },
+            ],
+          },
+        ],
       },
       {
         path: "*",

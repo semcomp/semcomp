@@ -45,15 +45,18 @@ func strPtr(s string) *string { return &s }
 
 func GetInitialPermissions(email string) []PermissionRequest {
 	rw := strPtr("RW")
-	return []PermissionRequest{
-		{email, "Eventos", rw},
-		{email, "Usuários Backoffice", rw},
-		{email, "Usuários Semcomp", rw},
-		{email, "Participações", rw},
-		{email, "Permissões", rw},
-		{email, "Páginas", rw},
-		{email, "Produtos", rw},
+
+	permissions := make([]PermissionRequest, 0, len(KnownSections))
+
+	for _, section := range KnownSections {
+		permissions = append(permissions, PermissionRequest{
+			UserEmail:      email,
+			SectionName:    section,
+			PermissionType: rw,
+		})
 	}
+
+	return permissions
 }
 
 func (s *permissionService) SeedUserPermissions(email string) error {

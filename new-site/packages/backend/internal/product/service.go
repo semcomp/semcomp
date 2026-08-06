@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"time"
 
 	"backend/internal/apierrors"
 
@@ -16,6 +17,7 @@ type ProductService interface {
 	DeleteProductByID(id string) error
 	UpdateProductByID(id string, request UpdateProductRequest) (*Product, error)
 	GetProducts(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*ProductListResult, error)
+	InitializeProducts() error
 }
 
 type productService struct {
@@ -24,6 +26,79 @@ type productService struct {
 
 func NewProductService(repo ProductRepository) ProductService {
 	return &productService{repo: repo}
+}
+
+const (
+	initialCoffeeName  = "Coffee Break Semcomp"
+	initialCoffeePrice = 12.0
+	initialComboPrice  = 20.0
+)
+
+func (s *productService) InitializeProducts() error {
+	seedProducts, err := s.repo.GetProducts(ProductListQuery{
+		Limit:       1000,
+		Offset:      0,
+		SortBy:      "id",
+		SortOrder:   "asc",
+		SearchBy:    "",
+		SearchValue: "",
+	})
+	if err != nil {
+		return apierrors.InternalServerError("Erro ao carregar produtos iniciais", err)
+	}
+
+	var coffeeID uint
+	coffeeExists := false
+	comboExists := false
+
+	for i := range seedProducts.Products {
+		product := seedProducts.Products[i]
+		if product.Type == ProductTypeCoffee && product.Coffee != nil && product.Coffee.Name == initialCoffeeName {
+			coffeeID = product.ID
+			coffeeExists = true
+		}
+	}
+
+	if !coffeeExists {
+		coffee, err := s.CreateProduct(CreateProductRequest{
+			Type:      ProductTypeCoffee,
+			IsSelling: true,
+			Price:     initialCoffeePrice,
+			Coffee: &CreateCoffeeRequest{
+				Name:     initialCoffeeName,
+				DateTime: time.Date(2026, time.August, 1, 9, 0, 0, 0, time.UTC),
+			},
+		})
+		if err != nil {
+			return err
+		}
+		coffeeID = coffee.ID
+	}
+
+	for i := range seedProducts.Products {
+		product := seedProducts.Products[i]
+		if product.Type != ProductTypeCombo {
+			continue
+		}
+		if product.Price == initialComboPrice && len(product.ComboItems) == 1 && product.ComboItems[0].ItemID == coffeeID {
+			comboExists = true
+			break
+		}
+	}
+
+	if !comboExists {
+		_, err := s.CreateProduct(CreateProductRequest{
+			Type:      ProductTypeCombo,
+			IsSelling: true,
+			Price:     initialComboPrice,
+			Items:     []uint{coffeeID},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *productService) CreateProduct(request CreateProductRequest) (*Product, error) {

@@ -3,7 +3,7 @@ import QRCode from "react-qr-code";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 import ContatoSection from "../Home/sections/ContatoSection";
-import { useAuth } from "@/contexts/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { authAPI } from "@/api";
 import { ChevronDown } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
@@ -17,7 +17,7 @@ const HERO_IMAGES = [
   "/img/Home/Hero/Banner2.webp",
   "/img/Home/Hero/Palestra1.webp",
   "/img/Home/Hero/Palestra2.webp",
-  "/img/Home/Hero/SEMCOMP.webp",
+  "/img/Home/Hero/Semcomp.webp",
 ];
 
 const pickRandomHero = () =>
@@ -71,7 +71,7 @@ export default function Profile({
         setPresencePercent(response.presence_rate ?? 0);
       } catch (err) {
         console.error("Erro ao buscar o perfil", err);
-        logout();
+        await logout();
         showNotification("Sua sessão expirou. Faça login novamente.", "warning");
       }
     }
@@ -188,12 +188,12 @@ export default function Profile({
 
                 <div className="flex flex-col space-y-4 mb-6">
                   <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70">Nome Completo:</span>
-                    <span className="text-sm font-medium">{userName}</span>
+                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">Nome Completo:</span>
+                    <span className="text-sm font-medium text-semcompDarkBlue">{userName}</span>
                   </div>
                   <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70">E-mail:</span>
-                    <span className="text-sm font-medium">{userEmail}</span>
+                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">E-mail:</span>
+                    <span className="text-sm font-medium text-semcompDarkBlue">{userEmail}</span>
                   </div>
                 </div>
 
@@ -222,7 +222,7 @@ export default function Profile({
                   onClick={() => showNotification("Entre em contato com a organização", "info")}>
                   Editar Informações
                 </button>
-                <button className="w-full text-red-600 font-bold text-sm py-2" onClick={logout}>
+                <button className="w-full text-red-700 font-bold text-sm py-2" onClick={logout}>
                   Sair da conta
                 </button>
               </div>
@@ -306,7 +306,7 @@ export default function Profile({
       </div>
 
       {activeTab === "qr" && (
-        <div className="px-6 pb-8 bg-semcompOffWhite/50 mx-auto pt-8 h-full flex flex-col items-center overflow-y-auto">
+        <div className="px-6 pb-8 bg-semcompOffWhite/50 mx-auto pt-8 h-full flex flex-col items-center overflow-y-auto custom-scrollbar">
           <h1 className="text-2xl text-semcompMidDarkBlue font-bold mb-1">Meu QR Code</h1>
           <p className="text-md text-semcompDarkBlue/75 text-center mb-6 leading-relaxed">
             Utilize seu QR durante a{" "}
@@ -337,7 +337,7 @@ export default function Profile({
       )}
 
       {activeTab === "account" && (
-        <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300 overflow-y-auto">
+        <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300 overflow-y-auto custom-scrollbar">
           <div className="text-center mb-6">
             <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">Minha Conta</h2>
             <p className="text-md text-semcompDarkBlue/75">Veja abaixo, seus dados e presença</p>
@@ -345,12 +345,12 @@ export default function Profile({
 
           <div className="flex flex-col space-y-4 mb-6">
             <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcomp-900">Nome Completo:</span>
-              <span className="text-sm text-foreground/90">{userName}</span>
+              <span className="text-sm font-bold text-semcompDarkBlue">Nome Completo:</span>
+              <span className="text-sm text-semcompDarkBlue">{userName}</span>
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcomp-900">E-mail:</span>
-              <span className="text-sm text-foreground/90">{userEmail}</span>
+              <span className="text-sm font-bold text-semcompDarkBlue">E-mail:</span>
+              <span className="text-sm text-semcompDarkBlue">{userEmail}</span>
             </div>
           </div>
 
@@ -361,11 +361,11 @@ export default function Profile({
             Editar Informações
           </button>
 
-          <div className="bg-muted/40 rounded-xl p-5 border border-border/50">
+          <div className="bg-semcompOffWhite/40 rounded-xl p-5 border border-border/50">
             <h3 className="text-center text-semcompMidDarkBlue text-md font-bold text-semcomp-900 mb-4">
               Minha Presença na SEMCOMP
             </h3>
-            <div className="relative w-full h-8 bg-background/50 rounded-full border-5 border-border/30 overflow-hidden">
+            <div className="relative w-full h-8 bg-semcompOffWhite/50 rounded-full border-5 border-border/30 overflow-hidden">
               <div
                 className={`absolute inset-y-0 left-0 h-full bg-semcompMidDarkBlue flex items-center transition-all duration-1000 rounded-r-full ${
                   presencePercent > 15 ? "justify-end pr-4" : "justify-start"
@@ -386,7 +386,7 @@ export default function Profile({
 
           <button
             onClick={logout}
-            className="mt-6 text-xs text-white font-medium mx-auto bg-destructive/50 hover:text-semcompOffWhite hover:bg-destructive/60 transition-colors py-2 px-3 rounded-lg"
+            className="mt-6 text-xs text-white font-medium mx-auto bg-destructive/70 hover:text-semcompOffWhite hover:bg-destructive/50 transition-colors py-2 px-3 rounded-lg"
           >
             Sair da conta
           </button>

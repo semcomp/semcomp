@@ -21,6 +21,7 @@ const defaultFlags: FeatureFlags = {
   cronograma: true,
   profile: true,
   riddle: true,
+  loja: true,
 };
 
 export function FeatureFlagsProvider({

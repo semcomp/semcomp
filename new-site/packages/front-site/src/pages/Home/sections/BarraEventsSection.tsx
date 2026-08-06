@@ -8,7 +8,7 @@ const EVENTS = [
 
 export default function BarraEventsSection() {
   return (
-    <section className="bg-semcompMidDarkBlue flex justify-center">
+    <section className="bg-semcompAlmostDarkBlue flex justify-center">
       <div className="w-full sm:w-[80%] p-3 sm:p-7 flex justify-around gap-1">
         {EVENTS.map(({ icon, label }) => (
           <div

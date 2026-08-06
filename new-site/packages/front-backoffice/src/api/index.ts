@@ -12,5 +12,6 @@ export { participationAPI } from "./participation";
 export { productsAPI } from "./products";
 export { permissionsAPI } from "./permissions";
 export { pagesAPI } from "./pages";
+export { sponsorsAPI } from "./sponsors";
 export { default as client } from "./client";
 export type { LoginResponse, RegisterResponse, ProfileResponse, ApiError } from "@/types/APIResponseType";

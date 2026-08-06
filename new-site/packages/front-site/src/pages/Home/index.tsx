@@ -2,7 +2,6 @@ import { lazy, Suspense } from "react";
 import MainEntrance from "@/components/MainEntrance";
 import SobreSection from "@/pages/Home/sections/SobreSection";
 import PatrocinadoresSection from "@/pages/Home/sections/PatrocinadoresSection";
-import { SPONSORS } from "@/constants/Sponsors";
 
 const EquipeSection             = lazy(() => import("@/pages/Home/sections/EquipeSection"));
 const BarraEventsSection        = lazy(() => import("@/pages/Home/sections/BarraEventsSection"));
@@ -23,7 +22,7 @@ export default function HomePage() {
         <SobreSection className={`${sectionStyles}`} />
 
         <div className="bg-semcompMidDarkBlue">
-          <PatrocinadoresSection className={sectionStyles} sponsors={SPONSORS} />
+          <PatrocinadoresSection />
         </div>
 
         <Suspense>
@@ -33,12 +32,6 @@ export default function HomePage() {
         <Suspense>
           <BarraEventsSection />
         </Suspense>
-
-        <div className="bg-semcompLightBlue dark:bg-semcompAlmostDarkBlue">
-          <Suspense>
-            <FAQSection className={sectionStyles} />
-          </Suspense>
-        </div>
 
         <Suspense>
           <NumerosSection />
@@ -51,6 +44,12 @@ export default function HomePage() {
         <Suspense>
           <TornarPatrocinadorSection className={sectionStyles} />
         </Suspense>
+
+        <div className="bg-semcompLightBlue dark:bg-semcompAlmostDarkBlue">
+          <Suspense>
+            <FAQSection className={sectionStyles} />
+          </Suspense>
+        </div>
 
         <Suspense>
           <ContatoSection className="mx-auto py-5" />
