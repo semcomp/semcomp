@@ -164,8 +164,6 @@ export default function SalesCRUD() {
   };
 
   const openItems = async (sale: Sale) => {
-    // Se a API não retornar os itens no getAll, você precisaria fazer um fetch aqui.
-    // Baseado no seu backend gorm.Preload("Items"), eles já estão na lista.
     setItemsSale(sale);
     setItemsOpen(true);
   };
@@ -173,6 +171,7 @@ export default function SalesCRUD() {
   const handleTogglePickup = async (item: SaleItem, newValue: boolean) => {
     if (!itemsSale) return;
     try {
+      console.log(item.id.toString());
       const { item: updatedItem } = await salesAPI.updateItemPickup(item.id.toString(), newValue);
       
       // Atualiza o estado local do item dentro da venda
