@@ -29,9 +29,11 @@ func NewProductService(repo ProductRepository) ProductService {
 }
 
 const (
-	initialCoffeeName  = "Coffee Break Semcomp"
-	initialCoffeePrice = 12.0
-	initialComboPrice  = 20.0
+	initialCoffeeName   = "Coffee Break Semcomp"
+	initialCoffeePrice  = 12.0
+	initialComboPrice   = 20.0
+	initialComboQty     = 2
+	minComboTotalItems  = 2 // soma mínima de quantidades entre os itens de um combo
 )
 
 func (s *productService) InitializeProducts() error {
@@ -80,18 +82,24 @@ func (s *productService) InitializeProducts() error {
 		if product.Type != ProductTypeCombo {
 			continue
 		}
-		if product.Price == initialComboPrice && len(product.ComboItems) == 1 && product.ComboItems[0].ItemID == coffeeID {
+		if product.Price == initialComboPrice &&
+			len(product.ComboItems) == 1 &&
+			product.ComboItems[0].ItemID == coffeeID &&
+			product.ComboItems[0].Quantity == initialComboQty {
 			comboExists = true
 			break
 		}
 	}
 
 	if !comboExists {
+		// Combo de 2x o mesmo café (satisfaz a regra de "mais de um item" via quantidade).
 		_, err := s.CreateProduct(CreateProductRequest{
 			Type:      ProductTypeCombo,
 			IsSelling: true,
 			Price:     initialComboPrice,
-			Items:     []uint{coffeeID},
+			Items: []ComboItemRequest{
+				{ItemID: coffeeID, Quantity: initialComboQty},
+			},
 		})
 		if err != nil {
 			return err
@@ -99,6 +107,53 @@ func (s *productService) InitializeProducts() error {
 	}
 
 	return nil
+}
+
+// buildComboItems valida a lista de itens de um combo e retorna os ComboItems prontos
+// para persistir. excludeProductID é o ID do produto sendo atualizado (para impedir que
+// um combo referencie a si mesmo); passe nil na criação, onde ainda não existe ID.
+func (s *productService) buildComboItems(items []ComboItemRequest, excludeProductID *uint) ([]ComboItem, error) {
+	if len(items) == 0 {
+		return nil, apierrors.ValidationError("Um combo deve conter ao menos um item", nil)
+	}
+
+	seen := make(map[uint]bool, len(items))
+	totalQuantity := 0
+
+	for _, it := range items {
+		if excludeProductID != nil && it.ItemID == *excludeProductID {
+			return nil, apierrors.ValidationError("Um combo não pode conter a si mesmo como item", nil)
+		}
+		if seen[it.ItemID] {
+			return nil, apierrors.ValidationError(
+				"Item duplicado na lista do combo: ID "+strconv.Itoa(int(it.ItemID))+" (ajuste a quantidade em vez de repetir o item)",
+				nil,
+			)
+		}
+		seen[it.ItemID] = true
+		totalQuantity += it.Quantity
+
+		item, err := s.repo.GetByID(it.ItemID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, apierrors.ValidationError("Item do combo não encontrado: ID "+strconv.Itoa(int(it.ItemID)), nil)
+			}
+			return nil, apierrors.InternalServerError("Erro ao validar item do combo", err)
+		}
+		if item.Type == ProductTypeCombo {
+			return nil, apierrors.ValidationError("Um combo não pode conter outro combo como item: ID "+strconv.Itoa(int(it.ItemID)), nil)
+		}
+	}
+
+	if totalQuantity < minComboTotalItems {
+		return nil, apierrors.ValidationError("Um combo deve conter mais de um item (quantidade total mínima: 2)", nil)
+	}
+
+	comboItems := make([]ComboItem, 0, len(items))
+	for _, it := range items {
+		comboItems = append(comboItems, ComboItem{ItemID: it.ItemID, Quantity: it.Quantity})
+	}
+	return comboItems, nil
 }
 
 func (s *productService) CreateProduct(request CreateProductRequest) (*Product, error) {
@@ -130,27 +185,9 @@ func (s *productService) CreateProduct(request CreateProductRequest) (*Product, 
 		}
 
 	case ProductTypeCombo:
-		if len(request.Items) == 0 {
-			return nil, apierrors.ValidationError("Um combo deve conter ao menos um item", nil)
-		}
-
-		// Valida que os itens existem e não são combos
-		for _, itemID := range request.Items {
-			item, err := s.repo.GetByID(itemID)
-			if err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return nil, apierrors.ValidationError("Item do combo não encontrado: ID "+strconv.Itoa(int(itemID)), nil)
-				}
-				return nil, apierrors.InternalServerError("Erro ao validar item do combo", err)
-			}
-			if item.Type == ProductTypeCombo {
-				return nil, apierrors.ValidationError("Um combo não pode conter outro combo como item: ID "+strconv.Itoa(int(itemID)), nil)
-			}
-		}
-
-		comboItems := make([]ComboItem, 0, len(request.Items))
-		for _, itemID := range request.Items {
-			comboItems = append(comboItems, ComboItem{ItemID: itemID})
+		comboItems, err := s.buildComboItems(request.Items, nil)
+		if err != nil {
+			return nil, err
 		}
 		product.ComboItems = comboItems
 
@@ -242,6 +279,8 @@ func (s *productService) UpdateProductByID(id string, request UpdateProductReque
 		Price:     request.Price,
 	}
 
+	productIDForSelfCheck := uint(parsedID)
+
 	switch request.Type {
 	case ProductTypeKit:
 		if request.Kit == nil {
@@ -264,27 +303,9 @@ func (s *productService) UpdateProductByID(id string, request UpdateProductReque
 		}
 
 	case ProductTypeCombo:
-		if len(request.Items) == 0 {
-			return nil, apierrors.ValidationError("Um combo deve conter ao menos um item", nil)
-		}
-
-		// Valida que os itens existem e não são combos
-		for _, itemID := range request.Items {
-			item, err := s.repo.GetByID(itemID)
-			if err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return nil, apierrors.ValidationError("Item do combo não encontrado: ID "+strconv.Itoa(int(itemID)), nil)
-				}
-				return nil, apierrors.InternalServerError("Erro ao validar item do combo", err)
-			}
-			if item.Type == ProductTypeCombo {
-				return nil, apierrors.ValidationError("Um combo não pode conter outro combo como item: ID "+strconv.Itoa(int(itemID)), nil)
-			}
-		}
-
-		comboItems := make([]ComboItem, 0, len(request.Items))
-		for _, itemID := range request.Items {
-			comboItems = append(comboItems, ComboItem{ItemID: itemID})
+		comboItems, err := s.buildComboItems(request.Items, &productIDForSelfCheck)
+		if err != nil {
+			return nil, err
 		}
 		product.ComboItems = comboItems
 

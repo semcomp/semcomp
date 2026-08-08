@@ -39,7 +39,7 @@ func (r *productRepository) GetByID(id uint) (*Product, error) {
 	err := r.db.
 		Preload("Kit").
 		Preload("Coffee").
-		Preload("ComboItems").
+		Preload("ComboItems.Item").
 		Where("id = ?", id).
 		First(&product).Error
 	if err != nil {
@@ -71,7 +71,13 @@ func (r *productRepository) DeleteByID(id uint) error {
 
 func (r *productRepository) UpdateByID(id uint, product *Product) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		// Atualiza campos base do produto
+		// Precisa saber o tipo ANTIGO antes de sobrescrever, para poder limpar
+		// a especialização anterior caso o Type tenha mudado (ex: KIT -> COMBO).
+		var current Product
+		if err := tx.Where("id = ?", id).First(&current).Error; err != nil {
+			return err
+		}
+
 		result := tx.Model(&Product{}).
 			Where("id = ?", id).
 			Updates(map[string]interface{}{
@@ -86,7 +92,25 @@ func (r *productRepository) UpdateByID(id uint, product *Product) error {
 			return gorm.ErrRecordNotFound
 		}
 
-		// Atualiza especialização
+		// Tipo mudou: limpa a especialização antiga para não deixar dado órfão
+		if current.Type != product.Type {
+			switch current.Type {
+			case ProductTypeKit:
+				if err := tx.Where("id = ?", id).Delete(&Kit{}).Error; err != nil {
+					return err
+				}
+			case ProductTypeCoffee:
+				if err := tx.Where("id = ?", id).Delete(&Coffee{}).Error; err != nil {
+					return err
+				}
+			case ProductTypeCombo:
+				if err := tx.Where("combo_id = ?", id).Delete(&ComboItem{}).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		// Atualiza especialização do tipo atual
 		switch product.Type {
 		case ProductTypeKit:
 			if product.Kit != nil {
@@ -103,7 +127,7 @@ func (r *productRepository) UpdateByID(id uint, product *Product) error {
 				}
 			}
 		case ProductTypeCombo:
-			// Remove itens antigos e insere os novos
+			// Remove itens antigos e insere os novos (substituição completa)
 			if err := tx.Where("combo_id = ?", id).Delete(&ComboItem{}).Error; err != nil {
 				return err
 			}
@@ -182,7 +206,7 @@ func (r *productRepository) GetProducts(query ProductListQuery) (*ProductListRes
 	err = dataQuery.
 		Preload("Kit").
 		Preload("Coffee").
-		Preload("ComboItems").
+		Preload("ComboItems.Item").
 		Order(sortClause).
 		Limit(query.Limit).
 		Offset(query.Offset).

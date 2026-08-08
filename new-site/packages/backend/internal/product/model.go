@@ -5,9 +5,9 @@ import "time"
 type ProductType string
 
 const (
-	ProductTypeKit   ProductType = "KIT"
+	ProductTypeKit    ProductType = "KIT"
 	ProductTypeCoffee ProductType = "COFFEE"
-	ProductTypeCombo ProductType = "COMBO"
+	ProductTypeCombo  ProductType = "COMBO"
 )
 
 // Product é a entidade base de um produto
@@ -22,7 +22,7 @@ type Product struct {
 	// li que é uma boa prática usar isso aqui
 	Kit        *Kit        `gorm:"foreignKey:ID;constraint:OnDelete:CASCADE" json:"kit,omitempty"`
 	Coffee     *Coffee     `gorm:"foreignKey:ID;constraint:OnDelete:CASCADE" json:"coffee,omitempty"`
-	ComboItems []ComboItem `gorm:"foreignKey:ComboID;constraint:OnDelete:CASCADE" json:"combo_items,omitempty"`
+	ComboItems []ComboItem `gorm:"foreignKey:ComboID;references:ID;constraint:OnDelete:CASCADE" json:"combo_items,omitempty"`
 }
 
 // Kit é uma especialização de Product (tipo KIT)
@@ -43,10 +43,16 @@ type Coffee struct {
 	DateTime time.Time `gorm:"type:timestamptz;not null" json:"date_time"`
 }
 
-// ComboItem representa a relação N:M entre um combo e seus itens
+// ComboItem representa a relação N:M entre um combo e os produtos que o compõem.
+// ComboID e ItemID apontam para Product (self-referencing).
 type ComboItem struct {
-	ComboID uint `gorm:"primaryKey;not null" json:"combo_id"`
-	ItemID  uint `gorm:"primaryKey;not null" json:"item_id"`
+	ComboID  uint `gorm:"primaryKey;not null" json:"combo_id"`
+	ItemID   uint `gorm:"primaryKey;not null" json:"item_id"`
+	Quantity int  `gorm:"not null;default:1" json:"quantity"`
+
+	// Produto completo do item (permite Preload("ComboItems.Item")).
+	// RESTRICT: não deixa apagar um produto que ainda está sendo usado dentro de um combo.
+	Item *Product `gorm:"foreignKey:ItemID;references:ID;constraint:OnDelete:RESTRICT" json:"item,omitempty"`
 }
 
 // DTOs de Requisição ---------
@@ -63,13 +69,19 @@ type CreateCoffeeRequest struct {
 	DateTime time.Time `json:"date_time" binding:"required"`
 }
 
+// ComboItemRequest representa um item dentro de um combo, com a quantidade desejada.
+type ComboItemRequest struct {
+	ItemID   uint `json:"item_id" binding:"required"`
+	Quantity int  `json:"quantity" binding:"required,min=1"`
+}
+
 type CreateProductRequest struct {
 	Type      ProductType          `json:"type" binding:"required,oneof=KIT COFFEE COMBO"`
 	IsSelling bool                 `json:"is_selling"`
 	Price     float64              `json:"price" binding:"required,gt=0"`
 	Kit       *CreateKitRequest    `json:"kit,omitempty"`
 	Coffee    *CreateCoffeeRequest `json:"coffee,omitempty"`
-	Items     []uint               `json:"items,omitempty"`
+	Items     []ComboItemRequest   `json:"items,omitempty"`
 }
 
 type UpdateKitRequest struct {
@@ -90,7 +102,7 @@ type UpdateProductRequest struct {
 	Price     float64              `json:"price" binding:"required,gt=0"`
 	Kit       *UpdateKitRequest    `json:"kit,omitempty"`
 	Coffee    *UpdateCoffeeRequest `json:"coffee,omitempty"`
-	Items     []uint               `json:"items,omitempty"`
+	Items     []ComboItemRequest   `json:"items,omitempty"`
 }
 
 // DTOs de Listagem ---------
