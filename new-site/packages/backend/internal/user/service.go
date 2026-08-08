@@ -24,7 +24,6 @@ var (
 	ErrInternalServerError = errors.New("erro interno")
 )
 
-
 // UserService define as regras de negócio para operações relacionadas a usuários.
 type UserService interface {
 	CreateUser(request CreateUserRequest) (*SafeUser, error)
@@ -115,7 +114,9 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 		Profession:    request.Profession,
 		Linkedin:      request.Linkedin,
 		Telegram:      request.Telegram,
-		PresenceRate:  0.0,
+		QuerCracha:               request.QuerCracha,
+		AutorizaCompartilhamento: request.AutorizaCompartilhamento,
+		PresenceRate:             0.0,
 		EmailVerified: false,
 	}
 
@@ -291,17 +292,17 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 
 	// Definição dos campos possíveis para ordenação
 	allowedSortFields := map[string]bool{
-		"user_number":  true,
-		"name":         true,
-		"email":        true,
-		"age":          true,
-		"gender":       true,
-		"city":         true,
-		"education":    true,
-		"has_papfe":    true,
-		"profession":   true,
-		"linkedin":     true,
-		"telegram":     true,
+		"user_number": true,
+		"name":        true,
+		"email":       true,
+		"age":         true,
+		"gender":      true,
+		"city":        true,
+		"education":   true,
+		"has_papfe":   true,
+		"profession":  true,
+		"linkedin":    true,
+		"telegram":    true,
 	}
 
 	if !allowedSortFields[sortBy] {
@@ -405,6 +406,7 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 	user.Profession = request.Profession
 	user.Linkedin = request.Linkedin
 	user.Telegram = request.Telegram
+	user.QuerCracha = request.QuerCracha
 
 	return s.repo.Update(user)
 }
