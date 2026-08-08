@@ -114,8 +114,9 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 		Profession:    request.Profession,
 		Linkedin:      request.Linkedin,
 		Telegram:      request.Telegram,
-		QuerCracha:    request.QuerCracha,
-		PresenceRate:  0.0,
+		QuerCracha:               request.QuerCracha,
+		AutorizaCompartilhamento: request.AutorizaCompartilhamento,
+		PresenceRate:             0.0,
 		EmailVerified: false,
 	}
 

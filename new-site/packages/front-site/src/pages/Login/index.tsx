@@ -61,6 +61,7 @@ export default function LoginPage(): ReactElement {
     const [hasPapfe, setHasPapfe] = useState(false);
     const [papfeFile, setPapfeFile] = useState<File | null>(null);
     const [querCracha, setQuerCracha] = useState(false);
+    const [autorizaCompartilhamento, setAutorizaCompartilhamento] = useState(false);
 
     const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
     const [forgotEmail, setForgotEmail] = useState("");
@@ -108,6 +109,7 @@ export default function LoginPage(): ReactElement {
         setEducation(""); setProfession(""); setLinkedin(""); setTelegram("");
         setHasPapfe(false); setPapfeFile(null); setHasDisability(false); setDisabilities([]);
         setQuerCracha(false);
+        setAutorizaCompartilhamento(false);
     }, []);
 
     useEffect(() => {
@@ -176,6 +178,7 @@ export default function LoginPage(): ReactElement {
             const response = await authAPI.register(
                 name, email, password, Number(age), gender, city, education,
                 hasPapfe, hasDisability ? disabilities : [], querCracha,
+                autorizaCompartilhamento,
                 profession, linkedin, telegram, papfeFile,
             );
             showNotification(response.message || "Registro realizado!", "success");
@@ -185,7 +188,7 @@ export default function LoginPage(): ReactElement {
             showNotification(message, "warning");
             return false;
         }
-    }, [name, email, password, age, gender, city, education, profession, linkedin, telegram, hasPapfe, papfeFile, hasDisability, disabilities, querCracha, showNotification]);
+    }, [name, email, password, age, gender, city, education, profession, linkedin, telegram, hasPapfe, papfeFile, hasDisability, disabilities, querCracha, autorizaCompartilhamento, showNotification]);
 
     const handleResend = useCallback(async () => {
         if (!pendingVerificationEmail || resendCooldown > 0) return;
@@ -472,6 +475,11 @@ export default function LoginPage(): ReactElement {
                                         Termos de Serviço
                                     </button>
                                 </span>
+                            </label>
+
+                            <label className="flex items-center gap-2 text-md">
+                                <input type="checkbox" checked={autorizaCompartilhamento} onChange={(e) => setAutorizaCompartilhamento(e.target.checked)} className="w-4 h-4 rounded accent-semcompMidDarkBlue cursor-pointer" />
+                                <span>Autorizo o compartilhamento das minhas informações com os patrocinadores do evento</span>
                             </label>
                         </>
                     )}

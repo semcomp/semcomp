@@ -16,6 +16,7 @@ type SafeSemcompUser = {
   linkedin?: string;
   telegram?: string;
   quer_cracha?: boolean;
+  autoriza_compartilhamento?: boolean;
 };
 
 export type PapfeDocumentInfo = {
@@ -59,6 +60,7 @@ const mapBackendUser = (user: SafeSemcompUser): SemcompUserType => {
     linkedin: user.linkedin,
     telegram: user.telegram,
     quer_cracha: user.quer_cracha ?? false,
+    autoriza_compartilhamento: user.autoriza_compartilhamento ?? false,
   };
 };
 

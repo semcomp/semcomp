@@ -44,6 +44,7 @@ export const authAPI = {
    * @param hasPapfe Indica se o usuário possui PAPFE
    * @param disabilities Deficiências do usuário
    * @param querCracha Indica se o usuário deseja retirar o crachá físico no evento
+   * @param autorizaCompartilhamento Indica se o usuário autoriza o compartilhamento de dados com patrocinadores
    * @param profession Profissão do usuário (opcional)
    * @param linkedin Perfil do LinkedIn do usuário (opcional)
    * @param telegram Perfil do Telegram do usuário (opcional)
@@ -61,6 +62,7 @@ export const authAPI = {
     hasPapfe: boolean,
     disabilities: string[],
     querCracha: boolean,
+    autorizaCompartilhamento: boolean,
     profession?: string,
     linkedin?: string,
     telegram?: string,
@@ -77,6 +79,7 @@ export const authAPI = {
     fd.append("hasPapfe", String(hasPapfe));
     fd.append("disabilities", disabilities.join(", "));
     fd.append("quer_cracha", String(querCracha));
+    fd.append("autoriza_compartilhamento", String(autorizaCompartilhamento));
     if (profession?.trim()) fd.append("profession", profession.trim());
     if (linkedin?.trim()) fd.append("linkedin", linkedin.trim());
     if (telegram?.trim()) fd.append("telegram", telegram.trim());

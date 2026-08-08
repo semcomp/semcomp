@@ -37,4 +37,5 @@ export const fields: CrudField[] = [
   { value: "linkedin", label: "LinkedIn", type: "text" },
   { value: "telegram", label: "Telegram", type: "text" },
   { value: "quer_cracha", label: "Quer crachá?", type: "boolean" },
+  { value: "autoriza_compartilhamento", label: "Autoriza compartilhamento com patrocinadores?", type: "boolean", readonly: true },
 ];

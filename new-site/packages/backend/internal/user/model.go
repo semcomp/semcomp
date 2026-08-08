@@ -34,7 +34,8 @@ type User struct {
 	Linkedin      *string `gorm:"size:255" json:"linkedin,omitempty"`
 	Telegram      *string `gorm:"size:255" json:"telegram,omitempty"`
 	PresenceRate  float64 `gorm:"not null" json:"presence_rate"`
-	QuerCracha    bool    `gorm:"not null;default:false" json:"quer_cracha"`
+	QuerCracha                  bool    `gorm:"not null;default:false" json:"quer_cracha"`
+	AutorizaCompartilhamento    bool    `gorm:"not null;default:false" json:"autoriza_compartilhamento"`
 
 	EmailVerified              bool   `gorm:"not null;default:false" json:"email_verified"`
 	VerificationTokenHash      string `gorm:"size:255"`
@@ -57,7 +58,8 @@ type CreateUserRequest struct {
 	Profession   *string `form:"profession"   json:"profession,omitempty"`
 	Linkedin     *string `form:"linkedin"     json:"linkedin,omitempty"`
 	Telegram     *string `form:"telegram"     json:"telegram,omitempty"`
-	QuerCracha   bool    `form:"quer_cracha"  json:"quer_cracha"`
+	QuerCracha                bool    `form:"quer_cracha"               json:"quer_cracha"`
+	AutorizaCompartilhamento  bool    `form:"autoriza_compartilhamento" json:"autoriza_compartilhamento"`
 
 	// Preenchidos pelo handler a partir do arquivo multipart — não serializados
 	PapfeFilename    string `form:"-" json:"-"`
@@ -85,7 +87,8 @@ type UpdateUserRequest struct {
 	Profession    *string `json:"profession,omitempty"`
 	Linkedin      *string `json:"linkedin,omitempty"`
 	Telegram      *string `json:"telegram,omitempty"`
-	QuerCracha    bool    `json:"quer_cracha"`
+	QuerCracha                bool    `json:"quer_cracha"`
+	AutorizaCompartilhamento  bool    `json:"autoriza_compartilhamento"`
 }
 
 type SafeUser struct {
@@ -103,7 +106,8 @@ type SafeUser struct {
 	Telegram      *string `json:"telegram,omitempty"`
 	PresenceRate  float64 `json:"presence_rate"`
 	EmailVerified bool    `json:"email_verified"`
-	QuerCracha    bool    `json:"quer_cracha"`
+	QuerCracha                bool    `json:"quer_cracha"`
+	AutorizaCompartilhamento  bool    `json:"autoriza_compartilhamento"`
 }
 
 func ToSafeUser(user *User) SafeUser {
@@ -122,7 +126,8 @@ func ToSafeUser(user *User) SafeUser {
 		Telegram:      user.Telegram,
 		PresenceRate:  user.PresenceRate,
 		EmailVerified: user.EmailVerified,
-		QuerCracha:    user.QuerCracha,
+		QuerCracha:                user.QuerCracha,
+		AutorizaCompartilhamento:  user.AutorizaCompartilhamento,
 	}
 }
 
