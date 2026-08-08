@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import QRCode from "react-qr-code";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
-import { useTheme } from "@/contexts/useTheme";
 import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { authAPI } from "@/api";
@@ -11,7 +10,6 @@ import type { EventType } from "@/types/EventType"
 import type { UserType } from "@/types/UserType"
 import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate"
 import { useNavigate } from "react-router-dom";
-import cardImage from "@/assets/img/Profile/card.svg";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 
@@ -19,8 +17,37 @@ type Evento = EventType & {
   linkInscricao?: string;
 };
 
-const events: Evento[] = [
-];
+const events: Evento[] = [];
+
+const EventCardMobile = memo(({ ev, onShowNotification }: { ev: Evento; onShowNotification: (msg: string) => void }) => {
+  const data = formatDate(ev.dateInit, 2);
+  const diaSemana = formatWeekDay(ev.dateInit);
+
+  return (
+    <div className="border rounded-xl p-4 mb-3 bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white flex flex-col items-start">
+      <div className="w-full">
+        <div className="flex items-start gap-2">
+          <span className="font-bold whitespace-nowrap">{ev.type}</span>
+          <span className="opacity-60">|</span>
+          <p className="text-sm leading-relaxed opacity-90 wrap-break-words">{ev.description}</p>
+        </div>
+        <p className="mt-3 text-sm opacity-80 font-medium text-center">
+          {diaSemana} ({data}), {formatTime(ev.dateInit)} às {formatTime(ev.dateEnd)}
+        </p>
+        <hr className="mb-2 mt-2"/>
+      </div>
+      <div className="w-full flex flex-row justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
+        <button
+          className="cursor-pointer w-full p-2"
+          onClick={() => ev.linkInscricao ? window.open(ev.linkInscricao, "_blank") : onShowNotification("Este evento ainda não está aberto para inscrições.")}
+        >
+          Inscreva-se
+        </button>
+      </div>
+    </div>
+  );
+});
+
 interface ProfileProps extends Partial<UserType> {
   event?: string;
 }
@@ -34,7 +61,6 @@ export default function Profile({
   event = "SEMCOMP"
 }: ProfileProps) {
   const { width } = useWindowDimensions();
-  const { isDarkMode } = useTheme();
   const { showNotification } = useNotification();
 
   const [activeTab, setActiveTab] = useState<"qr" | "account">("qr");
@@ -47,69 +73,61 @@ export default function Profile({
   const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    async function fetchProfile() {
-      if (!isAuthenticated) {
-        navigate("/login", { replace: true });
-        return;
-      }
+  const logoutRef = useRef(logout);
+  const showNotificationRef = useRef(showNotification);
+  logoutRef.current = logout;
+  showNotificationRef.current = showNotification;
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function fetchProfile() {
       try {
         const response = await authAPI.getProfile();
+        if (controller.signal.aborted) return;
         setUserName(response.name || name);
         setUserEmail(response.email || email);
         setUserCode(response.user_number || 0);
         setPresencePercent(response.presence_rate ?? 0);
       } catch (err) {
+        if (controller.signal.aborted) return;
         console.error("Erro ao buscar o perfil", err);
-        await logout();
-        showNotification("Sua sessão expirou. Faça login novamente.", "warning");
+        await logoutRef.current();
+        showNotificationRef.current("Sua sessão expirou. Faça login novamente.", "warning");
       }
     }
+
     fetchProfile();
-  }, [isAuthenticated, navigate, logout, showNotification, name, email]);
+    return () => controller.abort();
+  }, [isAuthenticated, navigate, name, email]);
 
-  // EventCardMobile — inline dark: variants
-  const EventCardMobile = ({ ev }: { ev: Evento }) => {
-    const data = formatDate(ev.dateInit, 2);
-    const diaSemana = formatWeekDay(ev.dateInit);
 
-    return (
-      <div className="border rounded-xl p-4 mb-3 bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white flex flex-col items-start">
-        <div className="w-full">
-          <div className="flex items-start gap-2">
-            <span className="font-bold whitespace-nowrap">{ev.type}</span>
-            <span className="opacity-60">|</span>
-            <p className="text-sm leading-relaxed opacity-90 wrap-break-words">{ev.description}</p>
-          </div>
-          <p className="mt-3 text-sm opacity-80 font-medium text-center">
-            {diaSemana} ({data}), {formatTime(ev.dateInit)} às {formatTime(ev.dateEnd)}
-          </p>
-          <hr className="mb-2 mt-2"/>
-        </div>
-        <div className="w-full flex flex-row justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
-          <button
-            className="cursor-pointer w-full p-2"
-            onClick={() => ev.linkInscricao ? window.open(ev.linkInscricao, "_blank") : showNotification("Este evento ainda não está aberto para inscrições.")}
-          >
-            Inscreva-se
-          </button>
-        </div>
-      </div>
-    );
-  };
 
   // Versão Mobile/Tablet (< 1280px)
   if (width < 1280) {
     return (
-      <div className="min-h-screen bg-semcompOffWhite dark:bg-semcompAlmostDarkBlue font-poppins pb-10 transition-colors duration-300">
+      <div className="min-h-screen bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue font-poppins transition-colors duration-300">
         {/* Header com Background */}
-        <div className="relative h-80 w-full overflow-hidden bg-black">
+        <div className="relative h-80 w-full overflow-hidden bg-semcompMidLightBlue dark:bg-semcompDarkBlue">
           <AnimatedBackground />
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1]">
             <img src="/img/semcomp/logo_default_branco.webp" alt="SEMCOMP Logo" className="w-1/2 max-w-50 object-contain drop-shadow-2xl" />
           </div>
-          <div className="absolute inset-0 bg-linear-to-b from-transparent to-semcompOffWhite dark:to-semcompAlmostDarkBlue" />
+          <div className="absolute inset-0 bg-linear-to-b from-transparent to-semcompMidLightBlue dark:to-semcompAlmostDarkBlue" />
+          <div
+            className="absolute bottom-0 left-0 right-0 h-24 z-[1] pointer-events-none"
+            style={{
+              backdropFilter: 'blur(6px)',
+              WebkitBackdropFilter: 'blur(6px)',
+              maskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)',
+            }}
+          />
 
           {/* Tabs Seletoras */}
           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex backdrop-blur-md rounded-full p-1 border w-[80%] max-w-xs z-20 bg-semcompMidLightBlue/40 border-semcompDarkBlue/20 dark:bg-black/40 dark:border-white/20">
@@ -138,7 +156,7 @@ export default function Profile({
 
         {/* Conteúdo Principal */}
         <div className="px-5 -mt-6 relative z-10">
-          <div className="bg-gray-200 text-semcompDarkBlue border border-semcompDarkBlue/10 shadow-lg dark:bg-[#D9D9D9] dark:text-[#0B2639] dark:border-0 dark:shadow-none rounded-3xl p-6 md:p-8 flex flex-col items-center shadow-2xl min-h-100">
+          <div className="bg-gray-200 text-semcompDarkBlue border border-semcompDarkBlue/10 shadow-lg dark:bg-[#D9D9D9] dark:text-[#0B2639] dark:border-0 dark:shadow-none rounded-3xl w-full md:w-[70%] xl:w-full mx-auto p-6 md:p-8 flex flex-col items-center shadow-2xl min-h-100">
             {activeTab === "qr" && (
               <>
                 <h1 className="text-2xl font-bold mb-1">Meu QR Code</h1>
@@ -222,26 +240,19 @@ export default function Profile({
           className="mt-12 pt-10 pb-10 px-5 text-center transition-colors text-semcompOffWhite  bg-semcompMidDarkBlue dark:bg-semcompDarkBlue"
         >
           <h2 className="text-3xl font-bold mb-1 flex items-center justify-center gap-2">
-            SEMCOMP Beta 2026
-            <span className="flex items-center justify-center w-5 h-5 rounded-full border text-xs font-normal border-semcompDarkBlue/60 text-semcompDarkBlue/60 dark:border-white/60 dark:text-white/60">
-              ?
-            </span>
+            SEMCOMP Brasilidades
           </h2>
-          <p className="text-xs mb-6 opacity-80">
-            Você sabia que vem por aí a prévia da maior semana acadêmica de computação do Brasil?
+          <p className="text-sm md:text-md mb-6 opacity-80">
+            Um encontro entre a computação, a cultura e a diversidade brasileira
           </p>
 
-          <div className="relative rounded-2xl overflow-hidden mb-4">
-            <img src={cardImage} className="w-full h-56 object-cover" alt="SEMCOMP Beta"/>
+          <div className="relative rounded-2xl overflow-hidden mb-4 w-[60%] lg:w-[40%] xl:w-full mx-auto">
+            <img src="/img/Profile/Card.svg" className="w-full h-full object-cover" alt="SEMCOMP Brasilidades"/>
           </div>
 
-          <div className="border-t pt-4 px-2 border-semcompDarkBlue/20 dark:border-white/20">
-            <p className="text-[11px] leading-relaxed text-justify opacity-90">
-              A SEMCOMP Beta é uma prévia de um evento ainda maior - a Semana de
-              Computação da USP São Carlos. Ela acontecerá no dia 16 de maio e
-              sua programação inclui palestras, minicursos, concursos, coffee
-              break e a nossa famosa gamenight. Participe e faça parte dessa
-              experiência única!
+          <div className="border-t pt-4 w-full md:w-[70%] xl:w-full mx-auto px-2 border-semcompDarkBlue/20 dark:border-white/20">
+            <p className="text-[12px] md:text-[16px] leading-relaxed text-justify opacity-90">
+              Este ano, a SEMCOMP celebra o tema BRASILIDADES! Essa proposta nasce da diversidade, criatividade e riqueza cultural do Brasil, conectando a computação às diferentes formas de expressão que fazem parte da nossa identidade. Venha descobrir, compartilhar e vivenciar as muitas faces do nosso país durante a SEMCOMP!
             </p>
           </div>
         </div>
@@ -251,14 +262,16 @@ export default function Profile({
           <div className="rounded-3xl p-6 border shadow-xl transition-colors bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue dark:bg-[#1A3A4F] dark:border-white/10 dark:text-semcompOffWhite">
             <h2 className="text-2xl font-bold text-center mb-6">Inscrições em Eventos</h2>
             {events.length > 0 ? (
-              events.map((ev, i) => <EventCardMobile key={i} ev={ev} />)
+              events.map((ev, i) => <EventCardMobile key={i} ev={ev} onShowNotification={showNotification} />)
             ) : (
               <p className="opacity-60 text-center text-sm italic">Nenhuma inscrição encontrada.</p>
             )}
           </div>
         </div>
 
-        <ContatoSection />
+        <div className="bg-semcompOffWhite dark:bg-semcompDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite transition-colors duration-300">
+          <ContatoSection />
+        </div>
       </div>
     );
   }
@@ -383,35 +396,36 @@ export default function Profile({
   // Versão Desktop
   if (width >= 1280) {
     return (
-      <div className="bg-semcompOffWhite text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite min-h-screen">
+      <div className="bg-semcompMidLightBlue text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite min-h-screen">
         <div
           className="relative overflow-hidden h-[calc(90vh-70px)] w-full flex flex-row justify-center items-center gap-10 font-poppins"
-          style={{
-            boxShadow: isDarkMode
-              ? "inset 0 -160px 60px -40px rgba(11, 38, 57, 0.8)"
-              : "inset 0 -180px 40px -40px rgba(53, 123, 163, 0.6)",
-          }}
         >
           <AnimatedBackground />
-          <div className="content-over-background h-[85%] w-[28%] bg-semcompOffWhite rounded-sm overflow-hidden shadow-xl">
+          <div
+            className="absolute bottom-0 left-0 right-0 h-48 z-5 pointer-events-none"
+            style={{
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              maskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)',
+            }}
+          />
+          <div className="absolute bottom-0 left-0 right-0 h-48 z-5 pointer-events-none bg-linear-to-b from-transparent to-semcompMidLightBlue dark:to-semcompAlmostDarkBlue" />
+          <div className="relative z-10 h-[85%] w-[28%] bg-semcompOffWhite rounded-sm overflow-hidden shadow-xl">
             {qrAndAccountCard}
           </div>
 
-          <div className="content-over-background h-[85%] w-[28%] bg-semcompMidDarkBlue dark:bg-semcompDarkBlue flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10">
-            <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP Beta 2026</h1>
+          <div className="relative z-10 h-[85%] w-[28%] bg-semcompMidDarkBlue dark:bg-semcompDarkBlue flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10">
+            <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP Brasilidades</h1>
             <p className="text-center text-md pb-2">
-              Você sabia que vem por aí a prévia da maior semana acadêmica de computação do Brasil?
+            Um encontro entre a computação, a cultura e a diversidade brasileira
             </p>
             <div className="relative h-[50%] bg-semcompOffWhite dark:bg-semcompDarkBlue overflow-hidden rounded-xl">
-              <img src={cardImage} className="absolute inset-0 w-full h-full object-cover" alt="background"/>
+              <img src="/img/Profile/Card.svg" className="absolute inset-0 w-full h-full object-cover" alt="background"/>
             </div>
             <hr className="border-semcompOffWhite mt-6 mb-3" />
             <span className="text-sm text-justify">
-              A SEMCOMP Beta é uma prévia de um evento ainda maior - a Semana de
-              Computação da USP São Carlos. Ela acontecerá no dia 16 de maio e
-              sua programação inclui palestras, minicursos, concursos, coffee
-              break e a nossa famosa gamenight. Participe e faça parte dessa
-              experiência única!
+              Este ano, a SEMCOMP celebra o tema BRASILIDADES! Essa proposta nasce da diversidade, criatividade e riqueza cultural do Brasil, conectando a computação às diferentes formas de expressão que fazem parte da nossa identidade. Venha descobrir, compartilhar e vivenciar as muitas faces do nosso país durante a SEMCOMP!
             </span>
           </div>
         </div>
@@ -478,8 +492,9 @@ export default function Profile({
             </div>
           </div>
         </div>
-
-        <ContatoSection />
+        <div className="bg-semcompOffWhite dark:bg-semcompDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite transition-colors duration-300">
+          <ContatoSection />
+        </div>
       </div>
     );
   }
