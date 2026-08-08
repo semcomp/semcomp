@@ -16,7 +16,6 @@ type SafeSemcompUser = {
   linkedin?: string;
   telegram?: string;
   quer_cracha?: boolean;
-  pegou_camiseta?: boolean;
 };
 
 const mapBackendUser = (user: SafeSemcompUser): SemcompUserType => {
@@ -49,7 +48,6 @@ const mapBackendUser = (user: SafeSemcompUser): SemcompUserType => {
     linkedin: user.linkedin,
     telegram: user.telegram,
     quer_cracha: user.quer_cracha ?? false,
-    pegou_camiseta: user.pegou_camiseta ?? false,
   };
 };
 
@@ -201,7 +199,6 @@ export const userSemcompAPI = {
       linkedin: data.linkedin,
       telegram: data.telegram,
       quer_cracha: data.quer_cracha,
-      pegou_camiseta: data.pegou_camiseta,
     };
 
     const response = await client.put<{ message: string }>(

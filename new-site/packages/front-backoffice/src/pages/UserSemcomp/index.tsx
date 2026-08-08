@@ -91,7 +91,6 @@ export default function UsersCRUD() {
         linkedin: typedItem.linkedin,
         telegram: typedItem.telegram,
         quer_cracha: typedItem.quer_cracha,
-        pegou_camiseta: typedItem.pegou_camiseta,
       });
 
       setData((prev) => prev.map((i) => (i.id === item.id ? typedItem : i)));

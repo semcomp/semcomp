@@ -393,7 +393,6 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 	user.Linkedin = request.Linkedin
 	user.Telegram = request.Telegram
 	user.QuerCracha = request.QuerCracha
-	user.PegouCamiseta = request.PegouCamiseta
 
 	return s.repo.Update(user)
 }

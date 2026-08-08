@@ -33,7 +33,6 @@ type User struct {
 	Telegram      *string `gorm:"size:255" json:"telegram,omitempty"`
 	PresenceRate  float64 `gorm:"not null" json:"presence_rate"`
 	QuerCracha    bool    `gorm:"not null;default:false" json:"quer_cracha"`
-	PegouCamiseta bool    `gorm:"not null;default:false" json:"pegou_camiseta"`
 
 	EmailVerified              bool   `gorm:"not null;default:false" json:"email_verified"`
 	VerificationTokenHash      string `gorm:"size:255"`
@@ -85,7 +84,6 @@ type UpdateUserRequest struct {
 	Linkedin      *string `json:"linkedin,omitempty"`
 	Telegram      *string `json:"telegram,omitempty"`
 	QuerCracha    bool    `json:"quer_cracha"`
-	PegouCamiseta bool    `json:"pegou_camiseta"`
 }
 
 type SafeUser struct {
@@ -104,7 +102,6 @@ type SafeUser struct {
 	PresenceRate  float64 `json:"presence_rate"`
 	EmailVerified bool    `json:"email_verified"`
 	QuerCracha    bool    `json:"quer_cracha"`
-	PegouCamiseta bool    `json:"pegou_camiseta"`
 }
 
 func ToSafeUser(user *User) SafeUser {
@@ -124,7 +121,6 @@ func ToSafeUser(user *User) SafeUser {
 		PresenceRate:  user.PresenceRate,
 		EmailVerified: user.EmailVerified,
 		QuerCracha:    user.QuerCracha,
-		PegouCamiseta: user.PegouCamiseta,
 	}
 }
 

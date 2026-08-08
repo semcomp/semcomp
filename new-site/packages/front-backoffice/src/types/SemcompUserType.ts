@@ -17,5 +17,4 @@ export interface SemcompUserType extends CrudItemType {
   telegram?: string;
   papfe_document?: File | null;
   quer_cracha?: boolean;
-  pegou_camiseta?: boolean;
 }
