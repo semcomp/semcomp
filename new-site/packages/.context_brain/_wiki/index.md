@@ -15,8 +15,8 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 ---
 
 ## Backend
-- [[Backend_Arquitetura]] — módulos, camadas, startup, grupos de rota
-- [[Backend_Modelos_Core]] — User (todos os campos), Event, Presence, Section, AuditLog, JWT Claims, ListQuery
+- [[Backend_Arquitetura]] — módulos, camadas, startup, grupos de rota (inclui signinEvent em construção)
+- [[Backend_Modelos_Core]] — User (todos os campos), Event (+ has_signin, max_participants), SigninEvent, Presence, Section, AuditLog, JWT Claims, ListQuery
 - [[Backend_Modelos_Loja]] — Product (KIT/COFFEE/COMBO), Payment, DTOs de PIX
 - [[Backend_Providers]] — JWT (2 fluxos), bcrypt, email, token
 
@@ -52,3 +52,4 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - **Permissions (bulk)**: salvar permissões faz N chamadas paralelas com `Promise.all`; falha parcial deixa estado inconsistente sem rollback
 - **Sections**: a tab `sections` foi removida do backoffice — seções deixaram de ser gerenciáveis via UI (mas endpoint backend ainda existe)
 - **Feature Flags**: estado das flags vive **em memória no processo Go** — reiniciar o servidor reseta todas as flags para `available: true`
+- **SigninEvent**: módulo `internal/signinEvent` tem model e repository implementados (tabela `signin_events` criada), mas service e handler estão vazios — **sem endpoints HTTP**; `has_signin` e `max_participants` existem no model de Event mas a lógica de inscrição ainda não está exposta pela API

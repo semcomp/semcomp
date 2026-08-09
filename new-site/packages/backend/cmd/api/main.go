@@ -88,6 +88,10 @@ func main() {
 	eventService := event.NewEventService(eventRepo)
 	eventHandler := event.NewEventHandler(eventService)
 
+	signinEventRepo := signinEvent.NewSigninEventRepository(db)
+	signinEventService := signinEvent.NewSigninEventService(signinEventRepo, eventRepo)
+	signinEventHandler := signinEvent.NewSigninEventHandler(signinEventService)
+
 	presenceRepo := presence.NewPresenceRepository(db)
 	presenceService := presence.NewPresenceService(presenceRepo)
 	presenceHandler := presence.NewPresenceHandler(presenceService)
@@ -197,6 +201,10 @@ func main() {
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 	authRoutes.PUT("/papfe-document", userHandler.UpdatePapfeDocument)
 
+	// authRoutes.POST("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.CreateSignin)
+	// authRoutes.GET("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.GetSigninEvents)
+	// authRoutes.GET("/signin-events/me", pageMW("profile"), pageMW("cronograma"), signinEventHandler.GetMySignins)
+
 	authRoutes.GET("/payments", pageMW("loja"), paymentHandler.ListByUser)
 	authRoutes.POST("/payments/pix", pageMW("loja"), paymentHandler.CreatePix)
 	authRoutes.GET("/payments/:id/status", pageMW("loja"), paymentHandler.GetStatus)
@@ -252,8 +260,6 @@ func main() {
 	admin.DELETE("/products/:id", permMW("Produtos", permission.PermRW), productHandler.DeleteProductByID)
 
 	// Permissões
-	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode
-	// consultar suas próprias permissões
 	admin.GET("/permissions/me", permissionHandler.GetMyPermissions)
 	admin.GET("/permissions", permMW("Permissões", permission.PermR), permissionHandler.GetPermissions)
 	admin.GET("/permissions/section/:section", permMW("Permissões", permission.PermR), permissionHandler.GetPermissionBySection)

@@ -51,6 +51,13 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - Rotas públicas: `GET /events` (paginado), `GET /event/:eventName/:initDate`
 - Rotas backoffice: `POST /admin/events`, `PUT/DELETE /admin/events/:eventName/:initDate`
 - PK composta: `Name + InitDate` (RFC3339)
+- Campos de inscrição: `has_signin bool` (habilita inscrição), `max_participants uint` (0 = sem limite)
+
+### signinEvent
+- **Sem rotas HTTP registradas** — módulo em construção
+- Model: `SigninEvent` com PK tripla (`UserNumber + EventName + EventInitDate`) e `Status` (`"Inscrito"` / `"Lista de Espera"` / `"Cancelado"`)
+- Repository implementado: `Create`, `FindActiveByUser`, `ListByEvent`, `CountByStatus`
+- Tabela criada via `AutoMigrate` na startup
 
 ### presence
 - Rotas backoffice: `GET/POST /admin/presences`, `GET/PUT/DELETE /admin/presences/:userNumber/:eventName/:eventInitDate`
@@ -117,7 +124,7 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 
 ## Sequência de Startup (main.go)
 
-1. Conecta DB + `AutoMigrate` (User, PapfeDocument, Event, Presence, UserBackoffice, AuditLog, Permission, Product, Kit, Coffee, ComboItem, Token, Payment)
+1. Conecta DB + `AutoMigrate` (User, PapfeDocument, Event, Presence, SigninEvent, UserBackoffice, AuditLog, Permission, Product, Kit, Coffee, ComboItem, Token, Payment, Sponsor, SponsorPackage, SiteStat)
 2. Grandfather de `email_verified = true` para usuários existentes (se coluna era nova)
 3. Instancia providers + repos + services + handlers
 4. `userBackofficeService.InitializeAdmin()`
