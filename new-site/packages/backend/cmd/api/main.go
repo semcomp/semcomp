@@ -17,6 +17,7 @@ import (
 	"backend/internal/presence"
 	"backend/internal/product"
 	"backend/internal/providers"
+	"backend/internal/signinEvent"
 	"backend/internal/sitestat"
 	"backend/internal/sponsor"
 	"backend/internal/token"
@@ -47,19 +48,9 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	// Usado para "adotar" contas já existentes como verificadas logo abaixo, já que a
-	// coluna email_verified é nova e não deve bloquear o login de usuários antigos.
-	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
-
-	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, &token.Token{}, &payment.Payment{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{}, &sitestat.SiteStat{})
+	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &signinEvent.SigninEvent{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, &token.Token{}, &payment.Payment{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{}, &sitestat.SiteStat{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
-	}
-
-	if !hadEmailVerifiedColumn {
-		if err := db.Exec("UPDATE users SET email_verified = true").Error; err != nil {
-			panic("Failed to grandfather existing users as email-verified: " + err.Error())
-		}
 	}
 
 	// Inicializa as camadas da aplicação (Repository -> Service -> Handler)
@@ -262,7 +253,7 @@ func main() {
 
 	// Permissões
 	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode
-	// consultar suas próprias permissões (email lido do JWT, não do URL)
+	// consultar suas próprias permissões
 	admin.GET("/permissions/me", permissionHandler.GetMyPermissions)
 	admin.GET("/permissions", permMW("Permissões", permission.PermR), permissionHandler.GetPermissions)
 	admin.GET("/permissions/section/:section", permMW("Permissões", permission.PermR), permissionHandler.GetPermissionBySection)
