@@ -240,14 +240,14 @@ export default function Profile({
           className="mt-12 pt-10 pb-10 px-5 text-center transition-colors text-semcompOffWhite  bg-semcompMidDarkBlue dark:bg-semcompDarkBlue"
         >
           <h2 className="text-3xl font-bold mb-1 flex items-center justify-center gap-2">
-            SEMCOMP Brasilidades
+            SEMCOMP 29
           </h2>
           <p className="text-sm md:text-md mb-6 opacity-80">
             Um encontro entre a computação, a cultura e a diversidade brasileira
           </p>
 
           <div className="relative rounded-2xl overflow-hidden mb-4 w-[60%] lg:w-[40%] xl:w-full mx-auto">
-            <img src="/img/Profile/Card.svg" className="w-full h-full object-cover" alt="SEMCOMP Brasilidades"/>
+            <img src="/img/Profile/Card.svg" className="w-full h-full object-cover" alt="SEMCOMP 29 Logo Brasilidades"/>
           </div>
 
           <div className="border-t pt-4 w-full md:w-[70%] xl:w-full mx-auto px-2 border-semcompDarkBlue/20 dark:border-white/20">
@@ -416,7 +416,7 @@ export default function Profile({
           </div>
 
           <div className="relative z-10 h-[85%] w-[28%] bg-semcompMidDarkBlue dark:bg-semcompDarkBlue flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10">
-            <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP Brasilidades</h1>
+            <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP 29</h1>
             <p className="text-center text-md pb-2">
             Um encontro entre a computação, a cultura e a diversidade brasileira
             </p>

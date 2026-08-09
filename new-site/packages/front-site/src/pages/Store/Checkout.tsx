@@ -58,7 +58,7 @@ export default function CheckoutPage() {
       return;
     }
     paymentAPI
-      .createPix(subtotal, [...new Set(items.map((i) => Number(i.id)))], "Semcomp - Compra de produtos")
+      .createPix(subtotal, [...new Set(items.map((i) => Number(i.id)))], "SEMCOMP 29 - Compra de produtos")
       .then((data) => {
         setPixData(data);
         setCountdown(secondsUntil(data.expiration_date));

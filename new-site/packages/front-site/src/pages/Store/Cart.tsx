@@ -41,7 +41,7 @@ export default function CartPage() {
     setCheckoutLoading(true);
     try {
       const productIds = [...new Set(items.map((i) => Number(i.id)))];
-      const pixData = await paymentAPI.createPix(subtotal, productIds, "Semcomp - Compra de produtos");
+      const pixData = await paymentAPI.createPix(subtotal, productIds, "SEMCOMP 29 - Compra de produtos");
       navigate("/loja/checkout", { state: { pixData } });
     } catch {
       showNotification("Erro ao gerar PIX. Tente novamente.", "warning");

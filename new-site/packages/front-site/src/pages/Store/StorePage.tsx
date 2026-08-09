@@ -79,7 +79,7 @@ function productToStoreItem(p: Product, productById: Map<number, Product>): Stor
     ? `${p.kit.size} · ${p.kit.color}${p.kit.is_babydoll ? " · Babydoll" : ""}`
     : p.type === "COMBO"
       ? `Combo com ${p.combo_items?.length ?? 0} itens`
-      : "Coffee Break da Semcomp";
+      : "Coffee Break da SEMCOMP";
 
   return {
     id: String(p.id),
@@ -243,7 +243,7 @@ export default function StorePage() {
               </h1>
 
               <p className={`max-w-2xl text-base md:text-lg leading-relaxed text-semcompOffWhite/60`}>
-                Explore nossa seleção de produtos exclusivos da Semcomp e leve um pedacinho do
+                Explore nossa seleção de produtos exclusivos da SEMCOMP 29 e leve um pedacinho do
                 evento com você.
               </p>
             </div>
