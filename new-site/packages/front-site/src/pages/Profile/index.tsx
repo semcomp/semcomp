@@ -11,6 +11,8 @@ import type { EventType } from "@/types/EventType"
 import type { UserType } from "@/types/UserType"
 import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate"
 import { useNavigate } from "react-router-dom";
+import JustifyAbsenceModal, { JustifyAbsenceStatusBadge } from "@/components/JustifyAbsenceModal";
+import type { JustifyAbsenceStatus } from "@/components/JustifyAbsenceModal";
 
 const HERO_IMAGES = [
   "/img/Home/Hero/Banner1.webp",
@@ -28,8 +30,9 @@ type Evento = EventType & {
   linkInscricao?: string;
 };
 
-let events: Evento[] = [
+const events: Evento[] = [
 ];
+const ABSENCE_STORAGE_KEY = (userNumber: number) => `semcomp-absence-${userNumber}`;
 interface ProfileProps extends Partial<UserType> {
   event?: string;
 }
@@ -51,10 +54,17 @@ export default function Profile({
   const [userCode, setUserCode] = useState<number>(user_number);
   const [presencePercent, setPresencePercent] = useState<number>(presence_rate);
   const [openSubscription, setOpenSubscription] = useState<number>(-1)
+  const [justifyOpen, setJustifyOpen] = useState(false)
+  const [justificationStatus, setJustificationStatus] = useState<JustifyAbsenceStatus | null>(null)
 
   const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [heroSrc] = useState<string>(() => pickRandomHero());
+
+  const handleJustifySubmitted = (status: JustifyAbsenceStatus) => {
+    setJustificationStatus(status);
+    if (userCode) localStorage.setItem(ABSENCE_STORAGE_KEY(userCode), status);
+  };
 
   useEffect(() => {
     async function fetchProfile() {
@@ -69,6 +79,13 @@ export default function Profile({
         setUserEmail(response.email || email);
         setUserCode(response.user_number || 0);
         setPresencePercent(response.presence_rate ?? 0);
+
+        const storedStatus = response.user_number
+          ? localStorage.getItem(ABSENCE_STORAGE_KEY(response.user_number))
+          : null;
+        if (storedStatus === "em_analise" || storedStatus === "aprovado" || storedStatus === "negado") {
+          setJustificationStatus(storedStatus);
+        }
       } catch (err) {
         console.error("Erro ao buscar o perfil", err);
         await logout();
@@ -197,6 +214,21 @@ export default function Profile({
                   </div>
                 </div>
 
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                  onClick={() => showNotification("Entre em contato com a organização", "info")}>
+                  Editar Informações
+                </button>
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={justificationStatus !== null}
+                  onClick={() => setJustifyOpen(true)}>
+                  Justificar Ausência
+                </button>
+                {justificationStatus && (
+                  <div className="flex items-center justify-center mb-6">
+                    <JustifyAbsenceStatusBadge status={justificationStatus} />
+                  </div>
+                )}
+
                 <div className="bg-white/50 rounded-xl p-4 mb-6 border border-black/10">
                   <h3 className="text-center text-sm font-bold mb-3">Minha Presença</h3>
                   <div className="relative w-full h-6 bg-black/10 rounded-full overflow-hidden">
@@ -218,10 +250,6 @@ export default function Profile({
                   </div>
                 </div>
 
-                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
-                  onClick={() => showNotification("Entre em contato com a organização", "info")}>
-                  Editar Informações
-                </button>
                 <button className="w-full text-red-700 font-bold text-sm py-2" onClick={logout}>
                   Sair da conta
                 </button>
@@ -274,6 +302,7 @@ export default function Profile({
         </div>
 
         <ContatoSection />
+        <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
       </div>
     );
   }
@@ -355,11 +384,24 @@ export default function Profile({
           </div>
 
           <button
-            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8"
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
             onClick={() => showNotification("Entre em contato com a organização", "info")}
           >
             Editar Informações
           </button>
+
+          <button
+            onClick={() => setJustifyOpen(true)}
+            disabled={justificationStatus !== null}
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Justificar Ausência
+          </button>
+          {justificationStatus && (
+            <div className="flex items-center justify-center mb-8">
+              <JustifyAbsenceStatusBadge status={justificationStatus} />
+            </div>
+          )}
 
           <div className="bg-semcompOffWhite/40 rounded-xl p-5 border border-border/50">
             <h3 className="text-center text-semcompMidDarkBlue text-md font-bold text-semcomp-900 mb-4">
@@ -501,6 +543,7 @@ export default function Profile({
         </div>
 
         <ContatoSection />
+        <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
       </div>
     );
   }
@@ -511,6 +554,7 @@ export default function Profile({
       <div className="w-full max-w-85 rounded-2xl overflow-hidden shadow-xl animate-in fade-in zoom-in duration-300">
         {qrAndAccountCard}
       </div>
+      <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
     </div>
   );
 }
