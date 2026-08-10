@@ -40,9 +40,16 @@ export default function CheckoutPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const navState = location.state as { pixData?: PixPaymentResponse; dietaryRestrictions?: string } | null;
+
   const [pixData, setPixData] = useState<PixPaymentResponse | null>(
-    (location.state as { pixData?: PixPaymentResponse })?.pixData ?? null
+    navState?.pixData ?? null
   );
+
+  // Restrições alimentares informadas no carrinho. Guardadas em ref porque precisam
+  // sobreviver até o momento de registrar a venda (finalizeSale), inclusive após o
+  // carrinho já ter sido limpo.
+  const dietaryRestrictionsRef = useRef(navState?.dietaryRestrictions ?? "");
   const [status, setStatus] = useState<Status>(pixData ? "pending" : "loading");
   const [copied, setCopied] = useState(false);
   const [countdown, setCountdown] = useState(() =>
@@ -144,6 +151,7 @@ export default function CheckoutPage() {
           })),
           payment_method: "PIX",
           status: "PAGO",
+          dietary_restrictions: dietaryRestrictionsRef.current,
         });
         clearCart();
       } catch (err) {

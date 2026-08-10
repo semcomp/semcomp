@@ -63,6 +63,7 @@ export type SaleItemResponse = SaleItem;
 export interface UpdateSalePayload {
   status?: SaleStatus;
   payment_method?: string;
+  dietary_restrictions?: string;
 }
 
 interface CreateSaleApiResponse {

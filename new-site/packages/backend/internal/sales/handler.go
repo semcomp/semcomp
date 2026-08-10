@@ -197,7 +197,7 @@ func (h *SaleHandler) UpdateSaleByID(c *gin.Context) {
 		apierrors.HandleAPIError(c, err)
 		return
 	}
-	
+
 	c.Set("responseMessage", "Venda atualizada com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Venda atualizada com sucesso!", "sale": sale})
 }
@@ -222,7 +222,7 @@ func (h *SaleHandler) DeleteSaleByID(c *gin.Context) {
 		apierrors.HandleAPIError(c, err)
 		return
 	}
-	
+
 	c.Set("responseMessage", "Venda removida com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Venda removida com sucesso!"})
 }

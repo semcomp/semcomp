@@ -17,7 +17,7 @@ type SaleService interface {
 	GetAllSales(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*SaleListResult, error)
 	UpdateSaleByID(id string, request UpdateSaleRequest) (*Sale, error)
 	DeleteSaleByID(id string) error
-	
+
 	// Operação de Item (Backoffice)
 	UpdateItemPickup(itemID string, request UpdateSaleItemPickupRequest) (*SaleItem, error)
 }
@@ -62,11 +62,12 @@ func (s *saleService) CreateSale(userNumber uint, request CreateSaleRequest) (*S
 	}
 
 	newSale := Sale{
-		SaleUserNumber:    userNumber,
-		Status:        request.Status,
-		PaymentMethod: request.PaymentMethod,
-		TotalAmount:   totalAmount,
-		Items:         saleItems,
+		SaleUserNumber:      userNumber,
+		Status:              request.Status,
+		PaymentMethod:       request.PaymentMethod,
+		TotalAmount:         totalAmount,
+		Items:               saleItems,
+		DietaryRestrictions: request.DietaryRestrictions,
 	}
 
 	if err := s.saleRepo.Create(&newSale); err != nil {
@@ -159,6 +160,9 @@ func (s *saleService) UpdateSaleByID(id string, request UpdateSaleRequest) (*Sal
 	}
 	if request.PaymentMethod != "" {
 		updateData["payment_method"] = request.PaymentMethod
+	}
+	if request.DietaryRestrictions != "" {
+		updateData["dietary_restrictions"] = request.DietaryRestrictions
 	}
 
 	if len(updateData) > 0 {

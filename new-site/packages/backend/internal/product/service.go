@@ -109,6 +109,17 @@ func (s *productService) InitializeProducts() error {
 	return nil
 }
 
+// resolveVariantGroup retorna a chave de agrupamento de variantes (tamanhos) de um Kit.
+// Se o admin não informar variantGroup explicitamente, usa o Name como fallback,
+// assumindo que kits com o mesmo nome são o mesmo modelo de camiseta em tamanhos diferentes.
+func resolveVariantGroup(variantGroup string, name string) string {
+	trimmed := strings.TrimSpace(variantGroup)
+	if trimmed == "" {
+		return strings.TrimSpace(name)
+	}
+	return trimmed
+}
+
 // buildComboItems valida a lista de itens de um combo e retorna os ComboItems prontos
 // para persistir. excludeProductID é o ID do produto sendo atualizado (para impedir que
 // um combo referencie a si mesmo); passe nil na criação, onde ainda não existe ID.
@@ -169,10 +180,11 @@ func (s *productService) CreateProduct(request CreateProductRequest) (*Product, 
 			return nil, apierrors.ValidationError("Dados do kit são obrigatórios para produtos do tipo KIT", nil)
 		}
 		product.Kit = &Kit{
-			Name:       request.Kit.Name,
-			Size:       request.Kit.Size,
-			Color:      request.Kit.Color,
-			IsBabydoll: request.Kit.IsBabydoll,
+			Name:         request.Kit.Name,
+			Size:         request.Kit.Size,
+			Color:        request.Kit.Color,
+			IsBabydoll:   request.Kit.IsBabydoll,
+			VariantGroup: resolveVariantGroup(request.Kit.VariantGroup, request.Kit.Name),
 		}
 
 	case ProductTypeCoffee:
@@ -287,10 +299,11 @@ func (s *productService) UpdateProductByID(id string, request UpdateProductReque
 			return nil, apierrors.ValidationError("Dados do kit são obrigatórios para produtos do tipo KIT", nil)
 		}
 		product.Kit = &Kit{
-			Name:       request.Kit.Name,
-			Size:       request.Kit.Size,
-			Color:      request.Kit.Color,
-			IsBabydoll: request.Kit.IsBabydoll,
+			Name:         request.Kit.Name,
+			Size:         request.Kit.Size,
+			Color:        request.Kit.Color,
+			IsBabydoll:   request.Kit.IsBabydoll,
+			VariantGroup: resolveVariantGroup(request.Kit.VariantGroup, request.Kit.Name),
 		}
 
 	case ProductTypeCoffee:

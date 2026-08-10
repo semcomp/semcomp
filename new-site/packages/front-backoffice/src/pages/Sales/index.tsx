@@ -5,7 +5,7 @@ import { BannerCard } from "@/components/BannerCard";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useHasPermission } from "@/contexts/AuthContext";
 import { salesAPI } from "@/api/sales";
-import type { Sale, SaleItem } from "@/api/sales";
+import type { Sale as BaseSale, SaleItem } from "@/api/sales";
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudQueryParams } from "@/components/CrudTable";
 import { fields } from "@/data/salesCrudField";
@@ -21,7 +21,68 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingBag, PackageCheck, PackageX } from "lucide-react";
+import { ShoppingBag, PackageCheck, PackageX, UtensilsCrossed } from "lucide-react";
+
+// TODO: mover estes campos para a definição de `Sale` em "@/api/sales" assim que o
+// tipo lá for atualizado. O backend já retorna `has_kit_items`, `has_coffee_items`
+// (calculados a partir dos produtos da venda, inclusive dentro de COMBOs) e
+// `dietary_restrictions` (texto livre, informado pelo admin).
+type Sale = BaseSale & {
+  has_kit_items?: boolean;
+  has_coffee_items?: boolean;
+  dietary_restrictions?: string;
+};
+
+// Extrai um nome amigável para exibição a partir do produto vinculado ao item da venda.
+// KIT e COFFEE têm nome próprio; COMBO não tem nome direto, então montamos uma
+// descrição a partir dos itens que o compõem (quando disponíveis via preload).
+function getProductDisplayName(product: any): string {
+  if (!product) return "Produto";
+
+  if (product.kit?.name) return product.kit.name;
+  if (product.coffee?.name) return product.coffee.name;
+
+  if (product.type === "COMBO" && product.combo_items?.length) {
+    const itemNames = product.combo_items
+      .map((ci: any) => ci.item?.kit?.name ?? ci.item?.coffee?.name)
+      .filter(Boolean);
+    if (itemNames.length > 0) {
+      return `Combo (${itemNames.join(" + ")})`;
+    }
+    return "Combo";
+  }
+
+  return product.type ?? "Produto";
+}
+
+// Monta uma linha descritiva com tamanho/cor/modelo de um Kit (camiseta).
+function formatKitInfo(kit: any): string {
+  const parts = [`Tamanho ${kit.size}`];
+  if (kit.color) parts.push(kit.color);
+  if (kit.is_babydoll) parts.push("Babydoll");
+  return parts.join(" · ");
+}
+
+// Retorna uma linha de detalhe por Kit envolvido no item da venda: o Kit direto
+// (quando o produto do item é do tipo KIT) e/ou os Kits que fazem parte de um Combo.
+function getKitInfoLines(product: any): string[] {
+  if (!product) return [];
+  const lines: string[] = [];
+
+  if (product.kit) {
+    lines.push(formatKitInfo(product.kit));
+  }
+
+  if (product.type === "COMBO" && product.combo_items?.length) {
+    for (const comboItem of product.combo_items) {
+      if (comboItem.item?.kit) {
+        lines.push(formatKitInfo(comboItem.item.kit));
+      }
+    }
+  }
+
+  return lines;
+}
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -40,14 +101,17 @@ function formatCurrency(value: number): string {
 interface SaleFormState {
   status: "PENDENTE" | "PAGO" | "CANCELADO" | "REEMBOLSADO";
   payment_method: string;
+  dietary_restrictions: string;
 }
 
 function SaleForm({
   value,
   onChange,
+  showDietaryRestrictions,
 }: {
   value: SaleFormState;
   onChange: (v: SaleFormState) => void;
+  showDietaryRestrictions: boolean;
 }) {
   return (
     <div className="space-y-4 py-2">
@@ -74,6 +138,24 @@ function SaleForm({
           className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
         />
       </div>
+
+      {showDietaryRestrictions && (
+        <div className="space-y-1.5">
+          <Label className="text-foreground text-sm flex items-center gap-1.5">
+            <UtensilsCrossed className="w-3.5 h-3.5 text-amber-400" />
+            Restrições Alimentares
+          </Label>
+          <Input
+            value={value.dietary_restrictions}
+            onChange={(e) => onChange({ ...value, dietary_restrictions: e.target.value })}
+            placeholder="Ex: Vegano, sem lactose, alergia a amendoim"
+            className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+          />
+          <p className="text-xs text-muted-foreground">
+            Este pedido inclui café, então é possível registrar restrições alimentares do participante.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -91,7 +173,7 @@ export default function SalesCRUD() {
   // Modal de edição
   const [editOpen, setEditOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Sale | null>(null);
-  const [form, setForm] = useState<SaleFormState>({ status: "PENDENTE", payment_method: "" });
+  const [form, setForm] = useState<SaleFormState>({ status: "PENDENTE", payment_method: "", dietary_restrictions: "" });
 
   // Modal de Itens (Para controle de retirada de Kits/Produtos)
   const [itemsOpen, setItemsOpen] = useState(false);
@@ -132,6 +214,7 @@ export default function SalesCRUD() {
     setForm({
       status: sale.status,
       payment_method: sale.payment_method,
+      dietary_restrictions: sale.dietary_restrictions ?? "",
     });
     setEditOpen(true);
   };
@@ -153,6 +236,7 @@ export default function SalesCRUD() {
       const { sale } = await salesAPI.update(editTarget.id.toString(), {
         status: form.status,
         payment_method: form.payment_method,
+        dietary_restrictions: form.dietary_restrictions,
       });
       setData((prev) => prev.map((s) => (s.id === editTarget.id ? sale : s)));
       setEditOpen(false);
@@ -173,7 +257,7 @@ export default function SalesCRUD() {
     try {
       console.log(item.id.toString());
       const { item: updatedItem } = await salesAPI.updateItemPickup(item.id.toString(), newValue);
-      
+
       // Atualiza o estado local do item dentro da venda
       setItemsSale((prev) => {
         if (!prev) return prev;
@@ -184,9 +268,9 @@ export default function SalesCRUD() {
       });
 
       // Atualiza a tabela geral
-      setData((prev) => 
-        prev.map((s) => 
-          s.id === itemsSale.id 
+      setData((prev) =>
+        prev.map((s) =>
+          s.id === itemsSale.id
             ? { ...s, items: s.items?.map((i) => (i.id === item.id ? updatedItem : i)) }
             : s
         )
@@ -248,10 +332,17 @@ export default function SalesCRUD() {
           canWrite={canWrite}
           onAction={(item) => {
             const sale = data.find((s) => s.id.toString() === (item as any).id);
-            if (sale) openItems(sale);
+            if (!sale) return;
+            if (!sale.has_kit_items && !sale.has_coffee_items) {
+              // TODO: confirme se "info" existe no union type de showNotification;
+              // troque por "success"/"error" se necessário.
+              showNotification("Este pedido não possui kits para retirada nem itens de café", "info");
+              return;
+            }
+            openItems(sale);
           }}
           actionIcon={<ShoppingBag className="w-3.5 h-3.5" />}
-          actionTitle="Ver itens / Retirada"
+          actionTitle="Ver itens / Retirada / Restrições"
         />
       </div>
 
@@ -261,7 +352,11 @@ export default function SalesCRUD() {
           <DialogHeader>
             <DialogTitle className="text-foreground">Editar Venda #{editTarget?.id}</DialogTitle>
           </DialogHeader>
-          <SaleForm value={form} onChange={setForm} />
+          <SaleForm
+            value={form}
+            onChange={setForm}
+            showDietaryRestrictions={!!editTarget?.has_coffee_items}
+          />
           <DialogFooter className="gap-2">
             <Button variant="ghost" onClick={() => setEditOpen(false)} className="text-muted-foreground">
               Cancelar
@@ -273,51 +368,98 @@ export default function SalesCRUD() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Itens / Retirada */}
+      {/* Modal Itens / Retirada / Restrições Alimentares */}
       <Dialog open={itemsOpen} onOpenChange={setItemsOpen}>
         <DialogContent className="bg-card border-border text-foreground w-[95vw] sm:max-w-106.25 rounded-lg shadow-lg">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-2">
               <PackageCheck className="w-4 h-4 text-emerald-400" />
-              Itens do Pedido #{itemsSale?.id}
+              Pedido #{itemsSale?.id}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-2 max-h-[60vh] overflow-y-auto">
-            {(!itemsSale?.items || itemsSale.items.length === 0) ? (
-              <p className="text-muted-foreground text-sm text-center py-4">Nenhum item encontrado nesta venda.</p>
-            ) : (
-              <div className="space-y-3">
-                {itemsSale.items.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-muted/20">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-foreground">
-                        {item.quantity}x Produto #{item.product_id}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        Preço unitário: {formatCurrency(item.unit_price)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <Badge className={item.is_picked_up ? "bg-emerald-900/40 text-emerald-300" : "bg-slate-800 text-slate-300"}>
-                        {item.is_picked_up ? "Retirado" : "Pendente"}
-                      </Badge>
-                      
-                      {canWrite && (
-                        <Button
-                          size="sm"
-                          variant={item.is_picked_up ? "outline" : "default"}
-                          className={`h-8 w-8 p-0 ${item.is_picked_up ? "border-emerald-500/30 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/20" : "bg-emerald-600 hover:bg-emerald-500 text-white"}`}
-                          onClick={() => handleTogglePickup(item, !item.is_picked_up)}
-                          title={item.is_picked_up ? "Desfazer retirada" : "Marcar como retirado"}
-                        >
-                          {item.is_picked_up ? <PackageX className="h-4 w-4" /> : <PackageCheck className="h-4 w-4" />}
-                        </Button>
-                      )}
-                    </div>
+          <div className="space-y-5 py-2 max-h-[60vh] overflow-y-auto">
+            {/* Retirada: só é exibida se a venda envolve algum produto do tipo KIT
+                (direto ou dentro de um COMBO) — vendas só de café não têm o que retirar. */}
+            {itemsSale?.has_kit_items && (
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <PackageCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  Retirada de Kits
+                </h3>
+
+                {(!itemsSale?.items || itemsSale.items.length === 0) ? (
+                  <p className="text-muted-foreground text-sm text-center py-4">Nenhum item encontrado nesta venda.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {itemsSale.items.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-muted/20">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-foreground">
+                            {item.quantity}x {getProductDisplayName((item as any).product)}
+                          </span>
+                          {getKitInfoLines((item as any).product).map((line, idx) => (
+                            <span key={idx} className="text-xs font-semibold text-amber-300/90">
+                              {line}
+                            </span>
+                          ))}
+                          <span className="text-xs text-muted-foreground">
+                            Preço unitário: {formatCurrency(item.unit_price)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <Badge className={item.is_picked_up ? "bg-emerald-900/40 text-emerald-300" : "bg-slate-800 text-slate-300"}>
+                            {item.is_picked_up ? "Retirado" : "Pendente"}
+                          </Badge>
+
+                          {canWrite && (
+                            <Button
+                              size="sm"
+                              variant={item.is_picked_up ? "outline" : "default"}
+                              className={`h-8 w-8 p-0 ${item.is_picked_up ? "border-emerald-500/30 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/20" : "bg-emerald-600 hover:bg-emerald-500 text-white"}`}
+                              onClick={() => handleTogglePickup(item, !item.is_picked_up)}
+                              title={item.is_picked_up ? "Desfazer retirada" : "Marcar como retirado"}
+                            >
+                              {item.is_picked_up ? <PackageX className="h-4 w-4" /> : <PackageCheck className="h-4 w-4" />}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+              </div>
+            )}
+
+            {/* Restrições alimentares: só é exibida se a venda envolve algum produto
+                do tipo COFFEE (direto ou dentro de um COMBO). */}
+            {itemsSale?.has_coffee_items && (
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <UtensilsCrossed className="w-3.5 h-3.5 text-amber-400" />
+                  Restrições Alimentares
+                </h3>
+                <div className="p-3 rounded-lg border border-border/50 bg-muted/20">
+                  {itemsSale.dietary_restrictions ? (
+                    <p className="text-sm text-foreground">{itemsSale.dietary_restrictions}</p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Nenhuma restrição informada.</p>
+                  )}
+                </div>
+                {canWrite && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground px-0 h-auto"
+                    onClick={() => {
+                      setItemsOpen(false);
+                      if (itemsSale) handleEditClick(itemsSale as unknown as CrudItemType, itemsSale.id.toString());
+                    }}
+                  >
+                    Editar restrições alimentares
+                  </Button>
+                )}
               </div>
             )}
           </div>

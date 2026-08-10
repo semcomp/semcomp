@@ -17,7 +17,7 @@ type SaleRepository interface {
 	GetAll(query SaleListQuery) (*SaleListResult, error)
 	UpdateByID(id uint, updateData map[string]interface{}) error
 	DeleteByID(id uint) error
-	
+
 	// Operações de itens
 	GetSaleItemByID(itemID uint) (*SaleItem, error)
 	UpdateItemPickup(itemID uint, isPickedUp bool) error
@@ -45,6 +45,8 @@ func (r *saleRepository) GetByID(id uint) (*Sale, error) {
 		Preload("Items.Product").
 		Preload("Items.Product.Kit").
 		Preload("Items.Product.Coffee").
+		Preload("Items.Product.ComboItems").
+		Preload("Items.Product.ComboItems.Item").
 		Where("id = ?", id).
 		First(&sale).Error
 
@@ -54,6 +56,8 @@ func (r *saleRepository) GetByID(id uint) (*Sale, error) {
 		}
 		return nil, err
 	}
+
+	sale.ComputeItemFlags()
 	return &sale, nil
 }
 
@@ -64,10 +68,21 @@ func (r *saleRepository) GetByUserNumber(userNumber uint) ([]Sale, error) {
 		Preload("Items").
 		Preload("Items.Product").
 		Preload("Items.Product.Kit").
+		Preload("Items.Product.Coffee").
+		Preload("Items.Product.ComboItems").
+		Preload("Items.Product.ComboItems.Item").
 		Order("created_at desc").
 		Find(&sales).Error
 
-	return sales, err
+	if err != nil {
+		return sales, err
+	}
+
+	for i := range sales {
+		sales[i].ComputeItemFlags()
+	}
+
+	return sales, nil
 }
 
 func (r *saleRepository) UpdateByID(id uint, updateData map[string]interface{}) error {
@@ -149,6 +164,9 @@ func (r *saleRepository) GetAll(query SaleListQuery) (*SaleListResult, error) {
 		Preload("Items").
 		Preload("Items.Product").
 		Preload("Items.Product.Kit").
+		Preload("Items.Product.Coffee").
+		Preload("Items.Product.ComboItems").
+		Preload("Items.Product.ComboItems.Item").
 		Preload("User").
 		Order(sortClause).
 		Limit(query.Limit).
@@ -157,6 +175,10 @@ func (r *saleRepository) GetAll(query SaleListQuery) (*SaleListResult, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	for i := range sales {
+		sales[i].ComputeItemFlags()
 	}
 
 	return &SaleListResult{

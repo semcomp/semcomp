@@ -36,13 +36,14 @@ export default function CartPage() {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [dietaryRestrictions, setDietaryRestrictions] = useState("");
 
   const handleCheckout = async () => {
     setCheckoutLoading(true);
     try {
       const productIds = [...new Set(items.map((i) => Number(i.id)))];
       const pixData = await paymentAPI.createPix(subtotal, productIds, "Semcomp - Compra de produtos");
-      navigate("/loja/checkout", { state: { pixData } });
+      navigate("/loja/checkout", { state: { pixData, dietaryRestrictions } });
     } catch {
       showNotification("Erro ao gerar PIX. Tente novamente.", "warning");
     } finally {
@@ -274,6 +275,28 @@ export default function CartPage() {
                       {formatBRL(subtotal)}
                     </span>
                   </div>
+                </div>
+
+                <div className={`mt-5 border-t ${divider} pt-4`}>
+                  <label
+                    htmlFor="dietary-restrictions"
+                    className={`mb-1.5 block text-xs font-bold uppercase tracking-widest ${textColor}`}
+                  >
+                    Restrições alimentares
+                  </label>
+                  <textarea
+                    id="dietary-restrictions"
+                    value={dietaryRestrictions}
+                    onChange={(e) => setDietaryRestrictions(e.target.value)}
+                    maxLength={1000}
+                    rows={2}
+                    placeholder="Ex: Vegano, sem lactose, alergia a amendoim"
+                    className={`w-full resize-none rounded-xl border ${cardBorder} ${cardBg} px-3 py-2 text-sm ${textColor} shadow-sm focus:outline-none focus:ring-2 focus:ring-semcompMidLightBlue`}
+                  />
+                  <p className={`mt-1.5 text-[11px] ${mutedText}`}>
+                    Se o seu pedido incluir coffee break, conte pra gente se você tem alguma
+                    restrição alimentar (opcional).
+                  </p>
                 </div>
 
                 <button

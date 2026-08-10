@@ -10,7 +10,15 @@ import { productsAPI } from "@/api/products";
 import type { Product, ProductType } from "@/types/ProductType";
 
 // ─── Tipos ────────────────────────────────────────────────
+interface SizeVariant {
+  /** ID do produto real correspondente a este tamanho */
+  productId: string;
+  size: string;
+  priceValue: number;
+}
+
 interface StoreItem {
+  /** ID do produto "representativo" do card (para KIT, é a variante do primeiro tamanho) */
   id: string;
   name: string;
   category: string;
@@ -21,13 +29,36 @@ interface StoreItem {
   image: string;
   /** Categoria raw (KIT | COFFEE | COMBO) */
   rawType: ProductType;
-  /** Opções disponíveis para o produto */
-  availableSizes: string[];
+  /** Tamanhos de fato disponíveis no catálogo (só populado para KIT), cada um apontando
+   *  para o produto real daquele tamanho — selecionar um tamanho troca o produto comprado. */
+  sizeVariants: SizeVariant[];
   availableDateTimes: string[];
-  /** Opções pré-selecionadas */
-  defaultSize?: string;
   defaultDateTime?: string;
+  color?: string;
   isBabydoll?: boolean;
+  /** Tamanhos de camiseta incluídos em um Combo (somente leitura, não há seleção dinâmica) */
+  comboKitSizes?: string[];
+}
+
+/** Ordem "natural" de tamanhos, usada só para ordenar a exibição. Tamanhos fora dessa
+ *  lista (ex: cadastros futuros) vão para o final, ordenados alfabeticamente. */
+const SIZE_ORDER = ["PP", "P", "M", "G", "GG", "XG"];
+
+function compareSizes(a: string, b: string): number {
+  const ia = SIZE_ORDER.indexOf(a);
+  const ib = SIZE_ORDER.indexOf(b);
+  if (ia === -1 && ib === -1) return a.localeCompare(b);
+  if (ia === -1) return 1;
+  if (ib === -1) return -1;
+  return ia - ib;
+}
+
+/** Chave usada para agrupar diferentes tamanhos do mesmo modelo de camiseta.
+ *  Usa `variant_group` (novo campo do Kit) quando disponível; se não vier da API
+ *  (backend antigo) cai para o nome do kit; em último caso, o produto fica sozinho. */
+function kitVariantGroupKey(p: Product): string {
+  const kit = p.kit as (Product["kit"] & { variant_group?: string }) | undefined;
+  return kit?.variant_group?.trim() || kit?.name || `product-${p.id}`;
 }
 
 function collectComboDateTimes(product: Product, productById: Map<number, Product>): string[] {
@@ -42,6 +73,22 @@ function collectComboDateTimes(product: Product, productById: Map<number, Produc
   }
 
   return [...dateTimes];
+}
+
+/** Tamanhos das camisetas (Kits) incluídas em um Combo. Diferente do KIT avulso,
+ *  aqui não há seleção dinâmica: o tamanho já vem fixo no Combo cadastrado. */
+function collectComboKitSizes(product: Product, productById: Map<number, Product>): string[] {
+  if (product.type !== "COMBO" || !product.combo_items?.length) return [];
+
+  const sizes = new Set<string>();
+  for (const comboItem of product.combo_items) {
+    const referencedProduct = productById.get(comboItem.item_id);
+    if (referencedProduct?.type === "KIT" && referencedProduct.kit?.size) {
+      sizes.add(referencedProduct.kit.size);
+    }
+  }
+
+  return [...sizes];
 }
 
 // ─── Helpers ──────────────────────────────────────────────
@@ -59,25 +106,53 @@ function formatDateTime(iso: string): string {
   });
 }
 
-const SIZES = ["PP", "P", "M", "G", "GG", "XG"];
+/** Converte um grupo de produtos KIT (mesmo modelo, tamanhos diferentes) em um único
+ *  StoreItem com seletor de tamanho real: cada tamanho aponta para o produto correto. */
+function kitGroupToStoreItem(groupProducts: Product[]): StoreItem {
+  const sorted = [...groupProducts].sort((a, b) => compareSizes(a.kit!.size, b.kit!.size));
+  const representative = sorted[0];
+  const kit = representative.kit!;
 
-function productToStoreItem(p: Product, productById: Map<number, Product>): StoreItem {
+  const sizeVariants: SizeVariant[] = sorted.map((p) => ({
+    productId: String(p.id),
+    size: p.kit!.size,
+    priceValue: p.price,
+  }));
+
+  return {
+    id: String(representative.id),
+    name: kit.name,
+    category: "Kit",
+    description: `${kit.color}${kit.is_babydoll ? " · Babydoll" : ""}`,
+    price: formatBRL(representative.price),
+    priceValue: representative.price,
+    image:
+      representative.picture_url ||
+      `https://placehold.co/600x400/0B2639/FAFDFF?text=${encodeURIComponent(kit.name)}`,
+    rawType: "KIT",
+    sizeVariants,
+    availableDateTimes: [],
+    color: kit.color,
+    isBabydoll: kit.is_babydoll,
+  };
+}
+
+/** Converte um produto COFFEE ou COMBO (sempre 1:1, sem variantes de tamanho) em StoreItem. */
+function singleProductToStoreItem(p: Product, productById: Map<number, Product>): StoreItem {
   const categoryMap: Record<string, string> = {
-    KIT: "Kit",
     COFFEE: "Coffee Break",
     COMBO: "Combo",
   };
 
-  const name = p.kit?.name ?? p.coffee?.name ?? p.type;
+  const name = p.coffee?.name ?? p.type;
   const availableDateTimes =
     p.type === "COMBO"
       ? collectComboDateTimes(p, productById)
       : p.coffee?.date_time
         ? [p.coffee.date_time]
         : [];
-  const description = p.kit
-    ? `${p.kit.size} · ${p.kit.color}${p.kit.is_babydoll ? " · Babydoll" : ""}`
-    : p.type === "COMBO"
+  const description =
+    p.type === "COMBO"
       ? `Combo com ${p.combo_items?.length ?? 0} itens`
       : "Coffee Break da Semcomp";
 
@@ -90,11 +165,10 @@ function productToStoreItem(p: Product, productById: Map<number, Product>): Stor
     priceValue: p.price,
     image: p.picture_url || `https://placehold.co/600x400/0B2639/FAFDFF?text=${encodeURIComponent(name)}`,
     rawType: p.type,
-    availableSizes: SIZES,
+    sizeVariants: [],
     availableDateTimes,
-    defaultSize: p.kit?.size ?? undefined,
     defaultDateTime: availableDateTimes[0] ?? undefined,
-    isBabydoll: p.kit?.is_babydoll ?? undefined,
+    comboKitSizes: p.type === "COMBO" ? collectComboKitSizes(p, productById) : undefined,
   };
 }
 
@@ -137,9 +211,10 @@ export default function StorePage() {
   const [qty, setQty] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedDateTime, setSelectedDateTime] = useState<string>("");
-  const [selectedIsBabydoll, setSelectedIsBabydoll] = useState(false);
   const [products, setProducts] = useState<StoreItem[]>([]);
   const [loading, setLoading] = useState(true);
+  // Tamanho escolhido rapidamente no card da grade (fora do modal), por item.id.
+  const [quickSizeByItemId, setQuickSizeByItemId] = useState<Record<string, string>>({});
 
   // Busca produtos da API
   useEffect(() => {
@@ -151,7 +226,28 @@ export default function StorePage() {
         if (!cancelled) {
           const selling = data.products.filter((p) => p.is_selling);
           const productById = new Map(selling.map((p) => [p.id, p] as const));
-          setProducts(selling.map((product) => productToStoreItem(product, productById)));
+
+          // Kits (camisetas) de mesmo modelo/estampa, tamanhos diferentes, viram um
+          // único card com seletor de tamanho real. Coffee/Combo continuam 1:1.
+          const kitsByGroup = new Map<string, Product[]>();
+          const otherItems: StoreItem[] = [];
+
+          for (const p of selling) {
+            if (p.type === "KIT" && p.kit) {
+              const key = kitVariantGroupKey(p);
+              const group = kitsByGroup.get(key);
+              if (group) {
+                group.push(p);
+              } else {
+                kitsByGroup.set(key, [p]);
+              }
+            } else {
+              otherItems.push(singleProductToStoreItem(p, productById));
+            }
+          }
+
+          const kitItems = [...kitsByGroup.values()].map((group) => kitGroupToStoreItem(group));
+          setProducts([...kitItems, ...otherItems]);
         }
       } catch {
         if (!cancelled) setProducts([]);
@@ -189,25 +285,29 @@ export default function StorePage() {
   const openModal = (item: StoreItem) => {
     setSelected(item);
     setQty(1);
-    setSelectedSize(item.defaultSize ?? (item.rawType !== "COFFEE" ? SIZES[0] : ""));
+    const initialSize = quickSizeByItemId[item.id] ?? item.sizeVariants[0]?.size ?? "";
+    setSelectedSize(initialSize);
     setSelectedDateTime(item.defaultDateTime ?? "");
-    setSelectedIsBabydoll(item.isBabydoll ?? false);
   };
 
   const closeModal = () => {
     setSelected(null);
   };
 
+  // Variante de tamanho atualmente selecionada no modal (só existe para KIT).
+  const selectedVariant = selected?.sizeVariants.find((v) => v.size === selectedSize) ?? selected?.sizeVariants[0];
+  const selectedPriceValue = selectedVariant?.priceValue ?? selected?.priceValue ?? 0;
+
   const handleAddToCart = () => {
     if (!selected) return;
     const params: AddToCartParams = {
-      id: selected.id,
+      id: selectedVariant ? selectedVariant.productId : selected.id,
       name: selected.name,
-      price: selected.priceValue,
+      price: selectedPriceValue,
       image: selected.image,
       size: selectedSize || undefined,
       dateTime: selectedDateTime || undefined,
-      isBabydoll: selectedIsBabydoll || undefined,
+      isBabydoll: selected.isBabydoll || undefined,
     };
     // Adiciona N unidades de uma vez
     for (let i = 0; i < qty; i++) {
@@ -338,14 +438,28 @@ export default function StorePage() {
 
                   {/* Conteúdo — flex-1 + flex column para o botão ficar no final */}
                   <div className="p-5 flex flex-col gap-3 flex-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <h3 className={`font-poppins font-bold text-lg leading-tight ${textColor}`}>
-                        {item.name}
-                      </h3>
-                      <span className={`shrink-0 font-extrabold text-lg ${priceColor}`}>
-                        {item.price}
-                      </span>
-                    </div>
+                    {(() => {
+                      // Para KIT, a variante (e portanto o preço) pode mudar conforme o
+                      // tamanho escolhido rapidamente no card.
+                      const quickSize = item.rawType === "KIT"
+                        ? (quickSizeByItemId[item.id] ?? item.sizeVariants[0]?.size ?? "")
+                        : "";
+                      const quickVariant = item.rawType === "KIT"
+                        ? (item.sizeVariants.find((v) => v.size === quickSize) ?? item.sizeVariants[0])
+                        : undefined;
+                      const displayPrice = quickVariant ? formatBRL(quickVariant.priceValue) : item.price;
+
+                      return (
+                        <div className="flex items-start justify-between gap-3">
+                          <h3 className={`font-poppins font-bold text-lg leading-tight ${textColor}`}>
+                            {item.name}
+                          </h3>
+                          <span className={`shrink-0 font-extrabold text-lg ${priceColor}`}>
+                            {displayPrice}
+                          </span>
+                        </div>
+                      );
+                    })()}
 
                     <p className={`text-xs font-semibold uppercase tracking-wide ${mutedText}`}>
                       {item.category}
@@ -355,18 +469,28 @@ export default function StorePage() {
                       {item.description}
                     </p>
 
-                    {/* ── Seletor in-line no card ─────────── */}
-                    {item.rawType === "KIT" && (
+                    {/* ── Seletor in-line no card (tamanhos reais do catálogo) ── */}
+                    {item.rawType === "KIT" && item.sizeVariants.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
-                        {item.availableSizes.map((s) => (
-                          <button
-                            key={s}
-                            onClick={(e) => { e.stopPropagation(); }}
-                            className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue`}
-                          >
-                            {s}
-                          </button>
-                        ))}
+                        {item.sizeVariants.map((v) => {
+                          const isActive = (quickSizeByItemId[item.id] ?? item.sizeVariants[0]?.size) === v.size;
+                          return (
+                            <button
+                              key={v.size}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setQuickSizeByItemId((prev) => ({ ...prev, [item.id]: v.size }));
+                              }}
+                              className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${
+                                isActive
+                                  ? "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue"
+                                  : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue`
+                              }`}
+                            >
+                              {v.size}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                     {item.rawType === "COFFEE" && item.availableDateTimes.length > 0 && (
@@ -376,14 +500,13 @@ export default function StorePage() {
                     )}
                     {item.rawType === "COMBO" && (
                       <div className="flex flex-wrap gap-1.5">
-                        {item.availableSizes.map((s) => (
-                          <button
+                        {item.comboKitSizes?.map((s) => (
+                          <span
                             key={s}
-                            onClick={(e) => { e.stopPropagation(); }}
-                            className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${cardBorder} ${mutedText} hover:${textColor}`}
+                            className={`px-2.5 py-1 text-xs font-bold rounded-md border ${cardBorder} ${mutedText}`}
                           >
-                            {s}
-                          </button>
+                            Tam. {s}
+                          </span>
                         ))}
                         {item.availableDateTimes.length > 0 && (
                           <span className={`px-2.5 py-1 text-xs font-bold rounded-md border bg-semcompMidDarkBlue/10 ${cardBorder} ${mutedText}`}>
@@ -397,15 +520,27 @@ export default function StorePage() {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        addItem({
-                          id: item.id,
-                          name: item.name,
-                          price: item.priceValue,
-                          image: item.image,
-                          size: item.defaultSize,
-                          dateTime: item.defaultDateTime,
-                          isBabydoll: item.isBabydoll,
-                        });
+                        if (item.rawType === "KIT") {
+                          const quickSize = quickSizeByItemId[item.id] ?? item.sizeVariants[0]?.size;
+                          const variant = item.sizeVariants.find((v) => v.size === quickSize) ?? item.sizeVariants[0];
+                          if (!variant) return;
+                          addItem({
+                            id: variant.productId,
+                            name: item.name,
+                            price: variant.priceValue,
+                            image: item.image,
+                            size: variant.size,
+                            isBabydoll: item.isBabydoll,
+                          });
+                        } else {
+                          addItem({
+                            id: item.id,
+                            name: item.name,
+                            price: item.priceValue,
+                            image: item.image,
+                            dateTime: item.defaultDateTime,
+                          });
+                        }
                       }}
                       className={`mt-auto w-full rounded-full py-2.5 text-sm font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-semcompLightBlue focus:ring-offset-2 active:scale-95 shadow-md ${btnSolid}`}
                     >
@@ -456,30 +591,50 @@ export default function StorePage() {
                 </span>
               )}
 
-              <p className={`text-3xl font-extrabold text-semcompMidDarkBlue`}>{selected.price}</p>
+              <p className={`text-3xl font-extrabold text-semcompMidDarkBlue`}>{formatBRL(selectedPriceValue)}</p>
 
               <p className={`text-sm leading-relaxed ${mutedText}`}>{selected.description}</p>
 
               <div className={`border-t ${divider} pt-5 space-y-5`}>
-                {/* ── Seletor de Tamanho (Kit / Combo) ── */}
-                {(selected.rawType === "KIT" || selected.rawType === "COMBO") && (
+                {/* ── Seletor de Tamanho (KIT: real, muda o produto/preço) ── */}
+                {selected.rawType === "KIT" && selected.sizeVariants.length > 0 && (
                   <div>
                     <span className={`text-sm font-semibold ${textColor}`}>Tamanho da camiseta</span>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {selected.availableSizes.map((s) => (
+                      {selected.sizeVariants.map((v) => (
                         <button
-                          key={s}
-                          onClick={() => setSelectedSize(s)}
+                          key={v.size}
+                          onClick={() => setSelectedSize(v.size)}
                           className={`min-w-11 px-3 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${
-                            selectedSize === s
+                            selectedSize === v.size
                               ? "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue shadow-md"
                               : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/5`
                           }`}
                         >
-                          {s}
+                          {v.size}
                         </button>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* ── Camiseta incluída no Combo (fixa, sem seleção dinâmica) ── */}
+                {selected.rawType === "COMBO" && selected.comboKitSizes && selected.comboKitSizes.length > 0 && (
+                  <div>
+                    <span className={`text-sm font-semibold ${textColor}`}>Camiseta incluída</span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {selected.comboKitSizes.map((s) => (
+                        <span
+                          key={s}
+                          className={`px-3 py-2 text-sm font-bold rounded-lg border ${cardBorder} ${mutedText}`}
+                        >
+                          Tamanho {s}
+                        </span>
+                      ))}
+                    </div>
+                    <p className={`mt-1.5 text-xs ${mutedText}`}>
+                      O tamanho da camiseta deste combo já vem definido e não pode ser alterado.
+                    </p>
                   </div>
                 )}
 
@@ -532,7 +687,7 @@ export default function StorePage() {
                   <div className="flex items-center justify-between">
                     <span className={`font-bold ${textColor}`}>Total</span>
                     <span className={`text-2xl font-extrabold text-semcompMidDarkBlue`}>
-                      R$ {(selected.priceValue * qty).toFixed(2).replace(".", ",")}
+                      R$ {(selectedPriceValue * qty).toFixed(2).replace(".", ",")}
                     </span>
                   </div>
                 </div>
