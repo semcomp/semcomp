@@ -55,6 +55,7 @@ export interface CrudField {
     | "file";
   selectVariants?: Record<string, string>;
   multiValueOptions?: string[];
+  readOnly?: boolean;
   accept?: string;
   showWhen?: { field: string; value: unknown };
 }
@@ -731,7 +732,7 @@ export function CrudTable({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            {fields.map((f) => (
+            {fields.filter((f) => !f.readOnly).map((f) => (
               <div key={f.value} className="space-y-1.5">
                 <Label
                   htmlFor={`create-${f.value}`}
@@ -947,7 +948,7 @@ export function CrudTable({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            {fields.map((f) => (
+            {fields.filter((f) => !f.readOnly).map((f) => (
               <div key={f.value} className="space-y-1.5">
                 <Label className="text-foreground text-sm">{f.label}</Label>
                 {f.type === "select" && f.selectVariants ? (

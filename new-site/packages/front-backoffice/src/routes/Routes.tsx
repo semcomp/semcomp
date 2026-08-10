@@ -9,6 +9,7 @@ import QRCodeReader from "@/pages/Events/QRCodeReader";
 import SemcompUsersCRUD from "@/pages/UserSemcomp";
 import BackofficeUsersCRUD from "@/pages/UserBackoffice";
 import ParticipationCRUD from "@/pages/Participation";
+import ProductsCRUD from "@/pages/Products";
 import PermissionsCRUD from "@/pages/Permission";
 import PagesAvailability from "@/pages/PagesAvailability";
 import SponsorsCRUD from "@/pages/Sponsors";
@@ -54,6 +55,10 @@ export const router = createBrowserRouter(
             {
               element: <RequirePermission section="Participações" />,
               children: [{ path: "/participation", element: <ParticipationCRUD /> }],
+            },
+            {
+              element: <RequirePermission section="Produtos" />,
+              children: [{ path: "/products", element: <ProductsCRUD /> }],
             },
             {
               element: <RequirePermission section="Permissões" />,
