@@ -105,6 +105,8 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 | `dateEnd` | `end_date` |
 | `local` | `location` |
 | `hasPresence` | `has_attendance` |
+| `hasSignin` | `has_signin` |
+| `maxParticipants` | `max_participants` |
 
 ### Presence
 | Frontend | Backend |

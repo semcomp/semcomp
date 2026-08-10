@@ -17,6 +17,7 @@ import (
 	"backend/internal/presence"
 	"backend/internal/product"
 	"backend/internal/providers"
+	"backend/internal/signinEvent"
 	"backend/internal/sitestat"
 	"backend/internal/sponsor"
 	"backend/internal/token"
@@ -47,19 +48,9 @@ func main() {
 		panic("Failed to connect to database: " + errDB.Error())
 	}
 
-	// Usado para "adotar" contas já existentes como verificadas logo abaixo, já que a
-	// coluna email_verified é nova e não deve bloquear o login de usuários antigos.
-	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
-
-	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, &token.Token{}, &payment.Payment{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{}, &sitestat.SiteStat{})
+	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &signinEvent.SigninEvent{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, &token.Token{}, &payment.Payment{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{}, &sitestat.SiteStat{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
-	}
-
-	if !hadEmailVerifiedColumn {
-		if err := db.Exec("UPDATE users SET email_verified = true").Error; err != nil {
-			panic("Failed to grandfather existing users as email-verified: " + err.Error())
-		}
 	}
 
 	// Inicializa as camadas da aplicação (Repository -> Service -> Handler)
@@ -96,6 +87,10 @@ func main() {
 	eventRepo := event.NewEventRepository(db)
 	eventService := event.NewEventService(eventRepo)
 	eventHandler := event.NewEventHandler(eventService)
+
+	signinEventRepo := signinEvent.NewSigninEventRepository(db)
+	signinEventService := signinEvent.NewSigninEventService(signinEventRepo, eventRepo)
+	signinEventHandler := signinEvent.NewSigninEventHandler(signinEventService)
 
 	presenceRepo := presence.NewPresenceRepository(db)
 	presenceService := presence.NewPresenceService(presenceRepo)
@@ -206,6 +201,10 @@ func main() {
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 	authRoutes.PUT("/papfe-document", userHandler.UpdatePapfeDocument)
 
+	// authRoutes.POST("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.CreateSignin)
+	// authRoutes.GET("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.GetSigninEvents)
+	// authRoutes.GET("/signin-events/me", pageMW("profile"), pageMW("cronograma"), signinEventHandler.GetMySignins)
+
 	authRoutes.GET("/payments", pageMW("loja"), paymentHandler.ListByUser)
 	authRoutes.POST("/payments/pix", pageMW("loja"), paymentHandler.CreatePix)
 	authRoutes.GET("/payments/:id/status", pageMW("loja"), paymentHandler.GetStatus)
@@ -261,8 +260,6 @@ func main() {
 	admin.DELETE("/products/:id", permMW("Produtos", permission.PermRW), productHandler.DeleteProductByID)
 
 	// Permissões
-	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode
-	// consultar suas próprias permissões (email lido do JWT, não do URL)
 	admin.GET("/permissions/me", permissionHandler.GetMyPermissions)
 	admin.GET("/permissions", permMW("Permissões", permission.PermR), permissionHandler.GetPermissions)
 	admin.GET("/permissions/section/:section", permMW("Permissões", permission.PermR), permissionHandler.GetPermissionBySection)

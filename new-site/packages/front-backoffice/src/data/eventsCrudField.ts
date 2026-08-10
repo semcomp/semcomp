@@ -11,4 +11,9 @@ export const fields: CrudField[] = [
     true: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
     false: "bg-slate-600/40 text-slate-400 border border-slate-600/30",
   }},
+  { value: "hasSignin", label: "Inscrição", type: "select", selectVariants: {
+    true: "bg-blue-500/20 text-blue-300 border border-blue-500/30",
+    false: "bg-slate-600/40 text-slate-400 border border-slate-600/30",
+  }},
+  { value: "maxParticipants", label: "Vagas (0 = ilimitado)", type: "number" },
 ];

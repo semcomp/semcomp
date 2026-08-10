@@ -64,6 +64,25 @@ Tabela: `events` | Arquivo: `internal/event/model.go`
 | `Location` | `location` | |
 | `Description` | `description` | text |
 | `HasAttendance` | `has_attendance` | bool |
+| `HasSignin` | `has_signin` | bool, default:false — habilita inscrição no evento |
+| `MaxParticipants` | `max_participants` | uint, default:0 — 0 = sem limite de vagas |
+
+---
+
+## SigninEvent
+Tabela: `signin_events` | Arquivo: `internal/signinEvent/model.go`  
+**PK tripla**: `UserNumber + EventName + EventInitDate`  
+Registra inscrições de participantes em eventos que têm `has_signin = true`.
+
+| Campo | JSON | Notas |
+|---|---|---|
+| `UserNumber` PK | `user_number` | uint |
+| `EventName` PK | `event_name` | size:200 |
+| `EventInitDate` PK | `event_init_date` | timestamptz |
+| `UserWaitListPosition` | `user_wait_list_position` | uint, omitempty |
+| `Status` | `status` | `"Inscrito"` / `"Lista de Espera"` / `"Cancelado"` |
+
+> Módulo com model e repository implementados; service e handler ainda vazios — sem rotas HTTP registradas.
 
 ---
 
