@@ -7,8 +7,8 @@ import urllib.error
 import urllib.request
 from PIL import Image  # Requer: pip install Pillow
 
-csv_filename = "Semcompers - Membros-3.csv"
-output_folder = "photos"
+csv_filename = "Semcompers.csv"
+output_folder = "../public/img/team/"
 DELAY_ENTRE_DOWNLOADS = 1.5
 
 
@@ -128,7 +128,7 @@ def process_csv():
             link_foto = row[3].strip()
 
             if not link_foto:
-                print(f"[-] Sem link de foto para: {nome}")
+                # print(f"[-] Sem link de foto para: {nome}")
                 falhas += 1
                 continue
 
@@ -138,11 +138,15 @@ def process_csv():
             # Força a extensão sempre como .webp
             filepath = os.path.join(output_folder, f"{nome_limpo}.webp")
 
+            if os.path.exists(filepath):
+                # print(f"[✓] Foto já existe para: {nome_limpo}, pulando download.")
+                continue
+
             print(f"[{total}] Baixando e convertendo foto de: {nome_limpo}...")
             sucesso = download_and_convert_to_webp(link_foto, filepath)
 
             if sucesso:
-                print(f"   [✓] Salvo como .webp com sucesso.")
+                # print(f"   [✓] Salvo como .webp com sucesso.")
                 baixados += 1
             else:
                 falhas += 1

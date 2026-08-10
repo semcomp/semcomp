@@ -38,7 +38,7 @@ const TEAM: TeamType = {
         {
           nome: "Camilli Muniz",
           position: "Coordenadora de Eventos Acadêmicos",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/camilli-muniz-7b2205389/",
         },
         {
           nome: "André Campanholo Paschoalini",
@@ -54,11 +54,6 @@ const TEAM: TeamType = {
           nome: "Eduardo Poltroniere da Silva",
           position: "Membro de Eventos Acadêmicos",
           linkedin: "https://www.linkedin.com/in/eduardo-poltroniere-da-silva",
-        },
-        {
-          nome: "Izabely Ferrari Farias",
-          position: "Membro de Eventos Acadêmicos",
-          linkedin: "",
         },
         {
           nome: "João Pedro Neves",
@@ -86,11 +81,6 @@ const TEAM: TeamType = {
           linkedin: "",
         },
         {
-          nome: "Mariana Arfux Pereira Cavalcante de Castro",
-          position: "Membro de Eventos Acadêmicos",
-          linkedin: "",
-        },
-        {
           nome: "Mateus Juares Felipe",
           position: "Membro de Eventos Acadêmicos",
           linkedin: "https://www.linkedin.com/in/mateus-juares-felipe",
@@ -103,7 +93,7 @@ const TEAM: TeamType = {
         {
           nome: "Pedro Hamamoto da Palma",
           position: "Membro de Eventos Acadêmicos",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/pedro-hamamoto-da-palma-21870a384/",
         },
         {
           nome: "Pedro Marcos Antiqueira",
@@ -146,11 +136,6 @@ const TEAM: TeamType = {
           linkedin: "https://www.linkedin.com/in/felipe-colona",
         },
         {
-          nome: "Gabriel Cordeiro Correa Silva",
-          position: "Membro de Patrocínio",
-          linkedin: "",
-        },
-        {
           nome: "Giovanna Nascimento Noventa",
           position: "Membro de Patrocínio",
           linkedin: "https://www.linkedin.com/in/giovanna-noventa/",
@@ -158,32 +143,22 @@ const TEAM: TeamType = {
         {
           nome: "Lucas Xavier Carvalho Santos",
           position: "Membro de Patrocínio",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/lxaviercs/",
         },
         {
           nome: "Marcelo Martins Conti",
           position: "Membro de Patrocínio",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/mmconti/",
         },
         {
           nome: "Murilo Franciscato Ataide",
           position: "Membro de Patrocínio",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/murilo-franciscato-ataide-48b1023b2",
         },
         {
           nome: "Newton Eduardo Pena Villegas",
           position: "Membro de Patrocínio",
           linkedin: "https://www.linkedin.com/in/newtonepv/",
-        },
-        {
-          nome: "Rafael Mascarenhas Hornos Senger",
-          position: "Membro de Patrocínio",
-          linkedin: "",
-        },
-        {
-          nome: "Renato Calacina Spessotto",
-          position: "Membro de Patrocínio",
-          linkedin: "",
         }
       ],
     },
@@ -218,7 +193,7 @@ const TEAM: TeamType = {
         {
           nome: "Gabriel Cordeiro Correa Silva",
           position: "Membro de Extracurriculares",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/gabriel-cordeiro-correa-silva-587702304/",
         },
         {
           nome: "Gabriel Meirelles Cury",
@@ -254,6 +229,16 @@ const TEAM: TeamType = {
           nome: "Pedro Perez",
           position: "Coordenador de Site",
           linkedin: "https://www.linkedin.com/in/pedro-henrique-perez-dias-a522a1236/",
+        },
+        {
+          nome: "Alec Campos Aoki",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/alec-campos-aoki",
+        },
+        {
+          nome: "Artur Kenzo Obara Kawazoe",
+          position: "Membro de Site",
+          linkedin: "https://www.linkedin.com/in/arturkenzo",
         },
         {
           nome: "Daniel Jorge Manzano",
@@ -303,12 +288,12 @@ const TEAM: TeamType = {
         {
           nome: "Ana Luísa Pereira da Silva Leal",
           position: "Membro de Financeiro",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/naluisaleal/",
         },
         {
-          nome: "Giovanna Lopes de Andrade",
+          nome: "Giovanna Maruyama",
           position: "Membro de Financeiro",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/giovanna-maruyama/",
         },
         {
           nome: "Hélio Márcio Cabral Santos",
@@ -331,11 +316,6 @@ const TEAM: TeamType = {
           linkedin: "",
         },
         {
-          nome: "Kaylaine Bessa da Silva",
-          position: "Membro de Financeiro",
-          linkedin: "",
-        },
-        {
           nome: "Kevin Ryoji Nakashima",
           position: "Membro de Financeiro",
           linkedin: "https://www.linkedin.com/in/kevin-nakashima-8a22232b5/",
@@ -348,7 +328,7 @@ const TEAM: TeamType = {
         {
           nome: "Yan Barbosa Servilha",
           position: "Membro de Financeiro",
-          linkedin: "",
+          linkedin: "www.linkedin.com/in/yan-barbosa-servilha",
         },
       ],
     },
@@ -376,7 +356,12 @@ const TEAM: TeamType = {
           linkedin: "https://www.linkedin.com/in/cainan-loyola-schiavolin-535898236",
         },
         {
-          nome: "Diego Fernandes Lemos",
+          nome: "Danilo Salmen Stocco",
+          position: "Membro de Jogo",
+          linkedin: "",
+        },
+        {
+          nome: "Davi Nunes Almeida",
           position: "Membro de Jogo",
           linkedin: "",
         },
@@ -421,11 +406,6 @@ const TEAM: TeamType = {
           linkedin: "https://www.linkedin.com/in/pedro-sena-b64927397/",
         },
         {
-          nome: "Pedro Henrique Tambara Zanutto",
-          position: "Membro de Jogo",
-          linkedin: "",
-        },
-        {
           nome: "Pedro Martins Oliveira",
           position: "Membro de Jogo",
           linkedin: "https://www.linkedin.com/in/pedro-martins-oliveira/",
@@ -433,7 +413,7 @@ const TEAM: TeamType = {
         {
           nome: "Tyago Yuji Teoi",
           position: "Membro de Jogo",
-          linkedin: "",
+          linkedin: "https://www.linkedin.com/in/tyago-teoi-9973291bb/",
         },
       ],
     },
@@ -511,9 +491,19 @@ const TEAM: TeamType = {
           linkedin: "https://www.linkedin.com/in/julia-cribeiro",
         },
         {
+          nome: "Ana Rita Marega Gonçalves",
+          position: "Membro de Marketing",
+          linkedin: "",
+        },
+        {
           nome: "Angela Patrícia Mestas Muñante",
           position: "Membro de Marketing",
           linkedin: "https://www.linkedin.com/in/angela-patricia-mestas-mu%C3%B1ante-847564243/",
+        },
+        {
+          nome: "Bárbara Naomi Morimoto Hatano",
+          position: "Membro de Marketing",
+          linkedin: "",
         },
         {
           nome: "Bruna Gongora Bariccatti",
@@ -526,12 +516,7 @@ const TEAM: TeamType = {
           linkedin: "https://www.linkedin.com/in/fepazzotto",
         },
         {
-          nome: "Giovanna Maruyama",
-          position: "Membro de Marketing",
-          linkedin: "https://www.linkedin.com/in/giovanna-maruyama/",
-        },
-        {
-          nome: "Juliana Pirolla",
+          nome: "Gabriel Augusto Pereira Maia",
           position: "Membro de Marketing",
           linkedin: "",
         },
@@ -541,9 +526,19 @@ const TEAM: TeamType = {
           linkedin: "https://www.linkedin.com/in/kattryel-rezende",
         },
         {
+          nome: "Kim Andy Kimura",
+          position: "Membro de Marketing",
+          linkedin: "https://www.linkedin.com/in/kim-andy-kimura-04000730b/",
+        },
+        {
           nome: "Larissa Pires Moreira Rocha Duarte",
           position: "Membro de Marketing",
           linkedin: "https://www.linkedin.com/in/larissa-piresmd",
+        },
+        {
+          nome: "Leo Fischer Treves Sinhoreto",
+          position: "Membro de Marketing",
+          linkedin: "",
         },
         {
           nome: "Lucas Pereira Franco de Almeida",
@@ -555,6 +550,26 @@ const TEAM: TeamType = {
           position: "Membro de Marketing",
           linkedin: "",
         },
+        {
+          nome: "Miya Parus Rios",
+          position: "Membro de Marketing",
+          linkedin: "",
+        },
+        {
+          nome: "Murilo Ortega Pereira",
+          position: "Membro de Marketing",
+          linkedin: "https://www.linkedin.com/in/murilo-ortega-67387b364",
+        },
+        {
+          nome: "Nicolas Carreiro Rodrigues",
+          position: "Membro de Marketing",
+          linkedin: "",
+        },
+        {
+          nome: "Vinicius Ribeiro de Faria",
+          position: "Membro de Marketing",
+          linkedin: "https://www.linkedin.com/in/vin%C3%ADcius-ribeiro-de-faria-9ab9972a6/",
+        }
       ],
     },
   ],
