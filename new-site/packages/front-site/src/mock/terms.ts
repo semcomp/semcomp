@@ -31,7 +31,7 @@ SEÇÃO 2 — FINALIDADE DO TRATAMENTO DE DADOS
 
 Tratamos seus Dados Pessoais para as seguintes finalidades:
 
-  • Autenticar o usuário, gerenciar a conta de acesso e viabilizar a navegação segura;
+  • Autenticar o usuário, gerenciar a conta de acesso e viabilizar a navegação segura, incluindo o controle de acessos a fim de mitigar requisições abusivas e melhorar segurança cibernética da infraestrutura;
   • Emitir certificados de participação em atividades;
   • Enviar comunicações operacionais e informativas sobre o evento (via e-mail ou Telegram);
   • Analisar estatisticamente o perfil do público para aprimoramento dos serviços, geração de relatórios de impacto e promoção de eventos mais inclusivos e acessíveis (dados utilizados de forma anonimizada ou agregada);
@@ -55,6 +55,8 @@ Coletamos as seguintes categorias de dados:
   • Dados para Métricas Internas e Perfil: Disciplinas cursadas, áreas de interesse na computação e informações prestadas no momento do cadastro ou login.
 
   • Dados Pessoais Sensíveis: Informações de saúde prestadas voluntariamente para fins de acessibilidade de Pessoas com Deficiência (PCD).
+
+  • Dados Técnicos de Navegação e Segurança: Para garantir a integridade da plataforma, prevenir ataques cibernéticos e mitigar abusos na infraestrutura do site, coletamos de forma automatizada o endereço IP dos usuários. O servidor web (Nginx) utiliza esses dados temporariamente em memória volátil para aplicar restrições de taxa de requisições (rate limiting), sendo tais registros mantidos apenas pelo período estritamente necessário para auditar a estabilidade e a segurança do ambiente.
 
   • Cookies e Autenticação: Utilizamos cookies HTTP do tipo HttpOnly e SameSite=Lax para armazenar o token de autenticação (JWT), com validade de até 24 horas. Por serem HttpOnly, esses cookies não são acessíveis por scripts da página, o que protege contra ataques de roubo de sessão (XSS). Em produção, os cookies são transmitidos exclusivamente por conexões seguras (HTTPS). Dados não sensíveis de perfil (nome, e-mail e número de usuário) são armazenados localmente no navegador (localStorage) apenas para fins de exibição na interface.
 
