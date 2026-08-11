@@ -74,7 +74,7 @@ export default function MainEntrance() {
       </div>
       <div className="absolute inset-0 bg-gradient-to-b from-semcompOffBlack/40 to-semcompOffBlack/80" />
 
-      <div className="relative z-10 w-full h-full flex items-center ml-[5%] sm:ml-[10%]">
+      <div className="relative z-10 w-full h-full flex items-center pl-[5%] sm:pl-[10%]">
         <div className="flex flex-col gap-8 md:gap-12">
 
           <div className="flex items-center gap-6">
@@ -89,7 +89,7 @@ export default function MainEntrance() {
             </div>
           </div>
 
-          <p className="text-lg md:text-3xl font-poppins text-semcompLightBlue">
+          <p className="text-base sm:text-lg md:text-3xl font-poppins text-semcompLightBlue">
             {SEMCOMPInfo.DATES_STRING}
           </p>
 
