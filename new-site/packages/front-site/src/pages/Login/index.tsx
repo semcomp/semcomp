@@ -164,7 +164,7 @@ export default function LoginPage(): ReactElement {
             if (name.trim().length === 0) return "Informe seu nome.";
             if (password !== confirmPassword) return "As senhas não coincidem.";
             if (!age || Number(age) <= 0) return "Informe uma idade válida.";
-            if (!city.trim()) return "Informe sua cidade.";
+            if (!city.trim()) return "Informe sua cidade de residência.";
             if (!gender) return "Selecione seu gênero.";
             if (!education) return "Selecione sua formação.";
             if (hasDisability && disabilities.length === 0) return "Adicione ao menos uma deficiência ou desmarque a opção.";
@@ -377,7 +377,7 @@ export default function LoginPage(): ReactElement {
                                     </Select>
                                 </div>
 
-                                <Input label="Cidade *" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Carlos - SP" required />
+                                <Input label="Cidade de Residência *" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Carlos - SP" required />
 
                                 <div className="flex flex-col gap-1">
                                     <Select label="Formação *" value={education} onChange={(e) => setEducation(e.target.value)} placeholder="Selecione..." required>
