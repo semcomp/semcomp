@@ -152,7 +152,7 @@ function SaleForm({
             className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
           />
           <p className="text-xs text-muted-foreground">
-            Este pedido inclui café, então é possível registrar restrições alimentares do participante.
+            Este pedido inclui coffee, então é possível registrar restrições alimentares do participante.
           </p>
         </div>
       )}

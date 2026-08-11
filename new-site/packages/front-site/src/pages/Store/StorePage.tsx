@@ -11,10 +11,21 @@ import type { Product, ProductType } from "@/types/ProductType";
 
 // ─── Tipos ────────────────────────────────────────────────
 interface SizeVariant {
-  /** ID do produto real correspondente a este tamanho */
+  /** ID do produto real correspondente a este tamanho/corte */
   productId: string;
   size: string;
+  isBabydoll: boolean;
   priceValue: number;
+}
+
+/** Chave única de uma variante: mesmo tamanho com/sem babydoll são opções distintas. */
+function variantKey(v: { size: string; isBabydoll: boolean }): string {
+  return `${v.size}__${v.isBabydoll ? "babydoll" : "padrao"}`;
+}
+
+/** Rótulo exibido nos botões de seleção (ex: "M" vs "M · Babydoll"). */
+function variantLabel(v: { size: string; isBabydoll: boolean }): string {
+  return v.isBabydoll ? `${v.size} · Babydoll` : v.size;
 }
 
 interface StoreItem {
@@ -35,7 +46,6 @@ interface StoreItem {
   availableDateTimes: string[];
   defaultDateTime?: string;
   color?: string;
-  isBabydoll?: boolean;
   /** Tamanhos de camiseta incluídos em um Combo (somente leitura, não há seleção dinâmica) */
   comboKitSizes?: string[];
 }
@@ -53,12 +63,16 @@ function compareSizes(a: string, b: string): number {
   return ia - ib;
 }
 
-/** Chave usada para agrupar diferentes tamanhos do mesmo modelo de camiseta.
- *  Usa `variant_group` (novo campo do Kit) quando disponível; se não vier da API
- *  (backend antigo) cai para o nome do kit; em último caso, o produto fica sozinho. */
+/** Ordena variantes por tamanho e, dentro do mesmo tamanho, corte padrão antes de babydoll. */
+function compareVariants(a: { size: string; isBabydoll: boolean }, b: { size: string; isBabydoll: boolean }): number {
+  const bySize = compareSizes(a.size, b.size);
+  if (bySize !== 0) return bySize;
+  return Number(a.isBabydoll) - Number(b.isBabydoll);
+}
+
 function kitVariantGroupKey(p: Product): string {
-  const kit = p.kit as (Product["kit"] & { variant_group?: string }) | undefined;
-  return kit?.variant_group?.trim() || kit?.name || `product-${p.id}`;
+  const kit = p.kit as (Product["kit"] & { color?: string }) | undefined;
+  return kit?.color?.trim() || kit?.name || `product-${p.id}`;
 }
 
 function collectComboDateTimes(product: Product, productById: Map<number, Product>): string[] {
@@ -109,13 +123,19 @@ function formatDateTime(iso: string): string {
 /** Converte um grupo de produtos KIT (mesmo modelo, tamanhos diferentes) em um único
  *  StoreItem com seletor de tamanho real: cada tamanho aponta para o produto correto. */
 function kitGroupToStoreItem(groupProducts: Product[]): StoreItem {
-  const sorted = [...groupProducts].sort((a, b) => compareSizes(a.kit!.size, b.kit!.size));
+  const sorted = [...groupProducts].sort((a, b) =>
+    compareVariants(
+      { size: a.kit!.size, isBabydoll: a.kit!.is_babydoll },
+      { size: b.kit!.size, isBabydoll: b.kit!.is_babydoll }
+    )
+  );
   const representative = sorted[0];
   const kit = representative.kit!;
 
   const sizeVariants: SizeVariant[] = sorted.map((p) => ({
     productId: String(p.id),
     size: p.kit!.size,
+    isBabydoll: p.kit!.is_babydoll,
     priceValue: p.price,
   }));
 
@@ -123,7 +143,7 @@ function kitGroupToStoreItem(groupProducts: Product[]): StoreItem {
     id: String(representative.id),
     name: kit.name,
     category: "Kit",
-    description: `${kit.color}${kit.is_babydoll ? " · Babydoll" : ""}`,
+    description: kit.color,
     price: formatBRL(representative.price),
     priceValue: representative.price,
     image:
@@ -133,7 +153,6 @@ function kitGroupToStoreItem(groupProducts: Product[]): StoreItem {
     sizeVariants,
     availableDateTimes: [],
     color: kit.color,
-    isBabydoll: kit.is_babydoll,
   };
 }
 
@@ -209,12 +228,12 @@ export default function StorePage() {
 
   const [selected, setSelected] = useState<StoreItem | null>(null);
   const [qty, setQty] = useState(1);
-  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedVariantKey, setSelectedVariantKey] = useState<string>("");
   const [selectedDateTime, setSelectedDateTime] = useState<string>("");
   const [products, setProducts] = useState<StoreItem[]>([]);
   const [loading, setLoading] = useState(true);
-  // Tamanho escolhido rapidamente no card da grade (fora do modal), por item.id.
-  const [quickSizeByItemId, setQuickSizeByItemId] = useState<Record<string, string>>({});
+  // Variante (tamanho + babydoll) escolhida rapidamente no card da grade, por item.id.
+  const [quickVariantKeyByItemId, setQuickVariantKeyByItemId] = useState<Record<string, string>>({});
 
   // Busca produtos da API
   useEffect(() => {
@@ -285,8 +304,9 @@ export default function StorePage() {
   const openModal = (item: StoreItem) => {
     setSelected(item);
     setQty(1);
-    const initialSize = quickSizeByItemId[item.id] ?? item.sizeVariants[0]?.size ?? "";
-    setSelectedSize(initialSize);
+    const defaultKey = item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : "";
+    const initialKey = quickVariantKeyByItemId[item.id] ?? defaultKey;
+    setSelectedVariantKey(initialKey);
     setSelectedDateTime(item.defaultDateTime ?? "");
   };
 
@@ -294,8 +314,9 @@ export default function StorePage() {
     setSelected(null);
   };
 
-  // Variante de tamanho atualmente selecionada no modal (só existe para KIT).
-  const selectedVariant = selected?.sizeVariants.find((v) => v.size === selectedSize) ?? selected?.sizeVariants[0];
+  // Variante (tamanho + babydoll) atualmente selecionada no modal (só existe para KIT).
+  const selectedVariant =
+    selected?.sizeVariants.find((v) => variantKey(v) === selectedVariantKey) ?? selected?.sizeVariants[0];
   const selectedPriceValue = selectedVariant?.priceValue ?? selected?.priceValue ?? 0;
 
   const handleAddToCart = () => {
@@ -305,9 +326,9 @@ export default function StorePage() {
       name: selected.name,
       price: selectedPriceValue,
       image: selected.image,
-      size: selectedSize || undefined,
+      size: selectedVariant?.size || undefined,
       dateTime: selectedDateTime || undefined,
-      isBabydoll: selected.isBabydoll || undefined,
+      isBabydoll: selectedVariant?.isBabydoll || undefined,
     };
     // Adiciona N unidades de uma vez
     for (let i = 0; i < qty; i++) {
@@ -440,12 +461,12 @@ export default function StorePage() {
                   <div className="p-5 flex flex-col gap-3 flex-1">
                     {(() => {
                       // Para KIT, a variante (e portanto o preço) pode mudar conforme o
-                      // tamanho escolhido rapidamente no card.
-                      const quickSize = item.rawType === "KIT"
-                        ? (quickSizeByItemId[item.id] ?? item.sizeVariants[0]?.size ?? "")
+                      // tamanho/corte escolhido rapidamente no card.
+                      const quickKey = item.rawType === "KIT"
+                        ? (quickVariantKeyByItemId[item.id] ?? (item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : ""))
                         : "";
                       const quickVariant = item.rawType === "KIT"
-                        ? (item.sizeVariants.find((v) => v.size === quickSize) ?? item.sizeVariants[0])
+                        ? (item.sizeVariants.find((v) => variantKey(v) === quickKey) ?? item.sizeVariants[0])
                         : undefined;
                       const displayPrice = quickVariant ? formatBRL(quickVariant.priceValue) : item.price;
 
@@ -469,17 +490,19 @@ export default function StorePage() {
                       {item.description}
                     </p>
 
-                    {/* ── Seletor in-line no card (tamanhos reais do catálogo) ── */}
+                    {/* ── Seletor in-line no card (tamanho + corte reais do catálogo) ── */}
                     {item.rawType === "KIT" && item.sizeVariants.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
                         {item.sizeVariants.map((v) => {
-                          const isActive = (quickSizeByItemId[item.id] ?? item.sizeVariants[0]?.size) === v.size;
+                          const key = variantKey(v);
+                          const defaultKey = item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : "";
+                          const isActive = (quickVariantKeyByItemId[item.id] ?? defaultKey) === key;
                           return (
                             <button
-                              key={v.size}
+                              key={key}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setQuickSizeByItemId((prev) => ({ ...prev, [item.id]: v.size }));
+                                setQuickVariantKeyByItemId((prev) => ({ ...prev, [item.id]: key }));
                               }}
                               className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${
                                 isActive
@@ -487,7 +510,7 @@ export default function StorePage() {
                                   : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue`
                               }`}
                             >
-                              {v.size}
+                              {variantLabel(v)}
                             </button>
                           );
                         })}
@@ -521,8 +544,9 @@ export default function StorePage() {
                       onClick={(e) => {
                         e.stopPropagation();
                         if (item.rawType === "KIT") {
-                          const quickSize = quickSizeByItemId[item.id] ?? item.sizeVariants[0]?.size;
-                          const variant = item.sizeVariants.find((v) => v.size === quickSize) ?? item.sizeVariants[0];
+                          const defaultKey = item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : "";
+                          const quickKey = quickVariantKeyByItemId[item.id] ?? defaultKey;
+                          const variant = item.sizeVariants.find((v) => variantKey(v) === quickKey) ?? item.sizeVariants[0];
                           if (!variant) return;
                           addItem({
                             id: variant.productId,
@@ -530,7 +554,7 @@ export default function StorePage() {
                             price: variant.priceValue,
                             image: item.image,
                             size: variant.size,
-                            isBabydoll: item.isBabydoll,
+                            isBabydoll: variant.isBabydoll || undefined,
                           });
                         } else {
                           addItem({
@@ -596,24 +620,27 @@ export default function StorePage() {
               <p className={`text-sm leading-relaxed ${mutedText}`}>{selected.description}</p>
 
               <div className={`border-t ${divider} pt-5 space-y-5`}>
-                {/* ── Seletor de Tamanho (KIT: real, muda o produto/preço) ── */}
+                {/* ── Seletor de Tamanho/Corte (KIT: real, muda o produto/preço) ── */}
                 {selected.rawType === "KIT" && selected.sizeVariants.length > 0 && (
                   <div>
                     <span className={`text-sm font-semibold ${textColor}`}>Tamanho da camiseta</span>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {selected.sizeVariants.map((v) => (
-                        <button
-                          key={v.size}
-                          onClick={() => setSelectedSize(v.size)}
-                          className={`min-w-11 px-3 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${
-                            selectedSize === v.size
-                              ? "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue shadow-md"
-                              : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/5`
-                          }`}
-                        >
-                          {v.size}
-                        </button>
-                      ))}
+                      {selected.sizeVariants.map((v) => {
+                        const key = variantKey(v);
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => setSelectedVariantKey(key)}
+                            className={`min-w-11 px-3 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${
+                              selectedVariantKey === key
+                                ? "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue shadow-md"
+                                : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/5`
+                            }`}
+                          >
+                            {variantLabel(v)}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -723,7 +750,6 @@ export default function StorePage() {
         )}
       </Modal>
 
-      {/* ── Floating cart button (mobile) ─────────────── */}
       {totalItems > 0 && (
         <Link
           to="/loja/carrinho"

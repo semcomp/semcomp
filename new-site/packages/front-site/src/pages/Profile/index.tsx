@@ -52,7 +52,7 @@ function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
   const itemsLabel =
     sale.items && sale.items.length > 0
       ? sale.items
-          .map((it) => `${it.quantity}x ${it.product?.name ?? `Produto #${it.product_id}`}`)
+          .map((it) => `${it.quantity}x ${it.product?.name}`)
           .join(", ")
       : "Pedido";
 

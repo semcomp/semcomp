@@ -21,23 +21,19 @@ export interface ComboItemDetails {
     item_id: number;
 }
 
-/**
- * Tipo do produto retornado pelo backend (formato direto da API)
- */
 export interface ProductRaw {
     id: number;
     type: ProductKind;
     is_selling: boolean;
     price: number;
+    picture_url?: string;
     kit?: KitDetails | null;
     coffee?: CoffeeDetails | null;
     combo_items?: ComboItemDetails[] | null;
 }
 
-/**
- * Tipo achatado do produto para exibição na CrudTable
- * Campos da especialização são prefixados (kit_name, coffee_name, etc.)
- */
+export type Product = ProductRaw;
+
 export interface ProductType extends CrudItemType {
     productId: number;
     type: ProductKind;

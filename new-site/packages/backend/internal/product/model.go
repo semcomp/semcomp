@@ -34,13 +34,6 @@ type Kit struct {
 	Size       string `gorm:"size:50;not null" json:"size"`
 	Color      string `gorm:"size:50;not null" json:"color"`
 	IsBabydoll bool   `gorm:"not null" json:"is_babydoll"`
-
-	// VariantGroup agrupa diferentes tamanhos do mesmo modelo/estampa de camiseta
-	// (ex: "Camiseta Semcomp Azul"), cada tamanho sendo um Product/Kit separado.
-	// Permite que a loja mostre um único card com um seletor de tamanho que aponta
-	// para o produto correto de cada tamanho. Quando não informado na criação/edição,
-	// assume o próprio Name como chave de agrupamento (ver productService).
-	VariantGroup string `gorm:"size:200;index" json:"variant_group"`
 }
 
 // Coffee é uma especialização de Product (tipo COFFEE)
@@ -69,8 +62,6 @@ type CreateKitRequest struct {
 	Size         string `json:"size" binding:"required,max=50"`
 	Color        string `json:"color" binding:"required,max=50"`
 	IsBabydoll   bool   `json:"is_babydoll"`
-	// VariantGroup é opcional: se vazio, o service usa o Name como chave de agrupamento.
-	VariantGroup string `json:"variant_group" binding:"omitempty,max=200"`
 }
 
 type CreateCoffeeRequest struct {
@@ -98,7 +89,6 @@ type UpdateKitRequest struct {
 	Size         string `json:"size" binding:"required,max=50"`
 	Color        string `json:"color" binding:"required,max=50"`
 	IsBabydoll   bool   `json:"is_babydoll"`
-	VariantGroup string `json:"variant_group" binding:"omitempty,max=200"`
 }
 
 type UpdateCoffeeRequest struct {
