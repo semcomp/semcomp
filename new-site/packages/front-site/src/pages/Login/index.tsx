@@ -467,19 +467,31 @@ export default function LoginPage(): ReactElement {
                                 <Input label="Telegram" value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="@seuusuario" />
                             </div>
 
-                            <label className="flex items-center gap-2 pt-2 text-sm">
-                                <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} className="w-4 h-4 rounded accent-semcompMidDarkBlue cursor-pointer" />
+                            <label className="flex items-start gap-2 pt-2 text-sm cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={acceptTerms} 
+                                    onChange={(e) => setAcceptTerms(e.target.checked)} 
+                                    className="w-4 h-4 mt-0.5 shrink-0 rounded accent-semcompMidDarkBlue cursor-pointer" 
+                                />
                                 <span>
                                     Concordo com os{' '}
                                     <button type="button" onClick={openTerms} className="underline font-semibold text-semcompOffWhite hover:brightness-110">
-                                        Termos de Serviço
+                                        Termos de Serviço 
                                     </button>
                                 </span>
                             </label>
 
-                            <label className="flex items-center gap-2 text-md">
-                                <input type="checkbox" checked={autorizaCompartilhamento} onChange={(e) => setAutorizaCompartilhamento(e.target.checked)} className="w-4 h-4 rounded accent-semcompMidDarkBlue cursor-pointer" />
-                                <span>Autorizo o compartilhamento das minhas informações com os patrocinadores do evento</span>
+                            <label className="flex items-start gap-2 pt-2 text-sm cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={autorizaCompartilhamento} 
+                                    onChange={(e) => setAutorizaCompartilhamento(e.target.checked)} 
+                                    className="w-4 h-4 mt-0.5 shrink-0 rounded accent-semcompMidDarkBlue cursor-pointer" 
+                                />
+                                <span>
+                                    Autorizo o compartilhamento das minhas informações com os patrocinadores do evento
+                                </span>
                             </label>
                         </>
                     )}
