@@ -31,7 +31,7 @@ SEÇÃO 2 — FINALIDADE DO TRATAMENTO DE DADOS
 
 Tratamos seus Dados Pessoais para as seguintes finalidades:
 
-  • Autenticar o usuário, gerenciar a conta de acesso e viabilizar a navegação segura, incluindo o controle de acessos a fim de mitigar requisições abusivas e melhorar segurança cibernética da infraestrutura;
+  • Autenticar o usuário, gerenciar a conta de acesso e viabilizar a navegação segura, incluindo o controle de acessos a fim de mitigar requisições abusivas e melhorar a segurança cibernética da infraestrutura;
   • Emitir certificados de participação em atividades;
   • Enviar comunicações operacionais e informativas sobre o evento (via e-mail ou Telegram);
   • Analisar estatisticamente o perfil do público para aprimoramento dos serviços, geração de relatórios de impacto e promoção de eventos mais inclusivos e acessíveis (dados utilizados de forma anonimizada ou agregada);
