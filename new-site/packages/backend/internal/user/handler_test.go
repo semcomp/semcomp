@@ -50,6 +50,9 @@ func (m *MockUserService) UpdatePapfeDocument(email string, filename string, con
 func (m *MockUserService) ApprovePapfeDocument(email string, approved bool) error {
 	panic("not implemented in mock")
 }
+func (m *MockUserService) UpdateProfile(email string, request UpdateProfileRequest) (*SafeUser, error) {
+	panic("not implemented in mock")
+}
 func (m *MockUserService) RequestPasswordReset(email string) error {
 	panic("not implemented in mock")
 }

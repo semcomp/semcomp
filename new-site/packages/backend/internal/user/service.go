@@ -30,6 +30,7 @@ type UserService interface {
 	GetAllUsers(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*UserListResult, error)
 	GetUserByID(id uint) (*SafeUser, error)
 	UpdateUser(id uint, request UpdateUserRequest) error
+	UpdateProfile(email string, request UpdateProfileRequest) (*SafeUser, error)
 	DeleteUser(id uint) error
 	GetAllPapfeDocuments() ([]PapfeDocumentInfo, error)
 	GetPapfeDocument(email string) (*PapfeDocument, error)
@@ -382,6 +383,27 @@ func (s *userService) GetUserByID(id uint) (*SafeUser, error) {
 	user, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, apierrors.InternalServerError("Erro ao buscar usuário", err)
+	}
+
+	safe := ToSafeUser(user)
+	return &safe, nil
+}
+
+// UpdateProfile permite que o usuário autenticado atualize seus próprios dados não-críticos.
+func (s *userService) UpdateProfile(email string, request UpdateProfileRequest) (*SafeUser, error) {
+	user, err := s.repo.GetByEmail(email)
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao buscar usuário", err)
+	}
+
+	user.Name = request.Name
+	user.City = request.City
+	user.Profession = request.Profession
+	user.Linkedin = request.Linkedin
+	user.Telegram = request.Telegram
+
+	if err := s.repo.Update(user); err != nil {
+		return nil, apierrors.InternalServerError("Erro ao atualizar perfil", err)
 	}
 
 	safe := ToSafeUser(user)
