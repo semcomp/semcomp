@@ -164,7 +164,7 @@ export default function LoginPage(): ReactElement {
             if (name.trim().length === 0) return "Informe seu nome.";
             if (password !== confirmPassword) return "As senhas não coincidem.";
             if (!age || Number(age) <= 0) return "Informe uma idade válida.";
-            if (!city.trim()) return "Informe sua cidade.";
+            if (!city.trim()) return "Informe sua cidade de residência.";
             if (!gender) return "Selecione seu gênero.";
             if (!education) return "Selecione sua formação.";
             if (hasDisability && disabilities.length === 0) return "Adicione ao menos uma deficiência ou desmarque a opção.";
@@ -377,7 +377,7 @@ export default function LoginPage(): ReactElement {
                                     </Select>
                                 </div>
 
-                                <Input label="Cidade *" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Carlos - SP" required />
+                                <Input label="Cidade de Residência *" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Carlos - SP" required />
 
                                 <div className="flex flex-col gap-1">
                                     <Select label="Formação *" value={education} onChange={(e) => setEducation(e.target.value)} placeholder="Selecione..." required>
@@ -467,19 +467,31 @@ export default function LoginPage(): ReactElement {
                                 <Input label="Telegram" value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="@seuusuario" />
                             </div>
 
-                            <label className="flex items-center gap-2 pt-2 text-sm">
-                                <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} className="w-4 h-4 rounded accent-semcompMidDarkBlue cursor-pointer" />
+                            <label className="flex items-start gap-2 pt-2 text-sm cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={acceptTerms} 
+                                    onChange={(e) => setAcceptTerms(e.target.checked)} 
+                                    className="w-4 h-4 mt-0.5 shrink-0 rounded accent-semcompMidDarkBlue cursor-pointer" 
+                                />
                                 <span>
                                     Concordo com os{' '}
                                     <button type="button" onClick={openTerms} className="underline font-semibold text-semcompOffWhite hover:brightness-110">
-                                        Termos de Serviço
+                                        Termos de Serviço 
                                     </button>
                                 </span>
                             </label>
 
-                            <label className="flex items-center gap-2 text-md">
-                                <input type="checkbox" checked={autorizaCompartilhamento} onChange={(e) => setAutorizaCompartilhamento(e.target.checked)} className="w-4 h-4 rounded accent-semcompMidDarkBlue cursor-pointer" />
-                                <span>Autorizo o compartilhamento das minhas informações com os patrocinadores do evento</span>
+                            <label className="flex items-start gap-2 pt-2 text-sm cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={autorizaCompartilhamento} 
+                                    onChange={(e) => setAutorizaCompartilhamento(e.target.checked)} 
+                                    className="w-4 h-4 mt-0.5 shrink-0 rounded accent-semcompMidDarkBlue cursor-pointer" 
+                                />
+                                <span>
+                                    Autorizo o compartilhamento das minhas informações com os patrocinadores do evento
+                                </span>
                             </label>
                         </>
                     )}
