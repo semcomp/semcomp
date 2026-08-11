@@ -1,67 +1,129 @@
 export async function getTerms(): Promise<string> {
-  return `Política de Privacidade - SEMCOMP USP
-Esta política é válida a partir de Maio de 2026.
-A SEMCOMP USP leva a sua privacidade a sério e zela pela segurança e proteção de dados de todos os seus parceiros e usuários do site https://semcomp.icmc.usp.br/.
-Esta Política de Privacidade destina-se a informá-lo sobre o modo como nós utilizamos e divulgamos informações coletadas em suas visitas ao nosso site e em mensagens que trocamos com você. Esta Política aplica-se somente a informações coletadas por meio do site.
-AO ACESSAR O SITE, ENVIAR COMUNICAÇÕES OU FORNECER QUALQUER TIPO DE DADO PESSOAL, VOCÊ DECLARA ESTAR CIENTE COM RELAÇÃO AOS TERMOS AQUI PREVISTOS E DE ACORDO COM A POLÍTICA DE PRIVACIDADE.
-Se você tiver alguma dúvida sobre o uso de Dados Pessoais, entre em contato com semcomp@icmc.usp.br.
-Observação: Esta política não se aplica a aplicativos, produtos, serviços, sites ou recursos de mídia social de terceiros acessados por meio do site.
+  return `POLÍTICA DE PRIVACIDADE
+Esta política é válida a partir de Agosto de 2026.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Seção 1 - Definições
-Para os fins desta Política:
-Dados Pessoais: Qualquer informação que, direta ou indiretamente, identifique ou possa identificar uma pessoa natural (nome, CPF, data de nascimento, IP, número USP, etc.).
-Dados Pessoais Sensíveis: Informações que revelem origem racial ou étnica, convicção religiosa, opinião política, filiação sindical/religiosa/filosófica/política, saúde, vida sexual, dado genético ou biométrico.
-Tratamento de Dados Pessoais: Qualquer operação efetuada com Dados Pessoais (recolha, gravação, armazenamento, alteração, eliminação, etc.).
-Leis de Proteção de Dados: Disposições legais, incluindo a Lei nº 13.709/18 (Lei Geral de Proteção de Dados - LGPD).
+A Semana da Computação da USP (SEMCOMP), organizada por alunos do Instituto de Ciências Matemáticas e de Computação (ICMC) da Universidade de São Paulo (USP), é a controladora dos dados pessoais tratados por meio do site https://semcomp.icmc.usp.br, nos termos da Lei nº 13.709/2018 (LGPD).
 
-Seção 2 - Uso de Dados Pessoais
-Coletamos dados para gerenciar o relacionamento e melhorar a experiência do usuário. Exemplos de uso:
-Gerar certificados de participação;
-Enviar informações sobre o evento;
-Personalizar a experiência de uso do site;
-Entender o público-alvo para promover eventos melhores;
-Promover eventos mais acessíveis e inclusivos;
-Gerir participação em eventos culturais (ex: GameNight, concursos);
-Entrar em contato via e-mail ou Telegram.
-Também podemos utilizar dados para cumprir exigências legais, processos judiciais, proteger operações, detectar fraudes ou conforme permitido por lei.
-Seção 3 - Não fornecimento de Dados Pessoais
-Não há obrigatoriedade em compartilhar dados. No entanto, a recusa pode impedir o acesso completo ao site, recursos especializados ou a prestação de serviços.
+Esta Política de Privacidade descreve como coletamos, armazenamos, utilizamos e compartilhamos suas informações pessoais ao acessar nosso site e serviços.
 
-Seção 4 - Dados coletados
-O público geral pode navegar sem cadastro. Cadastro é necessário para minicursos, inscrição em eventos ou certificados.
-Dados de contato: Nome, sobrenome, e-mail, usuário do Telegram, curso. .
-Dados Pessoais Sensíveis: Disciplinas cursadas, ano de formação, áreas de interesse na computação, informações de saúde (específico para Pessoas com Deficiência - PCD).
-Informações enviadas: Dúvidas, reclamações, sugestões, etc.
-Dados de navegação: Atividades, navegador, dispositivo, IP, localização e origem da visita (via cookies e web beacons).
+Em caso de dúvidas sobre o tratamento de seus dados, entre em contato pelo e-mail: semcomp@icmc.usp.br.
 
-Seção 5 - Compartilhamento de Dados Pessoais com terceiros 
-Com a(s) empresa(s) parceira(s) caso você selecione ou opte por enviar os seus dados. Essas empresas podem ser brasileiras ou internacionais  e podem utilizá-los para personalização de conteúdo, atividades de publicidade e marketing (incluindo publicidade digital personalizada) e serviços de TI, por exemplo. Com elas, serão compartilhados nome, email, faculdade, curso, ano de formação e métricas indiretas como alcance de divulgação.
+Observação: Esta política não se aplica a sites, aplicativos ou serviços de terceiros acessados por meio de links contidos em nosso site.
 
-Seção 6 - Transferências internacionais de dados
-Dados Pessoais e informações de outras naturezas coletadas por nós podem ser transferidos ou acessados por entidades pertencentes ao grupo corporativo das empresas parceiras em todo o mundo de acordo com esta Política de Privacidade.
 
-Seção 7 - Direitos do Usuário
-Você pode, a qualquer momento, requerer: (i) confirmação de que seus Dados Pessoais estão sendo tratados; (ii) acesso aos seus Dados Pessoais; (iii) correções a dados incompletos, inexatos ou desatualizados; (iv) anonimização, bloqueio ou eliminação de dados desnecessários, excessivos ou tratados em desconformidade com o disposto em lei; (v) portabilidade de Dados Pessoais a outro prestador de serviços, contanto que isso não afete nossos segredos industriais e comerciais; (vi) eliminação de Dados Pessoais tratados com seu consentimento, na medida do permitido em lei; (vii) informações sobre as entidades às quais seus Dados Pessoais tenham sido compartilhados; (viii) informações sobre a possibilidade de não fornecer o consentimento e sobre as consequências da negativa; e (ix) revogação do consentimento. Os seus pedidos serão tratados com especial cuidado de forma a que possamos assegurar a eficácia dos seus direitos. Poderá lhe ser pedido que faça prova da sua identidade de modo a assegurar que a partilha dos Dados Pessoais é apenas feita com o seu titular.
+SEÇÃO 1 — DEFINIÇÕES
+━━━━━━━━━━━━━━━━━━━━
 
-Você deverá ter em mente que, em certos casos (por exemplo, devido a requisitos legais), o seu pedido poderá não ser imediatamente satisfeito, além de que nós poderemos não conseguir atendê-lo por conta de cumprimento de obrigações legais.
+Para fins desta Política:
 
-Seção 8 - Segurança dos Dados Pessoais
-Buscamos adotar as medidas técnicas e organizacionais previstas pelas Leis de Proteção de Dados adequadas para proteção dos Dados Pessoais na nossa organização. Infelizmente, nenhuma transmissão ou sistema de armazenamento de dados tem a garantia de serem 100% seguros. Caso tenha motivos para acreditar que sua interação conosco tenha deixado de ser segura (por exemplo, caso acredite que a segurança de qualquer uma de suas contas foi comprometida), favor nos notificar imediatamente.
+  • Dados Pessoais: Qualquer informação relacionada a pessoa natural identificada ou identificável (ex.: nome, CPF, e-mail, IP, número USP).
 
-Seção 9  - Links de hipertexto para outros sites e redes sociais
-O site poderá, de tempos a tempos, conter links de hipertexto que redirecionará você para sites das redes dos nossos parceiros, anunciantes, fornecedores etc. Se você clicar em um desses links para qualquer um desses sites, lembre-se que cada site possui as suas próprias práticas de privacidade e que não somos responsáveis por essas políticas. Consulte as referidas políticas antes de enviar quaisquer Dados Pessoais para esses sites.
+  • Dados Pessoais Sensíveis: Dado pessoal sobre origem racial ou étnica, convicção religiosa, opinião política, filiação a sindicato ou a organização de caráter religioso, filosófico ou político, dado referente à saúde ou à vida sexual, dado genético ou biométrico.
 
-Não nos responsabilizamos pelas políticas e práticas de coleta, uso e divulgação (incluindo práticas de proteção de dados) de outras organizações, tais como Facebook, Apple, Google, Microsoft, ou de qualquer outro desenvolvedor de software ou provedor de aplicativo, loja de mídia social, sistema operacional, prestador de serviços de internet sem fio ou fabricante de dispositivos, incluindo todos os Dados Pessoais que divulgar para outras organizações por meio dos aplicativos, relacionadas a tais aplicativos, ou publicadas em nossas páginas em mídias sociais. Nós recomendamos que você se informe sobre a política de privacidade de cada site visitado ou de cada prestador de serviço utilizado.
+  • Tratamento de Dados Pessoais: Toda operação realizada com Dados Pessoais (coleta, recepção, classificação, utilização, acesso, processamento, armazenamento, eliminação, modificação, comunicação ou compartilhamento).
 
-Seção 10 - Atualizações desta Política de Privacidade
-Se modificarmos nossa Política de Privacidade, publicaremos o novo texto no site, com a data de revisão atualizada. Podemos alterar esta Política de Privacidade a qualquer momento. Caso haja alteração significativa nos termos desta Política de Privacidade, podemos informá-lo por meio das informações de contato que tivermos em nosso banco de dados ou por meio de notificação em nosso site.
+  • Leis de Proteção de Dados: Legislação aplicável ao tratamento de dados, em especial a Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018 — LGPD).
 
-Recordamos que nós temos como compromisso não tratar os seus Dados Pessoais de forma incompatível com os objetivos descritos acima, exceto se de outra forma requerido por lei ou ordem judicial.
 
-Sua utilização da site após as alterações significa que aceitou as Políticas de Privacidade revisadas. Caso, após a leitura da versão revisada, você não esteja de acordo com seus termos, favor encerrar o acesso ao site.
+SEÇÃO 2 — FINALIDADE DO TRATAMENTO DE DADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Seção 11 - Encarregado do tratamento dos Dados Pessoais
-Caso pretenda exercer qualquer um dos direitos previstos, inclusive retirar o seu consentimento, nesta Política de Privacidade e/ou nas Leis de Proteção de Dados, ou resolver quaisquer dúvidas relacionadas ao Tratamento de seus Dados Pessoais, favor contatar-nos em semcomp@icmc.usp.br.
+Tratamos seus Dados Pessoais para as seguintes finalidades:
 
+  • Autenticar o usuário, gerenciar a conta de acesso e viabilizar a navegação segura;
+  • Emitir certificados de participação em atividades;
+  • Enviar comunicações operacionais e informativas sobre o evento (via e-mail ou Telegram);
+  • Analisar estatisticamente o perfil do público para aprimoramento dos serviços, geração de relatórios de impacto e promoção de eventos mais inclusivos e acessíveis (dados utilizados de forma anonimizada ou agregada);
+  • Mediante seu consentimento prévio e expresso (opt-in), compartilhar dados específicos com patrocinadores do evento para fins de contato, recrutamento, marketing e análises;
+  • Cumprir obrigações legais, regulatórias ou ordens judiciais.
+
+
+SEÇÃO 3 — NÃO FORNECIMENTO DE DADOS PESSOAIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+O fornecimento de dados pessoais é voluntário. No entanto, a ausência de determinados dados essenciais (como no ato de login e cadastro) impedirá a criação de conta, o acesso a áreas restritas, a inscrição em minicursos e a emissão de certificados.
+
+
+SEÇÃO 4 — DADOS COLETADOS E USO DE COOKIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Coletamos as seguintes categorias de dados:
+
+  • Dados de Cadastro e Login: Nome, sobrenome, e-mail, curso, instituição de ensino/faculdade, ano de formação, usuário do Telegram e credenciais de acesso.
+
+  • Dados para Métricas Internas e Perfil: Disciplinas cursadas, áreas de interesse na computação e informações prestadas no momento do cadastro ou login.
+
+  • Dados Pessoais Sensíveis: Informações de saúde prestadas voluntariamente para fins de acessibilidade de Pessoas com Deficiência (PCD).
+
+  • Cookies e Autenticação: Utilizamos cookies HTTP do tipo HttpOnly e SameSite=Lax para armazenar o token de autenticação (JWT), com validade de até 24 horas. Por serem HttpOnly, esses cookies não são acessíveis por scripts da página, o que protege contra ataques de roubo de sessão (XSS). Em produção, os cookies são transmitidos exclusivamente por conexões seguras (HTTPS). Dados não sensíveis de perfil (nome, e-mail e número de usuário) são armazenados localmente no navegador (localStorage) apenas para fins de exibição na interface.
+
+Seus Dados Pessoais são mantidos enquanto sua conta estiver ativa ou enquanto forem necessários para as finalidades descritas nesta Política. Tokens de verificação de e-mail e de redefinição de senha possuem prazo de expiração definido e são invalidados após o uso ou vencimento. Registros de auditoria de acesso são mantidos pelo período necessário à segurança da plataforma.
+
+Após o encerramento de uma edição do evento, dados pessoais poderão ser mantidos para as próximas SEMCOMPs, de maneira que seja facilitado o processo de inscrição no evento. Ainda, vale destacar que dados identificáveis poderão formar, de maneira agregada, dados voltados para fins históricos e estatísticos.
+
+Depois do período de 5 anos sem participações no evento, os dados relacionados a um determinado usuário serão apagados da base de dados, mas os indicadores agregados ainda poderão ser mantidos.
+
+Para solicitar a exclusão de sua conta e de seus dados pessoais antes desse período, entre em contato pelo e-mail semcomp@icmc.usp.br. Dados cuja retenção seja exigida por obrigação legal permanecerão armazenados pelo prazo exigido em lei.
+
+
+SEÇÃO 5 — COMPARTILHAMENTO DE DADOS COM TERCEIROS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Os Dados Pessoais não serão comercializados. O compartilhamento com terceiros ocorrerá estritamente nas seguintes hipóteses:
+
+  • Caso você opte ativamente por autorizar o compartilhamento (via botão/caixa de seleção no site), compartilharemos dados como nome, e-mail, faculdade, curso, ano de formação e métricas agregadas de alcance. Tais empresas poderão utilizar esses dados para contato, oportunidades profissionais, publicidade e serviços correlatos.
+  • Com prestadores de serviços de tecnologia e infraestrutura necessários para a manutenção e funcionamento do site.
+  • Para o cumprimento de obrigações legais ou requisições de autoridades competentes.
+
+O processamento de pagamentos via PIX é realizado pela plataforma Mercado Pago (Mercado Livre do Brasil S.A.). Os dados de pagamento são transmitidos diretamente ao Mercado Pago, sujeito à sua própria política de privacidade. Nenhum dado de cartão de crédito é coletado ou armazenado pela SEMCOMP.
+
+
+SEÇÃO 6 — TRANSFERÊNCIAS INTERNACIONAIS DE DADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Caso os patrocinadores selecionados ou provedores de infraestrutura de TI estejam localizados ou possuam servidores no exterior, os dados compartilhados poderão ser transferidos internacionalmente, assegurando-se o cumprimento dos padrões de proteção exigidos pela LGPD.
+
+
+SEÇÃO 7 — DIREITOS DO TITULAR DOS DADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Nos termos da LGPD, você possui os seguintes direitos em relação aos seus Dados Pessoais:
+
+  • Confirmação da existência de tratamento e acesso aos dados;
+  • Correção de dados incompletos, inexatos ou desatualizados;
+  • Anonimização, bloqueio ou eliminação de dados desnecessários ou excessivos;
+  • Portabilidade dos dados a outro fornecedor, observados os segredos comerciais;
+  • Eliminação dos dados pessoais tratados com o seu consentimento;
+  • Revogação do consentimento a qualquer momento (inclusive quanto ao compartilhamento com patrocinadores), de forma facilitada e gratuita;
+  • Informação sobre as entidades públicas e privadas com as quais os dados foram compartilhados.
+
+Para exercer seus direitos, entre em contato com o e-mail semcomp@icmc.usp.br. A solicitação poderá exigir verificação de identidade antes do atendimento.
+
+
+SEÇÃO 8 — SEGURANÇA DA INFORMAÇÃO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Adotamos medidas técnicas, administrativas e organizacionais adequadas para proteger seus Dados Pessoais contra acessos não autorizados, perda, destruição ou alteração. Contudo, nenhum sistema de transmissão de dados via internet é plenamente imune a falhas de segurança. Caso identifique qualquer vulnerabilidade ou uso indevido de sua conta, notifique-nos imediatamente.
+
+
+SEÇÃO 9 — LINKS DE TERCEIROS E MÍDIAS SOCIAIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+O site pode conter links para plataformas externas (redes sociais, parceiros, etc.). Esta Política aplica-se exclusivamente ao site da Semcomp. Recomendamos a leitura das políticas de privacidade de cada site de terceiro acessado.
+
+
+SEÇÃO 10 — ALTERAÇÕES DESTA POLÍTICA DE PRIVACIDADE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Reservamo-nos o direito de alterar esta Política de Privacidade a qualquer momento. Quaisquer modificações relevantes serão publicadas no site com a data da versão atualizada, podendo também ser notificadas por e-mail. A continuidade do uso do site após as alterações implica a aceitação dos novos termos.
+
+
+SEÇÃO 11 — CONTATO E ENCARREGADO PELO TRATAMENTO DE DADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Para dúvidas, solicitações ou exercício de direitos referentes a esta Política de Privacidade ou ao tratamento de seus dados pessoais, entre em contato pelo e-mail:
+
+  semcomp@icmc.usp.br
 `;
 }
