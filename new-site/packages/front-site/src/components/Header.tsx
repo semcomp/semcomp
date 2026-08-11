@@ -18,7 +18,7 @@ export default function Header() {
     { key: "home", featureKey: "home", label: "HOME", path: "/", status: true },
     { key: "cronograma", featureKey: "cronograma", label: "CRONOGRAMA", path: "/cronograma", status: true },
     { key: "loja", featureKey: "loja", label: "LOJA", path: "/loja", status: isAuthenticated },
-    { key: "login", featureKey: "login", label: "LOGIN", path: "/login", status: !isAuthenticated },
+    { key: "login", featureKey: "login", label: "INSCRIÇÃO", path: "/login", status: !isAuthenticated },
     { key: "perfil", featureKey: "login", label: "PERFIL", path: "/profile", status: isAuthenticated },
   ];
 
