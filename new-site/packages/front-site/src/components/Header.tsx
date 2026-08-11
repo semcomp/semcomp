@@ -68,7 +68,7 @@ export default function Header() {
   const isMobile = width < 768;
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 pt-[env(safe-area-inset-top)] ${
       hasScrolled ? "bg-semcompMidLightBlue dark:bg-semcompDarkBlue backdrop-blur-sm shadow-lg" : "bg-transparent"
     }`}>
       <div className="mx-auto flex w-[80%] items-center justify-end pt-5 pb-5">
