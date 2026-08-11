@@ -164,6 +164,14 @@ type ResetPasswordRequest struct {
 	NewPassword string `json:"new_password" binding:"required,min=8"`
 }
 
+type UpdateProfileRequest struct {
+	Name       string  `json:"name" binding:"required"`
+	City       string  `json:"city" binding:"required"`
+	Profession *string `json:"profession,omitempty"`
+	Linkedin   *string `json:"linkedin,omitempty"`
+	Telegram   *string `json:"telegram,omitempty"`
+}
+
 type PapfeApprovalRequest struct {
 	Approved *bool `json:"approved" binding:"required"`
 }

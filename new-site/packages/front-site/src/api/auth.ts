@@ -3,6 +3,7 @@ import type {
   LoginResponse,
   RegisterResponse,
   ProfileResponse,
+  UpdateProfileResponse,
   VerifyEmailResponse,
   ResendVerificationResponse,
   ForgotPasswordResponse,
@@ -97,6 +98,20 @@ export const authAPI = {
    */
   getProfile: async (): Promise<ProfileResponse> => {
     const response = await client.get<ProfileResponse>("/api/profile");
+    return response.data;
+  },
+
+  /**
+   * Atualiza dados não-críticos do perfil do usuário autenticado
+   */
+  updateProfile: async (data: {
+    name: string;
+    city: string;
+    profession?: string | null;
+    linkedin?: string | null;
+    telegram?: string | null;
+  }): Promise<UpdateProfileResponse> => {
+    const response = await client.put<UpdateProfileResponse>("/api/profile", data);
     return response.data;
   },
 

@@ -12,6 +12,14 @@ import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate"
 import { useNavigate } from "react-router-dom";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
+type EditableProfile = {
+  name: string;
+  city: string;
+  profession: string;
+  linkedin: string;
+  telegram: string;
+};
+
 
 type Evento = EventType & {
   linkInscricao?: string;
@@ -68,7 +76,15 @@ export default function Profile({
   const [userEmail, setUserEmail] = useState(email);
   const [userCode, setUserCode] = useState<number>(user_number);
   const [presencePercent, setPresencePercent] = useState<number>(presence_rate);
-  const [openSubscription, setOpenSubscription] = useState<number>(-1)
+  const [openSubscription, setOpenSubscription] = useState<number>(-1);
+  const [userCity, setUserCity] = useState("");
+  const [userProfession, setUserProfession] = useState("");
+  const [userLinkedin, setUserLinkedin] = useState("");
+  const [userTelegram, setUserTelegram] = useState("");
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editForm, setEditForm] = useState<EditableProfile>({ name: "", city: "", profession: "", linkedin: "", telegram: "" });
 
   const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -94,6 +110,10 @@ export default function Profile({
         setUserEmail(response.email || email);
         setUserCode(response.user_number || 0);
         setPresencePercent(response.presence_rate ?? 0);
+        setUserCity(response.city ?? "");
+        setUserProfession(response.profession ?? "");
+        setUserLinkedin(response.linkedin ?? "");
+        setUserTelegram(response.telegram ?? "");
       } catch (err) {
         if (controller.signal.aborted) return;
         console.error("Erro ao buscar o perfil", err);
@@ -105,6 +125,35 @@ export default function Profile({
     fetchProfile();
     return () => controller.abort();
   }, [isAuthenticated, navigate, name, email]);
+
+  function startEditing() {
+    setEditForm({ name: userName, city: userCity, profession: userProfession, linkedin: userLinkedin, telegram: userTelegram });
+    setIsEditing(true);
+  }
+
+  async function saveProfile() {
+    setIsSaving(true);
+    try {
+      const res = await authAPI.updateProfile({
+        name: editForm.name.trim(),
+        city: editForm.city.trim(),
+        profession: editForm.profession.trim() || null,
+        linkedin: editForm.linkedin.trim() || null,
+        telegram: editForm.telegram.trim() || null,
+      });
+      setUserName(res.user.name);
+      setUserCity(res.user.city);
+      setUserProfession(res.user.profession ?? "");
+      setUserLinkedin(res.user.linkedin ?? "");
+      setUserTelegram(res.user.telegram ?? "");
+      setIsEditing(false);
+      showNotification("Perfil atualizado com sucesso!", "success");
+    } catch {
+      showNotification("Erro ao atualizar perfil. Tente novamente.", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
 
 
@@ -191,16 +240,46 @@ export default function Profile({
               <div className="w-full flex flex-col animate-in fade-in duration-300">
                 <h2 className="text-2xl font-bold text-center mb-6">Minha Conta</h2>
 
-                <div className="flex flex-col space-y-4 mb-6">
-                  <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">Nome Completo:</span>
-                    <span className="text-sm font-medium text-semcompDarkBlue">{userName}</span>
+                {isEditing ? (
+                  <div className="flex flex-col space-y-3 mb-6">
+                    {([
+                      { label: "Nome Completo", key: "name" as const, required: true },
+                      { label: "Cidade de Residência", key: "city" as const, required: true },
+                      { label: "Profissão", key: "profession" as const },
+                      { label: "LinkedIn", key: "linkedin" as const },
+                      { label: "Telegram", key: "telegram" as const },
+                    ]).map(({ label, key, required }) => (
+                      <div key={key} className="flex flex-col border-b border-black/10 pb-2">
+                        <span className="text-xs font-bold opacity-70 text-semcompDarkBlue mb-1">{label}{required ? "" : " (opcional)"}:</span>
+                        <input
+                          className="text-sm font-medium text-semcompDarkBlue bg-transparent border-b border-semcompDarkBlue/30 focus:border-semcompDarkBlue outline-none py-0.5"
+                          value={editForm[key]}
+                          onChange={e => setEditForm(f => ({ ...f, [key]: e.target.value }))}
+                        />
+                      </div>
+                    ))}
+                    <div className="flex flex-col border-b border-black/10 pb-2 opacity-50">
+                      <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">E-mail (não editável):</span>
+                      <span className="text-sm font-medium text-semcompDarkBlue">{userEmail}</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">E-mail:</span>
-                    <span className="text-sm font-medium text-semcompDarkBlue">{userEmail}</span>
+                ) : (
+                  <div className="flex flex-col space-y-4 mb-6">
+                    {[
+                      { label: "Nome Completo", value: userName },
+                      { label: "E-mail", value: userEmail },
+                      ...(userCity ? [{ label: "Cidade de Residência", value: userCity }] : []),
+                      ...(userProfession ? [{ label: "Profissão", value: userProfession }] : []),
+                      ...(userLinkedin ? [{ label: "LinkedIn", value: userLinkedin }] : []),
+                      ...(userTelegram ? [{ label: "Telegram", value: userTelegram }] : []),
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex flex-col border-b border-black/10 pb-2">
+                        <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">{label}:</span>
+                        <span className="text-sm font-medium text-semcompDarkBlue">{value}</span>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                )}
 
                 <div className="bg-white/50 rounded-xl p-4 mb-6 border border-black/10">
                   <h3 className="text-center text-sm font-bold mb-3">Minha Presença</h3>
@@ -223,10 +302,31 @@ export default function Profile({
                   </div>
                 </div>
 
-                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
-                  onClick={() => showNotification("Entre em contato com a organização", "info")}>
-                  Editar Informações
-                </button>
+                {isEditing ? (
+                  <div className="flex gap-3 mb-4">
+                    <button
+                      className="flex-1 bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold disabled:opacity-60"
+                      onClick={saveProfile}
+                      disabled={isSaving || !editForm.name.trim() || !editForm.city.trim()}
+                    >
+                      {isSaving ? "Salvando..." : "Salvar"}
+                    </button>
+                    <button
+                      className="flex-1 border border-semcompDarkBlue text-semcompDarkBlue py-3 rounded-lg text-sm font-semibold"
+                      onClick={() => setIsEditing(false)}
+                      disabled={isSaving}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                    onClick={startEditing}
+                  >
+                    Editar Informações
+                  </button>
+                )}
                 <button className="w-full text-red-700 font-bold text-sm py-2" onClick={logout}>
                   Sair da conta
                 </button>
@@ -240,14 +340,14 @@ export default function Profile({
           className="mt-12 pt-10 pb-10 px-5 text-center transition-colors text-semcompOffWhite  bg-semcompMidDarkBlue dark:bg-semcompDarkBlue"
         >
           <h2 className="text-3xl font-bold mb-1 flex items-center justify-center gap-2">
-            SEMCOMP Brasilidades
+            SEMCOMP 29
           </h2>
           <p className="text-sm md:text-md mb-6 opacity-80">
             Um encontro entre a computação, a cultura e a diversidade brasileira
           </p>
 
           <div className="relative rounded-2xl overflow-hidden mb-4 w-[60%] lg:w-[40%] xl:w-full mx-auto">
-            <img src="/img/Profile/Card.svg" className="w-full h-full object-cover" alt="SEMCOMP Brasilidades"/>
+            <img src="/img/Profile/Card.svg" className="w-full h-full object-cover" alt="SEMCOMP 29 Brasilidades"/>
           </div>
 
           <div className="border-t pt-4 w-full md:w-[70%] xl:w-full mx-auto px-2 border-semcompDarkBlue/20 dark:border-white/20">
@@ -341,23 +441,72 @@ export default function Profile({
             <p className="text-md text-semcompDarkBlue/75">Veja abaixo, seus dados e presença</p>
           </div>
 
-          <div className="flex flex-col space-y-4 mb-6">
-            <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcompDarkBlue">Nome Completo:</span>
-              <span className="text-sm text-semcompDarkBlue">{userName}</span>
+          {isEditing ? (
+            <div className="flex flex-col space-y-3 mb-6">
+              {([
+                { label: "Nome Completo", key: "name" as const, required: true },
+                { label: "Cidade de Residência", key: "city" as const, required: true },
+                { label: "Profissão", key: "profession" as const },
+                { label: "LinkedIn", key: "linkedin" as const },
+                { label: "Telegram", key: "telegram" as const },
+              ]).map(({ label, key, required }) => (
+                <div key={key} className="flex flex-col text-left">
+                  <span className="text-xs font-bold text-semcompDarkBlue mb-0.5">{label}{required ? "" : " (opcional)"}:</span>
+                  <input
+                    className="text-sm text-semcompDarkBlue bg-semcompOffWhite/60 border border-semcompDarkBlue/20 focus:border-semcompDarkBlue outline-none rounded px-2 py-1"
+                    value={editForm[key]}
+                    onChange={e => setEditForm(f => ({ ...f, [key]: e.target.value }))}
+                  />
+                </div>
+              ))}
+              <div className="flex flex-col text-left opacity-50">
+                <span className="text-xs font-bold text-semcompDarkBlue">E-mail (não editável):</span>
+                <span className="text-sm text-semcompDarkBlue">{userEmail}</span>
+              </div>
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcompDarkBlue">E-mail:</span>
-              <span className="text-sm text-semcompDarkBlue">{userEmail}</span>
+          ) : (
+            <div className="flex flex-col space-y-4 mb-6">
+              {[
+                { label: "Nome Completo", value: userName },
+                { label: "E-mail", value: userEmail },
+                ...(userCity ? [{ label: "Cidade de Residência", value: userCity }] : []),
+                ...(userProfession ? [{ label: "Profissão", value: userProfession }] : []),
+                ...(userLinkedin ? [{ label: "LinkedIn", value: userLinkedin }] : []),
+                ...(userTelegram ? [{ label: "Telegram", value: userTelegram }] : []),
+              ].map(({ label, value }) => (
+                <div key={label} className="flex flex-col text-left">
+                  <span className="text-sm font-bold text-semcompDarkBlue">{label}:</span>
+                  <span className="text-sm text-semcompDarkBlue">{value}</span>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
 
-          <button
-            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8"
-            onClick={() => showNotification("Entre em contato com a organização", "info")}
-          >
-            Editar Informações
-          </button>
+          {isEditing ? (
+            <div className="flex gap-2 mb-8">
+              <button
+                className="flex-1 bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-60"
+                onClick={saveProfile}
+                disabled={isSaving || !editForm.name.trim() || !editForm.city.trim()}
+              >
+                {isSaving ? "Salvando..." : "Salvar"}
+              </button>
+              <button
+                className="flex-1 border border-semcompDarkBlue/40 text-semcompDarkBlue py-2.5 rounded-lg text-sm font-semibold hover:bg-semcompDarkBlue/5 transition-all"
+                onClick={() => setIsEditing(false)}
+                disabled={isSaving}
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <button
+              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8"
+              onClick={startEditing}
+            >
+              Editar Informações
+            </button>
+          )}
 
           <div className="bg-semcompOffWhite/40 rounded-xl p-5 border border-border/50">
             <h3 className="text-center text-semcompMidDarkBlue text-md font-bold text-semcomp-900 mb-4">
@@ -416,7 +565,7 @@ export default function Profile({
           </div>
 
           <div className="relative z-10 h-[85%] w-[28%] bg-semcompMidDarkBlue dark:bg-semcompDarkBlue flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10">
-            <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP Brasilidades</h1>
+            <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP 29</h1>
             <p className="text-center text-md pb-2">
             Um encontro entre a computação, a cultura e a diversidade brasileira
             </p>
@@ -485,8 +634,7 @@ export default function Profile({
                 })
               ) : (
                 <div className="text-center italic mt-6 py-8">
-                  Você ainda não está inscrito em nenhum evento. Inscreva-se em
-                  eventos para que eles apareçam aqui!
+                  Em breve, serão abertas as inscrições para os eventos!
                 </div>
               )}
             </div>
