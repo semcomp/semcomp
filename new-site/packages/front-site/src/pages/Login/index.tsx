@@ -368,10 +368,8 @@ export default function LoginPage(): ReactElement {
 
                                 <div className="flex flex-col gap-1">
                                     <Select label="Gênero *" value={gender} onChange={(e) => setGender(e.target.value)} placeholder="Selecione..." required>
-                                        <option value="Cisgênero Feminino" className="bg-semcompDarkBlue text-white">Feminino</option>
-                                        <option value="Cisgênero Masculino" className="bg-semcompDarkBlue text-white">Masculino</option>
-                                        <option value="Transgênero Feminino" className="bg-semcompDarkBlue text-white">Mulher Trans</option>
-                                        <option value="Transgênero Masculino" className="bg-semcompDarkBlue text-white">Homem Trans</option>
+                                        <option value="Feminino" className="bg-semcompDarkBlue text-white">Feminino</option>
+                                        <option value="Masculino" className="bg-semcompDarkBlue text-white">Masculino</option>
                                         <option value="Não-binário" className="bg-semcompDarkBlue text-white">Não-binário</option>
                                         <option value="Outro" className="bg-semcompDarkBlue text-white">Outro / Preferir não dizer</option>
                                     </Select>
