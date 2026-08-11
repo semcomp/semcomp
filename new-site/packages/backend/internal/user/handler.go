@@ -82,7 +82,18 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 			"image/png":       true,
 			"image/webp":      true,
 		}
-		contentType := header.Header.Get("Content-Type")
+		buf := make([]byte, 512)
+		if _, err := file.Read(buf); err != nil {
+			apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao ler comprovante PAPFE", err))
+			return
+		}
+		contentType := http.DetectContentType(buf)
+
+		if _, err := file.Seek(0, io.SeekStart); err != nil {
+			apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao processar comprovante PAPFE", err))
+			return
+		}
+
 		if !allowedTypes[contentType] {
 			apierrors.HandleAPIError(c, apierrors.ValidationError("Tipo de arquivo não permitido. Aceitamos PDF, JPEG, PNG ou WebP", nil))
 			return
@@ -107,6 +118,204 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	message := "Cadastro realizado! Verifique seu e-mail para confirmar sua conta."
 	c.Set("responseMessage", message)
 	c.JSON(http.StatusCreated, gin.H{"message": message, "user": safeUser})
+}
+
+// UpdateProfile permite que o usuário autenticado atualize seus próprios dados não-críticos.
+// @Summary Atualiza perfil do usuário autenticado
+// @Description Atualiza campos não-críticos do perfil: nome, cidade, profissão, LinkedIn e Telegram
+// @Tags Auth Público
+// @Accept json
+// @Produce json
+// @Param request body user.UpdateProfileRequest true "Dados a atualizar"
+// @Success 200 {object} map[string]interface{} "Perfil atualizado com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /api/profile [put]
+func (h *UserHandler) UpdateProfile(c *gin.Context) {
+	email := c.MustGet("email").(string)
+
+	var request UpdateProfileRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		if validationErrs, ok := err.(validator.ValidationErrors); ok {
+			apierrors.HandleAPIError(c, apierrors.ValidationError(fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",
+				validationErrs[0].Field(), validationErrs[0].Tag()), err))
+			return
+		}
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
+		return
+	}
+
+	user, err := h.userService.UpdateProfile(email, request)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Set("responseMessage", "Perfil atualizado com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "Perfil atualizado com sucesso!", "user": user})
+}
+
+// UpdatePapfeDocument permite que o usuário autenticado atualize seu comprovante PAPFE.
+// @Summary Atualiza comprovante PAPFE
+// @Description Atualiza o comprovante PAPFE do usuário autenticado. Aceita multipart/form-data.
+// @Tags Usuários (Participantes)
+// @Accept multipart/form-data
+// @Produce json
+// @Param papfe_document formData file true "Comprovante PAPFE (PDF/JPEG/PNG/WebP, máx 10MB)"
+// @Success 200 {object} map[string]string "Comprovante PAPFE atualizado com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /api/papfe-document [put]
+func (h *UserHandler) UpdatePapfeDocument(c *gin.Context) {
+	email := c.MustGet("email").(string)
+
+	file, header, fileErr := c.Request.FormFile("papfe_document")
+	if fileErr != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Comprovante PAPFE é obrigatório", fileErr))
+		return
+	}
+	defer file.Close()
+
+	if header.Size > 10*1024*1024 {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 10MB", nil))
+		return
+	}
+
+	allowedTypes := map[string]bool{
+		"application/pdf": true,
+		"image/jpeg":      true,
+		"image/png":       true,
+		"image/webp":      true,
+	}
+	buf := make([]byte, 512)
+	if _, err := file.Read(buf); err != nil {
+		apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao ler comprovante PAPFE", err))
+		return
+	}
+	contentType := http.DetectContentType(buf)
+
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao processar comprovante PAPFE", err))
+		return
+	}
+
+	if !allowedTypes[contentType] {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Tipo de arquivo não permitido. Aceitamos PDF, JPEG, PNG ou WebP", nil))
+		return
+	}
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao ler comprovante PAPFE", err))
+		return
+	}
+
+	if err := h.userService.UpdatePapfeDocument(email, header.Filename, contentType, data); err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Set("responseMessage", "Comprovante PAPFE atualizado com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "Comprovante PAPFE atualizado com sucesso!"})
+}
+
+// GetAllPapfeDocuments lista metadados de todos os comprovantes PAPFE (sem bytes do arquivo).
+// @Summary Lista comprovantes PAPFE
+// @Description Retorna metadados de todos os comprovantes PAPFE cadastrados
+// @Tags Usuários (Participantes)
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Lista de comprovantes PAPFE"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/papfe-documents [get]
+func (h *UserHandler) GetAllPapfeDocuments(c *gin.Context) {
+	docs, err := h.userService.GetAllPapfeDocuments()
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	c.Set("responseMessage", "Comprovantes PAPFE listados com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"papfe_documents": docs})
+}
+
+// GetPapfeDocument serve o comprovante PAPFE de um usuário para download (admin).
+// @Summary Obtém comprovante PAPFE de um usuário
+// @Description Retorna o arquivo do comprovante PAPFE de um usuário específico
+// @Tags Usuários (Participantes)
+// @Produce octet-stream
+// @Param id path int true "ID do usuário"
+// @Success 200 {file} file "Arquivo do comprovante PAPFE"
+// @Failure 400 {object} map[string]string "ID inválido"
+// @Failure 404 {object} map[string]string "Usuário ou comprovante não encontrado"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/users/{id}/papfe-document [get]
+func (h *UserHandler) GetPapfeDocument(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("ID inválido", err))
+		return
+	}
+
+	user, err := h.userService.GetUserByID(uint(id))
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	doc, err := h.userService.GetPapfeDocument(user.Email)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, doc.Filename))
+	c.File(doc.FilePath)
+}
+
+// ApprovePapfeDocument altera o status de aprovação do comprovante PAPFE de um usuário (admin).
+// @Summary Aprova/rejeita comprovante PAPFE
+// @Description Altera o status de aprovação do comprovante PAPFE de um usuário
+// @Tags Usuários (Participantes)
+// @Accept json
+// @Produce json
+// @Param id path int true "ID do usuário"
+// @Param request body user.PapfeApprovalRequest true "Status de aprovação"
+// @Success 200 {object} map[string]string "Status de aprovação atualizado com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 404 {object} map[string]string "Usuário ou comprovante não encontrado"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/users/{id}/papfe-document/approval [put]
+func (h *UserHandler) ApprovePapfeDocument(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("ID inválido", err))
+		return
+	}
+
+	var request PapfeApprovalRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
+		return
+	}
+
+	user, err := h.userService.GetUserByID(uint(id))
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	if err := h.userService.ApprovePapfeDocument(user.Email, *request.Approved); err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	message := "Status de aprovação do comprovante PAPFE atualizado com sucesso!"
+	c.Set("responseMessage", message)
+	c.JSON(http.StatusOK, gin.H{"message": message})
 }
 
 // VerifyEmail confirma o e-mail de um usuário a partir do token recebido por link.

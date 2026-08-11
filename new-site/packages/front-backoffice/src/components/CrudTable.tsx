@@ -57,6 +57,8 @@ export interface CrudField {
   multiValueOptions?: string[];
   accept?: string;
   showWhen?: { field: string; value: unknown };
+  /** Quando true, o campo é exibido no dialog mas não pode ser editado */
+  readonly?: boolean;
 }
 
 export interface CrudQueryParams {
@@ -276,6 +278,7 @@ export function CrudTable({
     setSelectedItemKey(resolveItemKey(item));
     const fd: Record<string, FormValue> = {};
     fields.forEach((f) => {
+      if (f.readonly) return;
       const raw = (item as Record<string, unknown>)[f.value];
       if (f.type === "multivalue") fd[f.value] = normalizeToStringArray(raw);
       else if (f.type === "boolean") fd[f.value] = Boolean(raw);
@@ -731,7 +734,7 @@ export function CrudTable({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            {fields.map((f) => (
+            {fields.filter((f) => !f.readonly).map((f) => (
               <div key={f.value} className="space-y-1.5">
                 <Label
                   htmlFor={`create-${f.value}`}
@@ -950,7 +953,23 @@ export function CrudTable({
             {fields.map((f) => (
               <div key={f.value} className="space-y-1.5">
                 <Label className="text-foreground text-sm">{f.label}</Label>
-                {f.type === "select" && f.selectVariants ? (
+                {f.readonly ? (
+                  f.type === "boolean" ? (
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="checkbox"
+                        checked={Boolean((selectedItem as Record<string, unknown>)?.[f.value])}
+                        disabled
+                        className="h-4 w-4 rounded border-muted-foreground/30 opacity-60 cursor-not-allowed"
+                      />
+                      <span className="text-sm text-muted-foreground italic">somente leitura</span>
+                    </div>
+                  ) : (
+                    <div className="px-3 py-2 rounded-md bg-muted/20 border border-muted/20 text-sm text-muted-foreground italic">
+                      {String((selectedItem as Record<string, unknown>)?.[f.value] ?? "—")}
+                    </div>
+                  )
+                ) : f.type === "select" && f.selectVariants ? (
                   <Select
                     value={formData[f.value] as string}
                     onValueChange={(v) =>
