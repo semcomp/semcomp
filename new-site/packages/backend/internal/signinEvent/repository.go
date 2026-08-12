@@ -11,6 +11,7 @@ type SigninEventRepository interface {
 	GetByUserEventAndInitDate(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error)
 	CountByStatus(eventName string, initDate time.Time, status RegistrationStatus) (int64, error)
 	CountActiveByEvent(eventName string, initDate time.Time) (int64, error)
+	FindActiveByUser(userNumber uint) ([]SigninEventsDetailed, error)
 }
 
 type signinEventRepository struct {
@@ -57,4 +58,22 @@ func (r *signinEventRepository) CountActiveByEvent(eventName string, initDate ti
 	}
 
 	return count, nil
+}
+
+func (r *signinEventRepository) FindActiveByUser(userNumber uint) ([]SigninEventsDetailed, error) {
+	var signins []SigninEventsDetailed
+
+	err := r.db.Table("signin_events").
+		Select("signin_events.user_number, signin_events.event_name, signin_events.event_init_date, " +
+			"events.end_date AS event_end_date, events.type AS event_type, events.location AS event_location, " +
+			"events.description AS event_description, signin_events.user_wait_list_position, signin_events.status").
+		Joins("JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date").
+		Where("signin_events.user_number = ? AND signin_events.status <> ?", userNumber, StatusCancelled).
+		Order("signin_events.event_init_date asc").
+		Scan(&signins).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return signins, nil
 }

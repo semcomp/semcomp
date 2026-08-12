@@ -68,3 +68,26 @@ func (h *SigninEventHandler) GetSigninEvents(c *gin.Context) {
 	c.Set("responseMessage", "Eventos para inscrição listados com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"events": events})
 }
+
+// GetMySignins lista as inscrições ativas do usuário autenticado.
+// @Summary Lista inscrições do usuário logado
+// @Description Retorna as inscrições ativas do usuário autenticado com detalhes do evento (status e posição na fila)
+// @Tags Signin Event
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Lista de inscrições"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /api/signin-events/me [get]
+func (h *SigninEventHandler) GetMySignins(c *gin.Context) {
+	userNumber := c.GetUint("userNumber")
+
+	signins, err := h.service.GetMySignins(userNumber)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Set("responseMessage", "Inscrições do usuário listadas com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"signins": signins})
+}

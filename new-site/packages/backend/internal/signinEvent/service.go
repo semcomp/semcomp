@@ -12,6 +12,7 @@ import (
 type SigninEventService interface {
 	CreateSignin(userNumber uint, request CreateSigninRequest) (*SigninEvent, error)
 	GetSigninEvents() ([]event.Event, error)
+	GetMySignins(userNumber uint) ([]SigninEventsDetailed, error)
 }
 
 type signinEventService struct {
@@ -85,4 +86,13 @@ func (s *signinEventService) GetSigninEvents() ([]event.Event, error) {
 	}
 
 	return events, nil
+}
+
+func (s *signinEventService) GetMySignins(userNumber uint) ([]SigninEventsDetailed, error) {
+	signins, err := s.repo.FindActiveByUser(userNumber)
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao buscar inscrições do usuário", err)
+	}
+
+	return signins, nil
 }
