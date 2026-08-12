@@ -61,7 +61,9 @@ export default function LoginPage(): ReactElement {
     const [hasPapfe, setHasPapfe] = useState(false);
     const [papfeFile, setPapfeFile] = useState<File | null>(null);
     const [querCracha, setQuerCracha] = useState(false);
-    const [autorizaCompartilhamento, setAutorizaCompartilhamento] = useState(false);
+    // null = ainda não respondeu;
+    const [autorizaCompartilhamento, setAutorizaCompartilhamento] = useState<boolean | null>(null);
+    const [confirmandoRecusa, setConfirmandoRecusa] = useState(false);
 
     const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
     const [forgotEmail, setForgotEmail] = useState("");
@@ -109,7 +111,8 @@ export default function LoginPage(): ReactElement {
         setEducation(""); setProfession(""); setLinkedin(""); setTelegram("");
         setHasPapfe(false); setPapfeFile(null); setHasDisability(false); setDisabilities([]);
         setQuerCracha(false);
-        setAutorizaCompartilhamento(false);
+        setAutorizaCompartilhamento(null);
+        setConfirmandoRecusa(false);
     }, []);
 
     useEffect(() => {
@@ -169,16 +172,17 @@ export default function LoginPage(): ReactElement {
             if (!education) return "Selecione sua formação.";
             if (hasDisability && disabilities.length === 0) return "Adicione ao menos uma deficiência ou desmarque a opção.";
             if (hasPapfe && !papfeFile) return "O comprovante PAPFE é obrigatório.";
+            if (autorizaCompartilhamento === null) return "Responda se podemos compartilhar seus dados com os patrocinadores.";
         }
         return null;
-    }, [email, password, confirmPassword, isLogin, name, age, city, gender, education, hasDisability, disabilities, hasPapfe, papfeFile]);
+    }, [email, password, confirmPassword, isLogin, name, age, city, gender, education, hasDisability, disabilities, hasPapfe, papfeFile, autorizaCompartilhamento]);
 
     const register = useCallback(async () => {
         try {
             const response = await authAPI.register(
                 name, email, password, Number(age), gender, city, education,
                 hasPapfe, hasDisability ? disabilities : [], querCracha,
-                autorizaCompartilhamento,
+                autorizaCompartilhamento === true,
                 profession, linkedin, telegram, papfeFile,
             );
             showNotification(response.message || "Registro realizado!", "success");
@@ -480,17 +484,86 @@ export default function LoginPage(): ReactElement {
                                 </span>
                             </label>
 
-                            <label className="flex items-start gap-2 pt-2 text-sm cursor-pointer">
-                                <input 
-                                    type="checkbox" 
-                                    checked={autorizaCompartilhamento} 
-                                    onChange={(e) => setAutorizaCompartilhamento(e.target.checked)} 
-                                    className="w-4 h-4 mt-0.5 shrink-0 rounded accent-semcompMidDarkBlue cursor-pointer" 
-                                />
-                                <span>
-                                    Autorizo o compartilhamento das minhas informações com os patrocinadores do evento
-                                </span>
-                            </label>
+                            {/* Compartilhamento com patrocinadores: resposta obrigatória, sem opção pré-marcada.
+                                Recusar não bloqueia o cadastro, apenas pede uma confirmação no lugar do campo. */}
+                            <div data-share-field className="relative pt-2">
+                                <div
+                                    className={`grid transition-all duration-300 ease-out ${confirmandoRecusa ? "grid-rows-[0fr] opacity-0 pointer-events-none" : "grid-rows-[1fr] opacity-100"}`}
+                                    aria-hidden={confirmandoRecusa}
+                                >
+                                    <div className="overflow-hidden">
+                                        <div className="text-sm font-medium mb-1">
+                                            Podemos compartilhar seus dados de contato com os patrocinadores do evento? <span className="opacity-70">*</span>
+                                        </div>
+                                        <div className="text-xs opacity-70 mb-2">
+                                            Eles usam essas informações para divulgar vagas de estágio e emprego.
+                                            <br />
+                                            Sua resposta não afeta sua inscrição.
+                                        </div>
+                                        <div role="radiogroup" aria-label="Compartilhar dados com os patrocinadores" className="flex gap-2">
+                                            {([true, false] as const).map((valor) => (
+                                                <button
+                                                    key={String(valor)}
+                                                    type="button"
+                                                    role="radio"
+                                                    aria-checked={autorizaCompartilhamento === valor}
+                                                    onClick={(e) => {
+                                                        if (valor) {
+                                                            setAutorizaCompartilhamento(true);
+                                                            return;
+                                                        }
+                                                        // a recusa só é aplicada depois de confirmada
+                                                        const campo = e.currentTarget.closest("[data-share-field]");
+                                                        setConfirmandoRecusa(true);
+                                                        setTimeout(() => campo?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 300);
+                                                    }}
+                                                    className={`flex-1 py-2 rounded-lg border text-sm transition-all ${
+                                                        autorizaCompartilhamento === valor
+                                                            ? "bg-white border-white text-semcompDarkBlue font-bold"
+                                                            : "border-gray-400/40 hover:bg-white/10"
+                                                    }`}
+                                                >
+                                                    {valor ? "Sim" : "Não"}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    className={`grid transition-all duration-300 ease-out ${confirmandoRecusa ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0 pointer-events-none"}`}
+                                    aria-hidden={!confirmandoRecusa}
+                                >
+                                    <div className="overflow-hidden">
+                                        <div className="rounded-lg border border-red-600 bg-red-600/10 p-3 text-xs text-white">
+                                            <p className="mb-2.5 leading-relaxed">
+                                                Sem o compartilhamento, os patrocinadores não recebem seu contato para divulgar vagas de estágio e emprego.
+                                                <br />
+                                                Confirma que não quer compartilhar?
+                                            </p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setConfirmandoRecusa(false)}
+                                                    className="flex-1 py-2 rounded-md border border-gray-400/40 text-white font-semibold hover:brightness-110 transition-all"
+                                                >
+                                                    Voltar
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setAutorizaCompartilhamento(false);
+                                                        setConfirmandoRecusa(false);
+                                                    }}
+                                                    className="flex-1 py-2 rounded-md bg-red-600 text-white font-semibold hover:brightness-110 transition-all"
+                                                >
+                                                    Confirmar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </>
                     )}
                 </div>
