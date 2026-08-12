@@ -239,6 +239,13 @@ func main() {
 	admin.PUT("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.UpdateEventByNameAndInitDate)
 	admin.DELETE("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.DeleteEventByNameAndInitDate)
 
+	// Inscrições (Signin Events)
+	admin.GET("/signin-events", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninsAdmin)
+	admin.GET("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninAdmin)
+	admin.POST("/signin-events", permMW("Inscrições", permission.PermRW), signinEventHandler.CreateSigninAdmin)
+	admin.PUT("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermRW), signinEventHandler.UpdateSigninAdmin)
+	admin.DELETE("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermRW), signinEventHandler.DeleteSigninAdmin)
+
 	// Participações
 	admin.GET("/presences", permMW("Participações", permission.PermR), presenceHandler.GetPresences)
 	admin.GET("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermR), presenceHandler.GetPresenceByUserEventandInitDate)

@@ -23,6 +23,32 @@ type CreateSigninRequest struct {
 	EventInitDate time.Time `json:"event_init_date" binding:"required"`
 }
 
+type CreateSigninAdminRequest struct {
+	UserNumber    uint               `json:"user_number" binding:"required,gt=0"`
+	EventName     string             `json:"event_name" binding:"required,max=200"`
+	EventInitDate time.Time          `json:"event_init_date" binding:"required"`
+	Status        RegistrationStatus `json:"status" binding:"required,oneof=Inscrito Lista de Espera Cancelado"`
+}
+
+type UpdateSigninAdminRequest struct {
+	Status RegistrationStatus `json:"status" binding:"required,oneof=Inscrito Lista de Espera Cancelado"`
+}
+
+type SigninEventListQuery struct {
+	Limit       int
+	Offset      int
+	SortBy      string
+	SortOrder   string
+	SearchBy    string
+	SearchValue string
+}
+
+type SigninEventListResult struct {
+	Signins         []SigninEvent `json:"signins"`
+	TotalRecords    int64         `json:"total_records"`
+	FilteredRecords int64         `json:"filtered_records"`
+}
+
 type SigninEventsDetailed struct {
 	UserNumber           uint               `json:"user_number"`
 	EventName            string             `json:"event_name"`

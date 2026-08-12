@@ -34,6 +34,7 @@ var KnownSections = []string{
 	"Páginas",
 	"Patrocinadores",
 	"PAPFE",
+	"Inscrições",
 }
 
 type Permission struct {
