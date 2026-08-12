@@ -91,3 +91,33 @@ func (h *SigninEventHandler) GetMySignins(c *gin.Context) {
 	c.Set("responseMessage", "Inscrições do usuário listadas com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"signins": signins})
 }
+
+// DeleteSignin cancela a inscrição do usuário autenticado em um evento.
+// @Summary Cancela a inscrição do usuário em um evento
+// @Description Cancela (status "Cancelado") a inscrição do usuário logado no evento informado
+// @Tags Signin Event
+// @Accept json
+// @Produce json
+// @Param eventName path string true "Nome do evento"
+// @Param eventInitDate path string true "Data de início do evento (RFC3339)"
+// @Success 200 {object} map[string]string "Inscrição cancelada com sucesso"
+// @Failure 400 {object} map[string]string "Data inválida"
+// @Failure 404 {object} map[string]string "Inscrição não encontrada"
+// @Failure 409 {object} map[string]string "Inscrição já cancelada"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /api/signin-events/{eventName}/{eventInitDate} [delete]
+func (h *SigninEventHandler) DeleteSignin(c *gin.Context) {
+	userNumber := c.GetUint("userNumber")
+	eventName := c.Param("eventName")
+	eventInitDate := c.Param("eventInitDate")
+
+	err := h.service.DeleteSignin(userNumber, eventName, eventInitDate)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Set("responseMessage", "Inscrição cancelada com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "Inscrição cancelada com sucesso!"})
+}

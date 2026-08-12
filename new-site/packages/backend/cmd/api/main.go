@@ -204,6 +204,7 @@ func main() {
 	authRoutes.POST("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.CreateSignin)
 	authRoutes.GET("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.GetSigninEvents)
 	authRoutes.GET("/signin-events/me", pageMW("profile"), pageMW("cronograma"), signinEventHandler.GetMySignins)
+	authRoutes.DELETE("/signin-events/:eventName/:eventInitDate", pageMW("profile"), pageMW("cronograma"), signinEventHandler.DeleteSignin)
 
 	authRoutes.GET("/payments", pageMW("loja"), paymentHandler.ListByUser)
 	authRoutes.POST("/payments/pix", pageMW("loja"), paymentHandler.CreatePix)

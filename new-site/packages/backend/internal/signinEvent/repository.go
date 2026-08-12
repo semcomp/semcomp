@@ -12,6 +12,9 @@ type SigninEventRepository interface {
 	CountByStatus(eventName string, initDate time.Time, status RegistrationStatus) (int64, error)
 	CountActiveByEvent(eventName string, initDate time.Time) (int64, error)
 	FindActiveByUser(userNumber uint) ([]SigninEventsDetailed, error)
+	UpdateStatus(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus) error
+	GetFirstWaitListed(eventName string, initDate time.Time) (*SigninEvent, error)
+	PromoteToRegistered(userNumber uint, eventName string, initDate time.Time) error
 }
 
 type signinEventRepository struct {
@@ -76,4 +79,51 @@ func (r *signinEventRepository) FindActiveByUser(userNumber uint) ([]SigninEvent
 	}
 
 	return signins, nil
+}
+
+func (r *signinEventRepository) UpdateStatus(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus) error {
+	result := r.db.Model(&SigninEvent{}).
+		Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).
+		Update("status", status)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
+}
+
+func (r *signinEventRepository) GetFirstWaitListed(eventName string, initDate time.Time) (*SigninEvent, error) {
+	var signin SigninEvent
+	err := r.db.Where("event_name = ? AND event_init_date = ? AND status = ?", eventName, initDate, StatusWaitListed).
+		Order("user_wait_list_position asc").
+		First(&signin).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &signin, nil
+}
+
+func (r *signinEventRepository) PromoteToRegistered(userNumber uint, eventName string, initDate time.Time) error {
+	result := r.db.Model(&SigninEvent{}).
+		Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).
+		Updates(map[string]interface{}{
+			"status":                 StatusRegistered,
+			"user_wait_list_position": 0,
+		})
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }

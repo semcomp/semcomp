@@ -2,6 +2,7 @@ package signinEvent
 
 import (
 	"errors"
+	"time"
 
 	"backend/internal/apierrors"
 	"backend/internal/event"
@@ -13,6 +14,7 @@ type SigninEventService interface {
 	CreateSignin(userNumber uint, request CreateSigninRequest) (*SigninEvent, error)
 	GetSigninEvents() ([]event.Event, error)
 	GetMySignins(userNumber uint) ([]SigninEventsDetailed, error)
+	DeleteSignin(userNumber uint, eventName string, eventInitDate string) error
 }
 
 type signinEventService struct {
@@ -95,4 +97,44 @@ func (s *signinEventService) GetMySignins(userNumber uint) ([]SigninEventsDetail
 	}
 
 	return signins, nil
+}
+
+func (s *signinEventService) DeleteSignin(userNumber uint, eventName string, eventInitDate string) error {
+	initTime, err := time.Parse(time.RFC3339, eventInitDate)
+	if err != nil {
+		return apierrors.ValidationError("Data do evento inválida. Use o formato RFC3339", err)
+	}
+
+	signin, err := s.repo.GetByUserEventAndInitDate(userNumber, eventName, initTime)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return apierrors.NotFoundError("Inscrição não encontrada", err)
+		}
+		return apierrors.InternalServerError("Erro ao buscar inscrição", err)
+	}
+
+	if signin.Status == StatusCancelled {
+		return apierrors.ConflictError("Inscrição já cancelada", nil)
+	}
+
+	confirmed := signin.Status == StatusRegistered
+
+	err = s.repo.UpdateStatus(userNumber, eventName, initTime, StatusCancelled)
+	if err != nil {
+		return apierrors.InternalServerError("Erro ao cancelar inscrição", err)
+	}
+
+	// Se o cancelado tinha inscrição confirmada, promove o primeiro da fila de espera.
+	if confirmed {
+		next, err := s.repo.GetFirstWaitListed(eventName, initTime)
+		if err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return apierrors.InternalServerError("Erro ao buscar próximo da fila de espera", err)
+			}
+		} else if err := s.repo.PromoteToRegistered(next.UserNumber, eventName, initTime); err != nil {
+			return apierrors.InternalServerError("Erro ao promover usuário da fila de espera", err)
+		}
+	}
+
+	return nil
 }
