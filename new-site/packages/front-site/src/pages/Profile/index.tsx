@@ -520,7 +520,7 @@ import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/AuthContext";
-import { authAPI } from "@/api";
+import { authAPI, client } from "@/api";
 import { ChevronDown, Megaphone } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
 import type { EventType } from "@/types/EventType";
@@ -550,7 +550,6 @@ interface ProfileProps extends Partial<UserType> {
   event?: string;
 }
 
-// Interface tipada de acordo com a resposta do backend
 interface BackendNoticeResponse {
   notices: Array<{
     id: number;
@@ -602,35 +601,29 @@ export default function Profile({
       } catch (err) {
         console.error("Erro ao buscar o perfil", err);
         await logout();
-        showNotification("Sua sessão expirou. Faça login novamente.", "warning");
+        showNotification(
+          "Sua sessão expirou. Faça login novamente.",
+          "warning"
+        );
       }
 
       try {
-        const token = localStorage.getItem("token");
+        const response = await client.get<BackendNoticeResponse>(
+          "/admin/notices",
+          {
+            params: {
+              page: 1,
+              limit: 10,
+              sort_by: "date_time",
+              sort_order: "desc",
+            },
+          }
+        );
 
-        const queryParams = new URLSearchParams({
-          page: "1",
-          limit: "10",
-          sort_by: "date_time",
-          sort_order: "desc",
-        });
-
-        const response = await fetch(`/admin/notices?${queryParams.toString()}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Falha ao carregar avisos");
-        }
-
-        const data: BackendNoticeResponse = await response.json();
-
-        const formattedNotices: NoticeType[] = (data.notices || []).map((notice) => ({
+        // Mapeia os avisos para formatar a data
+        const formattedNotices: NoticeType[] = (
+          response.data.notices || []
+        ).map((notice) => ({
           ...notice,
           date: notice.date_time
             ? new Date(notice.date_time).toLocaleDateString("pt-BR", {
@@ -663,10 +656,13 @@ export default function Profile({
           <div className="flex items-start gap-2">
             <span className="font-bold whitespace-nowrap">{ev.type}</span>
             <span className="opacity-60">|</span>
-            <p className="text-sm leading-relaxed opacity-90 wrap-break-words">{ev.description}</p>
+            <p className="text-sm leading-relaxed opacity-90 wrap-break-words">
+              {ev.description}
+            </p>
           </div>
           <p className="mt-3 text-sm opacity-80 font-medium text-center">
-            {diaSemana} ({data}), {formatTime(ev.dateInit)} às {formatTime(ev.dateEnd)}
+            {diaSemana} ({data}), {formatTime(ev.dateInit)} às{" "}
+            {formatTime(ev.dateEnd)}
           </p>
           <hr className="mb-2 mt-2" />
         </div>
@@ -676,7 +672,9 @@ export default function Profile({
             onClick={() =>
               ev.linkInscricao
                 ? window.open(ev.linkInscricao, "_blank")
-                : showNotification("Este evento ainda não está aberto para inscrições.")
+                : showNotification(
+                    "Este evento ainda não está aberto para inscrições."
+                  )
             }
           >
             Inscreva-se
@@ -698,7 +696,11 @@ export default function Profile({
             alt="SEMCOMP Banner"
           />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <img src="/img/semcomp/logo_default_branco.webp" alt="SEMCOMP Logo" className="w-1/2 max-w-50 object-contain drop-shadow-2xl" />
+            <img
+              src="/img/semcomp/logo_default_branco.webp"
+              alt="SEMCOMP Logo"
+              className="w-1/2 max-w-50 object-contain drop-shadow-2xl"
+            />
           </div>
           <div className="absolute inset-0 bg-linear-to-b from-transparent to-semcompOffWhite dark:to-semcompAlmostDarkBlue" />
 
@@ -743,7 +745,11 @@ export default function Profile({
                   <div className="absolute top-0 right-0 w-12 h-12 border-t-8 border-r-8 border-[#548EAB]" />
                   <div className="absolute bottom-0 left-0 w-12 h-12 border-b-8 border-l-8 border-[#548EAB]" />
                   <div className="bg-white p-2">
-                    <QRCode value={userCode.toString()} size={180} fgColor="#0B2639" />
+                    <QRCode
+                      value={userCode.toString()}
+                      size={180}
+                      fgColor="#0B2639"
+                    />
                   </div>
                 </div>
 
@@ -762,30 +768,46 @@ export default function Profile({
 
             {activeTab === "account" && (
               <div className="w-full flex flex-col animate-in fade-in duration-300">
-                <h2 className="text-2xl font-bold text-center mb-6">Minha Conta</h2>
+                <h2 className="text-2xl font-bold text-center mb-6">
+                  Minha Conta
+                </h2>
 
                 <div className="flex flex-col space-y-4 mb-6">
                   <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">Nome Completo:</span>
-                    <span className="text-sm font-medium text-semcompDarkBlue">{userName}</span>
+                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">
+                      Nome Completo:
+                    </span>
+                    <span className="text-sm font-medium text-semcompDarkBlue">
+                      {userName}
+                    </span>
                   </div>
                   <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">E-mail:</span>
-                    <span className="text-sm font-medium text-semcompDarkBlue">{userEmail}</span>
+                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">
+                      E-mail:
+                    </span>
+                    <span className="text-sm font-medium text-semcompDarkBlue">
+                      {userEmail}
+                    </span>
                   </div>
                 </div>
 
                 <div className="bg-white/50 rounded-xl p-4 mb-6 border border-black/10">
-                  <h3 className="text-center text-sm font-bold mb-3">Minha Presença</h3>
+                  <h3 className="text-center text-sm font-bold mb-3">
+                    Minha Presença
+                  </h3>
                   <div className="relative w-full h-6 bg-black/10 rounded-full overflow-hidden">
                     <div
                       className={`absolute inset-y-0 left-0 h-full bg-semcompDarkBlue transition-all duration-1000 ${
-                        presencePercent > 15 ? "flex items-center justify-end pr-2" : ""
+                        presencePercent > 15
+                          ? "flex items-center justify-end pr-2"
+                          : ""
                       }`}
                       style={{ width: `${presencePercent}%` }}
                     >
                       {presencePercent > 15 && (
-                        <span className="text-white text-[10px] font-bold">{presencePercent}%</span>
+                        <span className="text-white text-[10px] font-bold">
+                          {presencePercent}%
+                        </span>
                       )}
                     </div>
                     {presencePercent <= 15 && (
@@ -798,11 +820,19 @@ export default function Profile({
 
                 <button
                   className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
-                  onClick={() => showNotification("Entre em contato com a organização", "info")}
+                  onClick={() =>
+                    showNotification(
+                      "Entre em contato com a organização",
+                      "info"
+                    )
+                  }
                 >
                   Editar Informações
                 </button>
-                <button className="w-full text-red-700 font-bold text-sm py-2" onClick={logout}>
+                <button
+                  className="w-full text-red-700 font-bold text-sm py-2"
+                  onClick={logout}
+                >
                   Sair da conta
                 </button>
               </div>
@@ -819,14 +849,25 @@ export default function Profile({
             </span>
           </h2>
           <p className="text-xs mb-6 opacity-80">
-            Você sabia que vem por aí a prévia da maior semana acadêmica de computação do Brasil?
+            Você sabia que vem por aí a prévia da maior semana acadêmica de
+            computação do Brasil?
           </p>
 
           <div className="relative rounded-2xl overflow-hidden mb-4 border bg-white border-semcompDarkBlue/20 dark:bg-black/50 dark:border-white/10">
-            <img src={heroSrc} className="w-full h-56 object-cover brightness-[0.7]" alt="SEMCOMP Beta" />
+            <img
+              src={heroSrc}
+              className="w-full h-56 object-cover brightness-[0.7]"
+              alt="SEMCOMP Beta"
+            />
             <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
-              <img src="/img/semcomp/logo_default_branco.webp" className="w-32 mb-2 drop-shadow-2xl" alt="Logo" />
-              <h3 className="text-2xl font-black tracking-widest drop-shadow-lg text-white">SEMCOMP Beta</h3>
+              <img
+                src="/img/semcomp/logo_default_branco.webp"
+                className="w-32 mb-2 drop-shadow-2xl"
+                alt="Logo"
+              />
+              <h3 className="text-2xl font-black tracking-widest drop-shadow-lg text-white">
+                SEMCOMP Beta
+              </h3>
             </div>
           </div>
 
@@ -846,7 +887,9 @@ export default function Profile({
           <div className="rounded-3xl p-6 border shadow-xl transition-colors bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue dark:bg-[#1A3A4F] dark:border-white/10 dark:text-semcompOffWhite">
             <div className="flex items-center justify-center gap-2 mb-6">
               <Megaphone className="w-6 h-6 text-semcompDarkBlue dark:text-semcompOffWhite" />
-              <h2 className="text-2xl font-bold text-center">Mural de Avisos</h2>
+              <h2 className="text-2xl font-bold text-center">
+                Mural de Avisos
+              </h2>
             </div>
             <div className="flex flex-col gap-4">
               {notices.length > 0 ? (
@@ -882,11 +925,15 @@ export default function Profile({
         {/* Seção Inscrições */}
         <div className="mt-12 mb-12 px-5">
           <div className="rounded-3xl p-6 border shadow-xl transition-colors bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue dark:bg-[#1A3A4F] dark:border-white/10 dark:text-semcompOffWhite">
-            <h2 className="text-2xl font-bold text-center mb-6">Inscrições em Eventos</h2>
+            <h2 className="text-2xl font-bold text-center mb-6">
+              Inscrições em Eventos
+            </h2>
             {events.length > 0 ? (
               events.map((ev, i) => <EventCardMobile key={i} ev={ev} />)
             ) : (
-              <p className="opacity-60 text-center text-sm italic">Nenhuma inscrição encontrada.</p>
+              <p className="opacity-60 text-center text-sm italic">
+                Nenhuma inscrição encontrada.
+              </p>
             )}
           </div>
         </div>
@@ -924,7 +971,9 @@ export default function Profile({
 
       {activeTab === "qr" && (
         <div className="px-6 pb-8 bg-semcompOffWhite/50 mx-auto pt-8 h-full flex flex-col items-center overflow-y-auto custom-scrollbar">
-          <h1 className="text-2xl text-semcompMidDarkBlue font-bold mb-1">Meu QR Code</h1>
+          <h1 className="text-2xl text-semcompMidDarkBlue font-bold mb-1">
+            Meu QR Code
+          </h1>
           <p className="text-md text-semcompDarkBlue/75 text-center mb-6 leading-relaxed">
             Utilize seu QR durante a{" "}
             <span className="text-semcompMidBlue font-semibold">{event}</span>{" "}
@@ -948,7 +997,9 @@ export default function Profile({
             <p className="text-xs text-semcompDarkBlue/75 leading-tight">
               Caso de algum problema ao scannear, forneca o codigo:
             </p>
-            <p className="text-xl font-bold tracking-[0.2em] whitespace-nowrap">{userCode}</p>
+            <p className="text-xl font-bold tracking-[0.2em] whitespace-nowrap">
+              {userCode}
+            </p>
           </div>
         </div>
       )}
@@ -956,24 +1007,34 @@ export default function Profile({
       {activeTab === "account" && (
         <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300 overflow-y-auto custom-scrollbar">
           <div className="text-center mb-6">
-            <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">Minha Conta</h2>
-            <p className="text-md text-semcompDarkBlue/75">Veja abaixo, seus dados e presença</p>
+            <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">
+              Minha Conta
+            </h2>
+            <p className="text-md text-semcompDarkBlue/75">
+              Veja abaixo, seus dados e presença
+            </p>
           </div>
 
           <div className="flex flex-col space-y-4 mb-6">
             <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcompDarkBlue">Nome Completo:</span>
+              <span className="text-sm font-bold text-semcompDarkBlue">
+                Nome Completo:
+              </span>
               <span className="text-sm text-semcompDarkBlue">{userName}</span>
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcompDarkBlue">E-mail:</span>
+              <span className="text-sm font-bold text-semcompDarkBlue">
+                E-mail:
+              </span>
               <span className="text-sm text-semcompDarkBlue">{userEmail}</span>
             </div>
           </div>
 
           <button
             className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8"
-            onClick={() => showNotification("Entre em contato com a organização", "info")}
+            onClick={() =>
+              showNotification("Entre em contato com a organização", "info")
+            }
           >
             Editar Informações
           </button>
@@ -990,7 +1051,9 @@ export default function Profile({
                 style={{ width: `${presencePercent}%` }}
               >
                 {presencePercent > 15 && (
-                  <span className="text-semcompLightBlue text-xs font-bold">{presencePercent}%</span>
+                  <span className="text-semcompLightBlue text-xs font-bold">
+                    {presencePercent}%
+                  </span>
                 )}
               </div>
               {presencePercent <= 15 && (
@@ -1030,14 +1093,25 @@ export default function Profile({
           </div>
 
           <div className="h-[85%] w-[28%] bg-semcompMidDarkBlue/80 dark:bg-semcompDarkBlue/80 flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10">
-            <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP Beta 2026</h1>
+            <h1 className="text-center text-3xl font-bold pb-4">
+              SEMCOMP Beta 2026
+            </h1>
             <p className="text-center text-md pb-2">
-              Você sabia que vem por aí a prévia da maior semana acadêmica de computação do Brasil?
+              Você sabia que vem por aí a prévia da maior semana acadêmica de
+              computação do Brasil?
             </p>
             <div className="relative h-[50%] bg-cover bg-center bg-black">
-              <img src={heroSrc} className="absolute inset-0 w-full h-full object-cover opacity-60" alt="background" />
+              <img
+                src={heroSrc}
+                className="absolute inset-0 w-full h-full object-cover opacity-60"
+                alt="background"
+              />
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <img className="h-[80%] drop-shadow-2xl" src="/img/semcomp/logo_default_branco.webp" alt="Logo" />
+                <img
+                  className="h-[80%] drop-shadow-2xl"
+                  src="/img/semcomp/logo_default_branco.webp"
+                  alt="Logo"
+                />
               </div>
               <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 whitespace-nowrap font-bold text-2xl z-10 text-white drop-shadow-md">
                 SEMCOMP Beta
@@ -1108,30 +1182,42 @@ export default function Profile({
                   const diaSemana = formatWeekDay(evento.dateInit);
 
                   return (
-                    <div key={index} className="flex flex-col justify-center items-center">
+                    <div
+                      key={index}
+                      className="flex flex-col justify-center items-center"
+                    >
                       <div
                         className={`w-full flex flex-row justify-between items-center py-3 px-6 ${
                           openSubscription === index
                             ? "rounded-t-lg bg-black/15 shadow-inner"
                             : "rounded-lg bg-black/5 hover:bg-black/10"
                         } transition-all duration-300 cursor-pointer`}
-                        onClick={() => setOpenSubscription(openSubscription === index ? -1 : index)}
+                        onClick={() =>
+                          setOpenSubscription(
+                            openSubscription === index ? -1 : index
+                          )
+                        }
                       >
                         <div className="w-1/2 flex flex-col text-left gap-1 items-start pr-4">
-                          <span className="font-bold text-lg shrink-0">{evento.type}</span>
+                          <span className="font-bold text-lg shrink-0">
+                            {evento.type}
+                          </span>
                           <span className="text-sm font-medium wrap-break-words flex-1 opacity-90">
                             {evento.description}
                           </span>
                         </div>
                         <div className="w-auto flex flex-col items-end shrink-0 gap-1">
                           <div className="flex flex-row gap-3 items-center">
-                            <span className="font-semibold text-md">{data}</span>
+                            <span className="font-semibold text-md">
+                              {data}
+                            </span>
                             <span className="text-xs px-3 py-1 font-bold rounded-full bg-semcompDarkBlue text-semcompOffWhite capitalize dark:bg-semcompOffWhite dark:text-semcompMidDarkBlue">
                               {diaSemana}
                             </span>
                           </div>
                           <span className="text-sm font-medium opacity-80 flex items-center gap-2">
-                            {formatTime(evento.dateInit)} às {formatTime(evento.dateEnd)}
+                            {formatTime(evento.dateInit)} às{" "}
+                            {formatTime(evento.dateEnd)}
                             <ChevronDown
                               className={`transition-transform duration-300 ${
                                 openSubscription === index ? "rotate-180" : ""
@@ -1148,7 +1234,9 @@ export default function Profile({
                             onClick={() =>
                               evento.linkInscricao
                                 ? window.open(evento.linkInscricao, "_blank")
-                                : showNotification("Este evento ainda não está aberto para inscrições.")
+                                : showNotification(
+                                    "Este evento ainda não está aberto para inscrições."
+                                  )
                             }
                           >
                             Inscreva-se
