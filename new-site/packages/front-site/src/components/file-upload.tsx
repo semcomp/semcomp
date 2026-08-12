@@ -160,8 +160,8 @@ export function FileUpload({
           <div className="flex w-full items-center gap-3">
             <FileText className="size-8 shrink-0 text-primary" />
             <div className="min-w-0 flex-1 text-left">
-              <p className="truncate text-sm font-medium text-foreground">{file.name}</p>
-              <p className="text-xs text-muted-foreground">Tamanho: {formatFileSize(file.size)}</p>
+              <p className="truncate text-base font-medium text-foreground">{file.name}</p>
+              <p className="text-sm text-muted-foreground">Tamanho: {formatFileSize(file.size)}</p>
             </div>
             <button
               type="button"
@@ -175,8 +175,8 @@ export function FileUpload({
         ) : (
           <>
             <UploadCloud className="size-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">{label}</p>
-            {helperText && <p className="text-xs text-muted-foreground">{helperText}</p>}
+            <p className="text-base text-muted-foreground">{label}</p>
+            {helperText && <p className="text-sm text-muted-foreground">{helperText}</p>}
           </>
         )}
       </div>

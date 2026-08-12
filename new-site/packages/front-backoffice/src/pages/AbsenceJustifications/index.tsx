@@ -30,9 +30,9 @@ const STATUS_LABEL: Record<AbsenceJustificationStatus, string> = {
 };
 
 const STATUS_BADGE_CLASS: Record<AbsenceJustificationStatus, string> = {
-  em_analise: "bg-amber-500/15 text-amber-400 border-amber-500/20",
-  aprovado: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
-  negado: "bg-red-500/15 text-red-400 border-red-500/20",
+  em_analise: "bg-amber-600 text-white border-amber-700",
+  aprovado: "bg-emerald-700 text-white border-emerald-800",
+  negado: "bg-red-700 text-white border-red-800",
 };
 
 const REASON_PREVIEW_LENGTH = 100;
