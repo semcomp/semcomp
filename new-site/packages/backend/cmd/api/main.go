@@ -202,7 +202,7 @@ func main() {
 	authRoutes.PUT("/papfe-document", userHandler.UpdatePapfeDocument)
 
 	authRoutes.POST("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.CreateSignin)
-	// authRoutes.GET("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.GetSigninEvents)
+	authRoutes.GET("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.GetSigninEvents)
 	// authRoutes.GET("/signin-events/me", pageMW("profile"), pageMW("cronograma"), signinEventHandler.GetMySignins)
 
 	authRoutes.GET("/payments", pageMW("loja"), paymentHandler.ListByUser)

@@ -15,6 +15,7 @@ type EventRepository interface {
 	DeleteByNameAndInitTime(name string, initTime time.Time) error
 	UpdateByNameAndInitTime(name string, initTime time.Time, event *Event) error
 	GetEvents(query EventListQuery) (*EventListResult, error)
+	ListSigninableEvents() ([]Event, error)
 }
 
 type eventRepository struct {
@@ -156,4 +157,16 @@ func (r *eventRepository) GetEvents(query EventListQuery) (*EventListResult, err
 		TotalRecords:    totalRecords,
 		FilteredRecords: filteredRecords,
 	}, nil
+}
+
+func (r *eventRepository) ListSigninableEvents() ([]Event, error) {
+	var events []Event
+	err := r.db.Where("has_signin = ?", true).
+		Order("init_date asc").
+		Find(&events).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return events, nil
 }

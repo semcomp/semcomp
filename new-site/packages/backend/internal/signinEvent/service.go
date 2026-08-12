@@ -11,6 +11,7 @@ import (
 
 type SigninEventService interface {
 	CreateSignin(userNumber uint, request CreateSigninRequest) (*SigninEvent, error)
+	GetSigninEvents() ([]event.Event, error)
 }
 
 type signinEventService struct {
@@ -75,4 +76,13 @@ func (s *signinEventService) CreateSignin(userNumber uint, request CreateSigninR
 	}
 
 	return &newSignin, nil
+}
+
+func (s *signinEventService) GetSigninEvents() ([]event.Event, error) {
+	events, err := s.eventRepo.ListSigninableEvents()
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao buscar eventos para inscrição", err)
+	}
+
+	return events, nil
 }

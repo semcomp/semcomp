@@ -47,3 +47,24 @@ func (h *SigninEventHandler) CreateSignin(c *gin.Context) {
 	c.Set("responseMessage", "Inscrição criada com sucesso!")
 	c.JSON(http.StatusCreated, gin.H{"message": "Inscrição criada com sucesso!", "signin": signin})
 }
+
+// GetSigninEvents lista todos os eventos que permitem inscrição.
+// @Summary Lista eventos passíveis de inscrição
+// @Description Retorna todos os eventos com has_signin = true
+// @Tags Signin Event
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Lista de eventos"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /api/signin-events [get]
+func (h *SigninEventHandler) GetSigninEvents(c *gin.Context) {
+	events, err := h.service.GetSigninEvents()
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Set("responseMessage", "Eventos para inscrição listados com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"events": events})
+}
