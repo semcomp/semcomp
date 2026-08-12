@@ -106,7 +106,7 @@ export const salesAPI = {
 
   // GET /api/sales/me — histórico de compras do usuário autenticado
   getMySales: async (): Promise<Sale[]> => {
-    const response = await client.get<GetMySalesApiResponse>("/api/sales/me");
+    const response = await client.get<GetMySalesApiResponse>("/api/sales/profile");
     return response.data.sales;
   },
 

@@ -46,8 +46,6 @@ interface StoreItem {
   availableDateTimes: string[];
   defaultDateTime?: string;
   color?: string;
-  /** Tamanhos de camiseta incluídos em um Combo (somente leitura, não há seleção dinâmica) */
-  comboKitSizes?: string[];
 }
 
 /** Ordem "natural" de tamanhos, usada só para ordenar a exibição. Tamanhos fora dessa
@@ -75,6 +73,24 @@ function kitVariantGroupKey(p: Product): string {
   return kit?.color?.trim() || kit?.name || `product-${p.id}`;
 }
 
+/** Agrupa produtos COFFEE de mesmo nome num único card. Diferente do Kit, o horário
+ *  aqui não seleciona um produto diferente — é só informativo. */
+function coffeeGroupKey(p: Product): string {
+  return p.coffee?.name?.trim() || `product-${p.id}`;
+}
+
+/** Agrupa Combos que são "o mesmo combo", variando só o tamanho da camiseta incluída:
+ *  mesmo conjunto de itens não-Kit (ex: mesmos coffees) e mesmo preço. O item Kit é
+ *  propositalmente excluído da assinatura, já que é ele que varia entre as opções. */
+function comboGroupKey(p: Product, productById: Map<number, Product>): string {
+  if (!p.combo_items?.length) return `combo-${p.id}`;
+  const nonKitIds = p.combo_items
+    .filter((ci) => productById.get(ci.item_id)?.type !== "KIT")
+    .map((ci) => ci.item_id)
+    .sort((a, b) => a - b);
+  return `${nonKitIds.join(",")}|${p.price}`;
+}
+
 function collectComboDateTimes(product: Product, productById: Map<number, Product>): string[] {
   if (product.type !== "COMBO" || !product.combo_items?.length) return [];
 
@@ -87,22 +103,6 @@ function collectComboDateTimes(product: Product, productById: Map<number, Produc
   }
 
   return [...dateTimes];
-}
-
-/** Tamanhos das camisetas (Kits) incluídas em um Combo. Diferente do KIT avulso,
- *  aqui não há seleção dinâmica: o tamanho já vem fixo no Combo cadastrado. */
-function collectComboKitSizes(product: Product, productById: Map<number, Product>): string[] {
-  if (product.type !== "COMBO" || !product.combo_items?.length) return [];
-
-  const sizes = new Set<string>();
-  for (const comboItem of product.combo_items) {
-    const referencedProduct = productById.get(comboItem.item_id);
-    if (referencedProduct?.type === "KIT" && referencedProduct.kit?.size) {
-      sizes.add(referencedProduct.kit.size);
-    }
-  }
-
-  return [...sizes];
 }
 
 // ─── Helpers ──────────────────────────────────────────────
@@ -120,7 +120,7 @@ function formatDateTime(iso: string): string {
   });
 }
 
-/** Converte um grupo de produtos KIT (mesmo modelo, tamanhos diferentes) em um único
+/** Converte um grupo de produtos KIT (mesma cor, tamanhos diferentes) em um único
  *  StoreItem com seletor de tamanho real: cada tamanho aponta para o produto correto. */
 function kitGroupToStoreItem(groupProducts: Product[]): StoreItem {
   const sorted = [...groupProducts].sort((a, b) =>
@@ -156,38 +156,80 @@ function kitGroupToStoreItem(groupProducts: Product[]): StoreItem {
   };
 }
 
-/** Converte um produto COFFEE ou COMBO (sempre 1:1, sem variantes de tamanho) em StoreItem. */
-function singleProductToStoreItem(p: Product, productById: Map<number, Product>): StoreItem {
-  const categoryMap: Record<string, string> = {
-    COFFEE: "Coffee Break",
-    COMBO: "Combo",
-  };
+/** Converte um grupo de produtos COFFEE de mesmo nome em um único StoreItem. Ao
+ *  contrário do KIT, o horário aqui é só informativo: não muda o produto comprado,
+ *  que é sempre o do horário mais próximo (representante do grupo). */
+function coffeeGroupToStoreItem(groupProducts: Product[]): StoreItem {
+  const sorted = [...groupProducts].sort((a, b) =>
+    (a.coffee?.date_time ?? "").localeCompare(b.coffee?.date_time ?? "")
+  );
+  const representative = sorted[0];
+  const coffee = representative.coffee!;
 
-  const name = p.coffee?.name ?? p.type;
-  const availableDateTimes =
-    p.type === "COMBO"
-      ? collectComboDateTimes(p, productById)
-      : p.coffee?.date_time
-        ? [p.coffee.date_time]
-        : [];
-  const description =
-    p.type === "COMBO"
-      ? `Combo com ${p.combo_items?.length ?? 0} itens`
-      : "Coffee Break da Semcomp";
+  const availableDateTimes = sorted
+    .map((p) => p.coffee?.date_time)
+    .filter((dt): dt is string => Boolean(dt));
 
   return {
-    id: String(p.id),
-    name,
-    category: categoryMap[p.type] ?? p.type,
-    description,
-    price: formatBRL(p.price),
-    priceValue: p.price,
-    image: p.picture_url || `https://placehold.co/600x400/0B2639/FAFDFF?text=${encodeURIComponent(name)}`,
-    rawType: p.type,
+    id: String(representative.id),
+    name: coffee.name,
+    category: "Coffee Break",
+    description: "Coffee Break da Semcomp",
+    price: formatBRL(representative.price),
+    priceValue: representative.price,
+    image:
+      representative.picture_url ||
+      `https://placehold.co/600x400/0B2639/FAFDFF?text=${encodeURIComponent(coffee.name)}`,
+    rawType: "COFFEE",
     sizeVariants: [],
     availableDateTimes,
     defaultDateTime: availableDateTimes[0] ?? undefined,
-    comboKitSizes: p.type === "COMBO" ? collectComboKitSizes(p, productById) : undefined,
+  };
+}
+
+/** Converte um grupo de Combos "iguais" (mesmos itens não-Kit, mesmo preço) em um único
+ *  StoreItem. Quando o combo inclui uma camiseta, cada tamanho vira uma variante real —
+ *  igual ao KIT avulso — apontando para o produto Combo correspondente àquele tamanho. */
+function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number, Product>): StoreItem {
+  const withKitInfo = groupProducts.map((p) => {
+    const kitComboItem = p.combo_items?.find((ci) => productById.get(ci.item_id)?.type === "KIT");
+    const kitProduct = kitComboItem ? productById.get(kitComboItem.item_id) : undefined;
+    return {
+      product: p,
+      size: kitProduct?.kit?.size,
+      isBabydoll: kitProduct?.kit?.is_babydoll ?? false,
+    };
+  });
+
+  const sorted = [...withKitInfo].sort((a, b) =>
+    compareVariants({ size: a.size ?? "", isBabydoll: a.isBabydoll }, { size: b.size ?? "", isBabydoll: b.isBabydoll })
+  );
+  const representative = sorted[0].product;
+
+  const sizeVariants: SizeVariant[] = withKitInfo
+    .filter((x) => !!x.size)
+    .sort((a, b) => compareVariants({ size: a.size!, isBabydoll: a.isBabydoll }, { size: b.size!, isBabydoll: b.isBabydoll }))
+    .map((x) => ({
+      productId: String(x.product.id),
+      size: x.size!,
+      isBabydoll: x.isBabydoll,
+      priceValue: x.product.price,
+    }));
+
+  const availableDateTimes = collectComboDateTimes(representative, productById);
+
+  return {
+    id: String(representative.id),
+    name: "Combo",
+    category: "Combo",
+    description: `Combo com ${representative.combo_items?.length ?? 0} itens`,
+    price: formatBRL(representative.price),
+    priceValue: representative.price,
+    image: representative.picture_url || `https://placehold.co/600x400/0B2639/FAFDFF?text=Combo`,
+    rawType: "COMBO",
+    sizeVariants,
+    availableDateTimes,
+    defaultDateTime: availableDateTimes[0] ?? undefined,
   };
 }
 
@@ -246,10 +288,14 @@ export default function StorePage() {
           const selling = data.products.filter((p) => p.is_selling);
           const productById = new Map(selling.map((p) => [p.id, p] as const));
 
-          // Kits (camisetas) de mesmo modelo/estampa, tamanhos diferentes, viram um
-          // único card com seletor de tamanho real. Coffee/Combo continuam 1:1.
+          // Kits (camisetas) de mesma cor, tamanhos diferentes, viram um único card com
+          // seletor de tamanho real. Coffees de mesmo nome também viram um único card,
+          // mas com horário apenas informativo. Combos "iguais" (mesmos itens além da
+          // camiseta) também viram um único card, com seletor real de tamanho quando
+          // incluem uma camiseta — e horário apenas informativo, igual ao Coffee.
           const kitsByGroup = new Map<string, Product[]>();
-          const otherItems: StoreItem[] = [];
+          const coffeesByGroup = new Map<string, Product[]>();
+          const combosByGroup = new Map<string, Product[]>();
 
           for (const p of selling) {
             if (p.type === "KIT" && p.kit) {
@@ -260,13 +306,29 @@ export default function StorePage() {
               } else {
                 kitsByGroup.set(key, [p]);
               }
-            } else {
-              otherItems.push(singleProductToStoreItem(p, productById));
+            } else if (p.type === "COFFEE" && p.coffee) {
+              const key = coffeeGroupKey(p);
+              const group = coffeesByGroup.get(key);
+              if (group) {
+                group.push(p);
+              } else {
+                coffeesByGroup.set(key, [p]);
+              }
+            } else if (p.type === "COMBO") {
+              const key = comboGroupKey(p, productById);
+              const group = combosByGroup.get(key);
+              if (group) {
+                group.push(p);
+              } else {
+                combosByGroup.set(key, [p]);
+              }
             }
           }
 
           const kitItems = [...kitsByGroup.values()].map((group) => kitGroupToStoreItem(group));
-          setProducts([...kitItems, ...otherItems]);
+          const coffeeItems = [...coffeesByGroup.values()].map((group) => coffeeGroupToStoreItem(group));
+          const comboItems = [...combosByGroup.values()].map((group) => comboGroupToStoreItem(group, productById));
+          setProducts([...kitItems, ...coffeeItems, ...comboItems]);
         }
       } catch {
         if (!cancelled) setProducts([]);
@@ -460,12 +522,11 @@ export default function StorePage() {
                   {/* Conteúdo — flex-1 + flex column para o botão ficar no final */}
                   <div className="p-5 flex flex-col gap-3 flex-1">
                     {(() => {
-                      // Para KIT, a variante (e portanto o preço) pode mudar conforme o
-                      // tamanho/corte escolhido rapidamente no card.
-                      const quickKey = item.rawType === "KIT"
-                        ? (quickVariantKeyByItemId[item.id] ?? (item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : ""))
-                        : "";
-                      const quickVariant = item.rawType === "KIT"
+                      // O preço exibido acompanha a variante (tamanho/corte) escolhida
+                      // rapidamente no card — vale tanto para KIT quanto para Combo com camiseta.
+                      const defaultKey = item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : "";
+                      const quickKey = quickVariantKeyByItemId[item.id] ?? defaultKey;
+                      const quickVariant = item.sizeVariants.length > 0
                         ? (item.sizeVariants.find((v) => variantKey(v) === quickKey) ?? item.sizeVariants[0])
                         : undefined;
                       const displayPrice = quickVariant ? formatBRL(quickVariant.priceValue) : item.price;
@@ -490,8 +551,9 @@ export default function StorePage() {
                       {item.description}
                     </p>
 
-                    {/* ── Seletor in-line no card (tamanho + corte reais do catálogo) ── */}
-                    {item.rawType === "KIT" && item.sizeVariants.length > 0 && (
+                    {/* ── Seletor in-line no card (tamanho + corte reais do catálogo) ──
+                         Vale tanto para KIT avulso quanto para Combo que inclui camiseta. ── */}
+                    {item.sizeVariants.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
                         {item.sizeVariants.map((v) => {
                           const key = variantKey(v);
@@ -516,26 +578,17 @@ export default function StorePage() {
                         })}
                       </div>
                     )}
-                    {item.rawType === "COFFEE" && item.availableDateTimes.length > 0 && (
-                      <p className={`text-xs ${mutedText2}`}>
-                        {formatDateTime(item.availableDateTimes[0])}
-                      </p>
-                    )}
-                    {item.rawType === "COMBO" && (
+                    {/* ── Horários (Coffee e Combo): sempre só informativo, não seleciona produto ── */}
+                    {(item.rawType === "COFFEE" || item.rawType === "COMBO") && item.availableDateTimes.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
-                        {item.comboKitSizes?.map((s) => (
+                        {item.availableDateTimes.map((dt) => (
                           <span
-                            key={s}
-                            className={`px-2.5 py-1 text-xs font-bold rounded-md border ${cardBorder} ${mutedText}`}
+                            key={dt}
+                            className={`px-2.5 py-1 text-xs font-bold rounded-md border bg-semcompMidDarkBlue/10 ${cardBorder} ${mutedText}`}
                           >
-                            Tam. {s}
+                            🕐 {formatDateTime(dt)}
                           </span>
                         ))}
-                        {item.availableDateTimes.length > 0 && (
-                          <span className={`px-2.5 py-1 text-xs font-bold rounded-md border bg-semcompMidDarkBlue/10 ${cardBorder} ${mutedText}`}>
-                            🕐 {formatDateTime(item.availableDateTimes[0])}
-                          </span>
-                        )}
                       </div>
                     )}
 
@@ -543,28 +596,21 @@ export default function StorePage() {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (item.rawType === "KIT") {
-                          const defaultKey = item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : "";
-                          const quickKey = quickVariantKeyByItemId[item.id] ?? defaultKey;
-                          const variant = item.sizeVariants.find((v) => variantKey(v) === quickKey) ?? item.sizeVariants[0];
-                          if (!variant) return;
-                          addItem({
-                            id: variant.productId,
-                            name: item.name,
-                            price: variant.priceValue,
-                            image: item.image,
-                            size: variant.size,
-                            isBabydoll: variant.isBabydoll || undefined,
-                          });
-                        } else {
-                          addItem({
-                            id: item.id,
-                            name: item.name,
-                            price: item.priceValue,
-                            image: item.image,
-                            dateTime: item.defaultDateTime,
-                          });
-                        }
+                        const defaultKey = item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : "";
+                        const quickKey = quickVariantKeyByItemId[item.id] ?? defaultKey;
+                        const variant = item.sizeVariants.length > 0
+                          ? (item.sizeVariants.find((v) => variantKey(v) === quickKey) ?? item.sizeVariants[0])
+                          : undefined;
+
+                        addItem({
+                          id: variant ? variant.productId : item.id,
+                          name: item.name,
+                          price: variant ? variant.priceValue : item.priceValue,
+                          image: item.image,
+                          size: variant?.size,
+                          isBabydoll: variant?.isBabydoll || undefined,
+                          dateTime: item.defaultDateTime,
+                        });
                       }}
                       className={`mt-auto w-full rounded-full py-2.5 text-sm font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-semcompLightBlue focus:ring-offset-2 active:scale-95 shadow-md ${btnSolid}`}
                     >
@@ -620,8 +666,9 @@ export default function StorePage() {
               <p className={`text-sm leading-relaxed ${mutedText}`}>{selected.description}</p>
 
               <div className={`border-t ${divider} pt-5 space-y-5`}>
-                {/* ── Seletor de Tamanho/Corte (KIT: real, muda o produto/preço) ── */}
-                {selected.rawType === "KIT" && selected.sizeVariants.length > 0 && (
+                {/* ── Seletor de Tamanho/Corte (real: muda o produto/preço) ──
+                     Vale tanto para KIT avulso quanto para Combo que inclui camiseta. ── */}
+                {selected.sizeVariants.length > 0 && (
                   <div>
                     <span className={`text-sm font-semibold ${textColor}`}>Tamanho da camiseta</span>
                     <div className="flex flex-wrap gap-2 mt-2">
@@ -645,45 +692,20 @@ export default function StorePage() {
                   </div>
                 )}
 
-                {/* ── Camiseta incluída no Combo (fixa, sem seleção dinâmica) ── */}
-                {selected.rawType === "COMBO" && selected.comboKitSizes && selected.comboKitSizes.length > 0 && (
-                  <div>
-                    <span className={`text-sm font-semibold ${textColor}`}>Camiseta incluída</span>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {selected.comboKitSizes.map((s) => (
-                        <span
-                          key={s}
-                          className={`px-3 py-2 text-sm font-bold rounded-lg border ${cardBorder} ${mutedText}`}
-                        >
-                          Tamanho {s}
-                        </span>
-                      ))}
-                    </div>
-                    <p className={`mt-1.5 text-xs ${mutedText}`}>
-                      O tamanho da camiseta deste combo já vem definido e não pode ser alterado.
-                    </p>
-                  </div>
-                )}
-
-                {/* ── Seletor de Horário (Coffee / Combo) ── */}
+                {/* ── Horários (Coffee e Combo): sempre só informativo, não seleciona produto ── */}
                 {(selected.rawType === "COFFEE" || selected.rawType === "COMBO") && selected.availableDateTimes.length > 0 && (
                   <div>
                     <span className={`text-sm font-semibold ${textColor}`}>
-                      {selected.rawType === "COMBO" ? "Horário do Coffee Break" : "Horário do Coffee Break"}
+                      {selected.rawType === "COMBO" ? "Horário do Coffee Break incluído" : "Horários disponíveis"}
                     </span>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {selected.availableDateTimes.map((dt) => (
-                        <button
+                        <span
                           key={dt}
-                          onClick={() => setSelectedDateTime(dt)}
-                          className={`px-3 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${
-                            selectedDateTime === dt
-                              ? "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue shadow-md"
-                              : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/5`
-                          }`}
+                          className={`px-3 py-2 text-sm font-bold rounded-lg border ${cardBorder} ${mutedText}`}
                         >
                           🕐 {formatDateTime(dt)}
-                        </button>
+                        </span>
                       ))}
                     </div>
                   </div>

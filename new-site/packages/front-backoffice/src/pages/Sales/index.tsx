@@ -191,7 +191,6 @@ export default function SalesCRUD() {
         params?.filterField && params?.filterValue ? params.filterField : undefined,
         params?.filterValue || undefined,
       );
-      console.log(response.sales[0]);
       setData(response.sales || []);
       setTotalRecords(response.filtered_records ?? response.total_records ?? 0);
     } catch {
@@ -255,7 +254,6 @@ export default function SalesCRUD() {
   const handleTogglePickup = async (item: SaleItem, newValue: boolean) => {
     if (!itemsSale) return;
     try {
-      console.log(item.id.toString());
       const { item: updatedItem } = await salesAPI.updateItemPickup(item.id.toString(), newValue);
 
       // Atualiza o estado local do item dentro da venda

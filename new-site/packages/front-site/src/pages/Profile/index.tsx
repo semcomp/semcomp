@@ -48,13 +48,34 @@ const SALE_STATUS_LABELS: Record<string, string> = {
   REFUNDED: "Reembolsado",
 };
 
+function getProductDisplayName(product: any): string {
+  if (!product) return "Produto";
+
+  if (product.kit?.name) return product.kit.name;
+  if (product.coffee?.name) return product.coffee.name;
+
+  if (product.type === "COMBO" && product.combo_items?.length) {
+    const itemNames = product.combo_items
+      .map((ci: any) => ci.item?.kit?.name ?? ci.item?.coffee?.name)
+      .filter(Boolean);
+    if (itemNames.length > 0) {
+      return `Combo (${itemNames.join(" + ")})`;
+    }
+    return "Combo";
+  }
+
+  return product.type ?? "Produto";
+}
+
 function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
   const itemsLabel =
-    sale.items && sale.items.length > 0
-      ? sale.items
-          .map((it) => `${it.quantity}x ${it.product?.name}`)
-          .join(", ")
-      : "Pedido";
+  sale.items?.length
+    ? sale.items
+        .map((it) => {
+          return `${it.quantity}x ${getProductDisplayName((it as any).product)}`;
+        })
+        .join(", ")
+    : "Pedido";
 
   return {
     id: String(sale.id),

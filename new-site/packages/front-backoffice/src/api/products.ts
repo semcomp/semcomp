@@ -88,7 +88,10 @@ const mapToBackendProduct = (product: ProductType) => {
       if (items.length === 0 || items.some(isNaN)) {
         throw new Error("Os itens do combo devem ser IDs numéricos válidos separados por vírgula.");
       }
-      base.items = items;
+      // O backend espera uma lista de objetos { item_id, quantity }, não IDs soltos.
+      // Como o formulário só coleta IDs (sem quantidade por item), cada item entra com quantidade 1;
+      // repetir o mesmo ID na lista não é permitido pelo backend (usar quantidade em vez disso).
+      base.items = items.map((itemId) => ({ item_id: itemId, quantity: 1 }));
       break;
   }
 
