@@ -201,7 +201,7 @@ func main() {
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 	authRoutes.PUT("/papfe-document", userHandler.UpdatePapfeDocument)
 
-	// authRoutes.POST("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.CreateSignin)
+	authRoutes.POST("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.CreateSignin)
 	// authRoutes.GET("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.GetSigninEvents)
 	// authRoutes.GET("/signin-events/me", pageMW("profile"), pageMW("cronograma"), signinEventHandler.GetMySignins)
 
