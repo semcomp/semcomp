@@ -53,6 +53,15 @@ func (s *signinEventService) CreateSignin(userNumber uint, request CreateSigninR
 		return nil, apierrors.InternalServerError("Erro ao verificar inscrição existente", err)
 	}
 
+	// Impede inscrição em eventos concomitantes
+	conflicting, err := s.repo.FindActiveByUserAndInitDate(userNumber, request.EventInitDate)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apierrors.InternalServerError("Erro ao verificar inscrições conflitantes", err)
+	}
+	if conflicting != nil && conflicting.EventName != request.EventName {
+		return nil, apierrors.ConflictError("Usuário já inscrito em outro evento no mesmo horário", err)
+	}
+
 	status := StatusRegistered
 	var waitListPosition uint
 
