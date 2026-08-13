@@ -213,7 +213,7 @@ export default function Profile({
                   Editar Informações
                 </button>
                 <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={justificationStatus === "aprovado" || justificationStatus === "negado"}
+                  disabled={justificationStatus === "aprovado"}
                   onClick={() => setJustifyOpen(true)}>
                   Justificar Ausência
                 </button>
@@ -386,7 +386,7 @@ export default function Profile({
 
           <button
             onClick={() => setJustifyOpen(true)}
-            disabled={justificationStatus === "aprovado" || justificationStatus === "negado"}
+            disabled={justificationStatus === "aprovado"}
             className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Justificar Ausência

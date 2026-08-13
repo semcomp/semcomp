@@ -159,8 +159,8 @@ export default function AbsenceJustifications() {
       setPendingDecision(null);
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data
-          ?.error ?? "Erro ao atualizar a justificativa";
+        (err as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message ?? "Erro ao atualizar a justificativa";
       showNotification(msg, "error");
     } finally {
       setSubmitting(false);

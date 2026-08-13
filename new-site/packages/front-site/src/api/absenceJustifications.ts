@@ -4,7 +4,7 @@ import type { AbsenceJustificationType } from "@/types/AbsenceJustificationType"
 /**
  * Endpoints de Justificativa de Ausência (participante).
  *
- * Contrato a ser implementado no backend (ainda não existe — ver mock abaixo):
+ * Contrato implementado no backend (internal/absenceJustification):
  *
  *   POST  /api/absence-justifications                     multipart: reason, attachment
  *         Cria a justificativa com status "em_analise". Retorna a justificativa criada.
@@ -17,12 +17,9 @@ import type { AbsenceJustificationType } from "@/types/AbsenceJustificationType"
  *
  *   PATCH /api/absence-justifications/:id                 multipart: reason, attachment (opcional)
  *         Atualiza o texto e/ou SUBSTITUI o documento enquanto o status for "em_analise".
- *         O backend deve rejeitar (409) se o status não for mais "em_analise".
- *
- * Enquanto o backend não existir, USE_MOCK_API=true faz com que tudo seja
- * persistido em localStorage (por user_number), mantendo o fluxo funcional.
+ *         O backend rejeita (409) se o status não for mais "em_analise".
  */
-export const USE_MOCK_API = true;
+export const USE_MOCK_API = false;
 
 const MOCK_STORAGE_KEY = (userNumber: number) =>
   `semcomp-absence-justification-${userNumber}`;

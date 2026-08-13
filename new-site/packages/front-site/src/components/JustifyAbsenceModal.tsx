@@ -84,9 +84,9 @@ export default function JustifyAbsenceModal({
   const [submitted, setSubmitted] = useState(false);
 
   const canEdit =
-    justification !== null && justification.status === "em_analise";
+    justification !== null && justification.status !== "aprovado";
   const isReadOnly =
-    justification !== null && justification.status !== "em_analise";
+    justification !== null && justification.status === "aprovado";
 
   useEffect(() => {
     if (!open) return;
@@ -170,8 +170,13 @@ export default function JustifyAbsenceModal({
       setSubmitted(true);
       onSubmitted?.("em_analise");
     } catch (err: unknown) {
+      const data = (err as { response?: { data?: { error?: string; message?: string } } })
+        ?.response?.data;
       const msg =
-        (err as { message?: string })?.message ?? "Erro ao enviar a justificativa";
+        data?.error ||
+        data?.message ||
+        (err as { message?: string })?.message ||
+        "Erro ao enviar a justificativa";
       showNotification(msg, "error");
     } finally {
       setSubmitting(false);
@@ -232,14 +237,21 @@ export default function JustifyAbsenceModal({
           </div>
 
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {justification!.status === "aprovado"
-              ? "Sua justificativa foi aprovada."
-              : "Sua justificativa foi negada. Se tiver dúvidas, entre em contato com a organização."}
+            Sua justificativa foi aprovada.
           </p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
           {HELP_TEXT}
+
+          {justification?.status === "negado" && (
+            <div className="flex items-center gap-2 rounded-md border border-red-700/30 bg-red-700/10 px-3 py-2">
+              <JustifyAbsenceStatusBadge status="negado" />
+              <p className="text-xs text-gray-600 dark:text-gray-300">
+                Corrija o motivo e/ou o comprovante abaixo para reenviar para análise.
+              </p>
+            </div>
+          )}
 
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-200">

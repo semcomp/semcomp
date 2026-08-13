@@ -353,10 +353,16 @@ export function CrudTable({
       );
     }
 
-    // For long text fields, ensure word-based wrapping in table cells
+    // Para campos de texto longos, trunca com reticências em vez de quebrar
+    // linha — quebrar em uma tabela com layout automático faz a coluna
+    // colapsar e as letras empilharem verticalmente. Texto completo fica
+    // disponível ao abrir a ação de visualizar/editar da linha.
     if (field.type === "text" && val.length > 30) {
       return (
-        <span className="wrap-break-word whitespace-normal block text-foreground">
+        <span
+          className="block max-w-xs min-w-40 truncate text-foreground"
+          title={val}
+        >
           {val}
         </span>
       );
@@ -371,10 +377,13 @@ export function CrudTable({
       );
     }
 
-    // Se o texto for muito longo, quebra em múltiplas linhas e limita largura
+    // Se o texto for muito longo, trunca com reticências em vez de quebrar
+    // linha — quebrar em uma tabela com layout automático faz a coluna
+    // colapsar e as letras empilharem verticalmente. Texto completo fica
+    // disponível ao abrir a ação de visualizar/editar da linha.
     if (typeof val === "string" && val.length > 40) {
       return (
-        <span className="text-foreground whitespace-pre-line wrap-break-word max-w-xs block">
+        <span className="block max-w-xs min-w-40 truncate text-foreground" title={val}>
           {val}
         </span>
       );

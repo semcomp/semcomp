@@ -6,8 +6,6 @@ import type {
 
 /**
  * API para gerenciar solicitações de Justificativa de Ausência.
- * Endpoints assumidos seguindo o padrão /admin/* já usado pelo backoffice
- * (ex: /admin/papfe-documents). Backend ainda não implementado.
  */
 export const absenceJustificationsAPI = {
   getAll: async (): Promise<AbsenceJustificationType[]> => {
