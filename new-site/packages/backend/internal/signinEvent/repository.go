@@ -15,7 +15,7 @@ type SigninEventRepository interface {
 	CountByStatus(eventName string, initDate time.Time, status RegistrationStatus) (int64, error)
 	CountActiveByEvent(eventName string, initDate time.Time) (int64, error)
 	FindActiveByUser(userNumber uint) ([]SigninEventsDetailed, error)
-	FindActiveByUserAndInitDate(userNumber uint, initDate time.Time) (*SigninEvent, error)
+	FindActiveOverlapping(userNumber uint, targetEventName string, targetInitDate time.Time, targetEndDate time.Time) (*SigninEvent, error)
 	UpdateStatus(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus) error
 	GetFirstWaitListed(eventName string, initDate time.Time) (*SigninEvent, error)
 	PromoteToRegistered(userNumber uint, eventName string, initDate time.Time) error
@@ -88,14 +88,25 @@ func (r *signinEventRepository) FindActiveByUser(userNumber uint) ([]SigninEvent
 	return signins, nil
 }
 
-func (r *signinEventRepository) FindActiveByUserAndInitDate(userNumber uint, initDate time.Time) (*SigninEvent, error) {
-	var signin SigninEvent
-	err := r.db.Where("user_number = ? AND event_init_date = ? AND status != ?", userNumber, initDate, StatusCancelled).
-		First(&signin).Error
+func (r *signinEventRepository) FindActiveOverlapping(userNumber uint, targetEventName string, targetInitDate time.Time, targetEndDate time.Time) (*SigninEvent, error) {
+	var results []SigninEvent
+	err := r.db.Table("signin_events").
+		Select("signin_events.*").
+		Joins("JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date").
+		Where("signin_events.user_number = ? AND signin_events.status != ?", userNumber, StatusCancelled).
+		// exclui a própria linha do evento-alvo (não é conflito consigo mesmo)
+		Where("NOT (signin_events.event_name = ? AND signin_events.event_init_date = ?)", targetEventName, targetInitDate).
+		// overlap: existente.init < alvo.end  AND  alvo.init < existente.end
+		Where("events.init_date < ? AND ? < events.end_date", targetEndDate, targetInitDate).
+		Limit(1).
+		Scan(&results).Error
 	if err != nil {
 		return nil, err
 	}
-	return &signin, nil
+	if len(results) == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return &results[0], nil
 }
 
 func (r *signinEventRepository) UpdateStatus(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus) error {

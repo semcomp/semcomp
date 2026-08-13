@@ -54,11 +54,11 @@ func (s *signinEventService) CreateSignin(userNumber uint, request CreateSigninR
 	}
 
 	// Impede inscrição em eventos concomitantes
-	conflicting, err := s.repo.FindActiveByUserAndInitDate(userNumber, request.EventInitDate)
+	conflicting, err := s.repo.FindActiveOverlapping(userNumber, request.EventName, request.EventInitDate, eventRecord.EndDate)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, apierrors.InternalServerError("Erro ao verificar inscrições conflitantes", err)
 	}
-	if conflicting != nil && conflicting.EventName != request.EventName {
+	if conflicting != nil {
 		return nil, apierrors.ConflictError("Usuário já inscrito em outro evento no mesmo horário", err)
 	}
 
