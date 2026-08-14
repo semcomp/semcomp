@@ -7,19 +7,22 @@ import { authAPI } from "@/api";
 import { ChevronDown } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
 import type { EventType } from "@/types/EventType"
+import type { SigninEventType } from "@/types/SigninEventType"
 import type { UserType } from "@/types/UserType"
 import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate"
+import { signinEventsAPI } from "@/api/signinEvents"
 import { useNavigate } from "react-router-dom";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 
-type Evento = EventType & {
-  linkInscricao?: string;
-};
-
-const events: Evento[] = [];
-
-const EventCardMobile = memo(({ ev, onShowNotification }: { ev: Evento; onShowNotification: (msg: string) => void }) => {
+const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCancel, isCanceling }: {
+  ev: EventType;
+  subscription: SigninEventType | undefined;
+  onSignin: () => void;
+  isSigningIn: boolean;
+  onCancel: () => void;
+  isCanceling: boolean;
+}) => {
   const data = formatDate(ev.dateInit, 2);
   const diaSemana = formatWeekDay(ev.dateInit);
 
@@ -36,13 +39,33 @@ const EventCardMobile = memo(({ ev, onShowNotification }: { ev: Evento; onShowNo
         </p>
         <hr className="mb-2 mt-2"/>
       </div>
-      <div className="w-full flex flex-row justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
-        <button
-          className="cursor-pointer w-full p-2"
-          onClick={() => ev.linkInscricao ? window.open(ev.linkInscricao, "_blank") : onShowNotification("Este evento ainda não está aberto para inscrições.")}
-        >
-          Inscreva-se
-        </button>
+      <div className="w-full flex flex-col justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
+        {subscription ? (
+          <>
+            <span className={`w-full p-2 text-center text-sm font-semibold ${
+              subscription.status === "Inscrito" ? "text-green-700 dark:text-green-400" : "text-yellow-700 dark:text-yellow-400"
+            }`}>
+              {subscription.status === "Inscrito"
+                ? "Inscrito"
+                : `Lista de Espera - ${subscription.user_wait_list_position}ª posição`}
+            </span>
+            <button
+              className="cursor-pointer w-full p-2 text-sm text-red-600 dark:text-red-400 border-t border-black/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isCanceling}
+              onClick={onCancel}
+            >
+              {isCanceling ? "Cancelando..." : "Desistir"}
+            </button>
+          </>
+        ) : (
+          <button
+            className="cursor-pointer w-full p-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isSigningIn}
+            onClick={onSignin}
+          >
+            {isSigningIn ? "Inscrevendo..." : "Inscrever-se"}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -69,6 +92,11 @@ export default function Profile({
   const [userCode, setUserCode] = useState<number>(user_number);
   const [presencePercent, setPresencePercent] = useState<number>(presence_rate);
   const [openSubscription, setOpenSubscription] = useState<number>(-1)
+  const [signinEvents, setSigninEvents] = useState<EventType[]>([]);
+  const [mySignins, setMySignins] = useState<SigninEventType[]>([]);
+  const [signingInKey, setSigningInKey] = useState<string | null>(null);
+  const [cancelingKey, setCancelingKey] = useState<string | null>(null);
+  const [cancelConfirm, setCancelConfirm] = useState<{ eventName: string; eventInitDate: string } | null>(null);
 
   const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -106,12 +134,88 @@ export default function Profile({
     return () => controller.abort();
   }, [isAuthenticated, navigate, name, email]);
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    Promise.all([signinEventsAPI.getSigninEvents(), signinEventsAPI.getMySignins()])
+      .then(([events, signins]) => {
+        setSigninEvents(events);
+        setMySignins(signins);
+      })
+      .catch((err) => console.error("Erro ao buscar eventos de inscrição", err));
+  }, [isAuthenticated]);
 
+  function getSubscription(ev: EventType): SigninEventType | undefined {
+    return mySignins.find(
+      (s) =>
+        s.event_name === ev.name &&
+        new Date(s.event_init_date).getTime() === new Date(ev.dateInit).getTime()
+    );
+  }
+
+  async function handleCancelSignin(eventName: string, eventInitDate: string) {
+    const key = `${eventName}::${eventInitDate}`;
+    setCancelingKey(key);
+    try {
+      await signinEventsAPI.deleteSignin(eventName, eventInitDate);
+      const updatedSignins = await signinEventsAPI.getMySignins();
+      setMySignins(updatedSignins);
+      showNotification("Inscrição cancelada com sucesso.", "info");
+    } catch {
+      showNotification("Erro ao cancelar inscrição.", "warning");
+    } finally {
+      setCancelingKey(null);
+    }
+  }
+
+  async function handleSignin(eventName: string, eventInitDate: string) {
+    const key = `${eventName}::${eventInitDate}`;
+    setSigningInKey(key);
+    try {
+      await signinEventsAPI.createSignin(eventName, eventInitDate);
+      const updatedSignins = await signinEventsAPI.getMySignins();
+      setMySignins(updatedSignins);
+      showNotification("Inscrição realizada com sucesso!", "info");
+    } catch {
+      showNotification("Erro ao se inscrever no evento.", "warning");
+    } finally {
+      setSigningInKey(null);
+    }
+  }
+
+  const cancelConfirmModal = cancelConfirm && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setCancelConfirm(null)}>
+      <div
+        className="bg-white dark:bg-semcompMidDarkBlue rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl text-semcompDarkBlue dark:text-semcompOffWhite"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-lg font-bold mb-2 text-center">Cancelar inscrição?</h3>
+        <p className="text-sm text-center opacity-70 mb-6">Tem certeza que deseja desistir deste evento? Você pode perder sua vaga.</p>
+        <div className="flex gap-3">
+          <button
+            className="flex-1 py-2.5 rounded-xl border border-black/20 dark:border-white/20 text-sm font-semibold transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+            onClick={() => setCancelConfirm(null)}
+          >
+            Voltar
+          </button>
+          <button
+            className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+            onClick={() => {
+              handleCancelSignin(cancelConfirm.eventName, cancelConfirm.eventInitDate);
+              setCancelConfirm(null);
+            }}
+          >
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   // Versão Mobile/Tablet (< 1280px)
   if (width < 1280) {
     return (
       <div className="min-h-screen bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue font-poppins transition-colors duration-300">
+        {cancelConfirmModal}
         {/* Header com Background */}
         <div className="relative h-80 w-full overflow-hidden bg-semcompMidLightBlue dark:bg-semcompDarkBlue">
           <AnimatedBackground />
@@ -261,10 +365,20 @@ export default function Profile({
         <div className="mt-12 mb-12 px-5">
           <div className="rounded-3xl p-6 border shadow-xl transition-colors bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue dark:bg-[#1A3A4F] dark:border-white/10 dark:text-semcompOffWhite">
             <h2 className="text-2xl font-bold text-center mb-6">Inscrições em Eventos</h2>
-            {events.length > 0 ? (
-              events.map((ev, i) => <EventCardMobile key={i} ev={ev} onShowNotification={showNotification} />)
+            {signinEvents.length > 0 ? (
+              signinEvents.map((ev, i) => (
+                <EventCardMobile
+                  key={i}
+                  ev={ev}
+                  subscription={getSubscription(ev)}
+                  onSignin={() => handleSignin(ev.name, ev.dateInit)}
+                  isSigningIn={signingInKey === `${ev.name}::${ev.dateInit}`}
+                  onCancel={() => setCancelConfirm({ eventName: ev.name, eventInitDate: ev.dateInit })}
+                  isCanceling={cancelingKey === `${ev.name}::${ev.dateInit}`}
+                />
+              ))
             ) : (
-              <p className="opacity-60 text-center text-sm italic">Nenhuma inscrição encontrada.</p>
+              <p className="opacity-60 text-center text-sm italic">Nenhum evento disponível para inscrição.</p>
             )}
           </div>
         </div>
@@ -397,6 +511,7 @@ export default function Profile({
   if (width >= 1280) {
     return (
       <div className="bg-semcompMidLightBlue text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite min-h-screen">
+        {cancelConfirmModal}
         <div
           className="relative overflow-hidden h-[calc(90vh-70px)] w-full flex flex-row justify-center items-center gap-10 font-poppins"
         >
@@ -439,10 +554,12 @@ export default function Profile({
             </div>
             <hr className="w-full border mt-3 mb-3 border-semcompAlmostDarkBlue dark:border-semcompOffWhite" />
             <div className="w-full flex flex-col gap-4 mb-20">
-              {events && events.length > 0 ? (
-                events.map((evento, index) => {
+              {signinEvents.length > 0 ? (
+                signinEvents.map((evento, index) => {
                   const data = formatDate(evento.dateInit, 2);
                   const diaSemana = formatWeekDay(evento.dateInit);
+                  const subscription = getSubscription(evento);
+                  const key = `${evento.name}::${evento.dateInit}`;
 
                   return (
                     <div key={index} className="flex flex-col justify-center items-center">
@@ -472,12 +589,34 @@ export default function Profile({
                       </div>
                       {openSubscription === index && (
                         <div className="w-full p-6 flex flex-row items-center justify-center rounded-b-lg border-t border-black/10 shadow-lg transition-all animate-in fade-in duration-300 bg-black/5 dark:bg-black/20">
-                          <button
-                            className="px-8 py-3 rounded-xl font-bold uppercase tracking-wide shadow-md hover:-translate-y-1 transition-all duration-300 bg-semcompDarkBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-semcompDarkBlue/40 dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white dark:hover:shadow-white/20"
-                            onClick={() => evento.linkInscricao ? window.open(evento.linkInscricao, "_blank") : showNotification("Este evento ainda não está aberto para inscrições.")}
-                          >
-                            Inscreva-se
-                          </button>
+                          {subscription ? (
+                            <div className="flex flex-col items-center gap-3">
+                              <span className={`text-lg font-bold ${
+                                subscription.status === "Inscrito"
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-yellow-600 dark:text-yellow-400"
+                              }`}>
+                                {subscription.status === "Inscrito"
+                                  ? "Você está inscrito"
+                                  : `Você está na lista de espera (${subscription.user_wait_list_position}ª posição)`}
+                              </span>
+                              <button
+                                className="px-6 py-2 rounded-xl font-bold text-sm uppercase tracking-wide shadow-sm hover:-translate-y-0.5 transition-all duration-300 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                                disabled={cancelingKey === key}
+                                onClick={() => setCancelConfirm({ eventName: evento.name, eventInitDate: evento.dateInit })}
+                              >
+                                {cancelingKey === key ? "Cancelando..." : "Desistir"}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              className="px-8 py-3 rounded-xl font-bold uppercase tracking-wide shadow-md hover:-translate-y-1 transition-all duration-300 bg-semcompDarkBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-semcompDarkBlue/40 dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white dark:hover:shadow-white/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                              disabled={signingInKey === key}
+                              onClick={() => handleSignin(evento.name, evento.dateInit)}
+                            >
+                              {signingInKey === key ? "Inscrevendo..." : "Inscrever-se"}
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -485,8 +624,7 @@ export default function Profile({
                 })
               ) : (
                 <div className="text-center italic mt-6 py-8">
-                  Você ainda não está inscrito em nenhum evento. Inscreva-se em
-                  eventos para que eles apareçam aqui!
+                  Nenhum evento disponível para inscrição no momento.
                 </div>
               )}
             </div>

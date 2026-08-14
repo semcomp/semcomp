@@ -52,4 +52,4 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - **Permissions (bulk)**: salvar permissões faz N chamadas paralelas com `Promise.all`; falha parcial deixa estado inconsistente sem rollback
 - **Sections**: a tab `sections` foi removida do backoffice — seções deixaram de ser gerenciáveis via UI (mas endpoint backend ainda existe)
 - **Feature Flags**: estado das flags vive **em memória no processo Go** — reiniciar o servidor reseta todas as flags para `available: true`
-- **SigninEvent**: módulo `internal/signinEvent` tem model e repository implementados (tabela `signin_events` criada), mas service e handler estão vazios — **sem endpoints HTTP**; `has_signin` e `max_participants` existem no model de Event mas a lógica de inscrição ainda não está exposta pela API
+- **SigninEvent (frontend)**: `signinEventsAPI` existe em `front-site/src/api/signinEvents.ts` e Profile page exibe a listagem com botão de inscrição — feature completa no site público; backoffice não tem UI de gerenciamento de inscrições

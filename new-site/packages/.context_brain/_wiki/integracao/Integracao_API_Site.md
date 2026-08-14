@@ -48,6 +48,10 @@ Storage key: `semcomp-site-token`
 | GET | `/api/payments` | — | lista pagamentos do user |
 | POST | `/api/payments/pix` | `paymentAPI.createPix` | → [[Feature_Loja_e_Pagamentos]] |
 | GET | `/api/payments/:id/status` | `paymentAPI.getStatus` | polling a cada 4s |
+| GET | `/api/signin-events` | `signinEventsAPI.getSigninEvents` | lista eventos com `has_signin=true`; retorna chave `events` |
+| GET | `/api/signin-events/me` | `signinEventsAPI.getMySignins` | inscrições ativas do usuário; retorna chave `signins` |
+| POST | `/api/signin-events` | `signinEventsAPI.createSignin` | body: `{ event_name, event_init_date }` |
+| DELETE | `/api/signin-events/:eventName/:eventInitDate` | `signinEventsAPI.deleteSignin` | cancela inscrição |
 
 **POST `/api/payments/pix` payload**: `{ amount: float, product_ids: uint[], description?: string }`  
 **Resposta**: `{ payment_id, qr_code, qr_code_base64, amount }`

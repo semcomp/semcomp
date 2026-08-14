@@ -54,10 +54,13 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - Campos de inscrição: `has_signin bool` (habilita inscrição), `max_participants uint` (0 = sem limite)
 
 ### signinEvent
-- **Sem rotas HTTP registradas** — módulo em construção
-- Model: `SigninEvent` com PK tripla (`UserNumber + EventName + EventInitDate`) e `Status` (`"Inscrito"` / `"Lista de Espera"` / `"Cancelado"`)
-- Repository implementado: `Create`, `FindActiveByUser`, `ListByEvent`, `CountByStatus`
-- Tabela criada via `AutoMigrate` na startup
+- Rotas autenticadas (`/api`, guard: `AuthMiddleware` + `pageMW("profile","cronograma")`):
+  - `POST /api/signin-events` — inscreve usuário (handler: `CreateSignin`)
+  - `GET /api/signin-events` — lista eventos com `has_signin=true` (handler: `GetSigninEvents`)
+  - `GET /api/signin-events/me` — lista inscrições ativas do usuário (handler: `GetMySignins`)
+  - `DELETE /api/signin-events/:eventName/:eventInitDate` — cancela inscrição (handler: `DeleteSignin`)
+- Lógica de fila: se vagas esgotadas (`max_participants > 0`), insere com `StatusWaitListed` e calcula posição; cancelamento de inscrito confirmado promove primeiro da lista de espera
+- Repository: `Create`, `GetByUserEventAndInitDate`, `CountByStatus`, `CountActiveByEvent`, `FindActiveByUser`, `UpdateStatus`, `GetFirstWaitListed`, `PromoteToRegistered`
 
 ### presence
 - Rotas backoffice: `GET/POST /admin/presences`, `GET/PUT/DELETE /admin/presences/:userNumber/:eventName/:eventInitDate`
