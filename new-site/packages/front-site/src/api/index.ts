@@ -9,7 +9,9 @@ export type {
   SubmitJustificationInput,
   UpdateJustificationInput,
 } from "./absenceJustifications";
+export { papfeAPI } from "./papfe";
 export type { AbsenceJustificationType, AbsenceJustificationStatus } from "@/types/AbsenceJustificationType";
+export type { PapfeDocumentType } from "@/types/PapfeDocumentType";
 export { default as client } from "./client";
 export type { LoginResponse, RegisterResponse, ProfileResponse, ApiError } from "@/types/APIResponseType";
 export { productsAPI } from "./products";

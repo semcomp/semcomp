@@ -16,7 +16,7 @@ type AbsenceJustificationRepository interface {
 	FindByUserEmail(email string) (*AbsenceJustification, error)
 	FindInfoByID(id uint) (*AbsenceJustificationInfo, error)
 	FindInfoByUserEmail(email string) (*AbsenceJustificationInfo, error)
-	UpdateStatus(id uint, status string) error
+	UpdateStatus(id uint, status string, rejectionReason *string) error
 }
 
 type absenceJustificationRepository struct {
@@ -31,6 +31,8 @@ func (r *absenceJustificationRepository) Create(justification *AbsenceJustificat
 	return r.db.Create(justification).Error
 }
 
+// Update permite que o participante edite o motivo/anexo enquanto em análise ou com
+// documento inválido. Editar reenvia para análise, então o motivo de rejeição é limpo.
 func (r *absenceJustificationRepository) Update(justification *AbsenceJustification) error {
 	result := r.db.Model(&AbsenceJustification{}).Where("id = ?", justification.ID).Updates(map[string]interface{}{
 		"reason":                  justification.Reason,
@@ -38,6 +40,7 @@ func (r *absenceJustificationRepository) Update(justification *AbsenceJustificat
 		"attachment_filename":     justification.AttachmentFilename,
 		"attachment_content_type": justification.AttachmentContentType,
 		"attachment_file_path":    justification.AttachmentFilePath,
+		"rejection_reason":        justification.RejectionReason,
 	})
 	if result.Error != nil {
 		return apierrors.InternalServerError("Erro ao atualizar justificativa de ausência", result.Error)
@@ -52,7 +55,7 @@ func (r *absenceJustificationRepository) Update(justification *AbsenceJustificat
 // FindAll, FindInfoByID e FindInfoByUserEmail.
 func (r *absenceJustificationRepository) infoQuery() *gorm.DB {
 	return r.db.Table("absence_justifications aj").
-		Select("aj.id, u.user_number, u.name AS user_name, aj.user_email, aj.event_name, aj.event_init_date, aj.reason, aj.attachment_filename, aj.attachment_content_type, aj.submitted_at, aj.status").
+		Select("aj.id, u.user_number, u.name AS user_name, aj.user_email, aj.event_name, aj.event_init_date, aj.reason, aj.attachment_filename, aj.attachment_content_type, aj.submitted_at, aj.status, aj.rejection_reason").
 		Joins("JOIN users u ON u.email = aj.user_email")
 }
 
@@ -115,8 +118,13 @@ func (r *absenceJustificationRepository) FindInfoByUserEmail(email string) (*Abs
 	return &info, nil
 }
 
-func (r *absenceJustificationRepository) UpdateStatus(id uint, status string) error {
-	result := r.db.Model(&AbsenceJustification{}).Where("id = ?", id).Update("status", status)
+// UpdateStatus atualiza o status de uma justificativa. rejectionReason só deve ser
+// não-nulo quando status="negado"; nos demais status deve vir nil para limpar o motivo.
+func (r *absenceJustificationRepository) UpdateStatus(id uint, status string, rejectionReason *string) error {
+	result := r.db.Model(&AbsenceJustification{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"status":           status,
+		"rejection_reason": rejectionReason,
+	})
 	if result.Error != nil {
 		return apierrors.InternalServerError("Erro ao atualizar status da justificativa de ausência", result.Error)
 	}

@@ -241,6 +241,18 @@ export default function JustifyAbsenceModal({
             </p>
           </div>
 
+          {justification!.status === "negado" &&
+            justification!.rejection_reason && (
+              <div>
+                <p className="mb-1.5 text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  Motivo da negativa
+                </p>
+                <p className="w-full whitespace-pre-line rounded-md border border-red-700/30 bg-red-700/10 p-3 text-base text-gray-900 dark:border-red-500/40 dark:bg-red-500/10 dark:text-gray-100">
+                  {justification!.rejection_reason}
+                </p>
+              </div>
+            )}
+
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {justification!.status === "aprovado"
               ? "Sua justificativa foi aprovada."

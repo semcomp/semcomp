@@ -34,10 +34,22 @@ export function useAbsenceJustifications() {
   }, [fetchJustifications]);
 
   const updateStatus = useCallback(
-    async (id: number, status: AbsenceJustificationStatus) => {
-      await absenceJustificationsAPI.updateStatus(id, status);
+    async (
+      id: number,
+      status: AbsenceJustificationStatus,
+      rejectionReason?: string
+    ) => {
+      await absenceJustificationsAPI.updateStatus(id, status, rejectionReason);
       setJustifications((prev) =>
-        prev.map((j) => (j.id === id ? { ...j, status } : j))
+        prev.map((j) =>
+          j.id === id
+            ? {
+                ...j,
+                status,
+                rejection_reason: rejectionReason ?? null,
+              }
+            : j
+        )
       );
     },
     []

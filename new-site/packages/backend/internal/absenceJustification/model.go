@@ -28,6 +28,9 @@ type AbsenceJustification struct {
 	AttachmentFilePath    string    `gorm:"size:500;not null"`
 	SubmittedAt           time.Time `gorm:"not null"`
 	Status                string    `gorm:"size:20;not null;default:em_analise"`
+	// RejectionReason só existe quando o status é "negado"; em qualquer outro status
+	// permanece NULL e é omitido nas respostas JSON.
+	RejectionReason *string `gorm:"type:text"`
 }
 
 type CreateAbsenceJustificationRequest struct {
@@ -53,6 +56,9 @@ type UpdateAbsenceJustificationRequest struct {
 
 type UpdateStatusRequest struct {
 	Status string `json:"status" binding:"required,oneof=em_analise aprovado negado documento_invalido"`
+
+	// Obrigatório quando Status="negado"; ignorado/limpo nos demais status.
+	RejectionReason string `json:"rejection_reason"`
 }
 
 // AbsenceJustificationInfo é a projeção retornada tanto para o backoffice quanto para
@@ -69,4 +75,7 @@ type AbsenceJustificationInfo struct {
 	AttachmentContentType string    `json:"attachment_content_type"`
 	SubmittedAt           time.Time `json:"submitted_at"`
 	Status                string    `json:"status"`
+
+	// Só presente quando Status="negado"; omitido caso contrário.
+	RejectionReason *string `json:"rejection_reason,omitempty"`
 }

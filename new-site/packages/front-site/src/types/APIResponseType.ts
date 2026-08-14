@@ -29,6 +29,7 @@ export interface ProfileResponse {
   email: string;
   name: string;
   presence_rate: number;
+  hasPapfe?: boolean;
 }
 
 export interface ForgotPasswordResponse {
