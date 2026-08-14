@@ -16,4 +16,5 @@ export type AbsenceJustificationType = {
   attachment_content_type: string;
   submitted_at: string;
   status: AbsenceJustificationStatus;
+  rejection_reason?: string | null;
 };

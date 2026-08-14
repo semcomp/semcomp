@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"backend/internal/apierrors"
@@ -17,7 +18,7 @@ type AbsenceJustificationService interface {
 	GetOwnAttachment(userEmail string, id uint) (*AbsenceJustification, error)
 	GetAllAbsenceJustifications() ([]AbsenceJustificationInfo, error)
 	GetAttachment(id uint) (*AbsenceJustification, error)
-	UpdateStatus(id uint, status string) error
+	UpdateStatus(id uint, status string, rejectionReason string) error
 }
 
 type absenceJustificationService struct {
@@ -90,6 +91,8 @@ func (s *absenceJustificationService) UpdateJustification(userEmail string, id u
 
 	justification.Reason = request.Reason
 	justification.Status = StatusEmAnalise
+	// Reenviar para análise limpa qualquer motivo de rejeição anterior.
+	justification.RejectionReason = nil
 
 	oldFilePath := ""
 	if len(request.AttachmentData) > 0 {
@@ -136,8 +139,17 @@ func (s *absenceJustificationService) GetAttachment(id uint) (*AbsenceJustificat
 	return s.repo.FindByID(id)
 }
 
-func (s *absenceJustificationService) UpdateStatus(id uint, status string) error {
-	return s.repo.UpdateStatus(id, status)
+// UpdateStatus altera o status de uma justificativa (admin). O motivo da negativa é
+// obrigatório quando status="negado" e só persiste nesse status; em qualquer outro
+// status o motivo é sempre limpo.
+func (s *absenceJustificationService) UpdateStatus(id uint, status string, rejectionReason string) error {
+	if status == StatusNegado {
+		if strings.TrimSpace(rejectionReason) == "" {
+			return apierrors.ValidationError("Informe o motivo da negativa da justificativa", nil)
+		}
+		return s.repo.UpdateStatus(id, status, &rejectionReason)
+	}
+	return s.repo.UpdateStatus(id, status, nil)
 }
 
 const attachmentUploadDir = "uploads/absence-justifications"

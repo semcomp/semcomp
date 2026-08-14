@@ -263,7 +263,7 @@ func (h *AbsenceJustificationHandler) GetAttachment(c *gin.Context) {
 
 // UpdateStatus altera o status de uma justificativa de ausência (admin).
 // @Summary Atualiza o status de uma justificativa de ausência
-// @Description Aprova, rejeita, marca como documento inválido ou volta para análise uma justificativa de ausência
+// @Description Aprova, rejeita, marca como documento inválido ou volta para análise uma justificativa de ausência. Ao negar, o campo rejection_reason é obrigatório e só persiste nesse status.
 // @Tags Justificativas de Ausência
 // @Accept json
 // @Produce json
@@ -288,7 +288,7 @@ func (h *AbsenceJustificationHandler) UpdateStatus(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.UpdateStatus(uint(id), request.Status); err != nil {
+	if err := h.service.UpdateStatus(uint(id), request.Status, request.RejectionReason); err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
 	}

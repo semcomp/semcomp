@@ -210,6 +210,7 @@ func main() {
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 	authRoutes.PUT("/papfe-document", userHandler.UpdatePapfeDocument)
+	authRoutes.GET("/papfe-document", userHandler.GetMyPapfeDocument)
 	authRoutes.POST("/absence-justifications", absenceJustificationHandler.CreateAbsenceJustification)
 	authRoutes.GET("/absence-justifications/mine", absenceJustificationHandler.GetMine)
 	authRoutes.GET("/absence-justifications/:id/attachment", absenceJustificationHandler.GetOwnAttachment)

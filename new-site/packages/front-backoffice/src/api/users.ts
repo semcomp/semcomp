@@ -26,6 +26,7 @@ export type PapfeDocumentInfo = {
   content_type: string;
   uploaded_at: string;
   is_approved: boolean | null; // null=pendente, true=aprovado, false=rejeitado
+  rejection_reason?: string | null; // só existe quando rejeitado
 };
 
 const mapBackendUser = (user: SafeSemcompUser): SemcompUserType => {
@@ -239,10 +240,14 @@ export const papfeAPI = {
     return response.data as Blob;
   },
 
-  approve: async (userId: number, approved: boolean): Promise<{ message: string }> => {
+  approve: async (
+    userId: number,
+    approved: boolean,
+    rejectionReason?: string
+  ): Promise<{ message: string }> => {
     const response = await client.put<{ message: string }>(
       `/admin/users/${userId}/papfe-document/approval`,
-      { approved }
+      { approved, rejection_reason: rejectionReason ?? "" }
     );
     return response.data;
   },

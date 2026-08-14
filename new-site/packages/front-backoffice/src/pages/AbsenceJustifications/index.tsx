@@ -14,6 +14,7 @@ import { useNotification } from "@/contexts/NotificationContext";
 import { useHasPermission } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { RejectionReasonInput } from "@/components/RejectionReasonInput";
 import { Eye, Download } from "lucide-react";
 import {
   Dialog,
@@ -104,12 +105,14 @@ export default function AbsenceJustifications() {
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [pendingDecision, setPendingDecision] =
     useState<AbsenceJustificationStatus | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const rows = useMemo(() => justifications.map(toRow), [justifications]);
 
   const openModal = async (justification: AbsenceJustificationType) => {
     setPendingDecision(null);
+    setRejectionReason("");
     setModal({
       open: true,
       justification,
@@ -137,6 +140,7 @@ export default function AbsenceJustifications() {
       URL.revokeObjectURL(modal.attachmentUrl);
     setModal({ open: false });
     setPendingDecision(null);
+    setRejectionReason("");
   };
 
   const handleAction = (item: CrudItemType) => {
@@ -146,12 +150,28 @@ export default function AbsenceJustifications() {
 
   const confirmDecision = async () => {
     if (!modal.open || !pendingDecision) return;
+    if (
+      pendingDecision === "negado" &&
+      !rejectionReason.trim()
+    ) {
+      showNotification("Informe o motivo da negativa.", "warning");
+      return;
+    }
     setSubmitting(true);
     try {
-      await updateStatus(modal.justification.id, pendingDecision);
+      await updateStatus(
+        modal.justification.id,
+        pendingDecision,
+        pendingDecision === "negado" ? rejectionReason.trim() : undefined
+      );
       setModal({
         ...modal,
-        justification: { ...modal.justification, status: pendingDecision },
+        justification: {
+          ...modal.justification,
+          status: pendingDecision,
+          rejection_reason:
+            pendingDecision === "negado" ? rejectionReason.trim() : null,
+        },
       });
       showNotification(
         pendingDecision === "aprovado"
@@ -162,6 +182,7 @@ export default function AbsenceJustifications() {
         pendingDecision === "aprovado" ? "success" : "warning"
       );
       setPendingDecision(null);
+      setRejectionReason("");
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response
@@ -238,6 +259,18 @@ export default function AbsenceJustifications() {
                 <StatusBadge status={modal.justification.status} />
               </div>
 
+              {modal.justification.status === "negado" &&
+                modal.justification.rejection_reason && (
+                  <div className="space-y-1.5">
+                    <p className="text-sm text-muted-foreground">
+                      Motivo da negativa
+                    </p>
+                    <p className="text-sm text-foreground whitespace-pre-line rounded-lg border border-border bg-muted/30 p-3">
+                      {modal.justification.rejection_reason}
+                    </p>
+                  </div>
+                )}
+
               <div className="space-y-1.5">
                 <p className="text-sm text-muted-foreground">Justificativa</p>
                 <p className="text-sm text-foreground whitespace-pre-line rounded-lg border border-border bg-muted/30 p-3">
@@ -289,39 +322,50 @@ export default function AbsenceJustifications() {
               {canWrite && (
                 <DialogFooter className="flex-col items-stretch gap-3 sm:flex-col sm:items-stretch">
                   {pendingDecision ? (
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="text-sm text-foreground">
-                        Confirma{" "}
-                        {pendingDecision === "aprovado"
-                          ? "aprovar"
-                          : pendingDecision === "negado"
-                            ? "negar"
-                            : "marcar como documento inválido"}{" "}
-                        esta justificativa?
-                      </p>
-                      <div className="flex gap-2 justify-end">
-                        <Button
-                          variant="ghost"
-                          onClick={() => setPendingDecision(null)}
-                          disabled={submitting}
-                          className="text-muted-foreground"
-                        >
-                          Cancelar
-                        </Button>
-                        <Button
-                          onClick={confirmDecision}
-                          disabled={submitting}
-                          className={
-                            pendingDecision === "aprovado"
-                              ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                              : pendingDecision === "negado"
-                                ? "bg-red-600 hover:bg-red-700 text-white"
-                                : "bg-orange-600 hover:bg-orange-700 text-white"
-                          }
-                        >
-                          Confirmar
-                        </Button>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm text-foreground">
+                          Confirma{" "}
+                          {pendingDecision === "aprovado"
+                            ? "aprovar"
+                            : pendingDecision === "negado"
+                              ? "negar"
+                              : "marcar como documento inválido"}{" "}
+                          esta justificativa?
+                        </p>
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="ghost"
+                            onClick={() => {
+                              setPendingDecision(null);
+                              setRejectionReason("");
+                            }}
+                            disabled={submitting}
+                            className="text-muted-foreground"
+                          >
+                            Cancelar
+                          </Button>
+                          <Button
+                            onClick={confirmDecision}
+                            disabled={submitting}
+                            className={
+                              pendingDecision === "aprovado"
+                                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                                : pendingDecision === "negado"
+                                  ? "bg-red-600 hover:bg-red-700 text-white"
+                                  : "bg-orange-600 hover:bg-orange-700 text-white"
+                            }
+                          >
+                            Confirmar
+                          </Button>
+                        </div>
                       </div>
+                      {pendingDecision === "negado" && (
+                        <RejectionReasonInput
+                          value={rejectionReason}
+                          onChange={setRejectionReason}
+                        />
+                      )}
                     </div>
                   ) : (
                     <div className="flex gap-2 justify-end">

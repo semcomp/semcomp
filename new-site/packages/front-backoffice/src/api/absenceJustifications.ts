@@ -25,11 +25,12 @@ export const absenceJustificationsAPI = {
 
   updateStatus: async (
     id: number,
-    status: AbsenceJustificationStatus
+    status: AbsenceJustificationStatus,
+    rejectionReason?: string
   ): Promise<{ message: string }> => {
     const response = await client.patch<{ message: string }>(
       `/admin/absence-justifications/${id}`,
-      { status }
+      { status, rejection_reason: rejectionReason ?? "" }
     );
     return response.data;
   },

@@ -4,15 +4,19 @@ import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useTheme } from "@/contexts/useTheme";
 import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/AuthContext";
-import { authAPI, absenceJustificationsAPI } from "@/api";
-import { ChevronDown } from "lucide-react";
+import { authAPI, absenceJustificationsAPI, papfeAPI } from "@/api";
+import { ChevronDown, Eye } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
 import type { EventType } from "@/types/EventType"
 import type { UserType } from "@/types/UserType"
+import type { PapfeDocumentType } from "@/types/PapfeDocumentType"
+import { papfeStatusOf } from "@/types/PapfeDocumentType"
 import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate"
 import { useNavigate } from "react-router-dom";
 import JustifyAbsenceModal, { JustifyAbsenceStatusBadge } from "@/components/JustifyAbsenceModal";
 import type { JustifyAbsenceStatus } from "@/components/JustifyAbsenceModal";
+import { PapfeStatusBadge } from "@/components/PapfeStatusBadge";
+import RejectionReasonModal from "@/components/RejectionReasonModal";
 
 const HERO_IMAGES = [
   "/img/Home/Hero/Banner1.webp",
@@ -29,6 +33,20 @@ const pickRandomHero = () =>
 type Evento = EventType & {
   linkInscricao?: string;
 };
+
+function StatusEyeButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Ver motivo da negativa"
+      title="Ver motivo da negativa"
+      className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-semcompDarkBlue text-white transition-colors hover:bg-semcompMidDarkBlue dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white"
+    >
+      <Eye className="w-4 h-4" />
+    </button>
+  );
+}
+
 
 const events: Evento[] = [
 ];
@@ -55,6 +73,10 @@ export default function Profile({
   const [openSubscription, setOpenSubscription] = useState<number>(-1)
   const [justifyOpen, setJustifyOpen] = useState(false)
   const [justificationStatus, setJustificationStatus] = useState<JustifyAbsenceStatus | null>(null)
+  const [absenceRejectionReason, setAbsenceRejectionReason] = useState("")
+  const [hasPapfe, setHasPapfe] = useState(false)
+  const [papfeDoc, setPapfeDoc] = useState<PapfeDocumentType | null>(null)
+  const [reasonModal, setReasonModal] = useState<"papfe" | "absence" | null>(null)
 
   // Justificativas "Aprovado" ou "Negado" são finais e não podem ser editadas.
   const justificationLocked =
@@ -66,6 +88,7 @@ export default function Profile({
 
   const handleJustifySubmitted = (status: JustifyAbsenceStatus) => {
     setJustificationStatus(status);
+    setAbsenceRejectionReason("");
   };
 
   useEffect(() => {
@@ -81,9 +104,21 @@ export default function Profile({
         setUserEmail(response.email || email);
         setUserCode(response.user_number || 0);
         setPresencePercent(response.presence_rate ?? 0);
+        setHasPapfe(response.hasPapfe ?? false);
 
         const mine = await absenceJustificationsAPI.getMine();
-        if (mine) setJustificationStatus(mine.status);
+        if (mine) {
+          setJustificationStatus(mine.status);
+          if (mine.status === "negado")
+            setAbsenceRejectionReason(mine.rejection_reason ?? "");
+        }
+
+        if (response.hasPapfe) {
+          const doc = await papfeAPI.getMine();
+          setPapfeDoc(doc);
+        } else {
+          setPapfeDoc(null);
+        }
       } catch (err) {
         console.error("Erro ao buscar o perfil", err);
         await logout();
@@ -222,8 +257,31 @@ export default function Profile({
                   Justificar Ausência
                 </button>
                 {justificationStatus && (
-                  <div className="flex items-center justify-center mb-6">
+                  <div className="flex items-center justify-center gap-2 mb-6">
                     <JustifyAbsenceStatusBadge status={justificationStatus} />
+                    {justificationStatus === "negado" &&
+                      absenceRejectionReason && (
+                        <StatusEyeButton
+                          onClick={() => setReasonModal("absence")}
+                        />
+                      )}
+                  </div>
+                )}
+
+                {hasPapfe && (
+                  <div className="flex items-center justify-between gap-2 rounded-lg bg-white/50 border border-black/10 px-3 py-2 mb-6">
+                    <span className="text-sm font-semibold text-semcompDarkBlue">
+                      Comprovante PAPFE
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />
+                      {papfeDoc?.is_approved === false &&
+                        papfeDoc.rejection_reason && (
+                          <StatusEyeButton
+                            onClick={() => setReasonModal("papfe")}
+                          />
+                        )}
+                    </div>
                   </div>
                 )}
 
@@ -301,6 +359,22 @@ export default function Profile({
 
         <ContatoSection />
         <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
+        <RejectionReasonModal
+          open={reasonModal === "absence"}
+          onClose={() => setReasonModal(null)}
+          title="Justificativa de ausência"
+          statusBadge={
+            <JustifyAbsenceStatusBadge status={justificationStatus ?? "em_analise"} />
+          }
+          rejectionReason={absenceRejectionReason}
+        />
+        <RejectionReasonModal
+          open={reasonModal === "papfe"}
+          onClose={() => setReasonModal(null)}
+          title="Comprovante PAPFE"
+          statusBadge={<PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />}
+          rejectionReason={papfeDoc?.rejection_reason ?? ""}
+        />
       </div>
     );
   }
@@ -396,8 +470,26 @@ export default function Profile({
             Justificar Ausência
           </button>
           {justificationStatus && (
-            <div className="flex items-center justify-center mb-8">
+            <div className="flex items-center justify-center gap-2 mb-8">
               <JustifyAbsenceStatusBadge status={justificationStatus} />
+              {justificationStatus === "negado" && absenceRejectionReason && (
+                <StatusEyeButton onClick={() => setReasonModal("absence")} />
+              )}
+            </div>
+          )}
+
+          {hasPapfe && (
+            <div className="flex items-center justify-between gap-2 rounded-xl border border-border/50 bg-semcompOffWhite/40 px-3 py-2 mb-8">
+              <span className="text-sm font-semibold text-semcompMidDarkBlue">
+                Comprovante PAPFE
+              </span>
+              <div className="flex items-center gap-2">
+                <PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />
+                {papfeDoc?.is_approved === false &&
+                  papfeDoc.rejection_reason && (
+                    <StatusEyeButton onClick={() => setReasonModal("papfe")} />
+                  )}
+              </div>
             </div>
           )}
 
@@ -542,6 +634,22 @@ export default function Profile({
 
         <ContatoSection />
         <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
+        <RejectionReasonModal
+          open={reasonModal === "absence"}
+          onClose={() => setReasonModal(null)}
+          title="Justificativa de ausência"
+          statusBadge={
+            <JustifyAbsenceStatusBadge status={justificationStatus ?? "em_analise"} />
+          }
+          rejectionReason={absenceRejectionReason}
+        />
+        <RejectionReasonModal
+          open={reasonModal === "papfe"}
+          onClose={() => setReasonModal(null)}
+          title="Comprovante PAPFE"
+          statusBadge={<PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />}
+          rejectionReason={papfeDoc?.rejection_reason ?? ""}
+        />
       </div>
     );
   }
@@ -553,6 +661,22 @@ export default function Profile({
         {qrAndAccountCard}
       </div>
       <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
+      <RejectionReasonModal
+        open={reasonModal === "absence"}
+        onClose={() => setReasonModal(null)}
+        title="Justificativa de ausência"
+        statusBadge={
+          <JustifyAbsenceStatusBadge status={justificationStatus ?? "em_analise"} />
+        }
+        rejectionReason={absenceRejectionReason}
+      />
+      <RejectionReasonModal
+        open={reasonModal === "papfe"}
+        onClose={() => setReasonModal(null)}
+        title="Comprovante PAPFE"
+        statusBadge={<PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />}
+        rejectionReason={papfeDoc?.rejection_reason ?? ""}
+      />
     </div>
   );
 }
