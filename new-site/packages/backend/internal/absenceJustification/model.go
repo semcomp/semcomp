@@ -3,9 +3,10 @@ package absenceJustification
 import "time"
 
 const (
-	StatusEmAnalise = "em_analise"
-	StatusAprovado  = "aprovado"
-	StatusNegado    = "negado"
+	StatusEmAnalise         = "em_analise"
+	StatusAprovado          = "aprovado"
+	StatusNegado            = "negado"
+	StatusDocumentoInvalido = "documento_invalido"
 )
 
 // WholeEventName identifica que a justificativa é para a SEMCOMP como um todo,
@@ -40,7 +41,7 @@ type CreateAbsenceJustificationRequest struct {
 
 // UpdateAbsenceJustificationRequest é usado pelo próprio participante para editar o
 // motivo e, opcionalmente, substituir o anexo — só permitido enquanto o status for
-// "em_analise".
+// "em_analise" ou "documento_invalido".
 type UpdateAbsenceJustificationRequest struct {
 	Reason string `form:"reason" json:"reason" binding:"required,max=2000"`
 
@@ -51,7 +52,7 @@ type UpdateAbsenceJustificationRequest struct {
 }
 
 type UpdateStatusRequest struct {
-	Status string `json:"status" binding:"required,oneof=em_analise aprovado negado"`
+	Status string `json:"status" binding:"required,oneof=em_analise aprovado negado documento_invalido"`
 }
 
 // AbsenceJustificationInfo é a projeção retornada tanto para o backoffice quanto para

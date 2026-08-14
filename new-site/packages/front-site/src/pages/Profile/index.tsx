@@ -56,6 +56,10 @@ export default function Profile({
   const [justifyOpen, setJustifyOpen] = useState(false)
   const [justificationStatus, setJustificationStatus] = useState<JustifyAbsenceStatus | null>(null)
 
+  // Justificativas "Aprovado" ou "Negado" são finais e não podem ser editadas.
+  const justificationLocked =
+    justificationStatus === "aprovado" || justificationStatus === "negado";
+
   const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [heroSrc] = useState<string>(() => pickRandomHero());
@@ -213,7 +217,7 @@ export default function Profile({
                   Editar Informações
                 </button>
                 <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={justificationStatus === "aprovado"}
+                  disabled={justificationLocked}
                   onClick={() => setJustifyOpen(true)}>
                   Justificar Ausência
                 </button>
@@ -386,7 +390,7 @@ export default function Profile({
 
           <button
             onClick={() => setJustifyOpen(true)}
-            disabled={justificationStatus === "aprovado"}
+            disabled={justificationLocked}
             className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Justificar Ausência

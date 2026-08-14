@@ -10,7 +10,7 @@ Documentação das rotas de justificativa de ausência do backend.
 - `reason`: motivo descrito pelo participante.
 - `attachment_filename` / `attachment_content_type`: metadados do anexo comprobatório; o arquivo em si fica em disco (`uploads/absence-justifications/`).
 - `submitted_at`: data de envio.
-- `status`: `em_analise` (padrão), `aprovado` ou `negado`.
+- `status`: `em_analise` (padrão), `aprovado`, `negado` ou `documento_invalido`.
 
 ---
 
@@ -73,12 +73,12 @@ Erros comuns:
   - `reason` (string, obrigatório)
   - `attachment` (arquivo, opcional — se enviado, substitui o anterior)
 
-Permitido em qualquer status **exceto** `aprovado`. Editar uma justificativa `negado` a reenvia automaticamente para `em_analise`.
+Permitido apenas quando o status for `em_analise` ou `documento_invalido` (comprovante inválido/inapropriado). Editar reenvia a justificativa automaticamente para `em_analise`.
 
 Erros comuns:
 
 - `403`: `{"message":"Você não tem permissão para editar esta justificativa"}` (não é o dono)
-- `409`: `{"message":"Não é possível editar uma justificativa já aprovada"}`
+- `409`: `{"message":"Não é possível editar uma justificativa já aprovada"}` / `{"message":"Não é possível editar uma justificativa já negada"}` — status `aprovado`/`negado` são finais.
 
 ---
 
@@ -114,7 +114,7 @@ Resposta de sucesso (`200`): `{"absence_justifications": [...]}` — mesmo forma
 - **Método**: `PATCH`
 - **Rota**: `/admin/absence-justifications/:id`
 - **Permissão**: `Justificativas de Ausência` (RW)
-- **Body (JSON)**: `{"status": "aprovado"}` — `em_analise`, `aprovado` ou `negado`.
+- **Body (JSON)**: `{"status": "aprovado"}` — `em_analise`, `aprovado`, `negado` ou `documento_invalido`.
 
 Resposta de sucesso (`200`): `{"message": "..."}`.
 

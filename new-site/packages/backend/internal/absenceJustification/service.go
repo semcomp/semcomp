@@ -66,8 +66,9 @@ func (s *absenceJustificationService) GetMine(userEmail string) (*AbsenceJustifi
 }
 
 // UpdateJustification permite que o próprio participante edite o motivo e,
-// opcionalmente, substitua o anexo — em qualquer status exceto "aprovado". Editar
-// uma justificativa "negado" a reenvia para análise.
+// opcionalmente, substitua o anexo — apenas quando o status for "em_analise" ou
+// "documento_invalido". Justificativas "aprovado" ou "negado" são finais e não podem
+// ser editadas. Editar reenvia a justificativa para análise.
 func (s *absenceJustificationService) UpdateJustification(userEmail string, id uint, request UpdateAbsenceJustificationRequest) (*AbsenceJustificationInfo, error) {
 	justification, err := s.repo.FindByID(id)
 	if err != nil {
@@ -78,8 +79,13 @@ func (s *absenceJustificationService) UpdateJustification(userEmail string, id u
 		return nil, apierrors.ForbiddenError("Você não tem permissão para editar esta justificativa", nil)
 	}
 
-	if justification.Status == StatusAprovado {
+	switch justification.Status {
+	case StatusEmAnalise, StatusDocumentoInvalido:
+		// permitido editar
+	case StatusAprovado:
 		return nil, apierrors.ConflictError("Não é possível editar uma justificativa já aprovada", nil)
+	case StatusNegado:
+		return nil, apierrors.ConflictError("Não é possível editar uma justificativa já negada", nil)
 	}
 
 	justification.Reason = request.Reason

@@ -130,9 +130,9 @@ func (h *AbsenceJustificationHandler) GetMine(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"absence_justification": justification})
 }
 
-// UpdateMine permite que o usuário autenticado edite sua justificativa, exceto se já aprovada.
+// UpdateMine permite que o usuário autenticado edite sua justificativa, exceto se já aprovada ou negada.
 // @Summary Atualiza a justificativa de ausência do usuário autenticado
-// @Description Edita o motivo e, opcionalmente, substitui o anexo da justificativa do usuário autenticado. Permitido em qualquer status exceto "aprovado"; editar uma justificativa "negado" a reenvia para análise.
+// @Description Edita o motivo e, opcionalmente, substitui o anexo da justificativa do usuário autenticado. Permitido apenas quando o status for "em_analise" ou "documento_invalido"; editar reenvia a justificativa para análise.
 // @Tags Justificativas de Ausência
 // @Accept multipart/form-data
 // @Produce json
@@ -143,7 +143,7 @@ func (h *AbsenceJustificationHandler) GetMine(c *gin.Context) {
 // @Failure 400 {object} map[string]string "Dados inválidos"
 // @Failure 403 {object} map[string]string "Justificativa não pertence ao usuário"
 // @Failure 404 {object} map[string]string "Justificativa não encontrada"
-// @Failure 409 {object} map[string]string "Justificativa já aprovada"
+// @Failure 409 {object} map[string]string "Justificativa já aprovada ou negada"
 // @Failure 500 {object} map[string]string "Erro interno"
 // @Security BearerAuth
 // @Router /api/absence-justifications/{id} [patch]
@@ -263,7 +263,7 @@ func (h *AbsenceJustificationHandler) GetAttachment(c *gin.Context) {
 
 // UpdateStatus altera o status de uma justificativa de ausência (admin).
 // @Summary Atualiza o status de uma justificativa de ausência
-// @Description Aprova, rejeita ou volta para análise uma justificativa de ausência
+// @Description Aprova, rejeita, marca como documento inválido ou volta para análise uma justificativa de ausência
 // @Tags Justificativas de Ausência
 // @Accept json
 // @Produce json

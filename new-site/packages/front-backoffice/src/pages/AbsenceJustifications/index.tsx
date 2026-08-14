@@ -27,12 +27,14 @@ const STATUS_LABEL: Record<AbsenceJustificationStatus, string> = {
   em_analise: "Em análise",
   aprovado: "Aprovado",
   negado: "Negado",
+  documento_invalido: "Documento Inválido",
 };
 
 const STATUS_BADGE_CLASS: Record<AbsenceJustificationStatus, string> = {
   em_analise: "bg-amber-600 text-white border-amber-700",
   aprovado: "bg-emerald-700 text-white border-emerald-800",
   negado: "bg-red-700 text-white border-red-800",
+  documento_invalido: "bg-orange-600 text-white border-orange-700",
 };
 
 const REASON_PREVIEW_LENGTH = 100;
@@ -70,6 +72,7 @@ const FIELDS: CrudField[] = [
       "Em análise": STATUS_BADGE_CLASS.em_analise,
       Aprovado: STATUS_BADGE_CLASS.aprovado,
       Negado: STATUS_BADGE_CLASS.negado,
+      "Documento Inválido": STATUS_BADGE_CLASS.documento_invalido,
     },
   },
 ];
@@ -153,7 +156,9 @@ export default function AbsenceJustifications() {
       showNotification(
         pendingDecision === "aprovado"
           ? "Justificativa aprovada!"
-          : "Justificativa negada.",
+          : pendingDecision === "negado"
+            ? "Justificativa negada."
+            : "Justificativa marcada como documento inválido.",
         pendingDecision === "aprovado" ? "success" : "warning"
       );
       setPendingDecision(null);
@@ -177,7 +182,7 @@ export default function AbsenceJustifications() {
         iconClassName="text-violet-400"
         label="Justificativas de Ausência"
         title="Justificativas de Ausência"
-        description="Revise as justificativas enviadas pelos participantes e aprove ou negue cada uma."
+        description="Revise as justificativas enviadas pelos participantes e aprove, negue ou marque como documento inválido cada uma."
         onBack={() => navigate("/home")}
         cardClassName="border-slate-800 bg-linear-to-br from-slate-900 via-slate-900 to-violet-950/30 overflow-hidden relative"
         labelClassName="text-xs uppercase tracking-[0.3em] text-violet-400 font-medium"
@@ -287,8 +292,12 @@ export default function AbsenceJustifications() {
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <p className="text-sm text-foreground">
                         Confirma{" "}
-                        {pendingDecision === "aprovado" ? "aprovar" : "negar"} esta
-                        justificativa?
+                        {pendingDecision === "aprovado"
+                          ? "aprovar"
+                          : pendingDecision === "negado"
+                            ? "negar"
+                            : "marcar como documento inválido"}{" "}
+                        esta justificativa?
                       </p>
                       <div className="flex gap-2 justify-end">
                         <Button
@@ -305,7 +314,9 @@ export default function AbsenceJustifications() {
                           className={
                             pendingDecision === "aprovado"
                               ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                              : "bg-red-600 hover:bg-red-700 text-white"
+                              : pendingDecision === "negado"
+                                ? "bg-red-600 hover:bg-red-700 text-white"
+                                : "bg-orange-600 hover:bg-orange-700 text-white"
                           }
                         >
                           Confirmar
@@ -321,6 +332,17 @@ export default function AbsenceJustifications() {
                         className="border-red-500/40 text-red-400 hover:bg-red-500/10"
                       >
                         Negar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setPendingDecision("documento_invalido")}
+                        disabled={
+                          submitting ||
+                          modal.justification.status === "documento_invalido"
+                        }
+                        className="border-orange-500/40 text-orange-400 hover:bg-orange-500/10"
+                      >
+                        Documento Inválido
                       </Button>
                       <Button
                         onClick={() => setPendingDecision("aprovado")}

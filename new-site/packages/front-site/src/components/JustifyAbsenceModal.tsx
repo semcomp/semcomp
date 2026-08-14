@@ -15,12 +15,14 @@ const STATUS_LABEL: Record<JustifyAbsenceStatus, string> = {
   em_analise: "Em análise",
   aprovado: "Aprovado",
   negado: "Negado",
+  documento_invalido: "Documento Inválido",
 };
 
 const STATUS_BADGE_CLASS: Record<JustifyAbsenceStatus, string> = {
   em_analise: "bg-amber-600 text-white border-amber-700",
   aprovado: "bg-emerald-700 text-white border-emerald-800",
   negado: "bg-red-700 text-white border-red-800",
+  documento_invalido: "bg-orange-600 text-white border-orange-700",
 };
 
 export function JustifyAbsenceStatusBadge({
@@ -84,9 +86,12 @@ export default function JustifyAbsenceModal({
   const [submitted, setSubmitted] = useState(false);
 
   const canEdit =
-    justification !== null && justification.status !== "aprovado";
+    justification !== null &&
+    (justification.status === "em_analise" ||
+      justification.status === "documento_invalido");
   const isReadOnly =
-    justification !== null && justification.status === "aprovado";
+    justification !== null &&
+    (justification.status === "aprovado" || justification.status === "negado");
 
   useEffect(() => {
     if (!open) return;
@@ -237,18 +242,21 @@ export default function JustifyAbsenceModal({
           </div>
 
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Sua justificativa foi aprovada.
+            {justification!.status === "aprovado"
+              ? "Sua justificativa foi aprovada."
+              : "Sua justificativa foi negada."}
           </p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
           {HELP_TEXT}
 
-          {justification?.status === "negado" && (
-            <div className="flex items-center gap-2 rounded-md border border-red-700/30 bg-red-700/10 px-3 py-2">
-              <JustifyAbsenceStatusBadge status="negado" />
+          {justification?.status === "documento_invalido" && (
+            <div className="flex items-center gap-2 rounded-md border border-orange-700/30 bg-orange-700/10 px-3 py-2">
+              <JustifyAbsenceStatusBadge status="documento_invalido" />
               <p className="text-xs text-gray-600 dark:text-gray-300">
-                Corrija o motivo e/ou o comprovante abaixo para reenviar para análise.
+                O comprovante enviado foi considerado inválido. Anexe um documento
+                válido abaixo para reenviar para análise.
               </p>
             </div>
           )}

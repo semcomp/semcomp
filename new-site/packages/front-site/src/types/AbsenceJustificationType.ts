@@ -1,4 +1,8 @@
-export type AbsenceJustificationStatus = "em_analise" | "aprovado" | "negado";
+export type AbsenceJustificationStatus =
+  | "em_analise"
+  | "aprovado"
+  | "negado"
+  | "documento_invalido";
 
 export type AbsenceJustificationType = {
   id: number;
