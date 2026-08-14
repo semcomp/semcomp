@@ -11,6 +11,7 @@ import (
 	"backend/internal/log"
 	"backend/internal/mailer"
 	"backend/internal/middleware"
+	"backend/internal/notice"
 	"backend/internal/pages"
 	"backend/internal/payment"
 	"backend/internal/permission"
@@ -51,7 +52,7 @@ func main() {
 	// coluna email_verified é nova e não deve bloquear o login de usuários antigos.
 	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
 
-	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, &token.Token{}, &payment.Payment{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{}, &sitestat.SiteStat{})
+	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, &token.Token{}, &payment.Payment{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{}, &sitestat.SiteStat{}, &notice.Notice{})
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -104,6 +105,10 @@ func main() {
 	productRepo := product.NewProductRepository(db)
 	productService := product.NewProductService(productRepo)
 	productHandler := product.NewProductHandler(productService)
+
+	noticeRepo := notice.NewNoticeRepository(db)
+	noticeService := notice.NewNoticeService(noticeRepo)
+	noticeHandler := notice.NewNoticeHandler(noticeService)
 
 	logRepo := log.NewRepository(db)
 	logService := log.NewService(logRepo)
@@ -259,6 +264,13 @@ func main() {
 	admin.POST("/products", permMW("Produtos", permission.PermRW), productHandler.CreateProduct)
 	admin.PUT("/products/:id", permMW("Produtos", permission.PermRW), productHandler.UpdateProductByID)
 	admin.DELETE("/products/:id", permMW("Produtos", permission.PermRW), productHandler.DeleteProductByID)
+
+	// Avisos
+	admin.GET("/notices", permMW("Avisos", permission.PermR), noticeHandler.GetNotices)
+	admin.GET("/notices/:id", permMW("Avisos", permission.PermR), noticeHandler.GetNoticeByID)
+	admin.POST("/notices", permMW("Avisos", permission.PermRW), noticeHandler.CreateNotice)
+	admin.PUT("/notices/:id", permMW("Avisos", permission.PermRW), noticeHandler.UpdateNoticeByID)
+	admin.DELETE("/notices/:id", permMW("Avisos", permission.PermRW), noticeHandler.DeleteNoticeByID)
 
 	// Permissões
 	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode
