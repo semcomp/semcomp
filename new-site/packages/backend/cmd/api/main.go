@@ -245,6 +245,8 @@ func main() {
 	admin.POST("/signin-events", permMW("Inscrições", permission.PermRW), signinEventHandler.CreateSigninAdmin)
 	admin.PUT("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermRW), signinEventHandler.UpdateSigninAdmin)
 	admin.DELETE("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermRW), signinEventHandler.DeleteSigninAdmin)
+	admin.PUT("/signin-events/:userNumber/:eventName/:eventInitDate/register", permMW("Inscrições", permission.PermRW), signinEventHandler.RegisterSigninAdmin)
+	admin.POST("/signin-events/rotate/:eventName/:eventInitDate", permMW("Inscrições", permission.PermRW), signinEventHandler.RotateSigninsAdmin)
 
 	// Participações
 	admin.GET("/presences", permMW("Participações", permission.PermR), presenceHandler.GetPresences)

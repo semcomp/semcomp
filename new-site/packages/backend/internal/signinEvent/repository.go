@@ -20,6 +20,10 @@ type SigninEventRepository interface {
 	UpdateByComposite(userNumber uint, eventName string, initDate time.Time, updated *SigninEvent) error
 	DeleteByComposite(userNumber uint, eventName string, initDate time.Time) error
 	GetAll(query SigninEventListQuery) (*SigninEventListResult, error)
+	DeleteByStatus(eventName string, initDate time.Time, status RegistrationStatus) error
+	ListActiveByEvent(eventName string, initDate time.Time) ([]SigninEvent, error)
+	PromoteFirstWaitListed(eventName string, initDate time.Time, limit int) error
+	UpdatePosition(userNumber uint, eventName string, initDate time.Time, position uint) error
 }
 
 type signinEventRepository struct {
@@ -233,4 +237,44 @@ func (r *signinEventRepository) PromoteWithinLimit(eventName string, initDate ti
 		Where("event_name = ? AND event_init_date = ? AND status = ? AND user_wait_list_position <= ?",
 			eventName, initDate, StatusWaitListed, max).
 		Update("status", StatusWaitingDonation).Error
+}
+
+func (r *signinEventRepository) DeleteByStatus(eventName string, initDate time.Time, status RegistrationStatus) error {
+	return r.db.Where("event_name = ? AND event_init_date = ? AND status = ?", eventName, initDate, status).
+		Delete(&SigninEvent{}).Error
+}
+
+func (r *signinEventRepository) ListActiveByEvent(eventName string, initDate time.Time) ([]SigninEvent, error) {
+	var signins []SigninEvent
+	err := r.db.Where("event_name = ? AND event_init_date = ?", eventName, initDate).
+		Order("user_wait_list_position asc").
+		Find(&signins).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return signins, nil
+}
+
+func (r *signinEventRepository) PromoteFirstWaitListed(eventName string, initDate time.Time, limit int) error {
+	if limit <= 0 {
+		return nil
+	}
+
+	sub := r.db.Model(&SigninEvent{}).
+		Select("user_number").
+		Where("event_name = ? AND event_init_date = ? AND status = ?", eventName, initDate, StatusWaitListed).
+		Order("user_wait_list_position asc").
+		Limit(limit)
+
+	return r.db.Model(&SigninEvent{}).
+		Where("event_name = ? AND event_init_date = ? AND status = ? AND user_number IN (?)",
+			eventName, initDate, StatusWaitListed, sub).
+		Update("status", StatusRegistered).Error
+}
+
+func (r *signinEventRepository) UpdatePosition(userNumber uint, eventName string, initDate time.Time, position uint) error {
+	return r.db.Model(&SigninEvent{}).
+		Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).
+		Update("user_wait_list_position", position).Error
 }

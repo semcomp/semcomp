@@ -22,6 +22,8 @@ type SigninEventService interface {
 	CreateSigninAdmin(request CreateSigninAdminRequest) (*SigninEvent, error)
 	UpdateSigninAdmin(userNumber string, eventName string, eventInitDate string, request UpdateSigninAdminRequest) (*SigninEvent, error)
 	DeleteSigninAdmin(userNumber string, eventName string, eventInitDate string) error
+	RegisterSigninAdmin(userNumber string, eventName string, eventInitDate string) (*SigninEvent, error)
+	RotateSigninsAdmin(eventName string, eventInitDate string) ([]SigninEvent, error)
 }
 
 type signinEventService struct {
@@ -369,4 +371,118 @@ func (s *signinEventService) DeleteSigninAdmin(userNumber string, eventName stri
 	}
 
 	return s.removeSignin(signin)
+}
+
+// RegisterSigninAdmin altera o status de uma inscrição para "Inscrito".
+func (s *signinEventService) RegisterSigninAdmin(userNumber string, eventName string, eventInitDate string) (*SigninEvent, error) {
+	initTime, err := time.Parse(time.RFC3339, eventInitDate)
+	if err != nil {
+		return nil, apierrors.ValidationError("Data do evento inválida. Use o formato RFC3339", err)
+	}
+
+	num, err := strconv.ParseUint(userNumber, 10, 64)
+	if err != nil {
+		return nil, apierrors.ValidationError("Número do usuário inválido", err)
+	}
+
+	signin, err := s.repo.GetByUserEventAndInitDate(uint(num), eventName, initTime)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apierrors.NotFoundError("Inscrição não encontrada", err)
+		}
+		return nil, apierrors.InternalServerError("Erro ao buscar inscrição", err)
+	}
+
+	if signin.Status == StatusRegistered {
+		return nil, apierrors.ConflictError("Inscrição já registrada", nil)
+	}
+
+	updates := SigninEvent{
+		UserNumber:           signin.UserNumber,
+		EventName:            signin.EventName,
+		EventInitDate:        signin.EventInitDate,
+		UserWaitListPosition: signin.UserWaitListPosition,
+		Status:               StatusRegistered,
+	}
+
+	if err := s.repo.UpdateByComposite(signin.UserNumber, signin.EventName, signin.EventInitDate, &updates); err != nil {
+		return nil, apierrors.InternalServerError("Erro ao atualizar inscrição", err)
+	}
+
+	max, err := s.eventMaxParticipants(updates.EventName, updates.EventInitDate)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.relativePosition(&updates, max), nil
+}
+
+// RotateSigninsAdmin remove todas as inscrições "Esperando Doação" de um evento,
+// promove os primeiros da fila de espera para "Inscrito" até completar o limite
+// de vagas e reordena as posições da fila.
+func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate string) ([]SigninEvent, error) {
+	initTime, err := time.Parse(time.RFC3339, eventInitDate)
+	if err != nil {
+		return nil, apierrors.ValidationError("Data do evento inválida. Use o formato RFC3339", err)
+	}
+
+	eventRecord, err := s.eventRepo.GetByNameAndInitTime(eventName, initTime)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apierrors.NotFoundError("Evento não encontrado", err)
+		}
+		return nil, apierrors.InternalServerError("Erro ao buscar evento", err)
+	}
+
+	if err := s.repo.DeleteByStatus(eventName, initTime, StatusWaitingDonation); err != nil {
+		return nil, apierrors.InternalServerError("Erro ao remover inscrições aguardando doação", err)
+	}
+
+	remaining, err := s.repo.ListActiveByEvent(eventName, initTime)
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao listar inscrições", err)
+	}
+
+	if len(remaining) == 0 {
+		return remaining, nil
+	}
+
+	registeredCount := 0
+	for i := range remaining {
+		if remaining[i].Status == StatusRegistered {
+			registeredCount++
+		}
+	}
+
+	// Promove os primeiros da fila de espera até completar o limite do evento.
+	toPromote := 0
+	if eventRecord.MaxParticipants > uint(registeredCount) {
+		toPromote = min(int(eventRecord.MaxParticipants)-registeredCount, len(remaining)-registeredCount)
+	}
+
+	if toPromote > 0 {
+		if err := s.repo.PromoteFirstWaitListed(eventName, initTime, toPromote); err != nil {
+			return nil, apierrors.InternalServerError("Erro ao promover inscrições da fila de espera", err)
+		}
+	}
+
+	// Reordena as posições na fila (1..N, na ordem original).
+	for i := range remaining {
+		if err := s.repo.UpdatePosition(remaining[i].UserNumber, eventName, initTime, uint(i+1)); err != nil {
+			return nil, apierrors.InternalServerError("Erro ao atualizar posições na fila", err)
+		}
+	}
+
+	// Espelha as mudanças na resposta.
+	promoted := 0
+	for i := range remaining {
+		if remaining[i].Status == StatusWaitListed && promoted < toPromote {
+			remaining[i].Status = StatusRegistered
+			promoted++
+		}
+		remaining[i].UserWaitListPosition = uint(i + 1)
+		s.relativePosition(&remaining[i], eventRecord.MaxParticipants)
+	}
+
+	return remaining, nil
 }
