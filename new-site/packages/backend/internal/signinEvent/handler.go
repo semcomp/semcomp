@@ -18,7 +18,7 @@ func NewSigninEventHandler(service SigninEventService) *SigninEventHandler {
 
 // CreateSignin processa o payload JSON e tenta criar uma nova inscrição.
 // @Summary Inscreve o usuário autenticado em um evento
-// @Description Registra a inscrição do usuário logado em um evento que permite inscrição (has_signin). Se as vagas estiverem esgotadas, insere em lista de espera.
+// @Description Registra a inscrição do usuário logado em um evento que permite inscrição (has_signin). Dentro do limite de vagas o usuário fica com status "Esperando Doação"; se as vagas estiverem esgotadas, entra na lista de espera.
 // @Tags Signin Event
 // @Accept json
 // @Produce json
@@ -95,7 +95,7 @@ func (h *SigninEventHandler) GetMySignins(c *gin.Context) {
 
 // DeleteSignin cancela a inscrição do usuário autenticado em um evento.
 // @Summary Cancela a inscrição do usuário em um evento
-// @Description Cancela (status "Cancelado") a inscrição do usuário logado no evento informado
+// @Description Deleta a inscrição do usuário logado no evento informado, reorganizando as posições da fila
 // @Tags Signin Event
 // @Accept json
 // @Produce json
@@ -104,7 +104,6 @@ func (h *SigninEventHandler) GetMySignins(c *gin.Context) {
 // @Success 200 {object} map[string]string "Inscrição cancelada com sucesso"
 // @Failure 400 {object} map[string]string "Data inválida"
 // @Failure 404 {object} map[string]string "Inscrição não encontrada"
-// @Failure 409 {object} map[string]string "Inscrição já cancelada"
 // @Failure 500 {object} map[string]string "Erro interno"
 // @Security BearerAuth
 // @Router /api/signin-events/{eventName}/{eventInitDate} [delete]
