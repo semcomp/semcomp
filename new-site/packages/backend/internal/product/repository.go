@@ -151,13 +151,15 @@ func (r *productRepository) CountComboItemRefs(itemID uint) (int64, error) {
 }
 
 func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB {
+	if query.TypeFilter != "" {
+		dbQuery = dbQuery.Where("type = ?", strings.ToUpper(query.TypeFilter))
+	}
+
 	if query.SearchBy == "" || query.SearchValue == "" {
 		return dbQuery
 	}
 
 	switch query.SearchBy {
-	case "type":
-		return dbQuery.Where("type ILIKE ?", "%"+query.SearchValue+"%")
 	case "is_selling":
 		return dbQuery.Where("is_selling = ?", strings.ToLower(query.SearchValue) == "true")
 	case "price":

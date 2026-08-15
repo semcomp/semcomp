@@ -139,12 +139,15 @@ export const productsAPI = {
     sortBy = "id",
     sortOrder = "asc",
     searchBy?: string,
-    searchValue?: string
+    searchValue?: string,
+    /** Always filter by product type (KIT / COFFEE / COMBO) */
+    typeFilter?: string,
   ): Promise<ProductsListResponse> => {
     const backendSortBy = fieldMap[sortBy] ?? sortBy;
     const backendSearchBy = searchBy ? (fieldMap[searchBy] ?? searchBy) : undefined;
 
     let url = `/admin/products?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
+    if (typeFilter) url += `&type=${typeFilter}`;
     if (backendSearchBy && searchValue) {
       url += `&search_by=${backendSearchBy}&search_value=${searchValue}`;
     }

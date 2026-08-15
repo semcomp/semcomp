@@ -114,6 +114,7 @@ type ProductListQuery struct {
 	SortOrder   string
 	SearchBy    string
 	SearchValue string
+	TypeFilter  string
 }
 
 type ProductListResult struct {

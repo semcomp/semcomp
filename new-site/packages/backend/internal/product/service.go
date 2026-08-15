@@ -15,7 +15,7 @@ type ProductService interface {
 	GetProductByID(id string) (*Product, error)
 	DeleteProductByID(id string) error
 	UpdateProductByID(id string, request UpdateProductRequest) (*Product, error)
-	GetProducts(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*ProductListResult, error)
+	GetProducts(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string, typeFilter string) (*ProductListResult, error)
 }
 
 type productService struct {
@@ -249,7 +249,7 @@ func (s *productService) UpdateProductByID(id string, request UpdateProductReque
 	return updated, nil
 }
 
-func (s *productService) GetProducts(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*ProductListResult, error) {
+func (s *productService) GetProducts(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string, typeFilter string) (*ProductListResult, error) {
 	if page < 1 {
 		return nil, apierrors.ValidationError("Page deve ser maior que 0", nil)
 	}
@@ -287,12 +287,19 @@ func (s *productService) GetProducts(page int, limit int, sortBy string, sortOrd
 	if searchBy != "" {
 		searchBy = strings.ToLower(searchBy)
 		allowedSearchFields := map[string]bool{
-			"type":       true,
 			"is_selling": true,
 			"price":      true,
 		}
 		if !allowedSearchFields[searchBy] {
 			return nil, apierrors.ValidationError("Parâmetro 'search_by' inválido", nil)
+		}
+	}
+
+	if typeFilter != "" {
+		typeFilter = strings.ToUpper(typeFilter)
+		allowedTypes := map[string]bool{"KIT": true, "COFFEE": true, "COMBO": true}
+		if !allowedTypes[typeFilter] {
+			return nil, apierrors.ValidationError("Parâmetro 'type' inválido", nil)
 		}
 	}
 
@@ -304,6 +311,7 @@ func (s *productService) GetProducts(page int, limit int, sortBy string, sortOrd
 		SortOrder:   sortOrder,
 		SearchBy:    searchBy,
 		SearchValue: searchValue,
+		TypeFilter:  typeFilter,
 	}
 
 	return s.repo.GetProducts(query)

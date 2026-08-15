@@ -152,6 +152,7 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 	sortOrder := c.DefaultQuery("sort_order", "asc")
 	searchBy := c.Query("search_by")
 	searchValue := c.Query("search_value")
+	typeFilter := c.Query("type")
 
 	if pageQuery := c.Query("page"); pageQuery != "" {
 		parsedPage, err := strconv.Atoi(pageQuery)
@@ -171,7 +172,7 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 		limit = parsedLimit
 	}
 
-	result, err := h.productService.GetProducts(page, limit, sortBy, sortOrder, searchBy, searchValue)
+	result, err := h.productService.GetProducts(page, limit, sortBy, sortOrder, searchBy, searchValue, typeFilter)
 	if err != nil {
 		apierrors.HandleAPIError(c, err)
 		return

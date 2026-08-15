@@ -68,12 +68,17 @@ export default function ProductsCRUD() {
 
       const sortFieldApi = API_FIELD_MAP[params?.sortField ?? ""] || params?.sortField || "id";
 
+      const hasUserFilter = !!(params?.filterField && params?.filterValue);
+      const searchBy = hasUserFilter ? params!.filterField : undefined;
+      const searchValue = hasUserFilter ? params!.filterValue : undefined;
+
       const response = await productsAPI.getAll(
         params?.page ?? 1,
         params?.pageSize ?? 10,
         sortFieldApi,
         params?.sortOrder ?? "asc",
-        "type",
+        searchBy,
+        searchValue,
         type,
       );
 
@@ -243,12 +248,11 @@ export default function ProductsCRUD() {
           data={data}
           fields={FIELDS_BY_TYPE[activeType]}
           onEdit={isCombo ? () => {} : handleEdit}
-          onEditClick={isCombo ? handleComboEditClick : () => {}}
+          onEditClick={isCombo ? handleComboEditClick : undefined}
           onDelete={handleDelete}
           onCreate={isCombo ? undefined : handleCreate}
           getItemKey={resolveProductKey}
           entityLabel="produto"
-          serverSide
           totalRecords={totalRecords}
           onQueryChange={handleQueryChange}
           canWrite={canWrite}
