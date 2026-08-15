@@ -19,6 +19,15 @@ export interface CoffeeDetails {
 export interface ComboItemDetails {
     combo_id: number;
     item_id: number;
+    quantity: number;
+    item?: ProductRaw | null;
+}
+
+export interface ComboItemRich {
+    itemId: number;
+    name: string;
+    type: "KIT" | "COFFEE";
+    quantity: number;
 }
 
 export interface ProductRaw {
@@ -48,5 +57,6 @@ export interface ProductType extends CrudItemType {
     coffeeName: string;
     coffeeDateTime: string;
     // Combo fields
-    comboItems: string;  // IDs dos itens separados por vírgula (ex: "1, 3, 5")
+    comboItems: string;          // resumo legível para exibição na tabela
+    comboItemDetails: ComboItemRich[];
 }

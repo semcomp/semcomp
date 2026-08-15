@@ -1,5 +1,5 @@
 import client from "./client";
-import type { ProductType, ProductRaw, ProductKind } from "@/types/ProductType";
+import type { ProductType, ProductRaw, ProductKind, ComboItemRich } from "@/types/ProductType";
 
 export interface ProductsListResponse {
   page: number;
@@ -32,7 +32,20 @@ const mapBackendProduct = (product: ProductRaw): ProductType => {
     coffeeName: product.coffee?.name ?? "",
     coffeeDateTime: product.coffee?.date_time ?? "",
     // Combo
-    comboItems: product.combo_items?.map((ci) => String(ci.item_id)).join(", ") ?? "",
+    comboItemDetails: (product.combo_items ?? []).map((ci): ComboItemRich => ({
+      itemId: ci.item_id,
+      name: ci.item?.kit?.name || ci.item?.coffee?.name || `#${ci.item_id}`,
+      type: (ci.item?.type as "KIT" | "COFFEE") ?? "KIT",
+      quantity: ci.quantity ?? 1,
+    })),
+    comboItems: product.combo_items?.length
+      ? product.combo_items
+          .map((ci) => {
+            const name = ci.item?.kit?.name || ci.item?.coffee?.name || `#${ci.item_id}`;
+            return ci.quantity > 1 ? `${name} (x${ci.quantity})` : name;
+          })
+          .join(", ")
+      : "",
   };
 };
 
@@ -177,5 +190,26 @@ export const productsAPI = {
       `/admin/products/${id}`
     );
     return response.data;
+  },
+
+  createCombo: async (
+    isSelling: boolean,
+    price: number,
+    items: { item_id: number; quantity: number }[]
+  ): Promise<ProductType> => {
+    const payload = { type: "COMBO", is_selling: isSelling, price, items };
+    const response = await client.post<any>("/admin/products", payload);
+    return mapBackendProduct(response.data.product);
+  },
+
+  updateCombo: async (
+    id: number,
+    isSelling: boolean,
+    price: number,
+    items: { item_id: number; quantity: number }[]
+  ): Promise<ProductType> => {
+    const payload = { type: "COMBO", is_selling: isSelling, price, items };
+    const response = await client.put<any>(`/admin/products/${id}`, payload);
+    return mapBackendProduct(response.data.product);
   },
 };
