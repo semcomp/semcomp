@@ -235,7 +235,7 @@ func main() {
 
 	// Eventos
 	admin.POST("/events", permMW("Eventos", permission.PermRW), eventHandler.CreateEvent)
-	// GET nos eventos - Consulta pública via GET /events
+	admin.GET("/events", permMW("Eventos", permission.PermR), eventHandler.GetEvents)
 	admin.PUT("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.UpdateEventByNameAndInitDate)
 	admin.DELETE("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.DeleteEventByNameAndInitDate)
 
