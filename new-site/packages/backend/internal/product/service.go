@@ -2,6 +2,7 @@ package product
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -12,6 +13,7 @@ import (
 
 type ProductService interface {
 	CreateProduct(request CreateProductRequest) (*Product, error)
+	BulkCreateProducts(request BulkCreateProductsRequest) ([]Product, error)
 	GetProductByID(id string) (*Product, error)
 	DeleteProductByID(id string) error
 	UpdateProductByID(id string, request UpdateProductRequest) (*Product, error)
@@ -93,6 +95,7 @@ func (s *productService) CreateProduct(request CreateProductRequest) (*Product, 
 			Color:      request.Kit.Color,
 			IsBabydoll: request.Kit.IsBabydoll,
 		}
+		product.Name = request.Kit.Name
 
 	case ProductTypeCoffee:
 		if request.Coffee == nil {
@@ -102,12 +105,17 @@ func (s *productService) CreateProduct(request CreateProductRequest) (*Product, 
 			Name:     request.Coffee.Name,
 			DateTime: request.Coffee.DateTime,
 		}
+		product.Name = request.Coffee.Name
 
 	case ProductTypeCombo:
+		if strings.TrimSpace(request.Name) == "" {
+			return nil, apierrors.ValidationError("Nome é obrigatório para produtos do tipo COMBO", nil)
+		}
 		comboItems, err := s.buildComboItems(request.Items, nil)
 		if err != nil {
 			return nil, err
 		}
+		product.Name = request.Name
 		product.ComboItems = comboItems
 
 	default:
@@ -124,6 +132,58 @@ func (s *productService) CreateProduct(request CreateProductRequest) (*Product, 
 		return nil, apierrors.InternalServerError("Erro ao buscar produto criado", err)
 	}
 
+	return created, nil
+}
+
+func (s *productService) BulkCreateProducts(request BulkCreateProductsRequest) ([]Product, error) {
+	products := make([]*Product, 0, len(request.Products))
+	for i, req := range request.Products {
+		p := &Product{
+			Type:      req.Type,
+			IsSelling: req.IsSelling,
+			Price:     req.Price,
+		}
+		switch req.Type {
+		case ProductTypeKit:
+			if req.Kit == nil {
+				return nil, apierrors.ValidationError(fmt.Sprintf("Produto %d: dados do kit são obrigatórios", i+1), nil)
+			}
+			p.Kit = &Kit{
+				Name:       req.Kit.Name,
+				Size:       req.Kit.Size,
+				Color:      req.Kit.Color,
+				IsBabydoll: req.Kit.IsBabydoll,
+			}
+			p.Name = req.Kit.Name
+		case ProductTypeCoffee:
+			if req.Coffee == nil {
+				return nil, apierrors.ValidationError(fmt.Sprintf("Produto %d: dados do coffee são obrigatórios", i+1), nil)
+			}
+			p.Coffee = &Coffee{
+				Name:     req.Coffee.Name,
+				DateTime: req.Coffee.DateTime,
+			}
+			p.Name = req.Coffee.Name
+		case ProductTypeCombo:
+			if strings.TrimSpace(req.Name) == "" {
+				return nil, apierrors.ValidationError(fmt.Sprintf("Produto %d: nome é obrigatório para COMBO", i+1), nil)
+			}
+			comboItems, err := s.buildComboItems(req.Items, nil)
+			if err != nil {
+				return nil, err
+			}
+			p.Name = req.Name
+			p.ComboItems = comboItems
+		default:
+			return nil, apierrors.ValidationError(fmt.Sprintf("Produto %d: tipo inválido", i+1), nil)
+		}
+		products = append(products, p)
+	}
+
+	created, err := s.repo.BulkCreate(products)
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao criar produtos em lote", err)
+	}
 	return created, nil
 }
 
@@ -211,6 +271,7 @@ func (s *productService) UpdateProductByID(id string, request UpdateProductReque
 			Color:      request.Kit.Color,
 			IsBabydoll: request.Kit.IsBabydoll,
 		}
+		product.Name = request.Kit.Name
 
 	case ProductTypeCoffee:
 		if request.Coffee == nil {
@@ -220,12 +281,17 @@ func (s *productService) UpdateProductByID(id string, request UpdateProductReque
 			Name:     request.Coffee.Name,
 			DateTime: request.Coffee.DateTime,
 		}
+		product.Name = request.Coffee.Name
 
 	case ProductTypeCombo:
+		if strings.TrimSpace(request.Name) == "" {
+			return nil, apierrors.ValidationError("Nome é obrigatório para produtos do tipo COMBO", nil)
+		}
 		comboItems, err := s.buildComboItems(request.Items, &productIDForSelfCheck)
 		if err != nil {
 			return nil, err
 		}
+		product.Name = request.Name
 		product.ComboItems = comboItems
 
 	default:
@@ -287,8 +353,13 @@ func (s *productService) GetProducts(page int, limit int, sortBy string, sortOrd
 	if searchBy != "" {
 		searchBy = strings.ToLower(searchBy)
 		allowedSearchFields := map[string]bool{
-			"is_selling": true,
-			"price":      true,
+			"id":           true,
+			"is_selling":   true,
+			"price":        true,
+			"kit.name":     true,
+			"kit.size":     true,
+			"kit.color":    true,
+			"coffee.name":  true,
 		}
 		if !allowedSearchFields[searchBy] {
 			return nil, apierrors.ValidationError("Parâmetro 'search_by' inválido", nil)

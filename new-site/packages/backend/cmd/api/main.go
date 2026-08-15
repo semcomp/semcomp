@@ -265,6 +265,7 @@ func main() {
 	admin.GET("/products", permMW("Produtos", permission.PermR), productHandler.GetProducts)
 	admin.GET("/products/:id", permMW("Produtos", permission.PermR), productHandler.GetProductByID)
 	admin.POST("/products", permMW("Produtos", permission.PermRW), productHandler.CreateProduct)
+	admin.POST("/products/bulk", permMW("Produtos", permission.PermRW), productHandler.BulkCreateProducts)
 	admin.PUT("/products/:id", permMW("Produtos", permission.PermRW), productHandler.UpdateProductByID)
 	admin.DELETE("/products/:id", permMW("Produtos", permission.PermRW), productHandler.DeleteProductByID)
 

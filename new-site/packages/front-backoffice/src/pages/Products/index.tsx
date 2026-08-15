@@ -13,6 +13,8 @@ import { useHasPermission } from "@/contexts/AuthContext";
 import { Coffee, Layers, Package, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ComboFormModal } from "@/components/ComboFormModal";
+import { KitBulkModal } from "@/components/KitBulkModal";
+import { CoffeeBulkModal } from "@/components/CoffeeBulkModal";
 
 const TYPE_TABS: {
   type: ProductKind;
@@ -60,6 +62,10 @@ export default function ProductsCRUD() {
   // Combo modal state
   const [comboModalOpen, setComboModalOpen] = useState(false);
   const [comboEditTarget, setComboEditTarget] = useState<ProductType | null>(null);
+
+  // Bulk modal state
+  const [kitBulkOpen, setKitBulkOpen] = useState(false);
+  const [coffeeBulkOpen, setCoffeeBulkOpen] = useState(false);
 
   const fetchProducts = useCallback(async (type: ProductKind, params?: CrudQueryParams) => {
     try {
@@ -165,6 +171,18 @@ export default function ProductsCRUD() {
     setComboModalOpen(true);
   }, []);
 
+  const handleBulkSuccess = useCallback(
+    (products: ProductType[]) => {
+      setData((prev) => [...prev, ...products]);
+      setTotalRecords((prev) => prev + products.length);
+      showNotification(
+        `${products.length} produto${products.length !== 1 ? "s" : ""} criado${products.length !== 1 ? "s" : ""} com sucesso`,
+        "success",
+      );
+    },
+    [showNotification],
+  );
+
   const handleComboSuccess = useCallback(
     (product: ProductType, isEdit: boolean) => {
       if (isEdit) {
@@ -200,31 +218,49 @@ export default function ProductsCRUD() {
         descriptionClassName="text-slate-400 mt-1"
       />
 
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex gap-1.5 rounded-xl border border-slate-800 bg-slate-900/60 p-1.5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex w-full sm:w-auto gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
           {TYPE_TABS.map((tab) => (
             <button
               key={tab.type}
               onClick={() => handleTabChange(tab.type)}
-              className={`flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-medium border transition-all ${
+              className={`flex flex-1 sm:flex-initial items-center justify-center gap-2 rounded-lg px-3 sm:px-5 py-2 text-sm font-medium border transition-all ${
                 activeType === tab.type
                   ? tab.activeClass + " shadow-sm"
-                  : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                  : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
               }`}
             >
               {tab.icon}
-              {tab.label}
+              <span className="truncate">{tab.label}</span>
             </button>
           ))}
         </div>
 
+        {activeType === "KIT" && canWrite && (
+          <Button
+            onClick={() => setKitBulkOpen(true)}
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+          >
+            <Plus className="w-4 h-4" />
+            Kits em Lote
+          </Button>
+        )}
+        {activeType === "COFFEE" && canWrite && (
+          <Button
+            onClick={() => setCoffeeBulkOpen(true)}
+            className="flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white w-full sm:w-auto"
+          >
+            <Plus className="w-4 h-4" />
+            Coffees em Lote
+          </Button>
+        )}
         {isCombo && canWrite && (
           <Button
             onClick={() => {
               setComboEditTarget(null);
               setComboModalOpen(true);
             }}
-            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white"
+            className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             Novo Combo
@@ -264,6 +300,16 @@ export default function ProductsCRUD() {
         onClose={() => setComboModalOpen(false)}
         initialData={comboEditTarget}
         onSuccess={handleComboSuccess}
+      />
+      <KitBulkModal
+        open={kitBulkOpen}
+        onClose={() => setKitBulkOpen(false)}
+        onSuccess={handleBulkSuccess}
+      />
+      <CoffeeBulkModal
+        open={coffeeBulkOpen}
+        onClose={() => setCoffeeBulkOpen(false)}
+        onSuccess={handleBulkSuccess}
       />
     </section>
   );

@@ -33,6 +33,7 @@ export interface ComboItemRich {
 export interface ProductRaw {
     id: number;
     type: ProductKind;
+    name: string;
     is_selling: boolean;
     price: number;
     picture_url?: string;
@@ -46,6 +47,7 @@ export type Product = ProductRaw;
 export interface ProductType extends CrudItemType {
     productId: number;
     type: ProductKind;
+    name: string;
     isSelling: string;   // "true" / "false" - string para renderizar no select
     price: string;       // string para CrudTable
     // Kit fields

@@ -42,6 +42,7 @@ export const coffeeFields: CrudField[] = [
 
 export const comboFields: CrudField[] = [
   productId,
+  { value: "name", label: "Nome", type: "text", readOnly: true },
   isSelling,
   price,
   { value: "comboItems", label: "Itens", type: "text", readOnly: true },

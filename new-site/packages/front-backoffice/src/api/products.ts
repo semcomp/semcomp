@@ -21,6 +21,7 @@ const mapBackendProduct = (product: ProductRaw): ProductType => {
     id: String(product.id),
     productId: product.id,
     type: product.type,
+    name: product.name ?? "",
     isSelling: String(product.is_selling),
     price: String(product.price),
     // Kit
@@ -127,6 +128,11 @@ const fieldMap: Record<string, string> = {
   type: "type",
   isSelling: "is_selling",
   price: "price",
+  kitName: "kit.name",
+  kitSize: "kit.size",
+  kitColor: "kit.color",
+  coffeeName: "coffee.name",
+  coffeeDateTime: "coffee.date_time",
 };
 
 /**
@@ -196,23 +202,30 @@ export const productsAPI = {
   },
 
   createCombo: async (
+    name: string,
     isSelling: boolean,
     price: number,
     items: { item_id: number; quantity: number }[]
   ): Promise<ProductType> => {
-    const payload = { type: "COMBO", is_selling: isSelling, price, items };
+    const payload = { type: "COMBO", name, is_selling: isSelling, price, items };
     const response = await client.post<any>("/admin/products", payload);
     return mapBackendProduct(response.data.product);
   },
 
   updateCombo: async (
     id: number,
+    name: string,
     isSelling: boolean,
     price: number,
     items: { item_id: number; quantity: number }[]
   ): Promise<ProductType> => {
-    const payload = { type: "COMBO", is_selling: isSelling, price, items };
+    const payload = { type: "COMBO", name, is_selling: isSelling, price, items };
     const response = await client.put<any>(`/admin/products/${id}`, payload);
     return mapBackendProduct(response.data.product);
+  },
+
+  bulkCreate: async (products: object[]): Promise<ProductType[]> => {
+    const response = await client.post<any>("/admin/products/bulk", { products });
+    return (response.data.products ?? []).map(mapBackendProduct);
   },
 };

@@ -44,6 +44,7 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
   const { showNotification } = useNotification();
   const isEdit = !!initialData;
 
+  const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [isSelling, setIsSelling] = useState(false);
   const [search, setSearch] = useState("");
@@ -59,6 +60,7 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
 
     setSearch("");
     setFetchError(null);
+    setName(initialData?.name ?? "");
     setPrice(initialData?.price ?? "");
     setIsSelling(initialData?.isSelling === "true");
 
@@ -68,8 +70,8 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
 
     setFetching(true);
     Promise.all([
-      productsAPI.getAll(1, 1000, "id", "asc", "type", "KIT"),
-      productsAPI.getAll(1, 1000, "id", "asc", "type", "COFFEE"),
+      productsAPI.getAll(1, 1000, "id", "asc", undefined, undefined, "KIT"),
+      productsAPI.getAll(1, 1000, "id", "asc", undefined, undefined, "COFFEE"),
     ])
       .then(([kitsRes, coffeesRes]) => {
         setKits(kitsRes.products);
@@ -99,6 +101,10 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
   };
 
   const handleSubmit = async () => {
+    if (!name.trim()) {
+      showNotification("Informe um nome para o combo.", "warning");
+      return;
+    }
     if (selections.size === 0) {
       showNotification("Selecione pelo menos um item para o combo.", "warning");
       return;
@@ -118,9 +124,9 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
     try {
       let product: ProductType;
       if (isEdit && initialData) {
-        product = await productsAPI.updateCombo(initialData.productId, isSelling, parsedPrice, items);
+        product = await productsAPI.updateCombo(initialData.productId, name.trim(), isSelling, parsedPrice, items);
       } else {
-        product = await productsAPI.createCombo(isSelling, parsedPrice, items);
+        product = await productsAPI.createCombo(name.trim(), isSelling, parsedPrice, items);
       }
       onSuccess(product, isEdit);
       onClose();
@@ -214,8 +220,17 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
           </DialogTitle>
         </DialogHeader>
 
-        {/* Preço + À Venda */}
+        {/* Nome + Preço + À Venda */}
         <div className="px-6 pt-5 pb-4 space-y-4">
+          <div className="space-y-1.5">
+            <Label className="text-slate-300 text-sm">Nome do Combo</Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex: Kit + Coffee Manhã"
+              className="bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
+            />
+          </div>
           <div className="flex gap-4 items-end">
             <div className="flex-1 space-y-1.5">
               <Label className="text-slate-300 text-sm">Preço (R$)</Label>

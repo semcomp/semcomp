@@ -13,7 +13,9 @@ const (
 // Product é a entidade base de um produto
 type Product struct {
 	ID         uint        `gorm:"primaryKey;autoIncrement" json:"id"`
+
 	Type       ProductType `gorm:"size:10;not null" json:"type"`
+	Name       string      `gorm:"size:200" json:"name"`
 	IsSelling  bool        `gorm:"not null" json:"is_selling"`
 	Price      float64     `gorm:"not null" json:"price"`
 	PictureURL string      `gorm:"size:255" json:"picture_url"`
@@ -77,6 +79,7 @@ type ComboItemRequest struct {
 
 type CreateProductRequest struct {
 	Type      ProductType          `json:"type" binding:"required,oneof=KIT COFFEE COMBO"`
+	Name      string               `json:"name"`
 	IsSelling bool                 `json:"is_selling"`
 	Price     float64              `json:"price" binding:"required,gt=0"`
 	Kit       *CreateKitRequest    `json:"kit,omitempty"`
@@ -98,6 +101,7 @@ type UpdateCoffeeRequest struct {
 
 type UpdateProductRequest struct {
 	Type      ProductType          `json:"type" binding:"required,oneof=KIT COFFEE COMBO"`
+	Name      string               `json:"name"`
 	IsSelling bool                 `json:"is_selling"`
 	Price     float64              `json:"price" binding:"required,gt=0"`
 	Kit       *UpdateKitRequest    `json:"kit,omitempty"`
@@ -121,4 +125,8 @@ type ProductListResult struct {
 	Products        []Product `json:"products"`
 	TotalRecords    int64     `json:"total_records"`
 	FilteredRecords int64     `json:"filtered_records"`
+}
+
+type BulkCreateProductsRequest struct {
+	Products []CreateProductRequest `json:"products" binding:"required,min=1,max=100"`
 }

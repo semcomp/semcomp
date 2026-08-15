@@ -3,6 +3,7 @@ package product
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	"gorm.io/gorm"
@@ -10,6 +11,7 @@ import (
 
 type ProductRepository interface {
 	Create(product *Product) error
+	BulkCreate(products []*Product) ([]Product, error)
 	GetByID(id uint) (*Product, error)
 	DeleteByID(id uint) error
 	UpdateByID(id uint, product *Product) error
@@ -39,7 +41,8 @@ func (r *productRepository) GetByID(id uint) (*Product, error) {
 	err := r.db.
 		Preload("Kit").
 		Preload("Coffee").
-		Preload("ComboItems.Item").
+		Preload("ComboItems.Item.Kit").
+		Preload("ComboItems.Item.Coffee").
 		Where("id = ?", id).
 		First(&product).Error
 	if err != nil {
@@ -82,6 +85,7 @@ func (r *productRepository) UpdateByID(id uint, product *Product) error {
 			Where("id = ?", id).
 			Updates(map[string]interface{}{
 				"type":       product.Type,
+				"name":       product.Name,
 				"is_selling": product.IsSelling,
 				"price":      product.Price,
 			})
@@ -143,6 +147,31 @@ func (r *productRepository) UpdateByID(id uint, product *Product) error {
 	})
 }
 
+func (r *productRepository) BulkCreate(products []*Product) ([]Product, error) {
+	ids := make([]uint, 0, len(products))
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		for _, p := range products {
+			if err := tx.Create(p).Error; err != nil {
+				return err
+			}
+			ids = append(ids, p.ID)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	var result []Product
+	err = r.db.
+		Preload("Kit").
+		Preload("Coffee").
+		Preload("ComboItems.Item.Kit").
+		Preload("ComboItems.Item.Coffee").
+		Where("id IN ?", ids).
+		Find(&result).Error
+	return result, err
+}
+
 // CountComboItemRefs conta quantos ComboItems referenciam o produto como item
 func (r *productRepository) CountComboItemRefs(itemID uint) (int64, error) {
 	var count int64
@@ -152,7 +181,7 @@ func (r *productRepository) CountComboItemRefs(itemID uint) (int64, error) {
 
 func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB {
 	if query.TypeFilter != "" {
-		dbQuery = dbQuery.Where("type = ?", strings.ToUpper(query.TypeFilter))
+		dbQuery = dbQuery.Where("products.type = ?", strings.ToUpper(query.TypeFilter))
 	}
 
 	if query.SearchBy == "" || query.SearchValue == "" {
@@ -160,10 +189,32 @@ func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB
 	}
 
 	switch query.SearchBy {
+	case "id":
+		id, err := strconv.ParseUint(query.SearchValue, 10, 64)
+		if err != nil {
+			return dbQuery
+		}
+		return dbQuery.Where("products.id = ?", id)
 	case "is_selling":
-		return dbQuery.Where("is_selling = ?", strings.ToLower(query.SearchValue) == "true")
+		return dbQuery.Where("products.is_selling = ?", strings.ToLower(query.SearchValue) == "true")
 	case "price":
-		return dbQuery.Where("price::text ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("products.price::text ILIKE ?", "%"+query.SearchValue+"%")
+	case "kit.name":
+		return dbQuery.
+			Joins("JOIN kits ON kits.id = products.id").
+			Where("kits.name ILIKE ?", "%"+query.SearchValue+"%")
+	case "kit.size":
+		return dbQuery.
+			Joins("JOIN kits ON kits.id = products.id").
+			Where("kits.size ILIKE ?", "%"+query.SearchValue+"%")
+	case "kit.color":
+		return dbQuery.
+			Joins("JOIN kits ON kits.id = products.id").
+			Where("kits.color ILIKE ?", "%"+query.SearchValue+"%")
+	case "coffee.name":
+		return dbQuery.
+			Joins("JOIN coffees ON coffees.id = products.id").
+			Where("coffees.name ILIKE ?", "%"+query.SearchValue+"%")
 	default:
 		return dbQuery
 	}
@@ -208,7 +259,8 @@ func (r *productRepository) GetProducts(query ProductListQuery) (*ProductListRes
 	err = dataQuery.
 		Preload("Kit").
 		Preload("Coffee").
-		Preload("ComboItems.Item").
+		Preload("ComboItems.Item.Kit").
+		Preload("ComboItems.Item.Coffee").
 		Order(sortClause).
 		Limit(query.Limit).
 		Offset(query.Offset).
