@@ -67,6 +67,14 @@ interface StoreItem {
 
 const SIZE_ORDER = ["PP", "P", "M", "G", "GG"];
 
+// Coffee de dia (antes das 18h) só é vendido individualmente após este horário;
+// durante o dia ele aparece apenas dentro de combos.
+const NIGHT_HOUR = 18;
+
+function isNightCoffee(dateTime: string): boolean {
+  return new Date(dateTime).getHours() >= NIGHT_HOUR;
+}
+
 function compareSizes(a: string, b: string): number {
   const ia = SIZE_ORDER.indexOf(a);
   const ib = SIZE_ORDER.indexOf(b);
@@ -345,6 +353,8 @@ export default function StorePage() {
               if (group) group.push(p);
               else kitsByGroup.set(key, [p]);
             } else if (p.type === "COFFEE" && p.coffee) {
+              // Regra de negócio: coffee de dia só via combo; individual = noite.
+              if (!isNightCoffee(p.coffee.date_time)) continue;
               const key = coffeeGroupKey(p);
               const group = coffeesByGroup.get(key);
               if (group) group.push(p);
