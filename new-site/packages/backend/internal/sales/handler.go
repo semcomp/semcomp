@@ -18,9 +18,33 @@ func NewSaleHandler(saleService SaleService) *SaleHandler {
 	return &SaleHandler{saleService: saleService}
 }
 
-// CreateSale cria um novo pedido de compra.
+// Webhook recebe as notificações do Mercado Pago.
+// POST /webhook/mercadopago — público, chamado pelo MP.
+func (h *SaleHandler) Webhook(c *gin.Context) {
+	dataID := c.Query("data.id")
+	if dataID == "" {
+		var payload WebhookPayload
+		if err := c.ShouldBindJSON(&payload); err == nil {
+			dataID = payload.Data.ID
+		}
+	}
+
+	xSignature := c.GetHeader("x-signature")
+	xRequestID := c.GetHeader("x-request-id")
+
+	if err := h.saleService.HandleWebhook(dataID, xSignature, xRequestID); err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "OK"})
+}
+
+// CreateSale cria um novo pedido de compra e, quando payment_method == "pix",
+// já retorna o QR code da cobrança gerada no Mercado Pago.
 // @Summary Cria uma nova venda
-// @Description Realiza o fechamento do pedido (carrinho)
+// @Description Realiza o fechamento do pedido (carrinho); se payment_method
+// @Description for "pix", a resposta inclui qr_code/qr_code_base64/pix_expiration.
 // @Tags Vendas
 // @Accept json
 // @Produce json
@@ -37,6 +61,7 @@ func (h *SaleHandler) CreateSale(c *gin.Context) {
 		apierrors.HandleAPIError(c, apierrors.UnauthorizedError("Usuário não autenticado", nil))
 		return
 	}
+	email := c.GetString("email")
 
 	var request CreateSaleRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -48,7 +73,7 @@ func (h *SaleHandler) CreateSale(c *gin.Context) {
 		return
 	}
 
-	sale, err := h.saleService.CreateSale(userNumber, request)
+	sale, err := h.saleService.CreateSale(userNumber, email, request)
 	if err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
@@ -114,6 +139,33 @@ func (h *SaleHandler) GetSaleByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, sale)
+}
+
+// GetSaleStatus retorna o status atual da venda (para polling do PIX).
+// @Summary Status da venda (polling)
+// @Description Retorna o status atual de uma venda, considerando expiração de PIX pendente
+// @Tags Vendas
+// @Produce json
+// @Param id path int true "ID da venda"
+// @Success 200 {object} map[string]string "Status atual"
+// @Failure 400 {object} map[string]string "ID inválido"
+// @Failure 404 {object} map[string]string "Não encontrado"
+// @Security BearerAuth
+// @Router /sales/{id}/status [get]
+func (h *SaleHandler) GetSaleStatus(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("ID de venda inválido", err))
+		return
+	}
+
+	status, err := h.saleService.GetStatus(uint(id))
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": status})
 }
 
 // GetAllSales retorna a lista paginada de vendas (Backoffice).
@@ -227,7 +279,7 @@ func (h *SaleHandler) DeleteSaleByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Venda removida com sucesso!"})
 }
 
-// UpdateItemPickup atualiza o status de retirada de um item específico
+// UpdateItemPickup atualiza o status de retirada de um item específico.
 // @Summary Atualiza o status de retirada de um item da venda
 // @Description Marca um produto (ex: Kit) como retirado ou não pelo participante
 // @Tags Backoffice Vendas

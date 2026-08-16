@@ -18,6 +18,10 @@ type SaleRepository interface {
 	UpdateByID(id uint, updateData map[string]interface{}) error
 	DeleteByID(id uint) error
 
+	// SetMercadoPagoID grava o ID do pagamento do MP assim que ele é conhecido
+	// (equivalente ao antigo PaymentRepository.SetMercadoPagoID).
+	SetMercadoPagoID(id uint, mpID string) error
+
 	// Operações de itens
 	GetSaleItemByID(itemID uint) (*SaleItem, error)
 	UpdateItemPickup(itemID uint, isPickedUp bool) error
@@ -64,7 +68,7 @@ func (r *saleRepository) GetByID(id uint) (*Sale, error) {
 func (r *saleRepository) GetByUserNumber(userNumber uint) ([]Sale, error) {
 	var sales []Sale
 	err := r.db.
-		Where("user_number = ?", userNumber).
+		Where("sale_user_number = ?", userNumber).
 		Preload("Items").
 		Preload("Items.Product").
 		Preload("Items.Product.Kit").
@@ -103,6 +107,21 @@ func (r *saleRepository) DeleteByID(id uint) error {
 	}
 	if result.RowsAffected == 0 {
 		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+// SetMercadoPagoID grava o ID do pagamento do MP assim que ele é conhecido.
+func (r *saleRepository) SetMercadoPagoID(id uint, mpID string) error {
+	result := r.db.
+		Model(&Sale{}).
+		Where("id = ?", id).
+		Update("mercado_pago_id", mpID)
+	if result.Error != nil {
+		return apierrors.InternalServerError("Erro ao atualizar ID do pagamento", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return apierrors.NotFoundError("Venda não encontrada", nil)
 	}
 	return nil
 }
@@ -188,7 +207,7 @@ func (r *saleRepository) GetAll(query SaleListQuery) (*SaleListResult, error) {
 	}, nil
 }
 
-// GetSaleItemByID busca um item específico da venda
+// GetSaleItemByID busca um item específico da venda.
 func (r *saleRepository) GetSaleItemByID(itemID uint) (*SaleItem, error) {
 	var item SaleItem
 	err := r.db.Preload("Product").Preload("Product.Kit").Where("id = ?", itemID).First(&item).Error
@@ -201,7 +220,7 @@ func (r *saleRepository) GetSaleItemByID(itemID uint) (*SaleItem, error) {
 	return &item, nil
 }
 
-// UpdateItemPickup atualiza apenas o status de retirada do item
+// UpdateItemPickup atualiza apenas o status de retirada do item.
 func (r *saleRepository) UpdateItemPickup(itemID uint, isPickedUp bool) error {
 	result := r.db.Model(&SaleItem{}).Where("id = ?", itemID).Update("is_picked_up", isPickedUp)
 	if result.Error != nil {
