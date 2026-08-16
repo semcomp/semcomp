@@ -53,10 +53,10 @@ func main() {
 	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
 
 	err := db.AutoMigrate(
-		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, 
-		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, 
-		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, 
-		&token.Token{}, &payment.Payment{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{}, 
+		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{},
+		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{},
+		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{},
+		&token.Token{}, &payment.Payment{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{},
 		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{},
 	)
 	if err != nil {
@@ -157,10 +157,6 @@ func main() {
 	// Inicialização de valores base de permissões para o banco de dados
 	if err := permissionService.InitializePermissions(); err != nil {
 		panic("Failed to initialize admin's permissions in backoffice: " + err.Error())
-	}
-
-	if err := productService.InitializeProducts(); err != nil {
-		panic("Failed to initialize products: " + err.Error())
 	}
 
 	r := gin.Default()
@@ -269,6 +265,7 @@ func main() {
 	admin.GET("/products", permMW("Produtos", permission.PermR), productHandler.GetProducts)
 	admin.GET("/products/:id", permMW("Produtos", permission.PermR), productHandler.GetProductByID)
 	admin.POST("/products", permMW("Produtos", permission.PermRW), productHandler.CreateProduct)
+	admin.POST("/products/bulk", permMW("Produtos", permission.PermRW), productHandler.BulkCreateProducts)
 	admin.PUT("/products/:id", permMW("Produtos", permission.PermRW), productHandler.UpdateProductByID)
 	admin.DELETE("/products/:id", permMW("Produtos", permission.PermRW), productHandler.DeleteProductByID)
 

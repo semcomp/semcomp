@@ -172,7 +172,6 @@ export default function ParticipationCRUD() {
           onCreate={handleCreate}
           getItemKey={resolvePresenceKey}
           entityLabel="participação"
-          serverSide
           totalRecords={totalRecords}
           onQueryChange={handleQueryChange}
           canWrite={canWrite}

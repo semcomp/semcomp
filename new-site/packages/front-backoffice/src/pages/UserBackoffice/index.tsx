@@ -148,7 +148,6 @@ export default function BackofficeUsersCRUD() {
             onDelete={handleDelete}
             onCreate={handleCreate}
             entityLabel="usuário do backoffice"
-            serverSide
             totalRecords={totalRecords}
             onQueryChange={handleQueryChange}
             canWrite={canWrite}

@@ -2,6 +2,7 @@ package product
 
 import (
 	"backend/internal/apierrors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -43,6 +44,34 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	}
 	c.Set("responseMessage", "Produto criado com sucesso!")
 	c.JSON(http.StatusCreated, gin.H{"message": "Produto criado com sucesso!", "product": product})
+}
+
+// BulkCreateProducts cria múltiplos produtos em uma única transação.
+// @Summary Cria produtos em lote
+// @Description Cadastra múltiplos produtos atomicamente (todos ou nenhum)
+// @Tags Product Backoffice
+// @Accept json
+// @Produce json
+// @Param request body product.BulkCreateProductsRequest true "Lista de produtos"
+// @Success 201 {object} map[string]interface{} "Produtos criados com sucesso"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/products/bulk [post]
+func (h *ProductHandler) BulkCreateProducts(c *gin.Context) {
+	var request BulkCreateProductsRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados da requisição inválidos", err))
+		return
+	}
+	products, err := h.productService.BulkCreateProducts(request)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	msg := fmt.Sprintf("%d produtos criados com sucesso!", len(products))
+	c.Set("responseMessage", msg)
+	c.JSON(http.StatusCreated, gin.H{"message": msg, "products": products})
 }
 
 // GetProductByID retorna um produto específico buscando pelo ID.
@@ -152,6 +181,7 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 	sortOrder := c.DefaultQuery("sort_order", "asc")
 	searchBy := c.Query("search_by")
 	searchValue := c.Query("search_value")
+	typeFilter := c.Query("type")
 
 	if pageQuery := c.Query("page"); pageQuery != "" {
 		parsedPage, err := strconv.Atoi(pageQuery)
@@ -171,7 +201,7 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 		limit = parsedLimit
 	}
 
-	result, err := h.productService.GetProducts(page, limit, sortBy, sortOrder, searchBy, searchValue)
+	result, err := h.productService.GetProducts(page, limit, sortBy, sortOrder, searchBy, searchValue, typeFilter)
 	if err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
