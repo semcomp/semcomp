@@ -3,8 +3,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/contexts/useTheme";
 import { useCart } from "@/contexts/CartContext";
-import { paymentAPI, type PixPaymentResponse } from "@/api/payment";
-import { salesAPI } from "@/api/sales";
+import { salesAPI, type SaleResponse } from "@/api/sales";
 import {
   CheckCircle2,
   XCircle,
@@ -40,53 +39,41 @@ export default function CheckoutPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const navState = location.state as { pixData?: PixPaymentResponse; dietaryRestrictions?: string } | null;
+  const navState = location.state as { sale?: SaleResponse; dietaryRestrictions?: string } | null;
 
-  const [pixData, setPixData] = useState<PixPaymentResponse | null>(
-    navState?.pixData ?? null
+  const [sale, setSale] = useState<SaleResponse | null>(
+    navState?.sale ?? null
   );
 
-  // Restrições alimentares informadas no carrinho. Guardadas em ref porque precisam
-  // sobreviver até o momento de registrar a venda (finalizeSale), inclusive após o
-  // carrinho já ter sido limpo.
+  // Restrições alimentares informadas no carrinho. Guardadas em ref para
+  // sobreviverem até o envio da venda, inclusive após o carrinho ser limpo.
   const dietaryRestrictionsRef = useRef(navState?.dietaryRestrictions ?? "");
-  const [status, setStatus] = useState<Status>(pixData ? "pending" : "loading");
+  const [status, setStatus] = useState<Status>(sale ? "pending" : "loading");
   const [copied, setCopied] = useState(false);
   const [countdown, setCountdown] = useState(() =>
-    pixData?.expiration_date ? secondsUntil(pixData.expiration_date) : 0
+    sale?.pix_expiration ? secondsUntil(sale.pix_expiration) : 0
   );
   const [error, setError] = useState<string | null>(null);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Guarda o último snapshot não-vazio do carrinho, já que ele é limpo
-  // (clearCart) assim que a venda é registrada com sucesso.
-  const itemsSnapshotRef = useRef(items);
   useEffect(() => {
-    if (items.length > 0) {
-      itemsSnapshotRef.current = items;
-    }
-  }, [items]);
-
-  // Evita registrar a mesma venda duas vezes (ex: efeito rodando de novo em StrictMode).
-  const saleCreatedRef = useRef(false);
-  const [saleError, setSaleError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (pixData || items.length === 0) return;
-    if (!pixData && subtotal === 0) {
+    if (sale || items.length === 0) return;
+    if (subtotal === 0) {
       navigate("/loja/carrinho", { replace: true });
       return;
     }
-    paymentAPI
-      .createPix(
-        items.map((i) => ({ product_id: Number(i.id), quantity: i.type === "COFFEE" ? 1 : i.quantity })),
-        "Semcomp - Compra de produtos"
-      )
-      .then((data) => {
-        setPixData(data);
-        setCountdown(secondsUntil(data.expiration_date));
+    // Reload da página sem sale no location.state: recria a venda + cobrança PIX.
+    salesAPI
+      .create({
+        items: items.map((i) => ({ product_id: Number(i.id), quantity: i.quantity })),
+        payment_method: "PIX",
+        dietary_restrictions: dietaryRestrictionsRef.current,
+      })
+      .then((s) => {
+        setSale(s);
+        setCountdown(s.pix_expiration ? secondsUntil(s.pix_expiration) : 0);
         setStatus("pending");
       })
       .catch(() => {
@@ -117,62 +104,37 @@ export default function CheckoutPage() {
 
   // Polling de status
   useEffect(() => {
-    if (!pixData || status !== "pending") return;
+    if (!sale || status !== "pending") return;
     pollRef.current = setInterval(async () => {
       try {
-        const { status: s } = await paymentAPI.getStatus(pixData.payment_id);
-        if (s === "approved") {
+        const { status: s } = await salesAPI.getStatus(sale.id);
+        if (s === "PAGO") {
           setStatus("approved");
           clearInterval(pollRef.current!);
           clearInterval(countdownRef.current!);
-        } else if (s === "rejected" || s === "refunded") {
+        } else if (s === "REJEITADO" || s === "REEMBOLSADO" || s === "CANCELADO") {
           setStatus("rejected");
           clearInterval(pollRef.current!);
           clearInterval(countdownRef.current!);
+        } else if (s === "EXPIRADO") {
+          setStatus("expired");
+          clearInterval(pollRef.current!);
         }
       } catch {
         // falha no poll: não interrompe, tenta novamente no próximo tick
       }
     }, POLL_INTERVAL_MS);
     return () => clearInterval(pollRef.current!);
-  }, [pixData, status]);
+  }, [sale, status]);
 
-  // Registra a venda (POST /api/sales) e só então limpa o carrinho.
-  // Chamada tanto pelo fluxo normal (pagamento aprovado via polling)
-  // quanto pelo botão de teste que bypassa a análise do pagamento.
-  const finalizeSale = useCallback(
-    async (checkoutItems: typeof items) => {
-      if (saleCreatedRef.current) return;
-      saleCreatedRef.current = true;
-      setSaleError(null);
-
-      try {
-        await salesAPI.create({
-          items: checkoutItems.map((i) => ({
-            product_id: Number(i.id),
-            quantity: i.type === "COFFEE" ? 1 : i.quantity,
-          })),
-          payment_method: "PIX",
-          status: "PAGO",
-          dietary_restrictions: dietaryRestrictionsRef.current,
-        });
-        clearCart();
-      } catch (err) {
-        console.error("Erro ao registrar a venda após o pagamento", err);
-        saleCreatedRef.current = false; // permite tentar novamente
-        setSaleError(
-          "Pagamento aprovado, mas houve um erro ao registrar seu pedido. Entre em contato com a organização informando o ocorrido."
-        );
-      }
-    },
-    [clearCart]
-  );
-
+  // A venda já foi criada no "Finalizar Pedido" (POST /api/sales, status PENDENTE).
+  // Ao aprovar, apenas limpamos o carrinho — o status da venda é atualizado para
+  // PAGO pelo webhook do Mercado Pago (ou manualmente no backoffice, em dev).
   useEffect(() => {
     if (status === "approved") {
-      finalizeSale(itemsSnapshotRef.current);
+      clearCart();
     }
-  }, [status, finalizeSale]);
+  }, [status, clearCart]);
 
   // ─── Botão de teste: aprova o pagamento sem esperar a análise real ───
   const handleBypassApproval = useCallback(() => {
@@ -182,12 +144,12 @@ export default function CheckoutPage() {
   }, []);
 
   const handleCopy = useCallback(() => {
-    if (!pixData?.qr_code) return;
-    navigator.clipboard.writeText(pixData.qr_code).then(() => {
+    if (!sale?.qr_code) return;
+    navigator.clipboard.writeText(sale.qr_code).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     });
-  }, [pixData]);
+  }, [sale]);
 
   // ─── Cores ──────────────────────────────────────────────
   const bg = isDarkMode
@@ -233,9 +195,9 @@ export default function CheckoutPage() {
           <p className={`text-sm max-w-xs ${textMuted}`}>
             Seu pagamento PIX foi aprovado.
           </p>
-          {saleError && (
-            <p className="text-sm max-w-xs font-semibold text-red-400">
-              {saleError}
+          {sale && (
+            <p className={`text-xs ${textMuted}`}>
+              Pedido #{sale.id} registrado.
             </p>
           )}
           <Link
@@ -315,15 +277,15 @@ export default function CheckoutPage() {
           <div className={`rounded-2xl px-6 py-3 text-center ${isDarkMode ? "bg-white/5" : "bg-semcompMidLightBlue/10"}`}>
             <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${textMuted}`}>Total</p>
             <p className={`text-3xl font-extrabold ${textPrimary}`}>
-              {formatBRL(pixData?.amount ?? subtotal)}
+              {formatBRL(sale?.total_amount ?? subtotal)}
             </p>
           </div>
 
           {/* QR Code */}
-          {pixData?.qr_code_base64 ? (
+          {sale?.qr_code_base64 ? (
             <div className={`rounded-2xl border-4 ${isDarkMode ? "border-white/10 bg-white" : "border-semcompMidLightBlue/30 bg-white"} p-3 shadow-inner`}>
               <img
-                src={`data:image/png;base64,${pixData.qr_code_base64}`}
+                src={`data:image/png;base64,${sale.qr_code_base64}`}
                 alt="QR Code PIX"
                 className="w-48 h-48 sm:w-56 sm:h-56 object-contain"
               />
@@ -341,12 +303,12 @@ export default function CheckoutPage() {
             </p>
             <div className={`flex items-center gap-2 rounded-xl border ${cardBorder} ${codeBoxBg} px-4 py-3`}>
               <p className={`flex-1 text-xs font-mono truncate ${textPrimary}`}>
-                {pixData?.qr_code ?? "Gerando código..."}
+                {sale?.qr_code ?? "Gerando código..."}
               </p>
               <button
                 type="button"
                 onClick={handleCopy}
-                disabled={!pixData?.qr_code}
+                disabled={!sale?.qr_code}
                 aria-label="Copiar código PIX"
                 className={`shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer
                   ${copied

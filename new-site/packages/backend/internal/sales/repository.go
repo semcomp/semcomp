@@ -3,7 +3,6 @@ package sales
 import (
 	"errors"
 	"fmt"
-	"slices"
 	"strings"
 
 	"backend/internal/apierrors"
@@ -137,17 +136,27 @@ func applySaleSearchFilter(dbQuery *gorm.DB, query SaleListQuery) *gorm.DB {
 	case "payment_method":
 		return dbQuery.Where("payment_method ILIKE ?", "%"+query.SearchValue+"%")
 	case "user_number":
-		return dbQuery.Where("user_number = ?", query.SearchValue)
+		return dbQuery.Where("sale_user_number = ?", query.SearchValue)
 	default:
 		return dbQuery
 	}
 }
 
 func resolveSaleSortClause(sortBy string, sortOrder string) (string, error) {
-	allowedSortFields := []string{"id", "status", "total_amount", "created_at"}
+	// Mapeia o campo enviado pela API (json tag) para a coluna real do banco.
+	// `user_number` (json) corresponde à coluna GORM `sale_user_number`.
+	sortColumnMap := map[string]string{
+		"id":             "id",
+		"status":         "status",
+		"total_amount":   "total_amount",
+		"created_at":     "created_at",
+		"user_number":    "sale_user_number",
+		"payment_method": "payment_method",
+	}
 
 	field := strings.ToLower(sortBy)
-	if !slices.Contains(allowedSortFields, field) {
+	column, ok := sortColumnMap[field]
+	if !ok {
 		return "", fmt.Errorf("invalid sort field")
 	}
 
@@ -156,7 +165,7 @@ func resolveSaleSortClause(sortBy string, sortOrder string) (string, error) {
 		return "", fmt.Errorf("invalid sort order")
 	}
 
-	return field + " " + order, nil
+	return column + " " + order, nil
 }
 
 func (r *saleRepository) GetAll(query SaleListQuery) (*SaleListResult, error) {

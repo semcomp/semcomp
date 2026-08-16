@@ -385,10 +385,12 @@ func (s *saleService) GetAllSales(page int, limit int, sortBy string, sortOrder 
 	sortOrder = strings.ToLower(sortOrder)
 
 	allowedSortFields := map[string]bool{
-		"id":           true,
-		"status":       true,
-		"total_amount": true,
-		"created_at":   true,
+		"id":             true,
+		"status":         true,
+		"total_amount":   true,
+		"created_at":     true,
+		"user_number":    true,
+		"payment_method": true,
 	}
 	if !allowedSortFields[sortBy] {
 		return nil, apierrors.ValidationError("Parâmetro 'sort_by' inválido", nil)

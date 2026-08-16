@@ -8,8 +8,8 @@ export interface SaleItem {
 export interface CreateSalePayload {
   items: SaleItem[];
   payment_method: string;
-  status: string;
-  dietary_restrictions: string;
+  status?: string;
+  dietary_restrictions?: string;
 }
 
 export interface SaleProduct {
@@ -38,6 +38,9 @@ export interface SaleResponse {
   created_at: string;
   updated_at: string;
   items?: SaleItemResponse[];
+
+  // Campos transitórios de cobrança PIX (preenchidos na resposta de criação
+  // quando payment_method é "PIX" — espelham backend/internal/sales/model.go).
   qr_code?: string;
   qr_code_base64?: string;
   pix_expiration?: string;
@@ -56,7 +59,6 @@ export const salesAPI = {
   // POST /api/sales — cria um novo pedido para o usuário autenticado
   create: async (payload: CreateSalePayload): Promise<SaleResponse> => {
     const response = await client.post<CreateSaleApiResponse>("/api/sales", payload);
-    console.log(response.data.sale);
     return response.data.sale;
   },
 
@@ -69,6 +71,12 @@ export const salesAPI = {
   // GET /api/sales/:id — detalhes de uma compra específica do usuário
   getById: async (saleId: number): Promise<SaleResponse> => {
     const response = await client.get<SaleResponse>(`/api/sales/${saleId}`);
+    return response.data;
+  },
+
+  // GET /api/sales/:id/status — status efetivo da venda (polling do PIX)
+  getStatus: async (saleId: number): Promise<{ status: string }> => {
+    const response = await client.get<{ status: string }>(`/api/sales/${saleId}/status`);
     return response.data;
   },
 };

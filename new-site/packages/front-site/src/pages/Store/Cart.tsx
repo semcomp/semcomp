@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTheme } from "@/contexts/useTheme";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useCart } from "@/contexts/CartContext";
-import { paymentAPI } from "@/api/payment";
+import { salesAPI } from "@/api/sales";
 import { useNotification } from "@/contexts/NotificationContext";
 import {
   ShoppingBag,
@@ -53,13 +53,14 @@ export default function CartPage() {
   const handleCheckout = async () => {
     setCheckoutLoading(true);
     try {
-      const pixData = await paymentAPI.createPix(
-        items.map((i) => ({ product_id: Number(i.id), quantity: i.type === "COFFEE" ? 1 : i.quantity })),
-        "Semcomp - Compra de produtos"
-      );
-      navigate("/loja/checkout", { state: { pixData, dietaryRestrictions } });
+      const sale = await salesAPI.create({
+        items: items.map((i) => ({ product_id: Number(i.id), quantity: i.quantity })),
+        payment_method: "PIX",
+        dietary_restrictions: dietaryRestrictions,
+      });
+      navigate("/loja/checkout", { state: { sale, dietaryRestrictions } });
     } catch {
-      showNotification("Erro ao gerar PIX. Tente novamente.", "warning");
+      showNotification("Erro ao finalizar pedido. Tente novamente.", "warning");
     } finally {
       setCheckoutLoading(false);
     }

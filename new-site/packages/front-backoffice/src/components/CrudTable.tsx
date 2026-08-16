@@ -48,6 +48,9 @@ import {
 
 export interface CrudField {
   value: string;
+  /** Coluna real usada para ordenação quando `value` é um campo de exibição
+   *  (ex.: "total_amount_formatted" ordena por "total_amount"). */
+  sortValue?: string;
   label: string;
   type?:
     | "text"
@@ -451,7 +454,9 @@ export function CrudTable({
   const [filterField, setFilterField] = useState(
     filterableFields[0]?.value ?? "name"
   );
-  const [sortField, setSortField] = useState(fields[0]?.value ?? "name");
+  const [sortField, setSortField] = useState(
+    fields[0]?.sortValue ?? fields[0]?.value ?? "name"
+  );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(defaultPageSize);
@@ -871,7 +876,7 @@ export function CrudTable({
                 <TableHead
                   key={f.value}
                   className="cursor-pointer select-none text-muted-foreground text-xs font-semibold uppercase tracking-wider hover:text-primary transition-colors"
-                  onClick={() => handleSort(f.value)}
+                  onClick={() => handleSort(f.sortValue ?? f.value)}
                 >
                   {f.label}
                   <SortIcon field={f.value} />

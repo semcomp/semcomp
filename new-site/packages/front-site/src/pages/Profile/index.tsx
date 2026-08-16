@@ -39,13 +39,19 @@ export interface PurchaseType {
   date: string;
   amount: number;
   status: string;
+  statusColor: string;
 }
 
-const SALE_STATUS_LABELS: Record<string, string> = {
-  PENDING: "Pendente",
-  PAID: "Pago",
-  CANCELED: "Cancelado",
-  REFUNDED: "Reembolsado",
+// Estilo por status cru do backend (PENDENTE, PAGO, REJEITADO, CANCELADO,
+// REEMBOLSADO). Label é o texto amigável exibido ao lado do valor; color é a
+// classe de texto aplicada ao valor da compra.
+const SALE_STATUS_STYLES: Record<string, { label: string; color: string }> = {
+  PAGO: { label: "Pago", color: "text-green-700" },
+  PENDENTE: { label: "Pendente", color: "text-yellow-600" },
+  CANCELADO: { label: "Cancelado", color: "text-red-700" },
+  REEMBOLSADO: { label: "Reembolsado", color: "text-blue-700" },
+  REJEITADO: { label: "Rejeitado", color: "text-orange-600" },
+  EXPIRADO: { label: "Expirado", color: "text-gray-500" },
 };
 
 function getProductDisplayName(product: any): string {
@@ -77,12 +83,15 @@ function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
         .join(", ")
     : "Pedido";
 
+  const style = SALE_STATUS_STYLES[sale.status] ?? { label: sale.status, color: "text-gray-500" };
+
   return {
     id: String(sale.id),
     item: itemsLabel,
     date: formatDate(sale.created_at, 2),
     amount: sale.total_amount,
-    status: SALE_STATUS_LABELS[sale.status] ?? sale.status,
+    status: style.label,
+    statusColor: style.color,
   };
 }
 
@@ -321,7 +330,7 @@ export default function Profile({
                         <p className="font-bold text-sm text-semcompDarkBlue">{purchase.item}</p>
                         <div className="flex justify-between items-center mt-2">
                           <span className="text-xs font-semibold opacity-70">{purchase.date}</span>
-                          <span className="text-sm font-bold text-green-700">
+                          <span className={`text-sm font-bold ${purchase.statusColor}`}>
                             R$ {purchase.amount.toFixed(2)}
                           </span>
                         </div>
@@ -527,7 +536,7 @@ export default function Profile({
                   <span className="font-bold text-semcompDarkBlue">{purchase.item}</span>
                   <div className="flex justify-between mt-2">
                     <span className="text-xs font-medium text-semcompDarkBlue/70">{purchase.date}</span>
-                    <span className="text-sm font-bold text-green-700">R$ {purchase.amount.toFixed(2)}</span>
+                    <span className={`text-sm font-bold ${purchase.statusColor}`}>R$ {purchase.amount.toFixed(2)}</span>
                   </div>
                   <span className="text-xs font-semibold text-semcompDarkBlue/80 mt-1">Status: {purchase.status}</span>
                 </div>
