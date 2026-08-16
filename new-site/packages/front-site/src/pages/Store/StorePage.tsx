@@ -178,6 +178,7 @@ function formatDateTime(iso: string): string {
 }
 
 // Chip selecionável com contador: clique adiciona uma unidade; "+"/"−" ajustam.
+// `max` limita a quantidade por opção (usado p/ coffee, ticket único por horário).
 function OptionChip({
   label,
   count,
@@ -185,6 +186,7 @@ function OptionChip({
   idleClass,
   onAdd,
   onRemove,
+  max = Number.POSITIVE_INFINITY,
 }: {
   label: string;
   count: number;
@@ -192,8 +194,10 @@ function OptionChip({
   idleClass: string;
   onAdd: () => void;
   onRemove: () => void;
+  max?: number;
 }) {
   const active = count > 0;
+  const atMax = count >= max;
   return (
     <div
       className={`flex items-center gap-1 px-2 py-1.5 text-sm font-bold rounded-lg border transition-all cursor-pointer select-none ${active ? activeClass : idleClass}`}
@@ -213,14 +217,21 @@ function OptionChip({
         >
           <Minus size={12} />
         </button>
-        <span className="w-4 text-center text-sm tabular-nums">{count}</span>
+        <span
+          className="w-4 text-center text-sm tabular-nums"
+          onClick={(e) => e.stopPropagation()}
+          aria-hidden="true"
+        >
+          {count}
+        </span>
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             onAdd();
           }}
-          className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/10 transition-colors"
+          className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/10 disabled:opacity-30 transition-colors"
+          disabled={atMax}
           aria-label="Aumentar"
         >
           <Plus size={12} />
@@ -1026,11 +1037,12 @@ export default function StorePage() {
                           idleClass={chipIdle}
                           onAdd={() => setOptionCount(dt, 1)}
                           onRemove={() => setOptionCount(dt, -1)}
+                          max={1}
                         />
                       ))}
                     </div>
                     <p className={`mt-2 text-xs ${mutedText}`}>
-                      Selecione um horário por coffee. Quantidade total: {totalQty}.
+                      Coffee é um ticket de acesso único: no máximo 1 por horário.
                     </p>
                   </div>
                 )}

@@ -54,7 +54,7 @@ export default function CartPage() {
     setCheckoutLoading(true);
     try {
       const pixData = await paymentAPI.createPix(
-        items.map((i) => ({ product_id: Number(i.id), quantity: i.quantity })),
+        items.map((i) => ({ product_id: Number(i.id), quantity: i.type === "COFFEE" ? 1 : i.quantity })),
         "Semcomp - Compra de produtos"
       );
       navigate("/loja/checkout", { state: { pixData, dietaryRestrictions } });
@@ -246,7 +246,8 @@ export default function CartPage() {
                             type="button"
                             onClick={() => updateQuantity(item.cartKey, 1)}
                             aria-label="Aumentar"
-                            className={`w-8 h-8 rounded-full border ${cardBorder} flex items-center justify-center ${textColor} hover:bg-semcompMidLightBlue/20 transition-colors cursor-pointer`}
+                            disabled={item.type === "COFFEE" && item.quantity >= 1}
+                            className={`w-8 h-8 rounded-full border ${cardBorder} flex items-center justify-center ${textColor} hover:bg-semcompMidLightBlue/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent`}
                           >
                             <Plus size={14} />
                           </button>

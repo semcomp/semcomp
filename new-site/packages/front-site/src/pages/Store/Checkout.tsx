@@ -81,7 +81,7 @@ export default function CheckoutPage() {
     }
     paymentAPI
       .createPix(
-        items.map((i) => ({ product_id: Number(i.id), quantity: i.quantity })),
+        items.map((i) => ({ product_id: Number(i.id), quantity: i.type === "COFFEE" ? 1 : i.quantity })),
         "Semcomp - Compra de produtos"
       )
       .then((data) => {
@@ -150,7 +150,7 @@ export default function CheckoutPage() {
         await salesAPI.create({
           items: checkoutItems.map((i) => ({
             product_id: Number(i.id),
-            quantity: i.quantity,
+            quantity: i.type === "COFFEE" ? 1 : i.quantity,
           })),
           payment_method: "PIX",
           status: "PAGO",

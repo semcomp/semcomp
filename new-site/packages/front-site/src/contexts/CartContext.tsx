@@ -42,13 +42,18 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
 
+  // Coffee é ticket de acesso único: nunca passa de 1 unidade por horário.
+  const maxQuantity = (type: CartItem["type"]): number => (type === "COFFEE" ? 1 : Number.POSITIVE_INFINITY);
+
   const addItem = useCallback((params: AddToCartParams) => {
     const cartKey = `${params.id}_${params.size ?? ""}_${params.dateTime ?? ""}_${params.isBabydoll ?? ""}`;
     setItems((prev) => {
       const existing = prev.find((i) => i.cartKey === cartKey);
       if (existing) {
         return prev.map((i) =>
-          i.cartKey === cartKey ? { ...i, quantity: i.quantity + 1 } : i,
+          i.cartKey === cartKey
+            ? { ...i, quantity: Math.min(i.quantity + 1, maxQuantity(i.type)) }
+            : i,
         );
       }
       return [...prev, { ...params, cartKey, quantity: 1 }];
@@ -64,7 +69,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       prev
         .map((i) => {
           if (i.cartKey !== cartKey) return i;
-          const newQty = i.quantity + delta;
+          const newQty = Math.min(i.quantity + delta, maxQuantity(i.type));
           return { ...i, quantity: Math.max(0, newQty) };
         })
         .filter((i) => i.quantity > 0),
