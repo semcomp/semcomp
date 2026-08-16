@@ -17,6 +17,7 @@ export interface Coffee {
 export interface ComboItem {
   combo_id: number;
   item_id: number;
+  quantity?: number;
 }
 
 export interface Product {

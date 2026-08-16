@@ -16,6 +16,7 @@ import {
   Store,
   X,
   ZoomIn,
+  Clock,
 } from "lucide-react";
 
 const fadeIn = {
@@ -29,6 +30,15 @@ const staggerList = {
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default function CartPage() {
@@ -197,9 +207,13 @@ export default function CartPage() {
                             )}
                             {item.dateTime && (
                               <p>
-                                🕐 {new Date(item.dateTime).toLocaleDateString("pt-BR", {
-                                  day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit"
-                                })}
+                                🕐 {formatDateTime(item.dateTime)}
+                              </p>
+                            )}
+                            {item.comboDateTimes && item.comboDateTimes.length > 0 && (
+                              <p className="flex items-center gap-1">
+                                <Clock size={12} />
+                                <span>Coffee incluído: {item.comboDateTimes.map((t) => formatDateTime(t)).join(", ")}</span>
                               </p>
                             )}
                             <p className="font-medium">{formatBRL(item.price)}/un</p>

@@ -5,7 +5,7 @@ import { useTheme } from "@/contexts/useTheme";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Modal from "@/components/ui/Modal";
 import { useCart, type AddToCartParams } from "@/contexts/CartContext";
-import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2, X, ZoomIn } from "lucide-react";
+import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2, X, ZoomIn, Clock } from "lucide-react";
 import { productsAPI } from "@/api/products";
 import type { Product, ProductType } from "@/types/ProductType";
 import { useNotification } from "@/contexts/NotificationContext";
@@ -13,17 +13,33 @@ import { useNotification } from "@/contexts/NotificationContext";
 // ─── Tipos ────────────────────────────────────────────────
 interface SizeVariant {
   productId: string;
+  color?: string;
   size: string;
   isBabydoll: boolean;
   priceValue: number;
 }
 
-function variantKey(v: { size: string; isBabydoll: boolean }): string {
-  return `${v.size}__${v.isBabydoll ? "babydoll" : "padrao"}`;
+// A chave da variante considera cor + tamanho + corte: cada cor×tamanho de uma
+// camiseta é um produto (combo) próprio, mas eles formam um único card/combos.
+function variantKey(v: { color?: string; size: string; isBabydoll: boolean }): string {
+  return `${v.color ?? ""}__${v.size}__${v.isBabydoll ? "babydoll" : "padrao"}`;
 }
 
 function variantLabel(v: { size: string; isBabydoll: boolean }): string {
   return v.isBabydoll ? `${v.size} · Babydoll` : v.size;
+}
+
+function colorOf(v: SizeVariant): string {
+  return v.color?.trim() || "Padrão";
+}
+
+function colorsOf(item: StoreItem): string[] {
+  return [...new Set(item.sizeVariants.map(colorOf))];
+}
+
+function firstVariantKeyForColor(item: StoreItem, color: string): string {
+  const variant = item.sizeVariants.find((v) => colorOf(v) === color);
+  return variant ? variantKey(variant) : "";
 }
 
 // Cada horário de coffee é um produto próprio (id + preço distintos).
@@ -75,13 +91,22 @@ function coffeeGroupKey(p: Product): string {
   return p.coffee?.name?.trim() || `product-${p.id}`;
 }
 
+// Combos com os MESMOS coffees e MESMA camiseta (modelo) são o MESMO combo:
+// cor/tamanho/preço da camiseta NÃO diferenciam combos, apenas geram variações
+// selecionáveis dentro do mesmo card.
 function comboGroupKey(p: Product, productById: Map<number, Product>): string {
   if (!p.combo_items?.length) return `combo-${p.id}`;
-  const nonKitIds = p.combo_items
+  const coffeeParts = p.combo_items
     .filter((ci) => productById.get(ci.item_id)?.type !== "KIT")
-    .map((ci) => ci.item_id)
-    .sort((a, b) => a - b);
-  return `${nonKitIds.join(",")}|${p.price}`;
+    .map((ci) => `${ci.item_id}x${ci.quantity ?? 1}`)
+    .sort();
+  const kitNames = p.combo_items
+    .filter((ci) => productById.get(ci.item_id)?.type === "KIT")
+    .map((ci) => productById.get(ci.item_id)?.kit?.name?.trim() ?? "")
+    .filter(Boolean)
+    .sort()
+    .join("+");
+  return `${coffeeParts.join(",")}|${kitNames}`;
 }
 
 function collectComboDateTimes(product: Product, productById: Map<number, Product>): string[] {
@@ -94,6 +119,39 @@ function collectComboDateTimes(product: Product, productById: Map<number, Produc
     }
   }
   return [...dateTimes];
+}
+
+// Gera uma descrição legível a partir dos itens do combo, sem travar cor/tamanho
+// (que são escolhidos na hora da compra). Usa product.description se preenchida.
+function buildComboDescription(product: Product, productById: Map<number, Product>): string {
+  if (product.description?.trim()) return product.description;
+
+  const kitNames: string[] = [];
+  const coffees: { name: string; dateTime: string }[] = [];
+  for (const comboItem of product.combo_items ?? []) {
+    const item = productById.get(comboItem.item_id);
+    if (!item) continue;
+    if (item.type === "KIT" && item.kit?.name) {
+      kitNames.push(item.kit.name);
+    } else if (item.type === "COFFEE" && item.coffee) {
+      coffees.push({ name: item.coffee.name, dateTime: item.coffee.date_time });
+    }
+  }
+
+  const parts: string[] = [];
+  if (kitNames.length) {
+    parts.push(`${[...new Set(kitNames)].join(" + ")} (cor e tamanho à sua escolha)`);
+  }
+  if (coffees.length) {
+    const coffeeLabel = [...new Set(coffees.map((c) => c.name))].join(" + ");
+    const times = [...new Set(coffees.map((c) => formatDateTime(c.dateTime)))].join(", ");
+    parts.push(times ? `${coffeeLabel} de ${times}` : coffeeLabel);
+  }
+
+  if (!parts.length) {
+    return `Combo com ${product.combo_items?.length ?? 0} itens`;
+  }
+  return parts.join(" + ");
 }
 
 // ─── Helpers ──────────────────────────────────────────────
@@ -185,41 +243,45 @@ function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number
     const kitProduct = kitComboItem ? productById.get(kitComboItem.item_id) : undefined;
     return {
       product: p,
+      color: kitProduct?.kit?.color ?? "",
       size: kitProduct?.kit?.size,
       isBabydoll: kitProduct?.kit?.is_babydoll ?? false,
     };
   });
 
-  const sorted = [...withKitInfo].sort((a, b) =>
-    compareVariants({ size: a.size ?? "", isBabydoll: a.isBabydoll }, { size: b.size ?? "", isBabydoll: b.isBabydoll })
-  );
-  const representative = sorted[0].product;
-
-  const sizeVariants: SizeVariant[] = withKitInfo
+  const sorted = withKitInfo
     .filter((x) => !!x.size)
-    .sort((a, b) => compareVariants({ size: a.size!, isBabydoll: a.isBabydoll }, { size: b.size!, isBabydoll: b.isBabydoll }))
-    .map((x) => ({
-      productId: String(x.product.id),
-      size: x.size!,
-      isBabydoll: x.isBabydoll,
-      priceValue: x.product.price,
-    }));
+    .sort((a, b) => {
+      const byColor = (a.color ?? "").localeCompare(b.color ?? "");
+      if (byColor !== 0) return byColor;
+      return compareVariants({ size: a.size!, isBabydoll: a.isBabydoll }, { size: b.size!, isBabydoll: b.isBabydoll });
+    });
+  const representative = sorted[0]?.product ?? groupProducts[0];
 
-  const availableDateTimes = collectComboDateTimes(representative, productById);
+  const sizeVariants: SizeVariant[] = sorted.map((x) => ({
+    productId: String(x.product.id),
+    color: x.color,
+    size: x.size!,
+    isBabydoll: x.isBabydoll,
+    priceValue: x.product.price,
+  }));
+
+  const comboDateTimes = collectComboDateTimes(representative, productById);
+  const representativeName = representative.name?.trim();
 
   return {
     id: String(representative.id),
-    name: "Combo",
+    name: representativeName || "Combo",
     category: "Combo",
-    description: representative.description || `Combo com ${representative.combo_items?.length ?? 0} itens`,
+    description: buildComboDescription(representative, productById),
     price: formatBRL(representative.price),
     priceValue: representative.price,
     image: representative.picture_url || `https://placehold.co/600x400/0B2639/FAFDFF?text=Combo`,
     rawType: "COMBO",
     sizeVariants,
-    availableDateTimes,
+    availableDateTimes: comboDateTimes,
     coffeeTimes: [],
-    defaultDateTime: availableDateTimes[0] ?? undefined,
+    defaultDateTime: comboDateTimes[0] ?? undefined,
   };
 }
 
@@ -266,8 +328,11 @@ export default function StorePage() {
         setLoading(true);
         const data = await productsAPI.getAllProducts();
         if (!cancelled) {
+          // productById precisa conter TODOS os produtos (não só os em venda):
+          // coffees de dia podem aparecer dentro de combos sem serem vendidos
+          // individualmente, e a resolução deles depende deste mapa.
+          const productById = new Map(data.products.map((p) => [p.id, p] as const));
           const selling = data.products.filter((p) => p.is_selling);
-          const productById = new Map(selling.map((p) => [p.id, p] as const));
 
           const kitsByGroup = new Map<string, Product[]>();
           const coffeesByGroup = new Map<string, Product[]>();
@@ -347,6 +412,11 @@ export default function StorePage() {
 
   const selectedVariant =
     selected?.sizeVariants.find((v) => variantKey(v) === selectedVariantKey) ?? selected?.sizeVariants[0];
+  const modalCurrentColor = selectedVariant
+    ? colorOf(selectedVariant)
+    : selected?.sizeVariants[0]
+      ? colorOf(selected.sizeVariants[0])
+      : "";
   const selectedCoffeeTime =
     selected?.rawType === "COFFEE"
       ? (selected.coffeeTimes.find((t) => t.dateTime === selectedDateTime) ?? selected.coffeeTimes[0])
@@ -369,6 +439,7 @@ export default function StorePage() {
       type: selected.rawType,
       dateTime: selectedDateTime || undefined,
       isBabydoll: selectedVariant?.isBabydoll || undefined,
+      comboDateTimes: selected.rawType === "COMBO" ? selected.availableDateTimes : undefined,
     };
     for (let i = 0; i < qty; i++) addItem(params);
     closeModal();
@@ -513,7 +584,27 @@ export default function StorePage() {
                   variants={stagger}
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-stretch"
                 >
-                  {filteredProducts.map((item) => (
+                  {filteredProducts.map((item) => {
+                    const defaultKey = item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : "";
+                    const quickKey = quickVariantKeyByItemId[item.id] ?? defaultKey;
+                    const quickVariant = item.sizeVariants.length > 0
+                      ? (item.sizeVariants.find((v) => variantKey(v) === quickKey) ?? item.sizeVariants[0])
+                      : undefined;
+                    const currentColor = quickVariant ? colorOf(quickVariant) : "";
+                    const activeDateTime = quickDateTimeByItemId[item.id] ?? item.defaultDateTime;
+                    const quickCoffeeTime = item.rawType === "COFFEE"
+                      ? (item.coffeeTimes.find((t) => t.dateTime === activeDateTime) ?? item.coffeeTimes[0])
+                      : undefined;
+                    const displayPrice = quickVariant
+                      ? formatBRL(quickVariant.priceValue)
+                      : quickCoffeeTime
+                        ? formatBRL(quickCoffeeTime.priceValue)
+                        : item.price;
+                    const sizeVariantsToShow = item.rawType === "COMBO"
+                      ? item.sizeVariants.filter((v) => colorOf(v) === currentColor)
+                      : item.sizeVariants;
+
+                    return (
                     <motion.article
                       key={item.id}
                       variants={fadeIn}
@@ -548,33 +639,14 @@ export default function StorePage() {
 
                       {/* Conteúdo */}
                       <div className="p-5 flex flex-col gap-2.5 flex-1">
-                        {(() => {
-                          const defaultKey = item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : "";
-                          const quickKey = quickVariantKeyByItemId[item.id] ?? defaultKey;
-                          const quickVariant = item.sizeVariants.length > 0
-                            ? (item.sizeVariants.find((v) => variantKey(v) === quickKey) ?? item.sizeVariants[0])
-                            : undefined;
-                          const activeDateTime = quickDateTimeByItemId[item.id] ?? item.defaultDateTime;
-                          const quickCoffeeTime = item.rawType === "COFFEE"
-                            ? (item.coffeeTimes.find((t) => t.dateTime === activeDateTime) ?? item.coffeeTimes[0])
-                            : undefined;
-                          const displayPrice = quickVariant
-                            ? formatBRL(quickVariant.priceValue)
-                            : quickCoffeeTime
-                              ? formatBRL(quickCoffeeTime.priceValue)
-                              : item.price;
-
-                          return (
-                            <div className="flex items-start justify-between gap-3">
-                              <h3 className={`font-poppins font-bold text-lg leading-tight ${textColor}`}>
-                                {item.name}
-                              </h3>
-                              <span className={`shrink-0 font-extrabold text-lg ${priceColor}`}>
-                                {displayPrice}
-                              </span>
-                            </div>
-                          );
-                        })()}
+                        <div className="flex items-start justify-between gap-3">
+                          <h3 className={`font-poppins font-bold text-lg leading-tight ${textColor}`}>
+                            {item.name}
+                          </h3>
+                          <span className={`shrink-0 font-extrabold text-lg ${priceColor}`}>
+                            {displayPrice}
+                          </span>
+                        </div>
 
                         {/* Info específica por tipo */}
                         {item.rawType === "COFFEE" && item.availableDateTimes.length > 0 && (
@@ -583,21 +655,51 @@ export default function StorePage() {
                           </p>
                         )}
 
-                        <p className={`text-sm font-semibold ${mutedText}`}>
-                          {`Cor: ${item.color ?? "Padrão"}`}
-                        </p>
+                        {item.rawType === "KIT" && (
+                          <p className={`text-sm font-semibold ${mutedText}`}>
+                            {`Cor: ${item.color ?? "Padrão"}`}
+                          </p>
+                        )}
 
                         <p className={`text-sm leading-relaxed ${mutedText} line-clamp-2`}>
                           {item.description}
                         </p>
 
-                        {/* Seletor de tamanho no card */}
-                        {item.sizeVariants.length > 0 && (
+                        {/* Seletor de cor (Combo) */}
+                        {item.rawType === "COMBO" && colorsOf(item).length > 1 && (
                           <div className="flex flex-wrap gap-1.5 mt-0.5">
-                            {item.sizeVariants.map((v) => {
+                            {colorsOf(item).map((color) => {
+                              const isActive = currentColor === color;
+                              return (
+                                <button
+                                  key={color}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setQuickVariantKeyByItemId((prev) => ({ ...prev, [item.id]: firstVariantKeyForColor(item, color) }));
+                                  }}
+                                  className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${
+                                    isActive
+                                      ? isDarkMode
+                                        ? "bg-semcompOffWhite text-semcompMidDarkBlue border-semcompOffWhite shadow-sm"
+                                        : "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue"
+                                      : isDarkMode
+                                        ? `${cardBorder} ${mutedText} hover:border-semcompOffWhite/70 hover:text-semcompOffWhite`
+                                        : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue`
+                                  }`}
+                                >
+                                  {color}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Seletor de tamanho no card */}
+                        {sizeVariantsToShow.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-0.5">
+                            {sizeVariantsToShow.map((v) => {
                               const key = variantKey(v);
-                              const defaultKey = item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : "";
-                              const isActive = (quickVariantKeyByItemId[item.id] ?? defaultKey) === key;
+                              const isActive = quickKey === key;
                               return (
                                 <button
                                   key={key}
@@ -622,11 +724,10 @@ export default function StorePage() {
                           </div>
                         )}
 
-                        {/* Horários (Coffee e Combo) */}
-                        {(item.rawType === "COFFEE" || item.rawType === "COMBO") && item.availableDateTimes.length > 0 && (
+                        {/* Horários: Coffee selecionável, Combo somente leitura */}
+                        {item.rawType === "COFFEE" && item.availableDateTimes.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mt-0.5">
                             {item.availableDateTimes.map((dt) => {
-                              const activeDateTime = quickDateTimeByItemId[item.id] ?? item.defaultDateTime;
                               const isActive = activeDateTime === dt;
                               return (
                                 <button
@@ -649,29 +750,34 @@ export default function StorePage() {
                             })}
                           </div>
                         )}
+                        {item.rawType === "COMBO" && item.availableDateTimes.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-0.5">
+                            {item.availableDateTimes.map((dt) => (
+                              <span
+                                key={dt}
+                                className={`px-2.5 py-1 text-xs font-semibold rounded-md border ${cardBorder} bg-semcompMidDarkBlue/10 ${mutedText} inline-flex items-center gap-1`}
+                              >
+                                <Clock size={12} />
+                                {formatDateTime(dt)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
 
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            const defaultKey = item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : "";
-                            const quickKey = quickVariantKeyByItemId[item.id] ?? defaultKey;
-                            const variant = item.sizeVariants.length > 0
-                              ? (item.sizeVariants.find((v) => variantKey(v) === quickKey) ?? item.sizeVariants[0])
-                              : undefined;
-                            const activeDateTime = quickDateTimeByItemId[item.id] ?? item.defaultDateTime;
-                            const quickCoffeeTime = item.rawType === "COFFEE"
-                              ? (item.coffeeTimes.find((t) => t.dateTime === activeDateTime) ?? item.coffeeTimes[0])
-                              : undefined;
                             addItem({
-                              id: variant ? variant.productId : (quickCoffeeTime ? quickCoffeeTime.productId : item.id),
+                              id: quickVariant ? quickVariant.productId : (quickCoffeeTime ? quickCoffeeTime.productId : item.id),
                               name: item.name,
-                              price: variant ? variant.priceValue : (quickCoffeeTime ? quickCoffeeTime.priceValue : item.priceValue),
+                              price: quickVariant ? quickVariant.priceValue : (quickCoffeeTime ? quickCoffeeTime.priceValue : item.priceValue),
                               image: item.image,
                               type: item.rawType,
-                              size: variant?.size,
-                              isBabydoll: variant?.isBabydoll || undefined,
+                              size: quickVariant?.size,
+                              isBabydoll: quickVariant?.isBabydoll || undefined,
                               dateTime: activeDateTime,
+                              comboDateTimes: item.rawType === "COMBO" ? item.availableDateTimes : undefined,
                             });
                             showNotification("Produto adicionado ao carrinho!", "success");
                           }}
@@ -684,7 +790,8 @@ export default function StorePage() {
                         </button>
                       </div>
                     </motion.article>
-                  ))}
+                    );
+                  })}
                 </motion.div>
               )}
             </>
@@ -735,31 +842,59 @@ export default function StorePage() {
               </p>
 
               <div className={`border-t ${divider} pt-4 space-y-5`}>
+                {/* Seletor de cor (Combo) */}
+                {selected.rawType === "COMBO" && colorsOf(selected).length > 1 && (
+                  <div>
+                    <span className={`text-sm font-semibold ${textColor}`}>Cor da camiseta</span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {colorsOf(selected).map((color) => (
+                        <button
+                          key={color}
+                          onClick={() => setSelectedVariantKey(firstVariantKeyForColor(selected, color))}
+                          className={`min-w-11 px-3 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${
+                            modalCurrentColor === color
+                              ? isDarkMode
+                                ? "bg-semcompOffWhite text-semcompMidDarkBlue border-semcompOffWhite shadow-md"
+                                : "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue shadow-md"
+                              : isDarkMode
+                                ? `${cardBorder} ${mutedText} hover:border-semcompOffWhite/70 hover:text-semcompOffWhite hover:bg-white/5`
+                                : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/5`
+                          }`}
+                        >
+                          {color}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Seletor de Tamanho/Corte */}
                 {selected.sizeVariants.length > 0 && (
                   <div>
                     <span className={`text-sm font-semibold ${textColor}`}>Tamanho da camiseta</span>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {selected.sizeVariants.map((v) => {
-                        const key = variantKey(v);
-                        return (
-                          <button
-                            key={key}
-                            onClick={() => setSelectedVariantKey(key)}
-                            className={`min-w-11 px-3 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${
-                              selectedVariantKey === key
-                                ? isDarkMode
-                                  ? "bg-semcompOffWhite text-semcompMidDarkBlue border-semcompOffWhite shadow-md"
-                                  : "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue shadow-md"
-                                : isDarkMode
-                                  ? `${cardBorder} ${mutedText} hover:border-semcompOffWhite/70 hover:text-semcompOffWhite hover:bg-white/5`
-                                  : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/5`
-                            }`}
-                          >
-                            {variantLabel(v)}
-                          </button>
-                        );
-                      })}
+                      {selected.sizeVariants
+                        .filter((v) => selected.rawType !== "COMBO" || colorOf(v) === modalCurrentColor)
+                        .map((v) => {
+                          const key = variantKey(v);
+                          return (
+                            <button
+                              key={key}
+                              onClick={() => setSelectedVariantKey(key)}
+                              className={`min-w-11 px-3 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${
+                                selectedVariantKey === key
+                                  ? isDarkMode
+                                    ? "bg-semcompOffWhite text-semcompMidDarkBlue border-semcompOffWhite shadow-md"
+                                    : "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue shadow-md"
+                                  : isDarkMode
+                                    ? `${cardBorder} ${mutedText} hover:border-semcompOffWhite/70 hover:text-semcompOffWhite hover:bg-white/5`
+                                    : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/5`
+                              }`}
+                            >
+                              {variantLabel(v)}
+                            </button>
+                          );
+                        })}
                     </div>
                     {selectedVariant && (
                       <p className={`mt-2 text-xs ${mutedText}`}>
@@ -769,12 +904,10 @@ export default function StorePage() {
                   </div>
                 )}
 
-                {/* Horários (Coffee e Combo) */}
-                {(selected.rawType === "COFFEE" || selected.rawType === "COMBO") && selected.availableDateTimes.length > 0 && (
+                {/* Horários: Coffee selecionável, Combo somente leitura */}
+                {selected.rawType === "COFFEE" && selected.availableDateTimes.length > 0 && (
                   <div>
-                    <span className={`text-sm font-semibold ${textColor}`}>
-                      {selected.rawType === "COMBO" ? "Horário do Coffee Break incluído" : "Horário disponível"}
-                    </span>
+                    <span className={`text-sm font-semibold ${textColor}`}>Horário disponível</span>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {selected.availableDateTimes.map((dt) => (
                         <button
@@ -792,6 +925,22 @@ export default function StorePage() {
                         >
                           🕐 {formatDateTime(dt)}
                         </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {selected.rawType === "COMBO" && selected.availableDateTimes.length > 0 && (
+                  <div>
+                    <span className={`text-sm font-semibold ${textColor}`}>Coffee Break incluído</span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {selected.availableDateTimes.map((dt) => (
+                        <span
+                          key={dt}
+                          className={`px-3 py-2 text-sm font-semibold rounded-lg border ${cardBorder} bg-semcompMidDarkBlue/10 ${mutedText} inline-flex items-center gap-1.5`}
+                        >
+                          <Clock size={14} />
+                          {formatDateTime(dt)}
+                        </span>
                       ))}
                     </div>
                   </div>
