@@ -32,12 +32,15 @@ export interface SaleItemResponse {
 export interface SaleResponse {
   id: number;
   user_number: number;
-  status: "PENDENTE" | "PAGO" | "CANCELADO" | "REEMBOLSADO" | string;
+  status: "PENDENTE" | "PAGO" | "CANCELADO" | "REEMBOLSADO" | "EXPIRADO" | string;
   total_amount: number;
   payment_method: string;
   created_at: string;
   updated_at: string;
   items?: SaleItemResponse[];
+  qr_code?: string;
+  qr_code_base64?: string;
+  pix_expiration?: string;
 }
 
 interface CreateSaleApiResponse {
