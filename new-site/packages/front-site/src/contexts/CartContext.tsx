@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useCallback, type ReactNode } from
 export interface CartItem {
   id: string;
   cartKey: string;
+  type: "KIT" | "COFFEE" | "COMBO" | "OTHER";
   name: string;
   price: number;
   image: string;
@@ -18,6 +19,7 @@ export interface AddToCartParams {
   name: string;
   price: number;
   image: string;
+  type: "KIT" | "COFFEE" | "COMBO" | "OTHER";
   size?: string;
   dateTime?: string;
   isBabydoll?: boolean;

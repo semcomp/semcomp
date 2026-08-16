@@ -24,6 +24,8 @@ const mapBackendProduct = (product: ProductRaw): ProductType => {
     name: product.name ?? "",
     isSelling: String(product.is_selling),
     price: String(product.price),
+    pictureUrl: product.picture_url ?? "",
+    description: product.description ?? "",
     // Kit
     kitName: product.kit?.name ?? "",
     kitSize: product.kit?.size ?? "",
@@ -67,6 +69,8 @@ const mapToBackendProduct = (product: ProductType) => {
     type: product.type as ProductKind,
     is_selling: product.isSelling === "true",
     price: parsedPrice,
+    picture_url: product.pictureUrl ?? "",
+    description: product.description ?? "",
   };
 
   switch (product.type) {
@@ -205,9 +209,11 @@ export const productsAPI = {
     name: string,
     isSelling: boolean,
     price: number,
-    items: { item_id: number; quantity: number }[]
+    items: { item_id: number; quantity: number }[],
+    pictureUrl = "",
+    description = "",
   ): Promise<ProductType> => {
-    const payload = { type: "COMBO", name, is_selling: isSelling, price, items };
+    const payload = { type: "COMBO", name, is_selling: isSelling, price, items, picture_url: pictureUrl, description };
     const response = await client.post<any>("/admin/products", payload);
     return mapBackendProduct(response.data.product);
   },
@@ -217,9 +223,11 @@ export const productsAPI = {
     name: string,
     isSelling: boolean,
     price: number,
-    items: { item_id: number; quantity: number }[]
+    items: { item_id: number; quantity: number }[],
+    pictureUrl = "",
+    description = "",
   ): Promise<ProductType> => {
-    const payload = { type: "COMBO", name, is_selling: isSelling, price, items };
+    const payload = { type: "COMBO", name, is_selling: isSelling, price, items, picture_url: pictureUrl, description };
     const response = await client.put<any>(`/admin/products/${id}`, payload);
     return mapBackendProduct(response.data.product);
   },

@@ -22,6 +22,8 @@ export interface ComboItem {
 export interface Product {
   id: number;
   type: ProductType;
+  name?: string;
+  description?: string;
   is_selling: boolean;
   price: number;
   picture_url?: string;

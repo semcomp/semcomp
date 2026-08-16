@@ -26,6 +26,8 @@ export function CoffeeBulkModal({ open, onClose, onSuccess }: CoffeeBulkModalPro
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [isSelling, setIsSelling] = useState(false);
+  const [pictureUrl, setPictureUrl] = useState("");
+  const [description, setDescription] = useState("");
   const [dateTimes, setDateTimes] = useState<string[]>([""]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -43,6 +45,8 @@ export function CoffeeBulkModal({ open, onClose, onSuccess }: CoffeeBulkModalPro
     setName("");
     setPrice("");
     setIsSelling(false);
+    setPictureUrl("");
+    setDescription("");
     setDateTimes([""]);
   };
 
@@ -72,6 +76,8 @@ export function CoffeeBulkModal({ open, onClose, onSuccess }: CoffeeBulkModalPro
       name: coffeeName,
       is_selling: isSelling,
       price: parsedPrice,
+      picture_url: pictureUrl.trim(),
+      description: description.trim(),
       coffee: { name: coffeeName, date_time: new Date(dt).toISOString() },
     }));
 
@@ -130,6 +136,29 @@ export function CoffeeBulkModal({ open, onClose, onSuccess }: CoffeeBulkModalPro
                 À Venda
               </Label>
             </div>
+          </div>
+
+          {/* Imagem */}
+          <div className="space-y-1.5">
+            <Label className="text-slate-300 text-sm">URL da Imagem</Label>
+            <Input
+              value={pictureUrl}
+              onChange={(e) => setPictureUrl(e.target.value)}
+              placeholder="https://..."
+              className="bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
+            />
+          </div>
+
+          {/* Descrição */}
+          <div className="space-y-1.5">
+            <Label className="text-slate-300 text-sm">Descrição</Label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Descreva o coffee..."
+              rows={3}
+              className="w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
           </div>
 
           {/* Horários */}

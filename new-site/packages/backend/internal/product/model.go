@@ -14,11 +14,12 @@ const (
 type Product struct {
 	ID         uint        `gorm:"primaryKey;autoIncrement" json:"id"`
 
-	Type       ProductType `gorm:"size:10;not null" json:"type"`
-	Name       string      `gorm:"size:200" json:"name"`
-	IsSelling  bool        `gorm:"not null" json:"is_selling"`
-	Price      float64     `gorm:"not null" json:"price"`
-	PictureURL string      `gorm:"size:255" json:"picture_url"`
+	Type        ProductType `gorm:"size:10;not null" json:"type"`
+	Name        string      `gorm:"size:200" json:"name"`
+	IsSelling   bool        `gorm:"not null" json:"is_selling"`
+	Price       float64     `gorm:"not null" json:"price"`
+	PictureURL  string      `gorm:"size:255" json:"picture_url"`
+	Description string      `gorm:"type:text" json:"description"`
 
 	// Relacionamentos (preload)
 	// li que é uma boa prática usar isso aqui
@@ -78,13 +79,15 @@ type ComboItemRequest struct {
 }
 
 type CreateProductRequest struct {
-	Type      ProductType          `json:"type" binding:"required,oneof=KIT COFFEE COMBO"`
-	Name      string               `json:"name"`
-	IsSelling bool                 `json:"is_selling"`
-	Price     float64              `json:"price" binding:"required,gt=0"`
-	Kit       *CreateKitRequest    `json:"kit,omitempty"`
-	Coffee    *CreateCoffeeRequest `json:"coffee,omitempty"`
-	Items     []ComboItemRequest   `json:"items,omitempty"`
+	Type        ProductType          `json:"type" binding:"required,oneof=KIT COFFEE COMBO"`
+	Name        string               `json:"name"`
+	IsSelling   bool                 `json:"is_selling"`
+	Price       float64              `json:"price" binding:"required,gt=0"`
+	PictureURL  string               `json:"picture_url"`
+	Description string               `json:"description"`
+	Kit         *CreateKitRequest    `json:"kit,omitempty"`
+	Coffee      *CreateCoffeeRequest `json:"coffee,omitempty"`
+	Items       []ComboItemRequest   `json:"items,omitempty"`
 }
 
 type UpdateKitRequest struct {
@@ -100,13 +103,15 @@ type UpdateCoffeeRequest struct {
 }
 
 type UpdateProductRequest struct {
-	Type      ProductType          `json:"type" binding:"required,oneof=KIT COFFEE COMBO"`
-	Name      string               `json:"name"`
-	IsSelling bool                 `json:"is_selling"`
-	Price     float64              `json:"price" binding:"required,gt=0"`
-	Kit       *UpdateKitRequest    `json:"kit,omitempty"`
-	Coffee    *UpdateCoffeeRequest `json:"coffee,omitempty"`
-	Items     []ComboItemRequest   `json:"items,omitempty"`
+	Type        ProductType          `json:"type" binding:"required,oneof=KIT COFFEE COMBO"`
+	Name        string               `json:"name"`
+	IsSelling   bool                 `json:"is_selling"`
+	Price       float64              `json:"price" binding:"required,gt=0"`
+	PictureURL  string               `json:"picture_url"`
+	Description string               `json:"description"`
+	Kit         *UpdateKitRequest    `json:"kit,omitempty"`
+	Coffee      *UpdateCoffeeRequest `json:"coffee,omitempty"`
+	Items       []ComboItemRequest   `json:"items,omitempty"`
 }
 
 // DTOs de Listagem ---------

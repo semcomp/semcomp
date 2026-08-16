@@ -79,9 +79,11 @@ func (s *productService) buildComboItems(items []ComboItemRequest, excludeProduc
 
 func (s *productService) CreateProduct(request CreateProductRequest) (*Product, error) {
 	product := Product{
-		Type:      request.Type,
-		IsSelling: request.IsSelling,
-		Price:     request.Price,
+		Type:        request.Type,
+		IsSelling:   request.IsSelling,
+		Price:       request.Price,
+		PictureURL:  request.PictureURL,
+		Description: request.Description,
 	}
 
 	switch request.Type {
@@ -139,9 +141,11 @@ func (s *productService) BulkCreateProducts(request BulkCreateProductsRequest) (
 	products := make([]*Product, 0, len(request.Products))
 	for i, req := range request.Products {
 		p := &Product{
-			Type:      req.Type,
-			IsSelling: req.IsSelling,
-			Price:     req.Price,
+			Type:        req.Type,
+			IsSelling:   req.IsSelling,
+			Price:       req.Price,
+			PictureURL:  req.PictureURL,
+			Description: req.Description,
 		}
 		switch req.Type {
 		case ProductTypeKit:
@@ -253,9 +257,11 @@ func (s *productService) UpdateProductByID(id string, request UpdateProductReque
 	}
 
 	product := Product{
-		Type:      request.Type,
-		IsSelling: request.IsSelling,
-		Price:     request.Price,
+		Type:        request.Type,
+		IsSelling:   request.IsSelling,
+		Price:       request.Price,
+		PictureURL:  request.PictureURL,
+		Description: request.Description,
 	}
 
 	productIDForSelfCheck := uint(parsedID)

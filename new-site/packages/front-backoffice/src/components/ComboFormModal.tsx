@@ -47,6 +47,8 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [isSelling, setIsSelling] = useState(false);
+  const [pictureUrl, setPictureUrl] = useState("");
+  const [description, setDescription] = useState("");
   const [search, setSearch] = useState("");
   const [kits, setKits] = useState<ProductType[]>([]);
   const [coffees, setCoffees] = useState<ProductType[]>([]);
@@ -63,6 +65,8 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
     setName(initialData?.name ?? "");
     setPrice(initialData?.price ?? "");
     setIsSelling(initialData?.isSelling === "true");
+    setPictureUrl(initialData?.pictureUrl ?? "");
+    setDescription(initialData?.description ?? "");
 
     const init = new Map<number, number>();
     initialData?.comboItemDetails?.forEach((ci) => init.set(ci.itemId, ci.quantity));
@@ -124,9 +128,9 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
     try {
       let product: ProductType;
       if (isEdit && initialData) {
-        product = await productsAPI.updateCombo(initialData.productId, name.trim(), isSelling, parsedPrice, items);
+        product = await productsAPI.updateCombo(initialData.productId, name.trim(), isSelling, parsedPrice, items, pictureUrl, description);
       } else {
-        product = await productsAPI.createCombo(name.trim(), isSelling, parsedPrice, items);
+        product = await productsAPI.createCombo(name.trim(), isSelling, parsedPrice, items, pictureUrl, description);
       }
       onSuccess(product, isEdit);
       onClose();
@@ -254,6 +258,29 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
                 À Venda
               </Label>
             </div>
+          </div>
+
+          {/* Imagem */}
+          <div className="space-y-1.5">
+            <Label className="text-slate-300 text-sm">URL da Imagem</Label>
+            <Input
+              value={pictureUrl}
+              onChange={(e) => setPictureUrl(e.target.value)}
+              placeholder="https://..."
+              className="bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
+            />
+          </div>
+
+          {/* Descrição */}
+          <div className="space-y-1.5">
+            <Label className="text-slate-300 text-sm">Descrição</Label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Descreva o combo..."
+              rows={3}
+              className="w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-violet-500"
+            />
           </div>
 
           {/* Busca */}

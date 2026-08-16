@@ -13,6 +13,8 @@ const isSelling: CrudField = {
 };
 
 const price: CrudField = { value: "price", label: "Preço", type: "number" };
+const pictureUrl: CrudField = { value: "pictureUrl", label: "URL da Imagem", type: "url" };
+const description: CrudField = { value: "description", label: "Descrição", type: "textarea" };
 
 export const kitFields: CrudField[] = [
   productId,
@@ -30,6 +32,8 @@ export const kitFields: CrudField[] = [
       false: "bg-slate-600/40 text-slate-400 border border-slate-600/30",
     },
   },
+  pictureUrl,
+  description,
 ];
 
 export const coffeeFields: CrudField[] = [
@@ -38,6 +42,8 @@ export const coffeeFields: CrudField[] = [
   price,
   { value: "coffeeName", label: "Nome", type: "text" },
   { value: "coffeeDateTime", label: "Data/Hora", type: "date" },
+  pictureUrl,
+  description,
 ];
 
 export const comboFields: CrudField[] = [
@@ -46,6 +52,8 @@ export const comboFields: CrudField[] = [
   isSelling,
   price,
   { value: "comboItems", label: "Itens", type: "text", readOnly: true },
+  pictureUrl,
+  description,
 ];
 
 export const API_FIELD_MAP: Record<string, string> = {

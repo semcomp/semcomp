@@ -41,6 +41,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  ExternalLink,
 } from "lucide-react";
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
@@ -50,6 +51,7 @@ export interface CrudField {
   label: string;
   type?:
     | "text"
+    | "url"
     | "textarea"
     | "select"
     | "date"
@@ -366,6 +368,19 @@ function FormField({
     );
   }
 
+  if (field.type === "url") {
+    return (
+      <Input
+        id={id}
+        type="url"
+        value={(rawVal as string) ?? ""}
+        onChange={(e) => set(e.target.value)}
+        placeholder="https://..."
+        className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+      />
+    );
+  }
+
   if (field.type === "number") {
     return (
       <Input
@@ -608,6 +623,43 @@ export function CrudTable({
         <Badge className={`text-xs font-medium px-2 py-0.5 ${cls}`}>
           {val}
         </Badge>
+      );
+    }
+
+    if (field.type === "textarea") {
+      if (!val || val === "—") return <span className="text-muted-foreground">—</span>;
+      return (
+        <span 
+          className="text-foreground min-w-xs max-w-2xs block line-clamp-2 break-words" 
+          title={val}
+        >
+          {val}
+        </span>
+      );
+    }
+
+    if (field.type === "url") {
+      if (!val || val === "—") return <span className="text-muted-foreground">—</span>;
+      return (
+        <a
+          href={val}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 hover:underline max-w-40 truncate"
+          title={val}
+        >
+          <ExternalLink className="w-3 h-3 shrink-0" />
+          <span className="truncate">{val.replace(/^https?:\/\//, "")}</span>
+        </a>
+      );
+    }
+
+    if (field.type === "text" && val.length > 40) {
+      return (
+        <span className="text-foreground whitespace-pre-line wrap-break-word max-w-xs block">
+          {val}
+        </span>
       );
     }
 

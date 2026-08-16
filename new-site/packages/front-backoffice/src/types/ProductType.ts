@@ -37,6 +37,7 @@ export interface ProductRaw {
     is_selling: boolean;
     price: number;
     picture_url?: string;
+    description?: string;
     kit?: KitDetails | null;
     coffee?: CoffeeDetails | null;
     combo_items?: ComboItemDetails[] | null;
@@ -50,6 +51,8 @@ export interface ProductType extends CrudItemType {
     name: string;
     isSelling: string;   // "true" / "false" - string para renderizar no select
     price: string;       // string para CrudTable
+    pictureUrl: string;
+    description: string;
     // Kit fields
     kitName: string;
     kitSize: string;

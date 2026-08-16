@@ -12,7 +12,6 @@ import { Switch } from "@/components/ui/switch";
 import { productsAPI } from "@/api/products";
 import type { ProductType } from "@/types/ProductType";
 import { useNotification } from "@/contexts/NotificationContext";
-import { Plus, X } from "lucide-react";
 
 interface KitBulkModalProps {
   open: boolean;
@@ -20,7 +19,7 @@ interface KitBulkModalProps {
   onSuccess: (products: ProductType[]) => void;
 }
 
-const PRESET_SIZES = ["PP","P", "M", "G", "GG", "XG"];
+const PRESET_SIZES = ["PP", "P", "M", "G", "GG", "XG"];
 
 export function KitBulkModal({ open, onClose, onSuccess }: KitBulkModalProps) {
   const { showNotification } = useNotification();
@@ -29,13 +28,13 @@ export function KitBulkModal({ open, onClose, onSuccess }: KitBulkModalProps) {
   const [price, setPrice] = useState("");
   const [isSelling, setIsSelling] = useState(false);
   const [selectedSizes, setSelectedSizes] = useState<Set<string>>(new Set());
-  const [colors, setColors] = useState<string[]>([]);
-  const [colorInput, setColorInput] = useState("");
+  const [color, setColor] = useState("");
+  const [pictureURL, setPictureURL] = useState("");
+  const [description, setDescription] = useState("");
   const [withBabydoll, setWithBabydoll] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const totalCombinations =
-    selectedSizes.size * colors.length * (withBabydoll ? 2 : 1);
+  const totalCombinations = selectedSizes.size * (withBabydoll ? 2 : 1);
 
   const toggleSize = (size: string) => {
     setSelectedSizes((prev) => {
@@ -45,23 +44,14 @@ export function KitBulkModal({ open, onClose, onSuccess }: KitBulkModalProps) {
     });
   };
 
-  const addColor = () => {
-    const trimmed = colorInput.trim();
-    if (!trimmed || colors.includes(trimmed)) return;
-    setColors((prev) => [...prev, trimmed]);
-    setColorInput("");
-  };
-
-  const removeColor = (color: string) =>
-    setColors((prev) => prev.filter((c) => c !== color));
-
   const reset = () => {
     setName("");
     setPrice("");
     setIsSelling(false);
     setSelectedSizes(new Set());
-    setColors([]);
-    setColorInput("");
+    setColor("");
+    setPictureURL("");
+    setDescription("");
     setWithBabydoll(false);
   };
 
@@ -79,8 +69,8 @@ export function KitBulkModal({ open, onClose, onSuccess }: KitBulkModalProps) {
       showNotification("Selecione pelo menos um tamanho.", "warning");
       return;
     }
-    if (colors.length === 0) {
-      showNotification("Adicione pelo menos uma cor.", "warning");
+    if (!color.trim()) {
+      showNotification("Informe a cor do kit.", "warning");
       return;
     }
     const parsedPrice = parseFloat(price.replace(",", "."));
@@ -90,20 +80,21 @@ export function KitBulkModal({ open, onClose, onSuccess }: KitBulkModalProps) {
     }
 
     const kitName = name.trim();
+    const trimmedColor = color.trim();
     const products: object[] = [];
     for (const size of selectedSizes) {
-      for (const color of colors) {
-        const base = {
-          type: "KIT",
-          name: kitName,
-          is_selling: isSelling,
-          price: parsedPrice,
-          kit: { name: kitName, size, color, is_babydoll: false },
-        };
-        products.push(base);
-        if (withBabydoll) {
-          products.push({ ...base, kit: { name: kitName, size, color, is_babydoll: true } });
-        }
+      const base = {
+        type: "KIT",
+        name: kitName,
+        is_selling: isSelling,
+        price: parsedPrice,
+        picture_url: pictureURL.trim(),
+        description: description.trim(),
+        kit: { name: kitName, size, color: trimmedColor, is_babydoll: false },
+      };
+      products.push(base);
+      if (withBabydoll) {
+        products.push({ ...base, kit: { name: kitName, size, color: trimmedColor, is_babydoll: true } });
       }
     }
 
@@ -188,45 +179,38 @@ export function KitBulkModal({ open, onClose, onSuccess }: KitBulkModalProps) {
             </div>
           </div>
 
-          {/* Cores */}
-          <div className="space-y-2">
-            <Label className="text-slate-300 text-sm">Cores</Label>
-            <div className="flex gap-2">
-              <Input
-                value={colorInput}
-                onChange={(e) => setColorInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addColor())}
-                placeholder="Ex: Branca"
-                className="bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
-              />
-              <Button
-                type="button"
-                onClick={addColor}
-                variant="outline"
-                className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-slate-100 shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-            {colors.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {colors.map((color) => (
-                  <span
-                    key={color}
-                    className="flex items-center gap-1 px-2 py-1 rounded-md bg-blue-500/15 border border-blue-500/30 text-blue-300 text-sm"
-                  >
-                    {color}
-                    <button
-                      type="button"
-                      onClick={() => removeColor(color)}
-                      className="text-blue-400 hover:text-blue-200"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
+          {/* Cor */}
+          <div className="space-y-1.5">
+            <Label className="text-slate-300 text-sm">Cor</Label>
+            <Input
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              placeholder="Ex: Branca"
+              className="bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
+            />
+          </div>
+
+          {/* Imagem */}
+          <div className="space-y-1.5">
+            <Label className="text-slate-300 text-sm">URL da Imagem</Label>
+            <Input
+              value={pictureURL}
+              onChange={(e) => setPictureURL(e.target.value)}
+              placeholder="https://..."
+              className="bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-500"
+            />
+          </div>
+
+          {/* Descrição */}
+          <div className="space-y-1.5">
+            <Label className="text-slate-300 text-sm">Descrição</Label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Descreva o kit..."
+              rows={3}
+              className="w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
           {/* Babydoll */}
