@@ -1,9 +1,11 @@
 package sales
 
 import (
+	"strings"
+	"time"
+
 	"backend/internal/product"
 	"backend/internal/user"
-	"time"
 )
 
 type SaleStatus string
@@ -11,38 +13,51 @@ type SaleStatus string
 const (
 	SaleStatusPending  SaleStatus = "PENDENTE"
 	SaleStatusPaid     SaleStatus = "PAGO"
+	SaleStatusRejected SaleStatus = "REJEITADO"
 	SaleStatusCanceled SaleStatus = "CANCELADO"
 	SaleStatusRefunded SaleStatus = "REEMBOLSADO"
 )
 
-// Sale é a entidade principal da venda
-type Sale struct {
-	ID             uint       `gorm:"primaryKey;autoIncrement" json:"id"`
-	SaleUserNumber uint       `gorm:"column:user_number;not null" json:"user_number"`
-	Status         SaleStatus `gorm:"size:20;not null;default:'PENDENTE'" json:"status"`
-	TotalAmount    float64    `gorm:"not null" json:"total_amount"`
-	PaymentMethod  string     `gorm:"size:50;not null" json:"payment_method"`
+// PixExpirationWindow é o tempo de validade de uma cobrança PIX pendente.
+const PixExpirationWindow = 30 * time.Minute
 
-	// DietaryRestrictions guarda as restrições alimentares informadas para o pedido.
-	// Só faz sentido para vendas que envolvam produtos do tipo COFFEE (direto ou via COMBO).
+// Sale é a entidade representativa de vendas e pagamentos
+type Sale struct {
+	ID            uint       `gorm:"primaryKey;autoIncrement" json:"id"`
+	SaleUserNumber    uint       `gorm:"not null;index" json:"user_number"`
+	Status        SaleStatus `gorm:"size:20;not null;default:'PENDENTE';check:status_chk,status IN ('PENDENTE','PAGO','REJEITADO','CANCELADO','REEMBOLSADO')" json:"status"`
+	TotalAmount   float64    `gorm:"not null" json:"total_amount"`
+	PaymentMethod string     `gorm:"size:50;not null" json:"payment_method"`
+
+	// MercadoPagoID substitui a antiga tabela `payments`: só é preenchido
+	// quando PaymentMethod == "pix" (ou outro método processado via MP).
+	MercadoPagoID *string `gorm:"size:100;uniqueIndex" json:"mercadopago_id,omitempty"`
+
+	// DietaryRestrictions só faz sentido para vendas com produtos do tipo
+	// COFFEE (direto ou via COMBO).
 	DietaryRestrictions string `gorm:"size:1000" json:"dietary_restrictions"`
 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
 	User  *user.User `gorm:"foreignKey:SaleUserNumber;references:UserNumber;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"user,omitempty"`
 	Items []SaleItem `gorm:"foreignKey:SaleID;references:ID;constraint:OnDelete:CASCADE" json:"items,omitempty"`
 
-	// Campos calculados (não persistidos): indicam se a venda envolve produtos do tipo
-	// KIT e/ou COFFEE, considerando também itens dentro de um COMBO. Preenchidos por
-	// ComputeItemFlags() após o carregamento de Items/Product (e ComboItems, se houver).
+	// Campos calculados (não persistidos): indicam se a venda envolve produtos
+	// do tipo KIT e/ou COFFEE, considerando também itens dentro de um COMBO.
+	// Preenchidos por ComputeItemFlags() após o carregamento de Items/Product.
 	HasKitItems    bool `gorm:"-" json:"has_kit_items"`
 	HasCoffeeItems bool `gorm:"-" json:"has_coffee_items"`
+
+	// Campos transitórios (não persistidos), preenchidos apenas na resposta de
+	// criação de uma cobrança PIX. Substituem o antigo DTO PixPaymentResponse.
+	QRCode        string     `gorm:"-" json:"qr_code,omitempty"`
+	QRCodeBase64  string     `gorm:"-" json:"qr_code_base64,omitempty"`
+	PixExpiration *time.Time `gorm:"-" json:"pix_expiration,omitempty"`
 }
 
-// ComputeItemFlags analisa os itens da venda (incluindo produtos do tipo COMBO, olhando
-// seus ComboItems) e preenche HasKitItems / HasCoffeeItems.
-//
+// ComputeItemFlags analisa os itens da venda (incluindo produtos do tipo COMBO,
+// olhando seus ComboItems) e preenche HasKitItems / HasCoffeeItems.
 // Requer que Items, Items.Product e, quando o item for um COMBO,
 // Items.Product.ComboItems.Item já estejam carregados (via Preload no repositório).
 func (s *Sale) ComputeItemFlags() {
@@ -82,15 +97,27 @@ func (s *Sale) ComputeItemFlags() {
 	s.HasCoffeeItems = hasCoffee
 }
 
-// SaleItem representa os produtos da compra com preço imutável
-type SaleItem struct {
-	ID         uint    `gorm:"primaryKey;autoIncrement" json:"id"`
-	SaleID     uint    `gorm:"not null" json:"sale_id"`
-	ProductID  uint    `gorm:"not null" json:"product_id"`
-	Quantity   int     `gorm:"not null;default:1" json:"quantity"`
-	UnitPrice  float64 `gorm:"not null" json:"unit_price"`
+// EffectiveStatus retorna o status considerando a expiração de cobranças PIX
+// pendentes (equivalente ao antigo PaymentService.GetStatus). Não altera o
+// status persistido — só o webhook do Mercado Pago faz isso.
+func (s *Sale) EffectiveStatus() SaleStatus {
+	if s.Status == SaleStatusPending &&
+		strings.EqualFold(s.PaymentMethod, "pix") &&
+		time.Since(s.CreatedAt) > PixExpirationWindow {
+		return "EXPIRADO"
+	}
+	return s.Status
+}
 
-	// Indica se o item (ex: KIT / Camiseta) já foi retirado presencialmente
+// SaleItem representa os produtos da compra com preço imutável.
+type SaleItem struct {
+	ID        uint    `gorm:"primaryKey;autoIncrement" json:"id"`
+	SaleID    uint    `gorm:"not null" json:"sale_id"`
+	ProductID uint    `gorm:"not null" json:"product_id"`
+	Quantity  int     `gorm:"not null;default:1" json:"quantity"`
+	UnitPrice float64 `gorm:"not null" json:"unit_price"`
+
+	// Indica se o item (ex: KIT / Camiseta) já foi retirado presencialmente.
 	IsPickedUp bool `gorm:"not null;default:false" json:"is_picked_up"`
 
 	Product *product.Product `gorm:"foreignKey:ProductID" json:"product,omitempty"`
@@ -103,22 +130,36 @@ type CreateSaleItemRequest struct {
 	Quantity  int  `json:"quantity" binding:"required,min=1"`
 }
 
+// CreateSaleRequest cria um pedido e, quando PaymentMethod == "pix", também
+// dispara a cobrança no Mercado Pago (unifica o antigo CreateSaleRequest com
+// o antigo CreatePixRequest — Amount e ProductIDs deixam de existir por serem
+// redundantes com Items, que já carregam produto + quantidade).
 type CreateSaleRequest struct {
 	PaymentMethod       string                  `json:"payment_method" binding:"required,max=50"`
 	Items               []CreateSaleItemRequest `json:"items" binding:"required,min=1,dive"`
-	Status              SaleStatus              `json:"status" binding:"omitempty,oneof=PENDENTE PAGO CANCELADO REEMBOLSADO"`
+	Status              SaleStatus              `json:"status" binding:"omitempty,oneof=PENDENTE PAGO REJEITADO CANCELADO REEMBOLSADO"`
 	DietaryRestrictions string                  `json:"dietary_restrictions" binding:"omitempty,max=1000"`
+	// Description é opcional e usada apenas na descrição da cobrança PIX no Mercado Pago.
+	Description string `json:"description" binding:"omitempty,max=255"`
 }
 
 type UpdateSaleRequest struct {
-	Status              SaleStatus `json:"status" binding:"omitempty,oneof=PENDENTE PAGO CANCELADO REEMBOLSADO"`
+	Status              SaleStatus `json:"status" binding:"omitempty,oneof=PENDENTE PAGO REJEITADO CANCELADO REEMBOLSADO"`
 	PaymentMethod       string     `json:"payment_method" binding:"omitempty,max=50"`
 	DietaryRestrictions string     `json:"dietary_restrictions" binding:"omitempty,max=1000"`
 }
 
-// UpdateSaleItemPickupRequest é utilizado pelo admin para marcar a camiseta/kit como retirada
+// UpdateSaleItemPickupRequest é utilizado pelo admin para marcar a camiseta/kit como retirada.
 type UpdateSaleItemPickupRequest struct {
 	IsPickedUp bool `json:"is_picked_up"`
+}
+
+// WebhookPayload é o corpo enviado pelo Mercado Pago nas notificações de pagamento.
+type WebhookPayload struct {
+	Action string `json:"action"`
+	Data   struct {
+		ID string `json:"id"`
+	} `json:"data"`
 }
 
 // DTOs de Listagem ---------

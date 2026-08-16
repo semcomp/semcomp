@@ -12,7 +12,6 @@ import (
 	"backend/internal/mailer"
 	"backend/internal/middleware"
 	"backend/internal/pages"
-	"backend/internal/payment"
 	"backend/internal/permission"
 	"backend/internal/presence"
 	"backend/internal/product"
@@ -53,10 +52,10 @@ func main() {
 	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
 
 	err := db.AutoMigrate(
-		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{},
-		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{},
-		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{},
-		&token.Token{}, &payment.Payment{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{},
+		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, 
+		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, 
+		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, 
+		&token.Token{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{}, 
 		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{},
 	)
 	if err != nil {
@@ -126,10 +125,6 @@ func main() {
 	userBackofficeHandler := userBackoffice.NewUserBackofficeHandler(userBackofficeService)
 
 	permissionHandler := permission.NewPermissionHandler(permissionService, userBackofficeService)
-
-	paymentRepo := payment.NewPaymentRepository(db)
-	paymentService := payment.NewPaymentService(paymentRepo)
-	paymentHandler := payment.NewPaymentHandler(paymentService)
 
 	sponsorRepo := sponsor.NewSponsorRepository(db)
 	sponsorService := sponsor.NewSponsorService(sponsorRepo)
@@ -201,7 +196,7 @@ func main() {
 	r.POST("/visit", siteStatHandler.RecordVisit)
 	r.GET("/stats", siteStatHandler.GetStats)
 
-	r.POST("/webhook/mercadopago", paymentHandler.Webhook)
+	r.POST("/webhook/mercadopago", salesHandler.Webhook)
 
 	r.GET("/pages/availability", pagesHandler.GetAllPagesAvailabilityHandler)
 	r.GET("/pages/:page/availability", pagesHandler.GetPageAvailabilityHandler)
@@ -212,9 +207,8 @@ func main() {
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 
-	authRoutes.GET("/payments", pageMW("loja"), paymentHandler.ListByUser)
-	authRoutes.POST("/payments/pix", pageMW("loja"), paymentHandler.CreatePix)
-	authRoutes.GET("/payments/:id/status", pageMW("loja"), paymentHandler.GetStatus)
+	authRoutes.POST("/payments/pix", pageMW("loja"), salesHandler.CreateSale)
+	authRoutes.GET("/payments/:id/status", pageMW("loja"), salesHandler.GetSaleStatus)
 
 	// Rotas de Vendas (Usuário)
 	authRoutes.POST("/sales", pageMW("loja"), salesHandler.CreateSale)
