@@ -166,7 +166,6 @@ export default function Events() {
             onAction={handleAction}
             getItemKey={resolveEventKey}
             entityLabel="evento"
-            serverSide
             totalRecords={totalRecords}
             onQueryChange={handleQueryChange}
             canWrite={canWrite}

@@ -1,5 +1,5 @@
 import client from "./client";
-import type { ProductType, ProductRaw, ProductKind } from "@/types/ProductType";
+import type { ProductType, ProductRaw, ProductKind, ComboItemRich } from "@/types/ProductType";
 
 export interface ProductsListResponse {
   page: number;
@@ -21,8 +21,11 @@ const mapBackendProduct = (product: ProductRaw): ProductType => {
     id: String(product.id),
     productId: product.id,
     type: product.type,
+    name: product.name ?? "",
     isSelling: String(product.is_selling),
     price: String(product.price),
+    pictureUrl: product.picture_url ?? "",
+    description: product.description ?? "",
     // Kit
     kitName: product.kit?.name ?? "",
     kitSize: product.kit?.size ?? "",
@@ -32,7 +35,20 @@ const mapBackendProduct = (product: ProductRaw): ProductType => {
     coffeeName: product.coffee?.name ?? "",
     coffeeDateTime: product.coffee?.date_time ?? "",
     // Combo
-    comboItems: product.combo_items?.map((ci) => String(ci.item_id)).join(", ") ?? "",
+    comboItemDetails: (product.combo_items ?? []).map((ci): ComboItemRich => ({
+      itemId: ci.item_id,
+      name: ci.item?.kit?.name || ci.item?.coffee?.name || `#${ci.item_id}`,
+      type: (ci.item?.type as "KIT" | "COFFEE") ?? "KIT",
+      quantity: ci.quantity ?? 1,
+    })),
+    comboItems: product.combo_items?.length
+      ? product.combo_items
+          .map((ci) => {
+            const name = ci.item?.kit?.name || ci.item?.coffee?.name || `#${ci.item_id}`;
+            return ci.quantity > 1 ? `${name} (x${ci.quantity})` : name;
+          })
+          .join(", ")
+      : "",
   };
 };
 
@@ -53,6 +69,8 @@ const mapToBackendProduct = (product: ProductType) => {
     type: product.type as ProductKind,
     is_selling: product.isSelling === "true",
     price: parsedPrice,
+    picture_url: product.pictureUrl ?? "",
+    description: product.description ?? "",
   };
 
   switch (product.type) {
@@ -114,6 +132,11 @@ const fieldMap: Record<string, string> = {
   type: "type",
   isSelling: "is_selling",
   price: "price",
+  kitName: "kit.name",
+  kitSize: "kit.size",
+  kitColor: "kit.color",
+  coffeeName: "coffee.name",
+  coffeeDateTime: "coffee.date_time",
 };
 
 /**
@@ -126,12 +149,15 @@ export const productsAPI = {
     sortBy = "id",
     sortOrder = "asc",
     searchBy?: string,
-    searchValue?: string
+    searchValue?: string,
+    /** Always filter by product type (KIT / COFFEE / COMBO) */
+    typeFilter?: string,
   ): Promise<ProductsListResponse> => {
     const backendSortBy = fieldMap[sortBy] ?? sortBy;
     const backendSearchBy = searchBy ? (fieldMap[searchBy] ?? searchBy) : undefined;
 
     let url = `/admin/products?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
+    if (typeFilter) url += `&type=${typeFilter}`;
     if (backendSearchBy && searchValue) {
       url += `&search_by=${backendSearchBy}&search_value=${searchValue}`;
     }
@@ -177,5 +203,37 @@ export const productsAPI = {
       `/admin/products/${id}`
     );
     return response.data;
+  },
+
+  createCombo: async (
+    name: string,
+    isSelling: boolean,
+    price: number,
+    items: { item_id: number; quantity: number }[],
+    pictureUrl = "",
+    description = "",
+  ): Promise<ProductType> => {
+    const payload = { type: "COMBO", name, is_selling: isSelling, price, items, picture_url: pictureUrl, description };
+    const response = await client.post<any>("/admin/products", payload);
+    return mapBackendProduct(response.data.product);
+  },
+
+  updateCombo: async (
+    id: number,
+    name: string,
+    isSelling: boolean,
+    price: number,
+    items: { item_id: number; quantity: number }[],
+    pictureUrl = "",
+    description = "",
+  ): Promise<ProductType> => {
+    const payload = { type: "COMBO", name, is_selling: isSelling, price, items, picture_url: pictureUrl, description };
+    const response = await client.put<any>(`/admin/products/${id}`, payload);
+    return mapBackendProduct(response.data.product);
+  },
+
+  bulkCreate: async (products: object[]): Promise<ProductType[]> => {
+    const response = await client.post<any>("/admin/products/bulk", { products });
+    return (response.data.products ?? []).map(mapBackendProduct);
   },
 };

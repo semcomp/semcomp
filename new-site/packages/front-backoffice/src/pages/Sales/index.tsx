@@ -324,7 +324,6 @@ export default function SalesCRUD() {
           onDelete={handleDelete}
           getItemKey={(item) => (item as Sale & { id: string }).id}
           entityLabel="venda"
-          serverSide
           totalRecords={totalRecords}
           onQueryChange={handleQueryChange}
           canWrite={canWrite}
