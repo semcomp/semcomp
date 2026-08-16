@@ -1,6 +1,5 @@
 import client from "./client";
 import type { ProductType, ProductRaw, ProductKind, ComboItemRich } from "@/types/ProductType";
-import { isNightCoffee } from "@/utils/coffeeRules";
 
 export interface ProductsListResponse {
   page: number;
@@ -42,16 +41,25 @@ const mapBackendProduct = (product: ProductRaw): ProductType => {
       type: (ci.item?.type as "KIT" | "COFFEE") ?? "KIT",
       quantity: ci.quantity ?? 1,
     })),
-    comboItems: product.combo_items?.length
-      ? product.combo_items
-          .map((ci) => {
-            const name = ci.item?.kit?.name || ci.item?.coffee?.name || `#${ci.item_id}`;
-            return ci.quantity > 1 ? `${name} (x${ci.quantity})` : name;
-          })
-          .join(", ")
-      : "",
+    // Resumo dos itens agrupado por nome (conjunto): evita repetir o mesmo item
+    // várias vezes (ex: coffees com vários horários) e quebrar a célula da tabela.
+    comboItems: buildComboItemsSummary(product.combo_items ?? []),
   };
 };
+
+// Agrupa os itens do combo por nome e soma as quantidades, retornando um resumo
+// enxuto para exibição na tabela do backoffice.
+function buildComboItemsSummary(comboItems: { item_id: number; quantity?: number; item?: ProductRaw | null }[]): string {
+  if (comboItems.length === 0) return "";
+  const byName = new Map<string, number>();
+  for (const ci of comboItems) {
+    const name = ci.item?.kit?.name || ci.item?.coffee?.name || `#${ci.item_id}`;
+    byName.set(name, (byName.get(name) ?? 0) + (ci.quantity ?? 1));
+  }
+  return [...byName.entries()]
+    .map(([name, qty]) => (qty > 1 ? `${name} (x${qty})` : name))
+    .join(", ");
+}
 
 /**
  * Converte formato local -> payload do backend
@@ -91,10 +99,6 @@ const mapToBackendProduct = (product: ProductType) => {
         throw new Error("Preencha todos os campos obrigatórios do Coffee (Nome, Data/Hora).");
       }
       const coffeeDateTime = normalizeRFC3339(product.coffeeDateTime);
-      // Regra de negócio: coffee diurno não pode ser vendido individualmente.
-      if (product.isSelling && !isNightCoffee(coffeeDateTime)) {
-        throw new Error("Coffee de dia (antes das 18h) não pode ser vendido individualmente — venda via combo.");
-      }
       base.coffee = {
         name: product.coffeeName,
         date_time: coffeeDateTime,

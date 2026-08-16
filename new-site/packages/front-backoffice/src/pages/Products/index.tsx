@@ -10,6 +10,7 @@ import type { ProductKind, ProductType } from "@/types/ProductType";
 import { productsAPI } from "@/api/products";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useHasPermission } from "@/contexts/AuthContext";
+import { isNightCoffee } from "@/utils/coffeeRules";
 import { Coffee, Layers, Package, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ComboFormModal } from "@/components/ComboFormModal";
@@ -120,6 +121,15 @@ export default function ProductsCRUD() {
   const handleCreate = async (item: CrudItemType) => {
     try {
       const typedItem = { ...(item as ProductType), type: activeType };
+      // Aviso: coffee de dia vendido individualmente é permitido, mas merece atenção.
+      if (
+        typedItem.type === "COFFEE" &&
+        typedItem.isSelling &&
+        typedItem.coffeeDateTime &&
+        !isNightCoffee(typedItem.coffeeDateTime)
+      ) {
+        showNotification("Atenção: coffee de manhã/dia vendido individualmente.", "warning");
+      }
       const createdProduct = await productsAPI.create(typedItem);
       setData((prev) => [...prev, createdProduct]);
       setTotalRecords((prev) => prev + 1);

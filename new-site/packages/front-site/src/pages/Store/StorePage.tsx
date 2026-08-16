@@ -17,6 +17,9 @@ interface SizeVariant {
   size: string;
   isBabydoll: boolean;
   priceValue: number;
+  // Quantidade de camisetas que o combo inclui deste tamanho/cor (backoffice).
+  // Para KIT "puro", é sempre 1 (cada unidade comprada = 1 camiseta).
+  quantity: number;
 }
 
 // A chave da variante considera cor + tamanho + corte: cada cor×tamanho de uma
@@ -67,14 +70,6 @@ interface StoreItem {
 
 const SIZE_ORDER = ["PP", "P", "M", "G", "GG"];
 
-// Coffee de dia (antes das 18h) só é vendido individualmente após este horário;
-// durante o dia ele aparece apenas dentro de combos.
-const NIGHT_HOUR = 18;
-
-function isNightCoffee(dateTime: string): boolean {
-  return new Date(dateTime).getHours() >= NIGHT_HOUR;
-}
-
 function compareSizes(a: string, b: string): number {
   const ia = SIZE_ORDER.indexOf(a);
   const ib = SIZE_ORDER.indexOf(b);
@@ -101,20 +96,21 @@ function coffeeGroupKey(p: Product): string {
 
 // Combos com os MESMOS coffees e MESMA camiseta (modelo) são o MESMO combo:
 // cor/tamanho/preço da camiseta NÃO diferenciam combos, apenas geram variações
-// selecionáveis dentro do mesmo card.
+// selecionáveis dentro do mesmo card. A quantidade de camisetas de cada kit
+// participa do agrupamento: combos com quantidades diferentes são produtos
+// diferentes (a qtd de camisetas é fixa no momento da compra).
 function comboGroupKey(p: Product, productById: Map<number, Product>): string {
   if (!p.combo_items?.length) return `combo-${p.id}`;
   const coffeeParts = p.combo_items
     .filter((ci) => productById.get(ci.item_id)?.type !== "KIT")
     .map((ci) => `${ci.item_id}x${ci.quantity ?? 1}`)
     .sort();
-  const kitNames = p.combo_items
+  const kitParts = p.combo_items
     .filter((ci) => productById.get(ci.item_id)?.type === "KIT")
-    .map((ci) => productById.get(ci.item_id)?.kit?.name?.trim() ?? "")
+    .map((ci) => `${productById.get(ci.item_id)?.kit?.name?.trim() ?? "?"}x${ci.quantity ?? 1}`)
     .filter(Boolean)
-    .sort()
-    .join("+");
-  return `${coffeeParts.join(",")}|${kitNames}`;
+    .sort();
+  return `${coffeeParts.join(",")}|${kitParts.join("+")}`;
 }
 
 function collectComboDateTimes(product: Product, productById: Map<number, Product>): string[] {
@@ -256,6 +252,7 @@ function kitGroupToStoreItem(groupProducts: Product[]): StoreItem {
     size: p.kit!.size,
     isBabydoll: p.kit!.is_babydoll,
     priceValue: p.price,
+    quantity: 1,
   }));
 
   return {
@@ -310,15 +307,26 @@ function coffeeGroupToStoreItem(groupProducts: Product[]): StoreItem {
 }
 
 function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number, Product>): StoreItem {
-  const withKitInfo = groupProducts.map((p) => {
-    const kitComboItem = p.combo_items?.find((ci) => productById.get(ci.item_id)?.type === "KIT");
-    const kitProduct = kitComboItem ? productById.get(kitComboItem.item_id) : undefined;
-    return {
-      product: p,
-      color: kitProduct?.kit?.color ?? "",
-      size: kitProduct?.kit?.size,
-      isBabydoll: kitProduct?.kit?.is_babydoll ?? false,
-    };
+  // Cada kit dentro do combo (size/color/babydoll) gera uma variante selecionável.
+  // Combos costumam incluir todos os tamanhos do kit de uma vez, então iteramos
+  // sobre TODOS os itens KIT (não só o primeiro) para não "perder" os tamanhos.
+  const withKitInfo = groupProducts.flatMap((p) => {
+    const kitItems = p.combo_items?.filter((ci) => productById.get(ci.item_id)?.type === "KIT") ?? [];
+    if (kitItems.length === 0) {
+      return [{ product: p, color: "", size: undefined, isBabydoll: false, quantity: 1 }];
+    }
+    return kitItems.map((ci) => {
+      const kitProduct = productById.get(ci.item_id);
+      return {
+        product: p,
+        color: kitProduct?.kit?.color ?? "",
+        size: kitProduct?.kit?.size,
+        isBabydoll: kitProduct?.kit?.is_babydoll ?? false,
+        // Quantidade de camisetas que o combo inclui deste tamanho/cor:
+        // é fixa (definida no backoffice) e não pode ser alterada na compra.
+        quantity: ci.quantity ?? 1,
+      };
+    });
   });
 
   const sorted = withKitInfo
@@ -330,13 +338,21 @@ function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number
     });
   const representative = sorted[0]?.product ?? groupProducts[0];
 
-  const sizeVariants: SizeVariant[] = sorted.map((x) => ({
-    productId: String(x.product.id),
-    color: x.color,
-    size: x.size!,
-    isBabydoll: x.isBabydoll,
-    priceValue: x.product.price,
-  }));
+  const seenVariants = new Set<string>();
+  const sizeVariants: SizeVariant[] = [];
+  for (const x of sorted) {
+    const key = variantKey({ color: x.color, size: x.size!, isBabydoll: x.isBabydoll });
+    if (seenVariants.has(key)) continue;
+    seenVariants.add(key);
+    sizeVariants.push({
+      productId: String(x.product.id),
+      color: x.color,
+      size: x.size!,
+      isBabydoll: x.isBabydoll,
+      priceValue: x.product.price,
+      quantity: x.quantity,
+    });
+  }
 
   const comboDateTimes = collectComboDateTimes(representative, productById);
   const representativeName = representative.name?.trim();
@@ -384,8 +400,11 @@ export default function StorePage() {
 
   const [selected, setSelected] = useState<StoreItem | null>(null);
   const [selectedVariantKey, setSelectedVariantKey] = useState<string>("");
-  // Contagem por opção (tamanho para KIT/COMBO, horário para COFFEE).
+  // Contagem por opção (tamanho para KIT, horário para COFFEE).
   const [optionCounts, setOptionCounts] = useState<Record<string, number>>({});
+  // Quantidade de combos do tamanho/cor selecionado (a qtd de camisetas de cada
+  // combo é fixa no backoffice e NÃO é controlada aqui).
+  const [comboCount, setComboCount] = useState(1);
   const [products, setProducts] = useState<StoreItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [quickVariantKeyByItemId, setQuickVariantKeyByItemId] = useState<Record<string, string>>({});
@@ -401,7 +420,7 @@ export default function StorePage() {
         const data = await productsAPI.getAllProducts();
         if (!cancelled) {
           // productById precisa conter TODOS os produtos (não só os em venda):
-          // coffees de dia podem aparecer dentro de combos sem serem vendidos
+          // coffees podem aparecer dentro de combos sem serem vendidos
           // individualmente, e a resolução deles depende deste mapa.
           const productById = new Map(data.products.map((p) => [p.id, p] as const));
           const selling = data.products.filter((p) => p.is_selling);
@@ -417,8 +436,6 @@ export default function StorePage() {
               if (group) group.push(p);
               else kitsByGroup.set(key, [p]);
             } else if (p.type === "COFFEE" && p.coffee) {
-              // Regra de negócio: coffee de dia só via combo; individual = noite.
-              if (!isNightCoffee(p.coffee.date_time)) continue;
               const key = coffeeGroupKey(p);
               const group = coffeesByGroup.get(key);
               if (group) group.push(p);
@@ -481,6 +498,7 @@ export default function StorePage() {
   const openModal = (item: StoreItem) => {
     setSelected(item);
     setOptionCounts({});
+    setComboCount(1);
     const defaultKey = item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : "";
     const initialKey = quickVariantKeyByItemId[item.id] ?? defaultKey;
     setSelectedVariantKey(initialKey);
@@ -500,15 +518,6 @@ export default function StorePage() {
 
   const handleColorSelect = (item: StoreItem, color: string) => {
     setSelectedVariantKey(firstVariantKeyForColor(item, color));
-    // Mantém apenas contadores de tamanhos da nova cor.
-    setOptionCounts((prev) => {
-      const next: Record<string, number> = {};
-      for (const [key, count] of Object.entries(prev)) {
-        const variant = item.sizeVariants.find((v) => variantKey(v) === key);
-        if (variant && colorOf(variant) === color) next[key] = count;
-      }
-      return next;
-    });
   };
 
   const selectedVariant =
@@ -519,7 +528,11 @@ export default function StorePage() {
       ? colorOf(selected.sizeVariants[0])
       : "";
 
-  const totalQty = Object.values(optionCounts).reduce((sum, n) => sum + n, 0);
+  const isCombo = selected?.rawType === "COMBO";
+
+  const totalQty = isCombo
+    ? comboCount
+    : Object.values(optionCounts).reduce((sum, n) => sum + n, 0);
   const priceOfOption = (key: string): number => {
     if (!selected) return 0;
     if (selected.rawType === "COFFEE") {
@@ -527,10 +540,12 @@ export default function StorePage() {
     }
     return selected.sizeVariants.find((v) => variantKey(v) === key)?.priceValue ?? 0;
   };
-  const totalPriceValue = Object.entries(optionCounts).reduce(
-    (sum, [key, n]) => sum + priceOfOption(key) * n,
-    0,
-  );
+  const totalPriceValue = isCombo
+    ? (selectedVariant?.priceValue ?? 0) * comboCount
+    : Object.entries(optionCounts).reduce(
+        (sum, [key, n]) => sum + priceOfOption(key) * n,
+        0,
+      );
   const baseUnitPrice =
     selected?.rawType === "COFFEE"
       ? selected.coffeeTimes[0]?.priceValue ?? selected?.priceValue ?? 0
@@ -539,6 +554,27 @@ export default function StorePage() {
 
   const handleAddToCart = () => {
     if (!selected) return;
+    if (isCombo) {
+      // Combo: o tamanho é seleção única e a quantidade de camisetas é fixa
+      // (backoffice). O comprador só escolhe quantos combos leva.
+      const variant = selectedVariant;
+      if (!variant || comboCount < 1) return;
+      for (let i = 0; i < comboCount; i++) {
+        addItem({
+          id: variant.productId,
+          name: selected.name,
+          price: variant.priceValue,
+          image: selected.image,
+          size: variant.size,
+          type: selected.rawType,
+          isBabydoll: variant.isBabydoll,
+          comboDateTimes: selected.availableDateTimes,
+        });
+      }
+      closeModal();
+      showNotification("Produto adicionado ao carrinho!", "success");
+      return;
+    }
     const entries = Object.entries(optionCounts).filter(([, count]) => count > 0);
     if (entries.length === 0) return;
     for (const [key, count] of entries) {
@@ -565,7 +601,6 @@ export default function StorePage() {
           size: variant.size,
           type: selected.rawType,
           isBabydoll: variant.isBabydoll,
-          comboDateTimes: selected.rawType === "COMBO" ? selected.availableDateTimes : undefined,
         };
       }
       for (let i = 0; i < count; i++) addItem(params);
@@ -995,14 +1030,48 @@ export default function StorePage() {
                   </div>
                 )}
 
-                {/* Seletor de Tamanho/Corte com contagem por unidade */}
-                {selected.sizeVariants.length > 0 && (
-                  <div>
-                    <span className={`text-sm font-semibold ${textColor}`}>Tamanho da camiseta</span>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {selected.sizeVariants
-                        .filter((v) => selected.rawType !== "COMBO" || colorOf(v) === modalCurrentColor)
-                        .map((v) => {
+                {/* Seletor de Tamanho/Corte: KIT usa contagem por unidade;
+                    COMBO usa seleção única (qtd de camisetas é fixa no backoffice) */}
+                {selected.sizeVariants.length > 0 &&
+                  (selected.rawType === "COMBO" ? (
+                    <div>
+                      <span className={`text-sm font-semibold ${textColor}`}>Tamanho da camiseta</span>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {selected.sizeVariants
+                          .filter((v) => colorOf(v) === modalCurrentColor)
+                          .map((v) => {
+                            const key = variantKey(v);
+                            const active = selectedVariantKey === key;
+                            return (
+                              <button
+                                key={key}
+                                type="button"
+                                onClick={() => setSelectedVariantKey(key)}
+                                className={`px-3 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${
+                                  active ? chipActive : chipIdle
+                                }`}
+                              >
+                                {variantLabel(v)}
+                                {v.quantity > 1 && (
+                                  <span className={`ml-1.5 text-xs font-bold ${active ? "opacity-80" : "opacity-60"}`}>
+                                    · {v.quantity}
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                      </div>
+                      <p className={`mt-2 text-xs ${mutedText}`}>
+                        {selectedVariant && selectedVariant.quantity > 1
+                          ? `O combo inclui ${selectedVariant.quantity} camisetas ${variantLabel(selectedVariant)} (quantidade fixa).`
+                          : "O combo inclui 1 camiseta do tamanho escolhido (quantidade fixa)."}
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <span className={`text-sm font-semibold ${textColor}`}>Tamanho da camiseta</span>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {selected.sizeVariants.map((v) => {
                           const key = variantKey(v);
                           return (
                             <OptionChip
@@ -1016,10 +1085,41 @@ export default function StorePage() {
                             />
                           );
                         })}
+                      </div>
+                      <p className={`mt-2 text-xs ${mutedText}`}>
+                        Selecione um tamanho por camiseta. Quantidade total: {totalQty}.
+                      </p>
                     </div>
-                    <p className={`mt-2 text-xs ${mutedText}`}>
-                      Selecione um tamanho por camiseta. Quantidade total: {totalQty}.
-                    </p>
+                  ))}
+
+                {/* Quantidade de combos (o conteúdo de cada combo é fixo) */}
+                {selected.rawType === "COMBO" && (
+                  <div>
+                    <span className={`text-sm font-semibold ${textColor}`}>Quantidade de combos</span>
+                    <div className="flex items-center gap-3 mt-2">
+                      <div className={`flex h-9 items-center rounded-full border ${cardBorder} ${cardBg} px-1 shadow-sm`}>
+                        <button
+                          type="button"
+                          onClick={() => setComboCount((c) => Math.max(1, c - 1))}
+                          aria-label="Diminuir quantidade de combos"
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${textColor} hover:bg-semcompMidLightBlue/20 transition-colors cursor-pointer`}
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <span className={`w-8 text-center text-sm font-bold ${textColor}`}>{comboCount}</span>
+                        <button
+                          type="button"
+                          onClick={() => setComboCount((c) => c + 1)}
+                          aria-label="Aumentar quantidade de combos"
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${textColor} hover:bg-semcompMidLightBlue/20 transition-colors cursor-pointer`}
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                      <p className={`text-xs ${mutedText}`}>
+                        Cada combo inclui a quantidade fixa de camisetas + coffee.
+                      </p>
+                    </div>
                   </div>
                 )}
 

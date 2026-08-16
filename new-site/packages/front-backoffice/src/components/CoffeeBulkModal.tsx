@@ -70,13 +70,13 @@ export function CoffeeBulkModal({ open, onClose, onSuccess }: CoffeeBulkModalPro
       showNotification("Informe um preço válido maior que zero.", "warning");
       return;
     }
-    // Regra de negócio: coffee diurno não pode ser vendido individualmente.
+    // Aviso: coffee de dia (antes das 18h) vendido individualmente é permitido,
+    // mas merece atenção — normalmente esse coffee entra em combos.
     if (isSelling && validDateTimes.some((dt) => !isNightCoffee(dt))) {
       showNotification(
-        "Coffees de dia (antes das 18h) não podem ser vendidos individualmente. Desmarque \"À Venda\" ou use horários noturnos (venda diurna apenas via combo).",
+        "Atenção: você está criando coffee(s) de manhã/dia vendidos individualmente.",
         "warning"
       );
-      return;
     }
 
     const coffeeName = name.trim();

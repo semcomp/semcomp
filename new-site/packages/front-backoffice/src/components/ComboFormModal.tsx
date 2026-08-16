@@ -12,7 +12,6 @@ import { Switch } from "@/components/ui/switch";
 import { productsAPI } from "@/api/products";
 import type { ProductType } from "@/types/ProductType";
 import { useNotification } from "@/contexts/NotificationContext";
-import { isNightCoffee } from "@/utils/coffeeRules";
 import { Coffee, Minus, Package, Plus, Search } from "lucide-react";
 
 interface ComboFormModalProps {
@@ -122,26 +121,14 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
 
     const allProducts = [...kits, ...coffees];
     const productById = new Map(allProducts.map((p) => [p.productId, p]));
-    const items = Array.from(selections.entries())
-      .filter(([itemId]) => {
-        const product = productById.get(itemId);
-        // Coffee noturno é venda individual — nunca entra no combo.
-        return !(product?.type === "COFFEE" && isNightCoffee(product.coffeeDateTime));
-      })
-      .map(([item_id, quantity]) => ({
-        item_id,
-        // Coffee é ticket de acesso único: sempre 1 por combo.
-        quantity: productById.get(item_id)?.type === "COFFEE" ? 1 : quantity,
-      }));
+    const items = Array.from(selections.entries()).map(([item_id, quantity]) => ({
+      item_id,
+      // Coffee é ticket de acesso único: sempre 1 por combo.
+      quantity: productById.get(item_id)?.type === "COFFEE" ? 1 : quantity,
+    }));
     if (items.length === 0) {
       showNotification("Selecione pelo menos um item permitido para o combo.", "warning");
       return;
-    }
-    if (items.length !== selections.size) {
-      showNotification(
-        "Coffees noturnos foram removidos do combo (são vendidos individualmente).",
-        "warning"
-      );
     }
 
     setSubmitting(true);
@@ -172,23 +159,16 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
     const id = product.productId;
     const selected = selections.has(id);
     const qty = selections.get(id) ?? 1;
-    // Regra de negócio: coffee noturno é vendido individualmente, não entra em combo.
-    const isIndividualCoffee = product.type === "COFFEE" && isNightCoffee(product.coffeeDateTime);
 
     return (
       <div
         key={id}
         className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors cursor-pointer select-none ${
-          isIndividualCoffee
-            ? "opacity-40 cursor-not-allowed"
-            : selected
-              ? "bg-violet-500/10 border border-violet-500/30"
-              : "hover:bg-slate-800/60 border border-transparent"
+          selected
+            ? "bg-violet-500/10 border border-violet-500/30"
+            : "hover:bg-slate-800/60 border border-transparent"
         }`}
-        onClick={() => {
-          if (isIndividualCoffee) return;
-          toggleItem(id);
-        }}
+        onClick={() => toggleItem(id)}
       >
         <div
           className={`w-4 h-4 rounded shrink-0 border-2 flex items-center justify-center transition-colors ${
@@ -209,11 +189,6 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
         </div>
 
         <span className="flex-1 text-sm text-slate-200 truncate">{getDisplayName(product)}</span>
-        {isIndividualCoffee && (
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-400/80 shrink-0">
-            venda individual
-          </span>
-        )}
         <span className="text-xs text-slate-500 shrink-0">#{id}</span>
 
         {selected && product.type === "KIT" && (

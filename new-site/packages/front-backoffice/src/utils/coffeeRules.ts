@@ -1,5 +1,6 @@
-// Regra de negócio: coffee de dia (antes das 18h) só pode ser vendido via combo;
-// coffee vendido individualmente ("À Venda") precisa ser de noite (>= 18h).
+// Coffee de dia (antes das 18h) pode ser vendido individualmente ("À Venda");
+// ao criar um coffee de dia individual é exibido um aviso para o admin.
+// Este helper também é usado para liberar coffees noturnos em combos.
 export const NIGHT_HOUR = 18;
 
 export function isNightCoffee(dateTime: string): boolean {
