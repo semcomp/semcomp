@@ -5,7 +5,7 @@ import { useTheme } from "@/contexts/useTheme";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Modal from "@/components/ui/Modal";
 import { useCart, type AddToCartParams } from "@/contexts/CartContext";
-import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2, X, ZoomIn, Clock } from "lucide-react";
+import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2, X, ZoomIn } from "lucide-react";
 import { productsAPI } from "@/api/products";
 import type { Product, ProductType } from "@/types/ProductType";
 import { useNotification } from "@/contexts/NotificationContext";
@@ -378,12 +378,11 @@ export default function StorePage() {
 
   // ─── Tokens de cor ────────────────────────────────────────
   const heroBg = isDarkMode
-    ? "bg-gradient-to-b from-semcompDarkBlue to-semcompMidDarkBlue"
+    ? "bg-gradient-to-b from-semcompAlmostDarkBlue via-semcompDarkBlue to-semcompDarkBlue/80"
     : "bg-gradient-to-b from-semcompMidLightBlue to-semcompMidLightBlue/20";
   const priceColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompMidDarkBlue";
   const textColor = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
   const mutedText = isDarkMode ? "text-semcompOffWhite/60" : "text-semcompDarkBlue/60";
-  const mutedText2 = isDarkMode ? "text-semcompOffWhite/60" : "text-semcompDarkBlue/60";
   const cardBg = isDarkMode ? "bg-semcompMidDarkBlue" : "bg-white";
   const cardBorder = isDarkMode ? "border-white/10" : "border-gray-200";
   const cardShadow = isDarkMode
@@ -459,7 +458,7 @@ export default function StorePage() {
             className="flex flex-col md:flex-row md:items-end md:justify-between"
           >
             <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-semcompOffWhite/60 mb-2">
+              <p className={`text-sm font-semibold uppercase tracking-widest ${mutedText} mb-2`}>
                 Monte seu pedido
               </p>
               <h1 className={`${headingSize} font-extrabold mb-4`}>
@@ -468,7 +467,7 @@ export default function StorePage() {
                   LOJA
                 </span>
               </h1>
-              <p className="max-w-2xl text-base md:text-lg leading-relaxed text-semcompOffWhite/60">
+              <p className={`max-w-2xl text-base md:text-lg leading-relaxed ${mutedText}`}>
                 Explore nossa seleção de produtos exclusivos da Semcomp e leve um pedacinho do evento com você.
               </p>
             </div>
@@ -487,7 +486,7 @@ export default function StorePage() {
                 )}
               </div>
               <div className="text-left">
-                <p className={`text-xs ${mutedText2}`}>Meu Carrinho</p>
+                <p className={`text-xs ${mutedText}`}>Meu Carrinho</p>
                 <p className={`text-sm font-bold ${textColor}`}>
                   {totalItems === 0 ? "Vazio" : `${totalItems} ${totalItems === 1 ? "item" : "itens"}`}
                 </p>
@@ -542,7 +541,7 @@ export default function StorePage() {
                         ? isDarkMode
                           ? "bg-semcompOffWhite text-semcompDarkBlue border-transparent shadow-md"
                           : "bg-semcompMidDarkBlue text-semcompOffWhite border-transparent shadow-md"
-                        : `${cardBorder} text-semcompOffWhite/80 dark:text-semcompOffWhite/60 hover:border-semcompMidDarkBlue`
+                        : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue`
                     }`}
                   >
                     {label}
@@ -651,7 +650,7 @@ export default function StorePage() {
                         {/* Info específica por tipo */}
                         {item.rawType === "COFFEE" && item.availableDateTimes.length > 0 && (
                           <p className={`text-xs ${mutedText}`}>
-                            🕐 {item.availableDateTimes.length} {item.availableDateTimes.length === 1 ? "horário disponível" : "horários disponíveis"}
+                            {item.availableDateTimes.length} {item.availableDateTimes.length === 1 ? "horário disponível" : "horários disponíveis"}
                           </p>
                         )}
 
@@ -744,7 +743,7 @@ export default function StorePage() {
                                       : `bg-semcompMidDarkBlue/10 ${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue/60`
                                   }`}
                                 >
-                                  🕐 {formatDateTime(dt)}
+                                  {formatDateTime(dt)}
                                 </button>
                               );
                             })}
@@ -755,9 +754,8 @@ export default function StorePage() {
                             {item.availableDateTimes.map((dt) => (
                               <span
                                 key={dt}
-                                className={`px-2.5 py-1 text-xs font-semibold rounded-md border ${cardBorder} bg-semcompMidDarkBlue/10 ${mutedText} inline-flex items-center gap-1`}
+                                className={`px-2.5 py-1 text-xs font-semibold rounded-md border ${cardBorder} bg-semcompMidDarkBlue/10 ${mutedText}`}
                               >
-                                <Clock size={12} />
                                 {formatDateTime(dt)}
                               </span>
                             ))}
@@ -923,7 +921,7 @@ export default function StorePage() {
                                 : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/5`
                           }`}
                         >
-                          🕐 {formatDateTime(dt)}
+                          {formatDateTime(dt)}
                         </button>
                       ))}
                     </div>
@@ -936,9 +934,8 @@ export default function StorePage() {
                       {selected.availableDateTimes.map((dt) => (
                         <span
                           key={dt}
-                          className={`px-3 py-2 text-sm font-semibold rounded-lg border ${cardBorder} bg-semcompMidDarkBlue/10 ${mutedText} inline-flex items-center gap-1.5`}
+                          className={`px-3 py-2 text-sm font-semibold rounded-lg border ${cardBorder} bg-semcompMidDarkBlue/10 ${mutedText}`}
                         >
-                          <Clock size={14} />
                           {formatDateTime(dt)}
                         </span>
                       ))}

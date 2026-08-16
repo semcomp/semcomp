@@ -16,7 +16,6 @@ import {
   Store,
   X,
   ZoomIn,
-  Clock,
 } from "lucide-react";
 
 const fadeIn = {
@@ -207,13 +206,12 @@ export default function CartPage() {
                             )}
                             {item.dateTime && (
                               <p>
-                                🕐 {formatDateTime(item.dateTime)}
+                                {formatDateTime(item.dateTime)}
                               </p>
                             )}
                             {item.comboDateTimes && item.comboDateTimes.length > 0 && (
-                              <p className="flex items-center gap-1">
-                                <Clock size={12} />
-                                <span>Coffee incluído: {item.comboDateTimes.map((t) => formatDateTime(t)).join(", ")}</span>
+                              <p>
+                                Coffee incluído: {item.comboDateTimes.map((t) => formatDateTime(t)).join(", ")}
                               </p>
                             )}
                             <p className="font-medium">{formatBRL(item.price)}/un</p>
