@@ -1,5 +1,6 @@
 import client from "./client";
 import type { ProductType, ProductRaw, ProductKind, ComboItemRich } from "@/types/ProductType";
+import { isNightCoffee } from "@/utils/coffeeRules";
 
 export interface ProductsListResponse {
   page: number;
@@ -85,15 +86,21 @@ const mapToBackendProduct = (product: ProductType) => {
         is_babydoll: product.kitIsBabydoll === "true",
       };
       break;
-    case "COFFEE":
+    case "COFFEE": {
       if (!product.coffeeName || !product.coffeeDateTime) {
         throw new Error("Preencha todos os campos obrigatórios do Coffee (Nome, Data/Hora).");
       }
+      const coffeeDateTime = normalizeRFC3339(product.coffeeDateTime);
+      // Regra de negócio: coffee diurno não pode ser vendido individualmente.
+      if (product.isSelling === "true" && !isNightCoffee(coffeeDateTime)) {
+        throw new Error("Coffee de dia (antes das 18h) não pode ser vendido individualmente — venda via combo.");
+      }
       base.coffee = {
         name: product.coffeeName,
-        date_time: normalizeRFC3339(product.coffeeDateTime),
+        date_time: coffeeDateTime,
       };
       break;
+    }
     case "COMBO":
       if (!product.comboItems) {
         throw new Error("Forneça pelo menos um item numérico para o Combo.");

@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { productsAPI } from "@/api/products";
 import type { ProductType } from "@/types/ProductType";
 import { useNotification } from "@/contexts/NotificationContext";
+import { isNightCoffee } from "@/utils/coffeeRules";
 import { Plus, Trash2 } from "lucide-react";
 
 interface CoffeeBulkModalProps {
@@ -67,6 +68,14 @@ export function CoffeeBulkModal({ open, onClose, onSuccess }: CoffeeBulkModalPro
     const parsedPrice = parseFloat(price.replace(",", "."));
     if (isNaN(parsedPrice) || parsedPrice <= 0) {
       showNotification("Informe um preço válido maior que zero.", "warning");
+      return;
+    }
+    // Regra de negócio: coffee diurno não pode ser vendido individualmente.
+    if (isSelling && validDateTimes.some((dt) => !isNightCoffee(dt))) {
+      showNotification(
+        "Coffees de dia (antes das 18h) não podem ser vendidos individualmente. Desmarque \"À Venda\" ou use horários noturnos (venda diurna apenas via combo).",
+        "warning"
+      );
       return;
     }
 
