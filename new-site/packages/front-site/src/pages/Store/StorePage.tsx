@@ -177,6 +177,59 @@ function formatDateTime(iso: string): string {
   });
 }
 
+// Chip selecionável com contador: clique adiciona uma unidade; "+"/"−" ajustam.
+function OptionChip({
+  label,
+  count,
+  activeClass,
+  idleClass,
+  onAdd,
+  onRemove,
+}: {
+  label: string;
+  count: number;
+  activeClass: string;
+  idleClass: string;
+  onAdd: () => void;
+  onRemove: () => void;
+}) {
+  const active = count > 0;
+  return (
+    <div
+      className={`flex items-center gap-1 px-2 py-1.5 text-sm font-bold rounded-lg border transition-all cursor-pointer select-none ${active ? activeClass : idleClass}`}
+      onClick={onAdd}
+    >
+      <span className="min-w-8 text-center">{label}</span>
+      <span className={`flex items-center gap-0.5 border-l pl-1.5 ${active ? "border-current/30" : "border-current/20"}`}>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/10 disabled:opacity-30 transition-colors"
+          disabled={count === 0}
+          aria-label="Diminuir"
+        >
+          <Minus size={12} />
+        </button>
+        <span className="w-4 text-center text-sm tabular-nums">{count}</span>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAdd();
+          }}
+          className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/10 transition-colors"
+          aria-label="Aumentar"
+        >
+          <Plus size={12} />
+        </button>
+      </span>
+    </div>
+  );
+}
+
 function kitGroupToStoreItem(groupProducts: Product[]): StoreItem {
   const sorted = [...groupProducts].sort((a, b) =>
     compareVariants(
@@ -319,9 +372,9 @@ export default function StorePage() {
   const { showNotification } = useNotification();
 
   const [selected, setSelected] = useState<StoreItem | null>(null);
-  const [qty, setQty] = useState(1);
   const [selectedVariantKey, setSelectedVariantKey] = useState<string>("");
-  const [selectedDateTime, setSelectedDateTime] = useState<string>("");
+  // Contagem por opção (tamanho para KIT/COMBO, horário para COFFEE).
+  const [optionCounts, setOptionCounts] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<StoreItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [quickVariantKeyByItemId, setQuickVariantKeyByItemId] = useState<Record<string, string>>({});
@@ -406,18 +459,46 @@ export default function StorePage() {
     ? "bg-semcompOffWhite text-semcompMidDarkBlue hover:bg-gray-200 hover:shadow-[0_0_24px_rgba(255,255,255,0.25)]"
     : "bg-semcompMidLightBlue text-semcompOffWhite hover:bg-semcompDarkBlue hover:shadow-[0_0_24px_rgba(0,48,80,0.45)]";
   const divider = isDarkMode ? "border-white/10" : "border-gray-200";
+  const chipActive = isDarkMode
+    ? "bg-semcompOffWhite text-semcompMidDarkBlue border-semcompOffWhite shadow-md"
+    : "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue shadow-md";
+  const chipIdle = isDarkMode
+    ? `${cardBorder} ${mutedText} hover:border-semcompOffWhite/70 hover:text-semcompOffWhite hover:bg-white/5`
+    : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/5`;
 
   // ─── Handlers ─────────────────────────────────────────────
   const openModal = (item: StoreItem) => {
     setSelected(item);
-    setQty(1);
+    setOptionCounts({});
     const defaultKey = item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : "";
     const initialKey = quickVariantKeyByItemId[item.id] ?? defaultKey;
     setSelectedVariantKey(initialKey);
-    setSelectedDateTime(quickDateTimeByItemId[item.id] ?? item.defaultDateTime ?? "");
   };
 
   const closeModal = () => setSelected(null);
+
+  const setOptionCount = (key: string, delta: number) => {
+    setOptionCounts((prev) => {
+      const next = { ...prev };
+      const value = (next[key] ?? 0) + delta;
+      if (value <= 0) delete next[key];
+      else next[key] = value;
+      return next;
+    });
+  };
+
+  const handleColorSelect = (item: StoreItem, color: string) => {
+    setSelectedVariantKey(firstVariantKeyForColor(item, color));
+    // Mantém apenas contadores de tamanhos da nova cor.
+    setOptionCounts((prev) => {
+      const next: Record<string, number> = {};
+      for (const [key, count] of Object.entries(prev)) {
+        const variant = item.sizeVariants.find((v) => variantKey(v) === key);
+        if (variant && colorOf(variant) === color) next[key] = count;
+      }
+      return next;
+    });
+  };
 
   const selectedVariant =
     selected?.sizeVariants.find((v) => variantKey(v) === selectedVariantKey) ?? selected?.sizeVariants[0];
@@ -426,31 +507,58 @@ export default function StorePage() {
     : selected?.sizeVariants[0]
       ? colorOf(selected.sizeVariants[0])
       : "";
-  const selectedCoffeeTime =
+
+  const totalQty = Object.values(optionCounts).reduce((sum, n) => sum + n, 0);
+  const priceOfOption = (key: string): number => {
+    if (!selected) return 0;
+    if (selected.rawType === "COFFEE") {
+      return selected.coffeeTimes.find((t) => t.dateTime === key)?.priceValue ?? 0;
+    }
+    return selected.sizeVariants.find((v) => variantKey(v) === key)?.priceValue ?? 0;
+  };
+  const totalPriceValue = Object.entries(optionCounts).reduce(
+    (sum, [key, n]) => sum + priceOfOption(key) * n,
+    0,
+  );
+  const baseUnitPrice =
     selected?.rawType === "COFFEE"
-      ? (selected.coffeeTimes.find((t) => t.dateTime === selectedDateTime) ?? selected.coffeeTimes[0])
-      : undefined;
-  const selectedPriceValue =
-    selectedVariant?.priceValue ?? selectedCoffeeTime?.priceValue ?? selected?.priceValue ?? 0;
+      ? selected.coffeeTimes[0]?.priceValue ?? selected?.priceValue ?? 0
+      : selected?.sizeVariants[0]?.priceValue ?? selected?.priceValue ?? 0;
+  const displayPrice = totalQty > 0 ? totalPriceValue : baseUnitPrice;
 
   const handleAddToCart = () => {
     if (!selected) return;
-    const params: AddToCartParams = {
-      id: selectedVariant
-        ? selectedVariant.productId
-        : selectedCoffeeTime
-          ? selectedCoffeeTime.productId
-          : selected.id,
-      name: selected.name,
-      price: selectedPriceValue,
-      image: selected.image,
-      size: selectedVariant?.size || undefined,
-      type: selected.rawType,
-      dateTime: selectedDateTime || undefined,
-      isBabydoll: selectedVariant?.isBabydoll || undefined,
-      comboDateTimes: selected.rawType === "COMBO" ? selected.availableDateTimes : undefined,
-    };
-    for (let i = 0; i < qty; i++) addItem(params);
+    const entries = Object.entries(optionCounts).filter(([, count]) => count > 0);
+    if (entries.length === 0) return;
+    for (const [key, count] of entries) {
+      let params: AddToCartParams;
+      if (selected.rawType === "COFFEE") {
+        const time = selected.coffeeTimes.find((t) => t.dateTime === key);
+        if (!time) continue;
+        params = {
+          id: time.productId,
+          name: selected.name,
+          price: time.priceValue,
+          image: selected.image,
+          type: selected.rawType,
+          dateTime: time.dateTime,
+        };
+      } else {
+        const variant = selected.sizeVariants.find((v) => variantKey(v) === key);
+        if (!variant) continue;
+        params = {
+          id: variant.productId,
+          name: selected.name,
+          price: variant.priceValue,
+          image: selected.image,
+          size: variant.size,
+          type: selected.rawType,
+          isBabydoll: variant.isBabydoll,
+          comboDateTimes: selected.rawType === "COMBO" ? selected.availableDateTimes : undefined,
+        };
+      }
+      for (let i = 0; i < count; i++) addItem(params);
+    }
     closeModal();
     showNotification("Produto adicionado ao carrinho!", "success");
   };
@@ -839,7 +947,7 @@ export default function StorePage() {
                 </h2>
               </div>
 
-              <p className="text-3xl font-extrabold text-semcompDarkBlue dark:text-semcompOffWhite">{formatBRL(selectedPriceValue)}</p>
+              <p className="text-3xl font-extrabold text-semcompDarkBlue dark:text-semcompOffWhite">{formatBRL(displayPrice)}</p>
 
               <p className={`text-sm leading-relaxed ${mutedText}`}>
                 {selected.description}
@@ -858,7 +966,7 @@ export default function StorePage() {
                       {colorsOf(selected).map((color) => (
                         <button
                           key={color}
-                          onClick={() => setSelectedVariantKey(firstVariantKeyForColor(selected, color))}
+                          onClick={() => handleColorSelect(selected, color)}
                           className={`min-w-11 px-3 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${
                             modalCurrentColor === color
                               ? isDarkMode
@@ -876,7 +984,7 @@ export default function StorePage() {
                   </div>
                 )}
 
-                {/* Seletor de Tamanho/Corte */}
+                {/* Seletor de Tamanho/Corte com contagem por unidade */}
                 {selected.sizeVariants.length > 0 && (
                   <div>
                     <span className={`text-sm font-semibold ${textColor}`}>Tamanho da camiseta</span>
@@ -886,29 +994,21 @@ export default function StorePage() {
                         .map((v) => {
                           const key = variantKey(v);
                           return (
-                            <button
+                            <OptionChip
                               key={key}
-                              onClick={() => setSelectedVariantKey(key)}
-                              className={`min-w-11 px-3 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${
-                                selectedVariantKey === key
-                                  ? isDarkMode
-                                    ? "bg-semcompOffWhite text-semcompMidDarkBlue border-semcompOffWhite shadow-md"
-                                    : "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue shadow-md"
-                                  : isDarkMode
-                                    ? `${cardBorder} ${mutedText} hover:border-semcompOffWhite/70 hover:text-semcompOffWhite hover:bg-white/5`
-                                    : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/5`
-                              }`}
-                            >
-                              {variantLabel(v)}
-                            </button>
+                              label={variantLabel(v)}
+                              count={optionCounts[key] ?? 0}
+                              activeClass={chipActive}
+                              idleClass={chipIdle}
+                              onAdd={() => setOptionCount(key, 1)}
+                              onRemove={() => setOptionCount(key, -1)}
+                            />
                           );
                         })}
                     </div>
-                    {selectedVariant && (
-                      <p className={`mt-2 text-xs ${mutedText}`}>
-                        Preço: <span className="font-bold">{formatBRL(selectedVariant.priceValue)}</span>
-                      </p>
-                    )}
+                    <p className={`mt-2 text-xs ${mutedText}`}>
+                      Selecione um tamanho por camiseta. Quantidade total: {totalQty}.
+                    </p>
                   </div>
                 )}
 
@@ -918,23 +1018,20 @@ export default function StorePage() {
                     <span className={`text-sm font-semibold ${textColor}`}>Horário disponível</span>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {selected.availableDateTimes.map((dt) => (
-                        <button
+                        <OptionChip
                           key={dt}
-                          onClick={() => setSelectedDateTime(dt)}
-                          className={`px-3 py-2 text-sm font-bold rounded-lg border transition-all cursor-pointer ${
-                            selectedDateTime === dt
-                              ? isDarkMode
-                                ? "bg-semcompOffWhite text-semcompMidDarkBlue border-semcompOffWhite shadow-md"
-                                : "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue shadow-md"
-                              : isDarkMode
-                                ? `${cardBorder} ${mutedText} hover:border-semcompOffWhite/70 hover:text-semcompOffWhite hover:bg-white/5`
-                                : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/5`
-                          }`}
-                        >
-                          {formatDateTime(dt)}
-                        </button>
+                          label={formatDateTime(dt)}
+                          count={optionCounts[dt] ?? 0}
+                          activeClass={chipActive}
+                          idleClass={chipIdle}
+                          onAdd={() => setOptionCount(dt, 1)}
+                          onRemove={() => setOptionCount(dt, -1)}
+                        />
                       ))}
                     </div>
+                    <p className={`mt-2 text-xs ${mutedText}`}>
+                      Selecione um horário por coffee. Quantidade total: {totalQty}.
+                    </p>
                   </div>
                 )}
                 {selected.rawType === "COMBO" && selected.availableDateTimes.length > 0 && (
@@ -953,32 +1050,14 @@ export default function StorePage() {
                   </div>
                 )}
 
-                {/* Quantidade */}
-                <div className="flex items-center justify-between">
-                  <span className={`text-sm font-semibold ${textColor}`}>Quantidade</span>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setQty((p) => Math.max(1, p - 1))}
-                      className={`w-10 h-10 rounded-full border ${cardBorder} ${cardBg} flex items-center justify-center ${textColor} hover:bg-semcompLightBlue/20 transition cursor-pointer shadow-sm`}
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className={`w-8 text-center font-bold text-lg ${textColor}`}>{qty}</span>
-                    <button
-                      onClick={() => setQty((p) => p + 1)}
-                      className={`w-10 h-10 rounded-full border ${cardBorder} ${cardBg} flex items-center justify-center ${textColor} hover:bg-semcompLightBlue/20 transition cursor-pointer shadow-sm`}
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                </div>
-
                 {/* Total */}
                 <div className={`pt-4 border-t ${divider}`}>
                   <div className="flex items-center justify-between">
-                    <span className={`font-bold ${textColor}`}>Total</span>
+                    <span className={`font-bold ${textColor}`}>
+                      {totalQty > 0 ? `Total (${totalQty} ${totalQty === 1 ? "item" : "itens"})` : "Total"}
+                    </span>
                     <span className="text-2xl font-extrabold text-semcompMidDarkBlue dark:text-semcompOffWhite">
-                      R$ {(selectedPriceValue * qty).toFixed(2).replace(".", ",")}
+                      {formatBRL(totalPriceValue)}
                     </span>
                   </div>
                 </div>
@@ -987,11 +1066,12 @@ export default function StorePage() {
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className={`mt-2 w-full rounded-full py-3.5 text-base font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-semcompLightBlue focus:ring-offset-2 active:scale-95 shadow-lg ${btnSolid}`}
+                disabled={totalQty === 0}
+                className={`mt-2 w-full rounded-full py-3.5 text-base font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-semcompLightBlue focus:ring-offset-2 active:scale-95 shadow-lg ${btnSolid} disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100`}
               >
                 <span className="flex items-center justify-center gap-2">
                   <ShoppingCart size={20} />
-                  Adicionar ao carrinho ({qty})
+                  {totalQty > 0 ? `Adicionar ao carrinho (${totalQty})` : "Selecione horários/tamanhos"}
                 </span>
               </button>
 

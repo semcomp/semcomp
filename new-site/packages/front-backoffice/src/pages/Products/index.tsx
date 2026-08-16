@@ -126,7 +126,8 @@ export default function ProductsCRUD() {
       showNotification("Produto criado com sucesso", "success");
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || "Erro ao criar produto";
-      showNotification(msg, "error");
+      showNotification(msg, "error", 6000);
+      throw err;
     }
   };
 
@@ -146,7 +147,8 @@ export default function ProductsCRUD() {
       showNotification("Produto editado com sucesso", "success");
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || "Erro ao editar produto";
-      showNotification(msg, "error");
+      showNotification(msg, "error", 6000);
+      throw err;
     }
   };
 
@@ -161,7 +163,8 @@ export default function ProductsCRUD() {
       showNotification("Produto removido com sucesso", "success");
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || "Erro ao remover produto";
-      showNotification(msg, "error");
+      showNotification(msg, "error", 6000);
+      throw err;
     }
   };
 

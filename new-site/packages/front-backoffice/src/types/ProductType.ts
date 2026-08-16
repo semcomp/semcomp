@@ -49,7 +49,7 @@ export interface ProductType extends CrudItemType {
     productId: number;
     type: ProductKind;
     name: string;
-    isSelling: string;   // "true" / "false" - string para renderizar no select
+    isSelling: boolean;    // true / false
     price: string;       // string para CrudTable
     pictureUrl: string;
     description: string;

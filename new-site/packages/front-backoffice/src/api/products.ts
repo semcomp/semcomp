@@ -23,7 +23,7 @@ const mapBackendProduct = (product: ProductRaw): ProductType => {
     productId: product.id,
     type: product.type,
     name: product.name ?? "",
-    isSelling: String(product.is_selling),
+    isSelling: product.is_selling,
     price: String(product.price),
     pictureUrl: product.picture_url ?? "",
     description: product.description ?? "",
@@ -68,7 +68,7 @@ const mapToBackendProduct = (product: ProductType) => {
 
   const base: Record<string, unknown> = {
     type: product.type as ProductKind,
-    is_selling: product.isSelling === "true",
+    is_selling: product.isSelling,
     price: parsedPrice,
     picture_url: product.pictureUrl ?? "",
     description: product.description ?? "",
@@ -92,7 +92,7 @@ const mapToBackendProduct = (product: ProductType) => {
       }
       const coffeeDateTime = normalizeRFC3339(product.coffeeDateTime);
       // Regra de negócio: coffee diurno não pode ser vendido individualmente.
-      if (product.isSelling === "true" && !isNightCoffee(coffeeDateTime)) {
+      if (product.isSelling && !isNightCoffee(coffeeDateTime)) {
         throw new Error("Coffee de dia (antes das 18h) não pode ser vendido individualmente — venda via combo.");
       }
       base.coffee = {

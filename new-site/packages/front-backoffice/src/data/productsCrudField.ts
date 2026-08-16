@@ -1,27 +1,34 @@
 import { type CrudField } from "@/components/CrudTable";
 
+const PRESET_SIZES = ["PP", "P", "M", "G", "GG", "XG"];
+
 const productId: CrudField = { value: "productId", label: "ID", type: "number", readOnly: true };
 
 const isSelling: CrudField = {
   value: "isSelling",
   label: "À Venda",
-  type: "select",
-  selectVariants: {
-    true: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
-    false: "bg-slate-600/40 text-slate-400 border border-slate-600/30",
-  },
+  type: "boolean",
 };
 
 const price: CrudField = { value: "price", label: "Preço", type: "number" };
 const pictureUrl: CrudField = { value: "pictureUrl", label: "URL da Imagem", type: "url" };
 const description: CrudField = { value: "description", label: "Descrição", type: "textarea" };
 
+const kitSize: CrudField = {
+  value: "kitSize",
+  label: "Tamanho",
+  type: "select",
+  selectVariants: Object.fromEntries(
+    PRESET_SIZES.map((size) => [size, "bg-blue-500/20 text-blue-300 border border-blue-500/30"]),
+  ),
+};
+
 export const kitFields: CrudField[] = [
   productId,
   isSelling,
   price,
   { value: "kitName", label: "Nome", type: "text" },
-  { value: "kitSize", label: "Tamanho", type: "text" },
+  kitSize,
   { value: "kitColor", label: "Cor", type: "text" },
   {
     value: "kitIsBabydoll",

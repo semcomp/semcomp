@@ -32,7 +32,7 @@ export function Notification({
   return (
     <div
       className={`
-        fixed left-1/2 top-6 z-50 -translate-x-1/2 w-[min(90vw,600px)]
+        fixed left-1/2 top-6 z-[100] -translate-x-1/2 w-[min(90vw,600px)]
         rounded-lg shadow-lg transition-[opacity,transform] duration-300 ease-out
         ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'}
       `}

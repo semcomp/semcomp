@@ -65,7 +65,7 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
     setFetchError(null);
     setName(initialData?.name ?? "");
     setPrice(initialData?.price ?? "");
-    setIsSelling(initialData?.isSelling === "true");
+    setIsSelling(initialData?.isSelling === true);
     setPictureUrl(initialData?.pictureUrl ?? "");
     setDescription(initialData?.description ?? "");
 
@@ -121,15 +121,17 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
     }
 
     const allProducts = [...kits, ...coffees];
+    const productById = new Map(allProducts.map((p) => [p.productId, p]));
     const items = Array.from(selections.entries())
       .filter(([itemId]) => {
-        const product = allProducts.find((p) => p.productId === itemId);
+        const product = productById.get(itemId);
         // Coffee noturno é venda individual — nunca entra no combo.
         return !(product?.type === "COFFEE" && isNightCoffee(product.coffeeDateTime));
       })
       .map(([item_id, quantity]) => ({
         item_id,
-        quantity,
+        // Coffee é ticket de acesso único: sempre 1 por combo.
+        quantity: productById.get(item_id)?.type === "COFFEE" ? 1 : quantity,
       }));
     if (items.length === 0) {
       showNotification("Selecione pelo menos um item permitido para o combo.", "warning");
@@ -214,7 +216,7 @@ export function ComboFormModal({ open, onClose, initialData, onSuccess }: ComboF
         )}
         <span className="text-xs text-slate-500 shrink-0">#{id}</span>
 
-        {selected && (
+        {selected && product.type === "KIT" && (
           <div className="flex items-center gap-1 ml-1" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"

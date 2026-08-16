@@ -125,7 +125,8 @@ function formatDateForInput(val: unknown): string {
   if (!val || typeof val !== "string") return "";
   const d = new Date(val);
   if (isNaN(d.getTime())) return val;
-  return d.toISOString().slice(0, 16);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 // ─── FilterControl ─────────────────────────────────────────────────────────────
@@ -460,6 +461,7 @@ export function CrudTable({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CrudItemType | null>(null);
   const [selectedItemKey, setSelectedItemKey] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState<Record<string, FormValue>>({});
 
@@ -526,7 +528,7 @@ export function CrudTable({
     fields.forEach((f) => {
       const raw = (item as Record<string, unknown>)[f.value];
       if (f.type === "multivalue") fd[f.value] = normalizeToStringArray(raw);
-      else if (f.type === "boolean") fd[f.value] = Boolean(raw);
+      else if (f.type === "boolean") fd[f.value] = raw === true || raw === "true";
       else if (f.type === "date") fd[f.value] = formatDateForInput(raw);
       else fd[f.value] = String(raw ?? "");
     });
@@ -607,11 +609,19 @@ export function CrudTable({
     }
 
     if (field.type === "date") {
+      const parsedDate = new Date(val);
       return (
         <span className="text-foreground">
-          {isNaN(Date.parse(val))
+          {isNaN(parsedDate.getTime())
             ? val
-            : new Date(val).toISOString().slice(0, 16).replace("T", " ")}
+            : parsedDate.toLocaleString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })}
         </span>
       );
     }
@@ -996,17 +1006,25 @@ export function CrudTable({
             </Button>
             <Button
               className="bg-primary hover:bg-primary/90"
-              onClick={() => {
-                if (onCreate)
-                  onCreate({
+              disabled={saving}
+              onClick={async () => {
+                if (!onCreate) return;
+                setSaving(true);
+                try {
+                  await onCreate({
                     id: "",
                     name: formData["name"] ?? "",
                     ...formData,
                   } as CrudItemType);
-                setCreateOpen(false);
+                  setCreateOpen(false);
+                } catch {
+                  // Mantém o dialog aberto; o handler já notifica o erro.
+                } finally {
+                  setSaving(false);
+                }
               }}
             >
-              Criar
+              {saving ? "Criando..." : "Criar"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1049,16 +1067,24 @@ export function CrudTable({
             </Button>
             <Button
               className="bg-primary hover:bg-primary/90"
-              onClick={() => {
-                if (selectedItem)
-                  onEdit(
+              disabled={saving}
+              onClick={async () => {
+                if (!selectedItem) return;
+                setSaving(true);
+                try {
+                  await onEdit(
                     { ...selectedItem, ...formData } as CrudItemType,
                     selectedItemKey
                   );
-                setEditOpen(false);
+                  setEditOpen(false);
+                } catch {
+                  // Mantém o dialog aberto; o handler já notifica o erro.
+                } finally {
+                  setSaving(false);
+                }
               }}
             >
-              Salvar alterações
+              {saving ? "Salvando..." : "Salvar alterações"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1088,16 +1114,24 @@ export function CrudTable({
             <Button
               variant="destructive"
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                if (selectedItem) {
-                  const itemId =
-                    selectedItemKey || resolveItemKey(selectedItem);
-                  if (itemId) onDelete(itemId);
+              disabled={saving}
+              onClick={async () => {
+                if (!selectedItem) return;
+                const itemId =
+                  selectedItemKey || resolveItemKey(selectedItem);
+                if (!itemId) return;
+                setSaving(true);
+                try {
+                  await onDelete(itemId);
+                  setDeleteOpen(false);
+                } catch {
+                  // Mantém o dialog aberto; o handler já notifica o erro.
+                } finally {
+                  setSaving(false);
                 }
-                setDeleteOpen(false);
               }}
             >
-              Excluir
+              {saving ? "Excluindo..." : "Excluir"}
             </Button>
           </DialogFooter>
         </DialogContent>
