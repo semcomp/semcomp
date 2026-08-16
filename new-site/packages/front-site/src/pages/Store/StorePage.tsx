@@ -26,6 +26,13 @@ function variantLabel(v: { size: string; isBabydoll: boolean }): string {
   return v.isBabydoll ? `${v.size} · Babydoll` : v.size;
 }
 
+// Cada horário de coffee é um produto próprio (id + preço distintos).
+interface CoffeeTimeOption {
+  dateTime: string;
+  productId: string;
+  priceValue: number;
+}
+
 interface StoreItem {
   id: string;
   name: string;
@@ -37,6 +44,7 @@ interface StoreItem {
   rawType: ProductType;
   sizeVariants: SizeVariant[];
   availableDateTimes: string[];
+  coffeeTimes: CoffeeTimeOption[];
   defaultDateTime?: string;
   color?: string;
 }
@@ -133,6 +141,7 @@ function kitGroupToStoreItem(groupProducts: Product[]): StoreItem {
     rawType: "KIT",
     sizeVariants,
     availableDateTimes: [],
+    coffeeTimes: [],
     color: kit.color,
   };
 }
@@ -144,9 +153,13 @@ function coffeeGroupToStoreItem(groupProducts: Product[]): StoreItem {
   const representative = sorted[0];
   const coffee = representative.coffee!;
 
-  const availableDateTimes = sorted
-    .map((p) => p.coffee?.date_time)
-    .filter((dt): dt is string => Boolean(dt));
+  const coffeeTimes: CoffeeTimeOption[] = sorted
+    .map((p) =>
+      p.coffee?.date_time
+        ? { dateTime: p.coffee.date_time, productId: String(p.id), priceValue: p.price }
+        : null
+    )
+    .filter((t): t is CoffeeTimeOption => t !== null);
 
   return {
     id: String(representative.id),
@@ -160,8 +173,9 @@ function coffeeGroupToStoreItem(groupProducts: Product[]): StoreItem {
       `https://placehold.co/600x400/0B2639/FAFDFF?text=${encodeURIComponent(coffee.name)}`,
     rawType: "COFFEE",
     sizeVariants: [],
-    availableDateTimes,
-    defaultDateTime: availableDateTimes[0] ?? undefined,
+    availableDateTimes: coffeeTimes.map((t) => t.dateTime),
+    coffeeTimes,
+    defaultDateTime: coffeeTimes[0]?.dateTime ?? undefined,
   };
 }
 
@@ -204,6 +218,7 @@ function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number
     rawType: "COMBO",
     sizeVariants,
     availableDateTimes,
+    coffeeTimes: [],
     defaultDateTime: availableDateTimes[0] ?? undefined,
   };
 }
@@ -332,12 +347,21 @@ export default function StorePage() {
 
   const selectedVariant =
     selected?.sizeVariants.find((v) => variantKey(v) === selectedVariantKey) ?? selected?.sizeVariants[0];
-  const selectedPriceValue = selectedVariant?.priceValue ?? selected?.priceValue ?? 0;
+  const selectedCoffeeTime =
+    selected?.rawType === "COFFEE"
+      ? (selected.coffeeTimes.find((t) => t.dateTime === selectedDateTime) ?? selected.coffeeTimes[0])
+      : undefined;
+  const selectedPriceValue =
+    selectedVariant?.priceValue ?? selectedCoffeeTime?.priceValue ?? selected?.priceValue ?? 0;
 
   const handleAddToCart = () => {
     if (!selected) return;
     const params: AddToCartParams = {
-      id: selectedVariant ? selectedVariant.productId : selected.id,
+      id: selectedVariant
+        ? selectedVariant.productId
+        : selectedCoffeeTime
+          ? selectedCoffeeTime.productId
+          : selected.id,
       name: selected.name,
       price: selectedPriceValue,
       image: selected.image,
@@ -530,7 +554,15 @@ export default function StorePage() {
                           const quickVariant = item.sizeVariants.length > 0
                             ? (item.sizeVariants.find((v) => variantKey(v) === quickKey) ?? item.sizeVariants[0])
                             : undefined;
-                          const displayPrice = quickVariant ? formatBRL(quickVariant.priceValue) : item.price;
+                          const activeDateTime = quickDateTimeByItemId[item.id] ?? item.defaultDateTime;
+                          const quickCoffeeTime = item.rawType === "COFFEE"
+                            ? (item.coffeeTimes.find((t) => t.dateTime === activeDateTime) ?? item.coffeeTimes[0])
+                            : undefined;
+                          const displayPrice = quickVariant
+                            ? formatBRL(quickVariant.priceValue)
+                            : quickCoffeeTime
+                              ? formatBRL(quickCoffeeTime.priceValue)
+                              : item.price;
 
                           return (
                             <div className="flex items-start justify-between gap-3">
@@ -627,15 +659,19 @@ export default function StorePage() {
                             const variant = item.sizeVariants.length > 0
                               ? (item.sizeVariants.find((v) => variantKey(v) === quickKey) ?? item.sizeVariants[0])
                               : undefined;
+                            const activeDateTime = quickDateTimeByItemId[item.id] ?? item.defaultDateTime;
+                            const quickCoffeeTime = item.rawType === "COFFEE"
+                              ? (item.coffeeTimes.find((t) => t.dateTime === activeDateTime) ?? item.coffeeTimes[0])
+                              : undefined;
                             addItem({
-                              id: variant ? variant.productId : item.id,
+                              id: variant ? variant.productId : (quickCoffeeTime ? quickCoffeeTime.productId : item.id),
                               name: item.name,
-                              price: variant ? variant.priceValue : item.priceValue,
+                              price: variant ? variant.priceValue : (quickCoffeeTime ? quickCoffeeTime.priceValue : item.priceValue),
                               image: item.image,
                               type: item.rawType,
                               size: variant?.size,
                               isBabydoll: variant?.isBabydoll || undefined,
-                              dateTime: quickDateTimeByItemId[item.id] ?? item.defaultDateTime,
+                              dateTime: activeDateTime,
                             });
                             showNotification("Produto adicionado ao carrinho!", "success");
                           }}
