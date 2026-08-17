@@ -1,33 +1,48 @@
 import client from "./client";
 
 // ============================================================
-// Payload de criação (usado no fechamento do carrinho/checkout)
+// Tipos de produto (espelham internal/product/model.go)
 // ============================================================
 
-export interface CreateSaleItemPayload {
-  product_id: number;
-  quantity: number;
+export interface SaleProductKit {
+  name: string;
+  size: string;
+  color: string;
+  is_babylook: boolean;
 }
 
-export interface CreateSalePayload {
-  items: CreateSaleItemPayload[];
-  payment_method: string;
-  status: string;
+export interface SaleProductCoffee {
+  name: string;
+  date_time: string;
+}
+
+export interface SaleComboSubItem {
+  id: number;
+  type: string;
+  kit?: SaleProductKit;
+  coffee?: SaleProductCoffee;
+}
+
+export interface SaleComboItem {
+  combo_id: number;
+  item_id: number;
+  item?: SaleComboSubItem;
+}
+
+export interface SaleProduct {
+  id: number;
+  type: "KIT" | "COFFEE" | "COMBO";
+  price: number;
+  picture_url?: string;
+  kit?: SaleProductKit;
+  coffee?: SaleProductCoffee;
+  combo_items?: SaleComboItem[];
 }
 
 // ============================================================
 // Entidades (espelham backend/internal/sales/model.go)
 // ============================================================
 
-export interface SaleProduct {
-  id: number;
-  name: string;
-  price: number;
-  image_url?: string;
-}
-
-// Entidade completa de um item de venda (não confundir com
-// CreateSaleItemPayload, que é só o que se envia na criação).
 export interface SaleItem {
   id: number;
   sale_id: number;
@@ -38,7 +53,14 @@ export interface SaleItem {
   product?: SaleProduct;
 }
 
-export type SaleStatus = "PENDENTE" | "PAGO" | "CANCELADO" | "REEMBOLSADO";
+// EXPIRADO é persistido pelo sweeper; REJEITADO vem do Mercado Pago.
+export type SaleStatus =
+  | "PENDENTE"
+  | "PAGO"
+  | "CANCELADO"
+  | "REEMBOLSADO"
+  | "REJEITADO"
+  | "EXPIRADO";
 
 export interface Sale {
   id: number;
@@ -46,33 +68,22 @@ export interface Sale {
   status: SaleStatus;
   total_amount: number;
   payment_method: string;
+  dietary_restrictions?: string;
+  has_kit_items?: boolean;
+  has_coffee_items?: boolean;
   created_at: string;
   updated_at: string;
   items?: SaleItem[];
 }
 
-// Aliases mantidos para compatibilidade com código que já usava esses nomes
-// (tela de perfil do usuário).
-export type SaleResponse = Sale;
-export type SaleItemResponse = SaleItem;
-
 // ============================================================
-// Payloads/respostas específicos de cada endpoint
+// Payloads/respostas dos endpoints admin
 // ============================================================
 
 export interface UpdateSalePayload {
-  status?: SaleStatus;
+  status?: Exclude<SaleStatus, "EXPIRADO">;
   payment_method?: string;
   dietary_restrictions?: string;
-}
-
-interface CreateSaleApiResponse {
-  message: string;
-  sale: Sale;
-}
-
-interface GetMySalesApiResponse {
-  sales: Sale[];
 }
 
 export interface GetAllSalesApiResponse {
@@ -98,24 +109,6 @@ interface UpdateItemPickupApiResponse {
 }
 
 export const salesAPI = {
-  // POST /api/sales — cria um novo pedido para o usuário autenticado
-  create: async (payload: CreateSalePayload): Promise<Sale> => {
-    const response = await client.post<CreateSaleApiResponse>("/api/sales", payload);
-    return response.data.sale;
-  },
-
-  // GET /api/sales/me — histórico de compras do usuário autenticado
-  getMySales: async (): Promise<Sale[]> => {
-    const response = await client.get<GetMySalesApiResponse>("/api/sales/profile");
-    return response.data.sales;
-  },
-
-  // GET /api/sales/:id — detalhes de uma compra específica do usuário
-  getById: async (saleId: number): Promise<Sale> => {
-    const response = await client.get<Sale>(`/api/sales/${saleId}`);
-    return response.data;
-  },
-
   // GET /admin/sales — listagem paginada de vendas (Backoffice)
   getAll: async (
     page = 1,

@@ -29,9 +29,10 @@ type SaleService interface {
 	// PaymentService.HandleWebhook), agora atualizando a Sale diretamente.
 	HandleWebhook(dataID, xSignature, xRequestID string) error
 
-	// GetStatus retorna o status efetivo de uma venda, considerando expiração
-	// de PIX pendente (antigo PaymentService.GetStatus, usado para polling).
-	GetStatus(saleID uint) (string, error)
+	// GetStatus retorna o status efetivo de uma venda do usuário, considerando
+	// expiração de PIX pendente (antigo PaymentService.GetStatus, para polling).
+	// Retorna NotFoundError se a venda não pertencer ao userNumber informado.
+	GetStatus(userNumber uint, saleID uint) (string, error)
 
 	GetSaleByID(userNumber uint, saleID uint) (*Sale, error)
 	GetUserSales(userNumber uint) ([]Sale, error)
@@ -344,6 +345,8 @@ func (s *saleService) HandleWebhook(dataID, xSignature, xRequestID string) error
 		return err
 	}
 
+	Hub.Publish(existing.ID, string(newStatus))
+
 	// Sincroniza as travas de compra única com o novo status: PAGO re-trava
 	// (se ainda não estiver), REJEITADO/CANCELADO/REEMBOLSADO destrava.
 	return s.syncConsumptionForSale(existing.ID)
@@ -392,10 +395,13 @@ func (s *saleService) verifySignature(dataID, xSignature, xRequestID string) err
 }
 
 // GetStatus retorna o status efetivo (considerando expiração de PIX) para polling.
-func (s *saleService) GetStatus(saleID uint) (string, error) {
+func (s *saleService) GetStatus(userNumber uint, saleID uint) (string, error) {
 	sale, err := s.saleRepo.GetByID(saleID)
 	if err != nil {
 		return "", err
+	}
+	if sale.SaleUserNumber != userNumber {
+		return "", apierrors.NotFoundError("Venda não encontrada", nil)
 	}
 	return string(sale.EffectiveStatus()), nil
 }
@@ -481,8 +487,8 @@ func (s *saleService) UpdateSaleByID(id string, request UpdateSaleRequest) (*Sal
 	if request.PaymentMethod != "" {
 		updateData["payment_method"] = request.PaymentMethod
 	}
-	if request.DietaryRestrictions != "" {
-		updateData["dietary_restrictions"] = request.DietaryRestrictions
+	if request.DietaryRestrictions != nil {
+		updateData["dietary_restrictions"] = *request.DietaryRestrictions
 	}
 
 	if len(updateData) > 0 {
@@ -492,6 +498,9 @@ func (s *saleService) UpdateSaleByID(id string, request UpdateSaleRequest) (*Sal
 				return nil, apierrors.NotFoundError("Venda não encontrada", err)
 			}
 			return nil, apierrors.InternalServerError("Erro ao atualizar venda", err)
+		}
+		if request.Status != "" {
+			Hub.Publish(uint(parsedID), string(request.Status))
 		}
 	}
 

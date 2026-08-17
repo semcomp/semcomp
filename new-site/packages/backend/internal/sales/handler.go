@@ -1,14 +1,25 @@
 package sales
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
 	"backend/internal/apierrors"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
+
+func isTerminalStatus(s string) bool {
+	switch SaleStatus(s) {
+	case SaleStatusPaid, SaleStatusRejected, SaleStatusCanceled, SaleStatusRefunded, SaleStatusExpired:
+		return true
+	}
+	return false
+}
 
 type SaleHandler struct {
 	saleService SaleService
@@ -33,7 +44,18 @@ func (h *SaleHandler) Webhook(c *gin.Context) {
 	xRequestID := c.GetHeader("x-request-id")
 
 	if err := h.saleService.HandleWebhook(dataID, xSignature, xRequestID); err != nil {
-		apierrors.HandleAPIError(c, err)
+		var apiErr *apierrors.APIError
+		if errors.As(err, &apiErr) && apiErr.Status >= 400 && apiErr.Status < 500 {
+			// Erro permanente (assinatura inválida, venda não encontrada, etc.):
+			// responde 200 para o MP não reenviar — retry nunca vai resolver.
+			log.Printf("[webhook] erro permanente, descartando reenvio: %v", err)
+			c.JSON(http.StatusOK, gin.H{"message": "error handled"})
+		} else {
+			// Erro transitório (banco fora do ar, falha de rede com o MP, etc.):
+			// responde 500 para o MP retentar com backoff exponencial.
+			log.Printf("[webhook] erro transitório, permitindo reenvio: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "retry"})
+		}
 		return
 	}
 
@@ -181,19 +203,82 @@ func (h *SaleHandler) GetSaleByID(c *gin.Context) {
 // @Security BearerAuth
 // @Router /sales/{id}/status [get]
 func (h *SaleHandler) GetSaleStatus(c *gin.Context) {
+	userNumber := c.GetUint("userNumber")
+	if userNumber == 0 {
+		apierrors.HandleAPIError(c, apierrors.UnauthorizedError("Usuário não autenticado", nil))
+		return
+	}
+
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		apierrors.HandleAPIError(c, apierrors.ValidationError("ID de venda inválido", err))
 		return
 	}
 
-	status, err := h.saleService.GetStatus(uint(id))
+	status, err := h.saleService.GetStatus(userNumber, uint(id))
 	if err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": status})
+}
+
+// StreamSaleStatus abre uma conexão SSE que empurra atualizações de status
+// do PIX em tempo real, eliminando a necessidade de polling pelo cliente.
+// GET /api/sales/:id/events
+func (h *SaleHandler) StreamSaleStatus(c *gin.Context) {
+	userNumber := c.GetUint("userNumber")
+	if userNumber == 0 {
+		apierrors.HandleAPIError(c, apierrors.UnauthorizedError("Usuário não autenticado", nil))
+		return
+	}
+
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("ID de venda inválido", err))
+		return
+	}
+
+	currentStatus, err := h.saleService.GetStatus(userNumber, uint(id))
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
+	c.Header("X-Accel-Buffering", "no")
+
+	flusher, ok := c.Writer.(http.Flusher)
+	if !ok {
+		apierrors.HandleAPIError(c, apierrors.InternalServerError("Streaming não suportado", nil))
+		return
+	}
+
+	fmt.Fprintf(c.Writer, "data: %s\n\n", currentStatus)
+	flusher.Flush()
+
+	if isTerminalStatus(currentStatus) {
+		return
+	}
+
+	ch := Hub.Subscribe(uint(id))
+	defer Hub.Unsubscribe(uint(id), ch)
+
+	for {
+		select {
+		case <-c.Request.Context().Done():
+			return
+		case newStatus := <-ch:
+			fmt.Fprintf(c.Writer, "data: %s\n\n", newStatus)
+			flusher.Flush()
+			if isTerminalStatus(newStatus) {
+				return
+			}
+		}
+	}
 }
 
 // GetAllSales retorna a lista paginada de vendas (Backoffice).

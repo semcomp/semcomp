@@ -5,7 +5,7 @@ import { BannerCard } from "@/components/BannerCard";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useHasPermission } from "@/contexts/AuthContext";
 import { salesAPI } from "@/api/sales";
-import type { Sale as BaseSale, SaleItem } from "@/api/sales";
+import type { Sale, SaleItem, SaleProduct } from "@/api/sales";
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudQueryParams } from "@/components/CrudTable";
 import { fields } from "@/data/salesCrudField";
@@ -23,20 +23,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, PackageCheck, PackageX, UtensilsCrossed } from "lucide-react";
 
-// TODO: mover estes campos para a definição de `Sale` em "@/api/sales" assim que o
-// tipo lá for atualizado. O backend já retorna `has_kit_items`, `has_coffee_items`
-// (calculados a partir dos produtos da venda, inclusive dentro de COMBOs) e
-// `dietary_restrictions` (texto livre, informado pelo admin).
-type Sale = BaseSale & {
-  has_kit_items?: boolean;
-  has_coffee_items?: boolean;
-  dietary_restrictions?: string;
-};
-
-// Extrai um nome amigável para exibição a partir do produto vinculado ao item da venda.
-// KIT e COFFEE têm nome próprio; COMBO não tem nome direto, então montamos uma
-// descrição a partir dos itens que o compõem (quando disponíveis via preload).
-function getProductDisplayName(product: any): string {
+function getProductDisplayName(product: SaleProduct | undefined): string {
   if (!product) return "Produto";
 
   if (product.kit?.name) return product.kit.name;
@@ -44,7 +31,7 @@ function getProductDisplayName(product: any): string {
 
   if (product.type === "COMBO" && product.combo_items?.length) {
     const itemNames = product.combo_items
-      .map((ci: any) => ci.item?.kit?.name ?? ci.item?.coffee?.name)
+      .map((ci) => ci.item?.kit?.name ?? ci.item?.coffee?.name)
       .filter(Boolean);
     if (itemNames.length > 0) {
       return `Combo (${itemNames.join(" + ")})`;
@@ -55,17 +42,14 @@ function getProductDisplayName(product: any): string {
   return product.type ?? "Produto";
 }
 
-// Monta uma linha descritiva com tamanho/cor/modelo de um Kit (camiseta).
-function formatKitInfo(kit: any): string {
+function formatKitInfo(kit: { size: string; color: string; is_babylook: boolean }): string {
   const parts = [`Tamanho ${kit.size}`];
   if (kit.color) parts.push(kit.color);
   if (kit.is_babylook) parts.push("Babylook");
   return parts.join(" · ");
 }
 
-// Retorna uma linha de detalhe por Kit envolvido no item da venda: o Kit direto
-// (quando o produto do item é do tipo KIT) e/ou os Kits que fazem parte de um Combo.
-function getKitInfoLines(product: any): string[] {
+function getKitInfoLines(product: SaleProduct | undefined): string[] {
   if (!product) return [];
   const lines: string[] = [];
 
@@ -91,15 +75,12 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-// const statusColors: Record<string, string> = {
-//   PENDENTE: "bg-amber-900/40 text-amber-300 border-amber-700/40",
-//   PAGO: "bg-emerald-900/40 text-emerald-300 border-emerald-700/40",
-//   CANCELADO: "bg-red-900/40 text-red-300 border-red-700/40",
-//   REEMBOLSADO: "bg-blue-900/40 text-blue-300 border-blue-700/40",
-// };
+
+// EXPIRADO é gerenciado pelo sweeper e não pode ser definido manualmente via admin.
+type SettableSaleStatus = "PENDENTE" | "PAGO" | "REJEITADO" | "CANCELADO" | "REEMBOLSADO";
 
 interface SaleFormState {
-  status: "PENDENTE" | "PAGO" | "CANCELADO" | "REEMBOLSADO";
+  status: SettableSaleStatus;
   payment_method: string;
   dietary_restrictions: string;
 }
@@ -119,11 +100,12 @@ function SaleForm({
         <Label className="text-foreground text-sm">Status do Pedido</Label>
         <select
           value={value.status}
-          onChange={(e) => onChange({ ...value, status: e.target.value as any })}
+          onChange={(e) => onChange({ ...value, status: e.target.value as SettableSaleStatus })}
           className="flex h-10 w-full rounded-md border border-muted/30 bg-muted/40 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <option value="PENDENTE">Pendente</option>
           <option value="PAGO">Pago</option>
+          <option value="REJEITADO">Rejeitado</option>
           <option value="CANCELADO">Cancelado</option>
           <option value="REEMBOLSADO">Reembolsado</option>
         </select>
@@ -211,7 +193,9 @@ export default function SalesCRUD() {
     if (!sale) return;
     setEditTarget(sale);
     setForm({
-      status: sale.status,
+      // EXPIRADO é gerenciado pelo sweeper e não pode ser definido manualmente;
+      // ao abrir o form para uma venda expirada, o admin escolhe um novo status.
+      status: sale.status === "EXPIRADO" ? "PENDENTE" : sale.status,
       payment_method: sale.payment_method,
       dietary_restrictions: sale.dietary_restrictions ?? "",
     });
@@ -246,7 +230,7 @@ export default function SalesCRUD() {
     }
   };
 
-  const openItems = async (sale: Sale) => {
+  const openItems = (sale: Sale) => {
     setItemsSale(sale);
     setItemsOpen(true);
   };
@@ -282,13 +266,8 @@ export default function SalesCRUD() {
 
   const tableData: CrudItemType[] = data.map((sale) => ({
     ...sale,
-    id: sale.id.toString(), // CrudTable geralmente espera ID string
+    id: sale.id.toString(),
     total_amount_formatted: formatCurrency(sale.total_amount),
-    // status: (
-    //   <Badge className={`px-2 py-0.5 text-xs border ${statusColors[sale.status] || "bg-muted text-foreground"}`}>
-    //     {sale.status}
-    //   </Badge>
-    // ),
   }));
 
   return (
@@ -328,11 +307,9 @@ export default function SalesCRUD() {
           onQueryChange={handleQueryChange}
           canWrite={canWrite}
           onAction={(item) => {
-            const sale = data.find((s) => s.id.toString() === (item as any).id);
+            const sale = data.find((s) => s.id.toString() === item.id);
             if (!sale) return;
             if (!sale.has_kit_items && !sale.has_coffee_items) {
-              // TODO: confirme se "info" existe no union type de showNotification;
-              // troque por "success"/"error" se necessário.
               showNotification("Este pedido não possui kits para retirada nem itens de café", "info");
               return;
             }
@@ -393,9 +370,9 @@ export default function SalesCRUD() {
                       <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-muted/20">
                         <div className="flex flex-col">
                           <span className="text-sm font-medium text-foreground">
-                            {item.quantity}x {getProductDisplayName((item as any).product)}
+                            {item.quantity}x {getProductDisplayName(item.product)}
                           </span>
-                          {getKitInfoLines((item as any).product).map((line, idx) => (
+                          {getKitInfoLines(item.product).map((line, idx) => (
                             <span key={idx} className="text-xs font-semibold text-amber-300/90">
                               {line}
                             </span>

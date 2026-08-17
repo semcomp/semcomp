@@ -54,10 +54,10 @@ func main() {
 	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
 
 	err := db.AutoMigrate(
-		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, 
-		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, 
-		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, 
-		&token.Token{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{}, 
+		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{},
+		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{},
+		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{},
+		&token.Token{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{},
 		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{}, &sales.ConsumedItem{},
 	)
 	if err != nil {
@@ -175,6 +175,7 @@ func main() {
 				continue
 			}
 			for _, id := range expiredIDs {
+				sales.Hub.Publish(id, string(sales.SaleStatusExpired))
 				if err := salesRepo.DeleteConsumedBySale(id); err != nil {
 					stdlog.Printf("[sweeper] erro ao liberar consumo da venda %d: %v", id, err)
 				}
@@ -254,14 +255,13 @@ func main() {
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 
-	authRoutes.POST("/payments/pix", pageMW("loja"), salesHandler.CreateSale)
-	authRoutes.GET("/payments/:id/status", pageMW("loja"), salesHandler.GetSaleStatus)
-
 	// Rotas de Vendas (Usuário)
 	authRoutes.POST("/sales", pageMW("loja"), salesHandler.CreateSale)
 	authRoutes.GET("/sales/profile", pageMW("loja"), salesHandler.GetMySales)
 	authRoutes.GET("/sales/consumed", pageMW("loja"), salesHandler.GetConsumed)
 	authRoutes.GET("/sales/:id", pageMW("loja"), salesHandler.GetSaleByID)
+	authRoutes.GET("/sales/:id/status", pageMW("loja"), salesHandler.GetSaleStatus)
+	authRoutes.GET("/sales/:id/events", pageMW("loja"), salesHandler.StreamSaleStatus)
 
 	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")

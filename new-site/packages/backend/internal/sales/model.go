@@ -170,7 +170,9 @@ type CreateSaleRequest struct {
 type UpdateSaleRequest struct {
 	Status              SaleStatus `json:"status" binding:"omitempty,oneof=PENDENTE PAGO REJEITADO CANCELADO REEMBOLSADO"`
 	PaymentMethod       string     `json:"payment_method" binding:"omitempty,max=50"`
-	DietaryRestrictions string     `json:"dietary_restrictions" binding:"omitempty,max=1000"`
+	// Ponteiro para distinguir "não enviado" (nil → não altera) de "enviado vazio"
+	// (ptr para "" → limpa o campo no banco).
+	DietaryRestrictions *string `json:"dietary_restrictions" binding:"omitempty,max=1000"`
 }
 
 // UpdateSaleItemPickupRequest é utilizado pelo admin para marcar a camiseta/kit como retirada.

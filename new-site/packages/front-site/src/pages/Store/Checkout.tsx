@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/contexts/useTheme";
 import { useCart } from "@/contexts/CartContext";
 import { salesAPI, type SaleResponse } from "@/api/sales";
+import { BASEURL } from "@/constants/ApiURL";
 import {
   CheckCircle2,
   XCircle,
@@ -14,8 +15,6 @@ import {
   RefreshCw,
   FlaskConical,
 } from "lucide-react";
-
-const POLL_INTERVAL_MS = 4000;
 
 function secondsUntil(iso: string): number {
   return Math.max(0, Math.floor((new Date(iso).getTime() - Date.now()) / 1000));
@@ -55,7 +54,7 @@ export default function CheckoutPage() {
   );
   const [error, setError] = useState<string | null>(null);
 
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const esRef = useRef<EventSource | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -102,29 +101,29 @@ export default function CheckoutPage() {
     return () => clearInterval(countdownRef.current!);
   }, [status]);
 
-  // Polling de status
+  // SSE de status (substitui polling)
   useEffect(() => {
     if (!sale || status !== "pending") return;
-    pollRef.current = setInterval(async () => {
-      try {
-        const { status: s } = await salesAPI.getStatus(sale.id);
-        if (s === "PAGO") {
-          setStatus("approved");
-          clearInterval(pollRef.current!);
-          clearInterval(countdownRef.current!);
-        } else if (s === "REJEITADO" || s === "REEMBOLSADO" || s === "CANCELADO") {
-          setStatus("rejected");
-          clearInterval(pollRef.current!);
-          clearInterval(countdownRef.current!);
-        } else if (s === "EXPIRADO") {
-          setStatus("expired");
-          clearInterval(pollRef.current!);
-        }
-      } catch {
-        // falha no poll: não interrompe, tenta novamente no próximo tick
+    const es = new EventSource(`${BASEURL}/api/sales/${sale.id}/events`, {
+      withCredentials: true,
+    });
+    esRef.current = es;
+    es.onmessage = ({ data }) => {
+      if (data === "PAGO") {
+        setStatus("approved");
+        clearInterval(countdownRef.current!);
+        es.close();
+      } else if (data === "REJEITADO" || data === "REEMBOLSADO" || data === "CANCELADO") {
+        setStatus("rejected");
+        clearInterval(countdownRef.current!);
+        es.close();
+      } else if (data === "EXPIRADO") {
+        setStatus("expired");
+        clearInterval(countdownRef.current!);
+        es.close();
       }
-    }, POLL_INTERVAL_MS);
-    return () => clearInterval(pollRef.current!);
+    };
+    return () => es.close();
   }, [sale, status]);
 
   // A venda já foi criada no "Finalizar Pedido" (POST /api/sales, status PENDENTE).
@@ -138,7 +137,7 @@ export default function CheckoutPage() {
 
   // ─── Botão de teste: aprova o pagamento sem esperar a análise real ───
   const handleBypassApproval = useCallback(() => {
-    if (pollRef.current) clearInterval(pollRef.current);
+    esRef.current?.close();
     if (countdownRef.current) clearInterval(countdownRef.current);
     setStatus("approved");
   }, []);

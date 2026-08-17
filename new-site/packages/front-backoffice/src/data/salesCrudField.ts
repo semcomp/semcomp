@@ -7,4 +7,5 @@ export const fields: CrudField[] = [
   { value: "total_amount_formatted", label: "Total", type: "text", sortValue: "total_amount" },
   { value: "status", label: "Status", type: "text" },
   { value: "payment_method", label: "Método", type: "text" },
+  { value: "created_at", label: "Data do Pedido", type: "text" },
 ];

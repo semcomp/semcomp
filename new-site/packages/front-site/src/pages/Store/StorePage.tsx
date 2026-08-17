@@ -795,7 +795,7 @@ export default function StorePage() {
                       onClick={() => openModal(item)}
                     >
                       {/* Imagem */}
-                      <div className="relative overflow-hidden aspect-4/3 shrink-0">
+                      <div className="relative overflow-hidden aspect-square shrink-0">
                         <img
                           src={item.image}
                           alt={item.name}
