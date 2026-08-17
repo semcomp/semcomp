@@ -30,7 +30,7 @@ const mapBackendProduct = (product: ProductRaw): ProductType => {
     kitName: product.kit?.name ?? "",
     kitSize: product.kit?.size ?? "",
     kitColor: product.kit?.color ?? "",
-    kitIsBabydoll: product.kit ? String(product.kit.is_babydoll) : "",
+    kitIsBabylook: product.kit ? String(product.kit.is_babylook) : "",
     // Coffee
     coffeeName: product.coffee?.name ?? "",
     coffeeDateTime: product.coffee?.date_time ?? "",
@@ -91,7 +91,7 @@ const mapToBackendProduct = (product: ProductType) => {
         name: product.kitName,
         size: product.kitSize,
         color: product.kitColor,
-        is_babydoll: product.kitIsBabydoll === "true",
+        is_babylook: product.kitIsBabylook === "true",
       };
       break;
     case "COFFEE": {

@@ -21,7 +21,7 @@ Documentação das rotas de produto do backend.
 | `name`       | string | Nome do kit              |
 | `size`       | string | Tamanho                  |
 | `color`      | string | Cor                      |
-| `is_babydoll`| bool   | Se é babydoll            |
+| `is_babylook`| bool   | Se é babylook (camiseta de uso cotidiano) |
 
 ### Coffee (Especialização - type: COFFEE)
 
@@ -61,7 +61,7 @@ Documentação das rotas de produto do backend.
     "name": "Kit Semcomp 29",
     "size": "M",
     "color": "Preto",
-    "is_babydoll": false
+    "is_babylook": false
   }
 }
 ```
@@ -106,7 +106,7 @@ Resposta de sucesso (`201`):
       "name": "Kit Semcomp 29",
       "size": "M",
       "color": "Preto",
-      "is_babydoll": false
+      "is_babylook": false
     }
   }
 }
@@ -197,7 +197,7 @@ Resposta de sucesso (`200`):
     "name": "Kit Semcomp 29",
     "size": "M",
     "color": "Preto",
-    "is_babydoll": false
+    "is_babylook": false
   }
 }
 ```

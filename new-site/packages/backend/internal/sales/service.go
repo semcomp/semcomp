@@ -41,6 +41,11 @@ type SaleService interface {
 
 	// Operação de Item (Backoffice)
 	UpdateItemPickup(itemID string, request UpdateSaleItemPickupRequest) (*SaleItem, error)
+
+	// GetConsumed retorna os ids de produtos de compra única (COFFEE/COMBO)
+	// indisponíveis para o usuário — já consumidos ou travados por um pedido
+	// ativo (incluindo o fechamento via combos).
+	GetConsumed(userNumber uint) ([]uint, error)
 }
 
 type saleService struct {
@@ -60,6 +65,27 @@ func NewSaleService(saleRepo SaleRepository, productRepo product.ProductReposito
 func (s *saleService) CreateSale(userNumber uint, email string, request CreateSaleRequest) (*Sale, error) {
 	var totalAmount float64
 	var saleItems []SaleItem
+	var consumedProductIDs []uint
+
+	status := request.Status
+	if status == "" {
+		status = SaleStatusPending
+	}
+
+	// Só pedidos ativos (PENDENTE/PAGO) travam a compra única. Pedidos criados
+	// direto em status final não reservam o item.
+	shouldLock := status == SaleStatusPending || status == SaleStatusPaid
+
+	// Conjunto fechado de produtos indisponíveis para este usuário (coffees e
+	// combos já consumidos/travados). Calculado uma única vez para todos os itens.
+	unavailable, err := s.getUnavailableProductIDs(userNumber)
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao verificar disponibilidade dos itens", err)
+	}
+	unavailableSet := make(map[uint]struct{}, len(unavailable))
+	for _, id := range unavailable {
+		unavailableSet[id] = struct{}{}
+	}
 
 	for _, itemReq := range request.Items {
 		prod, err := s.productRepo.GetByID(itemReq.ProductID)
@@ -69,6 +95,19 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 
 		if !prod.IsSelling {
 			return nil, apierrors.ValidationError("O produto '"+strconv.Itoa(int(prod.ID))+"' não está mais disponível para venda", nil)
+		}
+
+		// Compra única: COFFEE e COMBO só podem ser comprados 1 vez, quantidade 1.
+		if prod.Type == product.ProductTypeCoffee || prod.Type == product.ProductTypeCombo {
+			if itemReq.Quantity != 1 {
+				return nil, apierrors.ValidationError("Este produto só pode ser comprado em quantidade 1", nil)
+			}
+			if _, taken := unavailableSet[prod.ID]; taken {
+				return nil, apierrors.ValidationError("Este item já foi consumido ou já está reservado em outro pedido", nil)
+			}
+			if shouldLock {
+				consumedProductIDs = append(consumedProductIDs, prod.ID)
+			}
 		}
 
 		unitPrice := prod.Price
@@ -83,11 +122,6 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 		})
 	}
 
-	status := request.Status
-	if status == "" {
-		status = SaleStatusPending
-	}
-
 	newSale := Sale{
 		SaleUserNumber:          userNumber,
 		Status:              status,
@@ -97,7 +131,21 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 		DietaryRestrictions: request.DietaryRestrictions,
 	}
 
-	if err := s.saleRepo.Create(&newSale); err != nil {
+	// Persiste a venda e, se houver itens de compra única, as travas na MESMA
+	// transação (CreateWithConsumed reverte tudo se algum item já estiver
+	// travado por outro pedido ativo).
+	if len(consumedProductIDs) > 0 {
+		err = s.saleRepo.CreateWithConsumed(&newSale, consumedProductIDs)
+	} else {
+		err = s.saleRepo.Create(&newSale)
+	}
+	if err != nil {
+		// CreateWithConsumed reverte a venda com um ValidationError quando um
+		// item já está travado por outro pedido ativo — propaga a mensagem amigável.
+		var apiErr *apierrors.APIError
+		if errors.As(err, &apiErr) {
+			return nil, apiErr
+		}
 		return nil, apierrors.InternalServerError("Erro ao criar pedido", err)
 	}
 
@@ -292,7 +340,13 @@ func (s *saleService) HandleWebhook(dataID, xSignature, xRequestID string) error
 		updateData["mercado_pago_id"] = dataID
 	}
 
-	return s.saleRepo.UpdateByID(existing.ID, updateData)
+	if err := s.saleRepo.UpdateByID(existing.ID, updateData); err != nil {
+		return err
+	}
+
+	// Sincroniza as travas de compra única com o novo status: PAGO re-trava
+	// (se ainda não estiver), REJEITADO/CANCELADO/REEMBOLSADO destrava.
+	return s.syncConsumptionForSale(existing.ID)
 }
 
 // verifySignature confere a assinatura enviada pelo Mercado Pago
@@ -441,6 +495,12 @@ func (s *saleService) UpdateSaleByID(id string, request UpdateSaleRequest) (*Sal
 		}
 	}
 
+	// Sincroniza as travas de compra única com o status atual (destrava em
+	// CANCELADO/REEMBOLSADO/EXPIRADO/REJEITADO, re-trava em PAGO). Idempotente.
+	if err := s.syncConsumptionForSale(uint(parsedID)); err != nil {
+		return nil, apierrors.InternalServerError("Venda atualizada, mas erro ao sincronizar a disponibilidade dos itens", err)
+	}
+
 	return s.saleRepo.GetByID(uint(parsedID))
 }
 
@@ -456,6 +516,12 @@ func (s *saleService) DeleteSaleByID(id string) error {
 			return apierrors.NotFoundError("Venda não encontrada", err)
 		}
 		return apierrors.InternalServerError("Erro ao deletar venda", err)
+	}
+
+	// Libera as travas de compra única originadas por essa venda (a exclusão do
+	// sale não cascateia para consumed_items, que não tem FK para sales).
+	if err := s.saleRepo.DeleteConsumedBySale(uint(parsedID)); err != nil {
+		return apierrors.InternalServerError("Venda deletada, mas erro ao liberar a disponibilidade dos itens", err)
 	}
 	return nil
 }
@@ -475,4 +541,104 @@ func (s *saleService) UpdateItemPickup(itemID string, request UpdateSaleItemPick
 	}
 
 	return s.saleRepo.GetSaleItemByID(uint(parsedID))
+}
+
+// getUnavailableProductIDs retorna o CONJUNTO FECHADO de produtos de compra
+// única indisponíveis para o usuário:
+//   - base: coffees e combos já consumidos/travados (consumed_items);
+//   - combo consumido -> coffees dentro dele ficam indisponíveis;
+//   - coffee consumido -> todo combo que o contenha fica indisponível;
+//   - repete até fixar (um combo pode conter vários coffees, e esses coffees
+//     podem estar em outros combos).
+//
+// Kits nunca entram no conjunto (não são compra única).
+func (s *saleService) getUnavailableProductIDs(userNumber uint) ([]uint, error) {
+	base, err := s.saleRepo.GetConsumedProductIDs(userNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	set := make(map[uint]struct{}, len(base))
+	for _, id := range base {
+		set[id] = struct{}{}
+	}
+
+	for {
+		ids := make([]uint, 0, len(set))
+		for id := range set {
+			ids = append(ids, id)
+		}
+
+		added := false
+
+		// combo(s) no conjunto -> coffees dentro deles
+		coffees, err := s.saleRepo.GetCoffeeIDsInCombos(ids)
+		if err != nil {
+			return nil, err
+		}
+		for _, id := range coffees {
+			if _, ok := set[id]; !ok {
+				set[id] = struct{}{}
+				added = true
+			}
+		}
+
+		// coffee(s) no conjunto -> combos que os contêm
+		combos, err := s.saleRepo.GetComboIDsContainingCoffee(ids)
+		if err != nil {
+			return nil, err
+		}
+		for _, id := range combos {
+			if _, ok := set[id]; !ok {
+				set[id] = struct{}{}
+				added = true
+			}
+		}
+
+		if !added {
+			break
+		}
+	}
+
+	result := make([]uint, 0, len(set))
+	for id := range set {
+		result = append(result, id)
+	}
+	return result, nil
+}
+
+// syncConsumptionForSale alinha as travas de compra única de uma venda com o
+// status atual dela. Requer que Items.Product (e ComboItems, se necessário)
+// estejam preloadados — o GetByID do repositório já faz isso.
+func (s *saleService) syncConsumptionForSale(saleID uint) error {
+	sale, err := s.saleRepo.GetByID(saleID)
+	if err != nil {
+		return err
+	}
+
+	// Pedidos ativos mantêm (ou reforçam, de forma idempotente) as travas.
+	if sale.Status == SaleStatusPending || sale.Status == SaleStatusPaid {
+		var ids []uint
+		for _, item := range sale.Items {
+			if item.Product == nil {
+				continue
+			}
+			if item.Product.Type == product.ProductTypeCoffee || item.Product.Type == product.ProductTypeCombo {
+				ids = append(ids, item.Product.ID)
+			}
+		}
+		if len(ids) == 0 {
+			return nil
+		}
+		return s.saleRepo.UpsertConsumed(sale.SaleUserNumber, sale.ID, ids)
+	}
+
+	// Status final (EXPIRADO/CANCELADO/REEMBOLSADO/REJEITADO): libera.
+	return s.saleRepo.DeleteConsumedBySale(sale.ID)
+}
+
+// GetConsumed expõe ao front o conjunto fechado de produtos indisponíveis para
+// o usuário (o mesmo usado pelo CreateSale para rejeitar compras duplicadas).
+func (s *saleService) GetConsumed(userNumber uint) ([]uint, error) {
+	return s.getUnavailableProductIDs(userNumber)
 }

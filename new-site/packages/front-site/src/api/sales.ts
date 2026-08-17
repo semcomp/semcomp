@@ -55,6 +55,10 @@ interface GetMySalesApiResponse {
   sales: SaleResponse[];
 }
 
+interface GetConsumedApiResponse {
+  product_ids: number[];
+}
+
 export const salesAPI = {
   // POST /api/sales — cria um novo pedido para o usuário autenticado
   create: async (payload: CreateSalePayload): Promise<SaleResponse> => {
@@ -78,5 +82,12 @@ export const salesAPI = {
   getStatus: async (saleId: number): Promise<{ status: string }> => {
     const response = await client.get<{ status: string }>(`/api/sales/${saleId}/status`);
     return response.data;
+  },
+
+  // GET /api/sales/consumed — ids de produtos de compra única (COFFEE/COMBO)
+  // indisponíveis para o usuário (consumidos ou travados por pedido ativo).
+  getConsumed: async (): Promise<number[]> => {
+    const response = await client.get<GetConsumedApiResponse>("/api/sales/consumed");
+    return response.data.product_ids;
   },
 };

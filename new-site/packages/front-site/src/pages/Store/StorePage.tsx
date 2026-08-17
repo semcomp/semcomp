@@ -7,6 +7,7 @@ import Modal from "@/components/ui/Modal";
 import { useCart, type AddToCartParams } from "@/contexts/CartContext";
 import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2, X, ZoomIn } from "lucide-react";
 import { productsAPI } from "@/api/products";
+import { salesAPI } from "@/api/sales";
 import type { Product, ProductType } from "@/types/ProductType";
 import { useNotification } from "@/contexts/NotificationContext";
 
@@ -15,7 +16,7 @@ interface SizeVariant {
   productId: string;
   color?: string;
   size: string;
-  isBabydoll: boolean;
+  isBabylook: boolean;
   priceValue: number;
   // Quantidade de camisetas que o combo inclui deste tamanho/cor (backoffice).
   // Para KIT "puro", é sempre 1 (cada unidade comprada = 1 camiseta).
@@ -24,12 +25,12 @@ interface SizeVariant {
 
 // A chave da variante considera cor + tamanho + corte: cada cor×tamanho de uma
 // camiseta é um produto (combo) próprio, mas eles formam um único card/combos.
-function variantKey(v: { color?: string; size: string; isBabydoll: boolean }): string {
-  return `${v.color ?? ""}__${v.size}__${v.isBabydoll ? "babydoll" : "padrao"}`;
+function variantKey(v: { color?: string; size: string; isBabylook: boolean }): string {
+  return `${v.color ?? ""}__${v.size}__${v.isBabylook ? "babylook" : "padrao"}`;
 }
 
-function variantLabel(v: { size: string; isBabydoll: boolean }): string {
-  return v.isBabydoll ? `${v.size} · Babydoll` : v.size;
+function variantLabel(v: { size: string; isBabylook: boolean }): string {
+  return v.isBabylook ? `${v.size} · Babylook` : v.size;
 }
 
 function colorOf(v: SizeVariant): string {
@@ -79,10 +80,10 @@ function compareSizes(a: string, b: string): number {
   return ia - ib;
 }
 
-function compareVariants(a: { size: string; isBabydoll: boolean }, b: { size: string; isBabydoll: boolean }): number {
+function compareVariants(a: { size: string; isBabylook: boolean }, b: { size: string; isBabylook: boolean }): number {
   const bySize = compareSizes(a.size, b.size);
   if (bySize !== 0) return bySize;
-  return Number(a.isBabydoll) - Number(b.isBabydoll);
+  return Number(a.isBabylook) - Number(b.isBabylook);
 }
 
 function kitVariantGroupKey(p: Product): string {
@@ -240,8 +241,8 @@ function OptionChip({
 function kitGroupToStoreItem(groupProducts: Product[]): StoreItem {
   const sorted = [...groupProducts].sort((a, b) =>
     compareVariants(
-      { size: a.kit!.size, isBabydoll: a.kit!.is_babydoll },
-      { size: b.kit!.size, isBabydoll: b.kit!.is_babydoll }
+      { size: a.kit!.size, isBabylook: a.kit!.is_babylook },
+      { size: b.kit!.size, isBabylook: b.kit!.is_babylook }
     )
   );
   const representative = sorted[0];
@@ -250,7 +251,7 @@ function kitGroupToStoreItem(groupProducts: Product[]): StoreItem {
   const sizeVariants: SizeVariant[] = sorted.map((p) => ({
     productId: String(p.id),
     size: p.kit!.size,
-    isBabydoll: p.kit!.is_babydoll,
+    isBabylook: p.kit!.is_babylook,
     priceValue: p.price,
     quantity: 1,
   }));
@@ -307,13 +308,13 @@ function coffeeGroupToStoreItem(groupProducts: Product[]): StoreItem {
 }
 
 function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number, Product>): StoreItem {
-  // Cada kit dentro do combo (size/color/babydoll) gera uma variante selecionável.
+  // Cada kit dentro do combo (size/color/babylook) gera uma variante selecionável.
   // Combos costumam incluir todos os tamanhos do kit de uma vez, então iteramos
   // sobre TODOS os itens KIT (não só o primeiro) para não "perder" os tamanhos.
   const withKitInfo = groupProducts.flatMap((p) => {
     const kitItems = p.combo_items?.filter((ci) => productById.get(ci.item_id)?.type === "KIT") ?? [];
     if (kitItems.length === 0) {
-      return [{ product: p, color: "", size: undefined, isBabydoll: false, quantity: 1 }];
+      return [{ product: p, color: "", size: undefined, isBabylook: false, quantity: 1 }];
     }
     return kitItems.map((ci) => {
       const kitProduct = productById.get(ci.item_id);
@@ -321,7 +322,7 @@ function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number
         product: p,
         color: kitProduct?.kit?.color ?? "",
         size: kitProduct?.kit?.size,
-        isBabydoll: kitProduct?.kit?.is_babydoll ?? false,
+        isBabylook: kitProduct?.kit?.is_babylook ?? false,
         // Quantidade de camisetas que o combo inclui deste tamanho/cor:
         // é fixa (definida no backoffice) e não pode ser alterada na compra.
         quantity: ci.quantity ?? 1,
@@ -334,21 +335,21 @@ function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number
     .sort((a, b) => {
       const byColor = (a.color ?? "").localeCompare(b.color ?? "");
       if (byColor !== 0) return byColor;
-      return compareVariants({ size: a.size!, isBabydoll: a.isBabydoll }, { size: b.size!, isBabydoll: b.isBabydoll });
+      return compareVariants({ size: a.size!, isBabylook: a.isBabylook }, { size: b.size!, isBabylook: b.isBabylook });
     });
   const representative = sorted[0]?.product ?? groupProducts[0];
 
   const seenVariants = new Set<string>();
   const sizeVariants: SizeVariant[] = [];
   for (const x of sorted) {
-    const key = variantKey({ color: x.color, size: x.size!, isBabydoll: x.isBabydoll });
+    const key = variantKey({ color: x.color, size: x.size!, isBabylook: x.isBabylook });
     if (seenVariants.has(key)) continue;
     seenVariants.add(key);
     sizeVariants.push({
       productId: String(x.product.id),
       color: x.color,
       size: x.size!,
-      isBabydoll: x.isBabydoll,
+      isBabylook: x.isBabylook,
       priceValue: x.product.price,
       quantity: x.quantity,
     });
@@ -423,7 +424,20 @@ export default function StorePage() {
           // coffees podem aparecer dentro de combos sem serem vendidos
           // individualmente, e a resolução deles depende deste mapa.
           const productById = new Map(data.products.map((p) => [p.id, p] as const));
-          const selling = data.products.filter((p) => p.is_selling);
+
+          // Produtos de compra única (COFFEE/COMBO) já consumidos ou travados
+          // pelo usuário: somem da loja. O backend já devolve o conjunto
+          // fechado (coffees de um combo comprado + combos que contenham um
+          // coffee comprado). Fail-open: se falhar, mostra tudo normalmente.
+          let consumedSet: Set<number> = new Set();
+          try {
+            const consumedIds = await salesAPI.getConsumed();
+            consumedSet = new Set(consumedIds);
+          } catch (e) {
+            console.error("Falha ao carregar produtos consumidos", e);
+          }
+
+          const selling = data.products.filter((p) => p.is_selling && !consumedSet.has(p.id));
 
           const kitsByGroup = new Map<string, Product[]>();
           const coffeesByGroup = new Map<string, Product[]>();
@@ -541,7 +555,7 @@ export default function StorePage() {
     return selected.sizeVariants.find((v) => variantKey(v) === key)?.priceValue ?? 0;
   };
   const totalPriceValue = isCombo
-    ? (selectedVariant?.priceValue ?? 0) * comboCount
+    ? (selectedVariant?.priceValue ?? selected?.priceValue ?? 0) * comboCount
     : Object.entries(optionCounts).reduce(
         (sum, [key, n]) => sum + priceOfOption(key) * n,
         0,
@@ -557,17 +571,23 @@ export default function StorePage() {
     if (isCombo) {
       // Combo: o tamanho é seleção única e a quantidade de camisetas é fixa
       // (backoffice). O comprador só escolhe quantos combos leva.
+      // Combos sem item KIT (ex.: só coffees) não geram variantes de tamanho;
+      // nesse caso adiciona pelo próprio id do combo e preço base.
+      if (comboCount < 1) return;
       const variant = selectedVariant;
-      if (!variant || comboCount < 1) return;
+      const productId = variant?.productId ?? selected.id;
+      const price = variant?.priceValue ?? selected.priceValue;
+      const size = variant?.size;
+      const isBabylook = variant?.isBabylook;
       for (let i = 0; i < comboCount; i++) {
         addItem({
-          id: variant.productId,
+          id: productId,
           name: selected.name,
-          price: variant.priceValue,
+          price,
           image: selected.image,
-          size: variant.size,
+          size,
           type: selected.rawType,
-          isBabydoll: variant.isBabydoll,
+          isBabylook,
           comboDateTimes: selected.availableDateTimes,
         });
       }
@@ -600,7 +620,7 @@ export default function StorePage() {
           image: selected.image,
           size: variant.size,
           type: selected.rawType,
-          isBabydoll: variant.isBabydoll,
+          isBabylook: variant.isBabylook,
         };
       }
       for (let i = 0; i < count; i++) addItem(params);
@@ -937,7 +957,7 @@ export default function StorePage() {
                               image: item.image,
                               type: item.rawType,
                               size: quickVariant?.size,
-                              isBabydoll: quickVariant?.isBabydoll || undefined,
+                              isBabylook: quickVariant?.isBabylook || undefined,
                               dateTime: activeDateTime,
                               comboDateTimes: item.rawType === "COMBO" ? item.availableDateTimes : undefined,
                             });
@@ -1109,7 +1129,7 @@ export default function StorePage() {
                         <span className={`w-8 text-center text-sm font-bold ${textColor}`}>{comboCount}</span>
                         <button
                           type="button"
-                          onClick={() => setComboCount((c) => c + 1)}
+                          onClick={() => setComboCount((c) => Math.min(1, c + 1))}
                           aria-label="Aumentar quantidade de combos"
                           className={`w-8 h-8 rounded-full flex items-center justify-center ${textColor} hover:bg-semcompMidLightBlue/20 transition-colors cursor-pointer`}
                         >

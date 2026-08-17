@@ -10,7 +10,7 @@ RBAC simples por seção. Proteção no middleware Go antes do handler chegar ao
 
 ---
 
-## KnownSections (7 seções)
+## KnownSections (9 seções)
 Definidas em `internal/permission/model.go`.  
 **O campo `section` em `Tabs.tsx` deve estar em sync com esta lista.**
 
@@ -21,11 +21,13 @@ Definidas em `internal/permission/model.go`.
 | `"Usuários Semcomp"` | ✅ | `/semcomp-users` | ✅ |
 | `"Participações"` | ✅ | `/participation` | ✅ |
 | `"Permissões"` | ✅ | `/permissions` | ✅ |
+| `"Produtos"` | ✅ | `/products` | ✅ |
 | `"Páginas"` | ✅ | `/pages-availability` | ✅ |
-| `"Produtos"` | ❌ sem tab | — | ❌ (backend only) |
+| `"Patrocinadores"` | ✅ | `/sponsors` | ✅ |
+| `"Vendas"` | ✅ | `/sales` | ✅ |
 
 **Inicialização:**
-- `InitializeSections()` → cria as 7 seções na startup
+- `InitializeSections()` → cria as 9 seções na startup
 - Admin padrão (`ADMIN_EMAIL`) recebe `"RW"` em todas via `InitializePermissions()`
 - Novo admin criado: `SeedUserPermissions` é chamado → sem permissões (admin define depois)
 

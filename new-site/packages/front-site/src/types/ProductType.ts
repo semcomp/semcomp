@@ -5,7 +5,7 @@ export interface Kit {
   name: string;
   size: string;
   color: string;
-  is_babydoll: boolean;
+  is_babylook: boolean;
 }
 
 export interface Coffee {

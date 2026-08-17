@@ -108,6 +108,34 @@ func (h *SaleHandler) GetMySales(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"sales": sales})
 }
 
+// GetConsumed retorna os ids dos produtos de compra única (COFFEE/COMBO)
+// indisponíveis para o usuário autenticado — consumidos ou travados por pedido
+// ativo, incluindo o fechamento via combos.
+// @Summary Produtos consumidos do usuário
+// @Description Retorna os ids dos produtos de compra única que não podem mais
+// @Description ser comprados pelo usuário (coffees e combos consumidos/reservados).
+// @Tags Vendas
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Lista de ids consumidos"
+// @Failure 401 {object} map[string]string "Não autorizado"
+// @Security BearerAuth
+// @Router /sales/consumed [get]
+func (h *SaleHandler) GetConsumed(c *gin.Context) {
+	userNumber := c.GetUint("userNumber")
+	if userNumber == 0 {
+		apierrors.HandleAPIError(c, apierrors.UnauthorizedError("Usuário não autenticado", nil))
+		return
+	}
+
+	ids, err := h.saleService.GetConsumed(userNumber)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"product_ids": ids})
+}
+
 // GetSaleByID busca os detalhes de uma venda específica do usuário.
 // @Summary Detalhes da venda
 // @Description Retorna dados de um pedido específico

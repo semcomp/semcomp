@@ -11,7 +11,7 @@ export interface CartItem {
   quantity: number;
   size?: string;
   dateTime?: string;
-  isBabydoll?: boolean;
+  isBabylook?: boolean;
   comboDateTimes?: string[];
 }
 
@@ -23,7 +23,7 @@ export interface AddToCartParams {
   type: "KIT" | "COFFEE" | "COMBO" | "OTHER";
   size?: string;
   dateTime?: string;
-  isBabydoll?: boolean;
+  isBabylook?: boolean;
   comboDateTimes?: string[];
 }
 
@@ -42,11 +42,12 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  // Coffee é ticket de acesso único: nunca passa de 1 unidade por horário.
-  const maxQuantity = (type: CartItem["type"]): number => (type === "COFFEE" ? 1 : Number.POSITIVE_INFINITY);
+  // Coffee e Combo são compra única: nunca passam de 1 unidade por horário.
+  const maxQuantity = (type: CartItem["type"]): number =>
+    type === "COFFEE" || type === "COMBO" ? 1 : Number.POSITIVE_INFINITY;
 
   const addItem = useCallback((params: AddToCartParams) => {
-    const cartKey = `${params.id}_${params.size ?? ""}_${params.dateTime ?? ""}_${params.isBabydoll ?? ""}`;
+    const cartKey = `${params.id}_${params.size ?? ""}_${params.dateTime ?? ""}_${params.isBabylook ?? ""}`;
     setItems((prev) => {
       const existing = prev.find((i) => i.cartKey === cartKey);
       if (existing) {

@@ -7,7 +7,7 @@ export interface KitDetails {
     name: string;
     size: string;
     color: string;
-    is_babydoll: boolean;
+    is_babylook: boolean;
 }
 
 export interface CoffeeDetails {
@@ -57,7 +57,7 @@ export interface ProductType extends CrudItemType {
     kitName: string;
     kitSize: string;
     kitColor: string;
-    kitIsBabydoll: string;
+    kitIsBabylook: string;
     // Coffee fields
     coffeeName: string;
     coffeeDateTime: string;

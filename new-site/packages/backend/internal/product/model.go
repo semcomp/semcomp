@@ -36,7 +36,7 @@ type Kit struct {
 	Name       string `gorm:"size:200;not null" json:"name"`
 	Size       string `gorm:"size:50;not null" json:"size"`
 	Color      string `gorm:"size:50;not null" json:"color"`
-	IsBabydoll bool   `gorm:"not null" json:"is_babydoll"`
+	IsBabylook bool   `gorm:"not null" json:"is_babylook"`
 }
 
 // Coffee é uma especialização de Product (tipo COFFEE)
@@ -64,7 +64,7 @@ type CreateKitRequest struct {
 	Name         string `json:"name" binding:"required,max=200"`
 	Size         string `json:"size" binding:"required,max=50"`
 	Color        string `json:"color" binding:"required,max=50"`
-	IsBabydoll   bool   `json:"is_babydoll"`
+	IsBabylook   bool   `json:"is_babylook"`
 }
 
 type CreateCoffeeRequest struct {
@@ -94,7 +94,7 @@ type UpdateKitRequest struct {
 	Name         string `json:"name" binding:"required,max=200"`
 	Size         string `json:"size" binding:"required,max=50"`
 	Color        string `json:"color" binding:"required,max=50"`
-	IsBabydoll   bool   `json:"is_babydoll"`
+	IsBabylook   bool   `json:"is_babylook"`
 }
 
 type UpdateCoffeeRequest struct {

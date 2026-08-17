@@ -59,7 +59,7 @@ function getProductDisplayName(product: any): string {
 function formatKitInfo(kit: any): string {
   const parts = [`Tamanho ${kit.size}`];
   if (kit.color) parts.push(kit.color);
-  if (kit.is_babydoll) parts.push("Babydoll");
+  if (kit.is_babylook) parts.push("Babylook");
   return parts.join(" · ");
 }
 

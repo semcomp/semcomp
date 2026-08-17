@@ -24,7 +24,7 @@ interface ComboFormModalProps {
 function getDisplayName(product: ProductType): string {
   if (product.kitName) {
     const base = [product.kitName, product.kitSize, product.kitColor].filter(Boolean).join(" — ");
-    return product.kitIsBabydoll === "true" ? `${base} (Babydoll)` : base;
+    return product.kitIsBabylook === "true" ? `${base} (Babylook)` : base;
   }
   if (product.coffeeName) {
     if (!product.coffeeDateTime) return product.coffeeName;

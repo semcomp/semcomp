@@ -59,8 +59,11 @@ export default function CartPage() {
         dietary_restrictions: dietaryRestrictions,
       });
       navigate("/loja/checkout", { state: { sale, dietaryRestrictions } });
-    } catch {
-      showNotification("Erro ao finalizar pedido. Tente novamente.", "warning");
+    } catch (err: any) {
+      // Se o backend rejeitou (ex: item já consumido/indisponível), mostra a
+      // mensagem dele; senão, cai na mensagem genérica.
+      const message = err?.response?.data?.message;
+      showNotification(message || "Erro ao finalizar pedido. Tente novamente.", "warning");
     } finally {
       setCheckoutLoading(false);
     }
@@ -202,7 +205,7 @@ export default function CartPage() {
                             {item.size && (
                               <p>
                                 Tamanho: <span className="font-semibold">{item.size}</span>
-                                {item.isBabydoll && <span className="ml-1 font-semibold">· Babydoll</span>}
+                                {item.isBabylook && <span className="ml-1 font-semibold">· Babylook</span>}
                               </p>
                             )}
                             {item.dateTime && (

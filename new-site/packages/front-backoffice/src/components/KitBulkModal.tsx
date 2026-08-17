@@ -31,10 +31,10 @@ export function KitBulkModal({ open, onClose, onSuccess }: KitBulkModalProps) {
   const [color, setColor] = useState("");
   const [pictureURL, setPictureURL] = useState("");
   const [description, setDescription] = useState("");
-  const [withBabydoll, setWithBabydoll] = useState(false);
+  const [withBabylook, setWithBabylook] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const totalCombinations = selectedSizes.size * (withBabydoll ? 2 : 1);
+  const totalCombinations = selectedSizes.size * (withBabylook ? 2 : 1);
 
   const toggleSize = (size: string) => {
     setSelectedSizes((prev) => {
@@ -52,7 +52,7 @@ export function KitBulkModal({ open, onClose, onSuccess }: KitBulkModalProps) {
     setColor("");
     setPictureURL("");
     setDescription("");
-    setWithBabydoll(false);
+    setWithBabylook(false);
   };
 
   const handleClose = () => {
@@ -90,11 +90,11 @@ export function KitBulkModal({ open, onClose, onSuccess }: KitBulkModalProps) {
         price: parsedPrice,
         picture_url: pictureURL.trim(),
         description: description.trim(),
-        kit: { name: kitName, size, color: trimmedColor, is_babydoll: false },
+        kit: { name: kitName, size, color: trimmedColor, is_babylook: false },
       };
       products.push(base);
-      if (withBabydoll) {
-        products.push({ ...base, kit: { name: kitName, size, color: trimmedColor, is_babydoll: true } });
+      if (withBabylook) {
+        products.push({ ...base, kit: { name: kitName, size, color: trimmedColor, is_babylook: true } });
       }
     }
 
@@ -213,11 +213,11 @@ export function KitBulkModal({ open, onClose, onSuccess }: KitBulkModalProps) {
             />
           </div>
 
-          {/* Babydoll */}
+          {/* Babylook */}
           <div className="flex items-center gap-2">
-            <Switch checked={withBabydoll} onCheckedChange={setWithBabydoll} id="kit-babydoll" />
-            <Label htmlFor="kit-babydoll" className="text-slate-300 text-sm cursor-pointer">
-              Incluir variante Babydoll
+            <Switch checked={withBabylook} onCheckedChange={setWithBabylook} id="kit-babylook" />
+            <Label htmlFor="kit-babylook" className="text-slate-300 text-sm cursor-pointer">
+              Incluir variante Babylook
             </Label>
           </div>
         </div>

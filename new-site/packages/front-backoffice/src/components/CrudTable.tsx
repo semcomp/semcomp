@@ -470,6 +470,10 @@ export function CrudTable({
 
   const [formData, setFormData] = useState<Record<string, FormValue>>({});
 
+  // Linhas com texto longo expandidas por clique (chave: resolveItemKey(item)).
+  // Ao contrário da versão anterior (expandedCells), o toggle é por linha inteira.
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
   const resolveItemKey = (item: CrudItemType): string => {
     if (getItemKey) return getItemKey(item);
     const id = (item as Record<string, unknown>)["id"];
@@ -483,6 +487,27 @@ export function CrudTable({
       .filter(Boolean)
       .join("|");
     return fieldKey || JSON.stringify(item);
+  };
+
+  // Indica se a linha tem célula de texto longo (textarea >120 ou string >40),
+  // o que habilita o toggle de expandir/recolher ao clicar na linha.
+  const rowHasExpandableContent = (item: CrudItemType): boolean => {
+    return fields.some((field) => {
+      if (field.type === "url") return false; // URL tem truncate próprio
+      const raw = (item as Record<string, unknown>)[field.value];
+      const val = String(raw ?? "");
+      if (field.type === "textarea") return val.length > 120;
+      return val.length > 40;
+    });
+  };
+
+  const toggleRowExpanded = (rowKey: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(rowKey)) next.delete(rowKey);
+      else next.add(rowKey);
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -643,13 +668,22 @@ export function CrudTable({
 
     if (field.type === "textarea") {
       if (!val || val === "—") return <span className="text-muted-foreground">—</span>;
+      // O expandir/recolher é controlado pela linha (TableRow onClick).
+      const expanded = expandedRows.has(resolveItemKey(item));
       return (
-        <span 
-          className="text-foreground min-w-xs max-w-2xs block line-clamp-2 break-words" 
-          title={val}
-        >
-          {val}
-        </span>
+        <div className="max-w-2xs" title={val}>
+          {/* whitespace-normal sobrescreve o whitespace-nowrap do TableCell do
+              shadcn (que impediria a quebra de linha ao expandir).
+              max-w-2xs fixa o teto da coluna — max-w-xs NÃO usar: neste projeto
+              resolve pra 6px (--spacing-xs) e empilha os caracteres.
+              `block` e line-clamp-2 são mutuamente exclusivos: o `block`
+              sobrescreve o display:-webkit-box que o clamp exige. */}
+          <span
+            className={`text-foreground whitespace-normal break-words max-w-2xs ${expanded ? "block" : "line-clamp-2"}`}
+          >
+            {val}
+          </span>
+        </div>
       );
     }
 
@@ -670,17 +704,15 @@ export function CrudTable({
       );
     }
 
-    if (field.type === "text" && val.length > 40) {
+    if (val.length > 40) {
+      // Texto longo: recua para 2 linhas por padrão; expande quando a linha é
+      // clicada (toggle por linha, igual ao textarea).
+      const expanded = expandedRows.has(resolveItemKey(item));
       return (
-        <span className="text-foreground whitespace-pre-line wrap-break-word max-w-xs block">
-          {val}
-        </span>
-      );
-    }
-
-    if (typeof val === "string" && val.length > 40) {
-      return (
-        <span className="text-foreground whitespace-pre-line wrap-break-word max-w-xs block">
+        <span
+          className={`text-foreground whitespace-normal break-words max-w-2xs ${expanded ? "block" : "line-clamp-2"}`}
+          title={val}
+        >
           {val}
         </span>
       );
@@ -909,63 +941,84 @@ export function CrudTable({
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((item, i) => (
-                <TableRow
-                  key={resolveItemKey(item) || `row-${i}`}
-                  className={`border-border transition-colors hover:bg-muted/20 ${
-                    i % 2 === 0 ? "bg-transparent" : "bg-muted/10"
-                  }`}
-                >
-                  {fields.map((f) => (
-                    <TableCell key={f.value} className="py-3">
-                      {renderCell(item, f)}
+              data.map((item, i) => {
+                const rowKey = resolveItemKey(item) || `row-${i}`;
+                const expandable = rowHasExpandableContent(item);
+                const expanded = expandable && expandedRows.has(rowKey);
+                return (
+                  <TableRow
+                    key={rowKey}
+                    onClick={expandable ? () => toggleRowExpanded(rowKey) : undefined}
+                    className={`border-border transition-colors ${
+                      expandable ? "cursor-pointer select-none" : ""
+                    } ${
+                      i % 2 === 0
+                        ? expanded
+                          ? "bg-muted/20"
+                          : "bg-transparent hover:bg-muted/20"
+                        : expanded
+                          ? "bg-muted/20"
+                          : "bg-muted/10 hover:bg-muted/20"
+                    }`}
+                  >
+                    {fields.map((f) => (
+                      <TableCell key={f.value} className="py-3">
+                        {renderCell(item, f)}
+                      </TableCell>
+                    ))}
+                    <TableCell className="py-3">
+                      <div className="flex gap-1.5">
+                        {onAction && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAction(item, resolveItemKey(item));
+                            }}
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-secondary hover:bg-secondary/10 rounded-lg"
+                            title={actionTitle}
+                          >
+                            {actionIcon ?? (
+                              <ScanQrCode className="w-3.5 h-3.5" />
+                            )}
+                          </Button>
+                        )}
+                        {canWrite && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEditClick
+                                  ? onEditClick(item, resolveItemKey(item))
+                                  : openEdit(item);
+                              }}
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
+                              title="Editar"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDelete(item);
+                              }}
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                              title="Excluir"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
-                  ))}
-                  <TableCell className="py-3">
-                    <div className="flex gap-1.5">
-                      {onAction && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onAction(item, resolveItemKey(item))}
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-secondary hover:bg-secondary/10 rounded-lg"
-                          title={actionTitle}
-                        >
-                          {actionIcon ?? (
-                            <ScanQrCode className="w-3.5 h-3.5" />
-                          )}
-                        </Button>
-                      )}
-                      {canWrite && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() =>
-                              onEditClick
-                                ? onEditClick(item, resolveItemKey(item))
-                                : openEdit(item)
-                            }
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
-                            title="Editar"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => openDelete(item)}
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
-                            title="Excluir"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

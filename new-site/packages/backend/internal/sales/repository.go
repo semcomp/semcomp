@@ -4,9 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"backend/internal/apierrors"
+	"backend/internal/product"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type SaleRepository interface {
@@ -24,6 +27,29 @@ type SaleRepository interface {
 	// Operações de itens
 	GetSaleItemByID(itemID uint) (*SaleItem, error)
 	UpdateItemPickup(itemID uint, isPickedUp bool) error
+
+	// Compra única (consumido)
+	// CreateWithConsumed cria a venda e insere as linhas de ConsumedItem dos
+	// produtos de compra única (COFFEE/COMBO) na MESMA transação. Se uma linha
+	// conflitar (usuário já tem o item consumido/reservado), a transação é
+	// revertida e a venda não é criada.
+	CreateWithConsumed(sale *Sale, consumedProductIDs []uint) error
+	// UpsertConsumed insere linhas de ConsumedItem para uma venda JÁ EXISTENTE
+	// (idempotente, OnConflict DoNothing). Usado pelo sync de consumo ao
+	// re-travar após mudança de status.
+	UpsertConsumed(userNumber uint, sourceSaleID uint, productIDs []uint) error
+	DeleteConsumedBySale(sourceSaleID uint) error
+	GetConsumedProductIDs(userNumber uint) ([]uint, error)
+	// GetCoffeeIDsInCombos retorna os coffees (item_id) dentro dos combos dados.
+	GetCoffeeIDsInCombos(comboIDs []uint) ([]uint, error)
+	// GetComboIDsContainingCoffee retorna os combos que contêm os coffees dados.
+	GetComboIDsContainingCoffee(coffeeIDs []uint) ([]uint, error)
+	// ExpirePendingPixSales marca como EXPIRADO os PIX pendentes fora da janela
+	// e retorna os ids das vendas expiradas (para o sweeper liberar as travas de
+	// compra única). Atômico: o UPDATE ... RETURNING só atualiza linhas que ainda
+	// casam o predicado no momento do update, evitando sobrescrever um PAGO
+	// recém-chegado do webhook.
+	ExpirePendingPixSales() ([]uint, error)
 }
 
 type saleRepository struct {
@@ -239,4 +265,128 @@ func (r *saleRepository) UpdateItemPickup(itemID uint, isPickedUp bool) error {
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+// CreateWithConsumed cria a venda e as travas de compra única na mesma
+// transação. O OnConflict + RowsAffected converte a unicidade da chave composta
+// (user_number, product_id) em rejeição do pedido: se um item já estiver
+// consumido/reservado por outro pedido ativo, a venda inteira é revertida.
+func (r *saleRepository) CreateWithConsumed(sale *Sale, consumedProductIDs []uint) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(sale).Error; err != nil {
+			return err
+		}
+
+		for _, pid := range consumedProductIDs {
+			item := ConsumedItem{
+				UserNumber:   sale.SaleUserNumber,
+				ProductID:    pid,
+				SourceSaleID: sale.ID,
+			}
+			res := tx.Clauses(clause.OnConflict{
+				Columns: []clause.Column{
+					{Name: "user_number"},
+					{Name: "product_id"},
+				},
+				DoNothing: true,
+			}).Create(&item)
+			if res.Error != nil {
+				return res.Error
+			}
+			if res.RowsAffected == 0 {
+				return apierrors.ValidationError("Este item já foi consumido ou já está reservado em outro pedido", nil)
+			}
+		}
+		return nil
+	})
+}
+
+// UpsertConsumed insere linhas de ConsumedItem para uma venda já existente
+// (idempotente: conflito na chave composta é ignorado). Diferente de
+// CreateWithConsumed, não cria a venda nem rejeita o pedido — é usado pelo sync
+// de consumo ao re-travar um pedido que passou para PAGO.
+func (r *saleRepository) UpsertConsumed(userNumber uint, sourceSaleID uint, productIDs []uint) error {
+	for _, pid := range productIDs {
+		item := ConsumedItem{
+			UserNumber:   userNumber,
+			ProductID:    pid,
+			SourceSaleID: sourceSaleID,
+		}
+		if err := r.db.Clauses(clause.OnConflict{
+			Columns: []clause.Column{
+				{Name: "user_number"},
+				{Name: "product_id"},
+			},
+			DoNothing: true,
+		}).Create(&item).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DeleteConsumedBySale remove as travas originadas por uma venda (usado ao
+// expirar, cancelar ou reembolsar a venda).
+func (r *saleRepository) DeleteConsumedBySale(sourceSaleID uint) error {
+	return r.db.Where("source_sale_id = ?", sourceSaleID).Delete(&ConsumedItem{}).Error
+}
+
+// GetConsumedProductIDs retorna a base de ids consumidos do usuário (produtos
+// COFFEE/COMBO que ele comprou ou tem em pedido ativo).
+func (r *saleRepository) GetConsumedProductIDs(userNumber uint) ([]uint, error) {
+	var ids []uint
+	err := r.db.Model(&ConsumedItem{}).
+		Where("user_number = ?", userNumber).
+		Pluck("product_id", &ids).Error
+	return ids, err
+}
+
+// GetCoffeeIDsInCombos retorna os ids dos produtos COFFEE dentro dos combos
+// dados (só coffees propagam — kits não são consumidos).
+func (r *saleRepository) GetCoffeeIDsInCombos(comboIDs []uint) ([]uint, error) {
+	if len(comboIDs) == 0 {
+		return nil, nil
+	}
+	var ids []uint
+	err := r.db.Raw(`
+		SELECT DISTINCT ci.item_id
+		FROM combo_items ci
+		JOIN products p ON p.id = ci.item_id
+		WHERE ci.combo_id IN ? AND p.type = ?`,
+		comboIDs, product.ProductTypeCoffee,
+	).Scan(&ids).Error
+	return ids, err
+}
+
+// GetComboIDsContainingCoffee retorna os combos que contêm os coffees dados.
+// Combos não podem conter outros combos, então `item_id IN ?` só casa coffees.
+func (r *saleRepository) GetComboIDsContainingCoffee(coffeeIDs []uint) ([]uint, error) {
+	if len(coffeeIDs) == 0 {
+		return nil, nil
+	}
+	var ids []uint
+	err := r.db.Raw(`
+		SELECT DISTINCT combo_id
+		FROM combo_items
+		WHERE item_id IN ?`,
+		coffeeIDs,
+	).Scan(&ids).Error
+	return ids, err
+}
+
+// ExpirePendingPixSales persiste o status EXPIRADO nas cobranças PIX pendentes
+// fora da janela de validade e retorna os ids das vendas expiradas. O
+// UPDATE ... RETURNING é atômico: só atualiza linhas que casam o predicado no
+// momento do update (um webhook que PAGUE a venda nesse intervalo não é
+// sobrescrito para EXPIRADO).
+func (r *saleRepository) ExpirePendingPixSales() ([]uint, error) {
+	var ids []uint
+	err := r.db.Raw(`
+		UPDATE sales
+		SET status = ?, updated_at = now()
+		WHERE status = ? AND LOWER(payment_method) = ? AND created_at < ?
+		RETURNING id`,
+		SaleStatusExpired, SaleStatusPending, "pix", time.Now().Add(-PixExpirationWindow),
+	).Scan(&ids).Error
+	return ids, err
 }

@@ -19,7 +19,10 @@ Porta dev: **5174** | `basename: "/admin"` | Router: React Router v6 (imports es
 | `/backoffice-users` | `pages/UserBackoffice/index.tsx` | RequireAuth + RequirePermission | `"Usuários Backoffice"` |
 | `/participation` | `pages/Participation/index.tsx` | RequireAuth + RequirePermission | `"Participações"` |
 | `/permissions` | `pages/Permission/index.tsx` | RequireAuth + RequirePermission | `"Permissões"` |
+| `/products` | `pages/Products/index.tsx` | RequireAuth + RequirePermission | `"Produtos"` |
 | `/pages-availability` | `pages/PagesAvailability/index.tsx` | RequireAuth + RequirePermission | `"Páginas"` |
+| `/sponsors` | `pages/Sponsors/index.tsx` | RequireAuth + RequirePermission | `"Patrocinadores"` |
+| `/sales` | `pages/Sales/index.tsx` | RequireAuth + RequirePermission | `"Vendas"` |
 | `*` | `pages/NotFound/index.tsx` | RequireAuth | — |
 
 ## Home do Backoffice (`/home`)
@@ -52,3 +55,18 @@ Arquivo: `pages/PagesAvailability/index.tsx`
 - Otimistic update: reverte ao estado anterior em caso de erro
 - `canWrite = useHasPermission("Páginas", "RW")`
 - → [[Feature_Flags_e_Pages]]
+
+## Products (`/products`)
+Arquivo: `pages/Products/index.tsx` (CrudTable sobre `productsAPI`)
+
+- Abas por tipo: `KIT` / `COFFEE` / `COMBO` (configs em `data/productsCrudField.ts`)
+- CRUD de kit (inclui variante `is_babylook`), coffee (com `date_time`), combo (itens KIT/COFFEE via `ComboFormModal`)
+- `KitBulkModal` — criação em lote de kits por tamanho/cor (+ opção babylook)
+- `canWrite = useHasPermission("Produtos", "RW")`
+
+## Sales (`/sales`)
+Arquivo: `pages/Sales/index.tsx` (CrudTable sobre `salesAPI`)
+
+- Lista vendas (`GET /admin/sales`), atualiza status (`PUT /admin/sales/:id`), exclui (`DELETE /admin/sales/:id`)
+- Retirada de item: `PATCH /admin/sales/items/:itemId/pickup`
+- `canWrite = useHasPermission("Vendas", "RW")`

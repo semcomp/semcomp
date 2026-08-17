@@ -1,8 +1,10 @@
 package main
 
 import (
+	stdlog "log"
 	"os"
 	"strconv"
+	"time"
 
 	"backend/internal/auth"
 	"backend/internal/authBackoffice"
@@ -56,16 +58,37 @@ func main() {
 		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, 
 		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, 
 		&token.Token{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{}, 
-		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{},
+		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{}, &sales.ConsumedItem{},
 	)
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
+	}
+
+	// A coluna kits.is_babydoll é órfã: o modelo atual usa is_babylook (camiseta
+	// de uso cotidiano, categoria "Babylook"). O AutoMigrate não dropa colunas,
+	// então uma DB antiga (que passou por AutoMigrate com o modelo IsBabydoll)
+	// mantém is_babydoll, e um INSERT de kit falha em is_babylook NOT NULL.
+	if db.Migrator().HasColumn(&product.Kit{}, "is_babydoll") {
+		if err := db.Migrator().DropColumn(&product.Kit{}, "is_babydoll"); err != nil {
+			panic("Failed to drop kits.is_babydoll column: " + err.Error())
+		}
 	}
 
 	if !hadEmailVerifiedColumn {
 		if err := db.Exec("UPDATE users SET email_verified = true").Error; err != nil {
 			panic("Failed to grandfather existing users as email-verified: " + err.Error())
 		}
+	}
+
+	// Com a trava de compra única, o status EXPIRADO passou a ser persistido
+	// pelo sweeper de expiração (antes era apenas calculado em memória). O
+	// AutoMigrate não altera CHECK constraints existentes, então recria a
+	// status_chk para aceitar EXPIRADO em DBs antigas.
+	if err := db.Exec("ALTER TABLE sales DROP CONSTRAINT IF EXISTS status_chk").Error; err != nil {
+		panic("Failed to drop sales.status_chk constraint: " + err.Error())
+	}
+	if err := db.Exec("ALTER TABLE sales ADD CONSTRAINT status_chk CHECK (status IN ('PENDENTE','PAGO','REJEITADO','CANCELADO','REEMBOLSADO','EXPIRADO'))").Error; err != nil {
+		panic("Failed to recreate sales.status_chk constraint: " + err.Error())
 	}
 
 	// Inicializa as camadas da aplicação (Repository -> Service -> Handler)
@@ -137,6 +160,30 @@ func main() {
 	salesRepo := sales.NewSaleRepository(db)
 	salesService := sales.NewSaleService(salesRepo, productRepo)
 	salesHandler := sales.NewSaleHandler(salesService)
+
+	// Sweeper de expiração: persiste o status EXPIRADO nos PIX pendentes fora da
+	// janela de validade e libera as travas de compra única (consumed_items)
+	// das vendas expiradas. Antes, EXPIRADO era só calculado em memória; com a
+	// trava "só compra uma vez", a expiração real é o que destrava o item.
+	go func() {
+		ticker := time.NewTicker(1 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			expiredIDs, err := salesRepo.ExpirePendingPixSales()
+			if err != nil {
+				stdlog.Printf("[sweeper] erro ao expirar vendas PIX: %v", err)
+				continue
+			}
+			for _, id := range expiredIDs {
+				if err := salesRepo.DeleteConsumedBySale(id); err != nil {
+					stdlog.Printf("[sweeper] erro ao liberar consumo da venda %d: %v", id, err)
+				}
+			}
+			if len(expiredIDs) > 0 {
+				stdlog.Printf("[sweeper] expiradas %d venda(s) PIX pendentes", len(expiredIDs))
+			}
+		}
+	}()
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
@@ -213,6 +260,7 @@ func main() {
 	// Rotas de Vendas (Usuário)
 	authRoutes.POST("/sales", pageMW("loja"), salesHandler.CreateSale)
 	authRoutes.GET("/sales/profile", pageMW("loja"), salesHandler.GetMySales)
+	authRoutes.GET("/sales/consumed", pageMW("loja"), salesHandler.GetConsumed)
 	authRoutes.GET("/sales/:id", pageMW("loja"), salesHandler.GetSaleByID)
 
 	// Rota Login Backoffice - Públicas

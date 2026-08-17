@@ -45,12 +45,20 @@ Storage key: `semcomp-site-token`
 |---|---|---|---|
 | GET | `/api/profile` | `authAPI.getProfile` | retorna SafeUser |
 | GET | `/api/verify-email?token=` | — | verifica token de email |
-| GET | `/api/payments` | — | lista pagamentos do user |
-| POST | `/api/payments/pix` | `paymentAPI.createPix` | → [[Feature_Loja_e_Pagamentos]] |
-| GET | `/api/payments/:id/status` | `paymentAPI.getStatus` | polling a cada 4s |
+| POST | `/api/sales` | `salesAPI.create` | cria venda (PENDENTE) + PIX → [[Feature_Loja_e_Pagamentos]] |
+| GET | `/api/sales/profile` | `salesAPI.getMySales` | histórico de compras |
+| GET | `/api/sales/consumed` | `salesAPI.getConsumed` | ids de COFFEE/COMBO indisponíveis (consumidos/travados) |
+| GET | `/api/sales/:id` | `salesAPI.getById` | detalhes da venda |
+| POST | `/api/payments/pix` | `salesAPI.create` | **alias legado** → `CreateSale` |
+| GET | `/api/payments/:id/status` | `salesAPI.getStatus` | **alias legado** → `GetSaleStatus` |
 
-**POST `/api/payments/pix` payload**: `{ amount: float, product_ids: uint[], description?: string }`  
-**Resposta**: `{ payment_id, qr_code, qr_code_base64, amount }`
+**POST `/api/sales` payload**: `{ items: [{ product_id, quantity }], payment_method: "PIX", status?, dietary_restrictions?, description? }`  
+**Resposta**: `{ message, sale: { id, user_number, status, total_amount, qr_code, qr_code_base64, pix_expiration, ... } }`
+
+> Compra única: `CreateSale` valida COFFEE/COMBO (quantidade 1 e item não
+> consumido/travado); `GET /api/sales/consumed` devolve o conjunto fechado
+> (incluindo coffees de combos comprados e combos que contenham coffees
+> comprados) para a loja esconder os itens.
 
 ---
 
@@ -60,5 +68,8 @@ Arquivo: `src/api/index.ts` — exporta: `authAPI`, `client`
 Importados diretamente pelas páginas (não pelo barrel):
 - `eventsAPI` → `@/api/events`
 - `productsAPI` → `@/api/products`
-- `paymentAPI` → `@/api/payment`
+- `salesAPI` → `@/api/sales` (criação de venda, histórico, consumidos, status)
 - `pagesAPI` → `@/api/pages`
+
+> `paymentAPI` (`@/api/payment`) ainda existe no barrel, mas `Checkout`/`Cart`
+> usam `salesAPI` — o barrel antigo de pagamentos ficou órfão.

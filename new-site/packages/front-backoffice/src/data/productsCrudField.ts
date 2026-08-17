@@ -31,8 +31,8 @@ export const kitFields: CrudField[] = [
   kitSize,
   { value: "kitColor", label: "Cor", type: "text" },
   {
-    value: "kitIsBabydoll",
-    label: "Babydoll",
+    value: "kitIsBabylook",
+    label: "Babylook",
     type: "select",
     selectVariants: {
       true: "bg-pink-500/20 text-pink-300 border border-pink-500/30",

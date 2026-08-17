@@ -95,7 +95,7 @@ func (s *productService) CreateProduct(request CreateProductRequest) (*Product, 
 			Name:       request.Kit.Name,
 			Size:       request.Kit.Size,
 			Color:      request.Kit.Color,
-			IsBabydoll: request.Kit.IsBabydoll,
+			IsBabylook: request.Kit.IsBabylook,
 		}
 		product.Name = request.Kit.Name
 
@@ -156,7 +156,7 @@ func (s *productService) BulkCreateProducts(request BulkCreateProductsRequest) (
 				Name:       req.Kit.Name,
 				Size:       req.Kit.Size,
 				Color:      req.Kit.Color,
-				IsBabydoll: req.Kit.IsBabydoll,
+				IsBabylook: req.Kit.IsBabylook,
 			}
 			p.Name = req.Kit.Name
 		case ProductTypeCoffee:
@@ -275,7 +275,7 @@ func (s *productService) UpdateProductByID(id string, request UpdateProductReque
 			Name:       request.Kit.Name,
 			Size:       request.Kit.Size,
 			Color:      request.Kit.Color,
-			IsBabydoll: request.Kit.IsBabydoll,
+			IsBabylook: request.Kit.IsBabylook,
 		}
 		product.Name = request.Kit.Name
 

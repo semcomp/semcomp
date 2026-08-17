@@ -16,6 +16,9 @@ const (
 	SaleStatusRejected SaleStatus = "REJEITADO"
 	SaleStatusCanceled SaleStatus = "CANCELADO"
 	SaleStatusRefunded SaleStatus = "REEMBOLSADO"
+	// SaleStatusExpired é persistido pelo sweeper de expiração; antes era apenas
+	// calculado em memória por EffectiveStatus.
+	SaleStatusExpired SaleStatus = "EXPIRADO"
 )
 
 // PixExpirationWindow é o tempo de validade de uma cobrança PIX pendente.
@@ -25,7 +28,7 @@ const PixExpirationWindow = 30 * time.Minute
 type Sale struct {
 	ID            uint       `gorm:"primaryKey;autoIncrement" json:"id"`
 	SaleUserNumber    uint       `gorm:"not null;index" json:"user_number"`
-	Status        SaleStatus `gorm:"size:20;not null;default:'PENDENTE';check:status_chk,status IN ('PENDENTE','PAGO','REJEITADO','CANCELADO','REEMBOLSADO')" json:"status"`
+	Status        SaleStatus `gorm:"size:20;not null;default:'PENDENTE';check:status_chk,status IN ('PENDENTE','PAGO','REJEITADO','CANCELADO','REEMBOLSADO','EXPIRADO')" json:"status"`
 	TotalAmount   float64    `gorm:"not null" json:"total_amount"`
 	PaymentMethod string     `gorm:"size:50;not null" json:"payment_method"`
 
@@ -99,7 +102,8 @@ func (s *Sale) ComputeItemFlags() {
 
 // EffectiveStatus retorna o status considerando a expiração de cobranças PIX
 // pendentes (equivalente ao antigo PaymentService.GetStatus). Não altera o
-// status persistido — só o webhook do Mercado Pago faz isso.
+// status persistido — só o webhook do Mercado Pago e o sweeper de expiração
+// fazem isso.
 func (s *Sale) EffectiveStatus() SaleStatus {
 	if s.Status == SaleStatusPending &&
 		strings.EqualFold(s.PaymentMethod, "pix") &&
@@ -119,6 +123,26 @@ type SaleItem struct {
 
 	// Indica se o item (ex: KIT / Camiseta) já foi retirado presencialmente.
 	IsPickedUp bool `gorm:"not null;default:false" json:"is_picked_up"`
+
+	Product *product.Product `gorm:"foreignKey:ProductID" json:"product,omitempty"`
+}
+
+// ConsumedItem representa um produto de compra única (COFFEE ou COMBO) já
+// consumido por um usuário. É a trava "só compra uma vez": enquanto existir
+// uma linha aqui com um pedido ativo (PENDENTE não expirado ou PAGO), o item
+// fica indisponível para o usuário. A linha é inserida junto com a criação do
+// pedido (mesma transação) e removida quando o pedido expira, é cancelado ou
+// reembolsado. A chave composta (user_number, product_id) também serve de
+// trava anti-race para pedidos concorrentes do mesmo item.
+type ConsumedItem struct {
+	UserNumber uint `gorm:"primaryKey" json:"user_number"`
+	ProductID  uint `gorm:"primaryKey" json:"product_id"`
+
+	// SourceSaleID identifica o pedido que originou o consumo (usado para
+	// destravar ao expirar/cancelar/reembolsar).
+	SourceSaleID uint `gorm:"not null;index" json:"source_sale_id"`
+
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 
 	Product *product.Product `gorm:"foreignKey:ProductID" json:"product,omitempty"`
 }
