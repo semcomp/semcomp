@@ -1,4 +1,13 @@
-import { Calendar, UserCog, User, Key, Hand, ToggleLeft, Handshake, FileCheck } from "lucide-react";
+import {
+  Calendar,
+  UserCog,
+  User,
+  Key,
+  Hand,
+  ToggleLeft,
+  Handshake,
+  FileCheck,
+} from "lucide-react";
 
 // section deve coincidir com KnownSections em backend/internal/permission/model.go
 export const Tabs: {
@@ -45,7 +54,8 @@ export const Tabs: {
     key: "participation",
     section: "Participações",
     label: "Participações",
-    description: "Gerencie as participações dos usuários nos eventos da Semcomp.",
+    description:
+      "Gerencie as participações dos usuários nos eventos da Semcomp.",
     pageNavigate: "/participation",
     icon: <Hand className="w-5 h-5" />,
     bg: "bg-primary/15",
@@ -75,7 +85,8 @@ export const Tabs: {
     key: "sponsors",
     section: "Patrocinadores",
     label: "Patrocinadores",
-    description: "Gerencie os patrocinadores da Semcomp e seus pacotes por ano.",
+    description:
+      "Gerencie os patrocinadores da Semcomp e seus pacotes por ano.",
     pageNavigate: "/sponsors",
     icon: <Handshake className="w-5 h-5" />,
     bg: "bg-primary/15",
@@ -87,6 +98,16 @@ export const Tabs: {
     label: "PAPFE",
     description: "Revise e aprove comprovantes PAPFE dos participantes.",
     pageNavigate: "/papfe-documents",
+    icon: <FileCheck className="w-5 h-5" />,
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
+    key: "avisos",
+    section: "Avisos",
+    label: "Avisos",
+    description: "Gerencie os avisos que aparecerão no mural.",
+    pageNavigate: "/notices",
     icon: <FileCheck className="w-5 h-5" />,
     bg: "bg-primary/15",
     hoverBg: "bg-primary/25",
