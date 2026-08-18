@@ -13,7 +13,6 @@ import {
   ArrowLeft,
   Clock,
   RefreshCw,
-  FlaskConical,
 } from "lucide-react";
 
 function secondsUntil(iso: string): number {
@@ -135,12 +134,6 @@ export default function CheckoutPage() {
     }
   }, [status, clearCart]);
 
-  // ─── Botão de teste: aprova o pagamento sem esperar a análise real ───
-  const handleBypassApproval = useCallback(() => {
-    esRef.current?.close();
-    if (countdownRef.current) clearInterval(countdownRef.current);
-    setStatus("approved");
-  }, []);
 
   const handleCopy = useCallback(() => {
     if (!sale?.qr_code) return;
@@ -196,7 +189,7 @@ export default function CheckoutPage() {
           </p>
           {sale && (
             <p className={`text-xs ${textMuted}`}>
-              Pedido #{sale.id} registrado.
+              Pedido registrado.
             </p>
           )}
           <Link
@@ -382,17 +375,6 @@ export default function CheckoutPage() {
             ))}
           </ol>
         </motion.div>
-
-        {/* apagar */}
-        <button
-            type="button"
-            onClick={handleBypassApproval}
-            className="mt-2 inline-flex items-center gap-2 rounded-full border border-dashed border-yellow-500 px-4 py-2 text-xs font-bold text-yellow-500 hover:bg-yellow-500/10 transition-all cursor-pointer"
-          >
-            <FlaskConical size={14} />
-            [DEV] Aprovar pagamento sem análise
-          </button>
-
       </div>
     </div>
   );
