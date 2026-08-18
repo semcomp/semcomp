@@ -431,7 +431,7 @@ export default function Profile({
                       </div>
                     ))
                   ) : (
-                    <p className="text-center opacity-70 text-sm py-4 italic">
+                    <p className="text-center opacity-70 text-sm py-4 italic text-semcompDarkBlue">
                       Nenhuma compra realizada ainda.
                     </p>
                   )}
@@ -675,7 +675,7 @@ export default function Profile({
                 </div>
               ))
             ) : (
-              <p className="text-center opacity-70 text-sm py-6 italic">
+              <p className="text-center opacity-70 text-sm py-6 italic text-semcompDarkBlue">
                 Você ainda não realizou nenhuma compra.
               </p>
             )}

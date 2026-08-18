@@ -132,7 +132,7 @@ func main() {
 
 	productRepo := product.NewProductRepository(db)
 	productService := product.NewProductService(productRepo)
-	productHandler := product.NewProductHandler(productService)
+	productHandler := product.NewProductHandler(productService, papfeRepo)
 
 	logRepo := log.NewRepository(db)
 	logService := log.NewService(logRepo)
@@ -236,7 +236,6 @@ func main() {
 
 	r.GET("/events", pageMW("cronograma"), eventHandler.GetEvents)
 	r.GET("/event/:eventName/:initDate", pageMW("cronograma"), eventHandler.GetEventByNameAndInitDate)
-	r.GET("/products", productHandler.GetProducts)
 
 	r.GET("/sponsors", sponsorHandler.GetSponsors)
 	r.POST("/sponsors/:cnpj/click", sponsorHandler.RecordClick)
@@ -256,6 +255,9 @@ func main() {
 	authRoutes.PUT("/profile", userHandler.UpdateProfile)
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 	authRoutes.PUT("/papfe-document", userHandler.UpdatePapfeDocument)
+
+	// Produtos (requer autenticação para exibir desconto PAPFE)
+	authRoutes.GET("/products", pageMW("loja"), productHandler.GetProducts)
 
 	// Rotas de Vendas (Usuário)
 	authRoutes.POST("/sales", pageMW("loja"), salesHandler.CreateSale)
