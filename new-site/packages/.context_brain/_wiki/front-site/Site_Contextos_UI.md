@@ -65,24 +65,27 @@ Hook: `useCart()`
 | Export | Tipo | Descrição |
 |---|---|---|
 | `items` | `CartItem[]` | itens no carrinho |
-| `addItem(params)` | — | agrupa por `cartKey = "${id}_${size}_${dateTime}_${isBabydoll}"` |
+| `addItem(params)` | — | agrupa por `cartKey = "${id}_${size}_${dateTime}_${isBabylook}"` |
 | `removeItem(cartKey)` | — | remove pelo cartKey |
 | `updateQuantity(cartKey, delta)` | — | remove automaticamente se quantidade cai para 0 |
 | `clearCart()` | — | esvazia (chamado após pagamento aprovado) |
 | `subtotal` | `number` | soma de `price * quantity` |
 | `totalItems` | `number` | soma de `quantity` |
 
+**Quantidade máxima**: `COFFEE` e `COMBO` têm `maxQuantity = 1` (compra única
+por usuário); `KIT` não tem teto (`Infinity`).
+
 ### CartItem
 ```ts
 {
   id: string
-  cartKey: string        // "${id}_${size}_${dateTime}_${isBabydoll}"
+  cartKey: string        // "${id}_${size}_${dateTime}_${isBabylook}"
   name: string
   price: number
   image: string
   quantity: number
   size?: string          // KIT e COMBO
   dateTime?: string      // COFFEE e COMBO (ISO string)
-  isBabydoll?: boolean   // KIT babydoll
+  isBabylook?: boolean   // KIT babylook
 }
 ```

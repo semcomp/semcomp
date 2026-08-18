@@ -5,7 +5,7 @@ export interface Kit {
   name: string;
   size: string;
   color: string;
-  is_babydoll: boolean;
+  is_babylook: boolean;
 }
 
 export interface Coffee {
@@ -17,11 +17,14 @@ export interface Coffee {
 export interface ComboItem {
   combo_id: number;
   item_id: number;
+  quantity?: number;
 }
 
 export interface Product {
   id: number;
   type: ProductType;
+  name?: string;
+  description?: string;
   is_selling: boolean;
   price: number;
   picture_url?: string;
