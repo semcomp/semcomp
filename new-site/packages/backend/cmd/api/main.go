@@ -253,7 +253,9 @@ func main() {
 	authRoutes := r.Group("/api")
 	authRoutes.Use(middleware.AuthMiddleware(jwtProvider))
 	authRoutes.GET("/profile", authHandler.ProfileHandler())
+	authRoutes.PUT("/profile", userHandler.UpdateProfile)
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
+	authRoutes.PUT("/papfe-document", userHandler.UpdatePapfeDocument)
 
 	// Rotas de Vendas (Usuário)
 	authRoutes.POST("/sales", pageMW("loja"), salesHandler.CreateSale)
@@ -279,6 +281,9 @@ func main() {
 	// Usuários Semcomp
 	admin.GET("/users", permMW("Usuários Semcomp", permission.PermR), userHandler.GetAllUsers)
 	admin.GET("/users/:id", permMW("Usuários Semcomp", permission.PermR), userHandler.GetUserByID)
+	admin.GET("/papfe-documents", permMW("PAPFE", permission.PermR), userHandler.GetAllPapfeDocuments)
+	admin.GET("/users/:id/papfe-document", permMW("PAPFE", permission.PermR), userHandler.GetPapfeDocument)
+	admin.PUT("/users/:id/papfe-document/approval", permMW("PAPFE", permission.PermRW), userHandler.ApprovePapfeDocument)
 	admin.POST("/users", permMW("Usuários Semcomp", permission.PermRW), userHandler.CreateUser)
 	admin.PUT("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.UpdateUser)
 	admin.DELETE("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.DeleteUser)
