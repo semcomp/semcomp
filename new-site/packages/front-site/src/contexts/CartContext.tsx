@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 
+function getCoffeeDateTimes(item: { type: string; dateTime?: string; comboDateTimes?: string[] }): Set<string> {
+  if (item.type === "COFFEE" && item.dateTime) return new Set([item.dateTime]);
+  if (item.type === "COMBO" && item.comboDateTimes?.length) return new Set(item.comboDateTimes);
+  return new Set();
+}
+
 // ─── Tipos ────────────────────────────────────────────────
 export interface CartItem {
   id: string;
@@ -35,6 +41,8 @@ interface CartContextType {
   clearCart: () => void;
   subtotal: number;
   totalItems: number;
+  /** Retorna o item do carrinho que compartilha um coffee-dateTime com `params`, ou null se não houver conflito. */
+  getConflict: (params: AddToCartParams) => CartItem | null;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -81,12 +89,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
   }, []);
 
+  const getConflict = useCallback((params: AddToCartParams): CartItem | null => {
+    const newDTs = getCoffeeDateTimes(params);
+    if (newDTs.size === 0) return null;
+    const cartKey = `${params.id}_${params.size ?? ""}_${params.dateTime ?? ""}_${params.isBabylook ?? ""}`;
+    for (const item of items) {
+      if (item.cartKey === cartKey) continue;
+      const existingDTs = getCoffeeDateTimes(item);
+      if ([...newDTs].some((dt) => existingDTs.has(dt))) return item;
+    }
+    return null;
+  }, [items]);
+
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, updateQuantity, clearCart, subtotal, totalItems }}
+      value={{ items, addItem, removeItem, updateQuantity, clearCart, subtotal, totalItems, getConflict }}
     >
       {children}
     </CartContext.Provider>

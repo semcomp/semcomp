@@ -396,7 +396,7 @@ const CATEGORY_FILTERS: { key: ProductType | "all"; label: string }[] = [
 export default function StorePage() {
   const { isDarkMode } = useTheme();
   const { width } = useWindowDimensions();
-  const { addItem, totalItems } = useCart();
+  const { addItem, totalItems, getConflict } = useCart();
   const { showNotification } = useNotification();
 
   const [selected, setSelected] = useState<StoreItem | null>(null);
@@ -569,34 +569,53 @@ export default function StorePage() {
   const handleAddToCart = () => {
     if (!selected) return;
     if (isCombo) {
-      // Combo: o tamanho é seleção única e a quantidade de camisetas é fixa
-      // (backoffice). O comprador só escolhe quantos combos leva.
-      // Combos sem item KIT (ex.: só coffees) não geram variantes de tamanho;
-      // nesse caso adiciona pelo próprio id do combo e preço base.
       if (comboCount < 1) return;
       const variant = selectedVariant;
       const productId = variant?.productId ?? selected.id;
       const price = variant?.priceValue ?? selected.priceValue;
       const size = variant?.size;
       const isBabylook = variant?.isBabylook;
-      for (let i = 0; i < comboCount; i++) {
-        addItem({
-          id: productId,
-          name: selected.name,
-          price,
-          image: selected.image,
-          size,
-          type: selected.rawType,
-          isBabylook,
-          comboDateTimes: selected.availableDateTimes,
-        });
+      const comboParams: AddToCartParams = {
+        id: productId,
+        name: selected.name,
+        price,
+        image: selected.image,
+        size,
+        type: selected.rawType,
+        isBabylook,
+        comboDateTimes: selected.availableDateTimes,
+      };
+      const conflict = getConflict(comboParams);
+      if (conflict) {
+        showNotification(`"${conflict.name}" já está no carrinho com o mesmo coffee.`, "warning");
+        return;
       }
+      for (let i = 0; i < comboCount; i++) addItem(comboParams);
       closeModal();
       showNotification("Produto adicionado ao carrinho!", "success");
       return;
     }
     const entries = Object.entries(optionCounts).filter(([, count]) => count > 0);
     if (entries.length === 0) return;
+    // Pré-validação: checar conflito em todos os itens antes de adicionar qualquer um
+    for (const [key] of entries) {
+      if (selected.rawType === "COFFEE") {
+        const time = selected.coffeeTimes.find((t) => t.dateTime === key);
+        if (!time) continue;
+        const conflict = getConflict({
+          id: time.productId,
+          name: selected.name,
+          price: time.priceValue,
+          image: selected.image,
+          type: selected.rawType,
+          dateTime: time.dateTime,
+        });
+        if (conflict) {
+          showNotification(`"${conflict.name}" já está no carrinho com o mesmo coffee.`, "warning");
+          return;
+        }
+      }
+    }
     for (const [key, count] of entries) {
       let params: AddToCartParams;
       if (selected.rawType === "COFFEE") {
@@ -950,7 +969,7 @@ export default function StorePage() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            addItem({
+                            const quickParams: AddToCartParams = {
                               id: quickVariant ? quickVariant.productId : (quickCoffeeTime ? quickCoffeeTime.productId : item.id),
                               name: item.name,
                               price: quickVariant ? quickVariant.priceValue : (quickCoffeeTime ? quickCoffeeTime.priceValue : item.priceValue),
@@ -960,7 +979,13 @@ export default function StorePage() {
                               isBabylook: quickVariant?.isBabylook || undefined,
                               dateTime: activeDateTime,
                               comboDateTimes: item.rawType === "COMBO" ? item.availableDateTimes : undefined,
-                            });
+                            };
+                            const conflict = getConflict(quickParams);
+                            if (conflict) {
+                              showNotification(`"${conflict.name}" já está no carrinho com o mesmo coffee.`, "warning");
+                              return;
+                            }
+                            addItem(quickParams);
                             showNotification("Produto adicionado ao carrinho!", "success");
                           }}
                           className={`mt-auto w-full rounded-full py-2.5 text-sm font-bold transition-all duration-300 cursor-pointer dark:focus:bg-semcompOffWhite dark:focus:text-semcompAlmostDarkBlue focus:outline-none focus:ring-2 focus:ring-semcompLightBlue focus:ring-offset-2 active:scale-95 shadow-md ${btnSolid}`}
