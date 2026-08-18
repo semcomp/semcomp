@@ -13,6 +13,7 @@ import PermissionsCRUD from "@/pages/Permission";
 import PagesAvailability from "@/pages/PagesAvailability";
 import SponsorsCRUD from "@/pages/Sponsors";
 import PapfeDocuments from "@/pages/PapfeDocuments";
+import NoticesCRUD from "@/pages/Notices"
 import NotFoundPage from "@/pages/NotFound";
 
 export const router = createBrowserRouter(
@@ -70,6 +71,10 @@ export const router = createBrowserRouter(
             {
               element: <RequirePermission section="PAPFE" />,
               children: [{ path: "/papfe-documents", element: <PapfeDocuments /> }],
+            },
+            {
+              element: <RequirePermission section="Avisos" />,
+              children: [{ path: "/notices", element: <NoticesCRUD /> }]
             },
             {
               path: "*",
