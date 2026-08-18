@@ -47,18 +47,24 @@ export default function CartPage() {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [dietaryRestrictions, setDietaryRestrictions] = useState("");
+  
+  // 1. Estado alterado para booleano
+  const [isVegetarian, setIsVegetarian] = useState(false);
+  
   const [zoomedImage, setZoomedImage] = useState<{ url: string; alt: string } | null>(null);
 
   const handleCheckout = async () => {
     setCheckoutLoading(true);
     try {
+      // 2. Converte o booleano para a string esperada no backend
+      const dietaryRestrictionsStr = isVegetarian ? "Vegetariano" : "Sem restrições";
+
       const sale = await salesAPI.create({
         items: items.map((i) => ({ product_id: Number(i.id), quantity: i.quantity })),
         payment_method: "PIX",
-        dietary_restrictions: dietaryRestrictions,
+        dietary_restrictions: dietaryRestrictionsStr,
       });
-      navigate("/loja/checkout", { state: { sale, dietaryRestrictions } });
+      navigate("/loja/checkout", { state: { sale, dietaryRestrictions: dietaryRestrictionsStr } });
     } catch (err: any) {
       // Se o backend rejeitou (ex: item já consumido/indisponível), mostra a
       // mensagem dele; senão, cai na mensagem genérica.
@@ -305,27 +311,21 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                {(items.length > 0 && items.some((i) => i.type === "COFFEE")) && (
+                {(items.length > 0 && items.some((i) => i.type === "COFFEE" || i.type === "COMBO")) && (
                   <div className={`mt-5 border-t ${divider} pt-4`}>
-                    <label
-                      htmlFor="dietary-restrictions"
-                      className={`mb-1.5 block text-xs font-bold uppercase tracking-widest ${textColor}`}
-                    >
-                      Restrições alimentares
-                  </label>
-                  <textarea
-                    id="dietary-restrictions"
-                    value={dietaryRestrictions}
-                    onChange={(e) => setDietaryRestrictions(e.target.value)}
-                    maxLength={1000}
-                    rows={2}
-                    placeholder="Ex: Vegano, sem lactose, alergia a amendoim"
-                    className={`w-full resize-none rounded-xl border ${cardBorder} ${cardBg} px-3 py-2 text-sm ${textColor} shadow-sm focus:outline-none focus:ring-2 focus:ring-semcompMidLightBlue`}
-                  />
-                  <p className={`mt-1.5 text-[11px] ${mutedText}`}>
-                    Se o seu pedido incluir coffee break, conte pra gente se você tem alguma restrição alimentar (opcional).
-                  </p>
-                </div>
+                    <label className={`flex items-center gap-2 cursor-pointer text-sm font-bold ${textColor}`}>
+                      <input
+                        type="checkbox"
+                        checked={isVegetarian}
+                        onChange={(e) => setIsVegetarian(e.target.checked)}
+                        className={`w-4 h-4 rounded border-gray-300 text-semcompMidLightBlue focus:ring-semcompMidLightBlue cursor-pointer`}
+                      />
+                      Sou Vegetariano(a)
+                    </label>
+                    <p className={`mt-2 text-[11px] ${mutedText}`}>
+                      Como o seu pedido inclui um item com coffee break, marque esta opção caso você seja vegetariano(a).
+                    </p>
+                  </div>
                 )}
 
                 <button
