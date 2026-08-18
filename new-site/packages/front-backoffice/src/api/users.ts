@@ -15,6 +15,19 @@ type SafeSemcompUser = {
   profession?: string;
   linkedin?: string;
   telegram?: string;
+  quer_cracha?: boolean;
+  autoriza_compartilhamento?: boolean;
+};
+
+export type PapfeDocumentInfo = {
+  id: number;
+  user_number: number;
+  user_name: string;
+  user_email: string;
+  filename: string;
+  content_type: string;
+  uploaded_at: string;
+  is_approved: boolean | null; // null=pendente, true=aprovado, false=rejeitado
 };
 
 const mapBackendUser = (user: SafeSemcompUser): SemcompUserType => {
@@ -46,6 +59,8 @@ const mapBackendUser = (user: SafeSemcompUser): SemcompUserType => {
     profession: user.profession,
     linkedin: user.linkedin,
     telegram: user.telegram,
+    quer_cracha: user.quer_cracha ?? false,
+    autoriza_compartilhamento: user.autoriza_compartilhamento ?? false,
   };
 };
 
@@ -137,6 +152,7 @@ export const userSemcompAPI = {
 
     // Campos Opcionais / Booleanos
     formData.append("hasPapfe", String(Boolean(data.hasPapfe)));
+    formData.append("quer_cracha", String(Boolean(data.quer_cracha)));
 
     if (data.profession) formData.append("profession", data.profession);
     if (data.linkedin) formData.append("linkedin", data.linkedin);
@@ -195,6 +211,7 @@ export const userSemcompAPI = {
       profession: data.profession,
       linkedin: data.linkedin,
       telegram: data.telegram,
+      quer_cracha: data.quer_cracha,
     };
 
     const response = await client.put<{ message: string }>(
@@ -210,6 +227,28 @@ export const userSemcompAPI = {
   delete: async (id: string): Promise<{ message: string }> => {
     const response = await client.delete<{ message: string }>(
       `/admin/users/${id}`
+    );
+    return response.data;
+  },
+};
+
+export const papfeAPI = {
+  getAll: async (): Promise<PapfeDocumentInfo[]> => {
+    const response = await client.get<{ papfe_documents: PapfeDocumentInfo[] }>("/admin/papfe-documents");
+    return response.data.papfe_documents ?? [];
+  },
+
+  getDocument: async (userId: number): Promise<Blob> => {
+    const response = await client.get(`/admin/users/${userId}/papfe-document`, {
+      responseType: "blob",
+    });
+    return response.data as Blob;
+  },
+
+  approve: async (userId: number, approved: boolean): Promise<{ message: string }> => {
+    const response = await client.put<{ message: string }>(
+      `/admin/users/${userId}/papfe-document/approval`,
+      { approved }
     );
     return response.data;
   },

@@ -68,6 +68,8 @@ export interface CrudField {
   accept?: string;
   /** Hides the field in the form unless formData[field] === value */
   showWhen?: { field: string; value: unknown };
+  /** Quando true, o campo é exibido no dialog mas não pode ser editado */
+  readonly?: boolean;
 }
 
 export interface CrudQueryParams {
@@ -510,6 +512,17 @@ export function CrudTable({
     });
   };
 
+  const toggleMultiValue = (fieldValue: string, option: string) => {
+    setFormData((prev) => {
+      const current = normalizeToStringArray(prev[fieldValue]);
+      const exists = current.includes(option);
+      const next = exists
+        ? current.filter((v) => v !== option)
+        : [...current, option];
+      return { ...prev, [fieldValue]: next };
+    });
+  };
+
   useEffect(() => {
     if (!onQueryChange) return;
     onQueryChange({
@@ -556,6 +569,7 @@ export function CrudTable({
     setSelectedItemKey(resolveItemKey(item));
     const fd: Record<string, FormValue> = {};
     fields.forEach((f) => {
+      if (f.readonly) return;
       const raw = (item as Record<string, unknown>)[f.value];
       if (f.type === "multivalue") fd[f.value] = normalizeToStringArray(raw);
       else if (f.type === "boolean") fd[f.value] = raw === true || raw === "true";
@@ -1033,26 +1047,186 @@ export function CrudTable({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            {fields
-              .filter((f) => !f.readOnly)
-              .map((f) => (
-                <div key={f.value} className="space-y-1.5">
-                  {f.type !== "boolean" && (
+            {fields.filter((f) => !f.readonly).map((f) => (
+              <div key={f.value} className="space-y-1.5">
+                <Label
+                  htmlFor={`create-${f.value}`}
+                  className="text-foreground text-sm"
+                >
+                  {f.label}
+                </Label>
+                {f.type === "select" && f.selectVariants ? (
+                  <Select
+                    value={formData[f.value] as string}
+                    onValueChange={(v) =>
+                      setFormData((d) => ({ ...d, [f.value]: v }))
+                    }
+                  >
+                    <SelectTrigger className="bg-muted/40 border-muted/30 text-foreground">
+                      <SelectValue placeholder={`Selecionar ${f.label}`} />
+                    </SelectTrigger>
+                    <SelectContent
+                      position="popper"
+                      sideOffset={4}
+                      className="w-36 bg-white border-muted/30 shadow-md"
+                    >
+                      {Object.keys(f.selectVariants).map((v) => (
+                        <SelectItem
+                          key={v}
+                          value={v}
+                          className="text-primary focus:bg-accent focus:text-accent-foreground cursor-pointer"
+                        >
+                          {v}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : f.type === "multivalue" ? (
+                  <div className="rounded-xl p-2.5">
+                    {f.multiValueOptions && f.multiValueOptions.length > 0 ? (
+                      <div className="grid gap-2 max-h-40 overflow-y-auto pr-1">
+                        {f.multiValueOptions.map((option) => {
+                          const selected = normalizeToStringArray(
+                            formData[f.value]
+                          ).includes(option);
+                          return (
+                            <label
+                              key={option}
+                              className="flex items-center gap-2 text-sm text-foreground"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selected}
+                                onChange={() =>
+                                  toggleMultiValue(f.value, option)
+                                }
+                                className="peer sr-only"
+                              />
+                              <span className="flex h-5 w-5 items-center justify-center rounded-md border border-primary bg-card transition-all duration-150 peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40">
+                                <svg
+                                  className="h-3.5 w-3.5 text-foreground opacity-0 transition-opacity duration-150 peer-checked:opacity-100"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </span>
+                              <span>{option}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <Input
+                        id={`create-${f.value}`}
+                        value={normalizeToStringArray(formData[f.value]).join(
+                          ", "
+                        )}
+                        onChange={(e) =>
+                          setFormData((d) => ({
+                            ...d,
+                            [f.value]: e.target.value
+                              .split(",")
+                              .map((v) => v.trim())
+                              .filter(Boolean),
+                          }))
+                        }
+                        placeholder="Separe por vírgula"
+                      />
+                    )}
+                  </div>
+                ) : f.type === "date" ? (
+                  // input de datahora inicio
+                  <Input
+                    type="datetime-local"
+                    lang="pt-BR"
+                    id={`create-${f.value}`}
+                    value={(formData[f.value] as string)?.slice(0, 16) ?? ""} // formatação do value vindo do state já salvo
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData((d) => ({
+                        ...d,
+                        [f.value]: val ? val + ":00" : "",
+                      }));
+                    }}
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+                  />
+                ) : f.value.toLowerCase().includes("desc") ||
+                  f.value.toLowerCase().includes("obs") ||
+                  f.value.toLowerCase().includes("coment") ? (
+                  <textarea
+                    id={`create-${f.value}`}
+                    value={(formData[f.value] as string) ?? ""}
+                    onChange={(e) =>
+                      setFormData((d) => ({ ...d, [f.value]: e.target.value }))
+                    }
+                    rows={4}
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary rounded-lg w-full min-h-24 max-h-48 resize-y px-3 py-2 text-sm"
+                    style={{ minWidth: "180px" }}
+                  />
+                ) : f.type === "boolean" ? (
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="checkbox"
+                      id={`field-${f.value}`}
+                      checked={Boolean(formData[f.value])}
+                      onChange={(e) =>
+                        setFormData((d) => ({
+                          ...d,
+                          [f.value]: e.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded border-muted-foreground/30 text-primary focus:ring-primary"
+                    />
                     <Label
-                      htmlFor={`create-${f.value}`}
-                      className="text-foreground text-sm"
+                      htmlFor={`field-${f.value}`}
+                      className="text-sm font-normal cursor-pointer"
                     >
                       {f.label}
                     </Label>
-                  )}
-                  <FormField
-                    field={f}
-                    formData={formData}
-                    setFormData={setFormData}
-                    idPrefix="create"
+                  </div>
+                ) : f.type === "file" ? (
+                  (!f.showWhen || formData[f.showWhen.field] === f.showWhen.value) ? (
+                    <div className="space-y-1">
+                      <Input
+                        type="file"
+                        accept={f.accept || ".pdf,.jpg,.jpeg,.png,.webp"}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          setFormData((prev) => ({
+                            ...prev,
+                            [f.value]: file,
+                          }));
+                        }}
+                        className="bg-muted/40 border-muted/30 text-foreground file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                      />
+                      <p className="text-[11px] text-muted-foreground">
+                        {formData[f.value] instanceof File
+                          ? `✅ Arquivo selecionado: ${
+                              (formData[f.value] as File).name
+                            }`
+                          : "Anexe o comprovante (PDF, JPG ou PNG)."}
+                      </p>
+                    </div>
+                  ) : null
+                ) : (
+                  <Input
+                    id={`create-${f.value}`}
+                    value={(formData[f.value] as string) ?? ""}
+                    onChange={(e) =>
+                      setFormData((d) => ({ ...d, [f.value]: e.target.value }))
+                    }
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
                   />
-                </div>
-              ))}
+                )}
+              </div>
+            ))}
           </div>
           <DialogFooter className="gap-2">
             <Button
@@ -1097,23 +1271,187 @@ export function CrudTable({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            {fields
-              .filter((f) => !f.readOnly)
-              .map((f) => (
-                <div key={f.value} className="space-y-1.5">
-                  {f.type !== "boolean" && (
-                    <Label className="text-foreground text-sm">
+            {fields.map((f) => (
+              <div key={f.value} className="space-y-1.5">
+                <Label className="text-foreground text-sm">{f.label}</Label>
+                {f.readonly ? (
+                  f.type === "boolean" ? (
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="checkbox"
+                        checked={Boolean((selectedItem as Record<string, unknown>)?.[f.value])}
+                        disabled
+                        className="h-4 w-4 rounded border-muted-foreground/30 opacity-60 cursor-not-allowed"
+                      />
+                      <span className="text-sm text-muted-foreground italic">somente leitura</span>
+                    </div>
+                  ) : (
+                    <div className="px-3 py-2 rounded-md bg-muted/20 border border-muted/20 text-sm text-muted-foreground italic">
+                      {String((selectedItem as Record<string, unknown>)?.[f.value] ?? "—")}
+                    </div>
+                  )
+                ) : f.type === "select" && f.selectVariants ? (
+                  <Select
+                    value={formData[f.value] as string}
+                    onValueChange={(v) =>
+                      setFormData((d) => ({ ...d, [f.value]: v }))
+                    }
+                  >
+                    <SelectTrigger className="bg-muted/40 border-muted/30 text-foreground">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent
+                      position="popper"
+                      sideOffset={4}
+                      className="w-36 bg-white border-muted/30 shadow-md"
+                    >
+                      {Object.keys(f.selectVariants).map((v) => (
+                        <SelectItem
+                          key={v}
+                          value={v}
+                          className="text-primary focus:bg-muted/50"
+                        >
+                          {v}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : f.type === "multivalue" ? (
+                  <div className="rounded-xl p-2.5">
+                    {f.multiValueOptions && f.multiValueOptions.length > 0 ? (
+                      <div className="grid gap-2 max-h-40 overflow-y-auto pr-1">
+                        {f.multiValueOptions.map((option) => {
+                          const selected = normalizeToStringArray(
+                            formData[f.value]
+                          ).includes(option);
+                          return (
+                            <label
+                              key={option}
+                              className="flex items-center gap-2 text-sm text-foreground"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selected}
+                                onChange={() =>
+                                  toggleMultiValue(f.value, option)
+                                }
+                                className="peer sr-only"
+                              />
+                              <span className="flex h-5 w-5 items-center justify-center rounded-md border border-primary bg-card transition-all duration-150 peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40">
+                                <svg
+                                  className="h-3.5 w-3.5 text-foreground opacity-0 transition-opacity duration-150 peer-checked:opacity-100"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </span>
+                              <span>{option}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <Input
+                        value={normalizeToStringArray(formData[f.value]).join(
+                          ", "
+                        )}
+                        onChange={(e) =>
+                          setFormData((d) => ({
+                            ...d,
+                            [f.value]: e.target.value
+                              .split(",")
+                              .map((v) => v.trim())
+                              .filter(Boolean),
+                          }))
+                        }
+                        placeholder="Separe por vírgula"
+                      />
+                    )}
+                  </div>
+                ) : f.type === "date" ? (
+                  // input de datahora fim
+                  <Input
+                    type="datetime-local"
+                    lang="pt-BR"
+                    value={(formData[f.value] as string)?.slice(0, 16) ?? ""} //formatação do value do input vindo do state
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData((d) => ({
+                        ...d,
+                        [f.value]: val ? val + ":00" : "",
+                      }));
+                    }}
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+                  />
+                ) : f.value.toLowerCase().includes("desc") ||
+                  f.value.toLowerCase().includes("obs") ||
+                  f.value.toLowerCase().includes("coment") ? (
+                  <textarea
+                    value={(formData[f.value] as string) ?? ""}
+                    onChange={(e) =>
+                      setFormData((d) => ({ ...d, [f.value]: e.target.value }))
+                    }
+                    rows={4}
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary rounded-lg w-full min-h-24 max-h-48 resize-y px-3 py-2 text-sm"
+                    style={{ minWidth: "180px" }}
+                  />
+                ) : f.type === "boolean" ? (
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="checkbox"
+                      id={`field-${f.value}`}
+                      checked={Boolean(formData[f.value])}
+                      onChange={(e) =>
+                        setFormData((d) => ({
+                          ...d,
+                          [f.value]: e.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded border-muted-foreground/30 text-primary focus:ring-primary"
+                    />
+                    <Label
+                      htmlFor={`field-${f.value}`}
+                      className="text-sm font-normal cursor-pointer"
+                    >
                       {f.label}
                     </Label>
-                  )}
-                  <FormField
-                    field={f}
-                    formData={formData}
-                    setFormData={setFormData}
-                    idPrefix="edit"
+                  </div>
+                ) : f.type === "file" ? (
+                  (!f.showWhen || formData[f.showWhen.field] === f.showWhen.value) ? (
+                    <div className="space-y-1">
+                      <Input
+                        type="file"
+                        accept={f.accept || ".pdf,.jpg,.jpeg,.png,.webp"}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          setFormData((d) => ({ ...d, [f.value]: file }));
+                        }}
+                        className="bg-muted/40 border-muted/30 text-foreground file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                      />
+                      <p className="text-[11px] text-muted-foreground">
+                        Anexe o comprovante em PDF, JPEG, PNG ou WebP (máx.
+                        10MB).
+                      </p>
+                    </div>
+                  ) : null
+                ) : (
+                  <Input
+                    value={(formData[f.value] as string) ?? ""}
+                    onChange={(e) =>
+                      setFormData((d) => ({ ...d, [f.value]: e.target.value }))
+                    }
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
                   />
-                </div>
-              ))}
+                )}
+              </div>
+            ))}
           </div>
           <DialogFooter className="gap-2">
             <Button

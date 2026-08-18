@@ -49,11 +49,11 @@ func (p *smtpMailProvider) SendVerificationEmail(to string, name string, rawToke
 	password := os.Getenv("SMTP_PASSWORD")
 
 	verificationLink := fmt.Sprintf("%s/verify-email?token=%s", frontendURL, rawToken)
-	subject := "Confirme seu e-mail - Semcomp"
+	subject := "Confirme seu e-mail - SEMCOMP"
 	body := fmt.Sprintf(`<html>
 <body style="font-family: sans-serif;">
 	<p>Olá, %s!</p>
-	<p>Obrigado por se cadastrar na Semcomp. Confirme seu e-mail clicando no link abaixo:</p>
+	<p>Obrigado por se cadastrar na SEMCOMP. Confirme seu e-mail clicando no link abaixo:</p>
 	<p><a href="%s">Confirmar e-mail</a></p>
 	<p>Se você não criou esta conta, ignore esta mensagem.</p>
 </body>
