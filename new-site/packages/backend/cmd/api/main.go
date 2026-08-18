@@ -1,8 +1,10 @@
 package main
 
 import (
+	stdlog "log"
 	"os"
 	"strconv"
+	"time"
 
 	"backend/internal/auth"
 	"backend/internal/authBackoffice"
@@ -12,11 +14,11 @@ import (
 	"backend/internal/mailer"
 	"backend/internal/middleware"
 	"backend/internal/pages"
-	"backend/internal/payment"
 	"backend/internal/permission"
 	"backend/internal/presence"
 	"backend/internal/product"
 	"backend/internal/providers"
+	"backend/internal/sales"
 	"backend/internal/sitestat"
 	"backend/internal/sponsor"
 	"backend/internal/token"
@@ -51,15 +53,42 @@ func main() {
 	// coluna email_verified é nova e não deve bloquear o login de usuários antigos.
 	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
 
-	err := db.AutoMigrate(&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{}, &userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{}, &product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{}, &token.Token{}, &payment.Payment{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{}, &sitestat.SiteStat{})
+	err := db.AutoMigrate(
+		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{},
+		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{},
+		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{},
+		&token.Token{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{},
+		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{}, &sales.ConsumedItem{},
+	)
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
+	}
+
+	// A coluna kits.is_babydoll é órfã: o modelo atual usa is_babylook (camiseta
+	// de uso cotidiano, categoria "Babylook"). O AutoMigrate não dropa colunas,
+	// então uma DB antiga (que passou por AutoMigrate com o modelo IsBabydoll)
+	// mantém is_babydoll, e um INSERT de kit falha em is_babylook NOT NULL.
+	if db.Migrator().HasColumn(&product.Kit{}, "is_babydoll") {
+		if err := db.Migrator().DropColumn(&product.Kit{}, "is_babydoll"); err != nil {
+			panic("Failed to drop kits.is_babydoll column: " + err.Error())
+		}
 	}
 
 	if !hadEmailVerifiedColumn {
 		if err := db.Exec("UPDATE users SET email_verified = true").Error; err != nil {
 			panic("Failed to grandfather existing users as email-verified: " + err.Error())
 		}
+	}
+
+	// Com a trava de compra única, o status EXPIRADO passou a ser persistido
+	// pelo sweeper de expiração (antes era apenas calculado em memória). O
+	// AutoMigrate não altera CHECK constraints existentes, então recria a
+	// status_chk para aceitar EXPIRADO em DBs antigas.
+	if err := db.Exec("ALTER TABLE sales DROP CONSTRAINT IF EXISTS status_chk").Error; err != nil {
+		panic("Failed to drop sales.status_chk constraint: " + err.Error())
+	}
+	if err := db.Exec("ALTER TABLE sales ADD CONSTRAINT status_chk CHECK (status IN ('PENDENTE','PAGO','REJEITADO','CANCELADO','REEMBOLSADO','EXPIRADO'))").Error; err != nil {
+		panic("Failed to recreate sales.status_chk constraint: " + err.Error())
 	}
 
 	// Inicializa as camadas da aplicação (Repository -> Service -> Handler)
@@ -120,10 +149,6 @@ func main() {
 
 	permissionHandler := permission.NewPermissionHandler(permissionService, userBackofficeService)
 
-	paymentRepo := payment.NewPaymentRepository(db)
-	paymentService := payment.NewPaymentService(paymentRepo)
-	paymentHandler := payment.NewPaymentHandler(paymentService)
-
 	sponsorRepo := sponsor.NewSponsorRepository(db)
 	sponsorService := sponsor.NewSponsorService(sponsorRepo)
 	sponsorHandler := sponsor.NewSponsorHandler(sponsorService)
@@ -131,6 +156,35 @@ func main() {
 	siteStatRepo := sitestat.NewSiteStatRepository(db)
 	siteStatService := sitestat.NewSiteStatService(siteStatRepo)
 	siteStatHandler := sitestat.NewSiteStatHandler(siteStatService)
+
+	salesRepo := sales.NewSaleRepository(db)
+	salesService := sales.NewSaleService(salesRepo, productRepo)
+	salesHandler := sales.NewSaleHandler(salesService)
+
+	// Sweeper de expiração: persiste o status EXPIRADO nos PIX pendentes fora da
+	// janela de validade e libera as travas de compra única (consumed_items)
+	// das vendas expiradas. Antes, EXPIRADO era só calculado em memória; com a
+	// trava "só compra uma vez", a expiração real é o que destrava o item.
+	go func() {
+		ticker := time.NewTicker(1 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			expiredIDs, err := salesRepo.ExpirePendingPixSales()
+			if err != nil {
+				stdlog.Printf("[sweeper] erro ao expirar vendas PIX: %v", err)
+				continue
+			}
+			for _, id := range expiredIDs {
+				sales.Hub.Publish(id, string(sales.SaleStatusExpired))
+				if err := salesRepo.DeleteConsumedBySale(id); err != nil {
+					stdlog.Printf("[sweeper] erro ao liberar consumo da venda %d: %v", id, err)
+				}
+			}
+			if len(expiredIDs) > 0 {
+				stdlog.Printf("[sweeper] expiradas %d venda(s) PIX pendentes", len(expiredIDs))
+			}
+		}
+	}()
 
 	authService := auth.NewAuthService(userRepo, passwordProvider, jwtProvider)
 	authHandler := auth.NewAuthHandler(authService, userService)
@@ -148,16 +202,12 @@ func main() {
 		panic("Failed to initialize admin's permissions in backoffice: " + err.Error())
 	}
 
-	if err := productService.InitializeProducts(); err != nil {
-		panic("Failed to initialize products: " + err.Error())
-	}
-
 	r := gin.Default()
 	r.Use(middleware.AuditMiddleware(logService))
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:5174", "https://semcomp.icmc.usp.br"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 		ExposeHeaders:    []string{"Content-Length"},
@@ -194,7 +244,7 @@ func main() {
 	r.POST("/visit", siteStatHandler.RecordVisit)
 	r.GET("/stats", siteStatHandler.GetStats)
 
-	r.POST("/webhook/mercadopago", paymentHandler.Webhook)
+	r.POST("/webhook/mercadopago", salesHandler.Webhook)
 
 	r.GET("/pages/availability", pagesHandler.GetAllPagesAvailabilityHandler)
 	r.GET("/pages/:page/availability", pagesHandler.GetPageAvailabilityHandler)
@@ -207,9 +257,13 @@ func main() {
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 	authRoutes.PUT("/papfe-document", userHandler.UpdatePapfeDocument)
 
-	authRoutes.GET("/payments", pageMW("loja"), paymentHandler.ListByUser)
-	authRoutes.POST("/payments/pix", pageMW("loja"), paymentHandler.CreatePix)
-	authRoutes.GET("/payments/:id/status", pageMW("loja"), paymentHandler.GetStatus)
+	// Rotas de Vendas (Usuário)
+	authRoutes.POST("/sales", pageMW("loja"), salesHandler.CreateSale)
+	authRoutes.GET("/sales/profile", pageMW("loja"), salesHandler.GetMySales)
+	authRoutes.GET("/sales/consumed", pageMW("loja"), salesHandler.GetConsumed)
+	authRoutes.GET("/sales/:id", pageMW("loja"), salesHandler.GetSaleByID)
+	authRoutes.GET("/sales/:id/status", pageMW("loja"), salesHandler.GetSaleStatus)
+	authRoutes.GET("/sales/:id/events", pageMW("loja"), salesHandler.StreamSaleStatus)
 
 	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")
@@ -258,8 +312,15 @@ func main() {
 	admin.GET("/products", permMW("Produtos", permission.PermR), productHandler.GetProducts)
 	admin.GET("/products/:id", permMW("Produtos", permission.PermR), productHandler.GetProductByID)
 	admin.POST("/products", permMW("Produtos", permission.PermRW), productHandler.CreateProduct)
+	admin.POST("/products/bulk", permMW("Produtos", permission.PermRW), productHandler.BulkCreateProducts)
 	admin.PUT("/products/:id", permMW("Produtos", permission.PermRW), productHandler.UpdateProductByID)
 	admin.DELETE("/products/:id", permMW("Produtos", permission.PermRW), productHandler.DeleteProductByID)
+
+	// Vendas
+	admin.GET("/sales", permMW("Vendas", permission.PermR), salesHandler.GetAllSales)
+	admin.PUT("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.UpdateSaleByID)
+	admin.DELETE("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.DeleteSaleByID)
+	admin.PATCH("/sales/items/:itemId/pickup", permMW("Vendas", permission.PermRW), salesHandler.UpdateItemPickup)
 
 	// Permissões
 	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode

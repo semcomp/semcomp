@@ -33,6 +33,7 @@ var KnownSections = []string{
 	"Produtos",
 	"Páginas",
 	"Patrocinadores",
+	"Vendas",
 	"PAPFE",
 }
 

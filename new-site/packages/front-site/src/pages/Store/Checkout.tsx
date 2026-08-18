@@ -3,7 +3,8 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/contexts/useTheme";
 import { useCart } from "@/contexts/CartContext";
-import { paymentAPI, type PixPaymentResponse } from "@/api/payment";
+import { salesAPI, type SaleResponse } from "@/api/sales";
+import { BASEURL } from "@/constants/ApiURL";
 import {
   CheckCircle2,
   XCircle,
@@ -12,9 +13,8 @@ import {
   ArrowLeft,
   Clock,
   RefreshCw,
+  FlaskConical,
 } from "lucide-react";
-
-const POLL_INTERVAL_MS = 4000;
 
 function secondsUntil(iso: string): number {
   return Math.max(0, Math.floor((new Date(iso).getTime() - Date.now()) / 1000));
@@ -38,30 +38,41 @@ export default function CheckoutPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [pixData, setPixData] = useState<PixPaymentResponse | null>(
-    (location.state as { pixData?: PixPaymentResponse })?.pixData ?? null
+  const navState = location.state as { sale?: SaleResponse; dietaryRestrictions?: string } | null;
+
+  const [sale, setSale] = useState<SaleResponse | null>(
+    navState?.sale ?? null
   );
-  const [status, setStatus] = useState<Status>(pixData ? "pending" : "loading");
+
+  // Restrições alimentares informadas no carrinho. Guardadas em ref para
+  // sobreviverem até o envio da venda, inclusive após o carrinho ser limpo.
+  const dietaryRestrictionsRef = useRef(navState?.dietaryRestrictions ?? "");
+  const [status, setStatus] = useState<Status>(sale ? "pending" : "loading");
   const [copied, setCopied] = useState(false);
   const [countdown, setCountdown] = useState(() =>
-    pixData?.expiration_date ? secondsUntil(pixData.expiration_date) : 0
+    sale?.pix_expiration ? secondsUntil(sale.pix_expiration) : 0
   );
   const [error, setError] = useState<string | null>(null);
 
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const esRef = useRef<EventSource | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (pixData || items.length === 0) return;
-    if (!pixData && subtotal === 0) {
+    if (sale || items.length === 0) return;
+    if (subtotal === 0) {
       navigate("/loja/carrinho", { replace: true });
       return;
     }
-    paymentAPI
-      .createPix(subtotal, [...new Set(items.map((i) => Number(i.id)))], "Semcomp - Compra de produtos")
-      .then((data) => {
-        setPixData(data);
-        setCountdown(secondsUntil(data.expiration_date));
+    // Reload da página sem sale no location.state: recria a venda + cobrança PIX.
+    salesAPI
+      .create({
+        items: items.map((i) => ({ product_id: Number(i.id), quantity: i.quantity })),
+        payment_method: "PIX",
+        dietary_restrictions: dietaryRestrictionsRef.current,
+      })
+      .then((s) => {
+        setSale(s);
+        setCountdown(s.pix_expiration ? secondsUntil(s.pix_expiration) : 0);
         setStatus("pending");
       })
       .catch(() => {
@@ -90,36 +101,54 @@ export default function CheckoutPage() {
     return () => clearInterval(countdownRef.current!);
   }, [status]);
 
-  // Polling de status
+  // SSE de status (substitui polling)
   useEffect(() => {
-    if (!pixData || status !== "pending") return;
-    pollRef.current = setInterval(async () => {
-      try {
-        const { status: s } = await paymentAPI.getStatus(pixData.payment_id);
-        if (s === "approved") {
-          setStatus("approved");
-          clearCart();
-          clearInterval(pollRef.current!);
-          clearInterval(countdownRef.current!);
-        } else if (s === "rejected" || s === "refunded") {
-          setStatus("rejected");
-          clearInterval(pollRef.current!);
-          clearInterval(countdownRef.current!);
-        }
-      } catch {
-        // falha no poll: não interrompe, tenta novamente no próximo tick
+    if (!sale || status !== "pending") return;
+    const es = new EventSource(`${BASEURL}/api/sales/${sale.id}/events`, {
+      withCredentials: true,
+    });
+    esRef.current = es;
+    es.onmessage = ({ data }) => {
+      if (data === "PAGO") {
+        setStatus("approved");
+        clearInterval(countdownRef.current!);
+        es.close();
+      } else if (data === "REJEITADO" || data === "REEMBOLSADO" || data === "CANCELADO") {
+        setStatus("rejected");
+        clearInterval(countdownRef.current!);
+        es.close();
+      } else if (data === "EXPIRADO") {
+        setStatus("expired");
+        clearInterval(countdownRef.current!);
+        es.close();
       }
-    }, POLL_INTERVAL_MS);
-    return () => clearInterval(pollRef.current!);
-  }, [pixData, status]);
+    };
+    return () => es.close();
+  }, [sale, status]);
+
+  // A venda já foi criada no "Finalizar Pedido" (POST /api/sales, status PENDENTE).
+  // Ao aprovar, apenas limpamos o carrinho — o status da venda é atualizado para
+  // PAGO pelo webhook do Mercado Pago (ou manualmente no backoffice, em dev).
+  useEffect(() => {
+    if (status === "approved") {
+      clearCart();
+    }
+  }, [status, clearCart]);
+
+  // ─── Botão de teste: aprova o pagamento sem esperar a análise real ───
+  const handleBypassApproval = useCallback(() => {
+    esRef.current?.close();
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    setStatus("approved");
+  }, []);
 
   const handleCopy = useCallback(() => {
-    if (!pixData?.qr_code) return;
-    navigator.clipboard.writeText(pixData.qr_code).then(() => {
+    if (!sale?.qr_code) return;
+    navigator.clipboard.writeText(sale.qr_code).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     });
-  }, [pixData]);
+  }, [sale]);
 
   // ─── Cores ──────────────────────────────────────────────
   const bg = isDarkMode
@@ -165,6 +194,11 @@ export default function CheckoutPage() {
           <p className={`text-sm max-w-xs ${textMuted}`}>
             Seu pagamento PIX foi aprovado.
           </p>
+          {sale && (
+            <p className={`text-xs ${textMuted}`}>
+              Pedido #{sale.id} registrado.
+            </p>
+          )}
           <Link
             to="/loja"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-semcompMidDarkBlue px-8 py-3 text-sm font-bold text-white shadow-md hover:brightness-110 transition-all"
@@ -242,15 +276,15 @@ export default function CheckoutPage() {
           <div className={`rounded-2xl px-6 py-3 text-center ${isDarkMode ? "bg-white/5" : "bg-semcompMidLightBlue/10"}`}>
             <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${textMuted}`}>Total</p>
             <p className={`text-3xl font-extrabold ${textPrimary}`}>
-              {formatBRL(pixData?.amount ?? subtotal)}
+              {formatBRL(sale?.total_amount ?? subtotal)}
             </p>
           </div>
 
           {/* QR Code */}
-          {pixData?.qr_code_base64 ? (
+          {sale?.qr_code_base64 ? (
             <div className={`rounded-2xl border-4 ${isDarkMode ? "border-white/10 bg-white" : "border-semcompMidLightBlue/30 bg-white"} p-3 shadow-inner`}>
               <img
-                src={`data:image/png;base64,${pixData.qr_code_base64}`}
+                src={`data:image/png;base64,${sale.qr_code_base64}`}
                 alt="QR Code PIX"
                 className="w-48 h-48 sm:w-56 sm:h-56 object-contain"
               />
@@ -268,12 +302,12 @@ export default function CheckoutPage() {
             </p>
             <div className={`flex items-center gap-2 rounded-xl border ${cardBorder} ${codeBoxBg} px-4 py-3`}>
               <p className={`flex-1 text-xs font-mono truncate ${textPrimary}`}>
-                {pixData?.qr_code ?? "Gerando código..."}
+                {sale?.qr_code ?? "Gerando código..."}
               </p>
               <button
                 type="button"
                 onClick={handleCopy}
-                disabled={!pixData?.qr_code}
+                disabled={!sale?.qr_code}
                 aria-label="Copiar código PIX"
                 className={`shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer
                   ${copied
@@ -348,6 +382,16 @@ export default function CheckoutPage() {
             ))}
           </ol>
         </motion.div>
+
+        {/* apagar */}
+        <button
+            type="button"
+            onClick={handleBypassApproval}
+            className="mt-2 inline-flex items-center gap-2 rounded-full border border-dashed border-yellow-500 px-4 py-2 text-xs font-bold text-yellow-500 hover:bg-yellow-500/10 transition-all cursor-pointer"
+          >
+            <FlaskConical size={14} />
+            [DEV] Aprovar pagamento sem análise
+          </button>
 
       </div>
     </div>

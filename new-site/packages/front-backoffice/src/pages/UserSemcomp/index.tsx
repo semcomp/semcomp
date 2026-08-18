@@ -184,7 +184,6 @@ export default function UsersCRUD() {
           onDelete={handleDelete}
           onCreate={handleCreate}
           entityLabel="usuário"
-          serverSide
           totalRecords={totalRecords}
           onQueryChange={handleQueryChange}
           canWrite={canWrite}

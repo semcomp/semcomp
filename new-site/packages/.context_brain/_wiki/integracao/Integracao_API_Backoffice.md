@@ -69,14 +69,27 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 | PUT | `/admin/presences/:u/:e/:d` | `participationAPI.update(...)` |
 | DELETE | `/admin/presences/:u/:e/:d` | `participationAPI.delete(u, e, d)` |
 
-### Produtos (`"Produtos"`) — sem UI no backoffice
-| Método | Path |
-|---|---|
-| GET | `/admin/products` |
-| GET | `/admin/products/:id` |
-| POST | `/admin/products` |
-| PUT | `/admin/products/:id` |
-| DELETE | `/admin/products/:id` |
+### Produtos (`"Produtos"`)
+| Método | Path | Handler TS | Notas |
+|---|---|---|---|
+| GET | `/admin/products` | `productsAPI.getAll(page, ...)` | paginado |
+| GET | `/admin/products/:id` | `productsAPI.getByID(id)` | |
+| POST | `/admin/products` | `productsAPI.create(data)` / `bulkCreate` | |
+| PUT | `/admin/products/:id` | `productsAPI.update(id, data)` | |
+| DELETE | `/admin/products/:id` | `productsAPI.delete(id)` | bloqueado se for item de combo (409) |
+| POST | `/admin/products` | `productsAPI.createCombo` / `updateCombo` | payload COMBO (`items: [{item_id, quantity}]`) |
+
+> UI em `pages/Products` (`/products`).
+
+### Vendas (`"Vendas"`)
+| Método | Path | Handler TS | Notas |
+|---|---|---|---|
+| GET | `/admin/sales` | `salesAPI.getAll(page, ...)` | lista vendas |
+| PUT | `/admin/sales/:id` | `salesAPI.update(id, payload)` | mudar status destrava/retrava consumido |
+| DELETE | `/admin/sales/:id` | `salesAPI.delete(id)` | libera travas `consumed_items` |
+| PATCH | `/admin/sales/items/:itemId/pickup` | `salesAPI.updateItemPickup(itemId, {is_picked_up})` | retirada de item |
+
+> UI em `pages/Sales` (`/sales`).
 
 ### Permissões (`"Permissões"`)
 | Método | Path | Guard extra | Handler TS |
@@ -120,7 +133,15 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 | `id` | `user_number` (string formatado como `%05d`) |
 | `presence_rate` | `presence_rate` |
 
+### Kit
+| Frontend | Backend |
+|---|---|
+| `kitName` | `name` |
+| `kitSize` | `size` |
+| `kitColor` | `color` |
+| `kitIsBabylook` | `is_babylook` (antes `is_babydoll`) |
+
 ---
 
 ## API Barrel (Backoffice)
-Arquivo: `src/api/index.ts` — exporta: `authAPI`, `userBackofficeAPI`, `userSemcompAPI`, `eventsAPI`, `participationAPI`, `permissionsAPI`, `pagesAPI`, `client`
+Arquivo: `src/api/index.ts` — exporta: `authAPI`, `userBackofficeAPI`, `userSemcompAPI`, `eventsAPI`, `sectionsAPI`, `participationAPI`, `productsAPI`, `permissionsAPI`, `pagesAPI`, `sponsorsAPI`, `salesAPI`, `client`
