@@ -61,7 +61,6 @@ export default function LoginPage(): ReactElement {
     const [hasPapfe, setHasPapfe] = useState(false);
     const [papfeFile, setPapfeFile] = useState<File | null>(null);
     const [querCracha, setQuerCracha] = useState(false);
-    // null = ainda não respondeu;
     const [autorizaCompartilhamento, setAutorizaCompartilhamento] = useState<boolean | null>(null);
     const [confirmandoRecusa, setConfirmandoRecusa] = useState(false);
 
