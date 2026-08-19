@@ -49,11 +49,16 @@ Storage key: `semcomp-site-token`
 | GET | `/api/sales/profile` | `salesAPI.getMySales` | histórico de compras |
 | GET | `/api/sales/consumed` | `salesAPI.getConsumed` | ids de COFFEE/COMBO indisponíveis (consumidos/travados) |
 | GET | `/api/sales/:id` | `salesAPI.getById` | detalhes da venda |
-| POST | `/api/payments/pix` | `salesAPI.create` | **alias legado** → `CreateSale` |
-| GET | `/api/payments/:id/status` | `salesAPI.getStatus` | **alias legado** → `GetSaleStatus` |
+| GET | `/api/sales/:id/status` | `salesAPI.getStatus` | status efetivo da venda (polling; hoje sem uso no front) |
+| GET | `/api/sales/:id/events` | — (EventSource) | SSE de status PIX — Checkout e PendingPayments |
 
 **POST `/api/sales` payload**: `{ items: [{ product_id, quantity }], payment_method: "PIX", status?, dietary_restrictions?, description? }`  
 **Resposta**: `{ message, sale: { id, user_number, status, total_amount, qr_code, qr_code_base64, pix_expiration, ... } }`
+
+> `qr_code`/`qr_code_base64` são persistidos na venda — também vêm em
+> `GET /api/sales/profile` e `GET /api/sales/:id`. `pix_expiration` é
+> transitório (só na resposta de criação); o front usa `created_at + 30min`
+> como fallback ao reabrir vendas do histórico.
 
 > Compra única: `CreateSale` valida COFFEE/COMBO (quantidade 1 e item não
 > consumido/travado); `GET /api/sales/consumed` devolve o conjunto fechado

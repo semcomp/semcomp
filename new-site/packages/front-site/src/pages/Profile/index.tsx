@@ -8,6 +8,8 @@ import { salesAPI } from "@/api/sales";
 import type { SaleResponse } from "@/api/sales";
 import { ChevronDown } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
+import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
+import { isPendingSale } from "@/lib/pendingSale";
 import type { EventType } from "@/types/EventType";
 import type { UserType } from "@/types/UserType";
 import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate";
@@ -151,6 +153,8 @@ export default function Profile({
 
   const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { isFeatureEnabled } = useFeatureFlags();
+  const [pendingSalesCount, setPendingSalesCount] = useState(0);
 
   const logoutRef = useRef(logout);
   const showNotificationRef = useRef(showNotification);
@@ -188,9 +192,12 @@ export default function Profile({
       try {
         const sales = await salesAPI.getMySales();
         setUserPurchases(sales.map(mapSaleToPurchase));
+        // Mesmo critério da página de destino (PENDENTE, com QR e não expirado).
+        setPendingSalesCount(sales.filter(isPendingSale).length);
       } catch (err) {
         console.error("Erro ao buscar as compras do usuário", err);
         setUserPurchases([]);
+        setPendingSalesCount(0);
       }
     }
 
@@ -414,6 +421,14 @@ export default function Profile({
             {activeTab === "purchases" && (
               <div className="w-full flex flex-col animate-in fade-in duration-300">
                 <h2 className="text-2xl font-bold text-center mb-6">Minhas Compras</h2>
+                {isFeatureEnabled("loja") && pendingSalesCount > 0 && (
+                  <button
+                    onClick={() => navigate("/loja/pagamentos")}
+                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                  >
+                    Ver pagamentos pendentes ({pendingSalesCount})
+                  </button>
+                )}
                 <div className="flex flex-col gap-4">
                   {userPurchases && userPurchases.length > 0 ? (
                     userPurchases.map((purchase) => (
@@ -661,6 +676,15 @@ export default function Profile({
             <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">Minhas Compras</h2>
             <p className="text-md text-semcompDarkBlue/75">Veja seu histórico de compras</p>
           </div>
+
+          {isFeatureEnabled("loja") && pendingSalesCount > 0 && (
+            <button
+              onClick={() => navigate("/loja/pagamentos")}
+              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
+            >
+              Ver pagamentos pendentes ({pendingSalesCount})
+            </button>
+          )}
 
           <div className="flex flex-col gap-3">
             {userPurchases && userPurchases.length > 0 ? (

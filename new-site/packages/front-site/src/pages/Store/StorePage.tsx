@@ -5,11 +5,12 @@ import { useTheme } from "@/contexts/useTheme";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Modal from "@/components/ui/Modal";
 import { useCart, type AddToCartParams } from "@/contexts/CartContext";
-import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2, X, ZoomIn } from "lucide-react";
+import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2, X, ZoomIn, ArrowRight } from "lucide-react";
 import { productsAPI } from "@/api/products";
 import { salesAPI } from "@/api/sales";
 import type { Product, ProductType } from "@/types/ProductType";
 import { useNotification } from "@/contexts/NotificationContext";
+import { isPendingSale } from "@/lib/pendingSale";
 
 // ─── Tipos ────────────────────────────────────────────────
 interface SizeVariant {
@@ -439,6 +440,24 @@ export default function StorePage() {
   const [quickDateTimeByItemId, setQuickDateTimeByItemId] = useState<Record<string, string>>({});
   const [zoomedImage, setZoomedImage] = useState<{ url: string; alt: string } | null>(null);
   const [activeCategory, setActiveCategory] = useState<ProductType | "all">("all");
+  // Quantidade de pagamentos pendentes (PENDENTE + QR + não expirado). Recarregada
+  // a cada montagem da loja para não ficar obsoleta.
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    salesAPI
+      .getMySales()
+      .then((sales) => {
+        if (cancelled) return;
+        setPendingCount(sales.filter(isPendingSale).length);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setPendingCount(0);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -751,6 +770,26 @@ export default function StorePage() {
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── Banner pagamentos pendentes ─────────────── */}
+      {pendingCount > 0 && (
+        <div className="mx-auto max-w-[80%] pb-0 pt-2">
+          <button
+            type="button"
+            onClick={() => navigate("/loja/pagamentos")}
+            className={`w-full flex items-center justify-between gap-3 rounded-xl border px-5 py-4 text-left transition-all cursor-pointer ${
+              isDarkMode
+                ? "border-yellow-400/30 bg-yellow-400/10 text-yellow-300 hover:brightness-110"
+                : "border-yellow-500/40 bg-yellow-50 text-yellow-800 hover:bg-yellow-100"
+            }`}
+          >
+            <span className="text-sm font-bold">
+              Ver pagamentos pendentes ({pendingCount})
+            </span>
+            <ArrowRight size={18} className="shrink-0" />
+          </button>
         </div>
       )}
 

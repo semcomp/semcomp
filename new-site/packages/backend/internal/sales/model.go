@@ -52,10 +52,13 @@ type Sale struct {
 	HasKitItems    bool `gorm:"-" json:"has_kit_items"`
 	HasCoffeeItems bool `gorm:"-" json:"has_coffee_items"`
 
-	// Campos transitórios (não persistidos), preenchidos apenas na resposta de
-	// criação de uma cobrança PIX. Substituem o antigo DTO PixPaymentResponse.
-	QRCode        string     `gorm:"-" json:"qr_code,omitempty"`
-	QRCodeBase64  string     `gorm:"-" json:"qr_code_base64,omitempty"`
+	// QRCode (copia-e-cola) e QRCodeBase64 são persistidos na venda para permitir
+	// reabrir pagamentos PIX pendentes (ex: tela "Ver pagamentos pendentes").
+	QRCode       string `gorm:"type:text" json:"qr_code,omitempty"`
+	QRCodeBase64 string `gorm:"type:text" json:"qr_code_base64,omitempty"`
+
+	// PixExpiration é transitório (não persistido): o front calcula a expiração
+	// pela janela padrão de 30min a partir de CreatedAt quando o campo vem vazio.
 	PixExpiration *time.Time `gorm:"-" json:"pix_expiration,omitempty"`
 }
 

@@ -27,7 +27,13 @@ export default function Header() {
     
   );
 
-  const activeTabObj = visibleTabs.find((t) => t.path === location.pathname);
+  // A seção "loja" fica ativa em qualquer rota /loja/* (loja, carrinho, checkout
+  // e pagamentos pendentes) — não só em /loja exato.
+  const activeTabObj = visibleTabs.find(
+    (t) =>
+      t.path === location.pathname ||
+      (t.path === "/loja" && location.pathname.startsWith("/loja"))
+  );
   const active = activeTabObj ? activeTabObj.key : "home";
 
   const btnRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
