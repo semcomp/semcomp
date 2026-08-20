@@ -43,6 +43,12 @@ export interface SaleProduct {
 // Entidades (espelham backend/internal/sales/model.go)
 // ============================================================
 
+export interface SaleUser {
+  user_number: number;
+  name: string;
+  email: string;
+}
+
 export interface SaleItem {
   id: number;
   sale_id: number;
@@ -51,6 +57,7 @@ export interface SaleItem {
   unit_price: number;
   is_picked_up: boolean;
   product?: SaleProduct;
+  kit_product?: SaleProduct;
 }
 
 // EXPIRADO é persistido pelo sweeper; REJEITADO vem do Mercado Pago.
@@ -74,6 +81,7 @@ export interface Sale {
   created_at: string;
   updated_at: string;
   items?: SaleItem[];
+  user?: SaleUser;
 }
 
 // ============================================================

@@ -19,6 +19,7 @@ export interface CartItem {
   dateTime?: string;
   isBabylook?: boolean;
   comboDateTimes?: string[];
+  kitProductId?: string;
 }
 
 export interface AddToCartParams {
@@ -31,6 +32,7 @@ export interface AddToCartParams {
   dateTime?: string;
   isBabylook?: boolean;
   comboDateTimes?: string[];
+  kitProductId?: string;
 }
 
 interface CartContextType {

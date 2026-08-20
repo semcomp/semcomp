@@ -60,7 +60,11 @@ export default function CartPage() {
       const dietaryRestrictionsStr = isVegetarian ? "Vegetariano" : "Sem restrições";
 
       const sale = await salesAPI.create({
-        items: items.map((i) => ({ product_id: Number(i.id), quantity: i.quantity })),
+        items: items.map((i) => ({
+          product_id: Number(i.id),
+          quantity: i.quantity,
+          ...(i.kitProductId ? { kit_product_id: Number(i.kitProductId) } : {}),
+        })),
         payment_method: "PIX",
         dietary_restrictions: dietaryRestrictionsStr,
       });

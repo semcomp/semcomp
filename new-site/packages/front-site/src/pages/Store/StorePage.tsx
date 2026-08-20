@@ -5,12 +5,14 @@ import { useTheme } from "@/contexts/useTheme";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Modal from "@/components/ui/Modal";
 import { useCart, type AddToCartParams } from "@/contexts/CartContext";
-import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2, X, ZoomIn, ArrowRight } from "lucide-react";
+import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2, X, ZoomIn, ArrowRight, Ruler } from "lucide-react";
 import { productsAPI } from "@/api/products";
 import { salesAPI } from "@/api/sales";
 import type { Product, ProductType } from "@/types/ProductType";
 import { useNotification } from "@/contexts/NotificationContext";
 import { isPendingSale } from "@/lib/pendingSale";
+
+const TABELA_DE_MEDIDA = "https://i.imgur.com/TOtrzYj.jpeg";
 
 // ─── Tipos ────────────────────────────────────────────────
 interface SizeVariant {
@@ -23,6 +25,8 @@ interface SizeVariant {
   // Quantidade de camisetas que o combo inclui deste tamanho/cor (backoffice).
   // Para KIT "puro", é sempre 1 (cada unidade comprada = 1 camiseta).
   quantity: number;
+  // ID do produto KIT específico dentro de um COMBO (undefined para KITs avulsos).
+  kitProductId?: string;
 }
 
 // A chave da variante considera cor + tamanho + corte: cada cor×tamanho de uma
@@ -181,6 +185,24 @@ function formatDateTime(iso: string): string {
   });
 }
 
+// Link em texto que abre a tabela de medidas ampliada. `stopPropagation` evita que o
+// clique borbulhe para o card, que abre o modal do produto.
+function SizeChartLink({ onOpen, className = "" }: { onOpen: () => void; className?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onOpen();
+      }}
+      className={`inline-flex items-center gap-1.5 self-start cursor-pointer transition-opacity hover:opacity-70 ${className}`}
+    >
+      <Ruler size={13} className="shrink-0" />
+      <span className="underline underline-offset-2">Tabela de medidas</span>
+    </button>
+  );
+}
+
 // Chip selecionável com contador: clique adiciona uma unidade; "+"/"−" ajustam.
 // `max` limita a quantidade por opção (usado p/ coffee, ticket único por horário).
 function OptionChip({
@@ -204,8 +226,8 @@ function OptionChip({
   const atMax = count >= max;
   return (
     <div
-      className={`flex items-center gap-1 px-2 py-1.5 text-sm font-bold rounded-lg border transition-all cursor-pointer select-none ${active ? activeClass : idleClass}`}
-      onClick={onAdd}
+      className={`flex items-center gap-1 px-2 py-1.5 text-sm font-bold rounded-lg border transition-all select-none ${atMax ? "cursor-default" : "cursor-pointer"} ${active ? activeClass : idleClass}`}
+      onClick={atMax ? undefined : onAdd}
     >
       <span className="min-w-8 text-center">{label}</span>
       <span className={`flex items-center gap-0.5 border-l pl-1.5 ${active ? "border-current/30" : "border-current/20"}`}>
@@ -334,10 +356,19 @@ function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number
   // Cada kit dentro do combo (size/color/babylook) gera uma variante selecionável.
   // Combos costumam incluir todos os tamanhos do kit de uma vez, então iteramos
   // sobre TODOS os itens KIT (não só o primeiro) para não "perder" os tamanhos.
-  const withKitInfo = groupProducts.flatMap((p) => {
+  type ComboKitInfo = {
+    product: Product;
+    color: string;
+    size: string | undefined;
+    isBabylook: boolean;
+    quantity: number;
+    kitProductId: string | undefined;
+  };
+
+  const withKitInfo: ComboKitInfo[] = groupProducts.flatMap((p): ComboKitInfo[] => {
     const kitItems = p.combo_items?.filter((ci) => productById.get(ci.item_id)?.type === "KIT") ?? [];
     if (kitItems.length === 0) {
-      return [{ product: p, color: "", size: undefined, isBabylook: false, quantity: 1 }];
+      return [{ product: p, color: "", size: undefined, isBabylook: false, quantity: 1, kitProductId: undefined }];
     }
     return kitItems.map((ci) => {
       const kitProduct = productById.get(ci.item_id);
@@ -346,9 +377,8 @@ function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number
         color: kitProduct?.kit?.color ?? "",
         size: kitProduct?.kit?.size,
         isBabylook: kitProduct?.kit?.is_babylook ?? false,
-        // Quantidade de camisetas que o combo inclui deste tamanho/cor:
-        // é fixa (definida no backoffice) e não pode ser alterada na compra.
         quantity: ci.quantity ?? 1,
+        kitProductId: String(ci.item_id),
       };
     });
   });
@@ -376,6 +406,7 @@ function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number
       priceValue: x.product.discounted_price ?? x.product.price,
       originalPriceValue: x.product.price,
       quantity: x.quantity,
+      kitProductId: x.kitProductId,
     });
   }
 
@@ -441,6 +472,8 @@ export default function StorePage() {
   const [quickVariantKeyByItemId, setQuickVariantKeyByItemId] = useState<Record<string, string>>({});
   const [quickDateTimeByItemId, setQuickDateTimeByItemId] = useState<Record<string, string>>({});
   const [zoomedImage, setZoomedImage] = useState<{ url: string; alt: string } | null>(null);
+  // `alt` aqui não é só acessibilidade: o lightbox o usa como legenda visível.
+  const openSizeChart = () => setZoomedImage({ url: TABELA_DE_MEDIDA, alt: "Tabela de medidas" });
   const [activeCategory, setActiveCategory] = useState<ProductType | "all">("all");
   // Quantidade de pagamentos pendentes (PENDENTE + QR + não expirado). Recarregada
   // a cada montagem da loja para não ficar obsoleta.
@@ -642,6 +675,7 @@ export default function StorePage() {
         type: selected.rawType,
         isBabylook,
         comboDateTimes: selected.availableDateTimes,
+        kitProductId: variant?.kitProductId,
       };
       const conflict = getConflict(comboParams);
       if (conflict) {
@@ -1011,32 +1045,38 @@ export default function StorePage() {
 
                         {/* Seletor de tamanho no card */}
                         {sizeVariantsToShow.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mt-0.5">
-                            {sizeVariantsToShow.map((v) => {
-                              const key = variantKey(v);
-                              const isActive = quickKey === key;
-                              return (
-                                <button
-                                  key={key}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setQuickVariantKeyByItemId((prev) => ({ ...prev, [item.id]: key }));
-                                  }}
-                                  className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${
-                                    isActive
-                                      ? isDarkMode
-                                        ? "bg-semcompOffWhite text-semcompMidDarkBlue border-semcompOffWhite shadow-sm"
-                                        : "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue"
-                                      : isDarkMode
-                                        ? `${cardBorder} ${mutedText} hover:border-semcompOffWhite/70 hover:text-semcompOffWhite`
-                                        : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue`
-                                  }`}
-                                >
-                                  {variantLabel(v)}
-                                </button>
-                              );
-                            })}
-                          </div>
+                          <>
+                            <div className="flex flex-wrap gap-1.5 mt-0.5">
+                              {sizeVariantsToShow.map((v) => {
+                                const key = variantKey(v);
+                                const isActive = quickKey === key;
+                                return (
+                                  <button
+                                    key={key}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setQuickVariantKeyByItemId((prev) => ({ ...prev, [item.id]: key }));
+                                    }}
+                                    className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${
+                                      isActive
+                                        ? isDarkMode
+                                          ? "bg-semcompOffWhite text-semcompMidDarkBlue border-semcompOffWhite shadow-sm"
+                                          : "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue"
+                                        : isDarkMode
+                                          ? `${cardBorder} ${mutedText} hover:border-semcompOffWhite/70 hover:text-semcompOffWhite`
+                                          : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue`
+                                    }`}
+                                  >
+                                    {variantLabel(v)}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <SizeChartLink
+                              onOpen={openSizeChart}
+                              className={`text-xs ${mutedText}`}
+                            />
+                          </>
                         )}
 
                         {/* Horários: Coffee selecionável, Combo somente leitura */}
@@ -1092,6 +1132,7 @@ export default function StorePage() {
                               isBabylook: quickVariant?.isBabylook || undefined,
                               dateTime: activeDateTime,
                               comboDateTimes: item.rawType === "COMBO" ? item.availableDateTimes : undefined,
+                              kitProductId: quickVariant?.kitProductId,
                             };
                             const conflict = getConflict(quickParams);
                             if (conflict) {
@@ -1240,6 +1281,10 @@ export default function StorePage() {
                           ? `O combo inclui ${selectedVariant.quantity} camisetas ${variantLabel(selectedVariant)} (quantidade fixa).`
                           : "O combo inclui 1 camiseta do tamanho escolhido (quantidade fixa)."}
                       </p>
+                      <SizeChartLink
+                        onOpen={openSizeChart}
+                        className={`mt-1 text-xs ${mutedText}`}
+                      />
                     </div>
                   ) : (
                     <div>
@@ -1263,6 +1308,10 @@ export default function StorePage() {
                       <p className={`mt-2 text-xs ${mutedText}`}>
                         Selecione um tamanho por camiseta. Quantidade total: {totalQty}.
                       </p>
+                      <SizeChartLink
+                        onOpen={openSizeChart}
+                        className={`mt-1 text-xs ${mutedText}`}
+                      />
                     </div>
                   ))}
 
