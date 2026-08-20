@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -16,6 +17,8 @@ import (
 
 	"backend/internal/apierrors"
 	"backend/internal/product"
+	"backend/internal/user"
+
 	"gorm.io/gorm"
 )
 
@@ -52,13 +55,15 @@ type SaleService interface {
 type saleService struct {
 	saleRepo    SaleRepository
 	productRepo product.ProductRepository
+	papfeRepo   user.PapfeDocumentRepository
 	httpClient  *http.Client
 }
 
-func NewSaleService(saleRepo SaleRepository, productRepo product.ProductRepository) SaleService {
+func NewSaleService(saleRepo SaleRepository, productRepo product.ProductRepository, papfeRepo user.PapfeDocumentRepository) SaleService {
 	return &saleService{
 		saleRepo:    saleRepo,
 		productRepo: productRepo,
+		papfeRepo:   papfeRepo,
 		httpClient:  &http.Client{Timeout: 10 * time.Second},
 	}
 }
@@ -88,6 +93,15 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 		unavailableSet[id] = struct{}{}
 	}
 
+	// Verifica se o usuário tem PAPFE aprovado para aplicar desconto de 50%.
+	hasPapfeDiscount := false
+	if email != "" {
+		doc, papfeErr := s.papfeRepo.FindByEmail(email)
+		if papfeErr == nil && doc.IsApproved != nil && *doc.IsApproved {
+			hasPapfeDiscount = true
+		}
+	}
+
 	for _, itemReq := range request.Items {
 		prod, err := s.productRepo.GetByID(itemReq.ProductID)
 		if err != nil {
@@ -112,6 +126,9 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 		}
 
 		unitPrice := prod.Price
+		if hasPapfeDiscount {
+			unitPrice = math.Round(prod.Price*0.5*100) / 100
+		}
 		quantity := itemReq.Quantity
 		totalAmount += unitPrice * float64(quantity)
 
@@ -124,7 +141,7 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 	}
 
 	newSale := Sale{
-		SaleUserNumber:          userNumber,
+		SaleUserNumber:      userNumber,
 		Status:              status,
 		PaymentMethod:       request.PaymentMethod,
 		TotalAmount:         totalAmount,
