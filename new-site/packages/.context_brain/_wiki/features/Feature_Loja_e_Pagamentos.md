@@ -5,7 +5,7 @@ tags: [feature, loja, store, payment, pix, mercadopago, produtos, carrinho]
 # Feature: Loja e Pagamentos
 
 Fluxo completo: catálogo público → carrinho (in-memory) → checkout PIX (Mercado Pago).  
-Rotas do site: `/loja`, `/loja/carrinho`, `/loja/checkout` — todas requerem login + feature flag `"loja"`.
+Rotas do site: `/loja`, `/loja/carrinho`, `/loja/checkout`, `/loja/pagamentos` — todas requerem login + feature flag `"loja"`.
 
 ---
 
@@ -62,21 +62,38 @@ Estado in-memory — **perdido ao recarregar**.
   └─ navigate("/loja/checkout", { state: { sale, dietaryRestrictions } })
 
 /loja/checkout (CheckoutPage)
-  └─ exibe QR code (img base64) + código copia-e-cola
-  └─ countdown: baseado em sale.pix_expiration (30 min)
-  └─ polling: salesAPI.getStatus(sale.id) a cada 4 segundos (POLL_INTERVAL_MS = 4000)
+  └─ exibe QR code (img base64) + código copia-e-cola via `<PixQrCard>`
+  └─ countdown: baseado em pix_expiration (30 min) — interno do PixQrCard
+  └─ SSE: EventSource `/api/sales/:id/events` (substitui polling)
        └─ "PAGO" → clearCart() + tela de sucesso
        └─ "REJEITADO" / "CANCELADO" / "REEMBOLSADO" → tela de erro
        └─ "EXPIRADO" → tela de expiração
-  └─ (DEV) botão "Aprovar pagamento sem análise" — aprova localmente sem chamar o backend
   └─ Ao aprovar, apenas limpa o carrinho; o status vira PAGO via webhook do Mercado Pago
      (ou edição manual no backoffice em dev)
+
+/loja/pagamentos (PendingPaymentsPage)
+  └─ busca histórico: `salesAPI.getMySales()` → `GET /api/sales/profile`
+  └─ filtra pendentes via helper compartilhado `isPendingSale()` (src/lib/pendingSale.ts):
+     `status === "PENDENTE"` E `qr_code` presente E `(pix_expiration ?? created_at+30min) > now`
+     (venda sem QR não é pagável → não entra na lista)
+  └─ lista expansível (acordeão); item expandido renderiza `<PixQrCard>` com SSE
+  └─ SSE por venda expandida (uma conexão por vez; fechada ao colapsar/desmontar)
+       └─ "PAGO" → notificação de sucesso + remove da lista
+       └─ "EXPIRADO" / "REJEITADO" / "CANCELADO" / "REEMBOLSADO" → remove da lista + notificação
+  └─ acesso: botão "Ver pagamentos pendentes (N)" na aba Compras do Profile E banner
+     na loja (StorePage) — ambos usam o mesmo `isPendingSale()` e só aparecem com
+     a flag `loja` ativa
 ```
 
 > **Venda criada no "Finalizar Pedido"**: o backend persiste a venda (status
 > `PENDENTE`) e devolve o PIX na resposta de criação — não há um endpoint
-> separado de "criar pagamento". O polling de status usa `salesAPI.getStatus`
-> → `GET /api/sales/:id/status` (front-site).
+> separado de "criar pagamento". O QR (copia-e-cola + base64) também é
+> persistido (`qr_code`/`qr_code_base64`) para permitir reabrir pendentes. O
+> front acompanha o status por SSE em `GET /api/sales/:id/events`.
+>
+> `<PixQrCard>` mostra um estado de aviso ("Pagamento não gerado. Refazer o
+> pedido.") quando `qr_code`/`qr_code_base64` vêm vazios, em vez de spinner
+> infinito + botão copiar desabilitado.
 
 ---
 
@@ -120,10 +137,17 @@ Arquivo: `internal/sales/` (o antigo `internal/payment` foi absorvido)
 
 | Endpoint | Acesso | Descrição |
 |---|---|---|
-| `POST /api/sales` | AuthMiddleware + `pageMW("loja")` | Cria venda PENDENTE + PIX no Mercado Pago |
-| `POST /api/payments/pix` | AuthMiddleware + `pageMW("loja")` | Alias legado → `CreateSale` |
-| `GET /api/payments/:id/status` | AuthMiddleware + `pageMW("loja")` | Alias legado → `GetSaleStatus` |
+| `POST /api/sales` | AuthMiddleware + `pageMW("loja")` | Cria venda PENDENTE + PIX no MP; persiste `qr_code`/`qr_code_base64` |
+| `GET /api/sales/profile` | AuthMiddleware + `pageMW("loja")` | Histórico de compras do usuário |
+| `GET /api/sales/:id/status` | AuthMiddleware + `pageMW("loja")` | Status efetivo da venda (polling legado; hoje sem uso no front) |
+| `GET /api/sales/:id/events` | AuthMiddleware + `pageMW("loja")` | SSE de status PIX — usado por Checkout e PendingPayments |
 | `POST /webhook/mercadopago` | público | Recebe notificação do MP (`salesHandler.Webhook`) |
+
+Após `createPixCharge` (real ou mock), o serviço chama
+`SaleRepository.SetPixQRCode(id, qrCode, qrCodeBase64)` para persistir o QR na
+venda. Em dev, `MERCADOPAGO_MOCK=true` faz o `createPixCharge` pular o HTTP e
+preencher um QR dummy (`MOCK-PIX-SEMCOMP-<id>` + PNG placeholder) — **mock
+temporário, não é produção**.
 
 ### Webhook Mercado Pago
 - Aceita `data.id` via query param **ou** body JSON `{ action, data: { id } }`

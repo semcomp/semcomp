@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -16,6 +17,8 @@ import (
 
 	"backend/internal/apierrors"
 	"backend/internal/product"
+	"backend/internal/user"
+
 	"gorm.io/gorm"
 )
 
@@ -52,13 +55,15 @@ type SaleService interface {
 type saleService struct {
 	saleRepo    SaleRepository
 	productRepo product.ProductRepository
+	papfeRepo   user.PapfeDocumentRepository
 	httpClient  *http.Client
 }
 
-func NewSaleService(saleRepo SaleRepository, productRepo product.ProductRepository) SaleService {
+func NewSaleService(saleRepo SaleRepository, productRepo product.ProductRepository, papfeRepo user.PapfeDocumentRepository) SaleService {
 	return &saleService{
 		saleRepo:    saleRepo,
 		productRepo: productRepo,
+		papfeRepo:   papfeRepo,
 		httpClient:  &http.Client{Timeout: 10 * time.Second},
 	}
 }
@@ -88,6 +93,15 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 		unavailableSet[id] = struct{}{}
 	}
 
+	// Verifica se o usuário tem PAPFE aprovado para aplicar desconto de 50%.
+	hasPapfeDiscount := false
+	if email != "" {
+		doc, papfeErr := s.papfeRepo.FindByEmail(email)
+		if papfeErr == nil && doc.IsApproved != nil && *doc.IsApproved {
+			hasPapfeDiscount = true
+		}
+	}
+
 	for _, itemReq := range request.Items {
 		prod, err := s.productRepo.GetByID(itemReq.ProductID)
 		if err != nil {
@@ -112,6 +126,9 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 		}
 
 		unitPrice := prod.Price
+		if hasPapfeDiscount {
+			unitPrice = math.Round(prod.Price*0.5*100) / 100
+		}
 		quantity := itemReq.Quantity
 		totalAmount += unitPrice * float64(quantity)
 
@@ -124,7 +141,7 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 	}
 
 	newSale := Sale{
-		SaleUserNumber:          userNumber,
+		SaleUserNumber:      userNumber,
 		Status:              status,
 		PaymentMethod:       request.PaymentMethod,
 		TotalAmount:         totalAmount,
@@ -155,6 +172,11 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 		if err := s.createPixCharge(&newSale, email, request.Description); err != nil {
 			return nil, err
 		}
+		// Persiste o QR code (copia-e-cola + base64) na venda, para permitir
+		// reabrir o pagamento pendente depois (ex: tela "Ver pagamentos pendentes").
+		if err := s.saleRepo.SetPixQRCode(newSale.ID, newSale.QRCode, newSale.QRCodeBase64); err != nil {
+			return nil, err
+		}
 	}
 
 	createdSale, err := s.saleRepo.GetByID(newSale.ID)
@@ -162,18 +184,31 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 		return nil, apierrors.InternalServerError("Pedido criado, mas ocorreu um erro ao carregar os dados", err)
 	}
 
-	// GetByID recarrega do banco e perde os campos transitórios do PIX; repõe aqui.
-	createdSale.QRCode = newSale.QRCode
-	createdSale.QRCodeBase64 = newSale.QRCodeBase64
+	// GetByID recarrega do banco — QRCode/QRCodeBase64 agora são persistidos e
+	// voltam preenchidos. Apenas PixExpiration (transitório) precisa ser reposto.
 	createdSale.PixExpiration = newSale.PixExpiration
 
 	return createdSale, nil
 }
 
+// mockPixQRCodeBase64 é um PNG placeholder (64x64) usado apenas no mock de dev
+// MERCADOPAGO_MOCK — marca visualmente que a cobrança não foi gerada no MP.
+const mockPixQRCodeBase64 = "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABrklEQVR42u1aMW4DMQzjI/qIPKJzX9LHdumSJUv+0uKGAgfBZ1oVAlsyByOLLhINiccjhNvH58/b7X3otGLvj2fzHLHH79f3vXvOsa1j449Y+3yvBpYfHrCtMxuAvXCW39YAD9hW7GwAvfwjNcDb8lcjMAtAa+xY/nMNsGBZQfZiZgNg+Vtj1+2AKzI7X8BV/AwArN7e5R+xsC0/0gGejnk1gJH8vRow8lo7J/J2zKsBsHrdr0FWlI1dneXZiMIrbGz86izP8sMrbFodszLLsxGFV9iMdMBKLO/uAK8UXp3lGUmGpfDqLM9qCEvh2QB6H1q9Efz7X3hb3sbOBhD93EZ2LR+WwtkBhKVwdgBhKZwdQJRjkB1AlCSRHUDUk0R2AGFXODuAsCtcneWpFK7O8lQKV2d5KoWrszzjGFRneUaSqM7y1BHKDiDsCmcHEHaFJYUlhTeXwtVZni5IVGd5uiBRneXpgoRc4d1dYUlhSeHNpXB1lh9akKjM8v/qgEosTxck5Arv7gpLCksKa0FCCxJakNCChFzhfV1hSWFJYS1IaEFCCxJakJArvK0r/AvZ0pfbEYUOTAAAAABJRU5ErkJggg=="
+
 // createPixCharge cria a cobrança PIX no Mercado Pago para uma venda já persistida
 // e preenche os campos transitórios de QR code em `sale` (antigo
 // PaymentService.CreatePix, sem mais criar uma entidade `Payment` separada).
 func (s *saleService) createPixCharge(sale *Sale, email, description string) error {
+	// REMOVER: mock temporário de dev (MERCADOPAGO_MOCK). Com o flag ativo, a
+	// cobrança não é disparada no Mercado Pago — apenas preenche um QR code dummy.
+	if os.Getenv("MERCADOPAGO_MOCK") == "true" {
+		sale.QRCode = fmt.Sprintf("MOCK-PIX-SEMCOMP-%d", sale.ID)
+		sale.QRCodeBase64 = mockPixQRCodeBase64
+		expiration := sale.CreatedAt.Add(PixExpirationWindow)
+		sale.PixExpiration = &expiration
+		return nil
+	}
+
 	token := os.Getenv("MERCADOPAGO_ACCESS_TOKEN")
 	if token == "" {
 		return apierrors.InternalServerError("MERCADOPAGO_ACCESS_TOKEN não configurado", nil)

@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "@/contexts/useTheme";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Modal from "@/components/ui/Modal";
 import { useCart, type AddToCartParams } from "@/contexts/CartContext";
-import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2, X, ZoomIn } from "lucide-react";
+import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2, X, ZoomIn, ArrowRight } from "lucide-react";
 import { productsAPI } from "@/api/products";
 import { salesAPI } from "@/api/sales";
 import type { Product, ProductType } from "@/types/ProductType";
 import { useNotification } from "@/contexts/NotificationContext";
+import { isPendingSale } from "@/lib/pendingSale";
 
 // ─── Tipos ────────────────────────────────────────────────
 interface SizeVariant {
@@ -18,6 +19,7 @@ interface SizeVariant {
   size: string;
   isBabylook: boolean;
   priceValue: number;
+  originalPriceValue: number;
   // Quantidade de camisetas que o combo inclui deste tamanho/cor (backoffice).
   // Para KIT "puro", é sempre 1 (cada unidade comprada = 1 camiseta).
   quantity: number;
@@ -51,6 +53,7 @@ interface CoffeeTimeOption {
   dateTime: string;
   productId: string;
   priceValue: number;
+  originalPriceValue: number;
 }
 
 interface StoreItem {
@@ -60,6 +63,8 @@ interface StoreItem {
   description: string;
   price: string;
   priceValue: number;
+  originalPriceValue: number;
+  hasDiscount: boolean;
   image: string;
   rawType: ProductType;
   sizeVariants: SizeVariant[];
@@ -88,7 +93,9 @@ function compareVariants(a: { size: string; isBabylook: boolean }, b: { size: st
 
 function kitVariantGroupKey(p: Product): string {
   const kit = p.kit as (Product["kit"] & { color?: string }) | undefined;
-  return kit?.color?.trim() || kit?.name || `product-${p.id}`;
+  const name = kit?.name?.trim() || "";
+  const color = kit?.color?.trim() || "";
+  return `${name}__${color}` || `product-${p.id}`;
 }
 
 function coffeeGroupKey(p: Product): string {
@@ -247,22 +254,28 @@ function kitGroupToStoreItem(groupProducts: Product[]): StoreItem {
   );
   const representative = sorted[0];
   const kit = representative.kit!;
+  const hasDiscount = representative.discounted_price !== undefined;
 
   const sizeVariants: SizeVariant[] = sorted.map((p) => ({
     productId: String(p.id),
     size: p.kit!.size,
     isBabylook: p.kit!.is_babylook,
-    priceValue: p.price,
+    priceValue: p.discounted_price ?? p.price,
+    originalPriceValue: p.price,
     quantity: 1,
   }));
+
+  const displayPrice = representative.discounted_price ?? representative.price;
 
   return {
     id: String(representative.id),
     name: kit.name,
     category: "Kit",
     description: representative.description || kit.color,
-    price: formatBRL(representative.price),
-    priceValue: representative.price,
+    price: formatBRL(displayPrice),
+    priceValue: displayPrice,
+    originalPriceValue: representative.price,
+    hasDiscount,
     image:
       representative.picture_url ||
       `https://placehold.co/600x400/0B2639/FAFDFF?text=${encodeURIComponent(kit.name)}`,
@@ -280,22 +293,32 @@ function coffeeGroupToStoreItem(groupProducts: Product[]): StoreItem {
   );
   const representative = sorted[0];
   const coffee = representative.coffee!;
+  const hasDiscount = representative.discounted_price !== undefined;
 
   const coffeeTimes: CoffeeTimeOption[] = sorted
     .map((p) =>
       p.coffee?.date_time
-        ? { dateTime: p.coffee.date_time, productId: String(p.id), priceValue: p.price }
+        ? {
+            dateTime: p.coffee.date_time,
+            productId: String(p.id),
+            priceValue: p.discounted_price ?? p.price,
+            originalPriceValue: p.price,
+          }
         : null
     )
     .filter((t): t is CoffeeTimeOption => t !== null);
+
+  const displayPrice = representative.discounted_price ?? representative.price;
 
   return {
     id: String(representative.id),
     name: coffee.name,
     category: "Coffee Break",
     description: representative.description || "Coffee Break da Semcomp",
-    price: formatBRL(representative.price),
-    priceValue: representative.price,
+    price: formatBRL(displayPrice),
+    priceValue: displayPrice,
+    originalPriceValue: representative.price,
+    hasDiscount,
     image:
       representative.picture_url ||
       `https://placehold.co/600x400/0B2639/FAFDFF?text=${encodeURIComponent(coffee.name)}`,
@@ -350,21 +373,26 @@ function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number
       color: x.color,
       size: x.size!,
       isBabylook: x.isBabylook,
-      priceValue: x.product.price,
+      priceValue: x.product.discounted_price ?? x.product.price,
+      originalPriceValue: x.product.price,
       quantity: x.quantity,
     });
   }
 
   const comboDateTimes = collectComboDateTimes(representative, productById);
   const representativeName = representative.name?.trim();
+  const hasDiscount = representative.discounted_price !== undefined;
+  const displayPrice = representative.discounted_price ?? representative.price;
 
   return {
     id: String(representative.id),
     name: representativeName || "Combo",
     category: "Combo",
     description: buildComboDescription(representative, productById),
-    price: formatBRL(representative.price),
-    priceValue: representative.price,
+    price: formatBRL(displayPrice),
+    priceValue: displayPrice,
+    originalPriceValue: representative.price,
+    hasDiscount,
     image: representative.picture_url || `https://placehold.co/600x400/0B2639/FAFDFF?text=Combo`,
     rawType: "COMBO",
     sizeVariants,
@@ -398,6 +426,7 @@ export default function StorePage() {
   const { width } = useWindowDimensions();
   const { addItem, totalItems, getConflict } = useCart();
   const { showNotification } = useNotification();
+  const navigate = useNavigate();
 
   const [selected, setSelected] = useState<StoreItem | null>(null);
   const [selectedVariantKey, setSelectedVariantKey] = useState<string>("");
@@ -408,18 +437,47 @@ export default function StorePage() {
   const [comboCount, setComboCount] = useState(1);
   const [products, setProducts] = useState<StoreItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [papfeStatus, setPapfeStatus] = useState<"pending" | "approved" | "rejected" | "" | null>(null);
   const [quickVariantKeyByItemId, setQuickVariantKeyByItemId] = useState<Record<string, string>>({});
   const [quickDateTimeByItemId, setQuickDateTimeByItemId] = useState<Record<string, string>>({});
   const [zoomedImage, setZoomedImage] = useState<{ url: string; alt: string } | null>(null);
   const [activeCategory, setActiveCategory] = useState<ProductType | "all">("all");
+  // Quantidade de pagamentos pendentes (PENDENTE + QR + não expirado). Recarregada
+  // a cada montagem da loja para não ficar obsoleta.
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    salesAPI
+      .getMySales()
+      .then((sales) => {
+        if (cancelled) return;
+        setPendingCount(sales.filter(isPendingSale).length);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setPendingCount(0);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     async function fetchProducts() {
       try {
         setLoading(true);
-        const data = await productsAPI.getAllProducts();
+        let data;
+        try {
+          data = await productsAPI.getAllProducts();
+        } catch (err: any) {
+          if (err?.response?.status === 401) {
+            navigate("/login");
+            return;
+          }
+          throw err;
+        }
         if (!cancelled) {
+          setPapfeStatus(data.papfe_status ?? "");
           // productById precisa conter TODOS os produtos (não só os em venda):
           // coffees podem aparecer dentro de combos sem serem vendidos
           // individualmente, e a resolução deles depende deste mapa.
@@ -699,6 +757,44 @@ export default function StorePage() {
         </div>
       </section>
 
+      {/* ── Banner PAPFE em análise ──────────────────── */}
+      {papfeStatus === "pending" && (
+        <div className="mx-auto max-w-[80%] pb-0 pt-2">
+          <div className={`flex items-start gap-3 rounded-xl border px-5 py-4 ${
+            isDarkMode
+              ? "border-yellow-400/30 bg-yellow-400/10 text-yellow-300"
+              : "border-yellow-500/40 bg-yellow-50 text-yellow-800"
+          }`}>
+            <div>
+              <p className="font-bold text-sm">Seu comprovante PAPFE está em análise</p>
+              <p className="text-sm opacity-80 mt-0.5">
+                Apenas após a aprovação do documento, você poderá receber 50% de desconto em todos os produtos da loja.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Banner pagamentos pendentes ─────────────── */}
+      {pendingCount > 0 && (
+        <div className="mx-auto max-w-[80%] pb-0 pt-2">
+          <button
+            type="button"
+            onClick={() => navigate("/loja/pagamentos")}
+            className={`w-full flex items-center justify-between gap-3 rounded-xl border px-5 py-4 text-left transition-all cursor-pointer ${
+              isDarkMode
+                ? "border-yellow-400/30 bg-yellow-400/10 text-yellow-300 hover:brightness-110"
+                : "border-yellow-500/40 bg-yellow-50 text-yellow-800 hover:bg-yellow-100"
+            }`}
+          >
+            <span className="text-sm font-bold">
+              Ver pagamentos pendentes ({pendingCount})
+            </span>
+            <ArrowRight size={18} className="shrink-0" />
+          </button>
+        </div>
+      )}
+
       {/* ── Grid de produtos ─────────────────────────── */}
       <section className="py-12 md:py-20 transition-colors duration-300">
         <div className="mx-auto max-w-[80%]">
@@ -802,6 +898,11 @@ export default function StorePage() {
                       : quickCoffeeTime
                         ? formatBRL(quickCoffeeTime.priceValue)
                         : item.price;
+                    const displayOriginalPrice = quickVariant
+                      ? formatBRL(quickVariant.originalPriceValue)
+                      : quickCoffeeTime
+                        ? formatBRL(quickCoffeeTime.originalPriceValue)
+                        : formatBRL(item.originalPriceValue);
                     const sizeVariantsToShow = item.rawType === "COMBO"
                       ? item.sizeVariants.filter((v) => colorOf(v) === currentColor)
                       : item.sizeVariants;
@@ -845,9 +946,21 @@ export default function StorePage() {
                           <h3 className={`font-poppins font-bold text-lg leading-tight ${textColor}`}>
                             {item.name}
                           </h3>
-                          <span className={`shrink-0 font-extrabold text-lg ${priceColor}`}>
-                            {displayPrice}
-                          </span>
+                          <div className="flex flex-col items-end shrink-0">
+                            {item.hasDiscount && (
+                              <span className={`text-xs line-through ${mutedText}`}>
+                                {displayOriginalPrice}
+                              </span>
+                            )}
+                            <span className={`font-extrabold text-lg ${priceColor}`}>
+                              {displayPrice}
+                            </span>
+                            {item.hasDiscount && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-600 dark:text-green-400">
+                                PAPFE −50%
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {/* Info específica por tipo */}
@@ -1038,7 +1151,23 @@ export default function StorePage() {
                 </h2>
               </div>
 
-              <p className="text-3xl font-extrabold text-semcompDarkBlue dark:text-semcompOffWhite">{formatBRL(displayPrice)}</p>
+              {selected.hasDiscount ? (
+                <div className="flex flex-col gap-0.5">
+                  <span className={`text-sm line-through ${mutedText}`}>
+                    {formatBRL(selected.originalPriceValue)}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl font-extrabold text-semcompDarkBlue dark:text-semcompOffWhite">
+                      {formatBRL(displayPrice)}
+                    </span>
+                    <span className="text-xs font-bold px-2 py-1 rounded-full bg-green-500/20 text-green-600 dark:text-green-400">
+                      PAPFE −50%
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-3xl font-extrabold text-semcompDarkBlue dark:text-semcompOffWhite">{formatBRL(displayPrice)}</p>
+              )}
 
               <p className={`text-sm leading-relaxed ${mutedText}`}>
                 {selected.description}

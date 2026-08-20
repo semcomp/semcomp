@@ -96,6 +96,13 @@ export const router = createBrowserRouter([
                   return { Component: CheckoutPage };
                 },
               },
+              {
+                path: "loja/pagamentos",
+                lazy: async () => {
+                  const { default: PendingPaymentsPage } = await import("@/pages/Store/PendingPayments");
+                  return { Component: PendingPaymentsPage };
+                },
+              },
             ],
           },
         ],

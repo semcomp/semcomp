@@ -40,13 +40,13 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - [[Feature_Controle_Frontend]] — guards de rota, filtragem UI, matrix de permissões, refresh
 - [[Feature_Cronograma_e_Eventos]] — cronograma público (agrupamento), CRUD backoffice
 - [[Feature_Participacao_e_QRCode]] — scan via câmera (backoffice), QR exibido no Profile (site)
-- [[Feature_Loja_e_Pagamentos]] — produtos (KIT/COFFEE/COMBO), carrinho, checkout PIX, polling, webhook, compra única (consumido)
+- [[Feature_Loja_e_Pagamentos]] — produtos (KIT/COFFEE/COMBO), carrinho, checkout PIX, SSE, pagamentos pendentes, webhook, compra única (consumido)
 - [[Feature_Flags_e_Pages]] — feature toggle via API, FeatureGuard, backoffice toggle UI
 
 ---
 
 ## ⚠ Gaps Conhecidos
-- **Sales (polling)**: o front-site chama `GET /api/sales/:id/status` (`salesAPI.getStatus`), mas o backend só registra `GET /api/payments/:id/status` (alias legado → `GetSaleStatus`). O polling do checkout nunca recebe `PAGO` e fica preso em `pending` até o countdown expirar.
+- **Sales (status)**: `salesAPI.getStatus` (`GET /api/sales/:id/status`) é código morto no front — o checkout e os pagamentos pendentes usam SSE (`GET /api/sales/:id/events`). O endpoint de status permanece disponível para uso externo/polling.
 - **Payments (PIX)**: a venda é persistida **antes** de disparar a cobrança no Mercado Pago — se `createPixCharge` falhar, sobra uma venda `PENDENTE` sem QR code (status inconsistente até expirar).
 - **Cart**: `CartContext` é in-memory apenas — itens são perdidos ao recarregar a página
 - **Permissions (bulk)**: salvar permissões faz N chamadas paralelas com `Promise.all`; falha parcial deixa estado inconsistente sem rollback
