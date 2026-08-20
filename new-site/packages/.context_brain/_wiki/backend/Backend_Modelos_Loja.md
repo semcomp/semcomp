@@ -42,13 +42,15 @@ a cobrança PIX virou campo da própria venda.
 | `TotalAmount` | float64 | not null |
 | `PaymentMethod` | string | `"PIX"` etc. |
 | `MercadoPagoID` | *string | size:100, uniqueIndex — id do pagamento no MP |
+| `QRCode` | string | `type:text` — copia-e-cola PIX (persistido p/ reabrir pendente) |
+| `QRCodeBase64` | string | `type:text` — imagem QR PIX em base64 (persistido) |
 | `DietaryRestrictions` | string | size:1000 — só para vendas com COFFEE |
 | `User` | *user.User | FK `SaleUserNumber` |
 | `Items` | `[]SaleItem` | FK `SaleID`, CASCADE |
 
-Campos transitórios (não persistidos, preenchidos na resposta de criação PIX):
-`QRCode`, `QRCodeBase64`, `PixExpiration`. Flags calculadas: `HasKitItems`,
-`HasCoffeeItems` (via `ComputeItemFlags()`).
+Campos transitórios (não persistidos): `PixExpiration` (preenchido na resposta de
+criação PIX; o front usa a janela padrão de 30min quando o campo vem vazio).
+Flags calculadas: `HasKitItems`, `HasCoffeeItems` (via `ComputeItemFlags()`).
 
 ### SaleItem
 | Campo | Tipo | Notas |
@@ -104,6 +106,11 @@ Ciclo de vida:
 { message string, sale: { id, user_number, status: "PENDENTE", total_amount,
                           payment_method, qr_code, qr_code_base64, pix_expiration, ... } }
 ```
+
+> `qr_code`/`qr_code_base64` são persistidos na venda — também vêm em
+> `GET /api/sales/profile` e `GET /api/sales/:id`. `pix_expiration` é
+> transitório (só na resposta de criação); o front usa `created_at + 30min`
+> como fallback ao reabrir vendas do histórico.
 
 **Webhook Payload** (`POST /webhook/mercadopago`):
 ```

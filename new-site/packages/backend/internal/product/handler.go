@@ -2,6 +2,7 @@ package product
 
 import (
 	"backend/internal/apierrors"
+	"backend/internal/user"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -11,10 +12,11 @@ import (
 
 type ProductHandler struct {
 	productService ProductService
+	papfeRepo      user.PapfeDocumentRepository
 }
 
-func NewProductHandler(productService ProductService) *ProductHandler {
-	return &ProductHandler{productService: productService}
+func NewProductHandler(productService ProductService, papfeRepo user.PapfeDocumentRepository) *ProductHandler {
+	return &ProductHandler{productService: productService, papfeRepo: papfeRepo}
 }
 
 // CreateProduct processa o payload JSON e tenta criar um novo produto.
@@ -158,6 +160,7 @@ func (h *ProductHandler) UpdateProductByID(c *gin.Context) {
 }
 
 // GetProducts retorna a lista paginada de produtos com suporte a filtros e ordenação.
+// Quando chamado por um usuário com PAPFE aprovado, inclui `discounted_price` em cada produto.
 // @Summary Lista produtos
 // @Description Retorna uma lista paginada de produtos cadastrados
 // @Tags Product Backoffice
@@ -206,6 +209,32 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 		apierrors.HandleAPIError(c, err)
 		return
 	}
+
+	// Verifica status PAPFE do usuário para desconto e informação ao frontend.
+	// "approved" → aplica 50% e informa; "pending" → apenas informa; "rejected" / "" → sem ação.
+	papfeStatus := ""
+	if h.papfeRepo != nil {
+		if emailVal, exists := c.Get("email"); exists {
+			if email, ok := emailVal.(string); ok && email != "" {
+				doc, papfeErr := h.papfeRepo.FindByEmail(email)
+				if papfeErr == nil {
+					switch {
+					case doc.IsApproved == nil:
+						papfeStatus = "pending"
+					case *doc.IsApproved:
+						papfeStatus = "approved"
+						for i := range result.Products {
+							discounted := result.Products[i].Price * 0.5
+							result.Products[i].DiscountedPrice = &discounted
+						}
+					default:
+						papfeStatus = "rejected"
+					}
+				}
+			}
+		}
+	}
+
 	c.Set("responseMessage", "Produtos listados com sucesso!")
 	c.JSON(http.StatusOK, gin.H{
 		"page":             page,
@@ -216,6 +245,7 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 		"search_value":     searchValue,
 		"total_records":    result.TotalRecords,
 		"filtered_records": result.FilteredRecords,
+		"papfe_status":     papfeStatus,
 		"products":         result.Products,
 	})
 }

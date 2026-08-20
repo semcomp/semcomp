@@ -23,7 +23,8 @@ App (layout)
 │   └── FeatureGuard("loja")
 │       ├── /loja
 │       ├── /loja/carrinho
-│       └── /loja/checkout
+│       ├── /loja/checkout
+│       └── /loja/pagamentos
 ├── /                         ← Home (sempre disponível)
 └── *                         ← NotFound
 ```
@@ -38,9 +39,10 @@ App (layout)
 | `/reset-password` | `pages/ResetPassword/index.tsx` | FeatureGuard(`login`) | `POST /reset-password` |
 | `/verify-email` | `pages/VerifyEmail/index.tsx` | — | `GET /api/verify-email` (param: token) |
 | `/profile` | `pages/Profile/index.tsx` | RequireAuth + FeatureGuard(`login`) | `GET /api/profile` |
-| `/loja` | `pages/Store/StorePage.tsx` | RequireAuth + FeatureGuard(`loja`) | `GET /products?limit=1000` + `GET /api/sales/consumed` |
+| `/loja` | `pages/Store/StorePage.tsx` | RequireAuth + FeatureGuard(`loja`) | `GET /products?limit=1000` + `GET /api/sales/consumed` + `GET /api/sales/profile` (banner pagamentos pendentes) |
 | `/loja/carrinho` | `pages/Store/Cart.tsx` | RequireAuth + FeatureGuard(`loja`) | `POST /api/sales` |
-| `/loja/checkout` | `pages/Store/Checkout.tsx` | RequireAuth + FeatureGuard(`loja`) | `GET /api/sales/:id/status` (polling via `salesAPI.getStatus`) |
+| `/loja/checkout` | `pages/Store/Checkout.tsx` | RequireAuth + FeatureGuard(`loja`) | SSE `GET /api/sales/:id/events` |
+| `/loja/pagamentos` | `pages/Store/PendingPayments.tsx` | RequireAuth + FeatureGuard(`loja`) | `GET /api/sales/profile` + SSE `GET /api/sales/:id/events` |
 | `*` | `pages/NotFound/index.tsx` | — | — |
 
 ## Home (`/`) — Seções
@@ -67,6 +69,14 @@ Background alterna com `isDarkMode` via `ThemeContext`.
 3. Aba `"qr"` (default) + aba `"account"` (dados pessoais)
 4. Imagem hero aleatória via `import.meta.glob("/src/assets/img/Home/Hero/*.webp")`
 5. Reutiliza `<ContatoSection>` no rodapé
+6. Na aba `"compras"`, se houver pedido `PENDENTE` e a flag `loja` ativa, mostra
+   o botão "Ver pagamentos pendentes (N)" → `/loja/pagamentos`
+
+## Header (navegação ativa)
+Arquivo: `src/components/Header.tsx`
+- A seção "LOJA" fica ativa em qualquer rota `/loja/*` (loja, carrinho, checkout
+  e `/loja/pagamentos`) — o matching usa `path === "/loja" && pathname.startsWith("/loja")`,
+  não apenas igualdade exata.
 
 ## RequireAuth
 Arquivo: `src/lib/RequireAuth.tsx` — redireciona para `/login` se não autenticado.

@@ -27,6 +27,7 @@ export interface Product {
   description?: string;
   is_selling: boolean;
   price: number;
+  discounted_price?: number;
   picture_url?: string;
   kit?: Kit | null;
   coffee?: Coffee | null;
@@ -42,5 +43,6 @@ export interface ProductsResponse {
   search_value: string;
   total_records: number;
   filtered_records: number;
+  papfe_status?: "pending" | "approved" | "rejected" | "";
   products: Product[];
 }

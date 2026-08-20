@@ -24,6 +24,11 @@ type SaleRepository interface {
 	// (equivalente ao antigo PaymentRepository.SetMercadoPagoID).
 	SetMercadoPagoID(id uint, mpID string) error
 
+	// SetPixQRCode grava o QR code (copia-e-cola) e o QR code base64 de uma
+	// venda PIX pendente — chamado após a cobrança ser criada no Mercado Pago
+	// (ou no mock de dev MERCADOPAGO_MOCK).
+	SetPixQRCode(id uint, qrCode, qrCodeBase64 string) error
+
 	// Operações de itens
 	GetSaleItemByID(itemID uint) (*SaleItem, error)
 	UpdateItemPickup(itemID uint, isPickedUp bool) error
@@ -144,6 +149,22 @@ func (r *saleRepository) SetMercadoPagoID(id uint, mpID string) error {
 		Update("mercado_pago_id", mpID)
 	if result.Error != nil {
 		return apierrors.InternalServerError("Erro ao atualizar ID do pagamento", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return apierrors.NotFoundError("Venda não encontrada", nil)
+	}
+	return nil
+}
+
+// SetPixQRCode grava o QR code (copia-e-cola) e o QR code base64 de uma venda.
+func (r *saleRepository) SetPixQRCode(id uint, qrCode, qrCodeBase64 string) error {
+	result := r.db.
+		Model(&Sale{}).
+		Where("id = ?", id).
+		Update("qr_code", qrCode).
+		Update("qr_code_base64", qrCodeBase64)
+	if result.Error != nil {
+		return apierrors.InternalServerError("Erro ao atualizar QR code do pagamento", result.Error)
 	}
 	if result.RowsAffected == 0 {
 		return apierrors.NotFoundError("Venda não encontrada", nil)

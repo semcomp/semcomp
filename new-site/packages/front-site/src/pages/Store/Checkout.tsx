@@ -1,32 +1,20 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useTheme } from "@/contexts/useTheme";
 import { useCart } from "@/contexts/CartContext";
 import { salesAPI, type SaleResponse } from "@/api/sales";
+import PixQrCard from "@/components/PixQrCard";
 import { BASEURL } from "@/constants/ApiURL";
 import {
   CheckCircle2,
   XCircle,
-  Copy,
-  Check,
   ArrowLeft,
-  Clock,
   RefreshCw,
 } from "lucide-react";
 
-function secondsUntil(iso: string): number {
-  return Math.max(0, Math.floor((new Date(iso).getTime() - Date.now()) / 1000));
-}
-
 function formatBRL(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-function formatCountdown(seconds: number) {
-  const m = Math.floor(seconds / 60).toString().padStart(2, "0");
-  const s = (seconds % 60).toString().padStart(2, "0");
-  return `${m}:${s}`;
 }
 
 type Status = "loading" | "pending" | "approved" | "rejected" | "expired";
@@ -47,14 +35,9 @@ export default function CheckoutPage() {
   // sobreviverem até o envio da venda, inclusive após o carrinho ser limpo.
   const dietaryRestrictionsRef = useRef(navState?.dietaryRestrictions ?? "");
   const [status, setStatus] = useState<Status>(sale ? "pending" : "loading");
-  const [copied, setCopied] = useState(false);
-  const [countdown, setCountdown] = useState(() =>
-    sale?.pix_expiration ? secondsUntil(sale.pix_expiration) : 0
-  );
   const [error, setError] = useState<string | null>(null);
 
   const esRef = useRef<EventSource | null>(null);
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (sale || items.length === 0) return;
@@ -71,7 +54,6 @@ export default function CheckoutPage() {
       })
       .then((s) => {
         setSale(s);
-        setCountdown(s.pix_expiration ? secondsUntil(s.pix_expiration) : 0);
         setStatus("pending");
       })
       .catch(() => {
@@ -80,27 +62,7 @@ export default function CheckoutPage() {
       });
   }, []);
 
-  // Countdown timer
-  useEffect(() => {
-    if (status !== "pending") return;
-    if (countdown <= 0) {
-      setStatus("expired");
-      return;
-    }
-    countdownRef.current = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(countdownRef.current!);
-          setStatus("expired");
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(countdownRef.current!);
-  }, [status]);
-
-  // SSE de status (substitui polling)
+  // SSE de status (substitui polling). O countdown do PIX vive no PixQrCard.
   useEffect(() => {
     if (!sale || status !== "pending") return;
     const es = new EventSource(`${BASEURL}/api/sales/${sale.id}/events`, {
@@ -110,15 +72,12 @@ export default function CheckoutPage() {
     es.onmessage = ({ data }) => {
       if (data === "PAGO") {
         setStatus("approved");
-        clearInterval(countdownRef.current!);
         es.close();
       } else if (data === "REJEITADO" || data === "REEMBOLSADO" || data === "CANCELADO") {
         setStatus("rejected");
-        clearInterval(countdownRef.current!);
         es.close();
       } else if (data === "EXPIRADO") {
         setStatus("expired");
-        clearInterval(countdownRef.current!);
         es.close();
       }
     };
@@ -135,13 +94,10 @@ export default function CheckoutPage() {
   }, [status, clearCart]);
 
 
-  const handleCopy = useCallback(() => {
-    if (!sale?.qr_code) return;
-    navigator.clipboard.writeText(sale.qr_code).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    });
-  }, [sale]);
+  // O countdown do PIX (dentro do PixQrCard) avisa o pai quando expira.
+  const handleStatusChange = (statusChanged: string) => {
+    if (statusChanged === "EXPIRADO") setStatus("expired");
+  };
 
   // ─── Cores ──────────────────────────────────────────────
   const bg = isDarkMode
@@ -154,7 +110,6 @@ export default function CheckoutPage() {
     : "shadow-[0_8px_40px_rgba(53,123,163,0.1)]";
   const textPrimary = isDarkMode ? "text-semcompOffWhite" : "text-semcompDarkBlue";
   const textMuted = isDarkMode ? "text-semcompOffWhite/70" : "text-semcompDarkBlue/70";
-  const codeBoxBg = isDarkMode ? "bg-black/30" : "bg-semcompMidLightBlue/10";
 
   // ─── Loading ────────────────────────────────────────────
   if (status === "loading") {
@@ -273,82 +228,8 @@ export default function CheckoutPage() {
             </p>
           </div>
 
-          {/* QR Code */}
-          {sale?.qr_code_base64 ? (
-            <div className={`rounded-2xl border-4 ${isDarkMode ? "border-white/10 bg-white" : "border-semcompMidLightBlue/30 bg-white"} p-3 shadow-inner`}>
-              <img
-                src={`data:image/png;base64,${sale.qr_code_base64}`}
-                alt="QR Code PIX"
-                className="w-48 h-48 sm:w-56 sm:h-56 object-contain"
-              />
-            </div>
-          ) : (
-            <div className={`w-56 h-56 rounded-2xl border-2 border-dashed ${cardBorder} flex items-center justify-center`}>
-              <RefreshCw size={32} className={`${textMuted} animate-spin`} />
-            </div>
-          )}
-
-          {/* PIX Copia e Cola */}
-          <div className="w-full space-y-2">
-            <p className={`text-xs font-bold uppercase tracking-widest ${textMuted}`}>
-              PIX Copia e Cola
-            </p>
-            <div className={`flex items-center gap-2 rounded-xl border ${cardBorder} ${codeBoxBg} px-4 py-3`}>
-              <p className={`flex-1 text-xs font-mono truncate ${textPrimary}`}>
-                {sale?.qr_code ?? "Gerando código..."}
-              </p>
-              <button
-                type="button"
-                onClick={handleCopy}
-                disabled={!sale?.qr_code}
-                aria-label="Copiar código PIX"
-                className={`shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer
-                  ${copied
-                    ? "bg-green-500/20 text-green-400"
-                    : "bg-semcompMidDarkBlue/80 text-white hover:brightness-110"
-                  } disabled:opacity-40`}
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  {copied ? (
-                    <motion.span
-                      key="check"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      className="flex items-center gap-1"
-                    >
-                      <Check size={13} /> Copiado
-                    </motion.span>
-                  ) : (
-                    <motion.span
-                      key="copy"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      className="flex items-center gap-1"
-                    >
-                      <Copy size={13} /> Copiar
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </button>
-            </div>
-          </div>
-
-          {/* Countdown + status */}
-          <div className="w-full flex items-center justify-between">
-            <div className={`flex items-center gap-2 text-sm ${textMuted}`}>
-              <Clock size={15} />
-              <span>Expira em <span className={`font-bold ${countdown < 120 ? "text-red-400" : textPrimary}`}>{formatCountdown(countdown)}</span></span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-yellow-400" />
-              </span>
-              <span className={`text-xs font-semibold ${textMuted}`}>Aguardando pagamento</span>
-            </div>
-          </div>
+          {/* QR Code + Copia e Cola + Countdown */}
+          {sale && <PixQrCard sale={sale} onStatusChange={handleStatusChange} />}
         </motion.div>
 
         {/* Instruções */}

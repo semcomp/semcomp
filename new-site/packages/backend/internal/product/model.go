@@ -21,6 +21,9 @@ type Product struct {
 	PictureURL  string      `gorm:"size:255" json:"picture_url"`
 	Description string      `gorm:"type:text" json:"description"`
 
+	// Preço com desconto PAPFE (50%); calculado em memória, não persistido.
+	DiscountedPrice *float64 `gorm:"-" json:"discounted_price,omitempty"`
+
 	// Relacionamentos (preload)
 	// li que é uma boa prática usar isso aqui
 	Kit        *Kit        `gorm:"foreignKey:ID;constraint:OnDelete:CASCADE" json:"kit,omitempty"`
