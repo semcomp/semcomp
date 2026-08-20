@@ -13,6 +13,7 @@ export const fields: CrudField[] = [
       "Usuários Semcomp": "bg-muted/50 text-foreground",
       "Participações": "bg-muted/50 text-foreground",
       "Permissões": "bg-muted/50 text-foreground",
+      "PAPFE": "bg-muted/50 text-foreground",
     },
   },
   {
