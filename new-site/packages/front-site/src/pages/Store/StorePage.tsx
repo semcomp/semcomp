@@ -201,8 +201,8 @@ function OptionChip({
   const atMax = count >= max;
   return (
     <div
-      className={`flex items-center gap-1 px-2 py-1.5 text-sm font-bold rounded-lg border transition-all cursor-pointer select-none ${active ? activeClass : idleClass}`}
-      onClick={onAdd}
+      className={`flex items-center gap-1 px-2 py-1.5 text-sm font-bold rounded-lg border transition-all select-none ${atMax ? "cursor-default" : "cursor-pointer"} ${active ? activeClass : idleClass}`}
+      onClick={atMax ? undefined : onAdd}
     >
       <span className="min-w-8 text-center">{label}</span>
       <span className={`flex items-center gap-0.5 border-l pl-1.5 ${active ? "border-current/30" : "border-current/20"}`}>
