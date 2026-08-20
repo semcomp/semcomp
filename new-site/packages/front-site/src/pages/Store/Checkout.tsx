@@ -230,6 +230,12 @@ export default function CheckoutPage() {
 
           {/* QR Code + Copia e Cola + Countdown */}
           {sale && <PixQrCard sale={sale} onStatusChange={handleStatusChange} />}
+
+          <div className="text-center">
+            <p className={`mt-1 text-sm ${textMuted}`}>
+              Destinatário: Eduarda Almeida
+            </p>
+          </div>
         </motion.div>
 
         {/* Instruções */}
