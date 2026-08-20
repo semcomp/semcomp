@@ -158,7 +158,7 @@ func main() {
 	siteStatHandler := sitestat.NewSiteStatHandler(siteStatService)
 
 	salesRepo := sales.NewSaleRepository(db)
-	salesService := sales.NewSaleService(salesRepo, productRepo)
+	salesService := sales.NewSaleService(salesRepo, productRepo, papfeRepo)
 	salesHandler := sales.NewSaleHandler(salesService)
 
 	// Sweeper de expiração: persiste o status EXPIRADO nos PIX pendentes fora da
