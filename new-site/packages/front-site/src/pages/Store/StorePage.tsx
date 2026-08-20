@@ -93,7 +93,9 @@ function compareVariants(a: { size: string; isBabylook: boolean }, b: { size: st
 
 function kitVariantGroupKey(p: Product): string {
   const kit = p.kit as (Product["kit"] & { color?: string }) | undefined;
-  return kit?.color?.trim() || kit?.name || `product-${p.id}`;
+  const name = kit?.name?.trim() || "";
+  const color = kit?.color?.trim() || "";
+  return `${name}__${color}` || `product-${p.id}`;
 }
 
 function coffeeGroupKey(p: Product): string {
