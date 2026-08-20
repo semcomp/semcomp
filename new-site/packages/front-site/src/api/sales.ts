@@ -3,6 +3,7 @@ import client from "./client";
 export interface SaleItem {
   product_id: number;
   quantity: number;
+  kit_product_id?: number;
 }
 
 export interface CreateSalePayload {

@@ -23,6 +23,8 @@ interface SizeVariant {
   // Quantidade de camisetas que o combo inclui deste tamanho/cor (backoffice).
   // Para KIT "puro", é sempre 1 (cada unidade comprada = 1 camiseta).
   quantity: number;
+  // ID do produto KIT específico dentro de um COMBO (undefined para KITs avulsos).
+  kitProductId?: string;
 }
 
 // A chave da variante considera cor + tamanho + corte: cada cor×tamanho de uma
@@ -204,8 +206,8 @@ function OptionChip({
   const atMax = count >= max;
   return (
     <div
-      className={`flex items-center gap-1 px-2 py-1.5 text-sm font-bold rounded-lg border transition-all cursor-pointer select-none ${active ? activeClass : idleClass}`}
-      onClick={onAdd}
+      className={`flex items-center gap-1 px-2 py-1.5 text-sm font-bold rounded-lg border transition-all select-none ${atMax ? "cursor-default" : "cursor-pointer"} ${active ? activeClass : idleClass}`}
+      onClick={atMax ? undefined : onAdd}
     >
       <span className="min-w-8 text-center">{label}</span>
       <span className={`flex items-center gap-0.5 border-l pl-1.5 ${active ? "border-current/30" : "border-current/20"}`}>
@@ -334,10 +336,19 @@ function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number
   // Cada kit dentro do combo (size/color/babylook) gera uma variante selecionável.
   // Combos costumam incluir todos os tamanhos do kit de uma vez, então iteramos
   // sobre TODOS os itens KIT (não só o primeiro) para não "perder" os tamanhos.
-  const withKitInfo = groupProducts.flatMap((p) => {
+  type ComboKitInfo = {
+    product: Product;
+    color: string;
+    size: string | undefined;
+    isBabylook: boolean;
+    quantity: number;
+    kitProductId: string | undefined;
+  };
+
+  const withKitInfo: ComboKitInfo[] = groupProducts.flatMap((p): ComboKitInfo[] => {
     const kitItems = p.combo_items?.filter((ci) => productById.get(ci.item_id)?.type === "KIT") ?? [];
     if (kitItems.length === 0) {
-      return [{ product: p, color: "", size: undefined, isBabylook: false, quantity: 1 }];
+      return [{ product: p, color: "", size: undefined, isBabylook: false, quantity: 1, kitProductId: undefined }];
     }
     return kitItems.map((ci) => {
       const kitProduct = productById.get(ci.item_id);
@@ -346,9 +357,8 @@ function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number
         color: kitProduct?.kit?.color ?? "",
         size: kitProduct?.kit?.size,
         isBabylook: kitProduct?.kit?.is_babylook ?? false,
-        // Quantidade de camisetas que o combo inclui deste tamanho/cor:
-        // é fixa (definida no backoffice) e não pode ser alterada na compra.
         quantity: ci.quantity ?? 1,
+        kitProductId: String(ci.item_id),
       };
     });
   });
@@ -376,6 +386,7 @@ function comboGroupToStoreItem(groupProducts: Product[], productById: Map<number
       priceValue: x.product.discounted_price ?? x.product.price,
       originalPriceValue: x.product.price,
       quantity: x.quantity,
+      kitProductId: x.kitProductId,
     });
   }
 
@@ -642,6 +653,7 @@ export default function StorePage() {
         type: selected.rawType,
         isBabylook,
         comboDateTimes: selected.availableDateTimes,
+        kitProductId: variant?.kitProductId,
       };
       const conflict = getConflict(comboParams);
       if (conflict) {
@@ -1092,6 +1104,7 @@ export default function StorePage() {
                               isBabylook: quickVariant?.isBabylook || undefined,
                               dateTime: activeDateTime,
                               comboDateTimes: item.rawType === "COMBO" ? item.availableDateTimes : undefined,
+                              kitProductId: quickVariant?.kitProductId,
                             };
                             const conflict = getConflict(quickParams);
                             if (conflict) {
