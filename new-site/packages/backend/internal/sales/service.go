@@ -125,6 +125,23 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 			}
 		}
 
+		// Valida o KIT selecionado dentro do COMBO.
+		if prod.Type == product.ProductTypeCombo {
+			if itemReq.KitProductID == nil {
+				return nil, apierrors.ValidationError("É necessário informar o tamanho da camiseta (kit_product_id) para o combo", nil)
+			}
+			found := false
+			for _, ci := range prod.ComboItems {
+				if ci.Item != nil && ci.Item.Type == product.ProductTypeKit && ci.ItemID == *itemReq.KitProductID {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return nil, apierrors.ValidationError("O kit selecionado não pertence a este combo", nil)
+			}
+		}
+
 		unitPrice := prod.Price
 		if hasPapfeDiscount {
 			unitPrice = math.Round(prod.Price*0.5*100) / 100
@@ -133,10 +150,11 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 		totalAmount += unitPrice * float64(quantity)
 
 		saleItems = append(saleItems, SaleItem{
-			ProductID:  prod.ID,
-			Quantity:   quantity,
-			UnitPrice:  unitPrice,
-			IsPickedUp: false, // Default na criação do pedido
+			ProductID:    prod.ID,
+			Quantity:     quantity,
+			UnitPrice:    unitPrice,
+			IsPickedUp:   false,
+			KitProductID: itemReq.KitProductID,
 		})
 	}
 

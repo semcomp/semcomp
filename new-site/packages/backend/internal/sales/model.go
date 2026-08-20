@@ -124,7 +124,12 @@ type SaleItem struct {
 	// Indica se o item (ex: KIT / Camiseta) já foi retirado presencialmente.
 	IsPickedUp bool `gorm:"not null;default:false" json:"is_picked_up"`
 
-	Product *product.Product `gorm:"foreignKey:ProductID" json:"product,omitempty"`
+	// KitProductID registra qual variante de KIT (tamanho/cor) o usuário escolheu
+	// quando o ProductID é um COMBO. Nullable: nulo para KITs e COFFEEs avulsos.
+	KitProductID *uint `gorm:"index" json:"kit_product_id,omitempty"`
+
+	Product    *product.Product `gorm:"foreignKey:ProductID" json:"product,omitempty"`
+	KitProduct *product.Product `gorm:"foreignKey:KitProductID" json:"kit_product,omitempty"`
 }
 
 // ConsumedItem representa um produto de compra única (COFFEE ou COMBO) já
@@ -150,8 +155,11 @@ type ConsumedItem struct {
 // DTOs de Requisição ---------
 
 type CreateSaleItemRequest struct {
-	ProductID uint `json:"product_id" binding:"required"`
-	Quantity  int  `json:"quantity" binding:"required,min=1"`
+	ProductID    uint  `json:"product_id" binding:"required"`
+	Quantity     int   `json:"quantity" binding:"required,min=1"`
+	// KitProductID é obrigatório quando ProductID refere um COMBO: indica qual
+	// variante de KIT (tamanho/cor/corte) o usuário selecionou dentro do combo.
+	KitProductID *uint `json:"kit_product_id"`
 }
 
 // CreateSaleRequest cria um pedido e, quando PaymentMethod == "pix", também
