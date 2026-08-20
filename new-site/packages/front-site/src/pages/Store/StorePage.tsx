@@ -5,12 +5,14 @@ import { useTheme } from "@/contexts/useTheme";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import Modal from "@/components/ui/Modal";
 import { useCart, type AddToCartParams } from "@/contexts/CartContext";
-import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2, X, ZoomIn, ArrowRight } from "lucide-react";
+import { ShoppingCart, Minus, Plus, ShoppingBag, Package, Loader2, X, ZoomIn, ArrowRight, Ruler } from "lucide-react";
 import { productsAPI } from "@/api/products";
 import { salesAPI } from "@/api/sales";
 import type { Product, ProductType } from "@/types/ProductType";
 import { useNotification } from "@/contexts/NotificationContext";
 import { isPendingSale } from "@/lib/pendingSale";
+
+const TABELA_DE_MEDIDA = "https://i.imgur.com/TOtrzYj.jpeg";
 
 // ─── Tipos ────────────────────────────────────────────────
 interface SizeVariant {
@@ -179,6 +181,24 @@ function formatDateTime(iso: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+// Link em texto que abre a tabela de medidas ampliada. `stopPropagation` evita que o
+// clique borbulhe para o card, que abre o modal do produto.
+function SizeChartLink({ onOpen, className = "" }: { onOpen: () => void; className?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onOpen();
+      }}
+      className={`inline-flex items-center gap-1.5 self-start cursor-pointer transition-opacity hover:opacity-70 ${className}`}
+    >
+      <Ruler size={13} className="shrink-0" />
+      <span className="underline underline-offset-2">Tabela de medidas</span>
+    </button>
+  );
 }
 
 // Chip selecionável com contador: clique adiciona uma unidade; "+"/"−" ajustam.
@@ -441,6 +461,8 @@ export default function StorePage() {
   const [quickVariantKeyByItemId, setQuickVariantKeyByItemId] = useState<Record<string, string>>({});
   const [quickDateTimeByItemId, setQuickDateTimeByItemId] = useState<Record<string, string>>({});
   const [zoomedImage, setZoomedImage] = useState<{ url: string; alt: string } | null>(null);
+  // `alt` aqui não é só acessibilidade: o lightbox o usa como legenda visível.
+  const openSizeChart = () => setZoomedImage({ url: TABELA_DE_MEDIDA, alt: "Tabela de medidas" });
   const [activeCategory, setActiveCategory] = useState<ProductType | "all">("all");
   // Quantidade de pagamentos pendentes (PENDENTE + QR + não expirado). Recarregada
   // a cada montagem da loja para não ficar obsoleta.
@@ -1011,32 +1033,38 @@ export default function StorePage() {
 
                         {/* Seletor de tamanho no card */}
                         {sizeVariantsToShow.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mt-0.5">
-                            {sizeVariantsToShow.map((v) => {
-                              const key = variantKey(v);
-                              const isActive = quickKey === key;
-                              return (
-                                <button
-                                  key={key}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setQuickVariantKeyByItemId((prev) => ({ ...prev, [item.id]: key }));
-                                  }}
-                                  className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${
-                                    isActive
-                                      ? isDarkMode
-                                        ? "bg-semcompOffWhite text-semcompMidDarkBlue border-semcompOffWhite shadow-sm"
-                                        : "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue"
-                                      : isDarkMode
-                                        ? `${cardBorder} ${mutedText} hover:border-semcompOffWhite/70 hover:text-semcompOffWhite`
-                                        : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue`
-                                  }`}
-                                >
-                                  {variantLabel(v)}
-                                </button>
-                              );
-                            })}
-                          </div>
+                          <>
+                            <div className="flex flex-wrap gap-1.5 mt-0.5">
+                              {sizeVariantsToShow.map((v) => {
+                                const key = variantKey(v);
+                                const isActive = quickKey === key;
+                                return (
+                                  <button
+                                    key={key}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setQuickVariantKeyByItemId((prev) => ({ ...prev, [item.id]: key }));
+                                    }}
+                                    className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-all cursor-pointer ${
+                                      isActive
+                                        ? isDarkMode
+                                          ? "bg-semcompOffWhite text-semcompMidDarkBlue border-semcompOffWhite shadow-sm"
+                                          : "bg-semcompMidDarkBlue text-semcompOffWhite border-semcompMidDarkBlue"
+                                        : isDarkMode
+                                          ? `${cardBorder} ${mutedText} hover:border-semcompOffWhite/70 hover:text-semcompOffWhite`
+                                          : `${cardBorder} ${mutedText} hover:border-semcompMidDarkBlue hover:text-semcompMidDarkBlue`
+                                    }`}
+                                  >
+                                    {variantLabel(v)}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <SizeChartLink
+                              onOpen={openSizeChart}
+                              className={`text-xs ${mutedText}`}
+                            />
+                          </>
                         )}
 
                         {/* Horários: Coffee selecionável, Combo somente leitura */}
@@ -1240,6 +1268,10 @@ export default function StorePage() {
                           ? `O combo inclui ${selectedVariant.quantity} camisetas ${variantLabel(selectedVariant)} (quantidade fixa).`
                           : "O combo inclui 1 camiseta do tamanho escolhido (quantidade fixa)."}
                       </p>
+                      <SizeChartLink
+                        onOpen={openSizeChart}
+                        className={`mt-1 text-xs ${mutedText}`}
+                      />
                     </div>
                   ) : (
                     <div>
@@ -1263,6 +1295,10 @@ export default function StorePage() {
                       <p className={`mt-2 text-xs ${mutedText}`}>
                         Selecione um tamanho por camiseta. Quantidade total: {totalQty}.
                       </p>
+                      <SizeChartLink
+                        onOpen={openSizeChart}
+                        className={`mt-1 text-xs ${mutedText}`}
+                      />
                     </div>
                   ))}
 
