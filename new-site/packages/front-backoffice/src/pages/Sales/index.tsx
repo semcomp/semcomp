@@ -23,20 +23,21 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, PackageCheck, PackageX, UtensilsCrossed } from "lucide-react";
 
-function getProductDisplayName(product: SaleProduct | undefined): string {
+function getProductDisplayName(product: SaleProduct | undefined, kitProduct?: SaleProduct): string {
   if (!product) return "Produto";
 
   if (product.kit?.name) return product.kit.name;
   if (product.coffee?.name) return product.coffee.name;
 
-  if (product.type === "COMBO" && product.combo_items?.length) {
-    const itemNames = product.combo_items
-      .map((ci) => ci.item?.kit?.name ?? ci.item?.coffee?.name)
-      .filter(Boolean);
-    if (itemNames.length > 0) {
-      return `Combo (${itemNames.join(" + ")})`;
-    }
-    return "Combo";
+  if (product.type === "COMBO") {
+    const coffeeNames = product.combo_items
+      ?.map((ci) => ci.item?.coffee?.name)
+      .filter(Boolean) ?? [];
+    const kitName = kitProduct?.kit?.name ?? product.combo_items
+      ?.map((ci) => ci.item?.kit?.name)
+      .find(Boolean);
+    const parts = [...(kitName ? [kitName] : []), ...coffeeNames];
+    return parts.length > 0 ? `Combo (${parts.join(" + ")})` : "Combo";
   }
 
   return product.type ?? "Produto";
@@ -49,7 +50,7 @@ function formatKitInfo(kit: { size: string; color: string; is_babylook: boolean 
   return parts.join(" · ");
 }
 
-function getKitInfoLines(product: SaleProduct | undefined): string[] {
+function getKitInfoLines(product: SaleProduct | undefined, kitProduct?: SaleProduct): string[] {
   if (!product) return [];
   const lines: string[] = [];
 
@@ -57,10 +58,16 @@ function getKitInfoLines(product: SaleProduct | undefined): string[] {
     lines.push(formatKitInfo(product.kit));
   }
 
-  if (product.type === "COMBO" && product.combo_items?.length) {
-    for (const comboItem of product.combo_items) {
-      if (comboItem.item?.kit) {
-        lines.push(formatKitInfo(comboItem.item.kit));
+  if (product.type === "COMBO") {
+    // Usa o kit escolhido pelo usuário (kit_product_id) quando disponível;
+    // caso contrário, lista todos os kits do combo (vendas legadas).
+    if (kitProduct?.kit) {
+      lines.push(formatKitInfo(kitProduct.kit));
+    } else if (product.combo_items?.length) {
+      for (const comboItem of product.combo_items) {
+        if (comboItem.item?.kit) {
+          lines.push(formatKitInfo(comboItem.item.kit));
+        }
       }
     }
   }
@@ -268,6 +275,7 @@ export default function SalesCRUD() {
     ...sale,
     id: sale.id.toString(),
     total_amount_formatted: formatCurrency(sale.total_amount),
+    user_name: sale.user?.name ?? `#${sale.user_number}`,
   }));
 
   return (
@@ -349,6 +357,9 @@ export default function SalesCRUD() {
             <DialogTitle className="text-foreground flex items-center gap-2">
               <PackageCheck className="w-4 h-4 text-emerald-400" />
               Pedido #{itemsSale?.id}
+              {itemsSale?.user && (
+                <span className="text-sm font-normal text-muted-foreground">— {itemsSale.user.name}</span>
+              )}
             </DialogTitle>
           </DialogHeader>
 
@@ -370,9 +381,9 @@ export default function SalesCRUD() {
                       <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-muted/20">
                         <div className="flex flex-col">
                           <span className="text-sm font-medium text-foreground">
-                            {item.quantity}x {getProductDisplayName(item.product)}
+                            {item.quantity}x {getProductDisplayName(item.product, item.kit_product)}
                           </span>
-                          {getKitInfoLines(item.product).map((line, idx) => (
+                          {getKitInfoLines(item.product, item.kit_product).map((line, idx) => (
                             <span key={idx} className="text-xs font-semibold text-amber-300/90">
                               {line}
                             </span>

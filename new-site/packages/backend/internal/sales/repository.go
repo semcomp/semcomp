@@ -76,6 +76,10 @@ func (r *saleRepository) GetByID(id uint) (*Sale, error) {
 		Preload("Items.Product.Coffee").
 		Preload("Items.Product.ComboItems").
 		Preload("Items.Product.ComboItems.Item").
+		Preload("Items.Product.ComboItems.Item.Kit").
+		Preload("Items.Product.ComboItems.Item.Coffee").
+		Preload("Items.KitProduct").
+		Preload("Items.KitProduct.Kit").
 		Where("id = ?", id).
 		First(&sale).Error
 
@@ -221,6 +225,10 @@ func (r *saleRepository) GetAll(query SaleListQuery) (*SaleListResult, error) {
 		Preload("Items.Product.Coffee").
 		Preload("Items.Product.ComboItems").
 		Preload("Items.Product.ComboItems.Item").
+		Preload("Items.Product.ComboItems.Item.Kit").
+		Preload("Items.Product.ComboItems.Item.Coffee").
+		Preload("Items.KitProduct").
+		Preload("Items.KitProduct.Kit").
 		Preload("User").
 		Order(sortClause).
 		Limit(query.Limit).
