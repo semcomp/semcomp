@@ -41,8 +41,6 @@ func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
 		Location:        request.Location,
 		Description:     request.Description,
 		HasAttendance:   request.HasAttendance,
-		HasSignin:       request.HasSignin,
-		MaxParticipants: request.MaxParticipants,
 	}
 
 	if err := s.repo.Create(&newEvent); err != nil {
