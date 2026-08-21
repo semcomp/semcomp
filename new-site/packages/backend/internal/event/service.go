@@ -34,13 +34,13 @@ func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
 	}
 
 	newEvent := Event{
-		Name:            request.Name,
-		InitDate:        request.InitDate,
-		EndDate:         request.EndDate,
-		Type:            request.Type,
-		Location:        request.Location,
-		Description:     request.Description,
-		HasAttendance:   request.HasAttendance,
+		Name:          request.Name,
+		InitDate:      request.InitDate,
+		EndDate:       request.EndDate,
+		Type:          request.Type,
+		Location:      request.Location,
+		Description:   request.Description,
+		HasAttendance: request.HasAttendance,
 	}
 
 	if err := s.repo.Create(&newEvent); err != nil {
