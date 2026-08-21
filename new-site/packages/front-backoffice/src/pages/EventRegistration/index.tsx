@@ -1,19 +1,33 @@
 import { CrudTable } from "@/components/CrudTable";
+import type { CrudQueryParams } from "@/components/CrudTable";
+import type { CrudItemType } from "@/types/CrudItem";
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
-import type { CrudQueryParams } from "@/components/CrudTable";
-import { Tabs } from "@/constants/Tabs";
 import { signinEventsAPI } from "@/api/signinEvent.ts";
 import type { SigninEventType } from "@/types/SigninEventType";
 import { API_FIELD_MAP, fields } from "@/data/eventRegistrationCrudField";
+import { Tabs } from "@/constants/Tabs";
+import { useHasPermission } from "@/contexts/AuthContext";
+import { useNotification } from "@/contexts/NotificationContext";
 
 export default function EventRegistration() {
+    const canWrite = useHasPermission("Inscrições", "RW");
+
     const navigate = useNavigate();
+
     const [data, setData] = useState<SigninEventType[]>([]);
     const [totalRecords, setTotalRecords] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    
+    const { showNotification } = useNotification();
+
+    const resolveSigninKey = useCallback((item: CrudItemType) => {
+        const signin = item as SigninEventType;
+
+        return `${signin.userNumber}__${signin.eventName}__${signin.eventInitDate}`;
+    }, []);
 
     const fetchSignins = useCallback(async (params?: CrudQueryParams) => {
         try {
@@ -44,14 +58,18 @@ export default function EventRegistration() {
             response.total_records ??
             0
             );
-        } catch (err) {
+        } catch (err: any) {
             console.error("Erro ao buscar inscrições:", err);
-            setError("Erro ao carregar inscrições");
+            const msg =
+                err.response?.data?.message ||
+                "Erro ao carregar inscrições";
+            setError(msg);
             setData([]);
+            showNotification(msg, "error");
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [showNotification]);
 
     const handleQueryChange = useCallback(
         (params: CrudQueryParams) => {
@@ -59,6 +77,106 @@ export default function EventRegistration() {
         },
         [fetchSignins]
     );
+
+    const handleDelete = async (itemKey: string) => {
+        try {
+            const signin = data.find(
+                (item) => resolveSigninKey(item) === itemKey
+            );
+
+            if (!signin) return;
+
+            await signinEventsAPI.delete(
+                signin.userNumber,
+                signin.eventName,
+                signin.eventInitDate
+            );
+
+            setData((prev) =>
+                prev.filter(
+                (item) => resolveSigninKey(item) !== itemKey
+                )
+            );
+
+            setTotalRecords((prev) => prev - 1);
+
+            showNotification(
+                "Inscrição deletada com sucesso",
+                "success"
+            );
+            } catch (err: any) {
+            const msg =
+                err.response?.data?.message ||
+                "Erro ao deletar inscrição";
+
+            showNotification(msg, "error");
+        }
+    };
+
+    const handleCreate = async (item: CrudItemType) => {
+        try {
+            const typedItem = item as SigninEventType;
+
+            const createdSignin = await signinEventsAPI.create(typedItem);
+
+            setData((prev) => [...prev, createdSignin]);
+            setTotalRecords((prev) => prev + 1);
+
+            showNotification(
+                "Inscrição criada com sucesso",
+                "success"
+            );
+
+        } catch (err: any) {
+            const msg =
+                err.response?.data?.message ||
+                "Erro ao criar inscrição";
+
+            showNotification(msg, "error");
+        }
+    };
+
+    const handleEdit = async (
+        item: CrudItemType,
+        itemKey: string
+    ) => {
+        try {
+            const typedItem = item as SigninEventType;
+
+            const originalSignin = data.find(
+                (signin) => resolveSigninKey(signin) === itemKey
+            );
+
+            if (!originalSignin) return;
+
+            const updatedSignin = await signinEventsAPI.update(
+                originalSignin.userNumber,
+                originalSignin.eventName,
+                originalSignin.eventInitDate,
+                typedItem
+            );
+
+            setData((prev) =>
+                prev.map((signin) =>
+                    resolveSigninKey(signin) === itemKey
+                        ? updatedSignin
+                        : signin
+                )
+            );
+
+            showNotification(
+                "Inscrição editada com sucesso",
+                "success"
+            );
+
+        } catch (err: any) {
+            const msg =
+                err.response?.data?.message ||
+                "Erro ao editar inscrição";
+
+            showNotification(msg, "error");
+        }
+    };
 
     return (
         <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6 overflow-x-auto scrollbar-hide">
@@ -91,13 +209,15 @@ export default function EventRegistration() {
                 <CrudTable
                     data={data}
                     fields={fields}
-                    onEdit={() => {}}
-                    onDelete={() => {}}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onCreate={handleCreate}
+                    getItemKey={resolveSigninKey}
+                    entityLabel="inscrição"
                     serverSide
                     totalRecords={totalRecords}
                     onQueryChange={handleQueryChange}
-                    canWrite={false}
-                    entityLabel="inscrição"
+                    canWrite={canWrite}
                 />
             </div>
         </section>
