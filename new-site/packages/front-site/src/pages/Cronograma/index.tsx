@@ -4,6 +4,53 @@ import type { EventType } from "@/types/EventType.ts";
 import type { EventWithColumn } from "@/types/EventWithColumn.ts";
 import { useTheme } from "@/contexts/useTheme";
 import { formatTime } from "@/lib/utils/formatDate";
+import SEMCOMPInfo from "@/lib/constants/SEMCOMPInfo";
+
+const SEMCOMP_YEAR = SEMCOMPInfo.YEAR;
+
+// Range do evento (ex.: "2026-10-17 09:10:00") → mês e dias do cronograma
+const SEMCOMP_MONTH = Number(SEMCOMPInfo.START_DATE.slice(5, 7));
+const EVENT_DAYS_START = Number(SEMCOMPInfo.START_DATE.slice(8, 10));
+const EVENT_DAYS_END = Number(SEMCOMPInfo.END_DATE.slice(8, 10));
+
+const EVENT_DAYS = Array.from(
+  { length: EVENT_DAYS_END - EVENT_DAYS_START + 1 },
+  (_, index) => EVENT_DAYS_START + index
+);
+
+type DayOption = {
+  day: number;
+  label: string;
+  weekday: string;
+  isToday: boolean;
+  isPast: boolean;
+};
+
+const buildDayOptions = (): DayOption[] => {
+  const today = new Date();
+  const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+  return EVENT_DAYS.map((day) => {
+    const date = new Date(Date.UTC(SEMCOMP_YEAR, SEMCOMP_MONTH - 1, day));
+    const dayUTC = Date.UTC(SEMCOMP_YEAR, SEMCOMP_MONTH - 1, day);
+    const weekday = date
+      .toLocaleDateString("pt-BR", { weekday: "short", timeZone: "UTC" })
+      .replace(".", "")
+      .toUpperCase();
+
+    return {
+      day,
+      label: `${String(day).padStart(2, "0")}/${String(SEMCOMP_MONTH).padStart(2, "0")}`,
+      weekday,
+      isToday: dayUTC === todayUTC,
+      isPast: dayUTC < todayUTC,
+    };
+  });
+};
+
+const dayOptions = buildDayOptions();
+
+const getDayOption = (day: number): DayOption => dayOptions[day - EVENT_DAYS_START];
 
 /**
  * Agrupa e distribui os eventos em colunas quando há sobreposição de horários.
@@ -95,7 +142,7 @@ const EventButton = memo(function EventButton({
                 />
               </div>
             )}
-            <p className={`text-sm text-center leading-relaxed break-words ${captionClasses}`}>
+            <p className={`text-sm text-center leading-relaxed wrap-break-word ${captionClasses}`}>
               {evento.description || "Mais detalhes deste evento."}
             </p>
           </div>
@@ -143,12 +190,81 @@ function EventModal({
   );
 }
 
+const DayPill = memo(function DayPill({
+  option,
+  active,
+  variant,
+  onSelect,
+}: {
+  option: DayOption;
+  active: boolean;
+  variant: "center" | "side";
+  onSelect: (day: number) => void;
+}): ReactElement {
+  const isCenter = variant === "center";
+
+  const size = isCenter
+    ? "min-w-0 px-3 py-3.5 sm:px-4"
+    : "min-w-0 px-2 py-2.5";
+
+  const containerTheme = option.isPast
+    ? active
+      ? "border-neutral-400 bg-neutral-300/80 text-neutral-700 dark:border-neutral-600 dark:bg-neutral-700/80 dark:text-neutral-200"
+      : "border-neutral-300/80 bg-neutral-200/40 text-neutral-400 dark:border-neutral-700/60 dark:bg-neutral-800/40 dark:text-neutral-500"
+    : active
+      ? "border-semcompMidDarkBlue bg-semcompMidDarkBlue text-semcompOffWhite shadow-md dark:border-semcompLightBlue dark:bg-semcompLightBlue dark:text-semcompDarkBlue"
+      : "border-semcompLightBlue bg-white/70 text-semcompDarkBlue hover:bg-white dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 dark:text-semcompOffWhite dark:hover:bg-semcompAlmostDarkBlue";
+
+  const captionTheme = option.isPast
+    ? "text-neutral-400/70 dark:text-neutral-500/80"
+    : active
+      ? "opacity-90"
+      : "text-semcompMidDarkBlue/70 dark:text-semcompLightBlue/80";
+
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={() => onSelect(option.day)}
+      className={`group flex h-full w-full flex-col items-center justify-center rounded-xl border transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semcompMidLightBlue ${size} ${containerTheme} ${
+        option.isPast ? "" : "hover:-translate-y-0.5"
+      }`}
+    >
+      <span
+        className={`text-[10px] font-semibold uppercase tracking-wider ${captionTheme}`}
+      >
+        {option.weekday}
+      </span>
+      <span
+        className={`font-poppins-bold whitespace-nowrap ${
+          isCenter ? "text-base md:text-lg" : "text-sm"
+        }`}
+      >
+        {option.label}
+      </span>
+      <span className="mt-0.5 flex h-1.5 items-center justify-center">
+        {option.isToday && !option.isPast && (
+          <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
+        )}
+      </span>
+    </button>
+  );
+});
+
 export default function CronogramaPage(): ReactElement {
   const { isDarkMode } = useTheme();
 
   const [events, setEvents] = useState<EventType[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<EventWithColumn | null>(null);
+  const [selectedDay, setSelectedDay] = useState<number>(() => {
+    const today = new Date();
+    const withinEventWindow =
+      today.getFullYear() === SEMCOMP_YEAR &&
+      today.getMonth() === SEMCOMP_MONTH - 1 &&
+      EVENT_DAYS.includes(today.getDate());
+    return withinEventWindow ? today.getDate() : EVENT_DAYS[0];
+  });
 
   const cardClasses = "border-semcompLightBlue bg-white/70 hover:bg-white dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 dark:hover:bg-semcompAlmostDarkBlue";
   const captionClasses = "text-semcompMidDarkBlue/85 dark:text-semcompLightBlue/90";
@@ -170,7 +286,20 @@ export default function CronogramaPage(): ReactElement {
     fetchEvents();
   }, []);
 
-  const processedEventGroups = useMemo(() => processEvents(events), [events]);
+  const filteredEvents = useMemo(
+    () =>
+      events.filter((event) => {
+        const date = new Date(event.dateInit);
+        return (
+          date.getUTCFullYear() === SEMCOMP_YEAR &&
+          date.getUTCMonth() === SEMCOMP_MONTH - 1 &&
+          date.getUTCDate() === selectedDay
+        );
+      }),
+    [events, selectedDay]
+  );
+
+  const processedEventGroups = useMemo(() => processEvents(filteredEvents), [filteredEvents]);
 
   const handleSelectEvent = useCallback((evento: EventWithColumn) => {
     setSelectedEvent(evento);
@@ -179,6 +308,30 @@ export default function CronogramaPage(): ReactElement {
   const handleCloseModal = useCallback(() => {
     setSelectedEvent(null);
   }, []);
+
+  const handleSelectDay = useCallback((day: number) => {
+    setSelectedDay(day);
+    setSelectedEvent(null);
+  }, []);
+
+  const handleShiftDay = useCallback((delta: number) => {
+    setSelectedDay((current) =>
+      Math.min(Math.max(current + delta, EVENT_DAYS_START), EVENT_DAYS_END)
+    );
+    setSelectedEvent(null);
+  }, []);
+
+  const prevOption = selectedDay > EVENT_DAYS_START ? getDayOption(selectedDay - 1) : null;
+  const nextOption = selectedDay < EVENT_DAYS_END ? getDayOption(selectedDay + 1) : null;
+  const canGoPrev = selectedDay > EVENT_DAYS_START;
+  const canGoNext = selectedDay < EVENT_DAYS_END;
+
+  const arrowBase =
+    "flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semcompMidLightBlue";
+  const arrowEnabled =
+    "border-semcompLightBlue bg-white/70 text-semcompMidDarkBlue hover:-translate-y-0.5 hover:bg-white hover:text-semcompDarkBlue dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 dark:text-semcompLightBlue dark:hover:bg-semcompAlmostDarkBlue dark:hover:text-semcompOffWhite";
+  const arrowDisabled =
+    "cursor-not-allowed border-neutral-300/80 bg-neutral-200/40 text-neutral-400 dark:border-neutral-700/60 dark:bg-neutral-800/40 dark:text-neutral-600";
 
   return (
     <section className="relative min-h-[calc(100vh-70px)] w-full overflow-x-hidden font-poppins isolate text-semcompDarkBlue dark:text-semcompOffWhite">
@@ -208,6 +361,69 @@ export default function CronogramaPage(): ReactElement {
           </p>
         </header>
 
+        <nav
+          aria-label="Dias do cronograma"
+          className="mb-8 flex items-center justify-center gap-2 sm:gap-4"
+        >
+          <button
+            type="button"
+            aria-label="Dia anterior"
+            disabled={!canGoPrev}
+            onClick={() => handleShiftDay(-1)}
+            className={`${arrowBase} ${canGoPrev ? arrowEnabled : arrowDisabled}`}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-5 w-5"
+              aria-hidden="true"
+            >
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+
+          <div className="grid w-full min-w-0 max-w-sm grid-cols-[1fr_1.3fr_1fr] items-stretch gap-2 sm:max-w-md sm:gap-3">
+            {prevOption ? (
+              <DayPill option={prevOption} active={false} variant="side" onSelect={handleSelectDay} />
+            ) : (
+              <span aria-hidden="true" />
+            )}
+
+            <DayPill option={getDayOption(selectedDay)} active variant="center" onSelect={handleSelectDay} />
+
+            {nextOption ? (
+              <DayPill option={nextOption} active={false} variant="side" onSelect={handleSelectDay} />
+            ) : (
+              <span aria-hidden="true" />
+            )}
+          </div>
+
+          <button
+            type="button"
+            aria-label="Próximo dia"
+            disabled={!canGoNext}
+            onClick={() => handleShiftDay(1)}
+            className={`${arrowBase} ${canGoNext ? arrowEnabled : arrowDisabled}`}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-5 w-5"
+              aria-hidden="true"
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </nav>
+
         <EventModal
           selected={selectedEvent}
           onClose={handleCloseModal}
@@ -219,9 +435,9 @@ export default function CronogramaPage(): ReactElement {
             <div className="flex items-center justify-center py-12">
               <p className="text-white/70">Carregando eventos...</p>
             </div>
-          ) : events.length === 0 ? (
+          ) : filteredEvents.length === 0 ? (
             <div className="flex items-center justify-center py-12">
-              <p className="text-white/70">Nenhum evento disponível no momento.</p>
+              <p className="text-white/70">Nenhum evento neste dia.</p>
             </div>
           ) : (
             processedEventGroups.map((grupo, rowIndex) => {
