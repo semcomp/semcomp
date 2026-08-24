@@ -17,7 +17,7 @@ type Event struct {
 type CreateEventRequest struct {
 	Name            string    `json:"name" binding:"required,max=200"`
 	InitDate        time.Time `json:"init_date" binding:"required"`
-	EndDate         time.Time `json:"end_date" binding:"required"`
+	EndDate         time.Time `json:"end_date" binding:"required,gtfield=Init_date"`
 	Type            string    `json:"type" binding:"omitempty,max=50"`
 	Location        string    `json:"location"`
 	Description     string    `json:"description"`

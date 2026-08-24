@@ -191,7 +191,7 @@ func applySearchFilter(dbQuery *gorm.DB, query SigninEventListQuery) *gorm.DB {
 		return dbQuery.Where("event_name ILIKE ?", "%"+query.SearchValue+"%")
 	case "event_init_date":
 		parsedTime, _ := time.Parse(time.RFC3339, query.SearchValue)
-		return dbQuery.Where("event_init_date = ?", parsedTime)
+		return dbQuery.Where("DATE(event_init_date) = DATE(?)", parsedTime)
 	case "status":
 		return dbQuery.Where("status ILIKE ?", "%"+query.SearchValue+"%")
 	default:
