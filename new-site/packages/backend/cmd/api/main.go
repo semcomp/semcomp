@@ -18,6 +18,7 @@ import (
 	"backend/internal/presence"
 	"backend/internal/product"
 	"backend/internal/providers"
+	"backend/internal/riddle"
 	"backend/internal/sales"
 	"backend/internal/sitestat"
 	"backend/internal/sponsor"
@@ -59,6 +60,7 @@ func main() {
 		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{},
 		&token.Token{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{},
 		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{}, &sales.ConsumedItem{},
+		&riddle.Riddle{}, &riddle.Team{}, &riddle.TeamMember{},
 	)
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
@@ -161,6 +163,10 @@ func main() {
 	salesService := sales.NewSaleService(salesRepo, productRepo, papfeRepo)
 	salesHandler := sales.NewSaleHandler(salesService)
 
+	riddleRepo := riddle.NewRiddleRepository(db)
+	riddleService := riddle.NewRiddleService(riddleRepo)
+	riddleHandler := riddle.NewRiddleHandler(riddleService)
+
 	// Sweeper de expiração: persiste o status EXPIRADO nos PIX pendentes fora da
 	// janela de validade e libera as travas de compra única (consumed_items)
 	// das vendas expiradas. Antes, EXPIRADO era só calculado em memória; com a
@@ -259,6 +265,12 @@ func main() {
 	// Produtos (requer autenticação para exibir desconto PAPFE)
 	authRoutes.GET("/products", pageMW("loja"), productHandler.GetProducts)
 
+	// Jogo de Enigmas (Site)
+	authRoutes.POST("/riddles/teams", riddleHandler.CreateTeam)
+	authRoutes.POST("/riddles/teams/join", riddleHandler.JoinTeam)
+	authRoutes.GET("/riddles/teams/me", riddleHandler.GetMyTeam)
+	authRoutes.POST("/riddles/solve", riddleHandler.SolveRiddle)
+
 	// Rotas de Vendas (Usuário)
 	authRoutes.POST("/sales", pageMW("loja"), salesHandler.CreateSale)
 	authRoutes.GET("/sales/profile", pageMW("loja"), salesHandler.GetMySales)
@@ -323,6 +335,15 @@ func main() {
 	admin.PUT("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.UpdateSaleByID)
 	admin.DELETE("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.DeleteSaleByID)
 	admin.PATCH("/sales/items/:itemId/pickup", permMW("Vendas", permission.PermRW), salesHandler.UpdateItemPickup)
+
+	// Jogo de Enigmas (Backoffice)
+	admin.GET("/riddles", permMW("Enigmas", permission.PermR), riddleHandler.GetAllRiddles)
+	admin.POST("/riddles", permMW("Enigmas", permission.PermRW), riddleHandler.CreateRiddle)
+	admin.GET("/riddles/teams", permMW("Enigmas", permission.PermR), riddleHandler.ListTeams)
+	admin.GET("/riddles/teams/:id", permMW("Enigmas", permission.PermR), riddleHandler.GetTeamByID)
+	admin.GET("/riddles/:id", permMW("Enigmas", permission.PermR), riddleHandler.GetRiddleByID)
+	admin.PUT("/riddles/:id", permMW("Enigmas", permission.PermRW), riddleHandler.UpdateRiddle)
+	admin.DELETE("/riddles/:id", permMW("Enigmas", permission.PermRW), riddleHandler.DeleteRiddle)
 
 	// Permissões
 	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode
