@@ -1,16 +1,19 @@
 package event
 
 import (
-	"backend/internal/apierrors"
 	"errors"
+	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"backend/internal/apierrors"
 
 	"gorm.io/gorm"
 )
 
 type EventService interface {
+	SetRateRecalculator(recalculator RateRecalculator)
 	CreateEvent(request CreateEventRequest) (*Event, error)
 	GetEventByNameAndInitDate(name string, date string) (*Event, error)
 	DeleteEventByNameAndInitDate(name string, date string) error
@@ -18,12 +21,32 @@ type EventService interface {
 	GetEvents(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*EventListResult, error)
 }
 
+// RateRecalculator dispara o recálculo global das taxas de presença quando a
+// agenda de eventos muda (datas, tipos ou disponibilidade de presença).
+type RateRecalculator interface {
+	RecalculateAll() error
+}
+
 type eventService struct {
-	repo EventRepository
+	repo         EventRepository
+	recalculator RateRecalculator
 }
 
 func NewEventService(repo EventRepository) EventService {
 	return &eventService{repo: repo}
+}
+
+func (s *eventService) SetRateRecalculator(recalculator RateRecalculator) {
+	s.recalculator = recalculator
+}
+
+func (s *eventService) recalculateAll() {
+	if s.recalculator == nil {
+		return
+	}
+	if err := s.recalculator.RecalculateAll(); err != nil {
+		log.Printf("[event] erro ao recalcular taxas de presença: %v", err)
+	}
 }
 
 func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
@@ -46,6 +69,8 @@ func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
 	if err := s.repo.Create(&newEvent); err != nil {
 		return nil, apierrors.InternalServerError("Erro ao criar evento", err)
 	}
+
+	s.recalculateAll()
 
 	return &newEvent, nil
 }
@@ -81,6 +106,8 @@ func (s *eventService) DeleteEventByNameAndInitDate(name string, initDate string
 		return apierrors.InternalServerError("Erro ao remover evento", err)
 	}
 
+	s.recalculateAll()
+
 	return nil
 }
 
@@ -115,6 +142,8 @@ func (s *eventService) UpdateEventByNameAndInitDate(name string, initDate string
 		}
 		return nil, apierrors.InternalServerError("Erro ao atualizar evento", err)
 	}
+
+	s.recalculateAll()
 
 	return &event, nil
 }

@@ -12,6 +12,7 @@ import ParticipationCRUD from "@/pages/Participation";
 import ProductsCRUD from "@/pages/Products";
 import PermissionsCRUD from "@/pages/Permission";
 import PagesAvailability from "@/pages/PagesAvailability";
+import PresenceSettings from "@/pages/PresenceSettings";
 import SponsorsCRUD from "@/pages/Sponsors";
 import SalesCRUD from "@/pages/Sales";
 import PapfeDocuments from "@/pages/PapfeDocuments";
@@ -56,6 +57,10 @@ export const router = createBrowserRouter(
             {
               element: <RequirePermission section="Participações" />,
               children: [{ path: "/participation", element: <ParticipationCRUD /> }],
+            },
+            {
+              element: <RequirePermission section="Configurações Presença" />,
+              children: [{ path: "/presence-settings", element: <PresenceSettings /> }],
             },
             {
               element: <RequirePermission section="Produtos" />,

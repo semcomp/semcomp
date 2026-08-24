@@ -16,6 +16,8 @@ import (
 	"backend/internal/pages"
 	"backend/internal/permission"
 	"backend/internal/presence"
+	"backend/internal/presencerate"
+	"backend/internal/presencesettings"
 	"backend/internal/product"
 	"backend/internal/providers"
 	"backend/internal/sales"
@@ -55,6 +57,7 @@ func main() {
 
 	err := db.AutoMigrate(
 		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{},
+		&presencesettings.PresenceTypeWeight{},
 		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{},
 		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{},
 		&token.Token{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{},
@@ -130,6 +133,17 @@ func main() {
 	presenceService := presence.NewPresenceService(presenceRepo)
 	presenceHandler := presence.NewPresenceHandler(presenceService)
 
+	presenceSettingsRepo := presencesettings.NewPresenceSettingsRepository(db)
+	presenceSettingsService := presencesettings.NewPresenceSettingsService(presenceSettingsRepo)
+	presenceSettingsHandler := presencesettings.NewPresenceSettingsHandler(presenceSettingsService)
+
+	// Motor de cálculo das taxas de presença: dispara recálculo automático a
+	// cada mutação de presenças, eventos ou pesos configuráveis.
+	rateCalculator := presencerate.NewCalculator(db)
+	eventService.SetRateRecalculator(rateCalculator)
+	presenceService.SetRateRecalculator(rateCalculator)
+	presenceSettingsService.SetRateRecalculator(rateCalculator)
+
 	productRepo := product.NewProductRepository(db)
 	productService := product.NewProductService(productRepo)
 	productHandler := product.NewProductHandler(productService, papfeRepo)
@@ -200,6 +214,16 @@ func main() {
 	// Inicialização de valores base de permissões para o banco de dados
 	if err := permissionService.InitializePermissions(); err != nil {
 		panic("Failed to initialize admin's permissions in backoffice: " + err.Error())
+	}
+
+	// Pesos padrão de presença (Palestra=1.0, Vitrine=0.5) em banco vazio
+	if err := presenceSettingsService.InitializeDefaults(); err != nil {
+		panic("Failed to initialize presence type weights: " + err.Error())
+	}
+
+	// Convergência inicial: recalcula as taxas já persistidas com a configuração atual
+	if err := rateCalculator.RecalculateAll(); err != nil {
+		stdlog.Printf("[presence-rate] erro no recálculo inicial das taxas de presença: %v", err)
 	}
 
 	r := gin.Default()
@@ -302,6 +326,12 @@ func main() {
 	admin.POST("/presences", permMW("Participações", permission.PermRW), presenceHandler.CreatePresence)
 	admin.PUT("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermRW), presenceHandler.UpdatePresenceByUserEventandInitDate)
 	admin.DELETE("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermRW), presenceHandler.DeletePresenceByUserEventandInitDate)
+
+	// Configurações de Presença (pesos por tipo de evento)
+	admin.GET("/presence-settings", permMW("Configurações Presença", permission.PermR), presenceSettingsHandler.GetWeights)
+	admin.POST("/presence-settings", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.CreateWeight)
+	admin.PUT("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.UpdateWeight)
+	admin.DELETE("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.DeleteWeight)
 
 	// Usuários Backoffice
 	admin.GET("/usersBackoffice", permMW("Usuários Backoffice", permission.PermR), userBackofficeHandler.GetAllUsers)
