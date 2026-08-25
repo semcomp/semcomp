@@ -61,7 +61,8 @@ export interface CrudField {
     | "number"
     | "multivalue"
     | "boolean"
-    | "file";
+    | "file"
+    | "image-preview";
   selectVariants?: Record<string, string>;
   multiValueOptions?: string[];
   readOnly?: boolean;
@@ -70,6 +71,20 @@ export interface CrudField {
   showWhen?: { field: string; value: unknown };
   /** Quando true, o campo é exibido no dialog mas não pode ser editado */
   readonly?: boolean;
+  /** Quando true, o campo não aparece no modal de edição (mas continua
+   *  aparecendo como coluna na tabela). Útil para campos controlados só por
+   *  um controle dedicado na tabela (ex.: `interactiveToggle`). */
+  hideInEdit?: boolean;
+  /** Quando true, o campo não aparece como coluna na tabela (mas continua
+   *  nos modais de criar/editar). Útil para campos só informativos no form,
+   *  como "image-preview". */
+  hideInTable?: boolean;
+  /** Para type "image-preview": nome do campo (via formData) cujo valor é
+   *  usado como URL da imagem a pré-visualizar. Default: o próprio `value`. */
+  previewFrom?: string;
+  /** Para type "boolean": renderiza um Switch clicável na célula da tabela
+   *  (em vez do Badge estático), com efeito imediato via `onToggleField`. */
+  interactiveToggle?: boolean;
 }
 
 export interface CrudQueryParams {
@@ -85,7 +100,8 @@ export interface CrudTableProps {
   data: CrudItemType[];
   fields: CrudField[];
   onEdit: (item: CrudItemType, itemKey: string) => void;
-  onDelete: (id: string) => void;
+  /** Quando omitido, o botão "Excluir" não é exibido nas ações da linha. */
+  onDelete?: (id: string) => void;
   onCreate?: (item: CrudItemType) => void;
   /** When false, hides create/edit/delete buttons */
   canWrite?: boolean;
@@ -103,6 +119,12 @@ export interface CrudTableProps {
   actionIcon?: React.ReactNode;
   /** Tooltip for the action button */
   actionTitle?: string;
+  /** Ícone do botão de editar/visualizar na coluna de ações (default: Pencil) */
+  editIcon?: React.ReactNode;
+  /** Chamado quando um campo boolean com `interactiveToggle` é clicado na
+   *  tabela. O chamador decide se atualiza `data` (ex.: após confirmação e
+   *  chamada à API) — se não atualizar, o Switch permanece como estava. */
+  onToggleField?: (item: CrudItemType, field: string, value: boolean) => void | Promise<void>;
 }
 
 type FormValue = string | string[] | boolean | File | null;
@@ -217,6 +239,38 @@ function FilterControl({
   );
 }
 
+// ─── ImagePreviewBox ───────────────────────────────────────────────────────────
+
+// Pré-visualização ao vivo de uma URL de imagem dentro dos modais de criar/
+// editar (campos type "image-preview"). Sem URL ou com erro de carregamento,
+// cai num placeholder simples.
+function ImagePreviewBox({ url }: { url: string }) {
+  // Guarda qual URL falhou (em vez de um boolean resetado por efeito): assim
+  // que `url` muda para algo novo, `failedUrl` deixa de bater e a imagem nova
+  // é tentada, sem precisar de useEffect+setState.
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+
+  const trimmed = url.trim();
+  const failed = trimmed !== "" && failedUrl === trimmed;
+
+  if (!trimmed || failed) {
+    return (
+      <div className="flex h-32 w-full items-center justify-center rounded-lg border border-dashed border-muted/40 bg-muted/10 text-xs text-muted-foreground">
+        {trimmed ? "Não foi possível carregar a imagem" : "Sem imagem"}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={trimmed}
+      alt="Pré-visualização"
+      onError={() => setFailedUrl(trimmed)}
+      className="h-32 w-full rounded-lg border border-muted/30 bg-muted/10 object-contain"
+    />
+  );
+}
+
 // ─── CrudTable ────────────────────────────────────────────────────────────────
 
 export function CrudTable({
@@ -229,15 +283,22 @@ export function CrudTable({
   onEditClick,
   actionIcon,
   actionTitle,
+  editIcon,
   getItemKey,
   entityLabel = "item",
   defaultPageSize = 10,
   totalRecords,
   onQueryChange,
   canWrite = true,
+  onToggleField,
 }: CrudTableProps) {
   // Fields that make sense as filter targets (files cannot be text-searched)
-  const filterableFields = fields.filter((f) => f.type !== "file");
+  const filterableFields = fields.filter(
+    (f) => f.type !== "file" && f.type !== "image-preview"
+  );
+  // Colunas de fato exibidas na tabela (hideInTable tira campos só-de-form,
+  // como "image-preview", que só fazem sentido dentro do modal).
+  const tableFields = fields.filter((f) => !f.hideInTable);
 
   const [filter, setFilter] = useState("");
   const [filterField, setFilterField] = useState(
@@ -281,8 +342,8 @@ export function CrudTable({
   // Indica se a linha tem célula de texto longo (textarea >120 ou string >40),
   // o que habilita o toggle de expandir/recolher ao clicar na linha.
   const rowHasExpandableContent = (item: CrudItemType): boolean => {
-    return fields.some((field) => {
-      if (field.type === "url") return false; // URL tem truncate próprio
+    return tableFields.some((field) => {
+      if (field.type === "url" || field.type === "image-preview") return false; // URL/preview têm truncate/renderização próprios
       const raw = (item as Record<string, unknown>)[field.value];
       const val = String(raw ?? "");
       if (field.type === "textarea") return val.length > 120;
@@ -409,6 +470,18 @@ export function CrudTable({
 
     if (field.type === "boolean") {
       const bool = Boolean(raw);
+
+      if (field.interactiveToggle && onToggleField) {
+        return (
+          <Switch
+            checked={bool}
+            onCheckedChange={(checked) => onToggleField(item, field.value, checked)}
+            onClick={(e) => e.stopPropagation()}
+            aria-label={`Alternar ${field.label}`}
+          />
+        );
+      }
+
       return (
         <Badge
           className={`text-xs font-medium px-2 py-0.5 ${
@@ -705,7 +778,7 @@ export function CrudTable({
         <Table>
           <TableHeader>
             <TableRow className="border-border bg-muted/30 hover:bg-muted/30">
-              {fields.map((f) => (
+              {tableFields.map((f) => (
                 <TableHead
                   key={f.value}
                   className="cursor-pointer select-none text-muted-foreground text-xs font-semibold uppercase tracking-wider hover:text-primary transition-colors"
@@ -724,7 +797,7 @@ export function CrudTable({
             {data.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={fields.length + 1}
+                  colSpan={tableFields.length + 1}
                   className="text-center py-12 text-muted-foreground"
                 >
                   <div className="flex flex-col items-center gap-2">
@@ -762,7 +835,7 @@ export function CrudTable({
                           : "bg-muted/10 hover:bg-muted/20"
                     }`}
                   >
-                    {fields.map((f) => (
+                    {tableFields.map((f) => (
                       <TableCell key={f.value} className="py-3">
                         {renderCell(item, f)}
                       </TableCell>
@@ -786,34 +859,34 @@ export function CrudTable({
                           </Button>
                         )}
                         {canWrite && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEditClick
-                                  ? onEditClick(item, resolveItemKey(item))
-                                  : openEdit(item);
-                              }}
-                              className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
-                              title="Editar"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openDelete(item);
-                              }}
-                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
-                              title="Excluir"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditClick
+                                ? onEditClick(item, resolveItemKey(item))
+                                : openEdit(item);
+                            }}
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
+                            title="Editar"
+                          >
+                            {editIcon ?? <Pencil className="w-3.5 h-3.5" />}
+                          </Button>
+                        )}
+                        {canWrite && onDelete && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openDelete(item);
+                            }}
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                            title="Excluir"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
                         )}
                       </div>
                     </TableCell>
@@ -842,7 +915,11 @@ export function CrudTable({
                 >
                   {f.label}
                 </Label>
-                {f.type === "select" && f.selectVariants ? (
+                {f.type === "image-preview" ? (
+                  <ImagePreviewBox
+                    url={(formData[f.previewFrom ?? f.value] as string) ?? ""}
+                  />
+                ) : f.type === "select" && f.selectVariants ? (
                   <Select
                     value={formData[f.value] as string}
                     onValueChange={(v) =>
@@ -1053,7 +1130,7 @@ export function CrudTable({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            {fields.map((f) => (
+            {fields.filter((f) => !f.hideInEdit).map((f) => (
               <div key={f.value} className="space-y-1.5">
                 <Label className="text-foreground text-sm">{f.label}</Label>
                 {f.readonly ? (
@@ -1072,6 +1149,10 @@ export function CrudTable({
                       {String((selectedItem as Record<string, unknown>)?.[f.value] ?? "—")}
                     </div>
                   )
+                ) : f.type === "image-preview" ? (
+                  <ImagePreviewBox
+                    url={(formData[f.previewFrom ?? f.value] as string) ?? ""}
+                  />
                 ) : f.type === "select" && f.selectVariants ? (
                   <Select
                     value={formData[f.value] as string}
@@ -1289,7 +1370,7 @@ export function CrudTable({
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={saving}
               onClick={async () => {
-                if (!selectedItem) return;
+                if (!selectedItem || !onDelete) return;
                 const itemId =
                   selectedItemKey || resolveItemKey(selectedItem);
                 if (!itemId) return;
