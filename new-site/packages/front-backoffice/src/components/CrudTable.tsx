@@ -63,6 +63,7 @@ export interface CrudField {
     | "boolean"
     | "file";
   selectVariants?: Record<string, string>;
+  selectLabels?: Record<string, string>;
   multiValueOptions?: string[];
   readOnly?: boolean;
   accept?: string;
@@ -103,6 +104,8 @@ export interface CrudTableProps {
   actionIcon?: React.ReactNode;
   /** Tooltip for the action button */
   actionTitle?: string;
+  /** Called when a form field value changes. Receives the field name, new value, and full form data. Can return field overrides to apply. */
+  onFieldChange?: (fieldName: string, value: unknown, formData: Record<string, unknown>) => Record<string, unknown> | void;
 }
 
 type FormValue = string | string[] | boolean | File | null;
@@ -235,6 +238,7 @@ export function CrudTable({
   totalRecords,
   onQueryChange,
   canWrite = true,
+  onFieldChange,
 }: CrudTableProps) {
   // Fields that make sense as filter targets (files cannot be text-searched)
   const filterableFields = fields.filter((f) => f.type !== "file");
@@ -845,9 +849,12 @@ export function CrudTable({
                 {f.type === "select" && f.selectVariants ? (
                   <Select
                     value={formData[f.value] as string}
-                    onValueChange={(v) =>
-                      setFormData((d) => ({ ...d, [f.value]: v }))
-                    }
+                    onValueChange={(v) => {
+                      const newData = { ...formData, [f.value]: v };
+                      const overrides = onFieldChange?.(f.value, v, newData);
+                      if (overrides) Object.assign(newData, overrides);
+                      setFormData(newData);
+                    }}
                   >
                     <SelectTrigger className="bg-muted/40 border-muted/30 text-foreground">
                       <SelectValue placeholder={`Selecionar ${f.label}`} />
@@ -863,7 +870,7 @@ export function CrudTable({
                           value={v}
                           className="text-primary focus:bg-accent focus:text-accent-foreground cursor-pointer"
                         >
-                          {v}
+                          {f.selectLabels?.[v] ?? v}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1075,9 +1082,12 @@ export function CrudTable({
                 ) : f.type === "select" && f.selectVariants ? (
                   <Select
                     value={formData[f.value] as string}
-                    onValueChange={(v) =>
-                      setFormData((d) => ({ ...d, [f.value]: v }))
-                    }
+                    onValueChange={(v) => {
+                      const newData = { ...formData, [f.value]: v };
+                      const overrides = onFieldChange?.(f.value, v, newData);
+                      if (overrides) Object.assign(newData, overrides);
+                      setFormData(newData);
+                    }}
                   >
                     <SelectTrigger className="bg-muted/40 border-muted/30 text-foreground">
                       <SelectValue />
@@ -1093,7 +1103,7 @@ export function CrudTable({
                           value={v}
                           className="text-primary focus:bg-muted/50"
                         >
-                          {v}
+                          {f.selectLabels?.[v] ?? v}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -12,20 +12,29 @@ func at(hour, min int) time.Time {
 	return time.Date(2026, 9, 14, hour, min, 0, 0, time.UTC)
 }
 
+var typeIDs = map[string]uint{
+	"palestra":  1,
+	"vitrine":   2,
+	"minicurso": 3,
+	"oficina":   4,
+	"workshop":  5,
+}
+
 func makeEvent(name, typeName string, initHour, initMin, endHour, endMin int, hasAttendance bool) event.Event {
+	id := typeIDs[typeName]
 	return event.Event{
-		Name:          name,
-		InitDate:      at(initHour, initMin),
-		EndDate:       at(endHour, endMin),
-		Type:          typeName,
-		HasAttendance: hasAttendance,
+		Name:           name,
+		InitDate:       at(initHour, initMin),
+		EndDate:        at(endHour, endMin),
+		PresenceTypeID: &id,
+		HasAttendance:  hasAttendance,
 	}
 }
 
-func defaultWeights() map[string]float64 {
-	return map[string]float64{
-		"palestra": 1.0,
-		"vitrine":  0.5,
+func defaultWeights() map[uint]float64 {
+	return map[uint]float64{
+		1: 1.0,
+		2: 0.5,
 	}
 }
 
@@ -42,9 +51,9 @@ func assertRate(t *testing.T, rates map[int64]float64, userNumber int64, expecte
 
 func TestCompute_BasicWeights(t *testing.T) {
 	events := []event.Event{
-		makeEvent("Palestra A", "Palestra", 9, 0, 10, 30, true),
-		makeEvent("Palestra B", "Palestra", 14, 0, 15, 30, true),
-		makeEvent("Vitrine X", "Vitrine", 10, 0, 11, 0, true),
+		makeEvent("Palestra A", "palestra", 9, 0, 10, 30, true),
+		makeEvent("Palestra B", "palestra", 14, 0, 15, 30, true),
+		makeEvent("Vitrine X", "vitrine", 10, 0, 11, 0, true),
 	}
 	presences := []presence.Presence{
 		{UserNumber: 1, EventName: "Palestra A", EventInitDate: at(9, 0)},
@@ -61,9 +70,9 @@ func TestCompute_BasicWeights(t *testing.T) {
 
 func TestCompute_MinicursoHerdaPalestraEVitrine(t *testing.T) {
 	events := []event.Event{
-		makeEvent("Minicurso Go", "Minicurso", 9, 0, 12, 0, true),
-		makeEvent("Palestra Interna", "Palestra", 10, 0, 11, 0, true),
-		makeEvent("Vitrine Empresas", "Vitrine", 11, 0, 11, 30, true),
+		makeEvent("Minicurso Go", "minicurso", 9, 0, 12, 0, true),
+		makeEvent("Palestra Interna", "palestra", 10, 0, 11, 0, true),
+		makeEvent("Vitrine Empresas", "vitrine", 11, 0, 11, 30, true),
 	}
 	presences := []presence.Presence{
 		{UserNumber: 1, EventName: "Minicurso Go", EventInitDate: at(9, 0)},
@@ -78,9 +87,9 @@ func TestCompute_MinicursoHerdaPalestraEVitrine(t *testing.T) {
 
 func TestCompute_DedupeUniaoDiretaEConcomitancia(t *testing.T) {
 	events := []event.Event{
-		makeEvent("Minicurso Go", "Minicurso", 9, 0, 12, 0, true),
-		makeEvent("Palestra Interna", "Palestra", 10, 0, 11, 0, true),
-		makeEvent("Vitrine Empresas", "Vitrine", 11, 0, 11, 30, true),
+		makeEvent("Minicurso Go", "minicurso", 9, 0, 12, 0, true),
+		makeEvent("Palestra Interna", "palestra", 10, 0, 11, 0, true),
+		makeEvent("Vitrine Empresas", "vitrine", 11, 0, 11, 30, true),
 	}
 	presences := []presence.Presence{
 		{UserNumber: 1, EventName: "Minicurso Go", EventInitDate: at(9, 0)},
@@ -94,8 +103,8 @@ func TestCompute_DedupeUniaoDiretaEConcomitancia(t *testing.T) {
 
 func TestCompute_EventoIsoladoValeZero(t *testing.T) {
 	events := []event.Event{
-		makeEvent("Workshop Isolado", "Workshop", 13, 0, 17, 0, true),
-		makeEvent("Palestra Tarde", "Palestra", 18, 0, 19, 0, true),
+		makeEvent("Workshop Isolado", "workshop", 13, 0, 17, 0, true),
+		makeEvent("Palestra Tarde", "palestra", 18, 0, 19, 0, true),
 	}
 	presences := []presence.Presence{
 		{UserNumber: 1, EventName: "Workshop Isolado", EventInitDate: at(13, 0)},
@@ -112,8 +121,8 @@ func TestCompute_EventoIsoladoValeZero(t *testing.T) {
 
 func TestCompute_DenominadorSomenteHasAttendance(t *testing.T) {
 	events := []event.Event{
-		makeEvent("Palestra Com Chamada", "Palestra", 9, 0, 10, 0, true),
-		makeEvent("Palestra Sem Chamada", "Palestra", 11, 0, 12, 0, false),
+		makeEvent("Palestra Com Chamada", "palestra", 9, 0, 10, 0, true),
+		makeEvent("Palestra Sem Chamada", "palestra", 11, 0, 12, 0, false),
 	}
 	presences := []presence.Presence{
 		{UserNumber: 1, EventName: "Palestra Com Chamada", EventInitDate: at(9, 0)},
@@ -126,10 +135,10 @@ func TestCompute_DenominadorSomenteHasAttendance(t *testing.T) {
 
 func TestCompute_OverlapParcialEBordas(t *testing.T) {
 	events := []event.Event{
-		makeEvent("Oficina Corta Palestra", "Oficina", 9, 30, 10, 30, true),
-		makeEvent("Palestra Manha", "Palestra", 10, 0, 11, 0, true),
-		makeEvent("Oficina Encosta", "Oficina", 8, 0, 9, 0, true),
-		makeEvent("Palestra Tarde", "Palestra", 14, 0, 15, 0, true),
+		makeEvent("Oficina Corta Palestra", "oficina", 9, 30, 10, 30, true),
+		makeEvent("Palestra Manha", "palestra", 10, 0, 11, 0, true),
+		makeEvent("Oficina Encosta", "oficina", 8, 0, 9, 0, true),
+		makeEvent("Palestra Tarde", "palestra", 14, 0, 15, 0, true),
 	}
 	presences := []presence.Presence{
 		{UserNumber: 1, EventName: "Oficina Corta Palestra", EventInitDate: at(9, 30)},
@@ -147,7 +156,7 @@ func TestCompute_OverlapParcialEBordas(t *testing.T) {
 
 func TestCompute_DenominadorZero(t *testing.T) {
 	events := []event.Event{
-		makeEvent("Workshop Solto", "Workshop", 9, 0, 10, 0, true),
+		makeEvent("Workshop Solto", "workshop", 9, 0, 10, 0, true),
 	}
 	presences := []presence.Presence{
 		{UserNumber: 1, EventName: "Workshop Solto", EventInitDate: at(9, 0)},
@@ -162,7 +171,7 @@ func TestCompute_DenominadorZero(t *testing.T) {
 
 func TestCompute_PresencaOrfaIgnorada(t *testing.T) {
 	events := []event.Event{
-		makeEvent("Palestra Unica", "Palestra", 9, 0, 10, 0, true),
+		makeEvent("Palestra Unica", "palestra", 9, 0, 10, 0, true),
 	}
 	presences := []presence.Presence{
 		{UserNumber: 1, EventName: "Evento Removido", EventInitDate: at(9, 0), EmailAdmin: "a@b.com"},
@@ -174,22 +183,9 @@ func TestCompute_PresencaOrfaIgnorada(t *testing.T) {
 	assertRate(t, rates, 1, 100.0)
 }
 
-func TestNormalizeTypeName_MatchCaseInsensitive(t *testing.T) {
-	events := []event.Event{
-		makeEvent("Palestra Espacada", "  PALESTRA  ", 9, 0, 10, 0, true),
-	}
-	presences := []presence.Presence{
-		{UserNumber: 1, EventName: "Palestra Espacada", EventInitDate: at(9, 0)},
-	}
-
-	rates := Compute(ComputeInput{Events: events, Presences: presences, Weights: map[string]float64{"palestra": 1.0}})
-
-	assertRate(t, rates, 1, 100.0)
-}
-
 func TestCompute_SemPresencas(t *testing.T) {
 	events := []event.Event{
-		makeEvent("Palestra Unica", "Palestra", 9, 0, 10, 0, true),
+		makeEvent("Palestra Unica", "palestra", 9, 0, 10, 0, true),
 	}
 
 	rates := Compute(ComputeInput{Events: events, Presences: nil, Weights: defaultWeights()})
@@ -197,4 +193,23 @@ func TestCompute_SemPresencas(t *testing.T) {
 	if len(rates) != 0 {
 		t.Errorf("esperava mapa vazio, recebeu %v", rates)
 	}
+}
+
+func TestCompute_NilPresenceTypeIDIgnorado(t *testing.T) {
+	id := typeIDs["palestra"]
+	events := []event.Event{
+		{Name: "Sem Tipo", InitDate: at(9, 0), EndDate: at(10, 0), PresenceTypeID: nil, HasAttendance: true},
+		{Name: "Com Tipo", InitDate: at(14, 0), EndDate: at(15, 0), PresenceTypeID: &id, HasAttendance: true},
+	}
+	presences := []presence.Presence{
+		{UserNumber: 1, EventName: "Sem Tipo", EventInitDate: at(9, 0)},
+		{UserNumber: 2, EventName: "Com Tipo", EventInitDate: at(14, 0)},
+	}
+
+	rates := Compute(ComputeInput{Events: events, Presences: presences, Weights: defaultWeights()})
+
+	if rate, ok := rates[1]; ok && rate != 0 {
+		t.Errorf("evento sem PresenceTypeID não deveria ter taxa > 0, recebeu %v", rate)
+	}
+	assertRate(t, rates, 2, 100.0)
 }

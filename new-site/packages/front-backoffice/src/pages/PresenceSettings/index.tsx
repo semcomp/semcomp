@@ -20,8 +20,10 @@ export default function PresenceSettings() {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editTypeName, setEditTypeName] = useState("");
   const [editWeight, setEditWeight] = useState("");
+  const [editDefaultHA, setEditDefaultHA] = useState(false);
   const [newTypeName, setNewTypeName] = useState("");
   const [newWeight, setNewWeight] = useState("1");
+  const [newDefaultHA, setNewDefaultHA] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: NotificationType }>({
     message: "",
@@ -60,9 +62,10 @@ export default function PresenceSettings() {
     }
     setBusy(true);
     try {
-      await presenceSettingsAPI.create(newTypeName.trim(), weight);
+      await presenceSettingsAPI.create(newTypeName.trim(), weight, newDefaultHA);
       setNewTypeName("");
       setNewWeight("1");
+      setNewDefaultHA(false);
       await fetchAll();
       notify("Peso criado com sucesso! Presenças recalculadas automaticamente.");
     } catch (err: any) {
@@ -76,12 +79,14 @@ export default function PresenceSettings() {
     setEditingKey(row.type_name);
     setEditTypeName(row.type_name);
     setEditWeight(String(row.weight));
+    setEditDefaultHA(row.default_has_attendance);
   };
 
   const cancelEditing = () => {
     setEditingKey(null);
     setEditTypeName("");
     setEditWeight("");
+    setEditDefaultHA(false);
   };
 
   const handleUpdate = async () => {
@@ -93,7 +98,7 @@ export default function PresenceSettings() {
     }
     setBusy(true);
     try {
-      await presenceSettingsAPI.update(editingKey, editTypeName.trim(), weight);
+      await presenceSettingsAPI.update(editingKey, editTypeName.trim(), weight, editDefaultHA);
       cancelEditing();
       await fetchAll();
       notify("Peso atualizado com sucesso! Presenças recalculadas automaticamente.");
@@ -153,6 +158,18 @@ export default function PresenceSettings() {
                 className="w-24"
               />
             </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Presença padrão</span>
+              <label className="flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-background cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newDefaultHA}
+                  onChange={e => setNewDefaultHA(e.target.checked)}
+                  className="h-4 w-4 rounded border-muted-foreground/30"
+                />
+                <span className="text-sm">Cobrar</span>
+              </label>
+            </div>
             <Button onClick={handleCreate} disabled={busy} className="gap-2">
               <Plus className="w-4 h-4" /> Adicionar
             </Button>
@@ -172,6 +189,9 @@ export default function PresenceSettings() {
                 </TableHead>
                 <TableHead className="text-muted-foreground text-xs font-semibold uppercase tracking-wider w-32">
                   Peso
+                </TableHead>
+                <TableHead className="text-muted-foreground text-xs font-semibold uppercase tracking-wider w-32">
+                  Presença padrão
                 </TableHead>
                 {canWrite && (
                   <TableHead className="text-muted-foreground text-xs font-semibold uppercase tracking-wider w-40 text-right">
@@ -205,6 +225,27 @@ export default function PresenceSettings() {
                         />
                       ) : (
                         row.weight
+                      )}
+                    </TableCell>
+                    <TableCell className="py-3">
+                      {isEditing ? (
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editDefaultHA}
+                            onChange={e => setEditDefaultHA(e.target.checked)}
+                            className="h-4 w-4 rounded border-muted-foreground/30"
+                          />
+                          <span className="text-sm">Cobrar</span>
+                        </label>
+                      ) : (
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                          row.default_has_attendance
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                            : "bg-slate-600/40 text-slate-400 border border-slate-600/30"
+                        }`}>
+                          {row.default_has_attendance ? "Sim" : "Não"}
+                        </span>
                       )}
                     </TableCell>
                     {canWrite && (

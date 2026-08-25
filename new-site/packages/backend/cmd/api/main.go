@@ -126,7 +126,7 @@ func main() {
 	userHandler := user.NewUserHandler(userService)
 
 	eventRepo := event.NewEventRepository(db)
-	eventService := event.NewEventService(eventRepo)
+	eventService := event.NewEventService(eventRepo, db)
 	eventHandler := event.NewEventHandler(eventService)
 
 	presenceRepo := presence.NewPresenceRepository(db)
@@ -134,7 +134,7 @@ func main() {
 	presenceHandler := presence.NewPresenceHandler(presenceService)
 
 	presenceSettingsRepo := presencesettings.NewPresenceSettingsRepository(db)
-	presenceSettingsService := presencesettings.NewPresenceSettingsService(presenceSettingsRepo)
+	presenceSettingsService := presencesettings.NewPresenceSettingsService(presenceSettingsRepo, db)
 	presenceSettingsHandler := presencesettings.NewPresenceSettingsHandler(presenceSettingsService)
 
 	// Motor de cálculo das taxas de presença: dispara recálculo automático a
@@ -219,6 +219,23 @@ func main() {
 	// Pesos padrão de presença (Palestra=1.0, Vitrine=0.5) em banco vazio
 	if err := presenceSettingsService.InitializeDefaults(); err != nil {
 		panic("Failed to initialize presence type weights: " + err.Error())
+	}
+
+	// Migração de dados: vincula eventos existentes ao seu tipo via FK
+	if db.Migrator().HasColumn(&event.Event{}, "presence_type_weight_id") {
+		type eventRow struct {
+			Name     string
+			InitDate time.Time
+			Type     string
+		}
+		var unmapped []eventRow
+		db.Raw("SELECT name, init_date, type FROM events WHERE presence_type_weight_id IS NULL AND type != ''").Scan(&unmapped)
+		for _, e := range unmapped {
+			var weightID uint
+			if err := db.Raw("SELECT id FROM presence_type_weights WHERE LOWER(TRIM(type_name)) = LOWER(TRIM(?))", e.Type).Scan(&weightID).Error; err == nil && weightID > 0 {
+				db.Model(&event.Event{}).Where("name = ? AND init_date = ?", e.Name, e.InitDate).Update("presence_type_weight_id", weightID)
+			}
+		}
 	}
 
 	// Convergência inicial: recalcula as taxas já persistidas com a configuração atual
