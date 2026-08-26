@@ -88,10 +88,34 @@ const processEvents = (events: EventType[]): EventWithColumn[][] => {
       return [{ ...group[0], column: "full" }];
     }
 
-    return group.map((event, index) => ({
-      ...event,
-      column: ((index % 3) + 1) as 1 | 2 | 3,
-    }));
+    const orderedGroup = [...group].sort((a, b) => {
+      const durationA =
+        new Date(a.dateEnd).getTime() - new Date(a.dateInit).getTime();
+
+      const durationB =
+        new Date(b.dateEnd).getTime() - new Date(b.dateInit).getTime();
+
+      return durationA - durationB;
+    });
+
+    return orderedGroup.map((event, index) => {
+      let column: 1 | 2 | 3;
+
+      if (orderedGroup.length === 2) {
+        column = index === 0 ? 1 : 2;
+      } else if (index === orderedGroup.length - 1) {
+        column = 3;
+      } else if (index === orderedGroup.length - 2) {
+        column = 2;
+      } else {
+        column = 1;
+      }
+
+      return {
+        ...event,
+        column,
+      };
+    });
   });
 };
 
