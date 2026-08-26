@@ -18,6 +18,7 @@ import (
 	"backend/internal/presence"
 	"backend/internal/product"
 	"backend/internal/providers"
+	"backend/internal/riddle"
 	"backend/internal/sales"
 	"backend/internal/sitestat"
 	"backend/internal/sponsor"
@@ -59,6 +60,7 @@ func main() {
 		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{},
 		&token.Token{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{},
 		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{}, &sales.ConsumedItem{},
+		&riddle.Riddle{},
 	)
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
@@ -125,6 +127,10 @@ func main() {
 	eventRepo := event.NewEventRepository(db)
 	eventService := event.NewEventService(eventRepo)
 	eventHandler := event.NewEventHandler(eventService)
+
+	riddleRepo := riddle.NewRiddleRepository(db)
+	riddleService := riddle.NewRiddleService(riddleRepo)
+	riddleHandler := riddle.NewRiddleHandler(riddleService)
 
 	presenceRepo := presence.NewPresenceRepository(db)
 	presenceService := presence.NewPresenceService(presenceRepo)
@@ -295,6 +301,14 @@ func main() {
 	// GET nos eventos - Consulta pública via GET /events
 	admin.PUT("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.UpdateEventByNameAndInitDate)
 	admin.DELETE("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.DeleteEventByNameAndInitDate)
+
+	// Riddles
+	admin.GET("/riddles", permMW("Riddles", permission.PermR), riddleHandler.GetRiddles)
+	admin.GET("/riddles/:id", permMW("Riddles", permission.PermR), riddleHandler.GetRiddleByID)
+	admin.POST("/riddles", permMW("Riddles", permission.PermRW), riddleHandler.CreateRiddle)
+	admin.POST("/riddles/upload-csv", permMW("Riddles", permission.PermRW), riddleHandler.UploadRiddlesCSV)
+	admin.PUT("/riddles/:id", permMW("Riddles", permission.PermRW), riddleHandler.UpdateRiddle)
+	admin.DELETE("/riddles/:id", permMW("Riddles", permission.PermRW), riddleHandler.DeleteRiddle)
 
 	// Participações
 	admin.GET("/presences", permMW("Participações", permission.PermR), presenceHandler.GetPresences)

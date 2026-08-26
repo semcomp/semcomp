@@ -1,4 +1,4 @@
-import { Calendar, UserCog, User, Key, Hand, ToggleLeft, ShoppingBag, Handshake, DollarSign, FileCheck } from "lucide-react";
+import { Calendar, UserCog, User, Key, Hand, ToggleLeft, ShoppingBag, Handshake, DollarSign, FileCheck, Puzzle } from "lucide-react";
 
 // section deve coincidir com KnownSections em backend/internal/permission/model.go
 export const Tabs: {
@@ -98,6 +98,16 @@ export const Tabs: {
     description: "Gerencie as vendas realizadas para a SEMCOMP.",
     pageNavigate: "/sales",
     icon: <DollarSign className="w-5 h-5" />,
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
+    key: "riddles",
+    section: "Riddles",
+    label: "Riddles",
+    description: "Gerencie os enigmas do jogo de sequência.",
+    pageNavigate: "/riddles",
+    icon: <Puzzle className="w-5 h-5" />,
     bg: "bg-primary/15",
     hoverBg: "bg-primary/25",
   },

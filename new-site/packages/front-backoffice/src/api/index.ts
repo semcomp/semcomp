@@ -14,5 +14,6 @@ export { permissionsAPI } from "./permissions";
 export { pagesAPI } from "./pages";
 export { sponsorsAPI } from "./sponsors";
 export { salesAPI } from "./sales";
+export { riddlesAPI } from "./riddles";
 export { default as client } from "./client";
 export type { LoginResponse, RegisterResponse, ProfileResponse, ApiError } from "@/types/APIResponseType";

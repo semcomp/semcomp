@@ -14,13 +14,22 @@ const MaxTeamSize = 5
 // O ID do enigma é a sua posição na ordem: os enigmas devem ser resolvidos em
 // sequência (id 1, depois 2, 3, ...), nunca fora de ordem.
 type Riddle struct {
-	ID          uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	Hint1	    string    `gorm:"type:text;not null" json:"hint_1"`
-	Hint2	    string    `gorm:"type:text;not null" json:"hint_2"`
-	Answer      string    `gorm:"type:text;not null" json:"-"`
-	ImageURL    string    `gorm:"type:text" json:"image_url"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID    uint   `gorm:"primaryKey;autoIncrement" json:"id"`
+	Hint1 string `gorm:"type:text;not null" json:"hint_1"`
+	Hint2 string `gorm:"type:text;not null" json:"hint_2"`
+	// Answer é serializada normalmente aqui porque este struct hoje só é
+	// exposto pelas rotas de backoffice (que precisam ver/editar a resposta).
+	// Um futuro endpoint público pro participante jogar NÃO deve serializar
+	// este struct diretamente — deve usar um DTO próprio sem Answer, no mesmo
+	// padrão de user.SafeUser (que esconde PasswordHash).
+	Answer   string `gorm:"type:text;not null" json:"answer"`
+	ImageURL string `gorm:"type:text" json:"image_url"`
+	// IsActive controla tanto a exclusão lógica (soft delete) quanto a
+	// visibilidade do enigma para os participantes. "Último enigma" é sempre
+	// MAX(id) filtrando apenas os riddles com IsActive = true.
+	IsActive  bool      `gorm:"not null;default:true" json:"is_active"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // Team representa uma equipe de participantes jogando o jogo de enigmas.
@@ -28,8 +37,8 @@ type Riddle struct {
 // índice do próximo enigma a ser resolvido (CurrentRiddleIndex).
 // Quando CurrentRiddleIndex ultrapassa o último enigma, o time terminou o jogo.
 type Team struct {
-	ID                uint        `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name              string      `gorm:"size:200;not null;uniqueIndex" json:"name"`
+	ID   uint   `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name string `gorm:"size:200;not null;uniqueIndex" json:"name"`
 	// Índice (ID) do próximo enigma a resolver. 0 = ainda não resolveu o primeiro.
 	// Quando > maior ID de enigma, o time já resolveu todos (final riddle).
 	CurrentRiddleIndex uint       `gorm:"not null;default:0" json:"current_riddle_index"`
@@ -43,11 +52,11 @@ type Team struct {
 // TeamMember relaciona um participante (user.User) a uma equipe (Team).
 // O tamanho da equipe é limitado a MaxTeamSize membros.
 type TeamMember struct {
-	TeamID    uint      `gorm:"primaryKey;not null" json:"team_id"`
-	UserNumber uint     `gorm:"primaryKey;not null" json:"user_number"` // referencia user.User.UserNumber
-	JoinedAt  time.Time `json:"joined_at"`
+	TeamID     uint      `gorm:"primaryKey;not null" json:"team_id"`
+	UserNumber uint      `gorm:"primaryKey;not null" json:"user_number"` // referencia user.User.UserNumber
+	JoinedAt   time.Time `json:"joined_at"`
 
-	User *User `gorm:"foreignKey:UserNumber;references:UserNumber;constraint:OnDelete:CASCADE" json:"user,omitempty"`
+	User *user.User `gorm:"foreignKey:UserNumber;references:UserNumber;constraint:OnDelete:CASCADE" json:"user,omitempty"`
 }
 
 // --- Erros de domínio ---
@@ -66,9 +75,17 @@ type CreateRiddleRequest struct {
 	ImageURL string `json:"image_url"`
 }
 
+type UpdateRiddleRequest struct {
+	Hint1    string `json:"hint_1" binding:"required"`
+	Hint2    string `json:"hint_2" binding:"required"`
+	Answer   string `json:"answer" binding:"required"`
+	ImageURL string `json:"image_url"`
+	IsActive bool   `json:"is_active"`
+}
+
 type CreateTeamRequest struct {
-	Name    string   `json:"name" binding:"required,max=200"`
-	Members []uint   `json:"members" binding:"required,min=1,max=5"` // user_numbers dos participantes
+	Name    string `json:"name" binding:"required,max=200"`
+	Members []uint `json:"members" binding:"required,min=1,max=5"` // user_numbers dos participantes
 }
 
 type SolveRiddleRequest struct {
