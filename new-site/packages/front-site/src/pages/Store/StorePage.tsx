@@ -1340,7 +1340,7 @@ export default function StorePage() {
                         </button>
                       </div>
                       <p className={`text-xs ${mutedText}`}>
-                        Cada combo inclui a quantidade fixa de camisetas + coffee.
+                        Cada combo inclui a quantidade fixa de coffee e, se cabível ao item, uma camiseta.
                       </p>
                     </div>
                   </div>
