@@ -3,34 +3,24 @@ import QRCode from "react-qr-code";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/AuthContext";
-<<<<<<< HEAD
 import { authAPI, absenceJustificationsAPI, papfeAPI } from "@/api";
-import { ChevronDown, Eye } from "lucide-react";
-import { useNotification } from "@/contexts/NotificationContext";
-import type { EventType } from "@/types/EventType"
-import type { UserType } from "@/types/UserType"
-import type { PapfeDocumentType } from "@/types/PapfeDocumentType"
-import { papfeStatusOf } from "@/types/PapfeDocumentType"
-import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate"
-import { useNavigate } from "react-router-dom";
-import JustifyAbsenceModal, { JustifyAbsenceStatusBadge } from "@/components/JustifyAbsenceModal";
-import type { JustifyAbsenceStatus } from "@/components/JustifyAbsenceModal";
-import { PapfeStatusBadge } from "@/components/PapfeStatusBadge";
-import RejectionReasonModal from "@/components/RejectionReasonModal";
-=======
-import { authAPI } from "@/api";
 import { salesAPI } from "@/api/sales";
 import type { SaleResponse } from "@/api/sales";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Eye } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 import { isPendingSale } from "@/lib/pendingSale";
 import type { EventType } from "@/types/EventType";
 import type { UserType } from "@/types/UserType";
+import type { PapfeDocumentType } from "@/types/PapfeDocumentType";
+import { papfeStatusOf } from "@/types/PapfeDocumentType";
 import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate";
 import { useNavigate } from "react-router-dom";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
->>>>>>> dev
+import JustifyAbsenceModal, { JustifyAbsenceStatusBadge } from "@/components/JustifyAbsenceModal";
+import type { JustifyAbsenceStatus } from "@/components/JustifyAbsenceModal";
+import { PapfeStatusBadge } from "@/components/PapfeStatusBadge";
+import RejectionReasonModal from "@/components/RejectionReasonModal";
 
 type EditableProfile = {
   name: string;
@@ -44,7 +34,6 @@ type Evento = EventType & {
   linkInscricao?: string;
 };
 
-<<<<<<< HEAD
 function StatusEyeButton({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -59,9 +48,6 @@ function StatusEyeButton({ onClick }: { onClick: () => void }) {
 }
 
 
-const events: Evento[] = [
-];
-=======
 const events: Evento[] = [];
 
 export interface PurchaseType {
@@ -152,7 +138,6 @@ const EventCardMobile = memo(({ ev, onShowNotification }: { ev: Evento; onShowNo
   );
 });
 
->>>>>>> dev
 interface ProfileProps extends Partial<UserType> {
   event?: string;
   purchases?: PurchaseType[];
@@ -175,30 +160,25 @@ export default function Profile({
   const [userEmail, setUserEmail] = useState(email);
   const [userCode, setUserCode] = useState<number>(user_number);
   const [presencePercent, setPresencePercent] = useState<number>(presence_rate);
-<<<<<<< HEAD
-  const [openSubscription, setOpenSubscription] = useState<number>(-1)
-  const [justifyOpen, setJustifyOpen] = useState(false)
-  const [justificationStatus, setJustificationStatus] = useState<JustifyAbsenceStatus | null>(null)
-  const [absenceRejectionReason, setAbsenceRejectionReason] = useState("")
-  const [hasPapfe, setHasPapfe] = useState(false)
-  const [papfeDoc, setPapfeDoc] = useState<PapfeDocumentType | null>(null)
-  const [reasonModal, setReasonModal] = useState<"papfe" | "absence" | null>(null)
-
-  // Justificativas "Aprovado" ou "Negado" são finais e não podem ser editadas.
-  const justificationLocked =
-    justificationStatus === "aprovado" || justificationStatus === "negado";
-=======
-  const [userPurchases, setUserPurchases] = useState<PurchaseType[]>(purchases);
   const [openSubscription, setOpenSubscription] = useState<number>(-1);
+  const [justifyOpen, setJustifyOpen] = useState(false);
+  const [justificationStatus, setJustificationStatus] = useState<JustifyAbsenceStatus | null>(null);
+  const [absenceRejectionReason, setAbsenceRejectionReason] = useState("");
+  const [hasPapfe, setHasPapfe] = useState(false);
+  const [papfeDoc, setPapfeDoc] = useState<PapfeDocumentType | null>(null);
+  const [reasonModal, setReasonModal] = useState<"papfe" | "absence" | null>(null);
+  const [userPurchases, setUserPurchases] = useState<PurchaseType[]>(purchases);
   const [userCity, setUserCity] = useState("");
   const [userProfession, setUserProfession] = useState("");
   const [userLinkedin, setUserLinkedin] = useState("");
   const [userTelegram, setUserTelegram] = useState("");
-
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editForm, setEditForm] = useState<EditableProfile>({ name: "", city: "", profession: "", linkedin: "", telegram: "" });
->>>>>>> dev
+
+  // Justificativas "Aprovado" ou "Negado" são finais e não podem ser editadas.
+  const justificationLocked =
+    justificationStatus === "aprovado" || justificationStatus === "negado";
 
   const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -231,8 +211,11 @@ export default function Profile({
         setUserEmail(response.email || email);
         setUserCode(response.user_number || 0);
         setPresencePercent(response.presence_rate ?? 0);
-<<<<<<< HEAD
         setHasPapfe(response.hasPapfe ?? false);
+        setUserCity(response.city ?? "");
+        setUserProfession(response.profession ?? "");
+        setUserLinkedin(response.linkedin ?? "");
+        setUserTelegram(response.telegram ?? "");
 
         const mine = await absenceJustificationsAPI.getMine();
         if (mine) {
@@ -247,12 +230,6 @@ export default function Profile({
         } else {
           setPapfeDoc(null);
         }
-=======
-        setUserCity(response.city ?? "");
-        setUserProfession(response.profession ?? "");
-        setUserLinkedin(response.linkedin ?? "");
-        setUserTelegram(response.telegram ?? "");
->>>>>>> dev
       } catch (err) {
         if (controller.signal.aborted) return;
         console.error("Erro ao buscar o perfil", err);
@@ -438,10 +415,6 @@ export default function Profile({
                   </div>
                 )}
 
-                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
-                  onClick={() => showNotification("Entre em contato com a organização", "info")}>
-                  Editar Informações
-                </button>
                 <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={justificationLocked}
                   onClick={() => setJustifyOpen(true)}>
@@ -497,8 +470,6 @@ export default function Profile({
                   </div>
                 </div>
 
-<<<<<<< HEAD
-=======
                 {isEditing ? (
                   <div className="flex gap-3 mb-4">
                     <button
@@ -524,7 +495,6 @@ export default function Profile({
                     Editar Informações
                   </button>
                 )}
->>>>>>> dev
                 <button className="w-full text-red-700 font-bold text-sm py-2" onClick={logout}>
                   Sair da conta
                 </button>
@@ -603,8 +573,9 @@ export default function Profile({
           </div>
         </div>
 
-<<<<<<< HEAD
-        <ContatoSection />
+        <div className="bg-semcompOffWhite dark:bg-semcompDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite transition-colors duration-300">
+          <ContatoSection />
+        </div>
         <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
         <RejectionReasonModal
           open={reasonModal === "absence"}
@@ -622,11 +593,6 @@ export default function Profile({
           statusBadge={<PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />}
           rejectionReason={papfeDoc?.rejection_reason ?? ""}
         />
-=======
-        <div className="bg-semcompOffWhite dark:bg-semcompDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite transition-colors duration-300">
-          <ContatoSection />
-        </div>
->>>>>>> dev
       </div>
     );
   }
@@ -746,14 +712,6 @@ export default function Profile({
             </div>
           )}
 
-<<<<<<< HEAD
-          <button
-            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
-            onClick={() => showNotification("Entre em contato com a organização", "info")}
-          >
-            Editar Informações
-          </button>
-=======
           {isEditing ? (
             <div className="flex gap-2 mb-8">
               <button
@@ -779,7 +737,6 @@ export default function Profile({
               Editar Informações
             </button>
           )}
->>>>>>> dev
 
           <button
             onClick={() => setJustifyOpen(true)}
@@ -981,9 +938,9 @@ export default function Profile({
             </div>
           </div>
         </div>
-<<<<<<< HEAD
-
-        <ContatoSection />
+        <div className="bg-semcompOffWhite dark:bg-semcompDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite transition-colors duration-300">
+          <ContatoSection />
+        </div>
         <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
         <RejectionReasonModal
           open={reasonModal === "absence"}
@@ -1001,11 +958,6 @@ export default function Profile({
           statusBadge={<PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />}
           rejectionReason={papfeDoc?.rejection_reason ?? ""}
         />
-=======
-        <div className="bg-semcompOffWhite dark:bg-semcompDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite transition-colors duration-300">
-          <ContatoSection />
-        </div>
->>>>>>> dev
       </div>
     );
   }
