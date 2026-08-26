@@ -59,8 +59,9 @@ const getDayOption = (day: number): DayOption => dayOptions[day - EVENT_DAYS_STA
 const processEvents = (events: EventType[]): EventWithColumn[][] => {
   if (!events || events.length === 0) return [];
 
-  const sorted = [...events].sort((a, b) =>
-    new Date(a.dateInit).getTime() - new Date(b.dateInit).getTime()
+  const sorted = [...events].sort(
+    (a, b) =>
+      new Date(a.dateInit).getTime() - new Date(b.dateInit).getTime()
   );
 
   const groups: EventType[][] = [];
@@ -83,26 +84,13 @@ const processEvents = (events: EventType[]): EventWithColumn[][] => {
   if (currentGroup.length > 0) groups.push(currentGroup);
 
   return groups.map((group) => {
-    if (group.length === 1) return [{ ...group[0], column: "full" }];
-
-    if (group.length === 2) {
-      return [
-        { ...group[0], column: "left" },
-        { ...group[1], column: "right" }
-      ];
+    if (group.length === 1) {
+      return [{ ...group[0], column: "full" }];
     }
 
-    const specialEvent = group.reduce((prev, curr) => {
-      const prevDuration = new Date(prev.dateEnd).getTime() - new Date(prev.dateInit).getTime();
-      const currDuration = new Date(curr.dateEnd).getTime() - new Date(curr.dateInit).getTime();
-      if (currDuration > prevDuration) return curr;
-      if (currDuration === prevDuration && new Date(curr.dateInit).getTime() < new Date(prev.dateInit).getTime()) return curr;
-      return prev;
-    });
-
-    return group.map((evento) => ({
-      ...evento,
-      column: evento === specialEvent ? "right" : "left"
+    return group.map((event, index) => ({
+      ...event,
+      column: ((index % 3) + 1) as 1 | 2 | 3,
     }));
   });
 };
@@ -441,15 +429,16 @@ export default function CronogramaPage(): ReactElement {
             </div>
           ) : (
             processedEventGroups.map((grupo, rowIndex) => {
-              const left = grupo.filter((e) => e.column === "left");
-              const right = grupo.filter((e) => e.column === "right");
+              const column1 = grupo.filter((e) => e.column === 1);
+              const column2 = grupo.filter((e) => e.column === 2);
+              const column3 = grupo.filter((e) => e.column === 3);
               const full = grupo.filter((e) => e.column === "full");
 
               return (
-                <div key={`group-${rowIndex}`} className="grid gap-3 md:grid-cols-2">
+                <div key={`group-${rowIndex}`} className="grid gap-3 md:grid-cols-3">
                   {full.length > 0 ? (
                     full.map((evento) => (
-                      <div key={evento.name} className="col-span-2">
+                      <div key={evento.name} className="col-span-3">
                         <EventButton
                           evento={evento}
                           onClick={handleSelectEvent}
@@ -461,7 +450,7 @@ export default function CronogramaPage(): ReactElement {
                   ) : (
                     <>
                       <div className="flex flex-col gap-3 h-full">
-                        {left.map((evento) => (
+                        {column1.map((evento) => (
                           <div key={evento.name} className="flex-1">
                             <EventButton
                               evento={evento}
@@ -474,7 +463,20 @@ export default function CronogramaPage(): ReactElement {
                       </div>
 
                       <div className="flex flex-col gap-3 h-full">
-                        {right.map((evento) => (
+                        {column2.map((evento) => (
+                          <div key={evento.name} className="flex-1">
+                            <EventButton
+                              evento={evento}
+                              onClick={handleSelectEvent}
+                              cardClasses={cardClasses}
+                              captionClasses={captionClasses}
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex flex-col gap-3 h-full">
+                        {column3.map((evento) => (
                           <div key={evento.name} className="flex-1">
                             <EventButton
                               evento={evento}
