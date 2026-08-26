@@ -15,6 +15,178 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/absence-justifications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna todas as justificativas de ausência cadastradas",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Lista justificativas de ausência",
+                "responses": {
+                    "200": {
+                        "description": "Lista de justificativas de ausência",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/absence-justifications/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Aprova, rejeita, marca como documento inválido ou volta para análise uma justificativa de ausência. Ao negar, o campo rejection_reason é obrigatório e só persiste nesse status.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Atualiza o status de uma justificativa de ausência",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da justificativa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Novo status",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/absenceJustification.UpdateStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status atualizado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Justificativa não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/absence-justifications/{id}/attachment": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna o arquivo comprobatório de uma justificativa de ausência específica",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Obtém o anexo de uma justificativa de ausência",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da justificativa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Arquivo anexo",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Justificativa não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/admin/events": {
             "post": {
                 "security": [
@@ -283,6 +455,41 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/papfe-documents": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna metadados de todos os comprovantes PAPFE cadastrados",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Lista comprovantes PAPFE",
+                "responses": {
+                    "200": {
+                        "description": "Lista de comprovantes PAPFE",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "500": {
@@ -1446,6 +1653,217 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/sponsors": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Lista todos os patrocinadores (admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Cria patrocinador (admin)",
+                "responses": {}
+            }
+        },
+        "/admin/sponsors/{cnpj}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Busca patrocinador por CNPJ (admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/sponsor.Sponsor"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Atualiza patrocinador (admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Remove patrocinador (admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/admin/sponsors/{cnpj}/packages": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Lista pacotes de patrocinador (admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filtrar por ano",
+                        "name": "year",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Adiciona pacote de patrocinador (admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/admin/sponsors/{cnpj}/packages/{year}/{package}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Remove pacote de patrocinador (admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Ano do pacote",
+                        "name": "year",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nome do pacote",
+                        "name": "package",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/admin/users": {
             "get": {
                 "security": [
@@ -1719,6 +2137,143 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Usuário não existe",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/users/{id}/papfe-document": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna o arquivo do comprovante PAPFE de um usuário específico",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Obtém comprovante PAPFE de um usuário",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do usuário",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Arquivo do comprovante PAPFE",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário ou comprovante não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/users/{id}/papfe-document/approval": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Altera o status de aprovação do comprovante PAPFE de um usuário. Ao rejeitar, o campo rejection_reason é obrigatório e só persiste nesse status.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Aprova/rejeita comprovante PAPFE",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do usuário",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Status de aprovação",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.PapfeApprovalRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status de aprovação atualizado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário ou comprovante não encontrado",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2031,6 +2586,388 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Usuário não existe ou erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/absence-justifications": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Registra a justificativa de ausência (referente à SEMCOMP como um todo) do usuário autenticado, com anexo comprobatório. Cada usuário só pode ter uma justificativa.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Envia a justificativa de ausência do usuário autenticado",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Motivo da ausência",
+                        "name": "reason",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Comprovante (PDF/JPEG/PNG/WebP, máx 10MB)",
+                        "name": "attachment",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Justificativa enviada com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Justificativa já enviada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/absence-justifications/mine": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna a justificativa de ausência enviada pelo usuário autenticado, se houver",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Obtém a justificativa de ausência do usuário autenticado",
+                "responses": {
+                    "200": {
+                        "description": "Justificativa do usuário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhuma justificativa enviada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/absence-justifications/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Edita o motivo e, opcionalmente, substitui o anexo da justificativa do usuário autenticado. Permitido apenas quando o status for \"em_analise\" ou \"documento_invalido\"; editar reenvia a justificativa para análise.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Atualiza a justificativa de ausência do usuário autenticado",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da justificativa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Motivo da ausência",
+                        "name": "reason",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Novo comprovante (opcional, substitui o anterior)",
+                        "name": "attachment",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Justificativa atualizada com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Justificativa não pertence ao usuário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Justificativa não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Justificativa já aprovada ou negada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/absence-justifications/{id}/attachment": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna o arquivo comprobatório da justificativa do usuário autenticado",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Obtém o anexo da própria justificativa de ausência",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da justificativa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Arquivo anexo",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Justificativa não pertence ao usuário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Justificativa não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/papfe-document": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna os metadados do comprovante PAPFE do usuário autenticado (sem os bytes do arquivo), incluindo o motivo da rejeição quando houver",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Obtém o próprio comprovante PAPFE",
+                "responses": {
+                    "200": {
+                        "description": "Comprovante PAPFE do usuário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhum comprovante enviado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Atualiza o comprovante PAPFE do usuário autenticado. Aceita multipart/form-data.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Atualiza comprovante PAPFE",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Comprovante PAPFE (PDF/JPEG/PNG/WebP, máx 10MB)",
+                        "name": "papfe_document",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comprovante PAPFE atualizado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2485,6 +3422,82 @@ const docTemplate = `{
                 }
             }
         },
+        "/sponsors": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sponsors"
+                ],
+                "summary": "Lista patrocinadores públicos",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/sponsor.PublicSponsor"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sponsors/{cnpj}/click": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sponsors"
+                ],
+                "summary": "Registra clique em patrocinador",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador (14 dígitos)",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/stats": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stats"
+                ],
+                "summary": "Retorna estatísticas do site",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer",
+                                "format": "int64"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/verify-email": {
             "post": {
                 "description": "Valida o token de verificação enviado por e-mail e ativa a conta",
@@ -2539,9 +3552,43 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/visit": {
+            "post": {
+                "tags": [
+                    "Stats"
+                ],
+                "summary": "Registra visita à home page",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "absenceJustification.UpdateStatusRequest": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "rejection_reason": {
+                    "description": "Obrigatório quando Status=\"negado\"; ignorado/limpo nos demais status.",
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "em_analise",
+                        "aprovado",
+                        "negado",
+                        "documento_invalido"
+                    ]
+                }
+            }
+        },
         "auth.LoginUserRequest": {
             "type": "object",
             "required": [
@@ -3024,6 +4071,78 @@ const docTemplate = `{
                             "$ref": "#/definitions/product.ProductType"
                         }
                     ]
+                }
+            }
+        },
+        "sponsor.PublicSponsor": {
+            "type": "object",
+            "properties": {
+                "cnpj": {
+                    "type": "string"
+                },
+                "logo": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "website": {
+                    "type": "string"
+                }
+            }
+        },
+        "sponsor.Sponsor": {
+            "type": "object",
+            "properties": {
+                "clicks": {
+                    "type": "integer"
+                },
+                "cnpj": {
+                    "type": "string"
+                },
+                "logo": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "packages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sponsor.SponsorPackage"
+                    }
+                },
+                "website": {
+                    "type": "string"
+                }
+            }
+        },
+        "sponsor.SponsorPackage": {
+            "type": "object",
+            "properties": {
+                "package": {
+                    "type": "string"
+                },
+                "sponsor_cnpj": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "user.PapfeApprovalRequest": {
+            "type": "object",
+            "required": [
+                "approved"
+            ],
+            "properties": {
+                "approved": {
+                    "type": "boolean"
+                },
+                "rejection_reason": {
+                    "description": "Obrigatório quando Approved=false (rejeição).",
+                    "type": "string"
                 }
             }
         },

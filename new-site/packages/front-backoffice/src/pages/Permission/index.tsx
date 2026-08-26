@@ -24,6 +24,7 @@ const SECTIONS: { key: string; label: string }[] = [
   { key: "Patrocinadores",       label: "Patrocinadores" },
   { key: "Vendas",       label: "Vendas" },
   { key: "PAPFE",       label: "PAPFE" },
+  { key: "Justificativas de Ausência",  label: "Justificativas de Ausência" },
   { key: "Produtos",       label: "Produtos" }
 ];
 

@@ -457,6 +457,21 @@ export function CrudTable({
       );
     }
 
+    // Para campos de texto longos, trunca com reticências em vez de quebrar
+    // linha — quebrar em uma tabela com layout automático faz a coluna
+    // colapsar e as letras empilharem verticalmente. Texto completo fica
+    // disponível ao abrir a ação de visualizar/editar da linha.
+    if (field.type === "text" && val.length > 30) {
+      return (
+        <span
+          className="block max-w-xs min-w-40 truncate text-foreground"
+          title={val}
+        >
+          {val}
+        </span>
+      );
+    }
+
     if (field.type === "select" && field.selectVariants) {
       const cls =
         field.selectVariants[val] ?? "bg-muted/50 text-foreground";

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"backend/internal/absenceJustification"
 	"backend/internal/auth"
 	"backend/internal/authBackoffice"
 	"backend/internal/database"
@@ -59,7 +60,9 @@ func main() {
 		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{},
 		&token.Token{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{},
 		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{}, &sales.ConsumedItem{},
+		&absenceJustification.AbsenceJustification{},
 	)
+
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -129,6 +132,10 @@ func main() {
 	presenceRepo := presence.NewPresenceRepository(db)
 	presenceService := presence.NewPresenceService(presenceRepo)
 	presenceHandler := presence.NewPresenceHandler(presenceService)
+
+	absenceJustificationRepo := absenceJustification.NewAbsenceJustificationRepository(db)
+	absenceJustificationService := absenceJustification.NewAbsenceJustificationService(absenceJustificationRepo)
+	absenceJustificationHandler := absenceJustification.NewAbsenceJustificationHandler(absenceJustificationService)
 
 	productRepo := product.NewProductRepository(db)
 	productService := product.NewProductService(productRepo)
@@ -207,7 +214,7 @@ func main() {
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:5174", "https://semcomp.icmc.usp.br"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 		ExposeHeaders:    []string{"Content-Length"},
@@ -255,6 +262,11 @@ func main() {
 	authRoutes.PUT("/profile", userHandler.UpdateProfile)
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 	authRoutes.PUT("/papfe-document", userHandler.UpdatePapfeDocument)
+	authRoutes.GET("/papfe-document", userHandler.GetMyPapfeDocument)
+	authRoutes.POST("/absence-justifications", absenceJustificationHandler.CreateAbsenceJustification)
+	authRoutes.GET("/absence-justifications/mine", absenceJustificationHandler.GetMine)
+	authRoutes.GET("/absence-justifications/:id/attachment", absenceJustificationHandler.GetOwnAttachment)
+	authRoutes.PATCH("/absence-justifications/:id", absenceJustificationHandler.UpdateMine)
 
 	// Produtos (requer autenticação para exibir desconto PAPFE)
 	authRoutes.GET("/products", pageMW("loja"), productHandler.GetProducts)
@@ -302,6 +314,11 @@ func main() {
 	admin.POST("/presences", permMW("Participações", permission.PermRW), presenceHandler.CreatePresence)
 	admin.PUT("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermRW), presenceHandler.UpdatePresenceByUserEventandInitDate)
 	admin.DELETE("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermRW), presenceHandler.DeletePresenceByUserEventandInitDate)
+
+	// Justificativas de Ausência
+	admin.GET("/absence-justifications", permMW("Justificativas de Ausência", permission.PermR), absenceJustificationHandler.GetAbsenceJustifications)
+	admin.GET("/absence-justifications/:id/attachment", permMW("Justificativas de Ausência", permission.PermR), absenceJustificationHandler.GetAttachment)
+	admin.PATCH("/absence-justifications/:id", permMW("Justificativas de Ausência", permission.PermRW), absenceJustificationHandler.UpdateStatus)
 
 	// Usuários Backoffice
 	admin.GET("/usersBackoffice", permMW("Usuários Backoffice", permission.PermR), userBackofficeHandler.GetAllUsers)
