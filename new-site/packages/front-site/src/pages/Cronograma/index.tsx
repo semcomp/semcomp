@@ -280,7 +280,7 @@ export default function CronogramaPage(): ReactElement {
 
   const cardClasses = "border-semcompLightBlue bg-white/70 hover:bg-white dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 dark:hover:bg-semcompAlmostDarkBlue";
   const captionClasses = "text-semcompMidDarkBlue/85 dark:text-semcompLightBlue/90";
-  const gradientColor = isDarkMode ? "#002D5E" : "#004F7C";
+  const gradientColor = isDarkMode ? "#0B2639" : "#FAFDFF";
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -349,13 +349,7 @@ export default function CronogramaPage(): ReactElement {
     <section className="relative min-h-[calc(100vh-70px)] w-full overflow-x-hidden font-poppins isolate text-semcompDarkBlue dark:text-semcompOffWhite">
 
       <div
-        className="fixed inset-0 z-0 bg-cover bg-center bg-semcompOffWhite dark:bg-semcompDarkBlue"
-        style={{
-          backgroundImage: `
-            linear-gradient(to top, ${gradientColor} 10%, ${gradientColor}00 100%),
-            url('/img/backgrounds/schedule.jpg')
-          `,
-        }}
+        className="fixed inset-0 z-0 bg-cover bg-center bg-semcompMidLightBlue dark:bg-semcompDarkBlue"
       />
 
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
@@ -364,18 +358,27 @@ export default function CronogramaPage(): ReactElement {
       </div>
 
       <div className="relative z-10 mx-auto max-w-5xl px-4 py-10 md:px-6 md:py-14">
-        <header className="mb-8 md:mb-10">
+        <header className="">
           <h1 className="animate-slide font-poppins-bold text-3xl text-white animation-duration-[900ms] [animation-timing-function:cubic-bezier(0.22,1,0.36,1)] md:text-4xl">
             Cronograma
           </h1>
           <p className="animate-slide [animation-delay:120ms] animation-duration-[900ms] fill-mode-[both] mt-2 text-sm text-white md:text-base">
             Programação completa da SEMCOMP.
           </p>
+          <div 
+              className="w-full h-30 rounded-t-lg mt-4 border border-b-0"
+              style={{
+                backgroundImage: `
+                  linear-gradient(to top, ${gradientColor} 5%, ${gradientColor}00 100%),
+                  url('/img/backgrounds/schedule.jpg')
+                `,
+              }}>
+          </div>
         </header>
 
         <nav
           aria-label="Dias do cronograma"
-          className="mb-8 flex items-center justify-center gap-2 sm:gap-4"
+          className="mb-3 flex items-center justify-center gap-2 sm:gap-4 bg-semcompDarkBlue border border-t-0 rounded-b-[4px] py-3 px-5"
         >
           <button
             type="button"
@@ -398,7 +401,7 @@ export default function CronogramaPage(): ReactElement {
             </svg>
           </button>
 
-          <div className="grid w-full min-w-0 max-w-sm grid-cols-[1fr_1.3fr_1fr] items-stretch gap-2 sm:max-w-md sm:gap-3">
+          <div className="grid w-full min-w-0 max-w-sm grid-cols-[1fr_1.3fr_1fr] items-stretch gap-2 sm:max-w-md sm:gap-3 md:hidden">
             {prevOption ? (
               <DayPill option={prevOption} active={false} variant="side" onSelect={handleSelectDay} />
             ) : (
@@ -412,6 +415,18 @@ export default function CronogramaPage(): ReactElement {
             ) : (
               <span aria-hidden="true" />
             )}
+          </div>
+
+          <div className="hidden w-full grid-cols-7 gap-3 md:grid">
+            {dayOptions.map((option) => (
+              <DayPill
+                key={option.day}
+                option={option}
+                active={option.day === selectedDay}
+                variant={option.day === selectedDay ? "center" : "side"}
+                onSelect={handleSelectDay}
+              />
+            ))}
           </div>
 
           <button
@@ -442,7 +457,13 @@ export default function CronogramaPage(): ReactElement {
           captionClasses={captionClasses}
         />
 
-        <div className="space-y-3">
+        <div className="space-y-3 h-[calc(100vh-500px)] p-5 rounded-lg" 
+          style={{
+                backgroundImage: `
+                  linear-gradient(to top, ${gradientColor}00 10%, rgba(0, 0, 0, 0.1) 100%)
+                `,
+              }}
+        >
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <p className="text-white/70">Carregando eventos...</p>
