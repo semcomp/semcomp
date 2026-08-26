@@ -445,8 +445,14 @@ export function CrudTable({
         <span className="text-foreground">
           {isNaN(parsedDate.getTime())
             ? val
-<<<<<<< HEAD
-            : new Date(val).toISOString().slice(0, 16).replace("T", " ")}
+            : parsedDate.toLocaleString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })}
         </span>
       );
     }
@@ -462,16 +468,6 @@ export function CrudTable({
           title={val}
         >
           {val}
-=======
-            : parsedDate.toLocaleString("pt-BR", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-              })}
->>>>>>> dev
         </span>
       );
     }
@@ -486,15 +482,6 @@ export function CrudTable({
       );
     }
 
-<<<<<<< HEAD
-    // Se o texto for muito longo, trunca com reticências em vez de quebrar
-    // linha — quebrar em uma tabela com layout automático faz a coluna
-    // colapsar e as letras empilharem verticalmente. Texto completo fica
-    // disponível ao abrir a ação de visualizar/editar da linha.
-    if (typeof val === "string" && val.length > 40) {
-      return (
-        <span className="block max-w-xs min-w-40 truncate text-foreground" title={val}>
-=======
     if (field.type === "textarea") {
       if (!val || val === "—") return <span className="text-muted-foreground">—</span>;
       // O expandir/recolher é controlado pela linha (TableRow onClick).
@@ -542,7 +529,6 @@ export function CrudTable({
           className={`text-foreground whitespace-normal break-words max-w-2xs ${expanded ? "block" : "line-clamp-2"}`}
           title={val}
         >
->>>>>>> dev
           {val}
         </span>
       );
