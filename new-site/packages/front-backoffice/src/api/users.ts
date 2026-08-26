@@ -15,6 +15,8 @@ type SafeSemcompUser = {
   profession?: string;
   linkedin?: string;
   telegram?: string;
+  quer_cracha?: boolean;
+  autoriza_compartilhamento?: boolean;
 };
 
 export type PapfeDocumentInfo = {
@@ -57,6 +59,8 @@ const mapBackendUser = (user: SafeSemcompUser): SemcompUserType => {
     profession: user.profession,
     linkedin: user.linkedin,
     telegram: user.telegram,
+    quer_cracha: user.quer_cracha ?? false,
+    autoriza_compartilhamento: user.autoriza_compartilhamento ?? false,
   };
 };
 
@@ -148,6 +152,7 @@ export const userSemcompAPI = {
 
     // Campos Opcionais / Booleanos
     formData.append("hasPapfe", String(Boolean(data.hasPapfe)));
+    formData.append("quer_cracha", String(Boolean(data.quer_cracha)));
 
     if (data.profession) formData.append("profession", data.profession);
     if (data.linkedin) formData.append("linkedin", data.linkedin);
@@ -206,6 +211,7 @@ export const userSemcompAPI = {
       profession: data.profession,
       linkedin: data.linkedin,
       telegram: data.telegram,
+      quer_cracha: data.quer_cracha,
     };
 
     const response = await client.put<{ message: string }>(

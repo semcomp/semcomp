@@ -63,7 +63,7 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 ### permission
 - Rotas backoffice: `GET /admin/permissions`, `GET /admin/permissions/me`, `GET /admin/permissions/section/:section`, `POST /admin/permissions`, `PUT/DELETE /admin/permissions/:user/:section`
 - `GetMyPermissions` — email lido do JWT, sem URL param
-- `InitializePermissions()` — concede `RW` em todas as 7 seções ao admin padrão
+- `InitializePermissions()` — concede `RW` em todas as 9 seções ao admin padrão
 - → Detalhes: [[Feature_Controle_Backend]]
 
 ### product
@@ -72,11 +72,23 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - Hierarquia: `Product` base + especialização `Kit` / `Coffee` / `ComboItem`
 - `InitializeProducts()` — seeds na startup
 - Deleção bloqueada se produto é item de combo (409)
+- Kit usa `IsBabylook` (não `IsBabydoll`); migração dropa a coluna órfã `kits.is_babydoll` na startup
 
-### payment
-- Rotas públicas: `POST /webhook/mercadopago`
-- Rotas protegidas (`/api`): `GET /api/payments`, `POST /api/payments/pix`, `GET /api/payments/:id/status`
-- Integração Mercado Pago: cria PIX (QR code + copia-e-cola), recebe webhook para atualizar status
+### sales
+- Rotas site (`/api`, guard `AuthMiddleware` + `pageMW("loja")`):
+  - `POST /api/sales` (CreateSale), `GET /api/sales/profile` (GetMySales), `GET /api/sales/consumed` (GetConsumed), `GET /api/sales/:id` (GetSaleByID)
+  - Alias legado: `POST /api/payments/pix` → `CreateSale`, `GET /api/payments/:id/status` → `GetSaleStatus`
+- Rotas backoffice (`/admin`, seção `"Vendas"`): `GET /admin/sales` (PermR), `PUT/DELETE /admin/sales/:id` (PermRW), `PATCH /admin/sales/items/:itemId/pickup` (PermRW)
+- Status da venda: `PENDENTE | PAGO | REJEITADO | CANCELADO | REEMBOLSADO | EXPIRADO` (check `status_chk`; `EXPIRADO` é persistido pelo sweeper)
+- **Compra única**: trava `consumed_items` (COFFEE/COMBO) na criação; fechamento via combos (`getUnavailableProductIDs`); sincroniza travas em toda mudança de status (webhook, update, delete)
+- → Detalhes: [[Feature_Loja_e_Pagamentos]]
+
+### payment (integrado ao sales)
+- Não existe mais o pacote `internal/payment` — a integração Mercado Pago (PIX) vive em `internal/sales`; a venda carrega os campos `MercadoPagoID`/`QRCode`/`PixExpiration`.
+- Rotas legadas mantidas (apontam para `salesHandler`):
+  - `POST /api/payments/pix` → `CreateSale` (cria venda PENDENTE + cobrança PIX)
+  - `GET /api/payments/:id/status` → `GetSaleStatus`
+- Webhook público: `POST /webhook/mercadopago` → `salesHandler.Webhook`
 - → Detalhes: [[Feature_Loja_e_Pagamentos]]
 
 ### pages
@@ -117,14 +129,18 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 
 ## Sequência de Startup (main.go)
 
-1. Conecta DB + `AutoMigrate` (User, PapfeDocument, Event, Presence, UserBackoffice, AuditLog, Permission, Product, Kit, Coffee, ComboItem, Token, Payment)
-2. Grandfather de `email_verified = true` para usuários existentes (se coluna era nova)
-3. Instancia providers + repos + services + handlers
-4. `userBackofficeService.InitializeAdmin()`
-5. `permissionService.InitializePermissions()`
-6. `productService.InitializeProducts()`
-7. Registra rotas + CORS + `AuditMiddleware`
-8. `r.Run(":4000")`
+1. Conecta DB + `AutoMigrate` (inclui `Product`, `Kit`, `Coffee`, `ComboItem`, `Sale`, `SaleItem`, `ConsumedItem`, `Token`, `Sponsor`, `SiteStat`, …)
+2. Migrações manuais pós-AutoMigrate:
+   - dropa a coluna órfã `kits.is_babydoll` (modelo usa `is_babylook`)
+   - recria `sales.status_chk` aceitando `EXPIRADO` (AutoMigrate não altera CHECK existente)
+3. Grandfather de `email_verified = true` para usuários existentes (se coluna era nova)
+4. Instancia providers + repos + services + handlers
+5. `userBackofficeService.InitializeAdmin()`
+6. `permissionService.InitializePermissions()`
+7. `productService.InitializeProducts()`
+8. **Sweeper de expiração** (goroutine, ticker 1 min): `ExpirePendingPixSales()` persiste `EXPIRADO` (via `UPDATE ... RETURNING`) e, para cada venda expirada, `DeleteConsumedBySale` libera as travas de compra única
+9. Registra rotas + CORS + `AuditMiddleware`
+10. `r.Run(":4000")`
 
 → Rotas site: [[Integracao_API_Site]] | Rotas backoffice: [[Integracao_API_Backoffice]]  
 → Entidades core: [[Backend_Modelos_Core]] | Entidades loja: [[Backend_Modelos_Loja]]

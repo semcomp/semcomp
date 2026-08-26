@@ -366,7 +366,6 @@ export default function SponsorsCRUD() {
           onDelete={handleDelete}
           getItemKey={(item) => (item as Sponsor & { id: string }).id}
           entityLabel="patrocinador"
-          serverSide
           totalRecords={totalRecords}
           onQueryChange={handleQueryChange}
           canWrite={canWrite}

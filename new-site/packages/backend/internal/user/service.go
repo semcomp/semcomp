@@ -24,13 +24,13 @@ var (
 	ErrInternalServerError = errors.New("erro interno")
 )
 
-
 // UserService define as regras de negócio para operações relacionadas a usuários.
 type UserService interface {
 	CreateUser(request CreateUserRequest) (*SafeUser, error)
 	GetAllUsers(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*UserListResult, error)
 	GetUserByID(id uint) (*SafeUser, error)
 	UpdateUser(id uint, request UpdateUserRequest) error
+	UpdateProfile(email string, request UpdateProfileRequest) (*SafeUser, error)
 	DeleteUser(id uint) error
 	GetAllPapfeDocuments() ([]PapfeDocumentInfo, error)
 	GetPapfeDocument(email string) (*PapfeDocument, error)
@@ -115,7 +115,9 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 		Profession:    request.Profession,
 		Linkedin:      request.Linkedin,
 		Telegram:      request.Telegram,
-		PresenceRate:  0.0,
+		QuerCracha:               request.QuerCracha,
+		AutorizaCompartilhamento: request.AutorizaCompartilhamento,
+		PresenceRate:             0.0,
 		EmailVerified: false,
 	}
 
@@ -291,17 +293,17 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 
 	// Definição dos campos possíveis para ordenação
 	allowedSortFields := map[string]bool{
-		"user_number":  true,
-		"name":         true,
-		"email":        true,
-		"age":          true,
-		"gender":       true,
-		"city":         true,
-		"education":    true,
-		"has_papfe":    true,
-		"profession":   true,
-		"linkedin":     true,
-		"telegram":     true,
+		"user_number": true,
+		"name":        true,
+		"email":       true,
+		"age":         true,
+		"gender":      true,
+		"city":        true,
+		"education":   true,
+		"has_papfe":   true,
+		"profession":  true,
+		"linkedin":    true,
+		"telegram":    true,
 	}
 
 	if !allowedSortFields[sortBy] {
@@ -387,6 +389,27 @@ func (s *userService) GetUserByID(id uint) (*SafeUser, error) {
 	return &safe, nil
 }
 
+// UpdateProfile permite que o usuário autenticado atualize seus próprios dados não-críticos.
+func (s *userService) UpdateProfile(email string, request UpdateProfileRequest) (*SafeUser, error) {
+	user, err := s.repo.GetByEmail(email)
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao buscar usuário", err)
+	}
+
+	user.Name = request.Name
+	user.City = request.City
+	user.Profession = request.Profession
+	user.Linkedin = request.Linkedin
+	user.Telegram = request.Telegram
+
+	if err := s.repo.Update(user); err != nil {
+		return nil, apierrors.InternalServerError("Erro ao atualizar perfil", err)
+	}
+
+	safe := ToSafeUser(user)
+	return &safe, nil
+}
+
 // UpdateUser aplica regras de negócio de edição e atualiza um usuário existente.
 func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 	user, err := s.repo.GetByID(id)
@@ -405,6 +428,7 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 	user.Profession = request.Profession
 	user.Linkedin = request.Linkedin
 	user.Telegram = request.Telegram
+	user.QuerCracha = request.QuerCracha
 
 	return s.repo.Update(user)
 }

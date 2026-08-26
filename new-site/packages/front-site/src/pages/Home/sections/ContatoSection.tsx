@@ -61,7 +61,7 @@ const ContatoSection = ({ className }: ContatoSectionProps) => (
       />
     </div>
 
-    <div className="mt-10 text-center text-sm opacity-70">
+    <div className="mt-10 text-center mx-auto text-sm opacity-70">
       © {new Date().getFullYear()} SEMCOMP — ICMC USP — Feito com 🤍 por{" "}
       <a href="https://codelab.icmc.usp.br/" className="no-underline hover:underline text-[#488578] dark:text-[#5fccad]">
         USPCodelab Sanca

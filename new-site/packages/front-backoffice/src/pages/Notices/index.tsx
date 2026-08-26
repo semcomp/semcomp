@@ -168,7 +168,6 @@ export default function NoticesCRUD() {
           onDelete={handleDelete}
           onCreate={handleCreate}
           entityLabel="aviso"
-          serverSide
           totalRecords={totalRecords}
           onQueryChange={handleQueryChange}
           canWrite={canWrite}

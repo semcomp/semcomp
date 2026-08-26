@@ -36,12 +36,14 @@ import { useAuth } from "@/contexts/AuthContext";
 const SECTIONS: { key: string; label: string }[] = [
   { key: "Eventos", label: "Eventos" },
   { key: "Usuários Backoffice", label: "Usuários Backoffice" },
-  { key: "Usuários Semcomp", label: "Usuários Semcomp" },
-  { key: "Participações", label: "Participações" },
-  { key: "Permissões", label: "Permissões" },
-  { key: "Páginas", label: "Páginas" },
-  { key: "Patrocinadores", label: "Patrocinadores" },
-  { key: "PAPFE", label: "PAPFE" },
+  { key: "Usuários Semcomp",    label: "Usuários Semcomp" },
+  { key: "Participações",       label: "Participações" },
+  { key: "Permissões",          label: "Permissões" },
+  { key: "Páginas",             label: "Páginas" },
+  { key: "Patrocinadores",       label: "Patrocinadores" },
+  { key: "Vendas",       label: "Vendas" },
+  { key: "PAPFE",       label: "PAPFE" },
+  { key: "Produtos",       label: "Produtos" },
   { key: "Avisos", label: "Avisos" },
 ];
 

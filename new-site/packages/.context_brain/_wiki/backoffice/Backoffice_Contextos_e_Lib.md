@@ -55,7 +55,19 @@ Prop `canWrite?: boolean` (default `true`):
 | `pages/UserBackoffice/index.tsx` | `"Usuários Backoffice"` |
 | `pages/UserSemcomp/index.tsx` | `"Usuários Semcomp"` |
 | `pages/Participation/index.tsx` | `"Participações"` |
+| `pages/Products/index.tsx` | `"Produtos"` |
+| `pages/Sales/index.tsx` | `"Vendas"` |
 | `pages/Permission/index.tsx` | matrix customizada (não usa CrudTable) |
+
+### Expansão de linha (texto longo)
+CrudTable expande/recolhe **a linha inteira** ao clicar nela (não mais por célula):
+
+- `rowHasExpandableContent(item)`: a linha é clicável se tem `textarea` com mais de 120 chars **ou** texto com mais de 40 chars (campos `url` são excluídos — têm truncate próprio).
+- Estado: `expandedRows: Set<string>` chaveado por `resolveItemKey(item)`.
+- Colapsado: `line-clamp-2` + `max-w-2xs` (288px) + `whitespace-normal break-words`; expandido: vira `block` (sem clamp) para mostrar o texto completo.
+- **Cuidado com `max-w-xs`**: neste projeto compila para `--spacing-xs` = 6px (Tailwind v4.2.2) e empilha os caracteres — usar `max-w-2xs`.
+- `block` e `line-clamp-2` são mutuamente exclusivos (o `block` sobrescreve o `display:-webkit-box` exigido pelo clamp).
+- Botões de ação (`onAction`/Editar/Excluir) chamam `e.stopPropagation()` para não alternar a linha; linhas expandíveis ganham `cursor-pointer`.
 
 ---
 
@@ -71,10 +83,12 @@ Arquivo: `src/constants/Tabs.tsx`
 | `users-semcomp` | `"Usuários Semcomp"` | Usuários Semcomp | `/semcomp-users` |
 | `participation` | `"Participações"` | Participações | `/participation` |
 | `permissions` | `"Permissões"` | Permissões | `/permissions` |
+| `products` | `"Produtos"` | Produtos | `/products` |
 | `pages-availability` | `"Páginas"` | Páginas | `/pages-availability` |
+| `sponsors` | `"Patrocinadores"` | Patrocinadores | `/sponsors` |
+| `sales` | `"Vendas"` | Vendas | `/sales` |
 
-> `"Produtos"` existe no `KnownSections` do backend mas **não tem tab no backoffice** — sem UI de gerenciamento por enquanto.  
-> O campo `section` em Tabs **deve estar em sync** com `KnownSections` em `backend/internal/permission/model.go`.
+> O campo `section` em Tabs **deve estar em sync** com `KnownSections` em `backend/internal/permission/model.go` (9 seções: Eventos, Usuários Backoffice, Usuários Semcomp, Participações, Permissões, Produtos, Páginas, Patrocinadores, Vendas).
 
 ---
 
@@ -99,6 +113,9 @@ Arquivo: `src/api/index.ts`
 | `userSemcompAPI` | `api/users.ts` | CRUD `/admin/users` |
 | `permissionsAPI` | `api/permissions.ts` | `getAll`, `getMe`, `create`, `update`, `remove` |
 | `pagesAPI` | `api/pages.ts` | `getAll`, `setAvailability` |
+| `productsAPI` | `api/products.ts` | CRUD `/admin/products` + `createCombo`/`updateCombo`/`bulkCreate` |
+| `sponsorsAPI` | `api/sponsors.ts` | CRUD `/admin/sponsors` |
+| `salesAPI` | `api/sales.ts` | `GET /admin/sales`, `PUT/DELETE /admin/sales/:id`, `PATCH /admin/sales/items/:itemId/pickup` |
 | `client` | `api/client.ts` | instância Axios |
 
 > `userSemcompAPI` (não `usersAPI`) é o nome correto para CRUD de participantes.
