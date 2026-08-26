@@ -14,6 +14,7 @@ import (
 	"backend/internal/log"
 	"backend/internal/mailer"
 	"backend/internal/middleware"
+	"backend/internal/notice"
 	"backend/internal/pages"
 	"backend/internal/permission"
 	"backend/internal/presence"
@@ -60,7 +61,7 @@ func main() {
 		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{},
 		&token.Token{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{},
 		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{}, &sales.ConsumedItem{},
-		&absenceJustification.AbsenceJustification{},
+		&absenceJustification.AbsenceJustification{}, &notice.Notice{},
 	)
 
 	if err != nil {
@@ -140,6 +141,10 @@ func main() {
 	productRepo := product.NewProductRepository(db)
 	productService := product.NewProductService(productRepo)
 	productHandler := product.NewProductHandler(productService, papfeRepo)
+
+	noticeRepo := notice.NewNoticeRepository(db)
+	noticeService := notice.NewNoticeService(noticeRepo)
+	noticeHandler := notice.NewNoticeHandler(noticeService)
 
 	logRepo := log.NewRepository(db)
 	logService := log.NewService(logRepo)
@@ -340,6 +345,13 @@ func main() {
 	admin.PUT("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.UpdateSaleByID)
 	admin.DELETE("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.DeleteSaleByID)
 	admin.PATCH("/sales/items/:itemId/pickup", permMW("Vendas", permission.PermRW), salesHandler.UpdateItemPickup)
+
+	// Avisos
+	admin.GET("/notices", permMW("Avisos", permission.PermR), noticeHandler.GetNotices)
+	admin.GET("/notices/:id", permMW("Avisos", permission.PermR), noticeHandler.GetNoticeByID)
+	admin.POST("/notices", permMW("Avisos", permission.PermRW), noticeHandler.CreateNotice)
+	admin.PUT("/notices/:id", permMW("Avisos", permission.PermRW), noticeHandler.UpdateNoticeByID)
+	admin.DELETE("/notices/:id", permMW("Avisos", permission.PermRW), noticeHandler.DeleteNoticeByID)
 
 	// Permissões
 	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode

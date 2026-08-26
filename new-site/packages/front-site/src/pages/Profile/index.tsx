@@ -3,15 +3,16 @@ import QRCode from "react-qr-code";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/AuthContext";
-import { authAPI, absenceJustificationsAPI, papfeAPI } from "@/api";
+import { authAPI, absenceJustificationsAPI, papfeAPI, client } from "@/api";
 import { salesAPI } from "@/api/sales";
 import type { SaleResponse } from "@/api/sales";
-import { ChevronDown, Eye } from "lucide-react";
+import { ChevronDown, Megaphone, Eye } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 import { isPendingSale } from "@/lib/pendingSale";
 import type { EventType } from "@/types/EventType";
 import type { UserType } from "@/types/UserType";
+import type { NoticeType } from "@/types/NoticeType";
 import type { PapfeDocumentType } from "@/types/PapfeDocumentType";
 import { papfeStatusOf } from "@/types/PapfeDocumentType";
 import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate";
@@ -138,11 +139,21 @@ const EventCardMobile = memo(({ ev, onShowNotification }: { ev: Evento; onShowNo
   );
 });
 
+interface BackendNoticeResponse {
+  notices: Array<{
+    id: number;
+    title: string;
+    content: string;
+    date_time: string;
+  }>;
+  TotalRecords: number;
+  FilteredRecords: number;
+}
+
 interface ProfileProps extends Partial<UserType> {
   event?: string;
   purchases?: PurchaseType[];
 }
-
 
 export default function Profile({
   user_number = 0,
@@ -172,6 +183,8 @@ export default function Profile({
   const [userProfession, setUserProfession] = useState("");
   const [userLinkedin, setUserLinkedin] = useState("");
   const [userTelegram, setUserTelegram] = useState("");
+  const [notices, setNotices] = useState<NoticeType[]>([]);
+
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editForm, setEditForm] = useState<EditableProfile>({ name: "", city: "", profession: "", linkedin: "", telegram: "" });
@@ -240,13 +253,46 @@ export default function Profile({
 
       try {
         const sales = await salesAPI.getMySales();
+        if (controller.signal.aborted) return;
         setUserPurchases(sales.map(mapSaleToPurchase));
-        // Mesmo critério da página de destino (PENDENTE, com QR e não expirado).
         setPendingSalesCount(sales.filter(isPendingSale).length);
       } catch (err) {
+        if (controller.signal.aborted) return;
         console.error("Erro ao buscar as compras do usuário", err);
         setUserPurchases([]);
         setPendingSalesCount(0);
+      }
+
+      try {
+        const response = await client.get<BackendNoticeResponse>(
+          "/admin/notices",
+          {
+            params: {
+              page: 1,
+              limit: 10,
+              sort_by: "date_time",
+              sort_order: "desc",
+            },
+          }
+        );
+        if (controller.signal.aborted) return;
+        const formattedNotices: NoticeType[] = (
+          response.data.notices || []
+        ).map((notice) => ({
+          ...notice,
+          date: notice.date_time
+            ? new Date(notice.date_time).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "",
+        }));
+        setNotices(formattedNotices);
+      } catch (err) {
+        console.error("Erro ao buscar o mural de avisos", err);
       }
     }
 
@@ -353,7 +399,11 @@ export default function Profile({
                   <div className="absolute top-0 right-0 w-12 h-12 border-t-8 border-r-8 border-[#548EAB]" />
                   <div className="absolute bottom-0 left-0 w-12 h-12 border-b-8 border-l-8 border-[#548EAB]" />
                   <div className="bg-white p-2">
-                    <QRCode value={userCode.toString()} size={180} fgColor="#0B2639" />
+                    <QRCode
+                      value={userCode.toString()}
+                      size={180}
+                      fgColor="#0B2639"
+                    />
                   </div>
                 </div>
 
@@ -372,7 +422,9 @@ export default function Profile({
 
             {activeTab === "account" && (
               <div className="w-full flex flex-col animate-in fade-in duration-300">
-                <h2 className="text-2xl font-bold text-center mb-6">Minha Conta</h2>
+                <h2 className="text-2xl font-bold text-center mb-6">
+                  Minha Conta
+                </h2>
 
                 {isEditing ? (
                   <div className="flex flex-col space-y-3 mb-6">
@@ -450,16 +502,22 @@ export default function Profile({
                 )}
 
                 <div className="bg-white/50 rounded-xl p-4 mb-6 border border-black/10">
-                  <h3 className="text-center text-sm font-bold mb-3">Minha Presença</h3>
+                  <h3 className="text-center text-sm font-bold mb-3">
+                    Minha Presença
+                  </h3>
                   <div className="relative w-full h-6 bg-black/10 rounded-full overflow-hidden">
                     <div
                       className={`absolute inset-y-0 left-0 h-full bg-semcompDarkBlue transition-all duration-1000 ${
-                        presencePercent > 15 ? "flex items-center justify-end pr-2" : ""
+                        presencePercent > 15
+                          ? "flex items-center justify-end pr-2"
+                          : ""
                       }`}
                       style={{ width: `${presencePercent}%` }}
                     >
                       {presencePercent > 15 && (
-                        <span className="text-white text-[10px] font-bold">{presencePercent}%</span>
+                        <span className="text-white text-[10px] font-bold">
+                          {presencePercent}%
+                        </span>
                       )}
                     </div>
                     {presencePercent <= 15 && (
@@ -561,14 +619,58 @@ export default function Profile({
           </div>
         </div>
 
+        {/* Mural de Avisos (Mobile) */}
+        <div className="mt-12 px-5">
+          <div className="rounded-3xl p-6 border shadow-xl transition-colors bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue dark:bg-[#1A3A4F] dark:border-white/10 dark:text-semcompOffWhite">
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <Megaphone className="w-6 h-6 text-semcompDarkBlue dark:text-semcompOffWhite" />
+              <h2 className="text-2xl font-bold text-center">
+                Mural de Avisos
+              </h2>
+            </div>
+            <div className="flex flex-col gap-4">
+              {notices.length > 0 ? (
+                notices.map((notice, index) => (
+                  <div
+                    key={index}
+                    className="p-4 rounded-xl border bg-black/5 border-semcompDarkBlue/20 dark:bg-white/10 dark:border-white/20 text-left flex flex-col gap-1"
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="font-bold text-base text-semcompDarkBlue dark:text-white">
+                        {notice.title}
+                      </h3>
+                      {notice.date && (
+                        <span className="text-[10px] opacity-70 font-medium whitespace-nowrap">
+                          {notice.date}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm opacity-90 leading-relaxed text-semcompDarkBlue/80 dark:text-white/80">
+                      {notice.content}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="opacity-60 text-center text-sm italic">
+                  Nenhum aviso no momento.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Seção Inscrições */}
         <div className="mt-12 mb-12 px-5">
           <div className="rounded-3xl p-6 border shadow-xl transition-colors bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue dark:bg-[#1A3A4F] dark:border-white/10 dark:text-semcompOffWhite">
-            <h2 className="text-2xl font-bold text-center mb-6">Inscrições em Eventos</h2>
+            <h2 className="text-2xl font-bold text-center mb-6">
+              Inscrições em Eventos
+            </h2>
             {events.length > 0 ? (
               events.map((ev, i) => <EventCardMobile key={i} ev={ev} onShowNotification={showNotification} />)
             ) : (
-              <p className="opacity-60 text-center text-sm italic">Nenhuma inscrição encontrada.</p>
+              <p className="opacity-60 text-center text-sm italic">
+                Nenhuma inscrição encontrada.
+              </p>
             )}
           </div>
         </div>
@@ -635,7 +737,9 @@ export default function Profile({
 
       {activeTab === "qr" && (
         <div className="px-6 pb-8 bg-semcompOffWhite/50 mx-auto pt-8 h-full flex flex-col items-center overflow-y-auto custom-scrollbar">
-          <h1 className="text-2xl text-semcompMidDarkBlue font-bold mb-1">Meu QR Code</h1>
+          <h1 className="text-2xl text-semcompMidDarkBlue font-bold mb-1">
+            Meu QR Code
+          </h1>
           <p className="text-md text-semcompDarkBlue/75 text-center mb-6 leading-relaxed">
             Utilize seu QR durante a{" "}
             <span className="text-semcompMidBlue font-semibold">{event}</span>{" "}
@@ -659,7 +763,9 @@ export default function Profile({
             <p className="text-xs text-semcompDarkBlue/75 leading-tight">
               Caso de algum problema ao scannear, forneça o codigo:
             </p>
-            <p className="text-xl font-bold tracking-[0.2em] whitespace-nowrap">{userCode}</p>
+            <p className="text-xl font-bold tracking-[0.2em] whitespace-nowrap">
+              {userCode}
+            </p>
           </div>
         </div>
       )}
@@ -667,8 +773,12 @@ export default function Profile({
       {activeTab === "account" && (
         <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300 overflow-y-auto custom-scrollbar">
           <div className="text-center mb-6">
-            <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">Minha Conta</h2>
-            <p className="text-md text-semcompDarkBlue/75">Veja abaixo, seus dados e presença</p>
+            <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">
+              Minha Conta
+            </h2>
+            <p className="text-md text-semcompDarkBlue/75">
+              Veja abaixo, seus dados e presença
+            </p>
           </div>
 
           {isEditing ? (
@@ -781,7 +891,9 @@ export default function Profile({
                 style={{ width: `${presencePercent}%` }}
               >
                 {presencePercent > 15 && (
-                  <span className="text-semcompLightBlue text-xs font-bold">{presencePercent}%</span>
+                  <span className="text-semcompLightBlue text-xs font-bold">
+                    {presencePercent}%
+                  </span>
                 )}
               </div>
               {presencePercent <= 15 && (
@@ -877,41 +989,100 @@ export default function Profile({
           </div>
         </div>
 
-        <div className="min-h-[60vh] bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue flex flex-col justify-center items-center font-poppins pt-24 pb-24">
-          <div className="border-2 h-[80%] w-[60%] rounded-2xl pt-12 pb-10 pl-16 pr-16 flex flex-col justify-center items-center bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue dark:bg-semcompMidDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite">
+        {/* Mural de Avisos (Desktop) */}
+        <div className="bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue py-16 flex justify-center font-poppins">
+          <div className="w-[60%] border-2 rounded-2xl p-8 bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue dark:bg-semcompMidDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite shadow-xl">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <Megaphone className="w-7 h-7 text-semcompDarkBlue dark:text-semcompOffWhite" />
+              <h1 className="font-bold text-2xl">Mural de Avisos</h1>
+            </div>
+            <div className="flex flex-col gap-4">
+              {notices && notices.length > 0 ? (
+                notices.map((notice, index) => (
+                  <div
+                    key={index}
+                    className="p-5 rounded-xl border bg-black/5 border-semcompDarkBlue/20 dark:bg-black/20 dark:border-white/15 transition-all hover:shadow-md text-left flex flex-col gap-1"
+                  >
+                    <div className="flex justify-between items-start gap-4">
+                      <h3 className="font-bold text-lg text-semcompDarkBlue dark:text-white">
+                        {notice.title}
+                      </h3>
+                      {notice.date && (
+                        <span className="text-xs opacity-70 font-medium whitespace-nowrap pt-1">
+                          {notice.date}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm opacity-90 leading-relaxed text-semcompDarkBlue/80 dark:text-white/80">
+                      {notice.content}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center italic py-4 opacity-70">
+                  Nenhum aviso no momento.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Seção Inscrições */}
+        <div className="bg-semcompMidLightBlue/80 dark:bg-semcompAlmostDarkBlue flex flex-col justify-center items-center font-poppins py-16">
+          <div className="border-2 w-[60%] rounded-2xl p-8 flex flex-col justify-center items-center bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue dark:bg-semcompMidDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite">
             <h1 className="font-bold text-2xl mb-6">Inscrições em Eventos</h1>
             <div className="w-full flex flex-row justify-between font-bold">
               <span>Evento</span>
               <span>Data/Horário</span>
             </div>
             <hr className="w-full border mt-3 mb-3 border-semcompAlmostDarkBlue dark:border-semcompOffWhite" />
-            <div className="w-full flex flex-col gap-4 mb-20">
+            <div className="w-full flex flex-col gap-4">
               {events && events.length > 0 ? (
                 events.map((evento, index) => {
                   const data = formatDate(evento.dateInit, 2);
                   const diaSemana = formatWeekDay(evento.dateInit);
 
                   return (
-                    <div key={index} className="flex flex-col justify-center items-center">
+                    <div
+                      key={index}
+                      className="flex flex-col justify-center items-center"
+                    >
                       <div
-                        className={`w-full flex flex-row justify-between items-center py-3 px-6 ${openSubscription === index ? "rounded-t-lg bg-black/15 shadow-inner" : "rounded-lg bg-black/5 hover:bg-black/10"} transition-all duration-300 cursor-pointer`}
-                        onClick={() => setOpenSubscription(openSubscription === index ? -1 : index)}
+                        className={`w-full flex flex-row justify-between items-center py-3 px-6 ${
+                          openSubscription === index
+                            ? "rounded-t-lg bg-black/15 shadow-inner"
+                            : "rounded-lg bg-black/5 hover:bg-black/10"
+                        } transition-all duration-300 cursor-pointer`}
+                        onClick={() =>
+                          setOpenSubscription(
+                            openSubscription === index ? -1 : index
+                          )
+                        }
                       >
                         <div className="w-1/2 flex flex-col text-left gap-1 items-start pr-4">
-                          <span className="font-bold text-lg shrink-0">{evento.type}</span>
-                          <span className="text-sm font-medium wrap-break-words flex-1 opacity-90">{evento.description}</span>
+                          <span className="font-bold text-lg shrink-0">
+                            {evento.type}
+                          </span>
+                          <span className="text-sm font-medium wrap-break-words flex-1 opacity-90">
+                            {evento.description}
+                          </span>
                         </div>
                         <div className="w-auto flex flex-col items-end shrink-0 gap-1">
                           <div className="flex flex-row gap-3 items-center">
-                            <span className="font-semibold text-md">{data}</span>
+                            <span className="font-semibold text-md">
+                              {data}
+                            </span>
                             <span className="text-xs px-3 py-1 font-bold rounded-full bg-semcompDarkBlue text-semcompOffWhite capitalize dark:bg-semcompOffWhite dark:text-semcompMidDarkBlue">
                               {diaSemana}
                             </span>
                           </div>
                           <span className="text-sm font-medium opacity-80 flex items-center gap-2">
-                            {formatTime(evento.dateInit)} às {formatTime(evento.dateEnd)}
+                            {formatTime(evento.dateInit)} às{" "}
+                            {formatTime(evento.dateEnd)}
                             <ChevronDown
-                              className={`transition-transform duration-300 ${openSubscription === index ? "rotate-180" : ""} text-black dark:text-white`}
+                              className={`transition-transform duration-300 ${
+                                openSubscription === index ? "rotate-180" : ""
+                              } text-black dark:text-white`}
                               size={20}
                             />
                           </span>
@@ -921,7 +1092,13 @@ export default function Profile({
                         <div className="w-full p-6 flex flex-row items-center justify-center rounded-b-lg border-t border-black/10 shadow-lg transition-all animate-in fade-in duration-300 bg-black/5 dark:bg-black/20">
                           <button
                             className="px-8 py-3 rounded-xl font-bold uppercase tracking-wide shadow-md hover:-translate-y-1 transition-all duration-300 bg-semcompDarkBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-semcompDarkBlue/40 dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white dark:hover:shadow-white/20"
-                            onClick={() => evento.linkInscricao ? window.open(evento.linkInscricao, "_blank") : showNotification("Este evento ainda não está aberto para inscrições.")}
+                            onClick={() =>
+                              evento.linkInscricao
+                                ? window.open(evento.linkInscricao, "_blank")
+                                : showNotification(
+                                    "Este evento ainda não está aberto para inscrições."
+                                  )
+                            }
                           >
                             Inscreva-se
                           </button>
