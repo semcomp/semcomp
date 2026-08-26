@@ -14,6 +14,7 @@ export const fields: CrudField[] = [
       "Participações": "bg-muted/50 text-foreground",
       "Permissões": "bg-muted/50 text-foreground",
       "PAPFE": "bg-muted/50 text-foreground",
+      "Justificativas de Ausência": "bg-muted/50 text-foreground",  
     },
   },
   {

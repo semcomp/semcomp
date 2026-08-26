@@ -23,7 +23,8 @@ const SECTIONS: { key: string; label: string }[] = [
   { key: "Páginas",             label: "Páginas" },
   { key: "Patrocinadores",       label: "Patrocinadores" },
   { key: "Vendas",       label: "Vendas" },
-  { key: "PAPFE",       label: "PAPFE" }
+  { key: "PAPFE",       label: "PAPFE" },
+  { key: "Justificativas de Ausência",  label: "Justificativas de Ausência" },
 ];
 
 type PermLevel = "R" | "RW" | "—";
