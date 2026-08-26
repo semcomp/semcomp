@@ -2,7 +2,6 @@ package presencerate
 
 import (
 	"math"
-	"strings"
 	"time"
 
 	"backend/internal/event"
@@ -13,29 +12,22 @@ import (
 	"gorm.io/gorm"
 )
 
-// NormalizeTypeName padroniza o nome de um tipo de evento para comparação
-// (minúsculas, sem espaços nas bordas).
-func NormalizeTypeName(typeName string) string {
-	return strings.ToLower(strings.TrimSpace(typeName))
-}
-
 type ComputeInput struct {
 	Events    []event.Event
 	Presences []presence.Presence
-	Weights   map[string]float64
+	Weights   map[uint]float64
 }
 
 // Compute calcula a taxa de presença (0–100, com 2 casas decimais) de cada
 // usuário que possui presença registrada.
 //
 // Regras:
-//   - Um evento é "contável" quando seu tipo está configurado em Weights e
-//     HasAttendance é true.
+//   - Um evento é "contável" quando seu PresenceTypeID está configurado em Weights
+//     e HasAttendance é true.
 //   - Denominador = soma dos pesos de todos os eventos contáveis.
 //   - Presença direta em um evento contável credita o próprio peso.
 //   - Presença em um evento NÃO contável credita todos os eventos contáveis
-//     concomitantes (interseção parcial de horário). Ex.: minicurso herda a
-//     palestra e a vitrine que ocorrem durante ele.
+//     concomitantes (interseção parcial de horário).
 //   - Cada evento contável credita no máximo uma vez por usuário (união).
 //   - Evento sem nenhum contável concomitante não vale presença.
 func Compute(input ComputeInput) map[int64]float64 {
@@ -43,8 +35,11 @@ func Compute(input ComputeInput) map[int64]float64 {
 	denominator := 0.0
 
 	for i, e := range input.Events {
-		w, ok := input.Weights[NormalizeTypeName(e.Type)]
-		if !ok || !e.HasAttendance {
+		if e.PresenceTypeID == nil || !e.HasAttendance {
+			continue
+		}
+		w, ok := input.Weights[*e.PresenceTypeID]
+		if !ok {
 			continue
 		}
 		countable[i] = w
@@ -190,9 +185,9 @@ func (c *Calculator) loadInput() (ComputeInput, error) {
 		return ComputeInput{}, err
 	}
 
-	weightMap := make(map[string]float64, len(weights))
+	weightMap := make(map[uint]float64, len(weights))
 	for _, w := range weights {
-		weightMap[NormalizeTypeName(w.TypeName)] = w.Weight
+		weightMap[w.ID] = w.Weight
 	}
 
 	var events []event.Event

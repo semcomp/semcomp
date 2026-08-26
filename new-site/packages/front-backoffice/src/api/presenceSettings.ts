@@ -4,6 +4,7 @@ export interface PresenceTypeWeight {
   id: number;
   type_name: string;
   weight: number;
+  default_has_attendance: boolean;
 }
 
 export interface PresencesSettingsListResponse {
@@ -20,18 +21,19 @@ export const presenceSettingsAPI = {
     return res.data.weights ?? [];
   },
 
-  create: async (typeName: string, weight: number): Promise<PresenceTypeWeight> => {
+  create: async (typeName: string, weight: number, defaultHasAttendance = false): Promise<PresenceTypeWeight> => {
     const res = await client.post<{ weight: PresenceTypeWeight }>("/admin/presence-settings", {
       type_name: typeName,
       weight,
+      default_has_attendance: defaultHasAttendance,
     });
     return res.data.weight;
   },
 
-  update: async (currentTypeName: string, typeName: string, weight: number): Promise<PresenceTypeWeight> => {
+  update: async (currentTypeName: string, typeName: string, weight: number, defaultHasAttendance = false): Promise<PresenceTypeWeight> => {
     const res = await client.put<{ weight: PresenceTypeWeight }>(
       `/admin/presence-settings/${encodeURIComponent(currentTypeName)}`,
-      { type_name: typeName, weight }
+      { type_name: typeName, weight, default_has_attendance: defaultHasAttendance }
     );
     return res.data.weight;
   },

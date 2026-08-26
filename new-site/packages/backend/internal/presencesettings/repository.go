@@ -46,8 +46,9 @@ func (r *presenceSettingsRepository) UpdateByTypeName(typeName string, updated *
 	result := r.db.Model(&PresenceTypeWeight{}).
 		Where("LOWER(TRIM(type_name)) = LOWER(?)", typeName).
 		Updates(map[string]interface{}{
-			"type_name": updated.TypeName,
-			"weight":    updated.Weight,
+			"type_name":              updated.TypeName,
+			"weight":                 updated.Weight,
+			"default_has_attendance": updated.DefaultHasAttendance,
 		})
 
 	if result.Error != nil {
