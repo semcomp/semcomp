@@ -1,4 +1,4 @@
-import { Calendar, UserCog, User, Key, Hand, ToggleLeft, ShoppingBag, Handshake, DollarSign, FileCheck } from "lucide-react";
+import { Calendar, UserCog, User, Key, Hand, ToggleLeft, ShoppingBag, Handshake, DollarSign, FileCheck, FileWarning } from "lucide-react";
 
 // section deve coincidir com KnownSections em backend/internal/permission/model.go
 export const Tabs: {
@@ -119,6 +119,16 @@ export const Tabs: {
     description: "Gerencie os avisos que aparecerão no mural.",
     pageNavigate: "/notices",
     icon: <FileCheck className="w-5 h-5" />,
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
+    key: "absence-justifications",
+    section: "Justificativas de Ausência",
+    label: "Justificativas de Ausência",
+    description: "Revise e aprove justificativas de ausência dos participantes.",
+    pageNavigate: "/absence-justifications",
+    icon: <FileWarning className="w-5 h-5" />,
     bg: "bg-primary/15",
     hoverBg: "bg-primary/25",
   },
