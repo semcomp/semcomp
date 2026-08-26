@@ -858,7 +858,7 @@ export default function Profile({
         </div>
 
         {/* Mural de Avisos (Desktop) */}
-        <div className="bg-semcompOffWhite dark:bg-semcompDarkBlue pt-16 pb-10 px-10 flex justify-center font-poppins">
+        <div className="bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue py-16 flex justify-center font-poppins">
           <div className="w-[60%] border-2 rounded-2xl p-8 bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue dark:bg-semcompMidDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite shadow-xl">
             <div className="flex items-center justify-center gap-3 mb-6">
               <Megaphone className="w-7 h-7 text-semcompDarkBlue dark:text-semcompOffWhite" />
@@ -896,15 +896,15 @@ export default function Profile({
         </div>
 
         {/* Seção Inscrições */}
-        <div className="min-h-[60vh] bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue flex flex-col justify-center items-center font-poppins pt-12 pb-24">
-          <div className="border-2 h-[80%] w-[60%] rounded-2xl pt-12 pb-10 pl-16 pr-16 flex flex-col justify-center items-center bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue dark:bg-semcompMidDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite">
+        <div className="bg-semcompMidLightBlue/80 dark:bg-semcompAlmostDarkBlue flex flex-col justify-center items-center font-poppins py-16">
+          <div className="border-2 w-[60%] rounded-2xl p-8 flex flex-col justify-center items-center bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue dark:bg-semcompMidDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite">
             <h1 className="font-bold text-2xl mb-6">Inscrições em Eventos</h1>
             <div className="w-full flex flex-row justify-between font-bold">
               <span>Evento</span>
               <span>Data/Horário</span>
             </div>
             <hr className="w-full border mt-3 mb-3 border-semcompAlmostDarkBlue dark:border-semcompOffWhite" />
-            <div className="w-full flex flex-col gap-4 mb-20">
+            <div className="w-full flex flex-col gap-4">
               {events && events.length > 0 ? (
                 events.map((evento, index) => {
                   const data = formatDate(evento.dateInit, 2);
