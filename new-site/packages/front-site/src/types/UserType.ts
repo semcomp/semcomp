@@ -13,4 +13,6 @@ export type UserType = {
   profession?: string;
   linkedin?: string;
   telegram?: string;
+  quer_cracha?: boolean;
+  autoriza_compartilhamento?: boolean;
 };

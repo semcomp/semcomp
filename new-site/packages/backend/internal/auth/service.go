@@ -25,7 +25,8 @@ func NewAuthService(userRepository user.UserRepository, passwordProvider provide
 func (s *authService) Login(request LoginUserRequest) (*user.SafeUser, string, error) {
 	userRecord, errUser := s.userRepository.GetByEmail(request.Email)
 	if errUser != nil {
-		if errors.Is(errUser, apierrors.ValidationError("Email não encontrado", errUser)) {
+		var apiErr *apierrors.APIError
+		if errors.As(errUser, &apiErr) {
 			return nil, "", apierrors.UnauthorizedError("Credenciais inválidas", errUser)
 		}
 		return nil, "", apierrors.InternalServerError("Erro ao buscar usuário", errUser)

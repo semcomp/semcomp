@@ -22,6 +22,8 @@ const SECTIONS: { key: string; label: string }[] = [
   { key: "Permissões",          label: "Permissões" },
   { key: "Páginas",             label: "Páginas" },
   { key: "Patrocinadores",       label: "Patrocinadores" },
+  { key: "Vendas",       label: "Vendas" },
+  { key: "PAPFE",       label: "PAPFE" }
 ];
 
 type PermLevel = "R" | "RW" | "—";

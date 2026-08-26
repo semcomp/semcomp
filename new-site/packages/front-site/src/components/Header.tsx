@@ -18,7 +18,7 @@ export default function Header() {
     { key: "home", featureKey: "home", label: "HOME", path: "/", status: true },
     { key: "cronograma", featureKey: "cronograma", label: "CRONOGRAMA", path: "/cronograma", status: true },
     { key: "loja", featureKey: "loja", label: "LOJA", path: "/loja", status: isAuthenticated },
-    { key: "login", featureKey: "login", label: "LOGIN", path: "/login", status: !isAuthenticated },
+    { key: "login", featureKey: "login", label: "INSCRIÇÃO", path: "/login", status: !isAuthenticated },
     { key: "perfil", featureKey: "login", label: "PERFIL", path: "/profile", status: isAuthenticated },
   ];
 
@@ -27,7 +27,13 @@ export default function Header() {
     
   );
 
-  const activeTabObj = visibleTabs.find((t) => t.path === location.pathname);
+  // A seção "loja" fica ativa em qualquer rota /loja/* (loja, carrinho, checkout
+  // e pagamentos pendentes) — não só em /loja exato.
+  const activeTabObj = visibleTabs.find(
+    (t) =>
+      t.path === location.pathname ||
+      (t.path === "/loja" && location.pathname.startsWith("/loja"))
+  );
   const active = activeTabObj ? activeTabObj.key : "home";
 
   const btnRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
@@ -68,7 +74,7 @@ export default function Header() {
   const isMobile = width < 768;
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 pt-[env(safe-area-inset-top)] ${
       hasScrolled ? "bg-semcompMidLightBlue dark:bg-semcompDarkBlue backdrop-blur-sm shadow-lg" : "bg-transparent"
     }`}>
       <div className="mx-auto flex w-[80%] items-center justify-end pt-5 pb-5">

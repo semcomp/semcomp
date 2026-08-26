@@ -1,15 +1,27 @@
 import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import type { NotificationProps, NotificationType } from "@/types/NotificationType";
+import { AnimatePresence, motion } from "framer-motion";
+import type {
+  NotificationProps,
+  NotificationType,
+} from "@/types/NotificationType";
 
-const palette: Record<NotificationType, { light: string; dark: string; text: string }> = {
+const palette: Record<
+  NotificationType,
+  { light: string; dark: string; text: string }
+> = {
   success: { light: "#E8F5E9", dark: "#003923", text: "#003923" },
   reminder: { light: "#FFF8E1", dark: "#FCC511", text: "#FCC511" },
   warning: { light: "#FFF3E0", dark: "#E7003B", text: "#E7003B" },
   info: { light: "#e6f0ff", dark: "#2B4A9C", text: "#2B4A9C" },
 };
 
-export function Notification({ message, type = "info", visible, duration = 2500, onClose }: NotificationProps) {
+export function Notification({
+  message,
+  type = "info",
+  visible,
+  duration = 2500,
+  onClose,
+}: NotificationProps) {
   useEffect(() => {
     if (!visible) return;
     const t = setTimeout(() => onClose?.(), duration);

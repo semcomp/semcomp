@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import QRCode from "react-qr-code";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
-import { useTheme } from "@/contexts/useTheme";
 import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/AuthContext";
+<<<<<<< HEAD
 import { authAPI, absenceJustificationsAPI, papfeAPI } from "@/api";
 import { ChevronDown, Eye } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
@@ -17,23 +17,34 @@ import JustifyAbsenceModal, { JustifyAbsenceStatusBadge } from "@/components/Jus
 import type { JustifyAbsenceStatus } from "@/components/JustifyAbsenceModal";
 import { PapfeStatusBadge } from "@/components/PapfeStatusBadge";
 import RejectionReasonModal from "@/components/RejectionReasonModal";
+=======
+import { authAPI } from "@/api";
+import { salesAPI } from "@/api/sales";
+import type { SaleResponse } from "@/api/sales";
+import { ChevronDown } from "lucide-react";
+import { useNotification } from "@/contexts/NotificationContext";
+import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
+import { isPendingSale } from "@/lib/pendingSale";
+import type { EventType } from "@/types/EventType";
+import type { UserType } from "@/types/UserType";
+import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate";
+import { useNavigate } from "react-router-dom";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
+>>>>>>> dev
 
-const HERO_IMAGES = [
-  "/img/Home/Hero/Banner1.webp",
-  "/img/Home/Hero/Banner2.webp",
-  "/img/Home/Hero/Palestra1.webp",
-  "/img/Home/Hero/Palestra2.webp",
-  "/img/Home/Hero/Semcomp.webp",
-];
-
-const pickRandomHero = () =>
-  HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)];
-
+type EditableProfile = {
+  name: string;
+  city: string;
+  profession: string;
+  linkedin: string;
+  telegram: string;
+};
 
 type Evento = EventType & {
   linkInscricao?: string;
 };
 
+<<<<<<< HEAD
 function StatusEyeButton({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -50,26 +61,121 @@ function StatusEyeButton({ onClick }: { onClick: () => void }) {
 
 const events: Evento[] = [
 ];
+=======
+const events: Evento[] = [];
+
+export interface PurchaseType {
+  id: string;
+  item: string;
+  date: string;
+  amount: number;
+  status: string;
+  statusColor: string;
+}
+
+const SALE_STATUS_STYLES: Record<string, { label: string; color: string }> = {
+  PAGO: { label: "Pago", color: "text-green-700" },
+  PENDENTE: { label: "Pendente", color: "text-yellow-600" },
+  CANCELADO: { label: "Cancelado", color: "text-red-700" },
+  REEMBOLSADO: { label: "Reembolsado", color: "text-blue-700" },
+  REJEITADO: { label: "Rejeitado", color: "text-orange-600" },
+  EXPIRADO: { label: "Expirado", color: "text-gray-500" },
+};
+
+function getProductDisplayName(product: any): string {
+  if (!product) return "Produto";
+
+  if (product.kit?.name) return product.kit.name;
+  if (product.coffee?.name) return product.coffee.name;
+
+  if (product.type === "COMBO" && product.combo_items?.length) {
+    const itemNames = product.combo_items
+      .map((ci: any) => ci.item?.kit?.name ?? ci.item?.coffee?.name)
+      .filter(Boolean);
+    if (itemNames.length > 0) {
+      return `Combo (${itemNames.join(" + ")})`;
+    }
+    return "Combo";
+  }
+
+  return product.type ?? "Produto";
+}
+
+function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
+  const itemsLabel =
+  sale.items?.length
+    ? sale.items
+        .map((it) => {
+          return `${it.quantity}x ${getProductDisplayName((it as any).product)}`;
+        })
+        .join(", ")
+    : "Pedido";
+
+  const style = SALE_STATUS_STYLES[sale.status] ?? { label: sale.status, color: "text-gray-500" };
+
+  return {
+    id: String(sale.id),
+    item: itemsLabel,
+    date: formatDate(sale.created_at, 2),
+    amount: sale.total_amount,
+    status: style.label,
+    statusColor: style.color,
+  };
+}
+
+const EventCardMobile = memo(({ ev, onShowNotification }: { ev: Evento; onShowNotification: (msg: string) => void }) => {
+  const data = formatDate(ev.dateInit, 2);
+  const diaSemana = formatWeekDay(ev.dateInit);
+
+  return (
+    <div className="border rounded-xl p-4 mb-3 bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white flex flex-col items-start">
+      <div className="w-full">
+        <div className="flex items-start gap-2">
+          <span className="font-bold whitespace-nowrap">{ev.type}</span>
+          <span className="opacity-60">|</span>
+          <p className="text-sm leading-relaxed opacity-90 wrap-break-words">{ev.description}</p>
+        </div>
+        <p className="mt-3 text-sm opacity-80 font-medium text-center">
+          {diaSemana} ({data}), {formatTime(ev.dateInit)} às {formatTime(ev.dateEnd)}
+        </p>
+        <hr className="mb-2 mt-2"/>
+      </div>
+      <div className="w-full flex flex-row justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
+        <button
+          className="cursor-pointer w-full p-2"
+          onClick={() => ev.linkInscricao ? window.open(ev.linkInscricao, "_blank") : onShowNotification("Este evento ainda não está aberto para inscrições.")}
+        >
+          Inscreva-se
+        </button>
+      </div>
+    </div>
+  );
+});
+
+>>>>>>> dev
 interface ProfileProps extends Partial<UserType> {
   event?: string;
+  purchases?: PurchaseType[];
 }
+
 
 export default function Profile({
   user_number = 0,
   name = "Nome do usuário",
   email = "E-mail do usuário",
   presence_rate = 0,
-  event = "SEMCOMP"
+  event = "SEMCOMP",
+  purchases = [],
 }: ProfileProps) {
   const { width } = useWindowDimensions();
-  const { isDarkMode } = useTheme();
   const { showNotification } = useNotification();
 
-  const [activeTab, setActiveTab] = useState<"qr" | "account">("qr");
+  const [activeTab, setActiveTab] = useState<"qr" | "account" | "purchases">("qr");
   const [userName, setUserName] = useState(name);
   const [userEmail, setUserEmail] = useState(email);
   const [userCode, setUserCode] = useState<number>(user_number);
   const [presencePercent, setPresencePercent] = useState<number>(presence_rate);
+<<<<<<< HEAD
   const [openSubscription, setOpenSubscription] = useState<number>(-1)
   const [justifyOpen, setJustifyOpen] = useState(false)
   const [justificationStatus, setJustificationStatus] = useState<JustifyAbsenceStatus | null>(null)
@@ -81,10 +187,28 @@ export default function Profile({
   // Justificativas "Aprovado" ou "Negado" são finais e não podem ser editadas.
   const justificationLocked =
     justificationStatus === "aprovado" || justificationStatus === "negado";
+=======
+  const [userPurchases, setUserPurchases] = useState<PurchaseType[]>(purchases);
+  const [openSubscription, setOpenSubscription] = useState<number>(-1);
+  const [userCity, setUserCity] = useState("");
+  const [userProfession, setUserProfession] = useState("");
+  const [userLinkedin, setUserLinkedin] = useState("");
+  const [userTelegram, setUserTelegram] = useState("");
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editForm, setEditForm] = useState<EditableProfile>({ name: "", city: "", profession: "", linkedin: "", telegram: "" });
+>>>>>>> dev
 
   const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [heroSrc] = useState<string>(() => pickRandomHero());
+  const { isFeatureEnabled } = useFeatureFlags();
+  const [pendingSalesCount, setPendingSalesCount] = useState(0);
+
+  const logoutRef = useRef(logout);
+  const showNotificationRef = useRef(showNotification);
+  logoutRef.current = logout;
+  showNotificationRef.current = showNotification;
 
   const handleJustifySubmitted = (status: JustifyAbsenceStatus) => {
     setJustificationStatus(status);
@@ -92,18 +216,22 @@ export default function Profile({
   };
 
   useEffect(() => {
-    async function fetchProfile() {
-      if (!isAuthenticated) {
-        navigate("/login", { replace: true });
-        return;
-      }
+    if (!isAuthenticated) {
+      navigate("/login", { replace: true });
+      return;
+    }
 
+    const controller = new AbortController();
+
+    async function fetchProfile() {
       try {
         const response = await authAPI.getProfile();
+        if (controller.signal.aborted) return;
         setUserName(response.name || name);
         setUserEmail(response.email || email);
         setUserCode(response.user_number || 0);
         setPresencePercent(response.presence_rate ?? 0);
+<<<<<<< HEAD
         setHasPapfe(response.hasPapfe ?? false);
 
         const mine = await absenceJustificationsAPI.getMine();
@@ -119,66 +247,91 @@ export default function Profile({
         } else {
           setPapfeDoc(null);
         }
+=======
+        setUserCity(response.city ?? "");
+        setUserProfession(response.profession ?? "");
+        setUserLinkedin(response.linkedin ?? "");
+        setUserTelegram(response.telegram ?? "");
+>>>>>>> dev
       } catch (err) {
+        if (controller.signal.aborted) return;
         console.error("Erro ao buscar o perfil", err);
-        await logout();
-        showNotification("Sua sessão expirou. Faça login novamente.", "warning");
+        await logoutRef.current();
+        showNotificationRef.current("Sua sessão expirou. Faça login novamente.", "warning");
+        return;
+      }
+
+      try {
+        const sales = await salesAPI.getMySales();
+        setUserPurchases(sales.map(mapSaleToPurchase));
+        // Mesmo critério da página de destino (PENDENTE, com QR e não expirado).
+        setPendingSalesCount(sales.filter(isPendingSale).length);
+      } catch (err) {
+        console.error("Erro ao buscar as compras do usuário", err);
+        setUserPurchases([]);
+        setPendingSalesCount(0);
       }
     }
+
     fetchProfile();
-  }, [isAuthenticated, navigate, logout, showNotification, name, email]);
+    return () => controller.abort();
+  }, [isAuthenticated, navigate, name, email]);
 
-  // EventCardMobile — inline dark: variants
-  const EventCardMobile = ({ ev }: { ev: Evento }) => {
-    const data = formatDate(ev.dateInit, 2);
-    const diaSemana = formatWeekDay(ev.dateInit);
+  function startEditing() {
+    setEditForm({ name: userName, city: userCity, profession: userProfession, linkedin: userLinkedin, telegram: userTelegram });
+    setIsEditing(true);
+  }
 
-    return (
-      <div className="border rounded-xl p-4 mb-3 bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white flex flex-col items-start">
-        <div className="w-full">
-          <div className="flex items-start gap-2">
-            <span className="font-bold whitespace-nowrap">{ev.type}</span>
-            <span className="opacity-60">|</span>
-            <p className="text-sm leading-relaxed opacity-90 wrap-break-words">{ev.description}</p>
-          </div>
-          <p className="mt-3 text-sm opacity-80 font-medium text-center">
-            {diaSemana} ({data}), {formatTime(ev.dateInit)} às {formatTime(ev.dateEnd)}
-          </p>
-          <hr className="mb-2 mt-2"/>
-        </div>
-        <div className="w-full flex flex-row justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
-          <button
-            className="cursor-pointer w-full p-2"
-            onClick={() => ev.linkInscricao ? window.open(ev.linkInscricao, "_blank") : showNotification("Este evento ainda não está aberto para inscrições.")}
-          >
-            Inscreva-se
-          </button>
-        </div>
-      </div>
-    );
-  };
+  async function saveProfile() {
+    setIsSaving(true);
+    try {
+      const res = await authAPI.updateProfile({
+        name: editForm.name.trim(),
+        city: editForm.city.trim(),
+        profession: editForm.profession.trim() || null,
+        linkedin: editForm.linkedin.trim() || null,
+        telegram: editForm.telegram.trim() || null,
+      });
+      setUserName(res.user.name);
+      setUserCity(res.user.city);
+      setUserProfession(res.user.profession ?? "");
+      setUserLinkedin(res.user.linkedin ?? "");
+      setUserTelegram(res.user.telegram ?? "");
+      setIsEditing(false);
+      showNotification("Perfil atualizado com sucesso!", "success");
+    } catch {
+      showNotification("Erro ao atualizar perfil. Tente novamente.", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   // Versão Mobile/Tablet (< 1280px)
   if (width < 1280) {
     return (
-      <div className="min-h-screen bg-semcompOffWhite dark:bg-semcompAlmostDarkBlue font-poppins pb-10 transition-colors duration-300">
+      <div className="min-h-screen bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue font-poppins transition-colors duration-300">
         {/* Header com Background */}
-        <div className="relative h-80 w-full overflow-hidden bg-black">
-          <img
-            src={heroSrc}
-            className="absolute inset-0 w-full h-full object-cover opacity-60"
-            alt="SEMCOMP Banner"
-          />
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="relative h-80 w-full overflow-hidden bg-semcompMidLightBlue dark:bg-semcompDarkBlue">
+          <AnimatedBackground />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1]">
             <img src="/img/semcomp/logo_default_branco.webp" alt="SEMCOMP Logo" className="w-1/2 max-w-50 object-contain drop-shadow-2xl" />
           </div>
-          <div className="absolute inset-0 bg-linear-to-b from-transparent to-semcompOffWhite dark:to-semcompAlmostDarkBlue" />
+          <div className="absolute inset-0 bg-linear-to-b from-transparent to-semcompMidLightBlue dark:to-semcompAlmostDarkBlue" />
+          <div
+            className="absolute bottom-0 left-0 right-0 h-24 z-[1] pointer-events-none"
+            style={{
+              backdropFilter: 'blur(6px)',
+              WebkitBackdropFilter: 'blur(6px)',
+              maskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)',
+            }}
+          />
 
-          {/* Tabs Seletoras */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex backdrop-blur-md rounded-full p-1 border w-[80%] max-w-xs z-20 bg-semcompMidLightBlue/40 border-semcompDarkBlue/20 dark:bg-black/40 dark:border-white/20">
+          {/* Tabs Seletoras atualizadas para suportar 3 opções */}
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex backdrop-blur-md rounded-full p-1 border w-[90%] max-w-sm z-20 bg-semcompMidLightBlue/40 border-semcompDarkBlue/20 dark:bg-black/40 dark:border-white/20">
             <button
               onClick={() => setActiveTab("qr")}
-              className={`flex-1 py-2 text-sm rounded-full transition-all font-bold ${
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
                 activeTab === "qr"
                   ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
                   : "text-semcompDarkBlue dark:text-white opacity-80"
@@ -188,7 +341,7 @@ export default function Profile({
             </button>
             <button
               onClick={() => setActiveTab("account")}
-              className={`flex-1 py-2 text-sm rounded-full transition-all font-bold ${
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
                 activeTab === "account"
                   ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
                   : "text-semcompDarkBlue dark:text-white opacity-80"
@@ -196,19 +349,27 @@ export default function Profile({
             >
               Minha Conta
             </button>
+            <button
+              onClick={() => setActiveTab("purchases")}
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
+                activeTab === "purchases"
+                  ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
+                  : "text-semcompDarkBlue dark:text-white opacity-80"
+              }`}
+            >
+              Compras
+            </button>
           </div>
         </div>
 
         {/* Conteúdo Principal */}
         <div className="px-5 -mt-6 relative z-10">
-          <div className="bg-gray-200 text-semcompDarkBlue border border-semcompDarkBlue/10 shadow-lg dark:bg-[#D9D9D9] dark:text-[#0B2639] dark:border-0 dark:shadow-none rounded-3xl p-6 md:p-8 flex flex-col items-center shadow-2xl min-h-100">
+          <div className="bg-gray-200 text-semcompDarkBlue border border-semcompDarkBlue/10 shadow-lg dark:bg-[#D9D9D9] dark:text-[#0B2639] dark:border-0 dark:shadow-none rounded-3xl w-full md:w-[70%] xl:w-full mx-auto p-6 md:p-8 flex flex-col items-center shadow-2xl min-h-100">
             {activeTab === "qr" && (
               <>
                 <h1 className="text-2xl font-bold mb-1">Meu QR Code</h1>
                 <p className="text-center text-sm mb-8 px-2 md:px-4">
-                  Utilize seu QR durante a{" "}
-                  <span className="font-semibold">{event}</span> para registrar
-                  sua presença
+                  Utilize seu QR durante a <span className="font-semibold">{event}</span> para registrar sua presença
                 </p>
 
                 <div className="relative p-6 mb-6">
@@ -236,16 +397,46 @@ export default function Profile({
               <div className="w-full flex flex-col animate-in fade-in duration-300">
                 <h2 className="text-2xl font-bold text-center mb-6">Minha Conta</h2>
 
-                <div className="flex flex-col space-y-4 mb-6">
-                  <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">Nome Completo:</span>
-                    <span className="text-sm font-medium text-semcompDarkBlue">{userName}</span>
+                {isEditing ? (
+                  <div className="flex flex-col space-y-3 mb-6">
+                    {([
+                      { label: "Nome Completo", key: "name" as const, required: true },
+                      { label: "Cidade de Residência", key: "city" as const, required: true },
+                      { label: "Profissão", key: "profession" as const },
+                      { label: "LinkedIn", key: "linkedin" as const },
+                      { label: "Telegram", key: "telegram" as const },
+                    ]).map(({ label, key, required }) => (
+                      <div key={key} className="flex flex-col border-b border-black/10 pb-2">
+                        <span className="text-xs font-bold opacity-70 text-semcompDarkBlue mb-1">{label}{required ? "" : " (opcional)"}:</span>
+                        <input
+                          className="text-sm font-medium text-semcompDarkBlue bg-transparent border-b border-semcompDarkBlue/30 focus:border-semcompDarkBlue outline-none py-0.5"
+                          value={editForm[key]}
+                          onChange={e => setEditForm(f => ({ ...f, [key]: e.target.value }))}
+                        />
+                      </div>
+                    ))}
+                    <div className="flex flex-col border-b border-black/10 pb-2 opacity-50">
+                      <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">E-mail (não editável):</span>
+                      <span className="text-sm font-medium text-semcompDarkBlue">{userEmail}</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">E-mail:</span>
-                    <span className="text-sm font-medium text-semcompDarkBlue">{userEmail}</span>
+                ) : (
+                  <div className="flex flex-col space-y-4 mb-6">
+                    {[
+                      { label: "Nome Completo", value: userName },
+                      { label: "E-mail", value: userEmail },
+                      ...(userCity ? [{ label: "Cidade de Residência", value: userCity }] : []),
+                      ...(userProfession ? [{ label: "Profissão", value: userProfession }] : []),
+                      ...(userLinkedin ? [{ label: "LinkedIn", value: userLinkedin }] : []),
+                      ...(userTelegram ? [{ label: "Telegram", value: userTelegram }] : []),
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex flex-col border-b border-black/10 pb-2">
+                        <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">{label}:</span>
+                        <span className="text-sm font-medium text-semcompDarkBlue">{value}</span>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                )}
 
                 <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
                   onClick={() => showNotification("Entre em contato com a organização", "info")}>
@@ -306,41 +497,96 @@ export default function Profile({
                   </div>
                 </div>
 
+<<<<<<< HEAD
+=======
+                {isEditing ? (
+                  <div className="flex gap-3 mb-4">
+                    <button
+                      className="flex-1 bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold disabled:opacity-60"
+                      onClick={saveProfile}
+                      disabled={isSaving || !editForm.name.trim() || !editForm.city.trim()}
+                    >
+                      {isSaving ? "Salvando..." : "Salvar"}
+                    </button>
+                    <button
+                      className="flex-1 border border-semcompDarkBlue text-semcompDarkBlue py-3 rounded-lg text-sm font-semibold"
+                      onClick={() => setIsEditing(false)}
+                      disabled={isSaving}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                    onClick={startEditing}
+                  >
+                    Editar Informações
+                  </button>
+                )}
+>>>>>>> dev
                 <button className="w-full text-red-700 font-bold text-sm py-2" onClick={logout}>
                   Sair da conta
                 </button>
+              </div>
+            )}
+
+            {activeTab === "purchases" && (
+              <div className="w-full flex flex-col animate-in fade-in duration-300">
+                <h2 className="text-2xl font-bold text-center mb-6">Minhas Compras</h2>
+                {isFeatureEnabled("loja") && pendingSalesCount > 0 && (
+                  <button
+                    onClick={() => navigate("/loja/pagamentos")}
+                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                  >
+                    Ver pagamentos pendentes ({pendingSalesCount})
+                  </button>
+                )}
+                <div className="flex flex-col gap-4">
+                  {userPurchases && userPurchases.length > 0 ? (
+                    userPurchases.map((purchase) => (
+                      <div key={purchase.id} className="bg-white/50 border border-black/10 rounded-xl p-4">
+                        <p className="font-bold text-sm text-semcompDarkBlue">{purchase.item}</p>
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-xs font-semibold opacity-70">{purchase.date}</span>
+                          <span className={`text-sm font-bold ${purchase.statusColor}`}>
+                            R$ {purchase.amount.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="mt-2 text-xs font-semibold text-semcompDarkBlue/80">
+                          Status: {purchase.status}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-center opacity-70 text-sm py-4 italic text-semcompDarkBlue">
+                      Nenhuma compra realizada ainda.
+                    </p>
+                  )}
+                </div>
               </div>
             )}
           </div>
         </div>
 
         {/* Seção Overflow */}
-        <div className="mt-12 pt-10 pb-10 px-5 text-center transition-colors bg-semcompMidLightBlue text-semcompOffWhite dark:bg-semcompDarkBlue">
+        <div
+          className="mt-12 pt-10 pb-10 px-5 text-center transition-colors text-semcompOffWhite  bg-semcompMidDarkBlue dark:bg-semcompDarkBlue"
+        >
           <h2 className="text-3xl font-bold mb-1 flex items-center justify-center gap-2">
-            SEMCOMP Beta 2026
-            <span className="flex items-center justify-center w-5 h-5 rounded-full border text-xs font-normal border-semcompDarkBlue/60 text-semcompDarkBlue/60 dark:border-white/60 dark:text-white/60">
-              ?
-            </span>
+            SEMCOMP 29
           </h2>
-          <p className="text-xs mb-6 opacity-80">
-            Você sabia que vem por aí a prévia da maior semana acadêmica de computação do Brasil?
+          <p className="text-sm md:text-md mb-6 opacity-80">
+            Um encontro entre a computação, a cultura e a diversidade brasileira
           </p>
 
-          <div className="relative rounded-2xl overflow-hidden mb-4 border bg-white border-semcompDarkBlue/20 dark:bg-black/50 dark:border-white/10">
-            <img src={heroSrc} className="w-full h-56 object-cover brightness-[0.7]" alt="SEMCOMP Beta"/>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
-              <img src="/img/semcomp/logo_default_branco.webp" className="w-32 mb-2 drop-shadow-2xl" alt="Logo" />
-              <h3 className="text-2xl font-black tracking-widest drop-shadow-lg text-white">SEMCOMP Beta</h3>
-            </div>
+          <div className="relative rounded-2xl overflow-hidden mb-4 w-[60%] lg:w-[40%] xl:w-full mx-auto">
+            <img src="/img/Profile/Card.svg" className="w-full h-full object-cover" alt="SEMCOMP 29 Brasilidades"/>
           </div>
 
-          <div className="border-t pt-4 px-2 border-semcompDarkBlue/20 dark:border-white/20">
-            <p className="text-[11px] leading-relaxed text-justify opacity-90">
-              A SEMCOMP Beta é uma prévia de um evento ainda maior - a Semana de
-              Computação da USP São Carlos. Ela acontecerá no dia 16 de maio e
-              sua programação inclui palestras, minicursos, concursos, coffee
-              break e a nossa famosa gamenight. Participe e faça parte dessa
-              experiência única!
+          <div className="border-t pt-4 w-full md:w-[70%] xl:w-full mx-auto px-2 border-semcompDarkBlue/20 dark:border-white/20">
+            <p className="text-[12px] md:text-[16px] leading-relaxed text-justify opacity-90">
+              Este ano, a SEMCOMP celebra o tema BRASILIDADES! Essa proposta nasce da diversidade, criatividade e riqueza cultural do Brasil, conectando a computação às diferentes formas de expressão que fazem parte da nossa identidade. Venha descobrir, compartilhar e vivenciar as muitas faces do nosso país durante a SEMCOMP!
             </p>
           </div>
         </div>
@@ -350,13 +596,14 @@ export default function Profile({
           <div className="rounded-3xl p-6 border shadow-xl transition-colors bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue dark:bg-[#1A3A4F] dark:border-white/10 dark:text-semcompOffWhite">
             <h2 className="text-2xl font-bold text-center mb-6">Inscrições em Eventos</h2>
             {events.length > 0 ? (
-              events.map((ev, i) => <EventCardMobile key={i} ev={ev} />)
+              events.map((ev, i) => <EventCardMobile key={i} ev={ev} onShowNotification={showNotification} />)
             ) : (
               <p className="opacity-60 text-center text-sm italic">Nenhuma inscrição encontrada.</p>
             )}
           </div>
         </div>
 
+<<<<<<< HEAD
         <ContatoSection />
         <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
         <RejectionReasonModal
@@ -375,15 +622,19 @@ export default function Profile({
           statusBadge={<PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />}
           rejectionReason={papfeDoc?.rejection_reason ?? ""}
         />
+=======
+        <div className="bg-semcompOffWhite dark:bg-semcompDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite transition-colors duration-300">
+          <ContatoSection />
+        </div>
+>>>>>>> dev
       </div>
     );
   }
 
-  // QR Code / Minha Conta - Versão Desktop
+  // QR Code / Minha Conta / Compras - Versão Desktop
   const qrAndAccountCard = (
     <div className="h-full w-full pt-5 bg-gray-300 flex flex-col text-semcompDarkBlue">
-
-      <div className="flex mx-auto mb-5 w-[60%] rounded-full m-3 p-1 gap-1 border-2 border-semcompOffWhite/20 bg-semcompMidLight/20">
+      <div className="flex mx-auto mb-5 w-[85%] rounded-full m-3 p-1 gap-1 border-2 border-semcompOffWhite/20 bg-semcompMidLight/20">
         <button
           onClick={() => setActiveTab("qr")}
           className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 ${
@@ -403,6 +654,16 @@ export default function Profile({
           }`}
         >
           Minha Conta
+        </button>
+        <button
+          onClick={() => setActiveTab("purchases")}
+          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 ${
+            activeTab === "purchases"
+              ? "bg-semcompDarkBlue text-semcompOffWhite shadow-md font-semibold"
+              : "text-semcompDarkBlue/70 hover:text-semcompDarkBlue"
+          }`}
+        >
+          Compras
         </button>
       </div>
 
@@ -430,7 +691,7 @@ export default function Profile({
           <p className="text-center font-medium mb-6">{userName}</p>
           <div className="bg-semcompMidLightBlue/15 rounded-xl p-4 flex items-center justify-between gap-4 w-full 2xl:w-[70%] border border-semcompMidLight/40">
             <p className="text-xs text-semcompDarkBlue/75 leading-tight">
-              Caso de algum problema ao scannear, forneca o codigo:
+              Caso de algum problema ao scannear, forneça o codigo:
             </p>
             <p className="text-xl font-bold tracking-[0.2em] whitespace-nowrap">{userCode}</p>
           </div>
@@ -444,23 +705,81 @@ export default function Profile({
             <p className="text-md text-semcompDarkBlue/75">Veja abaixo, seus dados e presença</p>
           </div>
 
-          <div className="flex flex-col space-y-4 mb-6">
-            <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcompDarkBlue">Nome Completo:</span>
-              <span className="text-sm text-semcompDarkBlue">{userName}</span>
+          {isEditing ? (
+            <div className="flex flex-col space-y-3 mb-6">
+              {([
+                { label: "Nome Completo", key: "name" as const, required: true },
+                { label: "Cidade de Residência", key: "city" as const, required: true },
+                { label: "Profissão", key: "profession" as const },
+                { label: "LinkedIn", key: "linkedin" as const },
+                { label: "Telegram", key: "telegram" as const },
+              ]).map(({ label, key, required }) => (
+                <div key={key} className="flex flex-col text-left">
+                  <span className="text-xs font-bold text-semcompDarkBlue mb-0.5">{label}{required ? "" : " (opcional)"}:</span>
+                  <input
+                    className="text-sm text-semcompDarkBlue bg-semcompOffWhite/60 border border-semcompDarkBlue/20 focus:border-semcompDarkBlue outline-none rounded px-2 py-1"
+                    value={editForm[key]}
+                    onChange={e => setEditForm(f => ({ ...f, [key]: e.target.value }))}
+                  />
+                </div>
+              ))}
+              <div className="flex flex-col text-left opacity-50">
+                <span className="text-xs font-bold text-semcompDarkBlue">E-mail (não editável):</span>
+                <span className="text-sm text-semcompDarkBlue">{userEmail}</span>
+              </div>
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcompDarkBlue">E-mail:</span>
-              <span className="text-sm text-semcompDarkBlue">{userEmail}</span>
+          ) : (
+            <div className="flex flex-col space-y-4 mb-6">
+              {[
+                { label: "Nome Completo", value: userName },
+                { label: "E-mail", value: userEmail },
+                ...(userCity ? [{ label: "Cidade de Residência", value: userCity }] : []),
+                ...(userProfession ? [{ label: "Profissão", value: userProfession }] : []),
+                ...(userLinkedin ? [{ label: "LinkedIn", value: userLinkedin }] : []),
+                ...(userTelegram ? [{ label: "Telegram", value: userTelegram }] : []),
+              ].map(({ label, value }) => (
+                <div key={label} className="flex flex-col text-left">
+                  <span className="text-sm font-bold text-semcompDarkBlue">{label}:</span>
+                  <span className="text-sm text-semcompDarkBlue">{value}</span>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
 
+<<<<<<< HEAD
           <button
             className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
             onClick={() => showNotification("Entre em contato com a organização", "info")}
           >
             Editar Informações
           </button>
+=======
+          {isEditing ? (
+            <div className="flex gap-2 mb-8">
+              <button
+                className="flex-1 bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-60"
+                onClick={saveProfile}
+                disabled={isSaving || !editForm.name.trim() || !editForm.city.trim()}
+              >
+                {isSaving ? "Salvando..." : "Salvar"}
+              </button>
+              <button
+                className="flex-1 border border-semcompDarkBlue/40 text-semcompDarkBlue py-2.5 rounded-lg text-sm font-semibold hover:bg-semcompDarkBlue/5 transition-all"
+                onClick={() => setIsEditing(false)}
+                disabled={isSaving}
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <button
+              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8"
+              onClick={startEditing}
+            >
+              Editar Informações
+            </button>
+          )}
+>>>>>>> dev
 
           <button
             onClick={() => setJustifyOpen(true)}
@@ -524,47 +843,79 @@ export default function Profile({
           </button>
         </div>
       )}
+
+      {activeTab === "purchases" && (
+        <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300 overflow-y-auto custom-scrollbar">
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">Minhas Compras</h2>
+            <p className="text-md text-semcompDarkBlue/75">Veja seu histórico de compras</p>
+          </div>
+
+          {isFeatureEnabled("loja") && pendingSalesCount > 0 && (
+            <button
+              onClick={() => navigate("/loja/pagamentos")}
+              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
+            >
+              Ver pagamentos pendentes ({pendingSalesCount})
+            </button>
+          )}
+
+          <div className="flex flex-col gap-3">
+            {userPurchases && userPurchases.length > 0 ? (
+              userPurchases.map((purchase) => (
+                <div key={purchase.id} className="bg-semcompOffWhite/60 rounded-xl p-4 border border-border/50 flex flex-col">
+                  <span className="font-bold text-semcompDarkBlue">{purchase.item}</span>
+                  <div className="flex justify-between mt-2">
+                    <span className="text-xs font-medium text-semcompDarkBlue/70">{purchase.date}</span>
+                    <span className={`text-sm font-bold ${purchase.statusColor}`}>R$ {purchase.amount.toFixed(2)}</span>
+                  </div>
+                  <span className="text-xs font-semibold text-semcompDarkBlue/80 mt-1">Status: {purchase.status}</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-center opacity-70 text-sm py-6 italic text-semcompDarkBlue">
+                Você ainda não realizou nenhuma compra.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 
-  // Versão Desktop
+  // Versão Desktop Principal
   if (width >= 1280) {
     return (
-      <div className="bg-semcompOffWhite text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite min-h-screen">
+      <div className="bg-semcompMidLightBlue text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite min-h-screen">
         <div
-          className="h-[calc(90vh-70px)] w-full bg-cover bg-center flex flex-row justify-center items-center gap-10 font-poppins"
-          style={{
-            backgroundImage: `url(${heroSrc})`,
-            boxShadow: isDarkMode
-              ? "inset 0 -160px 60px -40px rgba(11, 38, 57, 0.8)"
-              : "inset 0 -180px 40px -40px rgba(53, 123, 163, 0.6)",
-          }}
+          className="relative overflow-hidden h-[calc(90vh-70px)] w-full flex flex-row justify-center items-center gap-10 font-poppins"
         >
-          <div className="h-[85%] w-[28%] bg-semcompOffWhite rounded-sm overflow-hidden shadow-xl">
+          <AnimatedBackground />
+          <div
+            className="absolute bottom-0 left-0 right-0 h-48 z-5 pointer-events-none"
+            style={{
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              maskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 100%)',
+            }}
+          />
+          <div className="absolute bottom-0 left-0 right-0 h-48 z-5 pointer-events-none bg-linear-to-b from-transparent to-semcompMidLightBlue dark:to-semcompAlmostDarkBlue" />
+          <div className="relative z-10 h-[85%] w-[28%] bg-semcompOffWhite rounded-sm overflow-hidden shadow-xl">
             {qrAndAccountCard}
           </div>
 
-          <div className="h-[85%] w-[28%] bg-semcompMidDarkBlue/80 dark:bg-semcompDarkBlue/80 flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10">
-            <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP Beta 2026</h1>
+          <div className="relative z-10 h-[85%] w-[28%] bg-semcompMidDarkBlue dark:bg-semcompDarkBlue flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10">
+            <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP 29</h1>
             <p className="text-center text-md pb-2">
-              Você sabia que vem por aí a prévia da maior semana acadêmica de computação do Brasil?
+            Um encontro entre a computação, a cultura e a diversidade brasileira
             </p>
-            <div className="relative h-[50%] bg-cover bg-center bg-black">
-              <img src={heroSrc} className="absolute inset-0 w-full h-full object-cover opacity-60" alt="background"/>
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <img className="h-[80%] drop-shadow-2xl" src="/img/semcomp/logo_default_branco.webp" alt="Logo" />
-              </div>
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 whitespace-nowrap font-bold text-2xl z-10 text-white drop-shadow-md">
-                SEMCOMP Beta
-              </span>
+            <div className="relative h-[50%] bg-semcompOffWhite dark:bg-semcompDarkBlue overflow-hidden rounded-xl">
+              <img src="/img/Profile/Card.svg" className="absolute inset-0 w-full h-full object-cover" alt="background"/>
             </div>
             <hr className="border-semcompOffWhite mt-6 mb-3" />
             <span className="text-sm text-justify">
-              A SEMCOMP Beta é uma prévia de um evento ainda maior - a Semana de
-              Computação da USP São Carlos. Ela acontecerá no dia 16 de maio e
-              sua programação inclui palestras, minicursos, concursos, coffee
-              break e a nossa famosa gamenight. Participe e faça parte dessa
-              experiência única!
+              Este ano, a SEMCOMP celebra o tema BRASILIDADES! Essa proposta nasce da diversidade, criatividade e riqueza cultural do Brasil, conectando a computação às diferentes formas de expressão que fazem parte da nossa identidade. Venha descobrir, compartilhar e vivenciar as muitas faces do nosso país durante a SEMCOMP!
             </span>
           </div>
         </div>
@@ -624,13 +975,13 @@ export default function Profile({
                 })
               ) : (
                 <div className="text-center italic mt-6 py-8">
-                  Você ainda não está inscrito em nenhum evento. Inscreva-se em
-                  eventos para que eles apareçam aqui!
+                  Em breve, serão abertas as inscrições para os eventos!
                 </div>
               )}
             </div>
           </div>
         </div>
+<<<<<<< HEAD
 
         <ContatoSection />
         <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
@@ -650,6 +1001,11 @@ export default function Profile({
           statusBadge={<PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />}
           rejectionReason={papfeDoc?.rejection_reason ?? ""}
         />
+=======
+        <div className="bg-semcompOffWhite dark:bg-semcompDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite transition-colors duration-300">
+          <ContatoSection />
+        </div>
+>>>>>>> dev
       </div>
     );
   }

@@ -29,7 +29,25 @@ export interface ProfileResponse {
   email: string;
   name: string;
   presence_rate: number;
+<<<<<<< HEAD
   hasPapfe?: boolean;
+=======
+  city?: string;
+  profession?: string | null;
+  linkedin?: string | null;
+  telegram?: string | null;
+}
+
+export interface UpdateProfileResponse {
+  message: string;
+  user: {
+    name: string;
+    city: string;
+    profession?: string | null;
+    linkedin?: string | null;
+    telegram?: string | null;
+  };
+>>>>>>> dev
 }
 
 export interface ForgotPasswordResponse {

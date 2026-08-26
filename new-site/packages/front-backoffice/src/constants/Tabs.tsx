@@ -1,4 +1,4 @@
-import { Calendar, UserCog, User, Key, Hand, ToggleLeft, Handshake, FileCheck, FileWarning } from "lucide-react";
+import { Calendar, UserCog, User, Key, Hand, ToggleLeft, ShoppingBag, Handshake, DollarSign, FileCheck, FileWarning } from "lucide-react";
 
 // section deve coincidir com KnownSections em backend/internal/permission/model.go
 export const Tabs: {
@@ -62,6 +62,16 @@ export const Tabs: {
     hoverBg: "bg-primary/25",
   },
   {
+    key: "products",
+    section: "Produtos",
+    label: "Produtos",
+    description: "Gerencie os produtos da Semcomp.",
+    pageNavigate: "/products",
+    icon: <ShoppingBag className="w-5 h-5" />,
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
     key: "pages-availability",
     section: "Páginas",
     label: "Páginas",
@@ -75,9 +85,19 @@ export const Tabs: {
     key: "sponsors",
     section: "Patrocinadores",
     label: "Patrocinadores",
-    description: "Gerencie os patrocinadores da Semcomp e seus pacotes por ano.",
+    description: "Gerencie os patrocinadores da SEMCOMP e seus pacotes por ano.",
     pageNavigate: "/sponsors",
     icon: <Handshake className="w-5 h-5" />,
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
+    key: "sales",
+    section: "Vendas",
+    label: "Vendas",
+    description: "Gerencie as vendas realizadas para a SEMCOMP.",
+    pageNavigate: "/sales",
+    icon: <DollarSign className="w-5 h-5" />,
     bg: "bg-primary/15",
     hoverBg: "bg-primary/25",
   },

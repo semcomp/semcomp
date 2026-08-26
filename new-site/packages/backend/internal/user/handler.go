@@ -120,6 +120,42 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": message, "user": safeUser})
 }
 
+// UpdateProfile permite que o usuário autenticado atualize seus próprios dados não-críticos.
+// @Summary Atualiza perfil do usuário autenticado
+// @Description Atualiza campos não-críticos do perfil: nome, cidade, profissão, LinkedIn e Telegram
+// @Tags Auth Público
+// @Accept json
+// @Produce json
+// @Param request body user.UpdateProfileRequest true "Dados a atualizar"
+// @Success 200 {object} map[string]interface{} "Perfil atualizado com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /api/profile [put]
+func (h *UserHandler) UpdateProfile(c *gin.Context) {
+	email := c.MustGet("email").(string)
+
+	var request UpdateProfileRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		if validationErrs, ok := err.(validator.ValidationErrors); ok {
+			apierrors.HandleAPIError(c, apierrors.ValidationError(fmt.Sprintf("Valor inválido para o campo '%s' (falhou na regra: %s)",
+				validationErrs[0].Field(), validationErrs[0].Tag()), err))
+			return
+		}
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
+		return
+	}
+
+	user, err := h.userService.UpdateProfile(email, request)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Set("responseMessage", "Perfil atualizado com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "Perfil atualizado com sucesso!", "user": user})
+}
+
 // UpdatePapfeDocument permite que o usuário autenticado atualize seu comprovante PAPFE.
 // @Summary Atualiza comprovante PAPFE
 // @Description Atualiza o comprovante PAPFE do usuário autenticado. Aceita multipart/form-data.
