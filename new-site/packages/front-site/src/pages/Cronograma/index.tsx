@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo, useCallback, memo, type ReactElement } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, memo, type ReactElement } from "react";
 import { eventsAPI } from "@/api/events";
 import type { EventType } from "@/types/EventType.ts";
 import type { EventWithColumn } from "@/types/EventWithColumn.ts";
 import { useTheme } from "@/contexts/useTheme";
 import { formatTime } from "@/lib/utils/formatDate";
 import SEMCOMPInfo from "@/lib/constants/SEMCOMPInfo";
+import { toPng } from "html-to-image";
 
 const SEMCOMP_YEAR = SEMCOMPInfo.YEAR;
 
@@ -21,7 +22,8 @@ const EVENT_DAYS = Array.from(
 type DayOption = {
   day: number;
   label: string;
-  weekday: string;
+  weekdayShort: string;
+  weekdayLong: string;
   isToday: boolean;
   isPast: boolean;
 };
@@ -33,15 +35,27 @@ const buildDayOptions = (): DayOption[] => {
   return EVENT_DAYS.map((day) => {
     const date = new Date(Date.UTC(SEMCOMP_YEAR, SEMCOMP_MONTH - 1, day));
     const dayUTC = Date.UTC(SEMCOMP_YEAR, SEMCOMP_MONTH - 1, day);
-    const weekday = date
-      .toLocaleDateString("pt-BR", { weekday: "short", timeZone: "UTC" })
+    
+    const weekdayShort = date
+      .toLocaleDateString("pt-BR", {
+        weekday: "short",
+        timeZone: "UTC",
+      })
       .replace(".", "")
+      .toUpperCase();
+
+    const weekdayLong = date
+      .toLocaleDateString("pt-BR", {
+        weekday: "long",
+        timeZone: "UTC",
+      })
       .toUpperCase();
 
     return {
       day,
       label: `${String(day).padStart(2, "0")}/${String(SEMCOMP_MONTH).padStart(2, "0")}`,
-      weekday,
+      weekdayShort,
+      weekdayLong,
       isToday: dayUTC === todayUTC,
       isPast: dayUTC < todayUTC,
     };
@@ -53,8 +67,8 @@ const dayOptions = buildDayOptions();
 const getDayOption = (day: number): DayOption => dayOptions[day - EVENT_DAYS_START];
 
 /**
- * Agrupa e distribui os eventos em colunas quando há sobreposição de horários.
- * Utiliza uma variação do algoritmo de partição de intervalos (Interval Partitioning).
+ * Agrupa eventos com horários sobrepostos e distribui em até 3 colunas.
+ * Eventos de maior duração são posicionados nas colunas mais à direita.
  */
 const processEvents = (events: EventType[]): EventWithColumn[][] => {
   if (!events || events.length === 0) return [];
@@ -122,21 +136,19 @@ const processEvents = (events: EventType[]): EventWithColumn[][] => {
 const EventButton = memo(function EventButton({
   evento,
   onClick,
-  cardClasses,
   captionClasses,
 }: {
   evento: EventWithColumn;
   onClick: (evento: EventWithColumn) => void;
-  cardClasses: string;
   captionClasses: string;
 }): ReactElement {
   return (
     <button
       type="button"
-      className={`group w-full rounded-xl border px-4 py-4 text-center transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md h-full ${cardClasses}`}
+      className={`group w-full min-w-0 overflow-hidden rounded-xl border px-4 py-4 text-center transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md h-full ${getEventTypeClasses(evento.type)}`}
       onClick={() => onClick(evento)}
     >
-      <p className="font-poppins-bold text-base md:text-lg">{evento.name}</p>
+      <p className="font-poppins-bold text-sm md:text-base whitespace-normal break-words leading-tight">{evento.name}</p>
       <p className={`mt-1 text-sm ${captionClasses}`}>
         {formatTime(evento.dateInit)} - {formatTime(evento.dateEnd)}
       </p>
@@ -163,6 +175,31 @@ const EventButton = memo(function EventButton({
     </button>
   );
 });
+
+const getEventTypeClasses = (type: string) => {
+  switch (type) {
+    case "Palestra":
+      return "bg-blue-100 border-blue-300 dark:bg-blue-950/60 dark:border-blue-700";
+
+    case "Workshop":
+      return "bg-green-100 border-green-300 dark:bg-green-950/60 dark:border-green-700";
+
+    case "Competicao":
+      return "bg-orange-100 border-orange-300 dark:bg-orange-950/60 dark:border-orange-700";
+
+    case "Mesa Redonda":
+      return "bg-purple-100 border-purple-300 dark:bg-purple-950/60 dark:border-purple-700";
+
+    case "Feira":
+      return "bg-pink-100 border-pink-300 dark:bg-pink-950/60 dark:border-pink-700";
+
+    case "Intervalo":
+      return "bg-yellow-100 border-yellow-300 dark:bg-yellow-950/60 dark:border-yellow-700";
+
+    default:
+      return "bg-white/70 border-semcompLightBlue dark:bg-semcompAlmostDarkBlue/75 dark:border-semcompMidDarkBlue";
+  }
+};
 
 function EventModal({
   selected,
@@ -238,14 +275,14 @@ const DayPill = memo(function DayPill({
       type="button"
       aria-pressed={active}
       onClick={() => onSelect(option.day)}
-      className={`group flex h-full w-full flex-col items-center justify-center rounded-xl border transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semcompMidLightBlue ${size} ${containerTheme} ${
+      className={`group flex h-full w-full flex-col items-center justify-center rounded-xl border transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semcompMidLightBlue cursor-pointer ${size} ${containerTheme} ${
         option.isPast ? "" : "hover:-translate-y-0.5"
       }`}
     >
       <span
         className={`text-[10px] font-semibold uppercase tracking-wider ${captionTheme}`}
       >
-        {option.weekday}
+        {option.weekdayShort}
       </span>
       <span
         className={`font-poppins-bold whitespace-nowrap ${
@@ -263,11 +300,125 @@ const DayPill = memo(function DayPill({
   );
 });
 
+function EventGroups({
+  groups,
+  onSelect,
+  captionClasses,
+  maxColumns = 3,
+}: {
+  groups: EventWithColumn[][];
+  onSelect: (evento: EventWithColumn) => void;
+  captionClasses: string;
+  maxColumns?: 2 | 3;
+}) {
+  return (
+    <div className="space-y-3">
+      {groups.map((grupo, rowIndex) => {
+        let column1: EventWithColumn[];
+        let column2: EventWithColumn[];
+        let column3: EventWithColumn[];
+
+        if (maxColumns === 2) {
+          const hasColumn3 = grupo.some((e) => e.column === 3);
+
+          column1 = grupo.filter(
+            (e) => e.column === 1 || (hasColumn3 && e.column === 2)
+          );
+
+          column2 = grupo.filter(
+            (e) =>
+              e.column === (hasColumn3 ? 3 : 2)
+          );
+
+          column3 = [];
+        } else {
+          column1 = grupo.filter((e) => e.column === 1);
+          column2 = grupo.filter((e) => e.column === 2);
+          column3 = grupo.filter((e) => e.column === 3);
+        }
+
+        const full = grupo.filter((e) => e.column === "full");
+
+        return (
+          <div
+            key={rowIndex}
+            className={`grid gap-3 ${
+              maxColumns === 2 ? "md:grid-cols-2" : "md:grid-cols-3"
+            }`}
+          >
+            {full.length > 0 ? (
+              full.map((evento) => (
+                <div
+                  key={`${evento.name}-${evento.dateInit}`}
+                  className={maxColumns === 2 ? "md:col-span-2" : "md:col-span-3"}
+                >
+                  <EventButton
+                    evento={evento}
+                    onClick={onSelect}
+                    captionClasses={captionClasses}
+                  />
+                </div>
+              ))
+            ) : (
+              <>
+                {(maxColumns === 2
+                  ? [column1, column2]
+                  : [column1, column2, column3]
+                ).map((column, index) => (
+                  <div
+                    key={index}
+                    className="flex h-full flex-col gap-3"
+                  >
+                    {column.map((evento) => (
+                      <div
+                        key={`${evento.name}-${evento.dateInit}`}
+                        className="flex-1"
+                      >
+                        <EventButton
+                          evento={evento}
+                          onClick={onSelect}
+                          captionClasses={captionClasses}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function CronogramaPage(): ReactElement {
   const { isDarkMode } = useTheme();
 
+  const [viewMode, setViewMode] = useState<"day" | "week">("day");
   const [events, setEvents] = useState<EventType[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Opção de baixar cronograma
+  const downloadRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadSchedule = async () => {
+    if (!downloadRef.current) return;
+
+    try {
+      const image = await toPng(downloadRef.current, {
+        pixelRatio: 2,
+      });
+
+      const link = document.createElement("a");
+      link.download = "cronograma-semcomp.png";
+      link.href = image;
+      link.click();
+    } catch (error) {
+      console.error("Erro ao baixar cronograma:", error);
+    }
+  };
+
   const [selectedEvent, setSelectedEvent] = useState<EventWithColumn | null>(null);
   const [selectedDay, setSelectedDay] = useState<number>(() => {
     const today = new Date();
@@ -278,7 +429,6 @@ export default function CronogramaPage(): ReactElement {
     return withinEventWindow ? today.getDate() : EVENT_DAYS[0];
   });
 
-  const cardClasses = "border-semcompLightBlue bg-white/70 hover:bg-white dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 dark:hover:bg-semcompAlmostDarkBlue";
   const captionClasses = "text-semcompMidDarkBlue/85 dark:text-semcompLightBlue/90";
   const gradientColor = isDarkMode ? "#0B2639" : "#FAFDFF";
 
@@ -312,6 +462,25 @@ export default function CronogramaPage(): ReactElement {
   );
 
   const processedEventGroups = useMemo(() => processEvents(filteredEvents), [filteredEvents]);
+
+  const processedWeek = useMemo(() => {
+    return dayOptions.map((option) => {
+      const dayEvents = events.filter((event) => {
+        const date = new Date(event.dateInit);
+
+        return (
+          date.getUTCFullYear() === SEMCOMP_YEAR &&
+          date.getUTCMonth() === SEMCOMP_MONTH - 1 &&
+          date.getUTCDate() === option.day
+        );
+      });
+
+      return {
+        option,
+        groups: processEvents(dayEvents),
+      };
+    });
+  }, [events]);
 
   const handleSelectEvent = useCallback((evento: EventWithColumn) => {
     setSelectedEvent(evento);
@@ -357,14 +526,69 @@ export default function CronogramaPage(): ReactElement {
         <div className="absolute -right-32 bottom-4 h-[500px] w-[500px] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-semcompAlmostDarkBlue/12 dark:from-semcompLightBlue/8 to-transparent" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-5xl px-4 py-10 md:px-6 md:py-14">
-        <header className="">
-          <h1 className="animate-slide font-poppins-bold text-3xl text-white animation-duration-[900ms] [animation-timing-function:cubic-bezier(0.22,1,0.36,1)] md:text-4xl">
-            Cronograma
-          </h1>
-          <p className="animate-slide [animation-delay:120ms] animation-duration-[900ms] fill-mode-[both] mt-2 text-sm text-white md:text-base">
-            Programação completa da SEMCOMP.
-          </p>
+      <div className="relative z-10 mx-auto max-w-[80%] px-4 py-10 md:px-6 md:py-14">
+        <header>
+          <div className="flex w-full flex-col gap-4 md:flex-row md:justify-between">
+            <div>
+              <h1 className="animate-slide font-poppins-bold text-3xl text-white animation-duration-[900ms] [animation-timing-function:cubic-bezier(0.22,1,0.36,1)] md:text-4xl">
+                Cronograma
+              </h1>
+              <p className="animate-slide [animation-delay:120ms] animation-duration-[900ms] fill-mode-[both] mt-2 text-sm text-white md:text-base">
+                Programação completa da SEMCOMP.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap md:items-end md:justify-end gap-3">
+              <button
+                type="button"
+                onClick={handleDownloadSchedule}
+                className="inline-flex gap-2 items-center cursor-pointer text-xs md:text-sm text-white/80 rounded-xl border border-semcompLightBlue bg-white/70 dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 px-5 py-3"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4 hidden md:flex"
+                  aria-hidden="true"
+                >
+                  <path d="M12 3v12" />
+                  <path d="m7 10 5 5 5-5" />
+                  <path d="M5 21h14" />
+                </svg>
+                Baixar cronograma
+              </button>
+              <div className="inline-flex rounded-xl border border-semcompLightBlue bg-white/70 p-1 dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("day")}
+                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
+                    viewMode === "day"
+                      ? "bg-semcompMidDarkBlue text-white"
+                      : "text-semcompDarkBlue dark:text-semcompOffWhite"
+                  }`}
+                >
+                  Por dia
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setViewMode("week")}
+                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
+                    viewMode === "week"
+                      ? "bg-semcompMidDarkBlue text-white"
+                      : "text-semcompDarkBlue dark:text-semcompOffWhite"
+                  }`}
+                >
+                  Semana
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Banner do Cronograma */}
           <div 
               className="w-full h-30 rounded-t-lg mt-4 border border-b-0"
               style={{
@@ -375,171 +599,209 @@ export default function CronogramaPage(): ReactElement {
               }}>
           </div>
         </header>
-
-        <nav
-          aria-label="Dias do cronograma"
-          className="mb-3 flex items-center justify-center gap-2 sm:gap-4 bg-semcompDarkBlue border border-t-0 rounded-b-[4px] py-3 px-5"
-        >
-          <button
-            type="button"
-            aria-label="Dia anterior"
-            disabled={!canGoPrev}
-            onClick={() => handleShiftDay(-1)}
-            className={`${arrowBase} ${canGoPrev ? arrowEnabled : arrowDisabled}`}
+        
+        {viewMode === "day" && (
+          <nav
+            aria-label="Dias do cronograma"
+            className="mb-3 flex items-center justify-center gap-2 sm:gap-4 bg-semcompDarkBlue border border-t-0 rounded-b-[4px] py-3 px-5"
           >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-5 w-5"
-              aria-hidden="true"
+            <button
+              type="button"
+              aria-label="Dia anterior"
+              disabled={!canGoPrev}
+              onClick={() => handleShiftDay(-1)}
+              className={`${arrowBase} ${canGoPrev ? arrowEnabled : arrowDisabled}`}
             >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5"
+                aria-hidden="true"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
 
-          <div className="grid w-full min-w-0 max-w-sm grid-cols-[1fr_1.3fr_1fr] items-stretch gap-2 sm:max-w-md sm:gap-3 md:hidden">
-            {prevOption ? (
-              <DayPill option={prevOption} active={false} variant="side" onSelect={handleSelectDay} />
-            ) : (
-              <span aria-hidden="true" />
-            )}
+            <div className="grid w-full min-w-0 max-w-sm grid-cols-[1fr_1.3fr_1fr] items-stretch gap-2 sm:max-w-md sm:gap-3 md:hidden">
+              {prevOption ? (
+                <DayPill option={prevOption} active={false} variant="side" onSelect={handleSelectDay} />
+              ) : (
+                <span aria-hidden="true" />
+              )}
 
-            <DayPill option={getDayOption(selectedDay)} active variant="center" onSelect={handleSelectDay} />
+              <DayPill option={getDayOption(selectedDay)} active variant="center" onSelect={handleSelectDay} />
 
-            {nextOption ? (
-              <DayPill option={nextOption} active={false} variant="side" onSelect={handleSelectDay} />
-            ) : (
-              <span aria-hidden="true" />
-            )}
-          </div>
+              {nextOption ? (
+                <DayPill option={nextOption} active={false} variant="side" onSelect={handleSelectDay} />
+              ) : (
+                <span aria-hidden="true" />
+              )}
+            </div>
 
-          <div className="hidden w-full grid-cols-7 gap-3 md:grid">
-            {dayOptions.map((option) => (
-              <DayPill
-                key={option.day}
-                option={option}
-                active={option.day === selectedDay}
-                variant={option.day === selectedDay ? "center" : "side"}
-                onSelect={handleSelectDay}
-              />
-            ))}
-          </div>
+            <div className="hidden w-full grid-cols-7 gap-3 md:grid">
+              {dayOptions.map((option) => (
+                <DayPill
+                  key={option.day}
+                  option={option}
+                  active={option.day === selectedDay}
+                  variant={option.day === selectedDay ? "center" : "side"}
+                  onSelect={handleSelectDay}
+                />
+              ))}
+            </div>
 
-          <button
-            type="button"
-            aria-label="Próximo dia"
-            disabled={!canGoNext}
-            onClick={() => handleShiftDay(1)}
-            className={`${arrowBase} ${canGoNext ? arrowEnabled : arrowDisabled}`}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-5 w-5"
-              aria-hidden="true"
+            <button
+              type="button"
+              aria-label="Próximo dia"
+              disabled={!canGoNext}
+              onClick={() => handleShiftDay(1)}
+              className={`${arrowBase} ${canGoNext ? arrowEnabled : arrowDisabled}`}
             >
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </button>
-        </nav>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5"
+                aria-hidden="true"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </nav>
+        )}
 
         <EventModal
           selected={selectedEvent}
           onClose={handleCloseModal}
           captionClasses={captionClasses}
         />
+        {viewMode === "day" && (
+          <div className="space-y-3 h-[calc(100vh-500px)] p-5 rounded-lg" 
+            style={{
+                  backgroundImage: `
+                    linear-gradient(to top, ${gradientColor}00 10%, rgba(0, 0, 0, 0.1) 100%)
+                  `,
+                }}
+          >
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <p className="text-white/70">Carregando eventos...</p>
+              </div>
+            ) : filteredEvents.length === 0 ? (
+              <div className="flex items-center justify-center py-12">
+                <p className="text-white/70">Nenhum evento neste dia.</p>
+              </div>
+            ) : (
+              <EventGroups
+                groups={processedEventGroups}
+                onSelect={handleSelectEvent}
+                captionClasses={captionClasses}
+              />
+            )}
+          </div>
+        )}
 
-        <div className="space-y-3 h-[calc(100vh-500px)] p-5 rounded-lg" 
-          style={{
-                backgroundImage: `
-                  linear-gradient(to top, ${gradientColor}00 10%, rgba(0, 0, 0, 0.1) 100%)
-                `,
-              }}
-        >
-          {loading ? (
+        {viewMode === "week" && (
+          loading ? (
             <div className="flex items-center justify-center py-12">
               <p className="text-white/70">Carregando eventos...</p>
             </div>
-          ) : filteredEvents.length === 0 ? (
-            <div className="flex items-center justify-center py-12">
-              <p className="text-white/70">Nenhum evento neste dia.</p>
-            </div>
           ) : (
-            processedEventGroups.map((grupo, rowIndex) => {
-              const column1 = grupo.filter((e) => e.column === 1);
-              const column2 = grupo.filter((e) => e.column === 2);
-              const column3 = grupo.filter((e) => e.column === 3);
-              const full = grupo.filter((e) => e.column === "full");
+            <div 
+              className="flex w-full gap-5 overflow-x-auto custom-scrollbar p-5 rounded-b-md border border-t-0"
+              style={{
+                  backgroundImage: `
+                    linear-gradient(to top, ${gradientColor} 5%, ${gradientColor}00 100%)
+                  `,
+                }}
+            >
+              {processedWeek.map(({ option, groups }, index) => (
+                <div 
+                  key={option.day} 
+                  className={`w-100 shrink-0 ${
+                    index !== processedWeek.length - 1
+                      ? "border-r border-semcompMidDarkBlue/20 pr-5"
+                      : ""
+                  }`}>
+                  <h2 className="mb-3 font-poppins-bold text-lg text-white text-center">
+                    {option.weekdayLong} — {option.label}
+                  </h2>
 
-              return (
-                <div key={`group-${rowIndex}`} className="grid gap-3 md:grid-cols-3">
-                  {full.length > 0 ? (
-                    full.map((evento) => (
-                      <div key={evento.name} className="col-span-3">
-                        <EventButton
-                          evento={evento}
-                          onClick={handleSelectEvent}
-                          cardClasses={cardClasses}
-                          captionClasses={captionClasses}
-                        />
-                      </div>
-                    ))
+                  {groups.length === 0 ? (
+                    <p className="text-white/60">
+                      Nenhum evento neste dia.
+                    </p>
                   ) : (
-                    <>
-                      <div className="flex flex-col gap-3 h-full">
-                        {column1.map((evento) => (
-                          <div key={evento.name} className="flex-1">
-                            <EventButton
-                              evento={evento}
-                              onClick={handleSelectEvent}
-                              cardClasses={cardClasses}
-                              captionClasses={captionClasses}
-                            />
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex flex-col gap-3 h-full">
-                        {column2.map((evento) => (
-                          <div key={evento.name} className="flex-1">
-                            <EventButton
-                              evento={evento}
-                              onClick={handleSelectEvent}
-                              cardClasses={cardClasses}
-                              captionClasses={captionClasses}
-                            />
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex flex-col gap-3 h-full">
-                        {column3.map((evento) => (
-                          <div key={evento.name} className="flex-1">
-                            <EventButton
-                              evento={evento}
-                              onClick={handleSelectEvent}
-                              cardClasses={cardClasses}
-                              captionClasses={captionClasses}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </>
+                    <EventGroups
+                      groups={groups}
+                      onSelect={handleSelectEvent}
+                      captionClasses={captionClasses}
+                      maxColumns={2}
+                    />
                   )}
                 </div>
-              );
-            })
-          )}
+              ))}
+            </div>
+          )
+        )}
+      </div>
+
+        {/* ÁREA APENAS PARA EXPORTAÇÃO DO CRONOGRAMA */}
+        <div className="absolute -left-[9999px] top-0">
+        <div
+          ref={downloadRef}
+          className="w-[2200px] bg-semcompMidLightBlue p-8 text-semcompDarkBlue"
+        >
+          <h1 className="mb-8 text-center font-poppins-bold text-4xl">
+            Cronograma SEMCOMP
+          </h1>
+
+          <div
+            className="grid gap-4"
+            style={{
+              gridTemplateColumns: `repeat(${processedWeek.length}, minmax(0, 1fr))`,
+            }}
+          >
+            {processedWeek.map(({ option, groups }, index) => (
+              <div
+                key={option.day}
+                className={
+                  index !== processedWeek.length - 1
+                    ? "border-r border-semcompDarkBlue/20 px-4"
+                    : "px-4"
+                }
+              >
+                <h2 className="mb-4 text-center font-poppins-bold text-lg">
+                  {option.weekdayLong}
+                  <br />
+                  {option.label}
+                </h2>
+
+                {groups.length === 0 ? (
+                  <p className="text-center text-sm">
+                    Nenhum evento
+                  </p>
+                ) : (
+                  <EventGroups
+                    groups={groups}
+                    onSelect={() => {}}
+                    captionClasses={captionClasses}
+                    maxColumns={2}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
     </section>
   );
 }
