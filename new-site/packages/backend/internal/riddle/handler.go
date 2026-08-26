@@ -210,6 +210,146 @@ func (h *RiddleHandler) GetRiddles(c *gin.Context) {
 	})
 }
 
+// authedUserNumber lê o userNumber autenticado do contexto Gin (injetado pelo
+// AuthMiddleware nas rotas /api). Retorna 0 quando não autenticado.
+func authedUserNumber(c *gin.Context) uint {
+	return c.GetUint("userNumber")
+}
+
+// CreateTeam cria a equipe do participante autenticado (fluxo auto-serviço).
+// @Summary Cria uma equipe
+// @Description Cria uma equipe com o usuário autenticado como fundador e gera um código de convite para os demais entrarem
+// @Tags Riddle Site
+// @Accept json
+// @Produce json
+// @Param request body riddle.CreateMyTeamRequest true "Dados da equipe"
+// @Success 201 {object} map[string]interface{} "Equipe criada com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 401 {object} map[string]string "Não autenticado"
+// @Failure 409 {object} map[string]string "Usuário já pertence a uma equipe"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /riddles/create-team [post]
+func (h *RiddleHandler) CreateTeam(c *gin.Context) {
+	userNumber := authedUserNumber(c)
+	if userNumber == 0 {
+		apierrors.HandleAPIError(c, apierrors.UnauthorizedError("Usuário não autenticado", nil))
+		return
+	}
+
+	var request CreateMyTeamRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
+		return
+	}
+
+	team, err := h.riddleService.CreateTeam(userNumber, request)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	c.Set("responseMessage", "Equipe criada com sucesso!")
+	c.JSON(http.StatusCreated, gin.H{"message": "Equipe criada com sucesso!", "team": team})
+}
+
+// JoinTeam adiciona o participante autenticado a uma equipe pelo código.
+// @Summary Entra em uma equipe
+// @Description Adiciona o usuário autenticado à equipe identificada pelo código de convite
+// @Tags Riddle Site
+// @Accept json
+// @Produce json
+// @Param request body riddle.JoinTeamRequest true "Código de convite"
+// @Success 200 {object} map[string]interface{} "Entrou na equipe com sucesso!"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 401 {object} map[string]string "Não autenticado"
+// @Failure 404 {object} map[string]string "Código de convite inválido"
+// @Failure 409 {object} map[string]string "Usuário já em equipe ou equipe cheia"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /riddles/join-team [post]
+func (h *RiddleHandler) JoinTeam(c *gin.Context) {
+	userNumber := authedUserNumber(c)
+	if userNumber == 0 {
+		apierrors.HandleAPIError(c, apierrors.UnauthorizedError("Usuário não autenticado", nil))
+		return
+	}
+
+	var request JoinTeamRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
+		return
+	}
+
+	team, err := h.riddleService.JoinTeam(userNumber, request.Code)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	c.Set("responseMessage", "Entrou na equipe com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "Entrou na equipe com sucesso!", "team": team})
+}
+
+// GetMyGame retorna o estado do jogo do participante autenticado.
+// @Summary Estado do jogo do participante
+// @Description Retorna a equipe (ou null), o total de enigmas ativos e o próximo enigma a resolver — nunca a resposta correta
+// @Tags Riddle Site
+// @Produce json
+// @Success 200 {object} riddle.MyGameResponse "Estado do jogo"
+// @Failure 401 {object} map[string]string "Não autenticado"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /riddles/my-game [get]
+func (h *RiddleHandler) GetMyGame(c *gin.Context) {
+	userNumber := authedUserNumber(c)
+	if userNumber == 0 {
+		apierrors.HandleAPIError(c, apierrors.UnauthorizedError("Usuário não autenticado", nil))
+		return
+	}
+
+	response, err := h.riddleService.GetMyGame(userNumber)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	c.Set("responseMessage", "Estado do jogo carregado com sucesso!")
+	c.JSON(http.StatusOK, response)
+}
+
+// SolveRiddle valida a resposta do participante e avança o progresso da equipe.
+// @Summary Resolve um enigma
+// @Description Valida a resposta para o próximo enigma da equipe. Correto avança o progresso (ou conclui o jogo); incorreto mantém o mesmo enigma
+// @Tags Riddle Site
+// @Accept json
+// @Produce json
+// @Param request body riddle.SolveRiddleRequest true "Tentativa de resposta"
+// @Success 200 {object} riddle.SolveResult "Resultado da tentativa"
+// @Failure 400 {object} map[string]string "Enigma fora de ordem ou dados inválidos"
+// @Failure 401 {object} map[string]string "Não autenticado"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /riddles/solve [post]
+func (h *RiddleHandler) SolveRiddle(c *gin.Context) {
+	userNumber := authedUserNumber(c)
+	if userNumber == 0 {
+		apierrors.HandleAPIError(c, apierrors.UnauthorizedError("Usuário não autenticado", nil))
+		return
+	}
+
+	var request SolveRiddleRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
+		return
+	}
+
+	result, err := h.riddleService.SolveRiddle(userNumber, request.RiddleID, request.Answer)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	c.Set("responseMessage", "Enigma resolvido!")
+	c.JSON(http.StatusOK, result)
+}
+
 // UploadRiddlesCSV substitui totalmente a fila de riddles a partir de um CSV.
 // @Summary Importa riddles via CSV (substitui tudo)
 // @Description Recebe um CSV (título, subtítulo, resposta, link da imagem) e substitui totalmente o conjunto de riddles, na ordem das linhas do arquivo. Os riddles anteriores são apagados fisicamente do banco (hard delete), não apenas desativados.
