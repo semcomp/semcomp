@@ -63,10 +63,16 @@ Background alterna com `isDarkMode` via `ThemeContext`.
 
 ## Profile (`/profile`) — Lógica
 1. `authAPI.getProfile()` → `GET /api/profile`
-2. Exibe QR Code com `user_number` via `react-qr-code`
-3. Aba `"qr"` (default) + aba `"account"` (dados pessoais)
-4. Imagem hero aleatória via `import.meta.glob("/src/assets/img/Home/Hero/*.webp")`
-5. Reutiliza `<ContatoSection>` no rodapé
+2. `signinEventsAPI.getSigninEvents()` → `GET /api/signin-events` (eventos inscritiveis)
+3. `signinEventsAPI.getMySignins()` → `GET /api/signin-events/me` (inscrições ativas)
+4. Exibe QR Code com `user_number` via `react-qr-code`
+5. Seção de inscrição em eventos: lista `EventType[]` com `has_signin=true`, botão "Inscrever-se" / "Desistir", status "Inscrito" / "Lista de Espera - Nª posição"
+6. Background: `<AnimatedBackground />` (vídeo `.webm` em loop em `public/img/Profile/background.webm`)
+7. Card SVG temático em `public/img/Profile/Card.svg`
+8. Componente `EventCardMobile` (memo) para renderizar cada evento
+9. Reutiliza `<ContatoSection>` no rodapé
+- `signinEventsAPI` importado diretamente de `@/api/signinEvents` (não pelo barrel)
+- → [[Feature_SigninEvent]]
 
 ## RequireAuth
 Arquivo: `src/lib/RequireAuth.tsx` — redireciona para `/login` se não autenticado.
