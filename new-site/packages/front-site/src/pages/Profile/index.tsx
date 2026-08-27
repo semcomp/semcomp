@@ -21,6 +21,7 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 import JustifyAbsenceModal, { JustifyAbsenceStatusBadge } from "@/components/JustifyAbsenceModal";
 import type { JustifyAbsenceStatus } from "@/components/JustifyAbsenceModal";
 import { PapfeStatusBadge } from "@/components/PapfeStatusBadge";
+import PapfeUploadModal from "@/components/PapfeUploadModal";
 import RejectionReasonModal from "@/components/RejectionReasonModal";
 
 type EditableProfile = {
@@ -175,8 +176,8 @@ export default function Profile({
   const [justifyOpen, setJustifyOpen] = useState(false);
   const [justificationStatus, setJustificationStatus] = useState<JustifyAbsenceStatus | null>(null);
   const [absenceRejectionReason, setAbsenceRejectionReason] = useState("");
-  const [hasPapfe, setHasPapfe] = useState(false);
   const [papfeDoc, setPapfeDoc] = useState<PapfeDocumentType | null>(null);
+  const [papfeModalOpen, setPapfeModalOpen] = useState(false);
   const [reasonModal, setReasonModal] = useState<"papfe" | "absence" | null>(null);
   const [userPurchases, setUserPurchases] = useState<PurchaseType[]>(purchases);
   const [userCity, setUserCity] = useState("");
@@ -208,6 +209,10 @@ export default function Profile({
     setAbsenceRejectionReason("");
   };
 
+  const handlePapfeSubmitted = (doc: PapfeDocumentType) => {
+    setPapfeDoc(doc);
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login", { replace: true });
@@ -224,7 +229,6 @@ export default function Profile({
         setUserEmail(response.email || email);
         setUserCode(response.user_number || 0);
         setPresencePercent(response.presence_rate ?? 0);
-        setHasPapfe(response.hasPapfe ?? false);
         setUserCity(response.city ?? "");
         setUserProfession(response.profession ?? "");
         setUserLinkedin(response.linkedin ?? "");
@@ -237,12 +241,8 @@ export default function Profile({
             setAbsenceRejectionReason(mine.rejection_reason ?? "");
         }
 
-        if (response.hasPapfe) {
-          const doc = await papfeAPI.getMine();
-          setPapfeDoc(doc);
-        } else {
-          setPapfeDoc(null);
-        }
+        const papfeDocResponse = await papfeAPI.getMine();
+        setPapfeDoc(papfeDocResponse);
       } catch (err) {
         if (controller.signal.aborted) return;
         console.error("Erro ao buscar o perfil", err);
@@ -484,20 +484,19 @@ export default function Profile({
                   </div>
                 )}
 
-                {hasPapfe && (
-                  <div className="flex items-center justify-between gap-2 rounded-lg bg-white/50 border border-black/10 px-3 py-2 mb-6">
-                    <span className="text-sm font-semibold text-semcompDarkBlue">
-                      Comprovante PAPFE
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />
-                      {papfeDoc?.is_approved === false &&
-                        papfeDoc.rejection_reason && (
-                          <StatusEyeButton
-                            onClick={() => setReasonModal("papfe")}
-                          />
-                        )}
-                    </div>
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                  onClick={() => setPapfeModalOpen(true)}>
+                  {papfeDoc ? "Atualizar Comprovante PAPFE" : "Enviar Comprovante PAPFE"}
+                </button>
+                {papfeDoc && (
+                  <div className="flex items-center justify-center gap-2 mb-6">
+                    <PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />
+                    {papfeDoc.is_approved === false &&
+                      papfeDoc.rejection_reason && (
+                        <StatusEyeButton
+                          onClick={() => setReasonModal("papfe")}
+                        />
+                      )}
                   </div>
                 )}
 
@@ -679,6 +678,7 @@ export default function Profile({
           <ContatoSection />
         </div>
         <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
+        <PapfeUploadModal open={papfeModalOpen} onClose={() => setPapfeModalOpen(false)} onSubmitted={handlePapfeSubmitted} />
         <RejectionReasonModal
           open={reasonModal === "absence"}
           onClose={() => setReasonModal(null)}
@@ -864,18 +864,18 @@ export default function Profile({
             </div>
           )}
 
-          {hasPapfe && (
-            <div className="flex items-center justify-between gap-2 rounded-xl border border-border/50 bg-semcompOffWhite/40 px-3 py-2 mb-8">
-              <span className="text-sm font-semibold text-semcompMidDarkBlue">
-                Comprovante PAPFE
-              </span>
-              <div className="flex items-center gap-2">
-                <PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />
-                {papfeDoc?.is_approved === false &&
-                  papfeDoc.rejection_reason && (
-                    <StatusEyeButton onClick={() => setReasonModal("papfe")} />
-                  )}
-              </div>
+          <button
+            onClick={() => setPapfeModalOpen(true)}
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
+          >
+            {papfeDoc ? "Atualizar Comprovante PAPFE" : "Enviar Comprovante PAPFE"}
+          </button>
+          {papfeDoc && (
+            <div className="flex items-center justify-center gap-2 mb-8">
+              <PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />
+              {papfeDoc.is_approved === false && papfeDoc.rejection_reason && (
+                <StatusEyeButton onClick={() => setReasonModal("papfe")} />
+              )}
             </div>
           )}
 
@@ -1119,6 +1119,7 @@ export default function Profile({
           <ContatoSection />
         </div>
         <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
+        <PapfeUploadModal open={papfeModalOpen} onClose={() => setPapfeModalOpen(false)} onSubmitted={handlePapfeSubmitted} />
         <RejectionReasonModal
           open={reasonModal === "absence"}
           onClose={() => setReasonModal(null)}
@@ -1146,6 +1147,7 @@ export default function Profile({
         {qrAndAccountCard}
       </div>
       <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
+      <PapfeUploadModal open={papfeModalOpen} onClose={() => setPapfeModalOpen(false)} onSubmitted={handlePapfeSubmitted} />
       <RejectionReasonModal
         open={reasonModal === "absence"}
         onClose={() => setReasonModal(null)}
