@@ -378,6 +378,7 @@ export function CrudTable({
     fields.forEach((f) => {
       if (f.type === "multivalue") fd[f.value] = [];
       else if (f.type === "boolean") fd[f.value] = false;
+      else if (f.type === "number") fd[f.value] = "0";
       else if (f.type === "file") fd[f.value] = null;
       else if (f.type === "date") {
         const now = new Date();
@@ -988,6 +989,17 @@ export function CrudTable({
                       {f.label}
                     </Label>
                   </div>
+                ) : f.type === "number" ? (
+                  <Input
+                    type="number"
+                    min="0"
+                    id={`create-${f.value}`}
+                    value={(formData[f.value] as string) ?? "0"}
+                    onChange={(e) =>
+                      setFormData((d) => ({ ...d, [f.value]: e.target.value }))
+                    }
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+                  />
                 ) : f.type === "file" ? (
                   (!f.showWhen || formData[f.showWhen.field] === f.showWhen.value) ? (
                     <div className="space-y-1">
@@ -1215,6 +1227,16 @@ export function CrudTable({
                       {f.label}
                     </Label>
                   </div>
+                ) : f.type === "number" ? (
+                  <Input
+                    type="number"
+                    min="0"
+                    value={(formData[f.value] as string) ?? "0"}
+                    onChange={(e) =>
+                      setFormData((d) => ({ ...d, [f.value]: e.target.value }))
+                    }
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+                  />
                 ) : f.type === "file" ? (
                   (!f.showWhen || formData[f.showWhen.field] === f.showWhen.value) ? (
                     <div className="space-y-1">

@@ -15,6 +15,7 @@ type EventRepository interface {
 	DeleteByNameAndInitTime(name string, initTime time.Time) error
 	UpdateByNameAndInitTime(name string, initTime time.Time, event *Event) error
 	GetEvents(query EventListQuery) (*EventListResult, error)
+	ListSigninableEvents() ([]Event, error)
 }
 
 type eventRepository struct {
@@ -91,9 +92,9 @@ func applySearchFilter(dbQuery *gorm.DB, query EventListQuery) *gorm.DB {
 	case "description":
 		return dbQuery.Where("description ILIKE ?", "%"+query.SearchValue+"%")
 	case "init_date":
-		return dbQuery.Where("init_date = ?", query.SearchValue)
+		return dbQuery.Where("DATE(init_date) = DATE(?)", query.SearchValue)
 	case "end_date":
-		return dbQuery.Where("init_date = ?", query.SearchValue)
+		return dbQuery.Where("DATE(end_date) = DATE(?)", query.SearchValue)
 	case "has_attendance":
 		return dbQuery.Where("has_attendance = ?", query.SearchValue)
 	default:
@@ -156,4 +157,16 @@ func (r *eventRepository) GetEvents(query EventListQuery) (*EventListResult, err
 		TotalRecords:    totalRecords,
 		FilteredRecords: filteredRecords,
 	}, nil
+}
+
+func (r *eventRepository) ListSigninableEvents() ([]Event, error) {
+	var events []Event
+	err := r.db.Where("has_signin = ?", true).
+		Order("init_date asc").
+		Find(&events).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return events, nil
 }
