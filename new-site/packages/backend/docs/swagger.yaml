@@ -53,6 +53,8 @@ definitions:
       name:
         maxLength: 200
         type: string
+      presence_type_weight_id:
+        type: integer
       type:
         maxLength: 50
         type: string
@@ -75,7 +77,11 @@ definitions:
         type: string
       name:
         type: string
+      presence_type_weight_id:
+        type: integer
       type:
+        type: string
+      type_name:
         type: string
     type: object
   event.UpdateEventRequest:
@@ -93,6 +99,8 @@ definitions:
       name:
         maxLength: 200
         type: string
+      presence_type_weight_id:
+        type: integer
       type:
         maxLength: 50
         type: string
@@ -100,6 +108,45 @@ definitions:
     - end_date
     - init_date
     - name
+    type: object
+  notice.CreateNoticeRequest:
+    properties:
+      content:
+        type: string
+      date_time:
+        type: string
+      title:
+        maxLength: 255
+        type: string
+    required:
+    - content
+    - date_time
+    - title
+    type: object
+  notice.Notice:
+    properties:
+      content:
+        type: string
+      date_time:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+    type: object
+  notice.UpdateNoticeRequest:
+    properties:
+      content:
+        type: string
+      date_time:
+        type: string
+      title:
+        maxLength: 255
+        type: string
+    required:
+    - content
+    - date_time
+    - title
     type: object
   permission.Permission:
     properties:
@@ -177,6 +224,8 @@ definitions:
     type: object
   presencesettings.CreatePresenceTypeWeightRequest:
     properties:
+      default_has_attendance:
+        type: boolean
       type_name:
         maxLength: 50
         type: string
@@ -188,6 +237,8 @@ definitions:
     type: object
   presencesettings.PresenceTypeWeight:
     properties:
+      default_has_attendance:
+        type: boolean
       id:
         type: integer
       type_name:
@@ -206,6 +257,8 @@ definitions:
     type: object
   presencesettings.UpdatePresenceTypeWeightRequest:
     properties:
+      default_has_attendance:
+        type: boolean
       type_name:
         maxLength: 50
         type: string
@@ -644,6 +697,9 @@ definitions:
     properties:
       approved:
         type: boolean
+      rejection_reason:
+        description: Obrigatório quando Approved=false (rejeição).
+        type: string
     required:
     - approved
     type: object
@@ -1134,28 +1190,231 @@ paths:
       summary: Login do backoffice
       tags:
       - Auth Backoffice
-  /admin/papfe-documents:
+  /admin/notices:
     get:
-      description: Retorna metadados de todos os comprovantes PAPFE cadastrados
+      consumes:
+      - application/json
+      description: Retorna uma lista paginada de avisos cadastrados no mural
+      parameters:
+      - default: 1
+        description: Página atual
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limite de itens por página
+        in: query
+        name: limit
+        type: integer
+      - default: date_time
+        description: Campo de ordenação
+        in: query
+        name: sort_by
+        type: string
+      - default: desc
+        description: Ordem (asc/desc)
+        in: query
+        name: sort_order
+        type: string
+      - description: Campo de busca
+        in: query
+        name: search_by
+        type: string
+      - description: Valor de busca
+        in: query
+        name: search_value
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Lista de comprovantes PAPFE
+          description: Lista de avisos paginada
           schema:
             additionalProperties: true
             type: object
+        "400":
+          description: Parâmetro inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
-          description: Erro interno
+          description: Erro interno do servidor
           schema:
             additionalProperties:
               type: string
             type: object
       security:
       - BearerAuth: []
-      summary: Lista comprovantes PAPFE
+      summary: Lista avisos
       tags:
-      - Usuários (Participantes)
+      - Notice Backoffice
+    post:
+      consumes:
+      - application/json
+      description: Cadastra um aviso no mural
+      parameters:
+      - description: Dados do aviso
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/notice.CreateNoticeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Aviso criado com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cria um novo aviso
+      tags:
+      - Notice Backoffice
+  /admin/notices/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove um aviso do mural
+      parameters:
+      - description: ID do aviso
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Aviso removido com sucesso!
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Parâmetro 'id' inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Aviso não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Deleta aviso
+      tags:
+      - Notice Backoffice
+    get:
+      consumes:
+      - application/json
+      description: Retorna os dados de um aviso específico
+      parameters:
+      - description: ID do aviso
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Aviso encontrado
+          schema:
+            $ref: '#/definitions/notice.Notice'
+        "400":
+          description: Parâmetro 'id' inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Aviso não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Busca aviso por ID
+      tags:
+      - Notice Backoffice
+    put:
+      consumes:
+      - application/json
+      description: Altera os dados de um aviso existente
+      parameters:
+      - description: ID do aviso
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados para atualização
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/notice.UpdateNoticeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Aviso atualizado com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Aviso não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza aviso
+      tags:
+      - Notice Backoffice
   /admin/papfe-documents:
     get:
       description: Retorna metadados de todos os comprovantes PAPFE cadastrados
@@ -2660,7 +2919,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: Altera o status de aprovação do comprovante PAPFE de um usuário
+      description: Altera o status de aprovação do comprovante PAPFE de um usuário.
+        Ao rejeitar, o campo rejection_reason é obrigatório e só persiste nesse status.
       parameters:
       - description: ID do usuário
         in: path
@@ -2901,7 +3161,223 @@ paths:
       summary: Atualiza usuário do backoffice
       tags:
       - Usuários (Admins)
+  /api/absence-justifications:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Registra a justificativa de ausência (referente à SEMCOMP como
+        um todo) do usuário autenticado, com anexo comprobatório. Cada usuário só
+        pode ter uma justificativa.
+      parameters:
+      - description: Motivo da ausência
+        in: formData
+        name: reason
+        required: true
+        type: string
+      - description: Comprovante (PDF/JPEG/PNG/WebP, máx 10MB)
+        in: formData
+        name: attachment
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Justificativa enviada com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Justificativa já enviada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Envia a justificativa de ausência do usuário autenticado
+      tags:
+      - Justificativas de Ausência
+  /api/absence-justifications/{id}:
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Edita o motivo e, opcionalmente, substitui o anexo da justificativa
+        do usuário autenticado. Permitido apenas quando o status for "em_analise"
+        ou "documento_invalido"; editar reenvia a justificativa para análise.
+      parameters:
+      - description: ID da justificativa
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Motivo da ausência
+        in: formData
+        name: reason
+        required: true
+        type: string
+      - description: Novo comprovante (opcional, substitui o anterior)
+        in: formData
+        name: attachment
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Justificativa atualizada com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Justificativa não pertence ao usuário
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Justificativa não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Justificativa já aprovada ou negada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza a justificativa de ausência do usuário autenticado
+      tags:
+      - Justificativas de Ausência
+  /api/absence-justifications/{id}/attachment:
+    get:
+      description: Retorna o arquivo comprobatório da justificativa do usuário autenticado
+      parameters:
+      - description: ID da justificativa
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Arquivo anexo
+          schema:
+            type: file
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Justificativa não pertence ao usuário
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Justificativa não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtém o anexo da própria justificativa de ausência
+      tags:
+      - Justificativas de Ausência
+  /api/absence-justifications/mine:
+    get:
+      description: Retorna a justificativa de ausência enviada pelo usuário autenticado,
+        se houver
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Justificativa do usuário
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Nenhuma justificativa enviada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtém a justificativa de ausência do usuário autenticado
+      tags:
+      - Justificativas de Ausência
   /api/papfe-document:
+    get:
+      description: Retorna os metadados do comprovante PAPFE do usuário autenticado
+        (sem os bytes do arquivo), incluindo o motivo da rejeição quando houver
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comprovante PAPFE do usuário
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Nenhum comprovante enviado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtém o próprio comprovante PAPFE
+      tags:
+      - Usuários (Participantes)
     put:
       consumes:
       - multipart/form-data
@@ -3520,14 +3996,6 @@ paths:
       summary: Confirma e-mail de um usuário
       tags:
       - Usuários (Participantes)
-  /visit:
-    post:
-      responses:
-        "204":
-          description: No Content
-      summary: Registra visita à home page
-      tags:
-      - Stats
   /visit:
     post:
       responses:

@@ -469,31 +469,342 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/papfe-documents": {
+        "/admin/notices": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retorna metadados de todos os comprovantes PAPFE cadastrados",
+                "description": "Retorna uma lista paginada de avisos cadastrados no mural",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Usuários (Participantes)"
+                    "Notice Backoffice"
                 ],
-                "summary": "Lista comprovantes PAPFE",
+                "summary": "Lista avisos",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Página atual",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limite de itens por página",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "date_time",
+                        "description": "Campo de ordenação",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "desc",
+                        "description": "Ordem (asc/desc)",
+                        "name": "sort_order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campo de busca",
+                        "name": "search_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Valor de busca",
+                        "name": "search_value",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Lista de comprovantes PAPFE",
+                        "description": "Lista de avisos paginada",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
+                    "400": {
+                        "description": "Parâmetro inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "500": {
-                        "description": "Erro interno",
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cadastra um aviso no mural",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notice Backoffice"
+                ],
+                "summary": "Cria um novo aviso",
+                "parameters": [
+                    {
+                        "description": "Dados do aviso",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/notice.CreateNoticeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Aviso criado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/notices/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna os dados de um aviso específico",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notice Backoffice"
+                ],
+                "summary": "Busca aviso por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do aviso",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Aviso encontrado",
+                        "schema": {
+                            "$ref": "#/definitions/notice.Notice"
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetro 'id' inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Aviso não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Altera os dados de um aviso existente",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notice Backoffice"
+                ],
+                "summary": "Atualiza aviso",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do aviso",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados para atualização",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/notice.UpdateNoticeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Aviso atualizado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Aviso não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove um aviso do mural",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notice Backoffice"
+                ],
+                "summary": "Deleta aviso",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do aviso",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Aviso removido com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetro 'id' inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Aviso não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2821,7 +3132,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Altera o status de aprovação do comprovante PAPFE de um usuário",
+                "description": "Altera o status de aprovação do comprovante PAPFE de um usuário. Ao rejeitar, o campo rejection_reason é obrigatório e só persiste nesse status.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3193,7 +3504,331 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/absence-justifications": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Registra a justificativa de ausência (referente à SEMCOMP como um todo) do usuário autenticado, com anexo comprobatório. Cada usuário só pode ter uma justificativa.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Envia a justificativa de ausência do usuário autenticado",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Motivo da ausência",
+                        "name": "reason",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Comprovante (PDF/JPEG/PNG/WebP, máx 10MB)",
+                        "name": "attachment",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Justificativa enviada com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Justificativa já enviada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/absence-justifications/mine": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna a justificativa de ausência enviada pelo usuário autenticado, se houver",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Obtém a justificativa de ausência do usuário autenticado",
+                "responses": {
+                    "200": {
+                        "description": "Justificativa do usuário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhuma justificativa enviada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/absence-justifications/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Edita o motivo e, opcionalmente, substitui o anexo da justificativa do usuário autenticado. Permitido apenas quando o status for \"em_analise\" ou \"documento_invalido\"; editar reenvia a justificativa para análise.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Atualiza a justificativa de ausência do usuário autenticado",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da justificativa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Motivo da ausência",
+                        "name": "reason",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Novo comprovante (opcional, substitui o anterior)",
+                        "name": "attachment",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Justificativa atualizada com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Justificativa não pertence ao usuário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Justificativa não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Justificativa já aprovada ou negada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/absence-justifications/{id}/attachment": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna o arquivo comprobatório da justificativa do usuário autenticado",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Obtém o anexo da própria justificativa de ausência",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da justificativa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Arquivo anexo",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Justificativa não pertence ao usuário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Justificativa não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/papfe-document": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna os metadados do comprovante PAPFE do usuário autenticado (sem os bytes do arquivo), incluindo o motivo da rejeição quando houver",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Obtém o próprio comprovante PAPFE",
+                "responses": {
+                    "200": {
+                        "description": "Comprovante PAPFE do usuário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhum comprovante enviado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -4138,19 +4773,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/visit": {
-            "post": {
-                "tags": [
-                    "Stats"
-                ],
-                "summary": "Registra visita à home page",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -4234,6 +4856,9 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 200
                 },
+                "presence_type_weight_id": {
+                    "type": "integer"
+                },
                 "type": {
                     "type": "string",
                     "maxLength": 50
@@ -4261,7 +4886,13 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "presence_type_weight_id": {
+                    "type": "integer"
+                },
                 "type": {
+                    "type": "string"
+                },
+                "type_name": {
                     "type": "string"
                 }
             }
@@ -4293,9 +4924,69 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 200
                 },
+                "presence_type_weight_id": {
+                    "type": "integer"
+                },
                 "type": {
                     "type": "string",
                     "maxLength": 50
+                }
+            }
+        },
+        "notice.CreateNoticeRequest": {
+            "type": "object",
+            "required": [
+                "content",
+                "date_time",
+                "title"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "date_time": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 255
+                }
+            }
+        },
+        "notice.Notice": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "date_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "notice.UpdateNoticeRequest": {
+            "type": "object",
+            "required": [
+                "content",
+                "date_time",
+                "title"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "date_time": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 255
                 }
             }
         },
@@ -4411,6 +5102,9 @@ const docTemplate = `{
                 "type_name"
             ],
             "properties": {
+                "default_has_attendance": {
+                    "type": "boolean"
+                },
                 "type_name": {
                     "type": "string",
                     "maxLength": 50
@@ -4424,6 +5118,9 @@ const docTemplate = `{
         "presencesettings.PresenceTypeWeight": {
             "type": "object",
             "properties": {
+                "default_has_attendance": {
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -4455,6 +5152,9 @@ const docTemplate = `{
                 "type_name"
             ],
             "properties": {
+                "default_has_attendance": {
+                    "type": "boolean"
+                },
                 "type_name": {
                     "type": "string",
                     "maxLength": 50
@@ -5069,6 +5769,10 @@ const docTemplate = `{
             "properties": {
                 "approved": {
                     "type": "boolean"
+                },
+                "rejection_reason": {
+                    "description": "Obrigatório quando Approved=false (rejeição).",
+                    "type": "string"
                 }
             }
         },
