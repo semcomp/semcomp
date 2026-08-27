@@ -150,6 +150,7 @@ func main() {
 	
 	absenceJustificationRepo := absenceJustification.NewAbsenceJustificationRepository(db)
 	absenceJustificationService := absenceJustification.NewAbsenceJustificationService(absenceJustificationRepo)
+	absenceJustificationService.SetRateRecalculator(rateCalculator)
 	absenceJustificationHandler := absenceJustification.NewAbsenceJustificationHandler(absenceJustificationService)
 
 	productRepo := product.NewProductRepository(db)

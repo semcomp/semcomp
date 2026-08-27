@@ -13,9 +13,10 @@ import (
 )
 
 type ComputeInput struct {
-	Events    []event.Event
-	Presences []presence.Presence
-	Weights   map[uint]float64
+	Events         []event.Event
+	Presences      []presence.Presence
+	Weights        map[uint]float64
+	JustifiedUsers map[int64]bool
 }
 
 // Compute calcula a taxa de presença (0–100, com 2 casas decimais) de cada
@@ -90,6 +91,12 @@ func Compute(input ComputeInput) map[int64]float64 {
 		rates[userNumber] = math.Round((sum/denominator)*100*100) / 100
 	}
 
+	// Usuários com justificativa de ausência aprovada recebem 100%
+	// independentemente das presenças registradas.
+	for userNumber := range input.JustifiedUsers {
+		rates[userNumber] = 100.0
+	}
+
 	return rates
 }
 
@@ -127,6 +134,15 @@ func (c *Calculator) RecalculateUsers(userNumbers ...int64) error {
 	}
 	input.Presences = presences
 
+	// Filtrar justificativas apenas para os usuários solicitados
+	filtered := make(map[int64]bool)
+	for _, n := range userNumbers {
+		if input.JustifiedUsers[n] {
+			filtered[n] = true
+		}
+	}
+	input.JustifiedUsers = filtered
+
 	rates := Compute(input)
 
 	return c.persist(userNumbers, rates)
@@ -162,6 +178,10 @@ func (c *Calculator) RecalculateAll() error {
 	for _, n := range allNumbers {
 		targets[n] = true
 	}
+	// Incluir usuários justificados nos targets de recálculo
+	for n := range input.JustifiedUsers {
+		targets[n] = true
+	}
 
 	var presences []presence.Presence
 	if err := c.db.Find(&presences).Error; err != nil {
@@ -195,7 +215,22 @@ func (c *Calculator) loadInput() (ComputeInput, error) {
 		return ComputeInput{}, err
 	}
 
-	return ComputeInput{Events: events, Weights: weightMap}, nil
+	// Justificativas de ausência aprovadas: buscar user_numbers via JOIN
+	type justifiedRow struct{ UserNumber int64 }
+	var justified []justifiedRow
+	if err := c.db.Raw(
+		`SELECT u.user_number FROM absence_justifications aj
+		 JOIN users u ON u.email = aj.user_email
+		 WHERE aj.status = 'aprovado'`,
+	).Scan(&justified).Error; err != nil {
+		return ComputeInput{}, err
+	}
+	justifiedMap := make(map[int64]bool, len(justified))
+	for _, j := range justified {
+		justifiedMap[j.UserNumber] = true
+	}
+
+	return ComputeInput{Events: events, Weights: weightMap, JustifiedUsers: justifiedMap}, nil
 }
 
 func (c *Calculator) persist(userNumbers []int64, rates map[int64]float64) error {

@@ -213,3 +213,64 @@ func TestCompute_NilPresenceTypeIDIgnorado(t *testing.T) {
 	}
 	assertRate(t, rates, 2, 100.0)
 }
+
+func TestCompute_JustifiedUserGets100(t *testing.T) {
+	events := []event.Event{
+		makeEvent("Palestra A", "palestra", 9, 0, 10, 30, true),
+		makeEvent("Palestra B", "palestra", 14, 0, 15, 30, true),
+		makeEvent("Vitrine X", "vitrine", 10, 0, 11, 0, true),
+	}
+	// Usuário 1 não tem nenhuma presença mas está justificado
+	presences := []presence.Presence{
+		{UserNumber: 2, EventName: "Palestra A", EventInitDate: at(9, 0)},
+	}
+
+	rates := Compute(ComputeInput{
+		Events:         events,
+		Presences:      presences,
+		Weights:        defaultWeights(),
+		JustifiedUsers: map[int64]bool{1: true},
+	})
+
+	assertRate(t, rates, 1, 100.0)
+	assertRate(t, rates, 2, 40.0)
+}
+
+func TestCompute_JustifiedUserWithPresences(t *testing.T) {
+	events := []event.Event{
+		makeEvent("Palestra A", "palestra", 9, 0, 10, 30, true),
+		makeEvent("Palestra B", "palestra", 14, 0, 15, 30, true),
+		makeEvent("Vitrine X", "vitrine", 10, 0, 11, 0, true),
+	}
+	// Usuário 1 tem presença parcial (40%) mas está justificado -> 100%
+	presences := []presence.Presence{
+		{UserNumber: 1, EventName: "Palestra A", EventInitDate: at(9, 0)},
+	}
+
+	rates := Compute(ComputeInput{
+		Events:         events,
+		Presences:      presences,
+		Weights:        defaultWeights(),
+		JustifiedUsers: map[int64]bool{1: true},
+	})
+
+	assertRate(t, rates, 1, 100.0)
+}
+
+func TestCompute_JustifiedUserDenominatorZero(t *testing.T) {
+	// Sem eventos contáveis -> denominador = 0 -> mapa vazio mesmo justificado
+	events := []event.Event{
+		makeEvent("Workshop Solto", "workshop", 9, 0, 10, 0, true),
+	}
+
+	rates := Compute(ComputeInput{
+		Events:         events,
+		Presences:      nil,
+		Weights:        defaultWeights(),
+		JustifiedUsers: map[int64]bool{1: true},
+	})
+
+	if len(rates) != 0 {
+		t.Errorf("sem denominador, ninguém deve ter taxa, recebeu %v", rates)
+	}
+}
