@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"backend/internal/absenceJustification"
 	"backend/internal/auth"
 	"backend/internal/authBackoffice"
 	"backend/internal/database"
@@ -13,6 +14,7 @@ import (
 	"backend/internal/log"
 	"backend/internal/mailer"
 	"backend/internal/middleware"
+	"backend/internal/notice"
 	"backend/internal/pages"
 	"backend/internal/permission"
 	"backend/internal/presence"
@@ -62,7 +64,9 @@ func main() {
 		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{},
 		&token.Token{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{},
 		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{}, &sales.ConsumedItem{},
+		&absenceJustification.AbsenceJustification{}, &notice.Notice{},
 	)
+
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -143,10 +147,18 @@ func main() {
 	eventService.SetRateRecalculator(rateCalculator)
 	presenceService.SetRateRecalculator(rateCalculator)
 	presenceSettingsService.SetRateRecalculator(rateCalculator)
+	
+	absenceJustificationRepo := absenceJustification.NewAbsenceJustificationRepository(db)
+	absenceJustificationService := absenceJustification.NewAbsenceJustificationService(absenceJustificationRepo)
+	absenceJustificationHandler := absenceJustification.NewAbsenceJustificationHandler(absenceJustificationService)
 
 	productRepo := product.NewProductRepository(db)
 	productService := product.NewProductService(productRepo)
 	productHandler := product.NewProductHandler(productService, papfeRepo)
+
+	noticeRepo := notice.NewNoticeRepository(db)
+	noticeService := notice.NewNoticeService(noticeRepo)
+	noticeHandler := notice.NewNoticeHandler(noticeService)
 
 	logRepo := log.NewRepository(db)
 	logService := log.NewService(logRepo)
@@ -248,7 +260,7 @@ func main() {
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:5174", "https://semcomp.icmc.usp.br"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 		ExposeHeaders:    []string{"Content-Length"},
@@ -296,6 +308,11 @@ func main() {
 	authRoutes.PUT("/profile", userHandler.UpdateProfile)
 	authRoutes.GET("/verify-email", userHandler.VerifyEmailHandler)
 	authRoutes.PUT("/papfe-document", userHandler.UpdatePapfeDocument)
+	authRoutes.GET("/papfe-document", userHandler.GetMyPapfeDocument)
+	authRoutes.POST("/absence-justifications", absenceJustificationHandler.CreateAbsenceJustification)
+	authRoutes.GET("/absence-justifications/mine", absenceJustificationHandler.GetMine)
+	authRoutes.GET("/absence-justifications/:id/attachment", absenceJustificationHandler.GetOwnAttachment)
+	authRoutes.PATCH("/absence-justifications/:id", absenceJustificationHandler.UpdateMine)
 
 	// Produtos (requer autenticação para exibir desconto PAPFE)
 	authRoutes.GET("/products", pageMW("loja"), productHandler.GetProducts)
@@ -349,6 +366,11 @@ func main() {
 	admin.POST("/presence-settings", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.CreateWeight)
 	admin.PUT("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.UpdateWeight)
 	admin.DELETE("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.DeleteWeight)
+	
+	// Justificativas de Ausência
+	admin.GET("/absence-justifications", permMW("Justificativas de Ausência", permission.PermR), absenceJustificationHandler.GetAbsenceJustifications)
+	admin.GET("/absence-justifications/:id/attachment", permMW("Justificativas de Ausência", permission.PermR), absenceJustificationHandler.GetAttachment)
+	admin.PATCH("/absence-justifications/:id", permMW("Justificativas de Ausência", permission.PermRW), absenceJustificationHandler.UpdateStatus)
 
 	// Usuários Backoffice
 	admin.GET("/usersBackoffice", permMW("Usuários Backoffice", permission.PermR), userBackofficeHandler.GetAllUsers)
@@ -370,6 +392,13 @@ func main() {
 	admin.PUT("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.UpdateSaleByID)
 	admin.DELETE("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.DeleteSaleByID)
 	admin.PATCH("/sales/items/:itemId/pickup", permMW("Vendas", permission.PermRW), salesHandler.UpdateItemPickup)
+
+	// Avisos
+	admin.GET("/notices", permMW("Avisos", permission.PermR), noticeHandler.GetNotices)
+	admin.GET("/notices/:id", permMW("Avisos", permission.PermR), noticeHandler.GetNoticeByID)
+	admin.POST("/notices", permMW("Avisos", permission.PermRW), noticeHandler.CreateNotice)
+	admin.PUT("/notices/:id", permMW("Avisos", permission.PermRW), noticeHandler.UpdateNoticeByID)
+	admin.DELETE("/notices/:id", permMW("Avisos", permission.PermRW), noticeHandler.DeleteNoticeByID)
 
 	// Permissões
 	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode

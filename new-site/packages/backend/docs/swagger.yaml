@@ -1,5 +1,21 @@
 basePath: /
 definitions:
+  absenceJustification.UpdateStatusRequest:
+    properties:
+      rejection_reason:
+        description: Obrigatório quando Status="negado"; ignorado/limpo nos demais
+          status.
+        type: string
+      status:
+        enum:
+        - em_analise
+        - aprovado
+        - negado
+        - documento_invalido
+        type: string
+    required:
+    - status
+    type: object
   auth.LoginUserRequest:
     properties:
       email:
@@ -821,6 +837,119 @@ info:
   title: Semcomp API
   version: "1.0"
 paths:
+  /admin/absence-justifications:
+    get:
+      description: Retorna todas as justificativas de ausência cadastradas
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de justificativas de ausência
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lista justificativas de ausência
+      tags:
+      - Justificativas de Ausência
+  /admin/absence-justifications/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Aprova, rejeita, marca como documento inválido ou volta para análise
+        uma justificativa de ausência. Ao negar, o campo rejection_reason é obrigatório
+        e só persiste nesse status.
+      parameters:
+      - description: ID da justificativa
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Novo status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/absenceJustification.UpdateStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status atualizado com sucesso!
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Justificativa não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza o status de uma justificativa de ausência
+      tags:
+      - Justificativas de Ausência
+  /admin/absence-justifications/{id}/attachment:
+    get:
+      description: Retorna o arquivo comprobatório de uma justificativa de ausência
+        específica
+      parameters:
+      - description: ID da justificativa
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Arquivo anexo
+          schema:
+            type: file
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Justificativa não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtém o anexo de uma justificativa de ausência
+      tags:
+      - Justificativas de Ausência
   /admin/events:
     post:
       consumes:
@@ -1005,6 +1134,28 @@ paths:
       summary: Login do backoffice
       tags:
       - Auth Backoffice
+  /admin/papfe-documents:
+    get:
+      description: Retorna metadados de todos os comprovantes PAPFE cadastrados
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de comprovantes PAPFE
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lista comprovantes PAPFE
+      tags:
+      - Usuários (Participantes)
   /admin/papfe-documents:
     get:
       description: Retorna metadados de todos os comprovantes PAPFE cadastrados
@@ -3369,6 +3520,14 @@ paths:
       summary: Confirma e-mail de um usuário
       tags:
       - Usuários (Participantes)
+  /visit:
+    post:
+      responses:
+        "204":
+          description: No Content
+      summary: Registra visita à home page
+      tags:
+      - Stats
   /visit:
     post:
       responses:

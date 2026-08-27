@@ -15,6 +15,178 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/absence-justifications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna todas as justificativas de ausência cadastradas",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Lista justificativas de ausência",
+                "responses": {
+                    "200": {
+                        "description": "Lista de justificativas de ausência",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/absence-justifications/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Aprova, rejeita, marca como documento inválido ou volta para análise uma justificativa de ausência. Ao negar, o campo rejection_reason é obrigatório e só persiste nesse status.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Atualiza o status de uma justificativa de ausência",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da justificativa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Novo status",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/absenceJustification.UpdateStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status atualizado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Justificativa não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/absence-justifications/{id}/attachment": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna o arquivo comprobatório de uma justificativa de ausência específica",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Obtém o anexo de uma justificativa de ausência",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da justificativa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Arquivo anexo",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Justificativa não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/admin/events": {
             "post": {
                 "security": [
@@ -283,6 +455,41 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/papfe-documents": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna metadados de todos os comprovantes PAPFE cadastrados",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Lista comprovantes PAPFE",
+                "responses": {
+                    "200": {
+                        "description": "Lista de comprovantes PAPFE",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "500": {
@@ -3931,9 +4138,43 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/visit": {
+            "post": {
+                "tags": [
+                    "Stats"
+                ],
+                "summary": "Registra visita à home page",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "absenceJustification.UpdateStatusRequest": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "rejection_reason": {
+                    "description": "Obrigatório quando Status=\"negado\"; ignorado/limpo nos demais status.",
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "em_analise",
+                        "aprovado",
+                        "negado",
+                        "documento_invalido"
+                    ]
+                }
+            }
+        },
         "auth.LoginUserRequest": {
             "type": "object",
             "required": [

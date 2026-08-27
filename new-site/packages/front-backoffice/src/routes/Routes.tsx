@@ -16,6 +16,8 @@ import PresenceSettings from "@/pages/PresenceSettings";
 import SponsorsCRUD from "@/pages/Sponsors";
 import SalesCRUD from "@/pages/Sales";
 import PapfeDocuments from "@/pages/PapfeDocuments";
+import NoticesCRUD from "@/pages/Notices"
+import AbsenceJustifications from "@/pages/AbsenceJustifications";
 import NotFoundPage from "@/pages/NotFound";
 
 export const router = createBrowserRouter(
@@ -85,6 +87,14 @@ export const router = createBrowserRouter(
             {
               element: <RequirePermission section="PAPFE" />,
               children: [{ path: "/papfe-documents", element: <PapfeDocuments /> }],
+            },
+            {
+              element: <RequirePermission section="Avisos" />,
+              children: [{ path: "/notices", element: <NoticesCRUD /> }],
+            },
+            {
+              element: <RequirePermission section="Justificativas de Ausência" />,
+              children: [{ path: "/absence-justifications", element: <AbsenceJustifications /> }],
             },
             {
               path: "*",
