@@ -63,7 +63,7 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 ### permission
 - Rotas backoffice: `GET /admin/permissions`, `GET /admin/permissions/me`, `GET /admin/permissions/section/:section`, `POST /admin/permissions`, `PUT/DELETE /admin/permissions/:user/:section`
 - `GetMyPermissions` — email lido do JWT, sem URL param
-- `InitializePermissions()` — concede `RW` em todas as 9 seções ao admin padrão
+- `InitializePermissions()` — concede `RW` em todas as 11 seções ao admin padrão
 - → Detalhes: [[Feature_Controle_Backend]]
 
 ### product
@@ -98,6 +98,15 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - Inicializado com: `["home", "login", "cronograma", "profile", "riddle", "loja"]`
 - → Detalhes: [[Feature_Flags_e_Pages]]
 
+### riddle
+- Bloco novo — jogo de enigmas em sequência (backoffice + participante)
+- Rotas backoffice (`/admin`, seção `"Riddles"`): `GET/POST /admin/riddles`, `GET/PUT/DELETE /admin/riddles/:id`, `POST /admin/riddles/upload-csv`
+- Rotas site (`/api`, guard `AuthMiddleware` + `pageMW("riddle")`): `GET /api/riddles/my-game`, `POST /api/riddles/create-team`, `POST /api/riddles/join-team`, `POST /api/riddles/solve`
+- `Riddle`: PK autoincrement que define a ordem da fila; `IsActive` = soft delete + visibilidade no jogo
+- `Team`/`TeamMember`: equipes de até 5 (MaxTeamSize); progresso por `CurrentRiddleIndex`; convite por `Code` (8 chars)
+- `PublicRiddle` esconde `Answer` (padrão `user.SafeUser`) — o struct cru `Riddle` só é usado nas rotas de backoffice
+- → Detalhes: [[Feature_Riddle_e_Jogo]]
+
 ### token
 - Sem handler HTTP — usado internamente por `user`
 - Tabela `tokens`: armazena hash SHA-256 de tokens de email e reset de senha
@@ -129,7 +138,7 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 
 ## Sequência de Startup (main.go)
 
-1. Conecta DB + `AutoMigrate` (inclui `Product`, `Kit`, `Coffee`, `ComboItem`, `Sale`, `SaleItem`, `ConsumedItem`, `Token`, `Sponsor`, `SiteStat`, …)
+1. Conecta DB + `AutoMigrate` (inclui `Product`, `Kit`, `Coffee`, `ComboItem`, `Sale`, `SaleItem`, `ConsumedItem`, `Token`, `Sponsor`, `SiteStat`, `Riddle`, …)
 2. Migrações manuais pós-AutoMigrate:
    - dropa a coluna órfã `kits.is_babydoll` (modelo usa `is_babylook`)
    - recria `sales.status_chk` aceitando `EXPIRADO` (AutoMigrate não altera CHECK existente)

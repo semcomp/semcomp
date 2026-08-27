@@ -25,6 +25,8 @@ App (layout)
 │       ├── /loja/carrinho
 │       ├── /loja/checkout
 │       └── /loja/pagamentos
+│   └── FeatureGuard("riddle")
+│       └── /riddle              ← jogo de enigmas
 ├── /                         ← Home (sempre disponível)
 └── *                         ← NotFound
 ```
@@ -43,6 +45,7 @@ App (layout)
 | `/loja/carrinho` | `pages/Store/Cart.tsx` | RequireAuth + FeatureGuard(`loja`) | `POST /api/sales` |
 | `/loja/checkout` | `pages/Store/Checkout.tsx` | RequireAuth + FeatureGuard(`loja`) | SSE `GET /api/sales/:id/events` |
 | `/loja/pagamentos` | `pages/Store/PendingPayments.tsx` | RequireAuth + FeatureGuard(`loja`) | `GET /api/sales/profile` + SSE `GET /api/sales/:id/events` |
+| `/riddle` | `pages/Riddle/index.tsx` | RequireAuth + FeatureGuard(`riddle`) | `GET /api/riddles/my-game` + `POST /api/riddles/*` (create-team/join-team/solve) |
 | `*` | `pages/NotFound/index.tsx` | — | — |
 
 ## Home (`/`) — Seções

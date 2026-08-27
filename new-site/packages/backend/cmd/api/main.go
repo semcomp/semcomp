@@ -273,6 +273,12 @@ func main() {
 	authRoutes.GET("/sales/:id/status", pageMW("loja"), salesHandler.GetSaleStatus)
 	authRoutes.GET("/sales/:id/events", pageMW("loja"), salesHandler.StreamSaleStatus)
 
+	// Riddle (jogo do participante)
+	authRoutes.GET("/riddles/my-game", pageMW("riddle"), riddleHandler.GetMyGame)
+	authRoutes.POST("/riddles/create-team", pageMW("riddle"), riddleHandler.CreateTeam)
+	authRoutes.POST("/riddles/join-team", pageMW("riddle"), riddleHandler.JoinTeam)
+	authRoutes.POST("/riddles/solve", pageMW("riddle"), riddleHandler.SolveRiddle)
+
 	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")
 	adminRoutes.POST("/login", authBackofficeHandler.LoginBackofficeHandler)

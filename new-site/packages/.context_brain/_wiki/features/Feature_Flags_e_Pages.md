@@ -29,7 +29,8 @@ pagesService := pages.NewService([]string{"home", "login", "cronograma", "profil
 ### Middleware `RequirePageAvailable`
 Arquivo: `internal/middleware/page.go`  
 Retorna **503** se a página está desabilitada.  
-Usado como `pageMW("login")`, `pageMW("cronograma")`, `pageMW("loja")`, etc.
+Usado como `pageMW("login")`, `pageMW("cronograma")`, `pageMW("loja")`,
+`pageMW("riddle")` (nas rotas do jogo `/api/riddles/*`), etc.
 
 ---
 
@@ -61,6 +62,7 @@ Usado em `Routes.tsx` para envolver rotas controláveis:
 - `/login`, `/reset-password` → FeatureGuard(`"login"`)
 - `/profile` → FeatureGuard(`"login"`)
 - `/loja`, `/loja/carrinho`, `/loja/checkout` → FeatureGuard(`"loja"`)
+- `/riddle` → FeatureGuard(`"riddle"`)
 
 ---
 

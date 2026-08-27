@@ -106,6 +106,19 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 |---|---|---|
 | PUT | `/admin/pages/:page/availability` | `pagesAPI.setAvailability(page, bool)` |
 
+### Riddles (`"Riddles"`)
+| Método | Path | Handler TS | Notas |
+|---|---|---|---|
+| GET | `/admin/riddles` | `riddlesAPI.getAll(page, ...)` | paginado, ordenação e busca |
+| GET | `/admin/riddles/:id` | `riddlesAPI.getByID(id)` | |
+| POST | `/admin/riddles` | `riddlesAPI.create(data)` | |
+| POST | `/admin/riddles/upload-csv` | `riddlesAPI.uploadCSV(file)` | CSV 4 colunas (título, subtítulo, resposta, imagem) — **hard delete** da fila; 409 se equipes em progresso |
+| PUT | `/admin/riddles/:id` | `riddlesAPI.update(id, data)` | inclui toggle `is_active` |
+| DELETE | `/admin/riddles/:id` | `riddlesAPI.delete(id)` | soft delete |
+
+> UI em `pages/Riddles` (`/riddles`). Campo `is_active` usa `interactiveToggle` na CrudTable.
+> → [[Feature_Riddle_e_Jogo]]
+
 ---
 
 ## Mapeamento de Campos Críticos
@@ -144,4 +157,4 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 ---
 
 ## API Barrel (Backoffice)
-Arquivo: `src/api/index.ts` — exporta: `authAPI`, `userBackofficeAPI`, `userSemcompAPI`, `eventsAPI`, `sectionsAPI`, `participationAPI`, `productsAPI`, `permissionsAPI`, `pagesAPI`, `sponsorsAPI`, `salesAPI`, `client`
+Arquivo: `src/api/index.ts` — exporta: `authAPI`, `userBackofficeAPI`, `userSemcompAPI`, `eventsAPI`, `sectionsAPI`, `participationAPI`, `productsAPI`, `permissionsAPI`, `pagesAPI`, `sponsorsAPI`, `salesAPI`, `riddlesAPI`, `client`

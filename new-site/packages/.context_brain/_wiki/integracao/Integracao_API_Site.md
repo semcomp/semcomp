@@ -51,6 +51,13 @@ Storage key: `semcomp-site-token`
 | GET | `/api/sales/:id` | `salesAPI.getById` | detalhes da venda |
 | GET | `/api/sales/:id/status` | `salesAPI.getStatus` | status efetivo da venda (polling; hoje sem uso no front) |
 | GET | `/api/sales/:id/events` | — (EventSource) | SSE de status PIX — Checkout e PendingPayments |
+| GET | `/api/riddles/my-game` | `riddleAPI.getMyGame` | estado do jogo (equipe, total, próximo enigma — nunca a resposta) |
+| POST | `/api/riddles/create-team` | `riddleAPI.createTeam` | cria equipe (participante vira fundador) + código de convite |
+| POST | `/api/riddles/join-team` | `riddleAPI.joinTeam` | entra em equipe pelo código |
+| POST | `/api/riddles/solve` | `riddleAPI.solve` | responde ao enigma atual; avança em ordem |
+
+> Rotas de riddle usam guard `AuthMiddleware` + `pageMW("riddle")`.
+> → [[Feature_Riddle_e_Jogo]]
 
 **POST `/api/sales` payload**: `{ items: [{ product_id, quantity }], payment_method: "PIX", status?, dietary_restrictions?, description? }`  
 **Resposta**: `{ message, sale: { id, user_number, status, total_amount, qr_code, qr_code_base64, pix_expiration, ... } }`
@@ -75,6 +82,7 @@ Importados diretamente pelas páginas (não pelo barrel):
 - `productsAPI` → `@/api/products`
 - `salesAPI` → `@/api/sales` (criação de venda, histórico, consumidos, status)
 - `pagesAPI` → `@/api/pages`
+- `riddleAPI` → `@/api/riddle` (jogo do participante: my-game, create-team, join-team, solve)
 
 > `paymentAPI` (`@/api/payment`) ainda existe no barrel, mas `Checkout`/`Cart`
 > usam `salesAPI` — o barrel antigo de pagamentos ficou órfão.

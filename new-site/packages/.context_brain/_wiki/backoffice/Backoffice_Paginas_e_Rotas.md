@@ -23,6 +23,7 @@ Porta dev: **5174** | `basename: "/admin"` | Router: React Router v6 (imports es
 | `/pages-availability` | `pages/PagesAvailability/index.tsx` | RequireAuth + RequirePermission | `"Páginas"` |
 | `/sponsors` | `pages/Sponsors/index.tsx` | RequireAuth + RequirePermission | `"Patrocinadores"` |
 | `/sales` | `pages/Sales/index.tsx` | RequireAuth + RequirePermission | `"Vendas"` |
+| `/riddles` | `pages/Riddles/index.tsx` | RequireAuth + RequirePermission | `"Riddles"` |
 | `*` | `pages/NotFound/index.tsx` | RequireAuth | — |
 
 ## Home do Backoffice (`/home`)
@@ -70,3 +71,13 @@ Arquivo: `pages/Sales/index.tsx` (CrudTable sobre `salesAPI`)
 - Lista vendas (`GET /admin/sales`), atualiza status (`PUT /admin/sales/:id`), exclui (`DELETE /admin/sales/:id`)
 - Retirada de item: `PATCH /admin/sales/items/:itemId/pickup`
 - `canWrite = useHasPermission("Vendas", "RW")`
+
+## Riddles (`/riddles`)
+Arquivo: `pages/Riddles/index.tsx` (CrudTable sobre `riddlesAPI`)
+
+- CRUD de enigmas (`GET/POST /admin/riddles`, `PUT/DELETE /admin/riddles/:id`)
+- Upload de CSV (`POST /admin/riddles/upload-csv`) — substitui toda a fila
+- Toggle `is_active` na tabela via campo `interactiveToggle` da CrudTable
+- Preview de imagem (`image-preview`) no modal de criar/editar
+- `canWrite = useHasPermission("Riddles", "RW")`
+- → [[Feature_Riddle_e_Jogo]]

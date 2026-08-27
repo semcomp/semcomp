@@ -42,6 +42,7 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - [[Feature_Participacao_e_QRCode]] — scan via câmera (backoffice), QR exibido no Profile (site)
 - [[Feature_Loja_e_Pagamentos]] — produtos (KIT/COFFEE/COMBO), carrinho, checkout PIX, SSE, pagamentos pendentes, webhook, compra única (consumido)
 - [[Feature_Flags_e_Pages]] — feature toggle via API, FeatureGuard, backoffice toggle UI
+- [[Feature_Riddle_e_Jogo]] — jogo de enigmas em sequência: CRUD backoffice (com CSV), equipes de até 5, progresso por índice, resolução em ordem
 
 ---
 
@@ -52,3 +53,5 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - **Permissions (bulk)**: salvar permissões faz N chamadas paralelas com `Promise.all`; falha parcial deixa estado inconsistente sem rollback
 - **Sections**: a tab `sections` foi removida do backoffice — seções deixaram de ser gerenciáveis via UI (mas endpoint backend ainda existe)
 - **Feature Flags**: estado das flags vive **em memória no processo Go** — reiniciar o servidor reseta todas as flags para `available: true`
+- **Riddle (Answer)**: o struct `Riddle` serializa `Answer` e só é seguro porque hoje é usado apenas nas rotas de backoffice; um futuro endpoint público do participante **não deve** expor esse struct diretamente — deve usar `PublicRiddle` (sem `Answer`) ou vaza as respostas do jogo
+- **Riddle (CSV)**: o upload substitui a fila com **hard delete** e é bloqueado (409) enquanto houver equipes em progresso — o fluxo exige a fila zerada antes de recriar
