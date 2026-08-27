@@ -5,9 +5,9 @@ import "time"
 type RegistrationStatus string
 
 const (
-	StatusRegistered RegistrationStatus = "Inscrito"
-	StatusWaitListed RegistrationStatus = "Lista de Espera"
-	StatusCancelled  RegistrationStatus = "Cancelado"
+	StatusRegistered      RegistrationStatus = "Inscrito"
+	StatusWaitingDonation RegistrationStatus = "Esperando Doação"
+	StatusWaitListed      RegistrationStatus = "Lista de Espera"
 )
 
 type SigninEvent struct {
@@ -27,11 +27,11 @@ type CreateSigninAdminRequest struct {
 	UserNumber    uint               `json:"user_number" binding:"required,gt=0"`
 	EventName     string             `json:"event_name" binding:"required,max=200"`
 	EventInitDate time.Time          `json:"event_init_date" binding:"required"`
-	Status        RegistrationStatus `json:"status" binding:"required,oneof=Inscrito Lista de Espera Cancelado"`
+	Status        RegistrationStatus `json:"status" binding:"required,oneof=Inscrito Esperando Doação Lista de Espera"`
 }
 
 type UpdateSigninAdminRequest struct {
-	Status RegistrationStatus `json:"status" binding:"required,oneof=Inscrito Lista de Espera Cancelado"`
+	Status RegistrationStatus `json:"status" binding:"required,oneof=Inscrito Esperando Doação Lista de Espera"`
 }
 
 type SigninEventListQuery struct {

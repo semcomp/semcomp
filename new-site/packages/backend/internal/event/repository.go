@@ -92,9 +92,9 @@ func applySearchFilter(dbQuery *gorm.DB, query EventListQuery) *gorm.DB {
 	case "description":
 		return dbQuery.Where("description ILIKE ?", "%"+query.SearchValue+"%")
 	case "init_date":
-		return dbQuery.Where("init_date = ?", query.SearchValue)
+		return dbQuery.Where("DATE(init_date) = DATE(?)", query.SearchValue)
 	case "end_date":
-		return dbQuery.Where("init_date = ?", query.SearchValue)
+		return dbQuery.Where("DATE(end_date) = DATE(?)", query.SearchValue)
 	case "has_attendance":
 		return dbQuery.Where("has_attendance = ?", query.SearchValue)
 	default:

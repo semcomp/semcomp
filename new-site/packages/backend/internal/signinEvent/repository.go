@@ -12,16 +12,18 @@ import (
 type SigninEventRepository interface {
 	Create(signin *SigninEvent) error
 	GetByUserEventAndInitDate(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error)
-	CountByStatus(eventName string, initDate time.Time, status RegistrationStatus) (int64, error)
 	CountActiveByEvent(eventName string, initDate time.Time) (int64, error)
 	FindActiveByUser(userNumber uint) ([]SigninEventsDetailed, error)
 	FindActiveOverlapping(userNumber uint, targetEventName string, targetInitDate time.Time, targetEndDate time.Time) (*SigninEvent, error)
-	UpdateStatus(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus) error
-	GetFirstWaitListed(eventName string, initDate time.Time) (*SigninEvent, error)
-	PromoteToRegistered(userNumber uint, eventName string, initDate time.Time) error
+	DecrementPositionsAfter(eventName string, initDate time.Time, deletedPosition uint) error
+	PromoteWithinLimit(eventName string, initDate time.Time, max uint) error
 	UpdateByComposite(userNumber uint, eventName string, initDate time.Time, updated *SigninEvent) error
 	DeleteByComposite(userNumber uint, eventName string, initDate time.Time) error
 	GetAll(query SigninEventListQuery) (*SigninEventListResult, error)
+	DeleteByStatus(eventName string, initDate time.Time, status RegistrationStatus) error
+	ListActiveByEvent(eventName string, initDate time.Time) ([]SigninEvent, error)
+	PromoteFirstWaitListed(eventName string, initDate time.Time, limit int) error
+	UpdatePosition(userNumber uint, eventName string, initDate time.Time, position uint) error
 }
 
 type signinEventRepository struct {
@@ -46,22 +48,10 @@ func (r *signinEventRepository) GetByUserEventAndInitDate(userNumber uint, event
 	return &signin, nil
 }
 
-func (r *signinEventRepository) CountByStatus(eventName string, initDate time.Time, status RegistrationStatus) (int64, error) {
-	var count int64
-	err := r.db.Model(&SigninEvent{}).
-		Where("event_name = ? AND event_init_date = ? AND status = ?", eventName, initDate, status).
-		Count(&count).Error
-	if err != nil {
-		return 0, err
-	}
-
-	return count, nil
-}
-
 func (r *signinEventRepository) CountActiveByEvent(eventName string, initDate time.Time) (int64, error) {
 	var count int64
 	err := r.db.Model(&SigninEvent{}).
-		Where("event_name = ? AND event_init_date = ? AND status <> ?", eventName, initDate, StatusCancelled).
+		Where("event_name = ? AND event_init_date = ?", eventName, initDate).
 		Count(&count).Error
 	if err != nil {
 		return 0, err
@@ -76,9 +66,14 @@ func (r *signinEventRepository) FindActiveByUser(userNumber uint) ([]SigninEvent
 	err := r.db.Table("signin_events").
 		Select("signin_events.user_number, signin_events.event_name, signin_events.event_init_date, "+
 			"events.end_date AS event_end_date, events.type AS event_type, events.location AS event_location, "+
-			"events.description AS event_description, signin_events.user_wait_list_position, signin_events.status").
+			"events.description AS event_description, "+
+			"CASE WHEN signin_events.status = ? AND events.max_participants > 0 "+
+			"AND signin_events.user_wait_list_position > events.max_participants "+
+			"THEN signin_events.user_wait_list_position - events.max_participants "+
+			"ELSE signin_events.user_wait_list_position END AS user_wait_list_position, "+
+			"signin_events.status", StatusWaitListed).
 		Joins("JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date").
-		Where("signin_events.user_number = ? AND signin_events.status <> ?", userNumber, StatusCancelled).
+		Where("signin_events.user_number = ?", userNumber).
 		Order("signin_events.event_init_date asc").
 		Scan(&signins).Error
 	if err != nil {
@@ -93,7 +88,7 @@ func (r *signinEventRepository) FindActiveOverlapping(userNumber uint, targetEve
 	err := r.db.Table("signin_events").
 		Select("signin_events.*").
 		Joins("JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date").
-		Where("signin_events.user_number = ? AND signin_events.status != ?", userNumber, StatusCancelled).
+		Where("signin_events.user_number = ?", userNumber).
 		// exclui a própria linha do evento-alvo (não é conflito consigo mesmo)
 		Where("NOT (signin_events.event_name = ? AND signin_events.event_init_date = ?)", targetEventName, targetInitDate).
 		// overlap: existente.init < alvo.end  AND  alvo.init < existente.end
@@ -107,22 +102,6 @@ func (r *signinEventRepository) FindActiveOverlapping(userNumber uint, targetEve
 		return nil, gorm.ErrRecordNotFound
 	}
 	return &results[0], nil
-}
-
-func (r *signinEventRepository) UpdateStatus(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus) error {
-	result := r.db.Model(&SigninEvent{}).
-		Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).
-		Update("status", status)
-
-	if result.Error != nil {
-		return result.Error
-	}
-
-	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-
-	return nil
 }
 
 func (r *signinEventRepository) UpdateByComposite(userNumber uint, eventName string, initDate time.Time, updated *SigninEvent) error {
@@ -180,7 +159,15 @@ func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEvent
 	}
 
 	dataQuery := applySearchFilter(r.db.Model(&SigninEvent{}), query)
-	err = dataQuery.Order(sortClause).Limit(query.Limit).Offset(query.Offset).Find(&signins).Error
+	err = dataQuery.
+		Select("signin_events.user_number, signin_events.event_name, signin_events.event_init_date, "+
+			"CASE WHEN signin_events.status = ? AND events.max_participants > 0 "+
+			"AND signin_events.user_wait_list_position > events.max_participants "+
+			"THEN signin_events.user_wait_list_position - events.max_participants "+
+			"ELSE signin_events.user_wait_list_position END AS user_wait_list_position, "+
+			"signin_events.status", StatusWaitListed).
+		Joins("LEFT JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date").
+		Order(sortClause).Limit(query.Limit).Offset(query.Offset).Find(&signins).Error
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +191,7 @@ func applySearchFilter(dbQuery *gorm.DB, query SigninEventListQuery) *gorm.DB {
 		return dbQuery.Where("event_name ILIKE ?", "%"+query.SearchValue+"%")
 	case "event_init_date":
 		parsedTime, _ := time.Parse(time.RFC3339, query.SearchValue)
-		return dbQuery.Where("event_init_date = ?", parsedTime)
+		return dbQuery.Where("DATE(event_init_date) = DATE(?)", parsedTime)
 	case "status":
 		return dbQuery.Where("status ILIKE ?", "%"+query.SearchValue+"%")
 	default:
@@ -235,33 +222,59 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 	return field + " " + order, nil
 }
 
-func (r *signinEventRepository) GetFirstWaitListed(eventName string, initDate time.Time) (*SigninEvent, error) {
-	var signin SigninEvent
-	err := r.db.Where("event_name = ? AND event_init_date = ? AND status = ?", eventName, initDate, StatusWaitListed).
+func (r *signinEventRepository) DecrementPositionsAfter(eventName string, initDate time.Time, deletedPosition uint) error {
+	return r.db.Model(&SigninEvent{}).
+		Where("event_name = ? AND event_init_date = ? AND user_wait_list_position > ?", eventName, initDate, deletedPosition).
+		Update("user_wait_list_position", gorm.Expr("user_wait_list_position - 1")).Error
+}
+
+func (r *signinEventRepository) PromoteWithinLimit(eventName string, initDate time.Time, max uint) error {
+	if max == 0 {
+		return nil
+	}
+
+	return r.db.Model(&SigninEvent{}).
+		Where("event_name = ? AND event_init_date = ? AND status = ? AND user_wait_list_position <= ?",
+			eventName, initDate, StatusWaitListed, max).
+		Update("status", StatusWaitingDonation).Error
+}
+
+func (r *signinEventRepository) DeleteByStatus(eventName string, initDate time.Time, status RegistrationStatus) error {
+	return r.db.Where("event_name = ? AND event_init_date = ? AND status = ?", eventName, initDate, status).
+		Delete(&SigninEvent{}).Error
+}
+
+func (r *signinEventRepository) ListActiveByEvent(eventName string, initDate time.Time) ([]SigninEvent, error) {
+	var signins []SigninEvent
+	err := r.db.Where("event_name = ? AND event_init_date = ?", eventName, initDate).
 		Order("user_wait_list_position asc").
-		First(&signin).Error
+		Find(&signins).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return &signin, nil
+	return signins, nil
 }
 
-func (r *signinEventRepository) PromoteToRegistered(userNumber uint, eventName string, initDate time.Time) error {
-	result := r.db.Model(&SigninEvent{}).
+func (r *signinEventRepository) PromoteFirstWaitListed(eventName string, initDate time.Time, limit int) error {
+	if limit <= 0 {
+		return nil
+	}
+
+	sub := r.db.Model(&SigninEvent{}).
+		Select("user_number").
+		Where("event_name = ? AND event_init_date = ? AND status = ?", eventName, initDate, StatusWaitListed).
+		Order("user_wait_list_position asc").
+		Limit(limit)
+
+	return r.db.Model(&SigninEvent{}).
+		Where("event_name = ? AND event_init_date = ? AND status = ? AND user_number IN (?)",
+			eventName, initDate, StatusWaitListed, sub).
+		Update("status", StatusRegistered).Error
+}
+
+func (r *signinEventRepository) UpdatePosition(userNumber uint, eventName string, initDate time.Time, position uint) error {
+	return r.db.Model(&SigninEvent{}).
 		Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).
-		Updates(map[string]interface{}{
-			"status":                  StatusRegistered,
-			"user_wait_list_position": 0,
-		})
-
-	if result.Error != nil {
-		return result.Error
-	}
-
-	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-
-	return nil
+		Update("user_wait_list_position", position).Error
 }
