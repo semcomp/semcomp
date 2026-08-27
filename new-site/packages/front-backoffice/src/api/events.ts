@@ -96,7 +96,7 @@ export const eventsAPI = {
     const backendSortBy = fieldMap[sortBy] ?? sortBy;
     const backendSearchBy = searchBy ? (fieldMap[searchBy] ?? searchBy) : undefined;
 
-    let url = `/events?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
+    let url = `/admin/events?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
     if (backendSearchBy && searchValue) {
       url += `&search_by=${backendSearchBy}&search_value=${searchValue}`;
     }

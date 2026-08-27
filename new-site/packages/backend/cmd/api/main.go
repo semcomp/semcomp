@@ -332,8 +332,8 @@ func main() {
 	admin.DELETE("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.DeleteUser)
 
 	// Eventos
+	admin.GET("/events", permMW("Eventos", permission.PermR), eventHandler.GetEvents)
 	admin.POST("/events", permMW("Eventos", permission.PermRW), eventHandler.CreateEvent)
-	// GET nos eventos - Consulta pública via GET /events
 	admin.PUT("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.UpdateEventByNameAndInitDate)
 	admin.DELETE("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.DeleteEventByNameAndInitDate)
 
