@@ -3,18 +3,28 @@ import QRCode from "react-qr-code";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/AuthContext";
-import { authAPI } from "@/api";
+import { authAPI, absenceJustificationsAPI, papfeAPI, client } from "@/api";
 import { salesAPI } from "@/api/sales";
 import type { SaleResponse } from "@/api/sales";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Megaphone, Eye } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 import { isPendingSale } from "@/lib/pendingSale";
 import type { EventType } from "@/types/EventType";
+import type { SigninEventType } from "@/types/SigninEventType";
 import type { UserType } from "@/types/UserType";
+import type { NoticeType } from "@/types/NoticeType";
+import type { PapfeDocumentType } from "@/types/PapfeDocumentType";
+import { papfeStatusOf } from "@/types/PapfeDocumentType";
 import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate";
+import { signinEventsAPI } from "@/api/signinEvents";
 import { useNavigate } from "react-router-dom";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import JustifyAbsenceModal, { JustifyAbsenceStatusBadge } from "@/components/JustifyAbsenceModal";
+import type { JustifyAbsenceStatus } from "@/components/JustifyAbsenceModal";
+import { PapfeStatusBadge } from "@/components/PapfeStatusBadge";
+import PapfeUploadModal from "@/components/PapfeUploadModal";
+import RejectionReasonModal from "@/components/RejectionReasonModal";
 
 type EditableProfile = {
   name: string;
@@ -24,11 +34,18 @@ type EditableProfile = {
   telegram: string;
 };
 
-type Evento = EventType & {
-  linkInscricao?: string;
-};
-
-const events: Evento[] = [];
+function StatusEyeButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Ver motivo da negativa"
+      title="Ver motivo da negativa"
+      className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-semcompDarkBlue text-white transition-colors hover:bg-semcompMidDarkBlue dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white"
+    >
+      <Eye className="w-4 h-4" />
+    </button>
+  );
+}
 
 export interface PurchaseType {
   id: string;
@@ -89,7 +106,14 @@ function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
   };
 }
 
-const EventCardMobile = memo(({ ev, onShowNotification }: { ev: Evento; onShowNotification: (msg: string) => void }) => {
+const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCancel, isCanceling }: {
+  ev: EventType;
+  subscription: SigninEventType | undefined;
+  onSignin: () => void;
+  isSigningIn: boolean;
+  onCancel: () => void;
+  isCanceling: boolean;
+}) => {
   const data = formatDate(ev.dateInit, 2);
   const diaSemana = formatWeekDay(ev.dateInit);
 
@@ -106,23 +130,53 @@ const EventCardMobile = memo(({ ev, onShowNotification }: { ev: Evento; onShowNo
         </p>
         <hr className="mb-2 mt-2"/>
       </div>
-      <div className="w-full flex flex-row justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
-        <button
-          className="cursor-pointer w-full p-2"
-          onClick={() => ev.linkInscricao ? window.open(ev.linkInscricao, "_blank") : onShowNotification("Este evento ainda não está aberto para inscrições.")}
-        >
-          Inscreva-se
-        </button>
+      <div className="w-full flex flex-col justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
+        {subscription ? (
+          <>
+            <span className={`w-full p-2 text-center text-sm font-semibold ${
+              subscription.status === "Inscrito" ? "text-green-700 dark:text-green-400" : "text-yellow-700 dark:text-yellow-400"
+            }`}>
+              {subscription.status === "Inscrito"
+                ? "Inscrito"
+                : `Lista de Espera - ${subscription.user_wait_list_position}ª posição`}
+            </span>
+            <button
+              className="cursor-pointer w-full p-2 text-sm text-red-600 dark:text-red-400 border-t border-black/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isCanceling}
+              onClick={onCancel}
+            >
+              {isCanceling ? "Cancelando..." : "Desistir"}
+            </button>
+          </>
+        ) : (
+          <button
+            className="cursor-pointer w-full p-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isSigningIn}
+            onClick={onSignin}
+          >
+            {isSigningIn ? "Inscrevendo..." : "Inscrever-se"}
+          </button>
+        )}
       </div>
     </div>
   );
 });
 
+interface BackendNoticeResponse {
+  notices: Array<{
+    id: number;
+    title: string;
+    content: string;
+    date_time: string;
+  }>;
+  TotalRecords: number;
+  FilteredRecords: number;
+}
+
 interface ProfileProps extends Partial<UserType> {
   event?: string;
   purchases?: PurchaseType[];
 }
-
 
 export default function Profile({
   user_number = 0,
@@ -140,16 +194,32 @@ export default function Profile({
   const [userEmail, setUserEmail] = useState(email);
   const [userCode, setUserCode] = useState<number>(user_number);
   const [presencePercent, setPresencePercent] = useState<number>(presence_rate);
-  const [userPurchases, setUserPurchases] = useState<PurchaseType[]>(purchases);
   const [openSubscription, setOpenSubscription] = useState<number>(-1);
+  const [justifyOpen, setJustifyOpen] = useState(false);
+  const [justificationStatus, setJustificationStatus] = useState<JustifyAbsenceStatus | null>(null);
+  const [absenceRejectionReason, setAbsenceRejectionReason] = useState("");
+  const [papfeDoc, setPapfeDoc] = useState<PapfeDocumentType | null>(null);
+  const [papfeModalOpen, setPapfeModalOpen] = useState(false);
+  const [reasonModal, setReasonModal] = useState<"papfe" | "absence" | null>(null);
+  const [userPurchases, setUserPurchases] = useState<PurchaseType[]>(purchases);
   const [userCity, setUserCity] = useState("");
   const [userProfession, setUserProfession] = useState("");
   const [userLinkedin, setUserLinkedin] = useState("");
   const [userTelegram, setUserTelegram] = useState("");
+  const [notices, setNotices] = useState<NoticeType[]>([]);
+  const [signinEvents, setSigninEvents] = useState<EventType[]>([]);
+  const [mySignins, setMySignins] = useState<SigninEventType[]>([]);
+  const [signingInKey, setSigningInKey] = useState<string | null>(null);
+  const [cancelingKey, setCancelingKey] = useState<string | null>(null);
+  const [cancelConfirm, setCancelConfirm] = useState<{ eventName: string; eventInitDate: string } | null>(null);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editForm, setEditForm] = useState<EditableProfile>({ name: "", city: "", profession: "", linkedin: "", telegram: "" });
+
+  // Justificativas "Aprovado" ou "Negado" são finais e não podem ser editadas.
+  const justificationLocked =
+    justificationStatus === "aprovado" || justificationStatus === "negado";
 
   const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -160,6 +230,15 @@ export default function Profile({
   const showNotificationRef = useRef(showNotification);
   logoutRef.current = logout;
   showNotificationRef.current = showNotification;
+
+  const handleJustifySubmitted = (status: JustifyAbsenceStatus) => {
+    setJustificationStatus(status);
+    setAbsenceRejectionReason("");
+  };
+
+  const handlePapfeSubmitted = (doc: PapfeDocumentType) => {
+    setPapfeDoc(doc);
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -181,6 +260,16 @@ export default function Profile({
         setUserProfession(response.profession ?? "");
         setUserLinkedin(response.linkedin ?? "");
         setUserTelegram(response.telegram ?? "");
+
+        const mine = await absenceJustificationsAPI.getMine();
+        if (mine) {
+          setJustificationStatus(mine.status);
+          if (mine.status === "negado")
+            setAbsenceRejectionReason(mine.rejection_reason ?? "");
+        }
+
+        const papfeDocResponse = await papfeAPI.getMine();
+        setPapfeDoc(papfeDocResponse);
       } catch (err) {
         if (controller.signal.aborted) return;
         console.error("Erro ao buscar o perfil", err);
@@ -191,19 +280,129 @@ export default function Profile({
 
       try {
         const sales = await salesAPI.getMySales();
+        if (controller.signal.aborted) return;
         setUserPurchases(sales.map(mapSaleToPurchase));
-        // Mesmo critério da página de destino (PENDENTE, com QR e não expirado).
         setPendingSalesCount(sales.filter(isPendingSale).length);
       } catch (err) {
+        if (controller.signal.aborted) return;
         console.error("Erro ao buscar as compras do usuário", err);
         setUserPurchases([]);
         setPendingSalesCount(0);
+      }
+
+      try {
+        const response = await client.get<BackendNoticeResponse>(
+          "/admin/notices",
+          {
+            params: {
+              page: 1,
+              limit: 10,
+              sort_by: "date_time",
+              sort_order: "desc",
+            },
+          }
+        );
+        if (controller.signal.aborted) return;
+        const formattedNotices: NoticeType[] = (
+          response.data.notices || []
+        ).map((notice) => ({
+          ...notice,
+          date: notice.date_time
+            ? new Date(notice.date_time).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "",
+        }));
+        setNotices(formattedNotices);
+      } catch (err) {
+        console.error("Erro ao buscar o mural de avisos", err);
       }
     }
 
     fetchProfile();
     return () => controller.abort();
   }, [isAuthenticated, navigate, name, email]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    Promise.all([signinEventsAPI.getSigninEvents(), signinEventsAPI.getMySignins()])
+      .then(([events, signins]) => {
+        setSigninEvents(events);
+        setMySignins(signins);
+      })
+      .catch((err) => console.error("Erro ao buscar eventos de inscrição", err));
+  }, [isAuthenticated]);
+
+  function getSubscription(ev: EventType): SigninEventType | undefined {
+    return mySignins.find(
+      (s) =>
+        s.event_name === ev.name &&
+        new Date(s.event_init_date).getTime() === new Date(ev.dateInit).getTime()
+    );
+  }
+
+  async function handleCancelSignin(eventName: string, eventInitDate: string) {
+    const key = `${eventName}::${eventInitDate}`;
+    setCancelingKey(key);
+    try {
+      await signinEventsAPI.deleteSignin(eventName, eventInitDate);
+      const updatedSignins = await signinEventsAPI.getMySignins();
+      setMySignins(updatedSignins);
+      showNotification("Inscrição cancelada com sucesso.", "info");
+    } catch {
+      showNotification("Erro ao cancelar inscrição.", "warning");
+    } finally {
+      setCancelingKey(null);
+    }
+  }
+
+  async function handleSignin(eventName: string, eventInitDate: string) {
+    const key = `${eventName}::${eventInitDate}`;
+    setSigningInKey(key);
+    try {
+      await signinEventsAPI.createSignin(eventName, eventInitDate);
+      const updatedSignins = await signinEventsAPI.getMySignins();
+      setMySignins(updatedSignins);
+      showNotification("Inscrição realizada com sucesso!", "info");
+    } catch {
+      showNotification("Erro ao se inscrever no evento.", "warning");
+    } finally {
+      setSigningInKey(null);
+    }
+  }
+
+  const cancelConfirmModal = cancelConfirm && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setCancelConfirm(null)}>
+      <div
+        className="bg-white dark:bg-semcompMidDarkBlue rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl text-semcompDarkBlue dark:text-semcompOffWhite"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-lg font-bold mb-2 text-center">Cancelar inscrição?</h3>
+        <p className="text-sm text-center opacity-70 mb-6">Tem certeza que deseja desistir deste evento? Você pode perder sua vaga.</p>
+        <div className="flex gap-3">
+          <button
+            className="flex-1 py-2.5 rounded-xl border border-black/20 dark:border-white/20 text-sm font-semibold transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+            onClick={() => setCancelConfirm(null)}
+          >
+            Voltar
+          </button>
+          <button
+            className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+            onClick={() => {
+              handleCancelSignin(cancelConfirm.eventName, cancelConfirm.eventInitDate);
+              setCancelConfirm(null);
+            }}
+          >
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   function startEditing() {
     setEditForm({ name: userName, city: userCity, profession: userProfession, linkedin: userLinkedin, telegram: userTelegram });
@@ -238,6 +437,7 @@ export default function Profile({
   if (width < 1280) {
     return (
       <div className="min-h-screen bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue font-poppins transition-colors duration-300">
+        {cancelConfirmModal}
         {/* Header com Background */}
         <div className="relative h-80 w-full overflow-hidden bg-semcompMidLightBlue dark:bg-semcompDarkBlue">
           <AnimatedBackground />
@@ -304,7 +504,11 @@ export default function Profile({
                   <div className="absolute top-0 right-0 w-12 h-12 border-t-8 border-r-8 border-[#548EAB]" />
                   <div className="absolute bottom-0 left-0 w-12 h-12 border-b-8 border-l-8 border-[#548EAB]" />
                   <div className="bg-white p-2">
-                    <QRCode value={userCode.toString()} size={180} fgColor="#0B2639" />
+                    <QRCode
+                      value={userCode.toString()}
+                      size={180}
+                      fgColor="#0B2639"
+                    />
                   </div>
                 </div>
 
@@ -323,7 +527,9 @@ export default function Profile({
 
             {activeTab === "account" && (
               <div className="w-full flex flex-col animate-in fade-in duration-300">
-                <h2 className="text-2xl font-bold text-center mb-6">Minha Conta</h2>
+                <h2 className="text-2xl font-bold text-center mb-6">
+                  Minha Conta
+                </h2>
 
                 {isEditing ? (
                   <div className="flex flex-col space-y-3 mb-6">
@@ -366,17 +572,56 @@ export default function Profile({
                   </div>
                 )}
 
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={justificationLocked}
+                  onClick={() => setJustifyOpen(true)}>
+                  Justificar Ausência
+                </button>
+                {justificationStatus && (
+                  <div className="flex items-center justify-center gap-2 mb-6">
+                    <JustifyAbsenceStatusBadge status={justificationStatus} />
+                    {justificationStatus === "negado" &&
+                      absenceRejectionReason && (
+                        <StatusEyeButton
+                          onClick={() => setReasonModal("absence")}
+                        />
+                      )}
+                  </div>
+                )}
+
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                  onClick={() => setPapfeModalOpen(true)}>
+                  {papfeDoc ? "Atualizar Comprovante PAPFE" : "Enviar Comprovante PAPFE"}
+                </button>
+                {papfeDoc && (
+                  <div className="flex items-center justify-center gap-2 mb-6">
+                    <PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />
+                    {papfeDoc.is_approved === false &&
+                      papfeDoc.rejection_reason && (
+                        <StatusEyeButton
+                          onClick={() => setReasonModal("papfe")}
+                        />
+                      )}
+                  </div>
+                )}
+
                 <div className="bg-white/50 rounded-xl p-4 mb-6 border border-black/10">
-                  <h3 className="text-center text-sm font-bold mb-3">Minha Presença</h3>
+                  <h3 className="text-center text-sm font-bold mb-3">
+                    Minha Presença
+                  </h3>
                   <div className="relative w-full h-6 bg-black/10 rounded-full overflow-hidden">
                     <div
                       className={`absolute inset-y-0 left-0 h-full bg-semcompDarkBlue transition-all duration-1000 ${
-                        presencePercent > 15 ? "flex items-center justify-end pr-2" : ""
+                        presencePercent > 15
+                          ? "flex items-center justify-end pr-2"
+                          : ""
                       }`}
                       style={{ width: `${presencePercent}%` }}
                     >
                       {presencePercent > 15 && (
-                        <span className="text-white text-[10px] font-bold">{presencePercent}%</span>
+                        <span className="text-white text-[10px] font-bold">
+                          {presencePercent}%
+                        </span>
                       )}
                     </div>
                     {presencePercent <= 15 && (
@@ -478,14 +723,64 @@ export default function Profile({
           </div>
         </div>
 
+        {/* Mural de Avisos (Mobile) */}
+        <div className="mt-12 px-5">
+          <div className="rounded-3xl p-6 border shadow-xl transition-colors bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue dark:bg-[#1A3A4F] dark:border-white/10 dark:text-semcompOffWhite">
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <Megaphone className="w-6 h-6 text-semcompDarkBlue dark:text-semcompOffWhite" />
+              <h2 className="text-2xl font-bold text-center">
+                Mural de Avisos
+              </h2>
+            </div>
+            <div className="flex flex-col gap-4">
+              {notices.length > 0 ? (
+                notices.map((notice, index) => (
+                  <div
+                    key={index}
+                    className="p-4 rounded-xl border bg-black/5 border-semcompDarkBlue/20 dark:bg-white/10 dark:border-white/20 text-left flex flex-col gap-1"
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="font-bold text-base text-semcompDarkBlue dark:text-white">
+                        {notice.title}
+                      </h3>
+                      {notice.date && (
+                        <span className="text-[10px] opacity-70 font-medium whitespace-nowrap">
+                          {notice.date}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm opacity-90 leading-relaxed text-semcompDarkBlue/80 dark:text-white/80">
+                      {notice.content}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="opacity-60 text-center text-sm italic">
+                  Nenhum aviso no momento.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Seção Inscrições */}
         <div className="mt-12 mb-12 px-5">
           <div className="rounded-3xl p-6 border shadow-xl transition-colors bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue dark:bg-[#1A3A4F] dark:border-white/10 dark:text-semcompOffWhite">
             <h2 className="text-2xl font-bold text-center mb-6">Inscrições em Eventos</h2>
-            {events.length > 0 ? (
-              events.map((ev, i) => <EventCardMobile key={i} ev={ev} onShowNotification={showNotification} />)
+            {signinEvents.length > 0 ? (
+              signinEvents.map((ev, i) => (
+                <EventCardMobile
+                  key={i}
+                  ev={ev}
+                  subscription={getSubscription(ev)}
+                  onSignin={() => handleSignin(ev.name, ev.dateInit)}
+                  isSigningIn={signingInKey === `${ev.name}::${ev.dateInit}`}
+                  onCancel={() => setCancelConfirm({ eventName: ev.name, eventInitDate: ev.dateInit })}
+                  isCanceling={cancelingKey === `${ev.name}::${ev.dateInit}`}
+                />
+              ))
             ) : (
-              <p className="opacity-60 text-center text-sm italic">Nenhuma inscrição encontrada.</p>
+              <p className="opacity-60 text-center text-sm italic">Nenhum evento disponível para inscrição.</p>
             )}
           </div>
         </div>
@@ -493,6 +788,24 @@ export default function Profile({
         <div className="bg-semcompOffWhite dark:bg-semcompDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite transition-colors duration-300">
           <ContatoSection />
         </div>
+        <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
+        <PapfeUploadModal open={papfeModalOpen} onClose={() => setPapfeModalOpen(false)} onSubmitted={handlePapfeSubmitted} />
+        <RejectionReasonModal
+          open={reasonModal === "absence"}
+          onClose={() => setReasonModal(null)}
+          title="Justificativa de ausência"
+          statusBadge={
+            <JustifyAbsenceStatusBadge status={justificationStatus ?? "em_analise"} />
+          }
+          rejectionReason={absenceRejectionReason}
+        />
+        <RejectionReasonModal
+          open={reasonModal === "papfe"}
+          onClose={() => setReasonModal(null)}
+          title="Comprovante PAPFE"
+          statusBadge={<PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />}
+          rejectionReason={papfeDoc?.rejection_reason ?? ""}
+        />
       </div>
     );
   }
@@ -535,7 +848,9 @@ export default function Profile({
 
       {activeTab === "qr" && (
         <div className="px-6 pb-8 bg-semcompOffWhite/50 mx-auto pt-8 h-full flex flex-col items-center overflow-y-auto custom-scrollbar">
-          <h1 className="text-2xl text-semcompMidDarkBlue font-bold mb-1">Meu QR Code</h1>
+          <h1 className="text-2xl text-semcompMidDarkBlue font-bold mb-1">
+            Meu QR Code
+          </h1>
           <p className="text-md text-semcompDarkBlue/75 text-center mb-6 leading-relaxed">
             Utilize seu QR durante a{" "}
             <span className="text-semcompMidBlue font-semibold">{event}</span>{" "}
@@ -559,7 +874,9 @@ export default function Profile({
             <p className="text-xs text-semcompDarkBlue/75 leading-tight">
               Caso de algum problema ao scannear, forneça o codigo:
             </p>
-            <p className="text-xl font-bold tracking-[0.2em] whitespace-nowrap">{userCode}</p>
+            <p className="text-xl font-bold tracking-[0.2em] whitespace-nowrap">
+              {userCode}
+            </p>
           </div>
         </div>
       )}
@@ -567,8 +884,12 @@ export default function Profile({
       {activeTab === "account" && (
         <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300 overflow-y-auto custom-scrollbar">
           <div className="text-center mb-6">
-            <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">Minha Conta</h2>
-            <p className="text-md text-semcompDarkBlue/75">Veja abaixo, seus dados e presença</p>
+            <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">
+              Minha Conta
+            </h2>
+            <p className="text-md text-semcompDarkBlue/75">
+              Veja abaixo, seus dados e presença
+            </p>
           </div>
 
           {isEditing ? (
@@ -638,6 +959,37 @@ export default function Profile({
             </button>
           )}
 
+          <button
+            onClick={() => setJustifyOpen(true)}
+            disabled={justificationLocked}
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Justificar Ausência
+          </button>
+          {justificationStatus && (
+            <div className="flex items-center justify-center gap-2 mb-8">
+              <JustifyAbsenceStatusBadge status={justificationStatus} />
+              {justificationStatus === "negado" && absenceRejectionReason && (
+                <StatusEyeButton onClick={() => setReasonModal("absence")} />
+              )}
+            </div>
+          )}
+
+          <button
+            onClick={() => setPapfeModalOpen(true)}
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
+          >
+            {papfeDoc ? "Atualizar Comprovante PAPFE" : "Enviar Comprovante PAPFE"}
+          </button>
+          {papfeDoc && (
+            <div className="flex items-center justify-center gap-2 mb-8">
+              <PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />
+              {papfeDoc.is_approved === false && papfeDoc.rejection_reason && (
+                <StatusEyeButton onClick={() => setReasonModal("papfe")} />
+              )}
+            </div>
+          )}
+
           <div className="bg-semcompOffWhite/40 rounded-xl p-5 border border-border/50">
             <h3 className="text-center text-semcompMidDarkBlue text-md font-bold text-semcomp-900 mb-4">
               Minha Presença na SEMCOMP
@@ -650,7 +1002,9 @@ export default function Profile({
                 style={{ width: `${presencePercent}%` }}
               >
                 {presencePercent > 15 && (
-                  <span className="text-semcompLightBlue text-xs font-bold">{presencePercent}%</span>
+                  <span className="text-semcompLightBlue text-xs font-bold">
+                    {presencePercent}%
+                  </span>
                 )}
               </div>
               {presencePercent <= 15 && (
@@ -713,6 +1067,7 @@ export default function Profile({
   if (width >= 1280) {
     return (
       <div className="bg-semcompMidLightBlue text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite min-h-screen">
+        {cancelConfirmModal}
         <div
           className="relative overflow-hidden h-[calc(90vh-70px)] w-full flex flex-row justify-center items-center gap-10 font-poppins"
         >
@@ -746,19 +1101,60 @@ export default function Profile({
           </div>
         </div>
 
-        <div className="min-h-[60vh] bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue flex flex-col justify-center items-center font-poppins pt-24 pb-24">
-          <div className="border-2 h-[80%] w-[60%] rounded-2xl pt-12 pb-10 pl-16 pr-16 flex flex-col justify-center items-center bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue dark:bg-semcompMidDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite">
+        {/* Mural de Avisos (Desktop) */}
+        <div className="bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue py-16 flex justify-center font-poppins">
+          <div className="w-[60%] border-2 rounded-2xl p-8 bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue dark:bg-semcompMidDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite shadow-xl">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <Megaphone className="w-7 h-7 text-semcompDarkBlue dark:text-semcompOffWhite" />
+              <h1 className="font-bold text-2xl">Mural de Avisos</h1>
+            </div>
+            <div className="flex flex-col gap-4">
+              {notices && notices.length > 0 ? (
+                notices.map((notice, index) => (
+                  <div
+                    key={index}
+                    className="p-5 rounded-xl border bg-black/5 border-semcompDarkBlue/20 dark:bg-black/20 dark:border-white/15 transition-all hover:shadow-md text-left flex flex-col gap-1"
+                  >
+                    <div className="flex justify-between items-start gap-4">
+                      <h3 className="font-bold text-lg text-semcompDarkBlue dark:text-white">
+                        {notice.title}
+                      </h3>
+                      {notice.date && (
+                        <span className="text-xs opacity-70 font-medium whitespace-nowrap pt-1">
+                          {notice.date}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm opacity-90 leading-relaxed text-semcompDarkBlue/80 dark:text-white/80">
+                      {notice.content}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center italic py-4 opacity-70">
+                  Nenhum aviso no momento.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Seção Inscrições */}
+        <div className="bg-semcompMidLightBlue/80 dark:bg-semcompAlmostDarkBlue flex flex-col justify-center items-center font-poppins py-16">
+          <div className="border-2 w-[60%] rounded-2xl p-8 flex flex-col justify-center items-center bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue dark:bg-semcompMidDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite">
             <h1 className="font-bold text-2xl mb-6">Inscrições em Eventos</h1>
             <div className="w-full flex flex-row justify-between font-bold">
               <span>Evento</span>
               <span>Data/Horário</span>
             </div>
             <hr className="w-full border mt-3 mb-3 border-semcompAlmostDarkBlue dark:border-semcompOffWhite" />
-            <div className="w-full flex flex-col gap-4 mb-20">
-              {events && events.length > 0 ? (
-                events.map((evento, index) => {
+            <div className="w-full flex flex-col gap-4">
+              {signinEvents.length > 0 ? (
+                signinEvents.map((evento, index) => {
                   const data = formatDate(evento.dateInit, 2);
                   const diaSemana = formatWeekDay(evento.dateInit);
+                  const subscription = getSubscription(evento);
+                  const key = `${evento.name}::${evento.dateInit}`;
 
                   return (
                     <div key={index} className="flex flex-col justify-center items-center">
@@ -788,12 +1184,34 @@ export default function Profile({
                       </div>
                       {openSubscription === index && (
                         <div className="w-full p-6 flex flex-row items-center justify-center rounded-b-lg border-t border-black/10 shadow-lg transition-all animate-in fade-in duration-300 bg-black/5 dark:bg-black/20">
-                          <button
-                            className="px-8 py-3 rounded-xl font-bold uppercase tracking-wide shadow-md hover:-translate-y-1 transition-all duration-300 bg-semcompDarkBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-semcompDarkBlue/40 dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white dark:hover:shadow-white/20"
-                            onClick={() => evento.linkInscricao ? window.open(evento.linkInscricao, "_blank") : showNotification("Este evento ainda não está aberto para inscrições.")}
-                          >
-                            Inscreva-se
-                          </button>
+                          {subscription ? (
+                            <div className="flex flex-col items-center gap-3">
+                              <span className={`text-lg font-bold ${
+                                subscription.status === "Inscrito"
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-yellow-600 dark:text-yellow-400"
+                              }`}>
+                                {subscription.status === "Inscrito"
+                                  ? "Você está inscrito"
+                                  : `Você está na lista de espera (${subscription.user_wait_list_position}ª posição)`}
+                              </span>
+                              <button
+                                className="px-6 py-2 rounded-xl font-bold text-sm uppercase tracking-wide shadow-sm hover:-translate-y-0.5 transition-all duration-300 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                                disabled={cancelingKey === key}
+                                onClick={() => setCancelConfirm({ eventName: evento.name, eventInitDate: evento.dateInit })}
+                              >
+                                {cancelingKey === key ? "Cancelando..." : "Desistir"}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              className="px-8 py-3 rounded-xl font-bold uppercase tracking-wide shadow-md hover:-translate-y-1 transition-all duration-300 bg-semcompDarkBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-semcompDarkBlue/40 dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white dark:hover:shadow-white/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                              disabled={signingInKey === key}
+                              onClick={() => handleSignin(evento.name, evento.dateInit)}
+                            >
+                              {signingInKey === key ? "Inscrevendo..." : "Inscrever-se"}
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -810,6 +1228,24 @@ export default function Profile({
         <div className="bg-semcompOffWhite dark:bg-semcompDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite transition-colors duration-300">
           <ContatoSection />
         </div>
+        <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
+        <PapfeUploadModal open={papfeModalOpen} onClose={() => setPapfeModalOpen(false)} onSubmitted={handlePapfeSubmitted} />
+        <RejectionReasonModal
+          open={reasonModal === "absence"}
+          onClose={() => setReasonModal(null)}
+          title="Justificativa de ausência"
+          statusBadge={
+            <JustifyAbsenceStatusBadge status={justificationStatus ?? "em_analise"} />
+          }
+          rejectionReason={absenceRejectionReason}
+        />
+        <RejectionReasonModal
+          open={reasonModal === "papfe"}
+          onClose={() => setReasonModal(null)}
+          title="Comprovante PAPFE"
+          statusBadge={<PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />}
+          rejectionReason={papfeDoc?.rejection_reason ?? ""}
+        />
       </div>
     );
   }
@@ -820,6 +1256,24 @@ export default function Profile({
       <div className="w-full max-w-85 rounded-2xl overflow-hidden shadow-xl animate-in fade-in zoom-in duration-300">
         {qrAndAccountCard}
       </div>
+      <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
+      <PapfeUploadModal open={papfeModalOpen} onClose={() => setPapfeModalOpen(false)} onSubmitted={handlePapfeSubmitted} />
+      <RejectionReasonModal
+        open={reasonModal === "absence"}
+        onClose={() => setReasonModal(null)}
+        title="Justificativa de ausência"
+        statusBadge={
+          <JustifyAbsenceStatusBadge status={justificationStatus ?? "em_analise"} />
+        }
+        rejectionReason={absenceRejectionReason}
+      />
+      <RejectionReasonModal
+        open={reasonModal === "papfe"}
+        onClose={() => setReasonModal(null)}
+        title="Comprovante PAPFE"
+        statusBadge={<PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />}
+        rejectionReason={papfeDoc?.rejection_reason ?? ""}
+      />
     </div>
   );
 }
