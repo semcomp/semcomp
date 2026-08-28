@@ -66,7 +66,6 @@ func main() {
 		&absenceJustification.AbsenceJustification{}, &notice.Notice{},
 	)
 
-
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
 	}
@@ -97,7 +96,6 @@ func main() {
 	if err := db.Exec("ALTER TABLE sales ADD CONSTRAINT status_chk CHECK (status IN ('PENDENTE','PAGO','REJEITADO','CANCELADO','REEMBOLSADO','EXPIRADO'))").Error; err != nil {
 		panic("Failed to recreate sales.status_chk constraint: " + err.Error())
 	}
-
 
 	// Inicializa as camadas da aplicação (Repository -> Service -> Handler)
 	passwordProvider := providers.NewBcryptProvider()
@@ -282,6 +280,8 @@ func main() {
 	authRoutes.GET("/absence-justifications/mine", absenceJustificationHandler.GetMine)
 	authRoutes.GET("/absence-justifications/:id/attachment", absenceJustificationHandler.GetOwnAttachment)
 	authRoutes.PATCH("/absence-justifications/:id", absenceJustificationHandler.UpdateMine)
+
+	authRoutes.GET("/notices", noticeHandler.GetNotices)
 
 	// Inscrições em Eventos (Usuário)
 	authRoutes.POST("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.CreateSignin)
