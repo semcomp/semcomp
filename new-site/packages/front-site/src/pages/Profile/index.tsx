@@ -3,14 +3,21 @@ import QRCode from "react-qr-code";
 import useWindowDimensions from "@/hooks/useWindowDimensions";
 import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/AuthContext";
-import { authAPI } from "@/api";
-import { ChevronDown } from "lucide-react";
+import { authAPI, absenceJustificationsAPI, papfeAPI, client } from "@/api";
+import { salesAPI } from "@/api/sales";
+import type { SaleResponse } from "@/api/sales";
+import { ChevronDown, Megaphone, Eye } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
-import type { EventType } from "@/types/EventType"
-import type { SigninEventType } from "@/types/SigninEventType"
-import type { UserType } from "@/types/UserType"
-import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate"
-import { signinEventsAPI } from "@/api/signinEvents"
+import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
+import { isPendingSale } from "@/lib/pendingSale";
+import type { EventType } from "@/types/EventType";
+import type { SigninEventType } from "@/types/SigninEventType";
+import type { UserType } from "@/types/UserType";
+import type { NoticeType } from "@/types/NoticeType";
+import type { PapfeDocumentType } from "@/types/PapfeDocumentType";
+import { papfeStatusOf } from "@/types/PapfeDocumentType";
+import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate";
+import { signinEventsAPI } from "@/api/signinEvents";
 import { useNavigate } from "react-router-dom";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import JustifyAbsenceModal, { JustifyAbsenceStatusBadge } from "@/components/JustifyAbsenceModal";
@@ -27,10 +34,6 @@ type EditableProfile = {
   telegram: string;
 };
 
-type Evento = EventType & {
-  linkInscricao?: string;
-};
-
 function StatusEyeButton({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -44,6 +47,64 @@ function StatusEyeButton({ onClick }: { onClick: () => void }) {
   );
 }
 
+export interface PurchaseType {
+  id: string;
+  item: string;
+  date: string;
+  amount: number;
+  status: string;
+  statusColor: string;
+}
+
+const SALE_STATUS_STYLES: Record<string, { label: string; color: string }> = {
+  PAGO: { label: "Pago", color: "text-green-700" },
+  PENDENTE: { label: "Pendente", color: "text-yellow-600" },
+  CANCELADO: { label: "Cancelado", color: "text-red-700" },
+  REEMBOLSADO: { label: "Reembolsado", color: "text-blue-700" },
+  REJEITADO: { label: "Rejeitado", color: "text-orange-600" },
+  EXPIRADO: { label: "Expirado", color: "text-gray-500" },
+};
+
+function getProductDisplayName(product: any): string {
+  if (!product) return "Produto";
+
+  if (product.kit?.name) return product.kit.name;
+  if (product.coffee?.name) return product.coffee.name;
+
+  if (product.type === "COMBO" && product.combo_items?.length) {
+    const itemNames = product.combo_items
+      .map((ci: any) => ci.item?.kit?.name ?? ci.item?.coffee?.name)
+      .filter(Boolean);
+    if (itemNames.length > 0) {
+      return `Combo (${itemNames.join(" + ")})`;
+    }
+    return "Combo";
+  }
+
+  return product.type ?? "Produto";
+}
+
+function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
+  const itemsLabel =
+  sale.items?.length
+    ? sale.items
+        .map((it) => {
+          return `${it.quantity}x ${getProductDisplayName((it as any).product)}`;
+        })
+        .join(", ")
+    : "Pedido";
+
+  const style = SALE_STATUS_STYLES[sale.status] ?? { label: sale.status, color: "text-gray-500" };
+
+  return {
+    id: String(sale.id),
+    item: itemsLabel,
+    date: formatDate(sale.created_at, 2),
+    amount: sale.total_amount,
+    status: style.label,
+    statusColor: style.color,
+  };
+}
 
 const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCancel, isCanceling }: {
   ev: EventType;
@@ -101,22 +162,34 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
   );
 });
 
-interface ProfileProps extends Partial<UserType> {
-  event?: string;
+interface BackendNoticeResponse {
+  notices: Array<{
+    id: number;
+    title: string;
+    content: string;
+    date_time: string;
+  }>;
+  TotalRecords: number;
+  FilteredRecords: number;
 }
 
+interface ProfileProps extends Partial<UserType> {
+  event?: string;
+  purchases?: PurchaseType[];
+}
 
 export default function Profile({
   user_number = 0,
   name = "Nome do usuário",
   email = "E-mail do usuário",
   presence_rate = 0,
-  event = "SEMCOMP"
+  event = "SEMCOMP",
+  purchases = [],
 }: ProfileProps) {
   const { width } = useWindowDimensions();
   const { showNotification } = useNotification();
 
-  const [activeTab, setActiveTab] = useState<"qr" | "account">("qr");
+  const [activeTab, setActiveTab] = useState<"qr" | "account" | "purchases">("qr");
   const [userName, setUserName] = useState(name);
   const [userEmail, setUserEmail] = useState(email);
   const [userCode, setUserCode] = useState<number>(user_number);
@@ -150,6 +223,8 @@ export default function Profile({
 
   const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { isFeatureEnabled } = useFeatureFlags();
+  const [pendingSalesCount, setPendingSalesCount] = useState(0);
 
   const logoutRef = useRef(logout);
   const showNotificationRef = useRef(showNotification);
@@ -164,7 +239,6 @@ export default function Profile({
   const handlePapfeSubmitted = (doc: PapfeDocumentType) => {
     setPapfeDoc(doc);
   };
-
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -201,6 +275,51 @@ export default function Profile({
         console.error("Erro ao buscar o perfil", err);
         await logoutRef.current();
         showNotificationRef.current("Sua sessão expirou. Faça login novamente.", "warning");
+        return;
+      }
+
+      try {
+        const sales = await salesAPI.getMySales();
+        if (controller.signal.aborted) return;
+        setUserPurchases(sales.map(mapSaleToPurchase));
+        setPendingSalesCount(sales.filter(isPendingSale).length);
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        console.error("Erro ao buscar as compras do usuário", err);
+        setUserPurchases([]);
+        setPendingSalesCount(0);
+      }
+
+      try {
+        const response = await client.get<BackendNoticeResponse>(
+          "/admin/notices",
+          {
+            params: {
+              page: 1,
+              limit: 10,
+              sort_by: "date_time",
+              sort_order: "desc",
+            },
+          }
+        );
+        if (controller.signal.aborted) return;
+        const formattedNotices: NoticeType[] = (
+          response.data.notices || []
+        ).map((notice) => ({
+          ...notice,
+          date: notice.date_time
+            ? new Date(notice.date_time).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "",
+        }));
+        setNotices(formattedNotices);
+      } catch (err) {
+        console.error("Erro ao buscar o mural de avisos", err);
       }
     }
 
@@ -285,6 +404,35 @@ export default function Profile({
     </div>
   );
 
+  function startEditing() {
+    setEditForm({ name: userName, city: userCity, profession: userProfession, linkedin: userLinkedin, telegram: userTelegram });
+    setIsEditing(true);
+  }
+
+  async function saveProfile() {
+    setIsSaving(true);
+    try {
+      const res = await authAPI.updateProfile({
+        name: editForm.name.trim(),
+        city: editForm.city.trim(),
+        profession: editForm.profession.trim() || null,
+        linkedin: editForm.linkedin.trim() || null,
+        telegram: editForm.telegram.trim() || null,
+      });
+      setUserName(res.user.name);
+      setUserCity(res.user.city);
+      setUserProfession(res.user.profession ?? "");
+      setUserLinkedin(res.user.linkedin ?? "");
+      setUserTelegram(res.user.telegram ?? "");
+      setIsEditing(false);
+      showNotification("Perfil atualizado com sucesso!", "success");
+    } catch {
+      showNotification("Erro ao atualizar perfil. Tente novamente.", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   // Versão Mobile/Tablet (< 1280px)
   if (width < 1280) {
     return (
@@ -307,11 +455,11 @@ export default function Profile({
             }}
           />
 
-          {/* Tabs Seletoras */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex backdrop-blur-md rounded-full p-1 border w-[80%] max-w-xs z-20 bg-semcompMidLightBlue/40 border-semcompDarkBlue/20 dark:bg-black/40 dark:border-white/20">
+          {/* Tabs Seletoras atualizadas para suportar 3 opções */}
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex backdrop-blur-md rounded-full p-1 border w-[90%] max-w-sm z-20 bg-semcompMidLightBlue/40 border-semcompDarkBlue/20 dark:bg-black/40 dark:border-white/20">
             <button
               onClick={() => setActiveTab("qr")}
-              className={`flex-1 py-2 text-sm rounded-full transition-all font-bold ${
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
                 activeTab === "qr"
                   ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
                   : "text-semcompDarkBlue dark:text-white opacity-80"
@@ -321,13 +469,23 @@ export default function Profile({
             </button>
             <button
               onClick={() => setActiveTab("account")}
-              className={`flex-1 py-2 text-sm rounded-full transition-all font-bold ${
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
                 activeTab === "account"
                   ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
                   : "text-semcompDarkBlue dark:text-white opacity-80"
               }`}
             >
               Minha Conta
+            </button>
+            <button
+              onClick={() => setActiveTab("purchases")}
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
+                activeTab === "purchases"
+                  ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
+                  : "text-semcompDarkBlue dark:text-white opacity-80"
+              }`}
+            >
+              Compras
             </button>
           </div>
         </div>
@@ -339,16 +497,18 @@ export default function Profile({
               <>
                 <h1 className="text-2xl font-bold mb-1">Meu QR Code</h1>
                 <p className="text-center text-sm mb-8 px-2 md:px-4">
-                  Utilize seu QR durante a{" "}
-                  <span className="font-semibold">{event}</span> para registrar
-                  sua presença
+                  Utilize seu QR durante a <span className="font-semibold">{event}</span> para registrar sua presença
                 </p>
 
                 <div className="relative p-6 mb-6">
                   <div className="absolute top-0 right-0 w-12 h-12 border-t-8 border-r-8 border-[#548EAB]" />
                   <div className="absolute bottom-0 left-0 w-12 h-12 border-b-8 border-l-8 border-[#548EAB]" />
                   <div className="bg-white p-2">
-                    <QRCode value={userCode.toString()} size={180} fgColor="#0B2639" />
+                    <QRCode
+                      value={userCode.toString()}
+                      size={180}
+                      fgColor="#0B2639"
+                    />
                   </div>
                 </div>
 
@@ -367,18 +527,50 @@ export default function Profile({
 
             {activeTab === "account" && (
               <div className="w-full flex flex-col animate-in fade-in duration-300">
-                <h2 className="text-2xl font-bold text-center mb-6">Minha Conta</h2>
+                <h2 className="text-2xl font-bold text-center mb-6">
+                  Minha Conta
+                </h2>
 
-                <div className="flex flex-col space-y-4 mb-6">
-                  <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">Nome Completo:</span>
-                    <span className="text-sm font-medium text-semcompDarkBlue">{userName}</span>
+                {isEditing ? (
+                  <div className="flex flex-col space-y-3 mb-6">
+                    {([
+                      { label: "Nome Completo", key: "name" as const, required: true },
+                      { label: "Cidade de Residência", key: "city" as const, required: true },
+                      { label: "Profissão", key: "profession" as const },
+                      { label: "LinkedIn", key: "linkedin" as const },
+                      { label: "Telegram", key: "telegram" as const },
+                    ]).map(({ label, key, required }) => (
+                      <div key={key} className="flex flex-col border-b border-black/10 pb-2">
+                        <span className="text-xs font-bold opacity-70 text-semcompDarkBlue mb-1">{label}{required ? "" : " (opcional)"}:</span>
+                        <input
+                          className="text-sm font-medium text-semcompDarkBlue bg-transparent border-b border-semcompDarkBlue/30 focus:border-semcompDarkBlue outline-none py-0.5"
+                          value={editForm[key]}
+                          onChange={e => setEditForm(f => ({ ...f, [key]: e.target.value }))}
+                        />
+                      </div>
+                    ))}
+                    <div className="flex flex-col border-b border-black/10 pb-2 opacity-50">
+                      <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">E-mail (não editável):</span>
+                      <span className="text-sm font-medium text-semcompDarkBlue">{userEmail}</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col border-b border-black/10 pb-2">
-                    <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">E-mail:</span>
-                    <span className="text-sm font-medium text-semcompDarkBlue">{userEmail}</span>
+                ) : (
+                  <div className="flex flex-col space-y-4 mb-6">
+                    {[
+                      { label: "Nome Completo", value: userName },
+                      { label: "E-mail", value: userEmail },
+                      ...(userCity ? [{ label: "Cidade de Residência", value: userCity }] : []),
+                      ...(userProfession ? [{ label: "Profissão", value: userProfession }] : []),
+                      ...(userLinkedin ? [{ label: "LinkedIn", value: userLinkedin }] : []),
+                      ...(userTelegram ? [{ label: "Telegram", value: userTelegram }] : []),
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex flex-col border-b border-black/10 pb-2">
+                        <span className="text-xs font-bold opacity-70 text-semcompDarkBlue">{label}:</span>
+                        <span className="text-sm font-medium text-semcompDarkBlue">{value}</span>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                )}
 
                 <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={justificationLocked}
@@ -414,16 +606,22 @@ export default function Profile({
                 )}
 
                 <div className="bg-white/50 rounded-xl p-4 mb-6 border border-black/10">
-                  <h3 className="text-center text-sm font-bold mb-3">Minha Presença</h3>
+                  <h3 className="text-center text-sm font-bold mb-3">
+                    Minha Presença
+                  </h3>
                   <div className="relative w-full h-6 bg-black/10 rounded-full overflow-hidden">
                     <div
                       className={`absolute inset-y-0 left-0 h-full bg-semcompDarkBlue transition-all duration-1000 ${
-                        presencePercent > 15 ? "flex items-center justify-end pr-2" : ""
+                        presencePercent > 15
+                          ? "flex items-center justify-end pr-2"
+                          : ""
                       }`}
                       style={{ width: `${presencePercent}%` }}
                     >
                       {presencePercent > 15 && (
-                        <span className="text-white text-[10px] font-bold">{presencePercent}%</span>
+                        <span className="text-white text-[10px] font-bold">
+                          {presencePercent}%
+                        </span>
                       )}
                     </div>
                     {presencePercent <= 15 && (
@@ -434,13 +632,70 @@ export default function Profile({
                   </div>
                 </div>
 
-                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
-                  onClick={() => showNotification("Entre em contato com a organização", "info")}>
-                  Editar Informações
-                </button>
+                {isEditing ? (
+                  <div className="flex gap-3 mb-4">
+                    <button
+                      className="flex-1 bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold disabled:opacity-60"
+                      onClick={saveProfile}
+                      disabled={isSaving || !editForm.name.trim() || !editForm.city.trim()}
+                    >
+                      {isSaving ? "Salvando..." : "Salvar"}
+                    </button>
+                    <button
+                      className="flex-1 border border-semcompDarkBlue text-semcompDarkBlue py-3 rounded-lg text-sm font-semibold"
+                      onClick={() => setIsEditing(false)}
+                      disabled={isSaving}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                    onClick={startEditing}
+                  >
+                    Editar Informações
+                  </button>
+                )}
                 <button className="w-full text-red-700 font-bold text-sm py-2" onClick={logout}>
                   Sair da conta
                 </button>
+              </div>
+            )}
+
+            {activeTab === "purchases" && (
+              <div className="w-full flex flex-col animate-in fade-in duration-300">
+                <h2 className="text-2xl font-bold text-center mb-6">Minhas Compras</h2>
+                {isFeatureEnabled("loja") && pendingSalesCount > 0 && (
+                  <button
+                    onClick={() => navigate("/loja/pagamentos")}
+                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                  >
+                    Ver pagamentos pendentes ({pendingSalesCount})
+                  </button>
+                )}
+                <div className="flex flex-col gap-4">
+                  {userPurchases && userPurchases.length > 0 ? (
+                    userPurchases.map((purchase) => (
+                      <div key={purchase.id} className="bg-white/50 border border-black/10 rounded-xl p-4">
+                        <p className="font-bold text-sm text-semcompDarkBlue">{purchase.item}</p>
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-xs font-semibold opacity-70">{purchase.date}</span>
+                          <span className={`text-sm font-bold ${purchase.statusColor}`}>
+                            R$ {purchase.amount.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="mt-2 text-xs font-semibold text-semcompDarkBlue/80">
+                          Status: {purchase.status}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-center opacity-70 text-sm py-4 italic text-semcompDarkBlue">
+                      Nenhuma compra realizada ainda.
+                    </p>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -458,13 +713,53 @@ export default function Profile({
           </p>
 
           <div className="relative rounded-2xl overflow-hidden mb-4 w-[60%] lg:w-[40%] xl:w-full mx-auto">
-            <img src="/img/Profile/Card.svg" className="w-full h-full object-cover" alt="SEMCOMP 29 Logo Brasilidades"/>
+            <img src="/img/Profile/Card.svg" className="w-full h-full object-cover" alt="SEMCOMP 29 Brasilidades"/>
           </div>
 
           <div className="border-t pt-4 w-full md:w-[70%] xl:w-full mx-auto px-2 border-semcompDarkBlue/20 dark:border-white/20">
             <p className="text-[12px] md:text-[16px] leading-relaxed text-justify opacity-90">
               Este ano, a SEMCOMP celebra o tema BRASILIDADES! Essa proposta nasce da diversidade, criatividade e riqueza cultural do Brasil, conectando a computação às diferentes formas de expressão que fazem parte da nossa identidade. Venha descobrir, compartilhar e vivenciar as muitas faces do nosso país durante a SEMCOMP!
             </p>
+          </div>
+        </div>
+
+        {/* Mural de Avisos (Mobile) */}
+        <div className="mt-12 px-5">
+          <div className="rounded-3xl p-6 border shadow-xl transition-colors bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue dark:bg-[#1A3A4F] dark:border-white/10 dark:text-semcompOffWhite">
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <Megaphone className="w-6 h-6 text-semcompDarkBlue dark:text-semcompOffWhite" />
+              <h2 className="text-2xl font-bold text-center">
+                Mural de Avisos
+              </h2>
+            </div>
+            <div className="flex flex-col gap-4">
+              {notices.length > 0 ? (
+                notices.map((notice, index) => (
+                  <div
+                    key={index}
+                    className="p-4 rounded-xl border bg-black/5 border-semcompDarkBlue/20 dark:bg-white/10 dark:border-white/20 text-left flex flex-col gap-1"
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="font-bold text-base text-semcompDarkBlue dark:text-white">
+                        {notice.title}
+                      </h3>
+                      {notice.date && (
+                        <span className="text-[10px] opacity-70 font-medium whitespace-nowrap">
+                          {notice.date}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm opacity-90 leading-relaxed text-semcompDarkBlue/80 dark:text-white/80">
+                      {notice.content}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="opacity-60 text-center text-sm italic">
+                  Nenhum aviso no momento.
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -515,11 +810,10 @@ export default function Profile({
     );
   }
 
-  // QR Code / Minha Conta - Versão Desktop
+  // QR Code / Minha Conta / Compras - Versão Desktop
   const qrAndAccountCard = (
     <div className="h-full w-full pt-5 bg-gray-300 flex flex-col text-semcompDarkBlue">
-
-      <div className="flex mx-auto mb-5 w-[60%] rounded-full m-3 p-1 gap-1 border-2 border-semcompOffWhite/20 bg-semcompMidLight/20">
+      <div className="flex mx-auto mb-5 w-[85%] rounded-full m-3 p-1 gap-1 border-2 border-semcompOffWhite/20 bg-semcompMidLight/20">
         <button
           onClick={() => setActiveTab("qr")}
           className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 ${
@@ -540,11 +834,23 @@ export default function Profile({
         >
           Minha Conta
         </button>
+        <button
+          onClick={() => setActiveTab("purchases")}
+          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 ${
+            activeTab === "purchases"
+              ? "bg-semcompDarkBlue text-semcompOffWhite shadow-md font-semibold"
+              : "text-semcompDarkBlue/70 hover:text-semcompDarkBlue"
+          }`}
+        >
+          Compras
+        </button>
       </div>
 
       {activeTab === "qr" && (
         <div className="px-6 pb-8 bg-semcompOffWhite/50 mx-auto pt-8 h-full flex flex-col items-center overflow-y-auto custom-scrollbar">
-          <h1 className="text-2xl text-semcompMidDarkBlue font-bold mb-1">Meu QR Code</h1>
+          <h1 className="text-2xl text-semcompMidDarkBlue font-bold mb-1">
+            Meu QR Code
+          </h1>
           <p className="text-md text-semcompDarkBlue/75 text-center mb-6 leading-relaxed">
             Utilize seu QR durante a{" "}
             <span className="text-semcompMidBlue font-semibold">{event}</span>{" "}
@@ -566,9 +872,11 @@ export default function Profile({
           <p className="text-center font-medium mb-6">{userName}</p>
           <div className="bg-semcompMidLightBlue/15 rounded-xl p-4 flex items-center justify-between gap-4 w-full 2xl:w-[70%] border border-semcompMidLight/40">
             <p className="text-xs text-semcompDarkBlue/75 leading-tight">
-              Caso de algum problema ao scannear, forneca o codigo:
+              Caso de algum problema ao scannear, forneça o codigo:
             </p>
-            <p className="text-xl font-bold tracking-[0.2em] whitespace-nowrap">{userCode}</p>
+            <p className="text-xl font-bold tracking-[0.2em] whitespace-nowrap">
+              {userCode}
+            </p>
           </div>
         </div>
       )}
@@ -576,26 +884,87 @@ export default function Profile({
       {activeTab === "account" && (
         <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300 overflow-y-auto custom-scrollbar">
           <div className="text-center mb-6">
-            <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">Minha Conta</h2>
-            <p className="text-md text-semcompDarkBlue/75">Veja abaixo, seus dados e presença</p>
+            <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">
+              Minha Conta
+            </h2>
+            <p className="text-md text-semcompDarkBlue/75">
+              Veja abaixo, seus dados e presença
+            </p>
           </div>
 
-          <div className="flex flex-col space-y-4 mb-6">
-            <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcompDarkBlue">Nome Completo:</span>
-              <span className="text-sm text-semcompDarkBlue">{userName}</span>
+          {isEditing ? (
+            <div className="flex flex-col space-y-3 mb-6">
+              {([
+                { label: "Nome Completo", key: "name" as const, required: true },
+                { label: "Cidade de Residência", key: "city" as const, required: true },
+                { label: "Profissão", key: "profession" as const },
+                { label: "LinkedIn", key: "linkedin" as const },
+                { label: "Telegram", key: "telegram" as const },
+              ]).map(({ label, key, required }) => (
+                <div key={key} className="flex flex-col text-left">
+                  <span className="text-xs font-bold text-semcompDarkBlue mb-0.5">{label}{required ? "" : " (opcional)"}:</span>
+                  <input
+                    className="text-sm text-semcompDarkBlue bg-semcompOffWhite/60 border border-semcompDarkBlue/20 focus:border-semcompDarkBlue outline-none rounded px-2 py-1"
+                    value={editForm[key]}
+                    onChange={e => setEditForm(f => ({ ...f, [key]: e.target.value }))}
+                  />
+                </div>
+              ))}
+              <div className="flex flex-col text-left opacity-50">
+                <span className="text-xs font-bold text-semcompDarkBlue">E-mail (não editável):</span>
+                <span className="text-sm text-semcompDarkBlue">{userEmail}</span>
+              </div>
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-semcompDarkBlue">E-mail:</span>
-              <span className="text-sm text-semcompDarkBlue">{userEmail}</span>
+          ) : (
+            <div className="flex flex-col space-y-4 mb-6">
+              {[
+                { label: "Nome Completo", value: userName },
+                { label: "E-mail", value: userEmail },
+                ...(userCity ? [{ label: "Cidade de Residência", value: userCity }] : []),
+                ...(userProfession ? [{ label: "Profissão", value: userProfession }] : []),
+                ...(userLinkedin ? [{ label: "LinkedIn", value: userLinkedin }] : []),
+                ...(userTelegram ? [{ label: "Telegram", value: userTelegram }] : []),
+              ].map(({ label, value }) => (
+                <div key={label} className="flex flex-col text-left">
+                  <span className="text-sm font-bold text-semcompDarkBlue">{label}:</span>
+                  <span className="text-sm text-semcompDarkBlue">{value}</span>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
+
+          {isEditing ? (
+            <div className="flex gap-2 mb-8">
+              <button
+                className="flex-1 bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-60"
+                onClick={saveProfile}
+                disabled={isSaving || !editForm.name.trim() || !editForm.city.trim()}
+              >
+                {isSaving ? "Salvando..." : "Salvar"}
+              </button>
+              <button
+                className="flex-1 border border-semcompDarkBlue/40 text-semcompDarkBlue py-2.5 rounded-lg text-sm font-semibold hover:bg-semcompDarkBlue/5 transition-all"
+                onClick={() => setIsEditing(false)}
+                disabled={isSaving}
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <button
+              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8"
+              onClick={startEditing}
+            >
+              Editar Informações
+            </button>
+          )}
 
           <button
-            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8"
-            onClick={() => showNotification("Entre em contato com a organização", "info")}
+            onClick={() => setJustifyOpen(true)}
+            disabled={justificationLocked}
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Editar Informações
+            Justificar Ausência
           </button>
           {justificationStatus && (
             <div className="flex items-center justify-center gap-2 mb-8">
@@ -633,7 +1002,9 @@ export default function Profile({
                 style={{ width: `${presencePercent}%` }}
               >
                 {presencePercent > 15 && (
-                  <span className="text-semcompLightBlue text-xs font-bold">{presencePercent}%</span>
+                  <span className="text-semcompLightBlue text-xs font-bold">
+                    {presencePercent}%
+                  </span>
                 )}
               </div>
               {presencePercent <= 15 && (
@@ -652,10 +1023,47 @@ export default function Profile({
           </button>
         </div>
       )}
+
+      {activeTab === "purchases" && (
+        <div className="px-6 pb-8 pt-4 mx-auto w-full 2xl:w-5/6 flex flex-col text-foreground animate-in fade-in duration-300 overflow-y-auto custom-scrollbar">
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-bold text-semcompMidDarkBlue font-poppins">Minhas Compras</h2>
+            <p className="text-md text-semcompDarkBlue/75">Veja seu histórico de compras</p>
+          </div>
+
+          {isFeatureEnabled("loja") && pendingSalesCount > 0 && (
+            <button
+              onClick={() => navigate("/loja/pagamentos")}
+              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
+            >
+              Ver pagamentos pendentes ({pendingSalesCount})
+            </button>
+          )}
+
+          <div className="flex flex-col gap-3">
+            {userPurchases && userPurchases.length > 0 ? (
+              userPurchases.map((purchase) => (
+                <div key={purchase.id} className="bg-semcompOffWhite/60 rounded-xl p-4 border border-border/50 flex flex-col">
+                  <span className="font-bold text-semcompDarkBlue">{purchase.item}</span>
+                  <div className="flex justify-between mt-2">
+                    <span className="text-xs font-medium text-semcompDarkBlue/70">{purchase.date}</span>
+                    <span className={`text-sm font-bold ${purchase.statusColor}`}>R$ {purchase.amount.toFixed(2)}</span>
+                  </div>
+                  <span className="text-xs font-semibold text-semcompDarkBlue/80 mt-1">Status: {purchase.status}</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-center opacity-70 text-sm py-6 italic text-semcompDarkBlue">
+                Você ainda não realizou nenhuma compra.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 
-  // Versão Desktop
+  // Versão Desktop Principal
   if (width >= 1280) {
     return (
       <div className="bg-semcompMidLightBlue text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite min-h-screen">
@@ -693,6 +1101,45 @@ export default function Profile({
           </div>
         </div>
 
+        {/* Mural de Avisos (Desktop) */}
+        <div className="bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue py-16 flex justify-center font-poppins">
+          <div className="w-[60%] border-2 rounded-2xl p-8 bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue dark:bg-semcompMidDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite shadow-xl">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <Megaphone className="w-7 h-7 text-semcompDarkBlue dark:text-semcompOffWhite" />
+              <h1 className="font-bold text-2xl">Mural de Avisos</h1>
+            </div>
+            <div className="flex flex-col gap-4">
+              {notices && notices.length > 0 ? (
+                notices.map((notice, index) => (
+                  <div
+                    key={index}
+                    className="p-5 rounded-xl border bg-black/5 border-semcompDarkBlue/20 dark:bg-black/20 dark:border-white/15 transition-all hover:shadow-md text-left flex flex-col gap-1"
+                  >
+                    <div className="flex justify-between items-start gap-4">
+                      <h3 className="font-bold text-lg text-semcompDarkBlue dark:text-white">
+                        {notice.title}
+                      </h3>
+                      {notice.date && (
+                        <span className="text-xs opacity-70 font-medium whitespace-nowrap pt-1">
+                          {notice.date}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm opacity-90 leading-relaxed text-semcompDarkBlue/80 dark:text-white/80">
+                      {notice.content}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center italic py-4 opacity-70">
+                  Nenhum aviso no momento.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Seção Inscrições */}
         <div className="bg-semcompMidLightBlue/80 dark:bg-semcompAlmostDarkBlue flex flex-col justify-center items-center font-poppins py-16">
           <div className="border-2 w-[60%] rounded-2xl p-8 flex flex-col justify-center items-center bg-semcompOffWhite text-semcompDarkBlue border-semcompDarkBlue dark:bg-semcompMidDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite">
             <h1 className="font-bold text-2xl mb-6">Inscrições em Eventos</h1>
@@ -772,7 +1219,7 @@ export default function Profile({
                 })
               ) : (
                 <div className="text-center italic mt-6 py-8">
-                  Nenhum evento disponível para inscrição no momento.
+                  Em breve, serão abertas as inscrições para os eventos!
                 </div>
               )}
             </div>

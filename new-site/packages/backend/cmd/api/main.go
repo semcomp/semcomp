@@ -238,8 +238,10 @@ func main() {
 	swaggerRoutes.Use(middleware.AuthBackofficeMiddleware(jwtProvider))
 	swaggerRoutes.GET("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Serve logos de patrocinadores enviadas por upload
-	r.Static("/uploads", "./uploads")
+	// Serve apenas logos de patrocinadores (públicos). Documentos privados
+	// (papfe, absence-justifications) são servidos exclusivamente via endpoints
+	// autenticados — nunca via rota estática.
+	r.Static("/uploads/sponsors", "./uploads/sponsors")
 
 	pageMW := func(page string) gin.HandlerFunc {
 		return middleware.RequirePageAvailable(pagesService, page)
