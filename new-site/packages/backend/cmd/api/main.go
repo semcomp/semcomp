@@ -66,6 +66,38 @@ func main() {
 		panic("Failed to migrate database: " + err.Error())
 	}
 
+	// As tabelas `teams` e `team_members` (jogo de enigmas) são criadas com SQL
+	// manual em vez de AutoMigrate: o struct TeamMember tem PK composta
+	// (team_id + user_number) com associação belongs-to em UserNumber, e o
+	// AutoMigrate do GORM inverte a FK (tentava criar fk_team_members_user na
+	// tabela `users` referenciando `team_members`, que ainda não existia),
+	// panicking no startup. Em runtime o GORM hidrata a associação via tags do
+	// struct (Preload), sem depender dessas constraints.
+	if err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS teams (
+			id                    BIGSERIAL PRIMARY KEY,
+			name                  VARCHAR(200) NOT NULL,
+			code                  VARCHAR(10)  NOT NULL,
+			current_riddle_index  BIGINT NOT NULL DEFAULT 0,
+			finished_at           TIMESTAMPTZ,
+			created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			CONSTRAINT uni_teams_name UNIQUE (name),
+			CONSTRAINT uni_teams_code UNIQUE (code)
+		);
+		CREATE TABLE IF NOT EXISTS team_members (
+			team_id    BIGINT NOT NULL,
+			user_number BIGINT NOT NULL,
+			joined_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			PRIMARY KEY (team_id, user_number),
+			CONSTRAINT idx_team_member_user UNIQUE (user_number),
+			CONSTRAINT fk_team_members_team FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE,
+			CONSTRAINT fk_team_members_user FOREIGN KEY (user_number) REFERENCES users (user_number) ON DELETE CASCADE
+		);
+	`).Error; err != nil {
+		panic("Failed to create riddle teams tables: " + err.Error())
+	}
+
 	// A coluna kits.is_babydoll é órfã: o modelo atual usa is_babylook (camiseta
 	// de uso cotidiano, categoria "Babylook"). O AutoMigrate não dropa colunas,
 	// então uma DB antiga (que passou por AutoMigrate com o modelo IsBabydoll)
