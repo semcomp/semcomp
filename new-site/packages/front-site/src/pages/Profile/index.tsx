@@ -517,13 +517,7 @@ export default function Profile({
                       style={{ width: `${presencePercent}%` }}
                     >
                       {presencePercent > 15 && (
-<<<<<<< HEAD
                         <span className="text-white text-[10px] font-bold">{formatPresencePercent(presencePercent)}%</span>
-=======
-                        <span className="text-white text-[10px] font-bold">
-                          {presencePercent}%
-                        </span>
->>>>>>> origin/dev
                       )}
                     </div>
                     {presencePercent <= 15 && (
@@ -897,13 +891,7 @@ export default function Profile({
                 style={{ width: `${presencePercent}%` }}
               >
                 {presencePercent > 15 && (
-<<<<<<< HEAD
                   <span className="text-semcompLightBlue text-xs font-bold">{formatPresencePercent(presencePercent)}%</span>
-=======
-                  <span className="text-semcompLightBlue text-xs font-bold">
-                    {presencePercent}%
-                  </span>
->>>>>>> origin/dev
                 )}
               </div>
               {presencePercent <= 15 && (
