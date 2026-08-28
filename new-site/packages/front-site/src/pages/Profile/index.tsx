@@ -69,7 +69,7 @@ const SALE_STATUS_STYLES: Record<string, { label: string; color: string }> = {
   EXPIRADO: { label: "Expirado", color: "text-gray-500" },
 };
 
-const formatPresencePercent = (value: number): string => Number(value.toFixed(2)).toString();
+const formatPresencePercent = (value: number): string => Math.round(value).toString();
 
 function getProductDisplayName(product: any): string {
   if (!product) return "Produto";
