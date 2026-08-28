@@ -158,13 +158,13 @@ export default function PapfeUploadModal({
               key={open ? "papfe-file-open" : "papfe-file-closed"}
               onChange={(file) => setNewFile(file)}
               accept=".pdf,.jpg,.jpeg,.png,.webp"
-              maxSizeMB={10}
+              maxSizeMB={1}
               label={
                 currentDoc
                   ? "Clique para substituir o comprovante"
                   : "Arraste o comprovante ou clique para selecionar"
               }
-              helperText="PDF, JPEG, PNG ou WebP · máx. 10 MB"
+              helperText="PDF, JPEG, PNG ou WebP · máx. 1 MB"
             />
           </div>
 
