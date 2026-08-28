@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef, memo, type ReactElement } from "react";
+import { MicVocal, Rocket, Trophy, Target, Gamepad2, Flag, Coffee, Clock, MapPin } from "lucide-react";
 import { eventsAPI } from "@/api/events";
 import type { EventType } from "@/types/EventType.ts";
 import type { EventWithColumn } from "@/types/EventWithColumn.ts";
@@ -133,73 +134,177 @@ const processEvents = (events: EventType[]): EventWithColumn[][] => {
   });
 };
 
+const getEventTypeStyle = (type: string) => {
+  switch (type) {
+    case "Palestra":
+      return {
+        classes:
+          "bg-blue-100 border-blue-300 dark:bg-blue-950/60 dark:border-blue-700",
+        icon: "microphone",
+      };
+
+    case "Minicurso":
+    case "Workshop":
+      return {
+        classes:
+          "bg-green-100 border-green-300 dark:bg-green-950/60 dark:border-green-700",
+        icon: "rocket",
+      };
+
+    case "Concurso":
+    case "Competicao":
+      return {
+        classes:
+          "bg-yellow-100 border-yellow-300 dark:bg-yellow-950/60 dark:border-yellow-700",
+        icon: "trophy",
+      };
+
+    case "Hackathon":
+      return {
+        classes:
+          "bg-purple-100 border-purple-300 dark:bg-purple-950/60 dark:border-purple-700",
+        icon: "target",
+      };
+
+    case "Game Night":
+      return {
+        classes:
+          "bg-pink-100 border-pink-300 dark:bg-pink-950/60 dark:border-pink-700",
+        icon: "gamepad",
+      };
+
+    case "Intervalo":
+      return {
+        classes:
+          "bg-orange-100 border-orange-300 dark:bg-orange-950/60 dark:border-orange-700",
+        icon: "coffee",
+      };
+
+      case "Encerramento":
+      return {
+        classes:
+          "bg-violet-100 border-violet-300 dark:bg-violet-950/60 dark:border-violet-700",
+        icon: "flag",
+      };
+
+    default:
+      return {
+        classes:
+          "bg-white/70 border-semcompLightBlue dark:bg-semcompAlmostDarkBlue/75 dark:border-semcompMidDarkBlue",
+        icon: "flag",
+      };
+  }
+};
+
+function EventTypeIcon({ type }: { type: string }) {
+  const icon = getEventTypeStyle(type).icon;
+  const iconClasses = "h-7 w-7";
+
+  switch (icon) {
+    case "microphone":
+      return <MicVocal className={iconClasses} />;
+
+    case "rocket":
+      return <Rocket className={iconClasses} />;
+
+    case "trophy":
+      return <Trophy className={iconClasses} />;
+
+    case "target":
+      return <Target className={iconClasses} />;
+
+    case "gamepad":
+      return <Gamepad2 className={iconClasses} />;
+
+    case "coffee":
+      return <Coffee className={iconClasses} />;
+
+    default:
+      return <Flag className={iconClasses} />;
+  }
+}
+
 const EventButton = memo(function EventButton({
   evento,
   onClick,
   captionClasses,
+  viewMode,
 }: {
   evento: EventWithColumn;
   onClick: (evento: EventWithColumn) => void;
   captionClasses: string;
+  viewMode: "day" | "week";
 }): ReactElement {
+  const eventStyle = getEventTypeStyle(evento.type);
+
   return (
     <button
       type="button"
-      className={`group w-full min-w-0 overflow-hidden rounded-xl border px-4 py-4 text-center transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md h-full ${getEventTypeClasses(evento.type)}`}
+      className={`flex gap-5 group w-full min-w-0 overflow-hidden rounded-xl border px-4 py-4 ${viewMode === "day" ? "text-left" : "text-center justify-center items-center"} transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md h-full ${eventStyle.classes}`}
       onClick={() => onClick(evento)}
     >
-      <p className="font-poppins-bold text-sm md:text-base whitespace-normal break-words leading-tight">{evento.name}</p>
-      <p className={`mt-1 text-sm ${captionClasses}`}>
-        {formatTime(evento.dateInit)} - {formatTime(evento.dateEnd)}
-      </p>
+      {viewMode === "day" && (
+      <div className={`border flex items-center justify-center ${eventStyle.classes} rounded-xl w-15 h-15`}>
+        <EventTypeIcon type={evento.type} />
+      </div>
+      )}
 
-      <div className="grid max-h-none grid-rows-[0fr] overflow-hidden opacity-0 transition-all duration-300 group-hover:mt-3 group-hover:grid-rows-[1fr] group-hover:opacity-100">
-        <div className="overflow-hidden">
-          <div className="flex flex-col items-center gap-3 text-center">
-            {evento.image && (
-              <div className="w-full flex justify-center">
-                <img
-                  src={evento.image}
-                  alt={evento.name}
-                  loading="lazy"
-                  className="h-32 w-auto max-w-xs rounded-lg object-cover"
-                />
-              </div>
-            )}
-            <p className={`text-sm text-center leading-relaxed wrap-break-word ${captionClasses}`}>
-              {evento.description || "Mais detalhes deste evento."}
+      <div>
+        {viewMode === "day" && (
+          <p className={`font-poppins text-base md:text-sm ${viewMode === "day" ? "" : "opacity-30"}`}>
+            {evento.type}
+          </p>
+        )}
+
+        <p className={`font-poppins-bold text-base md:text-lg ${viewMode === "day" ? "text-left" : "text-center"}`}>
+          {evento.name}
+        </p>
+        
+        <div className={`flex items-center ${viewMode === "day" ? "gap-10" : "justify-center text-center"}`}>
+          <p className={`mt-1 flex items-center gap-1.5 text-sm ${captionClasses}`}>
+            <Clock className="h-4 w-4" aria-hidden="true" />
+            {formatTime(evento.dateInit)} - {formatTime(evento.dateEnd)}
+          </p>
+
+          {viewMode === "day" && (
+            <p className={`mt-1 flex items-center gap-1.5 text-sm ${captionClasses}`}>
+              <MapPin className="h-4 w-4" aria-hidden="true" />
+              Local: {evento.location}
             </p>
+          )}
+        </div>
+
+        <div className="grid max-h-none grid-rows-[0fr] overflow-hidden opacity-0 transition-all duration-300 group-hover:mt-3 group-hover:grid-rows-[1fr] group-hover:opacity-100">
+          <div className="overflow-hidden">
+            <div className={`flex flex-col gap-3 ${viewMode === "day" ? "text-left" : "text-center justify-center"}`}>
+              {evento.image && (
+                <div className="w-full flex justify-left">
+                  <img
+                    src={evento.image}
+                    alt={evento.name}
+                    loading="lazy"
+                    className="h-32 w-auto max-w-xs rounded-lg object-cover"
+                  />
+                </div>
+              )}
+              {viewMode === "week" && (
+                <div className="justify-center flex">
+                  <p className={`flex items-center text-center gap-1.5 text-sm ${captionClasses}`}>
+                    <MapPin className="h-4 w-4" aria-hidden="true" />
+                    Local: {evento.location}
+                  </p>
+                </div>
+              )}
+              <p className={`text-sm leading-relaxed wrap-break-word ${captionClasses}`}>
+                {evento.description || "Mais detalhes deste evento."}
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </button>
   );
 });
-
-const getEventTypeClasses = (type: string) => {
-  switch (type) {
-    case "Palestra":
-      return "bg-blue-100 border-blue-300 dark:bg-blue-950/60 dark:border-blue-700";
-
-    case "Workshop":
-      return "bg-green-100 border-green-300 dark:bg-green-950/60 dark:border-green-700";
-
-    case "Competicao":
-      return "bg-orange-100 border-orange-300 dark:bg-orange-950/60 dark:border-orange-700";
-
-    case "Mesa Redonda":
-      return "bg-purple-100 border-purple-300 dark:bg-purple-950/60 dark:border-purple-700";
-
-    case "Feira":
-      return "bg-pink-100 border-pink-300 dark:bg-pink-950/60 dark:border-pink-700";
-
-    case "Intervalo":
-      return "bg-yellow-100 border-yellow-300 dark:bg-yellow-950/60 dark:border-yellow-700";
-
-    default:
-      return "bg-white/70 border-semcompLightBlue dark:bg-semcompAlmostDarkBlue/75 dark:border-semcompMidDarkBlue";
-  }
-};
 
 function EventModal({
   selected,
@@ -305,11 +410,13 @@ function EventGroups({
   onSelect,
   captionClasses,
   maxColumns = 3,
+  viewMode,
 }: {
   groups: EventWithColumn[][];
   onSelect: (evento: EventWithColumn) => void;
   captionClasses: string;
   maxColumns?: 2 | 3;
+  viewMode: "day" | "week";
 }) {
   return (
     <div className="space-y-3">
@@ -356,6 +463,7 @@ function EventGroups({
                     evento={evento}
                     onClick={onSelect}
                     captionClasses={captionClasses}
+                    viewMode={viewMode}
                   />
                 </div>
               ))
@@ -378,6 +486,7 @@ function EventGroups({
                           evento={evento}
                           onClick={onSelect}
                           captionClasses={captionClasses}
+                          viewMode={viewMode}
                         />
                       </div>
                     ))}
@@ -703,6 +812,7 @@ export default function CronogramaPage(): ReactElement {
                 groups={processedEventGroups}
                 onSelect={handleSelectEvent}
                 captionClasses={captionClasses}
+                viewMode={viewMode}
               />
             )}
           </div>
@@ -744,6 +854,7 @@ export default function CronogramaPage(): ReactElement {
                       onSelect={handleSelectEvent}
                       captionClasses={captionClasses}
                       maxColumns={2}
+                      viewMode={viewMode}                      
                     />
                   )}
                 </div>
@@ -794,6 +905,7 @@ export default function CronogramaPage(): ReactElement {
                     onSelect={() => {}}
                     captionClasses={captionClasses}
                     maxColumns={2}
+                    viewMode={viewMode}
                   />
                 )}
               </div>
