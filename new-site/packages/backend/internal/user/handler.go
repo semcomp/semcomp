@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"backend/internal/token"
 
@@ -25,6 +26,8 @@ type UserHandler struct {
 func NewUserHandler(userService UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
+
+const maxPapfeSizeBytes = 1 * 1024 * 1024
 
 // CreateUser processa o formulário multipart e tenta criar um novo usuário.
 // @Summary Cria um novo usuário
@@ -71,8 +74,8 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		}
 		defer file.Close()
 
-		if header.Size > 10*1024*1024 {
-			apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 10MB", nil))
+		if header.Size > maxPapfeSizeBytes {
+			apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 1MB", nil))
 			return
 		}
 
@@ -99,9 +102,14 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 			return
 		}
 
-		data, err := io.ReadAll(file)
+		lr := io.LimitReader(file, maxPapfeSizeBytes+1)
+		data, err := io.ReadAll(lr)
 		if err != nil {
 			apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao ler comprovante PAPFE", err))
+			return
+		}
+		if int64(len(data)) > maxPapfeSizeBytes {
+			apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 1MB", nil))
 			return
 		}
 
@@ -178,8 +186,8 @@ func (h *UserHandler) UpdatePapfeDocument(c *gin.Context) {
 	}
 	defer file.Close()
 
-	if header.Size > 10*1024*1024 {
-		apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 10MB", nil))
+	if header.Size > maxPapfeSizeBytes {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 1MB", nil))
 		return
 	}
 
@@ -206,9 +214,14 @@ func (h *UserHandler) UpdatePapfeDocument(c *gin.Context) {
 		return
 	}
 
-	data, err := io.ReadAll(file)
+	lr := io.LimitReader(file, maxPapfeSizeBytes+1)
+	data, err := io.ReadAll(lr)
 	if err != nil {
 		apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao ler comprovante PAPFE", err))
+		return
+	}
+	if int64(len(data)) > maxPapfeSizeBytes {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 1MB", nil))
 		return
 	}
 
@@ -271,7 +284,8 @@ func (h *UserHandler) GetPapfeDocument(c *gin.Context) {
 		return
 	}
 
-	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, doc.Filename))
+	safeName := strings.NewReplacer(`"`, ``, "\r", ``, "\n", ``).Replace(doc.Filename)
+	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, safeName))
 	c.File(doc.FilePath)
 }
 

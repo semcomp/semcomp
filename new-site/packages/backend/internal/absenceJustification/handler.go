@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"backend/internal/apierrors"
 
@@ -20,6 +21,8 @@ type AbsenceJustificationHandler struct {
 func NewAbsenceJustificationHandler(service AbsenceJustificationService) *AbsenceJustificationHandler {
 	return &AbsenceJustificationHandler{service: service}
 }
+
+const maxAttachmentBytes = 1 * 1024 * 1024
 
 var allowedAttachmentTypes = map[string]bool{
 	"application/pdf": true,
@@ -41,8 +44,10 @@ func readAttachment(c *gin.Context, required bool) (filename string, contentType
 	}
 	defer file.Close()
 
-	if header.Size > 10*1024*1024 {
-		return "", "", nil, apierrors.ValidationError("O anexo não pode ultrapassar 10MB", nil)
+	// header.Size vem do Content-Length do part multipart (client-controlled);
+	// serve apenas como rejeição antecipada quando o cliente o informa corretamente.
+	if header.Size > maxAttachmentBytes {
+		return "", "", nil, apierrors.ValidationError("O anexo não pode ultrapassar 1MB", nil)
 	}
 
 	buf := make([]byte, 512)
@@ -59,9 +64,14 @@ func readAttachment(c *gin.Context, required bool) (filename string, contentType
 		return "", "", nil, apierrors.ValidationError("Tipo de arquivo não permitido. Aceitamos PDF, JPEG, PNG ou WebP", nil)
 	}
 
-	data, err := io.ReadAll(file)
+	// LimitReader garante o limite real independente do header.Size informado.
+	lr := io.LimitReader(file, maxAttachmentBytes+1)
+	data, err := io.ReadAll(lr)
 	if err != nil {
 		return "", "", nil, apierrors.InternalServerError("Erro ao ler anexo", err)
+	}
+	if int64(len(data)) > maxAttachmentBytes {
+		return "", "", nil, apierrors.ValidationError("O anexo não pode ultrapassar 1MB", nil)
 	}
 
 	return header.Filename, contentType, data, nil
@@ -209,7 +219,8 @@ func (h *AbsenceJustificationHandler) GetOwnAttachment(c *gin.Context) {
 		return
 	}
 
-	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, justification.AttachmentFilename))
+	safeName := strings.NewReplacer(`"`, ``, "\r", ``, "\n", ``).Replace(justification.AttachmentFilename)
+	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, safeName))
 	c.File(justification.AttachmentFilePath)
 }
 
@@ -257,7 +268,8 @@ func (h *AbsenceJustificationHandler) GetAttachment(c *gin.Context) {
 		return
 	}
 
-	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, justification.AttachmentFilename))
+	safeName := strings.NewReplacer(`"`, ``, "\r", ``, "\n", ``).Replace(justification.AttachmentFilename)
+	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, safeName))
 	c.File(justification.AttachmentFilePath)
 }
 
