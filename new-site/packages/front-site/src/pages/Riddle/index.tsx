@@ -38,6 +38,8 @@ export default function Riddle() {
   const [lastSolveResult, setLastSolveResult] = useState<SolveResult | null>(null);
 
   const cardBg = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidLightBlue";
+  // Mesmo fundo das demais páginas do site (ver Profile: bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue).
+  const pageBg = isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompMidLightBlue";
   const inputBg = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidDarkBlue";
   const textPrimary = isDarkMode ? "text-white" : "text-semcompDarkBlue";
   const textMuted = isDarkMode ? "text-slate-400" : "text-slate-600";
@@ -139,7 +141,7 @@ export default function Riddle() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className={`flex min-h-screen items-center justify-center ${pageBg}`}>
         <Loader2 className={`h-8 w-8 animate-spin ${textPrimary}`} />
       </div>
     );
@@ -147,7 +149,7 @@ export default function Riddle() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4">
+      <div className={`flex min-h-screen flex-col items-center justify-center gap-4 px-4 ${pageBg}`}>
         <p className={`text-lg ${textPrimary}`}>{error}</p>
         <Button variant="outline" onClick={fetchGame}>Tentar novamente</Button>
       </div>
@@ -165,7 +167,7 @@ export default function Riddle() {
   if (!team) {
     if (riddlesTotal === 0) {
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4">
+        <div className={`flex min-h-screen flex-col items-center justify-center gap-4 px-4 ${pageBg}`}>
           <Lightbulb className={`h-16 w-16 ${textMuted}`} />
           <h1 className={`text-2xl font-bold ${textPrimary}`}>Jogo de Enigmas</h1>
           <p className={`text-center ${textMuted}`}>
@@ -176,7 +178,8 @@ export default function Riddle() {
     }
 
     return (
-      <div className="mx-auto mt-28 flex min-h-screen w-full max-w-3xl flex-col items-center gap-8 px-4 pb-20">
+      <div className={`min-h-screen w-full pt-28 ${pageBg}`}>
+      <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-8 px-4 pb-20">
         <div className="text-center">
           <Lightbulb className={`mx-auto h-12 w-12 ${textMuted}`} />
           <h1 className={`mt-3 text-3xl font-bold ${textPrimary}`}>Jogo de Enigmas</h1>
@@ -231,6 +234,7 @@ export default function Riddle() {
           </Button>
         </div>
       </div>
+      </div>
     );
   }
 
@@ -238,7 +242,8 @@ export default function Riddle() {
 
   if (isFinished) {
     return (
-      <div className={`mx-auto mt-28 flex min-h-screen w-full max-w-2xl flex-col items-center gap-6 px-4 pb-20 text-center`}>
+      <div className={`min-h-screen w-full pt-28 ${pageBg}`}>
+      <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-6 px-4 pb-20 text-center">
         <Trophy className="h-20 w-20 text-yellow-400" />
         <h1 className={`text-3xl font-bold ${textPrimary}`}>Parabéns, {team.name}!</h1>
         <p className={`text-lg ${textMuted}`}>
@@ -259,11 +264,13 @@ export default function Riddle() {
           Atualizar
         </Button>
       </div>
+      </div>
     );
   }
 
   return (
-    <div className="mx-auto mt-28 flex min-h-screen w-full max-w-3xl flex-col gap-8 px-4 pb-20">
+    <div className={`min-h-screen w-full pt-28 ${pageBg}`}>
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pb-20">
       {/* Card da equipe */}
       <div className={`w-full rounded-2xl border p-6 ${cardBg} ${sectionBorder}`}>
         <div className="mb-4 flex items-start justify-between gap-4">
@@ -372,6 +379,7 @@ export default function Riddle() {
           <p className={`mt-3 ${textMuted}`}>Carregando próximo enigma...</p>
         </div>
       )}
+    </div>
     </div>
   );
 }
