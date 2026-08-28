@@ -21,6 +21,7 @@ import (
 	"backend/internal/product"
 	"backend/internal/providers"
 	"backend/internal/sales"
+	"backend/internal/signinEvent"
 	"backend/internal/sitestat"
 	"backend/internal/sponsor"
 	"backend/internal/token"
@@ -57,12 +58,14 @@ func main() {
 
 	err := db.AutoMigrate(
 		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{},
+		&signinEvent.SigninEvent{},
 		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{},
 		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{},
 		&token.Token{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{},
 		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{}, &sales.ConsumedItem{},
 		&absenceJustification.AbsenceJustification{}, &notice.Notice{},
 	)
+
 
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
@@ -94,6 +97,7 @@ func main() {
 	if err := db.Exec("ALTER TABLE sales ADD CONSTRAINT status_chk CHECK (status IN ('PENDENTE','PAGO','REJEITADO','CANCELADO','REEMBOLSADO','EXPIRADO'))").Error; err != nil {
 		panic("Failed to recreate sales.status_chk constraint: " + err.Error())
 	}
+
 
 	// Inicializa as camadas da aplicação (Repository -> Service -> Handler)
 	passwordProvider := providers.NewBcryptProvider()
@@ -129,6 +133,10 @@ func main() {
 	eventRepo := event.NewEventRepository(db)
 	eventService := event.NewEventService(eventRepo)
 	eventHandler := event.NewEventHandler(eventService)
+
+	signinEventRepo := signinEvent.NewSigninEventRepository(db)
+	signinEventService := signinEvent.NewSigninEventService(signinEventRepo, eventRepo)
+	signinEventHandler := signinEvent.NewSigninEventHandler(signinEventService)
 
 	presenceRepo := presence.NewPresenceRepository(db)
 	presenceService := presence.NewPresenceService(presenceRepo)
@@ -273,6 +281,12 @@ func main() {
 	authRoutes.GET("/absence-justifications/:id/attachment", absenceJustificationHandler.GetOwnAttachment)
 	authRoutes.PATCH("/absence-justifications/:id", absenceJustificationHandler.UpdateMine)
 
+	// Inscrições em Eventos (Usuário)
+	authRoutes.POST("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.CreateSignin)
+	authRoutes.GET("/signin-events", pageMW("profile"), pageMW("cronograma"), signinEventHandler.GetSigninEvents)
+	authRoutes.GET("/signin-events/me", pageMW("profile"), pageMW("cronograma"), signinEventHandler.GetMySignins)
+	authRoutes.DELETE("/signin-events/:eventName/:eventInitDate", pageMW("profile"), pageMW("cronograma"), signinEventHandler.DeleteSignin)
+
 	// Produtos (requer autenticação para exibir desconto PAPFE)
 	authRoutes.GET("/products", pageMW("loja"), productHandler.GetProducts)
 
@@ -312,6 +326,15 @@ func main() {
 	// GET nos eventos - Consulta pública via GET /events
 	admin.PUT("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.UpdateEventByNameAndInitDate)
 	admin.DELETE("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.DeleteEventByNameAndInitDate)
+
+	// Inscrições (Signin Events)
+	admin.GET("/signin-events", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninsAdmin)
+	admin.GET("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninAdmin)
+	admin.POST("/signin-events", permMW("Inscrições", permission.PermRW), signinEventHandler.CreateSigninAdmin)
+	admin.PUT("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermRW), signinEventHandler.UpdateSigninAdmin)
+	admin.DELETE("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermRW), signinEventHandler.DeleteSigninAdmin)
+	admin.PUT("/signin-events/:userNumber/:eventName/:eventInitDate/register", permMW("Inscrições", permission.PermRW), signinEventHandler.RegisterSigninAdmin)
+	admin.POST("/signin-events/rotate/:eventName/:eventInitDate", permMW("Inscrições", permission.PermRW), signinEventHandler.RotateSigninsAdmin)
 
 	// Participações
 	admin.GET("/presences", permMW("Participações", permission.PermR), presenceHandler.GetPresences)
@@ -354,8 +377,6 @@ func main() {
 	admin.DELETE("/notices/:id", permMW("Avisos", permission.PermRW), noticeHandler.DeleteNoticeByID)
 
 	// Permissões
-	// GET /permissions/me não exige "Permissões R" — qualquer admin autenticado pode
-	// consultar suas próprias permissões (email lido do JWT, não do URL)
 	admin.GET("/permissions/me", permissionHandler.GetMyPermissions)
 	admin.GET("/permissions", permMW("Permissões", permission.PermR), permissionHandler.GetPermissions)
 	admin.GET("/permissions/section/:section", permMW("Permissões", permission.PermR), permissionHandler.GetPermissionBySection)

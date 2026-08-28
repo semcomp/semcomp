@@ -36,9 +36,12 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 ### user
 - Rotas públicas: `POST /register`, `POST /forgot-password`, `POST /reset-password`, `POST /verify-email`, `POST /resend-verification`
 - Rotas backoffice: `GET/POST /admin/users`, `GET/PUT/DELETE /admin/users/:id`
+- Rotas PAPFE backoffice: `GET /admin/papfe-documents` (PermR), `GET /admin/users/:id/papfe-document` (PermR), `PUT /admin/users/:id/papfe-document/approval` (PermRW)
+- Rota autenticada: `PUT /api/papfe-document` — upload multipart do comprovante PAPFE
 - Expõe `SafeUser` (sem `PasswordHash`) | `UserNumber` formatado como `%05d`
 - Campo `email_verified bool` — novos usuários nascem `false`; grandfathered via migration
-- `PapfeDocument` — entidade associada ao usuário (documentos)
+- Campos novos: `quer_cracha bool` (default false), `autoriza_compartilhamento bool` (default false)
+- `PapfeDocument` — entidade associada ao usuário; → [[Feature_PAPFE]]
 - Depende de: `token`, `mailer`, `providers`
 
 ### userBackoffice
@@ -51,6 +54,23 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - Rotas públicas: `GET /events` (paginado), `GET /event/:eventName/:initDate`
 - Rotas backoffice: `POST /admin/events`, `PUT/DELETE /admin/events/:eventName/:initDate`
 - PK composta: `Name + InitDate` (RFC3339)
+- Campos de inscrição: `has_signin bool` (habilita inscrição), `max_participants uint` (0 = sem limite)
+
+### signinEvent
+- Rotas autenticadas (`/api`, guard: `AuthMiddleware` + `pageMW("profile")` + `pageMW("cronograma")`):
+  - `POST /api/signin-events` — inscreve usuário (handler: `CreateSignin`)
+  - `GET /api/signin-events` — lista eventos com `has_signin=true` (handler: `GetSigninEvents`)
+  - `GET /api/signin-events/me` — lista inscrições ativas do usuário (handler: `GetMySignins`)
+  - `DELETE /api/signin-events/:eventName/:eventInitDate` — cancela inscrição (handler: `DeleteSignin`)
+- Rotas backoffice (guard: `AuthBackofficeMiddleware` + `permMW("Inscrições", ...)`):
+  - `GET /admin/signin-events` — lista todas as inscrições (PermR)
+  - `GET /admin/signin-events/:userNumber/:eventName/:eventInitDate` — busca inscrição (PermR)
+  - `POST /admin/signin-events` — cria inscrição manualmente (PermRW)
+  - `PUT /admin/signin-events/:userNumber/:eventName/:eventInitDate` — edita inscrição (PermRW)
+  - `DELETE /admin/signin-events/:userNumber/:eventName/:eventInitDate` — remove inscrição (PermRW)
+- Lógica de fila: se vagas esgotadas (`max_participants > 0`), insere com `StatusWaitListed` e calcula posição; cancelamento de inscrito confirmado promove primeiro da lista de espera
+- Repository: `Create`, `GetByUserEventAndInitDate`, `CountByStatus`, `CountActiveByEvent`, `FindActiveByUser`, `UpdateStatus`, `GetFirstWaitListed`, `PromoteToRegistered`
+- → [[Feature_SigninEvent]]
 
 ### presence
 - Rotas backoffice: `GET/POST /admin/presences`, `GET/PUT/DELETE /admin/presences/:userNumber/:eventName/:eventInitDate`
@@ -63,7 +83,7 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 ### permission
 - Rotas backoffice: `GET /admin/permissions`, `GET /admin/permissions/me`, `GET /admin/permissions/section/:section`, `POST /admin/permissions`, `PUT/DELETE /admin/permissions/:user/:section`
 - `GetMyPermissions` — email lido do JWT, sem URL param
-- `InitializePermissions()` — concede `RW` em todas as 9 seções ao admin padrão
+- `InitializePermissions()` — concede `RW` em todas as 7 seções ao admin padrão
 - → Detalhes: [[Feature_Controle_Backend]]
 
 ### product
@@ -72,23 +92,11 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - Hierarquia: `Product` base + especialização `Kit` / `Coffee` / `ComboItem`
 - `InitializeProducts()` — seeds na startup
 - Deleção bloqueada se produto é item de combo (409)
-- Kit usa `IsBabylook` (não `IsBabydoll`); migração dropa a coluna órfã `kits.is_babydoll` na startup
 
-### sales
-- Rotas site (`/api`, guard `AuthMiddleware` + `pageMW("loja")`):
-  - `POST /api/sales` (CreateSale), `GET /api/sales/profile` (GetMySales), `GET /api/sales/consumed` (GetConsumed), `GET /api/sales/:id` (GetSaleByID)
-  - Alias legado: `POST /api/payments/pix` → `CreateSale`, `GET /api/payments/:id/status` → `GetSaleStatus`
-- Rotas backoffice (`/admin`, seção `"Vendas"`): `GET /admin/sales` (PermR), `PUT/DELETE /admin/sales/:id` (PermRW), `PATCH /admin/sales/items/:itemId/pickup` (PermRW)
-- Status da venda: `PENDENTE | PAGO | REJEITADO | CANCELADO | REEMBOLSADO | EXPIRADO` (check `status_chk`; `EXPIRADO` é persistido pelo sweeper)
-- **Compra única**: trava `consumed_items` (COFFEE/COMBO) na criação; fechamento via combos (`getUnavailableProductIDs`); sincroniza travas em toda mudança de status (webhook, update, delete)
-- → Detalhes: [[Feature_Loja_e_Pagamentos]]
-
-### payment (integrado ao sales)
-- Não existe mais o pacote `internal/payment` — a integração Mercado Pago (PIX) vive em `internal/sales`; a venda carrega os campos `MercadoPagoID`/`QRCode`/`PixExpiration`.
-- Rotas legadas mantidas (apontam para `salesHandler`):
-  - `POST /api/payments/pix` → `CreateSale` (cria venda PENDENTE + cobrança PIX)
-  - `GET /api/payments/:id/status` → `GetSaleStatus`
-- Webhook público: `POST /webhook/mercadopago` → `salesHandler.Webhook`
+### payment
+- Rotas públicas: `POST /webhook/mercadopago`
+- Rotas protegidas (`/api`): `GET /api/payments`, `POST /api/payments/pix`, `GET /api/payments/:id/status`
+- Integração Mercado Pago: cria PIX (QR code + copia-e-cola), recebe webhook para atualizar status
 - → Detalhes: [[Feature_Loja_e_Pagamentos]]
 
 ### pages
@@ -107,6 +115,21 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 ### mailer
 - Sem handler HTTP — usado por `user` para enviar emails
 - Config via env: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `FRONTEND_URL`
+
+### sponsor
+- Rotas públicas: `GET /sponsors` (retorna `PublicSponsor[]`, sem `clicks`), `POST /sponsors/:cnpj/click` (incrementa counter)
+- Rotas backoffice (`permMW("Patrocinadores", ...)`):
+  - `GET/POST /admin/sponsors`, `GET/PUT/DELETE /admin/sponsors/:cnpj`
+  - `GET /admin/sponsors/:cnpj/packages`, `POST /admin/sponsors/:cnpj/packages`
+  - `DELETE /admin/sponsors/:cnpj/packages/:year/:package`
+- Logo enviada via multipart form-data; servida como estático em `/uploads/`
+- → [[Feature_Patrocinadores]]
+
+### sitestat
+- Modelo: `SiteStat { Key string PK; Value int64 }` — contador genérico key/value
+- Rota pública: `POST /visit` — incrementa `"visits"`; `GET /stats` — retorna todos os pares
+- Sem UI; usado pela Home do site para contar visitantes
+- → [[Feature_SiteStat]]
 
 ### log
 - Sem handler próprio — escrita via `AuditMiddleware` em toda requisição
@@ -129,18 +152,15 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 
 ## Sequência de Startup (main.go)
 
-1. Conecta DB + `AutoMigrate` (inclui `Product`, `Kit`, `Coffee`, `ComboItem`, `Sale`, `SaleItem`, `ConsumedItem`, `Token`, `Sponsor`, `SiteStat`, …)
-2. Migrações manuais pós-AutoMigrate:
-   - dropa a coluna órfã `kits.is_babydoll` (modelo usa `is_babylook`)
-   - recria `sales.status_chk` aceitando `EXPIRADO` (AutoMigrate não altera CHECK existente)
-3. Grandfather de `email_verified = true` para usuários existentes (se coluna era nova)
-4. Instancia providers + repos + services + handlers
-5. `userBackofficeService.InitializeAdmin()`
-6. `permissionService.InitializePermissions()`
-7. `productService.InitializeProducts()`
-8. **Sweeper de expiração** (goroutine, ticker 1 min): `ExpirePendingPixSales()` persiste `EXPIRADO` (via `UPDATE ... RETURNING`) e, para cada venda expirada, `DeleteConsumedBySale` libera as travas de compra única
-9. Registra rotas + CORS + `AuditMiddleware`
-10. `r.Run(":4000")`
+1. Conecta DB + `AutoMigrate` (User, PapfeDocument, Event, Presence, SigninEvent, UserBackoffice, AuditLog, Permission, Product, Kit, Coffee, ComboItem, Token, Payment, Sponsor, SponsorPackage, SiteStat)
+   → módulos registrados: auth, authBackoffice, user, userBackoffice, event, signinEvent, presence, section, permission, product, payment, pages, token, mailer, log, sponsor, sitestat
+2. Grandfather de `email_verified = true` para usuários existentes (se coluna era nova)
+3. Instancia providers + repos + services + handlers
+4. `userBackofficeService.InitializeAdmin()`
+5. `permissionService.InitializePermissions()`
+6. `productService.InitializeProducts()`
+7. Registra rotas + CORS + `AuditMiddleware`
+8. `r.Run(":4000")`
 
 → Rotas site: [[Integracao_API_Site]] | Rotas backoffice: [[Integracao_API_Backoffice]]  
 → Entidades core: [[Backend_Modelos_Core]] | Entidades loja: [[Backend_Modelos_Loja]]

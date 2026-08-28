@@ -26,6 +26,8 @@ const mapBackendEvent = (event: any): EventType => {
     type: event.type,
     description: event.description,
     hasPresence: event.has_attendance,
+    hasSignin: event.has_signin ?? false,
+    maxParticipants: event.max_participants ?? 0,
   };
 };
 
@@ -57,6 +59,8 @@ const mapToBackendEvent = (event: EventType) => {
     location: event.local,
     description: event.description,
     has_attendance: normalizeBoolean(event.hasPresence),
+    has_signin: normalizeBoolean(event.hasSignin),
+    max_participants: Number(event.maxParticipants) || 0,
   };
   console.log("Mapeamento de evento:", { original: event, mapped });
   return mapped;
@@ -68,6 +72,8 @@ const fieldMap: Record<string, string> = {
   dateEnd: "end_date",
   local: "location",
   hasPresence: "has_attendance",
+  hasSignin: "has_signin",
+  maxParticipants: "max_participants",
   type: "type",
   description: "description",
 };
@@ -145,6 +151,8 @@ export const eventsAPI = {
         location: data.local,
         description: data.description,
         has_attendance: normalizeBoolean(data.hasPresence),
+        has_signin: normalizeBoolean(data.hasSignin),
+        max_participants: Number(data.maxParticipants) || 0,
       }
     );
     return mapBackendEvent(response.data.event);
