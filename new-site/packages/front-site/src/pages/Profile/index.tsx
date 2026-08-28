@@ -292,15 +292,8 @@ export default function Profile({
 
       try {
         const response = await client.get<BackendNoticeResponse>(
-          "/admin/notices",
-          {
-            params: {
-              page: 1,
-              limit: 10,
-              sort_by: "date_time",
-              sort_order: "desc",
-            },
-          }
+          "/api/notices",
+          { params: { page: 1, limit: 10, sort_by: "date_time", sort_order: "desc" } }
         );
         if (controller.signal.aborted) return;
         const formattedNotices: NoticeType[] = (
