@@ -286,6 +286,7 @@ func (h *UserHandler) GetPapfeDocument(c *gin.Context) {
 
 	safeName := strings.NewReplacer(`"`, ``, "\r", ``, "\n", ``).Replace(doc.Filename)
 	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, safeName))
+	c.Header("Cache-Control", "no-store")
 	c.File(doc.FilePath)
 }
 

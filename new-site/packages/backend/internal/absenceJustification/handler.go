@@ -221,6 +221,7 @@ func (h *AbsenceJustificationHandler) GetOwnAttachment(c *gin.Context) {
 
 	safeName := strings.NewReplacer(`"`, ``, "\r", ``, "\n", ``).Replace(justification.AttachmentFilename)
 	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, safeName))
+	c.Header("Cache-Control", "no-store")
 	c.File(justification.AttachmentFilePath)
 }
 
@@ -270,6 +271,7 @@ func (h *AbsenceJustificationHandler) GetAttachment(c *gin.Context) {
 
 	safeName := strings.NewReplacer(`"`, ``, "\r", ``, "\n", ``).Replace(justification.AttachmentFilename)
 	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, safeName))
+	c.Header("Cache-Control", "no-store")
 	c.File(justification.AttachmentFilePath)
 }
 
