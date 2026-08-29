@@ -235,48 +235,182 @@ const EventButton = memo(function EventButton({
   captionClasses: string;
   viewMode: "day" | "week";
 }): ReactElement {
+
+  // A cor e o ícone dependem do tipo do evento
   const eventStyle = getEventTypeStyle(evento.type);
 
   return (
     <button
       type="button"
-      className={`flex gap-5 group w-full min-w-0 overflow-hidden rounded-xl border px-4 py-4 ${viewMode === "day" ? "text-left" : "text-center justify-center items-center"} transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md h-full ${eventStyle.classes}`}
+      className={`
+        flex group w-full h-full overflow-hidden rounded-xl border
+        transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md
+
+        /* Ajustes de Responsividade */
+        max-[1500px]:flex-col min-[1500px]:items-start max-[1500px]:gap-2 min-[1500px]:gap-5 max-lg:px-2 max-lg:py-2 min-lg:px-4 min-lg:py-4
+
+        ${viewMode === "day" ? "text-left" : "text-center justify-center items-center"} 
+        ${eventStyle.classes}`
+      }
       onClick={() => onClick(evento)}
     >
+      {/* 
+        Ícone do evento: aparece apenas na visualização por dia
+          -> Na visualização semanal ele é escondido para economizar espaço, já que os cards são bem mais estreitos
+      */}
       {viewMode === "day" && (
-      <div className={`border flex items-center justify-center ${eventStyle.classes} rounded-xl w-15 h-15`}>
-        <EventTypeIcon type={evento.type} />
-      </div>
+        <div 
+          className={`
+            border flex items-center rounded-xl min-w-15 max-h-17 px-[1vw] py-[2vh]
+            
+            /* Ajustes de Responsividade */
+            max-[1500px]:w-full md:gap-1 max-md:gap-2 max-md:pl-2 md:justify-center
+
+            ${eventStyle.classes}`
+          }
+        >
+          <EventTypeIcon type={evento.type} />
+
+          {/* 
+            Versão compacta do cabeçalho do evento, existe apenas abaixo de 1500px.
+
+            Não é duplicado!
+            - abaixo de 1500px, nome + tipo ficam junto do ícone;
+            - acima de 1500px, eles ficam no bloco principal do card. 
+          */}
+          <div className="min-[1500px]:hidden">
+            <p 
+              className={`
+                font-poppins text-base md:text-xs
+                ${viewMode === "day" ? "" : "opacity-30"}
+              `}
+            >
+                {evento.type}
+              </p>
+            <p 
+              className={`
+                font-poppins-bold break-words text-base md:text-sm
+                ${viewMode === "day" ? "text-left" : "text-center"}
+              `}
+            >
+              {evento.name}
+            </p>
+          </div>
+        </div>
       )}
 
       <div>
+        {/* 
+          Tipo do evento para telas grandes, escondido abaixo de 1500px
+        */}
         {viewMode === "day" && (
-          <p className={`font-poppins text-base md:text-sm ${viewMode === "day" ? "" : "opacity-30"}`}>
+          <p 
+            className={`
+              font-poppins text-base md:text-sm
+              ${viewMode === "day" ? "max-[1500px]:hidden" : "opacity-30"}
+            `}>
             {evento.type}
           </p>
         )}
 
-        <p className={`font-poppins-bold text-base md:text-lg ${viewMode === "day" ? "text-left" : "text-center"}`}>
+        {/* 
+          Nome principal do evento.
+          Na visualização por dia:
+          - aparece aqui apenas em telas >= 1500px;
+          - em telas menores já foi exibido ao lado do ícone.
+
+          Na visualização semanal:
+          - sempre aparece centralizado. 
+        */}
+        <p 
+          className={`
+            font-poppins-bold break-words text-base md:text-lg
+            ${viewMode === "day" ? "text-left max-[1500px]:hidden" : "text-center"}
+          `}>
           {evento.name}
         </p>
         
-        <div className={`flex items-center ${viewMode === "day" ? "gap-10" : "justify-center text-center"}`}>
-          <p className={`mt-1 flex items-center gap-1.5 text-sm ${captionClasses}`}>
+        {/* 
+          Área de informações principais do evento.
+
+          Em telas >= 1500px:
+          - horário e localização podem ficar lado a lado.
+
+          Em telas < 1500px:
+          - usa grid para acomodar melhor os dados.
+
+          O comportamento também muda entre "day" e "week"
+          porque a visão semanal tem menos largura disponível. 
+        */}
+        <div 
+          className={`
+            items-center w-full
+            min-[1500px]:flex max-[1500px]:grid max-[1500px]:mt-2
+            ${viewMode === "day" ? "gap-2" : "justify-center text-center"}
+          `}>
+
+          {/* 
+            Descrição: aparece diretamente no card apenas em telas mobile.
+            -> Em telas maiores, a descrição é mostrada na área de hover mais abaixo.
+          */}
+          <p 
+            className={`
+              text-sm leading-relaxed wrap-break-word 
+              min-md:hidden 
+              ${viewMode === "day" ? "" : "text-center"}
+              ${captionClasses}
+            `}>
+            {evento.description || "Mais detalhes deste evento."}
+          </p>
+
+          {/* 
+            Horário: sempre fica visível em qualquer modo de visualização
+          */}
+          <p 
+            className={`
+              flex items-center gap-1.5 text-sm min-w-27 
+              ${viewMode === "day" ? "" : "justify-center"}
+              ${captionClasses}
+            `}
+          >
             <Clock className="h-4 w-4" aria-hidden="true" />
             {formatTime(evento.dateInit)} - {formatTime(evento.dateEnd)}
           </p>
 
-          {viewMode === "day" && (
-            <p className={`mt-1 flex items-center gap-1.5 text-sm ${captionClasses}`}>
-              <MapPin className="h-4 w-4" aria-hidden="true" />
-              Local: {evento.location}
-            </p>
-          )}
+          {/* 
+            Localização:
+            - no modo "day", fica visível normalmente;
+            - no modo "week", fica visível direto apenas no mobile.
+
+            Em telas maiores da visualização semanal, o local é movido para a área de hover abaixo
+          */}
+          <p 
+            className={`
+              flex items-center gap-1.5 text-sm 
+              ${viewMode === "day" ? "" : "min-md:hidden mx-auto"}
+              ${captionClasses}
+            `}
+          >
+            <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className={`break-words min-w-10 text-left`}>Local: {evento.location}</span>
+          </p>
         </div>
 
-        <div className="grid max-h-none grid-rows-[0fr] overflow-hidden opacity-0 transition-all duration-300 group-hover:mt-3 group-hover:grid-rows-[1fr] group-hover:opacity-100">
+        {/* 
+          Área expansível mostrada no hover
+        */}
+        <div 
+          className="
+            grid max-h-none grid-rows-[0fr] overflow-hidden 
+            opacity-0 transition-all duration-300 group-hover:mt-3 group-hover:grid-rows-[1fr] group-hover:opacity-100"
+        >
           <div className="overflow-hidden">
-            <div className={`flex flex-col gap-3 ${viewMode === "day" ? "text-left" : "text-center justify-center"}`}>
+            <div 
+              className={`
+                flex flex-col gap-3 
+                ${viewMode === "day" ? "text-left" : "text-center justify-center"}
+              `}>
+
               {evento.image && (
                 <div className="w-full flex justify-left">
                   <img
@@ -287,15 +421,35 @@ const EventButton = memo(function EventButton({
                   />
                 </div>
               )}
+
+              {/* 
+                Na visualização semanal e em telas maiores,
+                a localização fica escondida no estado normal do card
+                e aparece apenas no hover.
+              */}
               {viewMode === "week" && (
-                <div className="justify-center flex">
-                  <p className={`flex items-center text-center gap-1.5 text-sm ${captionClasses}`}>
-                    <MapPin className="h-4 w-4" aria-hidden="true" />
-                    Local: {evento.location}
-                  </p>
-                </div>
+                <p 
+                  className={`
+                    flex items-center gap-1 text-sm mx-auto justify-center 
+                    max-md:hidden 
+                    ${captionClasses}
+                  `}
+                >
+                  <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span className={`mx-auto break-all min-w-5 text-left`}>Local: {evento.location}</span>
+                </p>
               )}
-              <p className={`text-sm leading-relaxed wrap-break-word ${captionClasses}`}>
+
+              {/* 
+                Descrição completa: em desktop aparece apenas no hover
+              */}
+              <p 
+                className={`
+                  text-sm leading-relaxed wrap-break-word 
+                  max-md:hidden
+                  ${captionClasses}
+                `}
+              >
                 {evento.description || "Mais detalhes deste evento."}
               </p>
             </div>
@@ -539,7 +693,7 @@ export default function CronogramaPage(): ReactElement {
   });
 
   const captionClasses = "text-semcompMidDarkBlue/85 dark:text-semcompLightBlue/90";
-  const gradientColor = isDarkMode ? "#0B2639" : "#FAFDFF";
+  const gradientColor = isDarkMode ? "#0B2639" : "#357BA3";
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -627,7 +781,7 @@ export default function CronogramaPage(): ReactElement {
     <section className="relative min-h-[calc(100vh-70px)] w-full overflow-x-hidden font-poppins isolate text-semcompDarkBlue dark:text-semcompOffWhite">
 
       <div
-        className="fixed inset-0 z-0 bg-cover bg-center bg-semcompMidLightBlue dark:bg-semcompDarkBlue"
+        className="fixed inset-0 z-0 bg-cover bg-center bg-semcompLightBlue dark:bg-semcompDarkBlue"
       />
 
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
@@ -639,10 +793,10 @@ export default function CronogramaPage(): ReactElement {
         <header>
           <div className="flex w-full flex-col gap-4 md:flex-row md:justify-between">
             <div>
-              <h1 className="animate-slide font-poppins-bold text-3xl text-white animation-duration-[900ms] [animation-timing-function:cubic-bezier(0.22,1,0.36,1)] md:text-4xl">
+              <h1 className="animate-slide font-poppins-bold text-3xl text-semcompMidLightBlue dark:text-white animation-duration-[900ms] [animation-timing-function:cubic-bezier(0.22,1,0.36,1)] md:text-4xl">
                 Cronograma
               </h1>
-              <p className="animate-slide [animation-delay:120ms] animation-duration-[900ms] fill-mode-[both] mt-2 text-sm text-white md:text-base">
+              <p className="animate-slide [animation-delay:120ms] animation-duration-[900ms] fill-mode-[both] mt-2 text-sm text-semcompDarkBlue dark:text-white md:text-base">
                 Programação completa da SEMCOMP.
               </p>
             </div>
@@ -651,7 +805,7 @@ export default function CronogramaPage(): ReactElement {
               <button
                 type="button"
                 onClick={handleDownloadSchedule}
-                className="inline-flex gap-2 items-center cursor-pointer text-xs md:text-sm text-white/80 rounded-xl border border-semcompLightBlue bg-white/70 dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 px-5 py-3"
+                className="inline-flex gap-2 items-center cursor-pointer text-xs md:text-sm dark:text-white/80 rounded-xl border bg-white/70 border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 dark:hover:bg-semcompMidLightBlue hover:bg-semcompMidLightBlue/30 transition-all px-5 py-3"
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -669,13 +823,14 @@ export default function CronogramaPage(): ReactElement {
                 </svg>
                 Baixar cronograma
               </button>
-              <div className="inline-flex rounded-xl border border-semcompLightBlue bg-white/70 p-1 dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75">
+
+              <div className="inline-flex rounded-xl border border-semcompLightBlue bg-white/70 p-1 border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75">
                 <button
                   type="button"
                   onClick={() => setViewMode("day")}
                   className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
                     viewMode === "day"
-                      ? "bg-semcompMidDarkBlue text-white"
+                      ? "dark:bg-semcompMidDarkBlue bg-semcompMidLightBlue text-white"
                       : "text-semcompDarkBlue dark:text-semcompOffWhite"
                   }`}
                 >
@@ -687,7 +842,7 @@ export default function CronogramaPage(): ReactElement {
                   onClick={() => setViewMode("week")}
                   className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
                     viewMode === "week"
-                      ? "bg-semcompMidDarkBlue text-white"
+                      ? "dark:bg-semcompMidDarkBlue bg-semcompMidLightBlue text-white"
                       : "text-semcompDarkBlue dark:text-semcompOffWhite"
                   }`}
                 >
@@ -712,7 +867,7 @@ export default function CronogramaPage(): ReactElement {
         {viewMode === "day" && (
           <nav
             aria-label="Dias do cronograma"
-            className="mb-3 flex items-center justify-center gap-2 sm:gap-4 bg-semcompDarkBlue border border-t-0 rounded-b-[4px] py-3 px-5"
+            className="mb-3 flex items-center justify-center gap-2 sm:gap-4 dark:bg-semcompDarkBlue bg-semcompMidLightBlue border border-t-0 rounded-b-[4px] py-3 px-5"
           >
             <button
               type="button"
@@ -795,16 +950,16 @@ export default function CronogramaPage(): ReactElement {
           <div className="space-y-3 h-[calc(100vh-500px)] p-5 rounded-lg" 
             style={{
                   backgroundImage: `
-                    linear-gradient(to top, ${gradientColor}00 10%, rgba(0, 0, 0, 0.1) 100%)
+                    linear-gradient(to top, ${gradientColor} 100%, #ffffff 100%)
                   `,
                 }}
           >
             {loading ? (
-              <div className="flex items-center justify-center py-12">
+              <div className="flex items-center justify-center text-center py-12">
                 <p className="text-white/70">Carregando eventos...</p>
               </div>
             ) : filteredEvents.length === 0 ? (
-              <div className="flex items-center justify-center py-12">
+              <div className="flex items-center justify-center text-center py-12">
                 <p className="text-white/70">Nenhum evento neste dia.</p>
               </div>
             ) : (
@@ -828,14 +983,14 @@ export default function CronogramaPage(): ReactElement {
               className="flex w-full gap-5 overflow-x-auto custom-scrollbar p-5 rounded-b-md border border-t-0"
               style={{
                   backgroundImage: `
-                    linear-gradient(to top, ${gradientColor} 5%, ${gradientColor}00 100%)
+                    linear-gradient(to top, ${gradientColor} 100%, ${gradientColor}00 100%)
                   `,
                 }}
             >
               {processedWeek.map(({ option, groups }, index) => (
                 <div 
                   key={option.day} 
-                  className={`w-100 shrink-0 ${
+                  className={`min-md:w-100 max-md:w-80 shrink-0 ${
                     index !== processedWeek.length - 1
                       ? "border-r border-semcompMidDarkBlue/20 pr-5"
                       : ""
@@ -845,7 +1000,7 @@ export default function CronogramaPage(): ReactElement {
                   </h2>
 
                   {groups.length === 0 ? (
-                    <p className="text-white/60">
+                    <p className="text-white/60 text-center">
                       Nenhum evento neste dia.
                     </p>
                   ) : (
@@ -865,7 +1020,7 @@ export default function CronogramaPage(): ReactElement {
       </div>
 
         {/* ÁREA APENAS PARA EXPORTAÇÃO DO CRONOGRAMA */}
-        <div className="absolute -left-[9999px] top-0">
+      <div className="absolute -left-[9999px] top-0">
         <div
           ref={downloadRef}
           className="w-[2200px] bg-semcompMidLightBlue p-8 text-semcompDarkBlue"
