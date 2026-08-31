@@ -244,7 +244,7 @@ const EventButton = memo(function EventButton({
       type="button"
       className={`
         flex group w-full h-full overflow-hidden rounded-xl border
-        transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md
+        transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md cursor-pointer
 
         /* Ajustes de Responsividade */
         max-[1500px]:flex-col min-[1500px]:items-start max-[1500px]:gap-2 min-[1500px]:gap-5 max-lg:px-2 max-lg:py-2 min-lg:px-4 min-lg:py-4
@@ -481,14 +481,36 @@ function EventModal({
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="font-poppins-bold text-xl">{selected.name}</h2>
-        {formatTime(selected.dateInit) && (
-          <p className={`mt-1 text-sm ${captionClasses}`}>{formatTime(selected.dateInit)}</p>
-        )}
-        <p className="mt-3 text-center text-sm leading-relaxed md:text-base">
-          {selected.description || "Sem descrição."}
-        </p>
+        <div className="text-sm mt-1">
+          <p className={`flex gap-1 items-center ${captionClasses}`}>
+            <Flag className="h-4 w-4" aria-hidden="true" />
+            Tipo de Evento: {selected.type}
+          </p>
+
+          <p className={`flex gap-1 items-center ${captionClasses}`}>
+            <Clock className="h-4 w-4" aria-hidden="true" />
+            {formatTime(selected.dateInit)} - {formatTime(selected.dateEnd)}
+          </p>
+
+          <p 
+            className={`
+              flex items-center gap-1  
+              ${captionClasses}
+            `}
+          >
+            <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className={`break-words min-w-10 text-left`}>Local: {selected.location}</span>
+          </p>
+          
+          <hr className="mt-3" />
+
+          <p className="mt-3 text-center leading-relaxed md:text-base">
+            {selected.description || "Sem descrição."}
+          </p>
+        </div>
+
         <button
-          className="mt-6 inline-flex rounded-lg px-4 py-2 text-sm font-semibold transition-colors bg-semcompMidDarkBlue text-semcompOffWhite hover:bg-semcompAlmostDarkBlue dark:hover:bg-semcompMidLightBlue"
+          className="mt-6 cursor-pointer inline-flex rounded-lg px-4 py-2 text-sm font-semibold transition-colors bg-semcompMidDarkBlue text-semcompOffWhite hover:bg-semcompAlmostDarkBlue dark:hover:bg-semcompMidLightBlue"
           onClick={onClose}
         >
           Fechar
