@@ -229,11 +229,13 @@ const EventButton = memo(function EventButton({
   onClick,
   captionClasses,
   viewMode,
+  exportMode = false,
 }: {
   evento: EventWithColumn;
   onClick: (evento: EventWithColumn) => void;
   captionClasses: string;
   viewMode: "day" | "week";
+  exportMode?: boolean;
 }): ReactElement {
 
   // A cor e o ícone dependem do tipo do evento
@@ -290,6 +292,7 @@ const EventButton = memo(function EventButton({
             <p 
               className={`
                 font-poppins-bold break-words text-base md:text-sm
+                ${exportMode ? "text-sm" : "text-base md:text-lg"}
                 ${viewMode === "day" ? "text-left" : "text-center"}
               `}
             >
@@ -345,7 +348,9 @@ const EventButton = memo(function EventButton({
         <div 
           className={`
             items-center w-full
-            min-[1500px]:flex max-[1500px]:grid max-[1500px]:mt-2
+            max-[1500px]:mt-2
+            
+            ${exportMode === true ? "grid" : "min-[1500px]:flex max-[1500px]:grid"}
             ${viewMode === "day" ? "gap-2" : "justify-center text-center"}
           `}>
 
@@ -373,13 +378,13 @@ const EventButton = memo(function EventButton({
               ${captionClasses}
             `}
           >
-            <Clock className="h-4 w-4" aria-hidden="true" />
+            <Clock className={`h-4 w-4 ${exportMode === true ? "hidden" : ""}`} aria-hidden="true" />
             {formatTime(evento.dateInit)} - {formatTime(evento.dateEnd)}
           </p>
 
           {/* 
             Localização:
-            - no modo "day", fica visível normalmente;
+            - no modo "day" ou quando o cronograma é exportado, fica visível normalmente;
             - no modo "week", fica visível direto apenas no mobile.
 
             Em telas maiores da visualização semanal, o local é movido para a área de hover abaixo
@@ -387,12 +392,12 @@ const EventButton = memo(function EventButton({
           <p 
             className={`
               flex items-center gap-1.5 text-sm 
-              ${viewMode === "day" ? "" : "min-md:hidden mx-auto"}
+              ${viewMode === "day" || exportMode === true ? "" : "min-md:hidden mx-auto"}
               ${captionClasses}
             `}
           >
-            <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className={`break-words min-w-10 text-left`}>Local: {evento.location}</span>
+            <MapPin className={`h-4 w-4 shrink-0  ${exportMode === true ? "hidden" : ""}`} aria-hidden="true" />
+            <span className={`break-words min-w-10 text-center`}>Local: {evento.location}</span>
           </p>
         </div>
 
@@ -587,12 +592,14 @@ function EventGroups({
   captionClasses,
   maxColumns = 3,
   viewMode,
+  exportMode = false,
 }: {
   groups: EventWithColumn[][];
   onSelect: (evento: EventWithColumn) => void;
   captionClasses: string;
   maxColumns?: 2 | 3;
   viewMode: "day" | "week";
+  exportMode?: boolean;
 }) {
   return (
     <div className="space-y-3">
@@ -640,6 +647,7 @@ function EventGroups({
                     onClick={onSelect}
                     captionClasses={captionClasses}
                     viewMode={viewMode}
+                    exportMode={exportMode}
                   />
                 </div>
               ))
@@ -663,6 +671,7 @@ function EventGroups({
                           onClick={onSelect}
                           captionClasses={captionClasses}
                           viewMode={viewMode}
+                          exportMode={exportMode}
                         />
                       </div>
                     ))}
@@ -969,10 +978,10 @@ export default function CronogramaPage(): ReactElement {
           captionClasses={captionClasses}
         />
         {viewMode === "day" && (
-          <div className="space-y-3 h-[calc(100vh-500px)] p-5 rounded-lg" 
+          <div className="space-y-3 xg:h-[calc(100vh-500px)] p-5 rounded-lg" 
             style={{
                   backgroundImage: `
-                    linear-gradient(to top, ${gradientColor} 100%, #ffffff 100%)
+                    linear-gradient(to top, ${gradientColor} 100%, #ffffff 50%)
                   `,
                 }}
           >
@@ -1045,7 +1054,7 @@ export default function CronogramaPage(): ReactElement {
       <div className="absolute -left-[9999px] top-0">
         <div
           ref={downloadRef}
-          className="w-[2200px] bg-semcompMidLightBlue p-8 text-semcompDarkBlue"
+          className="w-[2200px] bg-semcompLightBlue dark:bg-semcompAlmostDarkBlue p-8 text-semcompDarkBlue dark:text-semcompLightBlue"
         >
           <h1 className="mb-8 text-center font-poppins-bold text-4xl">
             Cronograma SEMCOMP
@@ -1066,10 +1075,8 @@ export default function CronogramaPage(): ReactElement {
                     : "px-4"
                 }
               >
-                <h2 className="mb-4 text-center font-poppins-bold text-lg">
-                  {option.weekdayLong}
-                  <br />
-                  {option.label}
+                <h2 className="mb-4 text-center font-poppins-bold text-md">
+                  {option.weekdayLong} {option.label}
                 </h2>
 
                 {groups.length === 0 ? (
@@ -1082,7 +1089,8 @@ export default function CronogramaPage(): ReactElement {
                     onSelect={() => {}}
                     captionClasses={captionClasses}
                     maxColumns={2}
-                    viewMode={viewMode}
+                    viewMode={"week"}
+                    exportMode
                   />
                 )}
               </div>
