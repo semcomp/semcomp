@@ -358,6 +358,8 @@ func main() {
 	admin.DELETE("/usersBackoffice/:email", permMW("Usuários Backoffice", permission.PermRW), userBackofficeHandler.DeleteUser)
 
 	// Produtos
+	admin.GET("/coffees", permMW("Produtos", permission.PermR), productHandler.GetCoffees)
+	admin.GET("/coffees/verify/:userNumber/:dateTime", permMW("Produtos", permission.PermR), salesHandler.VerifyCoffeeAccess)
 	admin.GET("/products", permMW("Produtos", permission.PermR), productHandler.GetProducts)
 	admin.GET("/products/:id", permMW("Produtos", permission.PermR), productHandler.GetProductByID)
 	admin.POST("/products", permMW("Produtos", permission.PermRW), productHandler.CreateProduct)

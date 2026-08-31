@@ -50,6 +50,7 @@ type SaleService interface {
 	// indisponíveis para o usuário — já consumidos ou travados por um pedido
 	// ativo (incluindo o fechamento via combos).
 	GetConsumed(userNumber uint) ([]uint, error)
+	VerifyCoffeeAccess(userNumber uint, coffeeDateTime string) (bool, error)
 }
 
 type saleService struct {
@@ -712,4 +713,14 @@ func (s *saleService) syncConsumptionForSale(saleID uint) error {
 // o usuário (o mesmo usado pelo CreateSale para rejeitar compras duplicadas).
 func (s *saleService) GetConsumed(userNumber uint) ([]uint, error) {
 	return s.getUnavailableProductIDs(userNumber)
+}
+
+func (s *saleService) VerifyCoffeeAccess(userNumber uint, coffeeDateTime string) (bool, error) {
+	if coffeeDateTime == "" {
+		return false, apierrors.ValidationError("date_time é obrigatório (RFC3339)", nil)
+	}
+	if _, err := time.Parse(time.RFC3339, coffeeDateTime); err != nil {
+		return false, apierrors.ValidationError("date_time inválido, use RFC3339", err)
+	}
+	return s.saleRepo.HasPaidCoffee(userNumber, coffeeDateTime)
 }
