@@ -104,7 +104,17 @@ type SalesOverviewStats struct {
 	SalesByStatus    []LabelCount       `json:"salesByStatus"`    // contagem de vendas por status
 	SalesByMethod    []LabelCount       `json:"salesByMethod"`    // contagem por método de pagamento
 	RevenueTimeline  []TimeSeriesPoint  `json:"revenueTimeline"`  // evolução da receita ao longo do tempo
+	TopProducts      []ProductRank      `json:"topProducts"`      // ranking por produto (mais vendidos / maior faturamento)
 	LastUpdate       time.Time          `json:"lastUpdate"`
+}
+
+// ProductRank agrega vendas de um produto específico (apenas pedidos PAGO).
+type ProductRank struct {
+	ProductID uint    `json:"productId"`
+	Name      string  `json:"name"`
+	Type      string  `json:"type"`
+	Sold      int64   `json:"sold"`    // quantidade vendida
+	Revenue   float64 `json:"revenue"` // faturamento (soma de unit_price * quantity)
 }
 
 // Vendas de combos - visão geral de vendas de combos -------------------------------

@@ -353,6 +353,34 @@ func (r *DashboardRepository) GetSalesOverview() (*SalesOverviewStats, error) {
 	return stats, nil
 }
 
+// Ranking por produto (apenas vendas PAGO) ----------------------------------
+
+// GetTopProducts retorna o ranking de produtos por quantidade vendida e
+// faturamento. O nome exibido prioriza o nome do produto; quando vazio, usa o
+// nome do kit/coffee relacionado; em último caso, o próprio tipo.
+func (r *DashboardRepository) GetTopProducts() ([]ProductRank, error) {
+	var products []ProductRank
+	if err := r.db.Raw(`
+		SELECT
+			p.id AS product_id,
+			COALESCE(NULLIF(p.name, ''), k.name, c.name, p.type) AS name,
+			p.type AS type,
+			SUM(si.quantity)                  AS sold,
+			SUM(si.unit_price * si.quantity)  AS revenue
+		FROM sale_items si
+		JOIN sales s ON s.id = si.sale_id
+		JOIN products p ON p.id = si.product_id
+		LEFT JOIN kits k ON k.id = p.id
+		LEFT JOIN coffees c ON c.id = p.id
+		WHERE s.status = 'PAGO'
+		GROUP BY p.id, p.name, p.type, k.name, c.name
+		ORDER BY sold DESC
+	`).Scan(&products).Error; err != nil {
+		return nil, err
+	}
+	return products, nil
+}
+
 // Combos -------------------------------------------------------------------
 
 func (r *DashboardRepository) GetComboSalesStats() (*ComboSalesStats, error) {

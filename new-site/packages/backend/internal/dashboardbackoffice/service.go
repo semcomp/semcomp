@@ -79,6 +79,13 @@ func (s *DashboardService) GetDashboard(query DashboardQuery) (*DashboardRespons
 		if err != nil {
 			return nil, apierrors.InternalServerError("Erro ao calcular panorama de vendas", err)
 		}
+
+		topProducts, err := s.repo.GetTopProducts()
+		if err != nil {
+			return nil, apierrors.InternalServerError("Erro ao calcular ranking de produtos", err)
+		}
+		sales.TopProducts = topProducts
+
 		resp.Sales = sales
 	}
 
