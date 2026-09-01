@@ -8,6 +8,7 @@ import (
 
 	"backend/internal/apierrors"
 	"backend/internal/product"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -109,6 +110,10 @@ func (r *saleRepository) GetByUserNumber(userNumber uint) ([]Sale, error) {
 		Preload("Items.Product.Coffee").
 		Preload("Items.Product.ComboItems").
 		Preload("Items.Product.ComboItems.Item").
+		Preload("Items.Product.ComboItems.Item.Kit").
+		Preload("Items.Product.ComboItems.Item.Coffee").
+		Preload("Items.KitProduct").
+		Preload("Items.KitProduct.Kit").
 		Order("created_at desc").
 		Find(&sales).Error
 

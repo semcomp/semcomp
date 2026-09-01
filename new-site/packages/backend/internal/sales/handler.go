@@ -423,3 +423,40 @@ func (h *SaleHandler) UpdateItemPickup(c *gin.Context) {
 	c.Set("responseMessage", "Status de retirada do item atualizado com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Status atualizado com sucesso!", "item": item})
 }
+
+// CancelSale permite que o usuário cancele um pedido próprio ainda pendente
+// de pagamento (ex: desistiu de pagar o PIX). Libera a trava de compra única
+// do item (coffee/combo) para que ele possa ser comprado de novo.
+// @Summary Cancela um pedido do usuário
+// @Description Cancela um pedido do usuário autenticado, desde que o status seja PENDENTE.
+// @Tags Vendas
+// @Produce json
+// @Param id path int true "ID da venda"
+// @Success 200 {object} map[string]interface{} "Pedido cancelado com sucesso"
+// @Failure 400 {object} map[string]string "Pedido não pode ser cancelado"
+// @Failure 401 {object} map[string]string "Não autorizado"
+// @Failure 404 {object} map[string]string "Não encontrado"
+// @Security BearerAuth
+// @Router /sales/{id}/cancel [patch]
+func (h *SaleHandler) CancelSale(c *gin.Context) {
+	userNumber := c.GetUint("userNumber")
+	if userNumber == 0 {
+		apierrors.HandleAPIError(c, apierrors.UnauthorizedError("Usuário não autenticado", nil))
+		return
+	}
+
+	saleID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("ID de venda inválido", err))
+		return
+	}
+
+	sale, err := h.saleService.CancelSale(userNumber, uint(saleID))
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Set("responseMessage", "Pedido cancelado com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "Pedido cancelado com sucesso!", "sale": sale})
+}
