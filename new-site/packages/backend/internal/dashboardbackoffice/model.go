@@ -40,8 +40,8 @@ type EventsSummary struct {
 	TotalSignins      int64        `json:"totalSignins"`
 	TotalPresences    int64        `json:"totalPresences"`
 	OverallAttendance float64      `json:"overallAttendance"`
-	EventsByType      []LabelCount `json:"eventsByType"`
-	Events            []EventStats `json:"events"`
+	EventsByType      []LabelCount `gorm:"-" json:"eventsByType"`
+	Events            []EventStats `gorm:"-" json:"events"`
 	LastUpdate        time.Time    `json:"lastUpdate"`
 }
 
@@ -54,10 +54,10 @@ type KitSalesStats struct {
 	TotalPending   int64            `json:"totalPending"`
 	TotalPickedUp  int64            `json:"totalPickedUp"`
 	TotalRevenue   float64          `json:"totalRevenue"`   // receita total
-	ByColor        []LabelCount     `json:"byColor"`
-	BySize         []LabelCount     `json:"bySize"`
-	ByCut          []LabelCount     `json:"byCut"`          // babylook ou tradicional
-	ByColorAndSize []KitVariantStat `json:"byColorAndSize"`
+	ByColor        []LabelCount     `gorm:"-" json:"byColor"`
+	BySize         []LabelCount     `gorm:"-" json:"bySize"`
+	ByCut          []LabelCount     `gorm:"-" json:"byCut"`          // babylook ou tradicional
+	ByColorAndSize []KitVariantStat `gorm:"-" json:"byColorAndSize"`
 	LastUpdate     time.Time        `json:"lastUpdate"`
 }
 
@@ -77,7 +77,7 @@ type CoffeeSalesStats struct {
 	TotalSold    int64        `json:"totalSold"`
 	TotalPending int64        `json:"totalPending"`
 	TotalRevenue float64      `json:"totalRevenue"` 
-	ByCoffee     []CoffeeStat `json:"byCoffee"`     // detalha por tipo de coffe
+	ByCoffee     []CoffeeStat `gorm:"-" json:"byCoffee"`     // detalha por tipo de coffe
 	LastUpdate   time.Time    `json:"lastUpdate"`
 }
 
@@ -100,11 +100,11 @@ type SalesOverviewStats struct {
 	TotalCanceled    int64              `json:"totalCanceled"`    // pedidos cancelados/rejeitados/reembolsados
 	TotalExpired     int64              `json:"totalExpired"`     // pedidos expirados
 	TotalRevenue     float64            `json:"totalRevenue"`     // receita total (soma de PAGO)
-	RevenueByProduct []LabelValue       `json:"revenueByProduct"` // receita por tipo de produto (KIT, COFFEE, COMBO)
-	SalesByStatus    []LabelCount       `json:"salesByStatus"`    // contagem de vendas por status
-	SalesByMethod    []LabelCount       `json:"salesByMethod"`    // contagem por método de pagamento
-	RevenueTimeline  []TimeSeriesPoint  `json:"revenueTimeline"`  // evolução da receita ao longo do tempo
-	TopProducts      []ProductRank      `json:"topProducts"`      // ranking por produto (mais vendidos / maior faturamento)
+	RevenueByProduct []LabelValue       `gorm:"-" json:"revenueByProduct"` // receita por tipo de produto (KIT, COFFEE, COMBO)
+	SalesByStatus    []LabelCount       `gorm:"-" json:"salesByStatus"`    // contagem de vendas por status
+	SalesByMethod    []LabelCount       `gorm:"-" json:"salesByMethod"`    // contagem por método de pagamento
+	RevenueTimeline  []TimeSeriesPoint  `gorm:"-" json:"revenueTimeline"`  // evolução da receita ao longo do tempo
+	TopProducts      []ProductRank      `gorm:"-" json:"topProducts"`      // ranking por produto (mais vendidos / maior faturamento)
 	LastUpdate       time.Time          `json:"lastUpdate"`
 }
 
@@ -124,7 +124,7 @@ type ComboSalesStats struct {
 	TotalSold    int64       `json:"totalSold"`
 	TotalPending int64       `json:"totalPending"`
 	TotalRevenue float64     `json:"totalRevenue"`
-	ByCombo      []ComboStat `json:"byCombo"`
+	ByCombo      []ComboStat `gorm:"-" json:"byCombo"`
 	LastUpdate   time.Time   `json:"lastUpdate"`
 }
 
