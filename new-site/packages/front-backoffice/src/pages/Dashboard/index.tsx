@@ -1,16 +1,14 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BannerCard } from "@/components/BannerCard";
 import { Tabs } from "@/constants/Tabs";
-import { Users, Shirt, Coffee, Presentation, ShoppingBag } from "lucide-react";
+import { Shirt, Coffee, Presentation, ShoppingBag } from "lucide-react";
+import { dashboardAPI } from "@/api/dashboard";
+import type { DashboardResponse } from "@/api/dashboard";
+import OverviewCard from "./components/OverviewCard";
 
-const Sections = [
-  {
-    key: "overview",
-    title: "Overview de participantes",
-    description: "Nº de inscritos, justificados de ausência e alunos com PAPFE.",
-    icon: <Users className="w-5 h-5" />,
-  },
+const PlaceholderSections = [
   {
     key: "kits",
     title: "Vendas de kits",
@@ -40,6 +38,33 @@ const Sections = [
 export default function DashboardPage() {
   const navigate = useNavigate();
 
+  const [data, setData] = useState<DashboardResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchDashboard = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await dashboardAPI.get();
+        if (!cancelled) setData(response);
+      } catch {
+        if (!cancelled) setError("Erro ao carregar os dados do dashboard");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-8">
       <BannerCard
@@ -55,8 +80,14 @@ export default function DashboardPage() {
         descriptionClassName="text-slate-400 mt-1"
       />
 
+      {error && (
+        <div className="rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">{error}</div>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {Sections.map((section) => (
+        <OverviewCard data={data?.users} loading={loading && !data} />
+
+        {PlaceholderSections.map((section) => (
           <Card
             key={section.key}
             className="border-border bg-card/80 rounded-2xl transition-colors hover:border-primary/40"
