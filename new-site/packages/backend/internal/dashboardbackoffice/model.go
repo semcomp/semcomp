@@ -13,8 +13,8 @@ type UsersStats struct {
 	JustifiedAbsences int64     `json:"justifiedAbsence"`   // total com falta justificada (aprovada)
 	PendingAbsences   int64     `json:"pendingAbsence"`     // total com justificativa pendente
 	NotJustified      int64     `json:"notJustified"`       // total com justificativa negada
-	MeanRate          float64   `json:"meanRate"`            // média de presença (excluindo justificados)
-	TotalWithPapfe    int64     `json:"totalWithPapfe"`      // total de usuários com PAPFE
+	MeanRate          float64   `json:"meanRate"`           // média de presença (excluindo justificados)
+	TotalWithPapfe    int64     `json:"totalWithPapfe"`     // total de usuários com PAPFE
 	LastUpdate        time.Time `json:"lastUpdate"`
 }
 
@@ -26,7 +26,7 @@ type EventStats struct {
 	EventName  string    `json:"eventName"`
 	EventType  string    `json:"eventType"`
 	EventDate  time.Time `json:"eventDate"`
-	Total      int64     `json:"total"`      // total de inscritos
+	Total      int64     `json:"total"`       // total de inscritos
 	Present    int64     `json:"present"`     // presenças registradas
 	Absent     int64     `json:"absent"`      // inscritos que não compareceram
 	MeanRate   float64   `json:"meanRate"`    // taxa de presença (present/total)
@@ -61,7 +61,7 @@ type KitSalesStats struct {
 	LastUpdate     time.Time        `json:"lastUpdate"`
 }
 
-// KitVariantStat detalha vendas de uma combinação cor × tamanho × corte.
+// KitVariantStat detalha vendas de uma combinação cor x tamanho x corte.
 type KitVariantStat struct {
 	Color      string `json:"color"`
 	Size       string `json:"size"`
@@ -135,7 +135,7 @@ type LabelCount struct {
 	Count int64  `json:"count"`
 }
 
-// LabelValue é um par label → valor numérico (ex: "KIT" → 1500.00).
+// LabelValue é um par label -> valor numérico (ex: "KIT" → 1500.00).
 type LabelValue struct {
 	Label string  `json:"label"`
 	Value float64 `json:"value"`
