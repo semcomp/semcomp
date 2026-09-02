@@ -42,6 +42,7 @@ type SaleService interface {
 	GetAllSales(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*SaleListResult, error)
 	UpdateSaleByID(id string, request UpdateSaleRequest) (*Sale, error)
 	DeleteSaleByID(id string) error
+	CancelSale(userNumber uint, saleID uint) (*Sale, error)
 
 	// Operação de Item (Backoffice)
 	UpdateItemPickup(itemID string, request UpdateSaleItemPickupRequest) (*SaleItem, error)
@@ -467,6 +468,33 @@ func (s *saleService) GetStatus(userNumber uint, saleID uint) (string, error) {
 		return "", apierrors.NotFoundError("Venda não encontrada", nil)
 	}
 	return string(sale.EffectiveStatus()), nil
+}
+
+func (s *saleService) CancelSale(userNumber uint, saleID uint) (*Sale, error) {
+	sale, err := s.saleRepo.GetByID(saleID)
+	if err != nil {
+		return nil, err
+	}
+	if sale.SaleUserNumber != userNumber {
+		return nil, apierrors.NotFoundError("Venda não encontrada", nil)
+	}
+	if sale.EffectiveStatus() != SaleStatusPending {
+		return nil, apierrors.ValidationError("Apenas vendas com status PENDENTE podem ser canceladas", nil)
+	}
+	if sale.Status != SaleStatusPending {
+		return nil, apierrors.ValidationError("Apenas vendas com status PENDENTE podem ser canceladas", nil)
+	}
+	if err := s.saleRepo.CancelPendingSale(sale.ID); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apierrors.ValidationError("Apenas vendas com status PENDENTE podem ser canceladas", err)
+		}
+		return nil, apierrors.InternalServerError("Erro ao cancelar venda", err)
+	}
+	Hub.Publish(sale.ID, string(SaleStatusCanceled))
+	if err := s.syncConsumptionForSale(sale.ID); err != nil {
+		return nil, apierrors.InternalServerError("Venda cancelada, mas erro ao liberar a disponibilidade dos itens", err)
+	}
+	return s.saleRepo.GetByID(sale.ID)
 }
 
 func (s *saleService) GetSaleByID(userNumber uint, saleID uint) (*Sale, error) {

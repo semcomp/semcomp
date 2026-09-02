@@ -18,6 +18,7 @@ type SaleRepository interface {
 	GetByUserNumber(userNumber uint) ([]Sale, error)
 	GetAll(query SaleListQuery) (*SaleListResult, error)
 	UpdateByID(id uint, updateData map[string]interface{}) error
+	CancelPendingSale(id uint) error
 	DeleteByID(id uint) error
 	HasPaidCoffee(userNumber uint, coffeeDateTime string) (bool, error)
 
@@ -126,6 +127,17 @@ func (r *saleRepository) GetByUserNumber(userNumber uint) ([]Sale, error) {
 
 func (r *saleRepository) UpdateByID(id uint, updateData map[string]interface{}) error {
 	result := r.db.Model(&Sale{}).Where("id = ?", id).Updates(updateData)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func (r *saleRepository) CancelPendingSale(id uint) error {
+	result := r.db.Model(&Sale{}).Where("id = ? AND status = ?", id, SaleStatusPending).Update("status", SaleStatusCanceled)
 	if result.Error != nil {
 		return result.Error
 	}

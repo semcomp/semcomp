@@ -281,6 +281,38 @@ func (h *SaleHandler) StreamSaleStatus(c *gin.Context) {
 	}
 }
 
+// CancelSale cancela uma venda PENDENTE do próprio usuário, movendo para CANCELADO.
+// @Summary Cancela venda pendente
+// @Description Permite ao usuário cancelar sua própria venda enquanto estiver com status PENDENTE (aguardando pagamento)
+// @Tags Vendas
+// @Produce json
+// @Param id path int true "ID da venda"
+// @Success 200 {object} map[string]interface{} "Venda cancelada"
+// @Failure 400 {object} map[string]string "Venda não pode ser cancelada"
+// @Failure 401 {object} map[string]string "Não autorizado"
+// @Failure 404 {object} map[string]string "Venda não encontrada"
+// @Security BearerAuth
+// @Router /sales/{id}/cancel [post]
+func (h *SaleHandler) CancelSale(c *gin.Context) {
+	userNumber := c.GetUint("userNumber")
+	if userNumber == 0 {
+		apierrors.HandleAPIError(c, apierrors.UnauthorizedError("Usuário não autenticado", nil))
+		return
+	}
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("ID de venda inválido", err))
+		return
+	}
+	sale, err := h.saleService.CancelSale(userNumber, uint(id))
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	c.Set("responseMessage", "Venda cancelada com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "Venda cancelada com sucesso!", "sale": sale})
+}
+
 // GetAllSales retorna a lista paginada de vendas (Backoffice).
 // @Summary Lista todas as vendas (Admin)
 // @Description Retorna uma lista paginada com suporte a filtros e ordenação
