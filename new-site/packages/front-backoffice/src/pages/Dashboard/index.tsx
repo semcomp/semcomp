@@ -1,24 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BannerCard } from "@/components/BannerCard";
 import { Tabs } from "@/constants/Tabs";
-import { ShoppingBag } from "lucide-react";
 import { dashboardAPI } from "@/api/dashboard";
 import type { DashboardResponse } from "@/api/dashboard";
 import OverviewCard from "./components/OverviewCard";
 import KitsCard from "./components/KitsCard";
 import CoffeesCard from "./components/CoffeesCard";
 import PresenceCard from "./components/PresenceCard";
-
-const PlaceholderSections = [
-  {
-    key: "products",
-    title: "Compras e produtos",
-    description: "Quantidade, faturamento e ranking de itens vendidos.",
-    icon: <ShoppingBag className="w-5 h-5" />,
-  },
-];
+import ProductsCard from "./components/ProductsCard";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -74,21 +64,7 @@ export default function DashboardPage() {
         <KitsCard data={data?.kits} loading={loading && !data} />
         <CoffeesCard data={data?.coffees} loading={loading && !data} />
         <PresenceCard data={data?.events} loading={loading && !data} />
-
-        {PlaceholderSections.map((section) => (
-          <Card
-            key={section.key}
-            className="border-border bg-card/80 rounded-2xl transition-colors hover:border-primary/40"
-          >
-            <CardHeader>
-              <div className="mb-1 flex items-center gap-2">
-                <span className="rounded-lg bg-primary/15 p-2 text-primary">{section.icon}</span>
-                <CardTitle>{section.title}</CardTitle>
-              </div>
-              <CardDescription>{section.description}</CardDescription>
-            </CardHeader>
-          </Card>
-        ))}
+        <ProductsCard data={data?.sales} loading={loading && !data} />
       </div>
     </section>
   );
