@@ -3,20 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BannerCard } from "@/components/BannerCard";
 import { Tabs } from "@/constants/Tabs";
-import { Presentation, ShoppingBag } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import { dashboardAPI } from "@/api/dashboard";
 import type { DashboardResponse } from "@/api/dashboard";
 import OverviewCard from "./components/OverviewCard";
 import KitsCard from "./components/KitsCard";
 import CoffeesCard from "./components/CoffeesCard";
+import PresenceCard from "./components/PresenceCard";
 
 const PlaceholderSections = [
-  {
-    key: "presence",
-    title: "Presença em palestras",
-    description: "Comparativo de presença entre as palestras.",
-    icon: <Presentation className="w-5 h-5" />,
-  },
   {
     key: "products",
     title: "Compras e produtos",
@@ -78,6 +73,7 @@ export default function DashboardPage() {
         <OverviewCard data={data?.users} loading={loading && !data} />
         <KitsCard data={data?.kits} loading={loading && !data} />
         <CoffeesCard data={data?.coffees} loading={loading && !data} />
+        <PresenceCard data={data?.events} loading={loading && !data} />
 
         {PlaceholderSections.map((section) => (
           <Card
