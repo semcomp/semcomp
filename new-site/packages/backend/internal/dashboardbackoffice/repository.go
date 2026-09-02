@@ -20,10 +20,18 @@ func NewDashboardRepository(db *gorm.DB) *DashboardRepository {
 // Usuários -------------------------------------------------------------------
 
 func (r *DashboardRepository) GetUsersStats() (*UsersStats, error) {
-	now := time.Now()
-	stats := &UsersStats{LastUpdate: now}
+	stats := &UsersStats{}
 
 	// Total de usuários e confirmados
+	// Cada agregação é escaneada em um alvo descartável: o GORM zera o
+	// destino de cada Scan, então escanear direto em *stats apagaria os
+	// valores das consultas anteriores.
+	var totals struct {
+		Total          int64
+		Confirmed      int64
+		Unconfirmed    int64
+		TotalWithPapfe int64
+	}
 	if err := r.db.Raw(`
 		SELECT
 			COUNT(*)                                       AS total,
@@ -31,31 +39,49 @@ func (r *DashboardRepository) GetUsersStats() (*UsersStats, error) {
 			COUNT(*) FILTER (WHERE email_verified = false) AS unconfirmed,
 			COUNT(*) FILTER (WHERE has_papfe = true)       AS total_with_papfe
 		FROM users
-	`).Scan(stats).Error; err != nil {
+	`).Scan(&totals).Error; err != nil {
 		return nil, err
 	}
+	stats.Total = totals.Total
+	stats.Confirmed = totals.Confirmed
+	stats.Unconfirmed = totals.Unconfirmed
+	stats.TotalWithPapfe = totals.TotalWithPapfe
 
 	// Justificativas de ausência
+	var justifications struct {
+		JustifiedAbsences int64
+		PendingAbsences   int64
+		NotJustified      int64
+	}
 	if err := r.db.Raw(`
 		SELECT
 			COUNT(*) FILTER (WHERE status = 'aprovado')    AS justified_absences,
 			COUNT(*) FILTER (WHERE status = 'em_analise')  AS pending_absences,
 			COUNT(*) FILTER (WHERE status = 'negado')      AS not_justified
 		FROM absence_justifications
-	`).Scan(stats).Error; err != nil {
+	`).Scan(&justifications).Error; err != nil {
 		return nil, err
 	}
+	stats.JustifiedAbsences = justifications.JustifiedAbsences
+	stats.PendingAbsences = justifications.PendingAbsences
+	stats.NotJustified = justifications.NotJustified
 
 	// Média de presença (excluindo usuários com justificativa aprovada)
+	var rate struct {
+		MeanRate float64
+	}
 	if err := r.db.Raw(`
 		SELECT COALESCE(AVG(u.presence_rate), 0) AS mean_rate
 		FROM users u
 		WHERE u.email NOT IN (
 			SELECT aj.user_email FROM absence_justifications aj WHERE aj.status = 'aprovado'
 		)
-	`).Scan(stats).Error; err != nil {
+	`).Scan(&rate).Error; err != nil {
 		return nil, err
 	}
+	stats.MeanRate = rate.MeanRate
+
+	stats.LastUpdate = time.Now()
 
 	return stats, nil
 }
@@ -230,6 +256,8 @@ func (r *DashboardRepository) GetKitSalesStats() (*KitSalesStats, error) {
 	}
 	stats.ByColorAndSize = byVariant
 
+	stats.LastUpdate = now
+
 	return stats, nil
 }
 
@@ -274,6 +302,8 @@ func (r *DashboardRepository) GetCoffeeSalesStats() (*CoffeeSalesStats, error) {
 		return nil, err
 	}
 	stats.ByCoffee = byCoffee
+
+	stats.LastUpdate = now
 
 	return stats, nil
 }
@@ -350,6 +380,8 @@ func (r *DashboardRepository) GetSalesOverview() (*SalesOverviewStats, error) {
 	}
 	stats.RevenueTimeline = timeline
 
+	stats.LastUpdate = now
+
 	return stats, nil
 }
 
@@ -420,6 +452,8 @@ func (r *DashboardRepository) GetComboSalesStats() (*ComboSalesStats, error) {
 		return nil, err
 	}
 	stats.ByCombo = byCombo
+
+	stats.LastUpdate = now
 
 	return stats, nil
 }
