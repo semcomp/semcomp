@@ -299,6 +299,7 @@ func main() {
 	authRoutes.GET("/sales/:id", pageMW("loja"), salesHandler.GetSaleByID)
 	authRoutes.GET("/sales/:id/status", pageMW("loja"), salesHandler.GetSaleStatus)
 	authRoutes.GET("/sales/:id/events", pageMW("loja"), salesHandler.StreamSaleStatus)
+	authRoutes.PATCH("/sales/:id/cancel", pageMW("loja"), salesHandler.CancelSale)
 
 	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")
