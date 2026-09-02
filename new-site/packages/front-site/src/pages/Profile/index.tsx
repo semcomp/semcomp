@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authAPI } from "@/api";
 import { salesAPI } from "@/api/sales";
 import type { SaleResponse } from "@/api/sales";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 import { isPendingSale } from "@/lib/pendingSale";
@@ -15,6 +15,7 @@ import type { UserType } from "@/types/UserType";
 import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate";
 import { useNavigate } from "react-router-dom";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import Modal from "@/components/ui/Modal";
 
 type EditableProfile = {
   name: string;
@@ -32,11 +33,22 @@ const events: Evento[] = [];
 
 export interface PurchaseType {
   id: string;
+  saleId: number;
   item: string;
   date: string;
   amount: number;
   status: string;
   statusColor: string;
+  rawStatus: string;
+  isPending: boolean;
+}
+
+// Só pedidos PENDENTE (ainda não pagos) podem ser cancelados pelo próprio
+// usuário — mesma regra aplicada em backend/internal/sales/service.go.
+const CANCELABLE_SALE_STATUS = "PENDENTE";
+
+function isCancelablePurchase(purchase: PurchaseType): boolean {
+  return purchase.rawStatus === CANCELABLE_SALE_STATUS;
 }
 
 const SALE_STATUS_STYLES: Record<string, { label: string; color: string }> = {
@@ -81,11 +93,14 @@ function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
 
   return {
     id: String(sale.id),
+    saleId: sale.id,
     item: itemsLabel,
     date: formatDate(sale.created_at, 2),
     amount: sale.total_amount,
     status: style.label,
     statusColor: style.color,
+    rawStatus: sale.status,
+    isPending: isPendingSale(sale),
   };
 }
 
@@ -155,6 +170,8 @@ export default function Profile({
   const navigate = useNavigate();
   const { isFeatureEnabled } = useFeatureFlags();
   const [pendingSalesCount, setPendingSalesCount] = useState(0);
+  const [cancelTarget, setCancelTarget] = useState<PurchaseType | null>(null);
+  const [isCanceling, setIsCanceling] = useState(false);
 
   const logoutRef = useRef(logout);
   const showNotificationRef = useRef(showNotification);
@@ -233,6 +250,81 @@ export default function Profile({
       setIsSaving(false);
     }
   }
+
+  function requestCancelPurchase(purchase: PurchaseType) {
+    setCancelTarget(purchase);
+  }
+
+  function closeCancelModal() {
+    if (isCanceling) return;
+    setCancelTarget(null);
+  }
+
+  async function confirmCancelPurchase() {
+    if (!cancelTarget) return;
+    setIsCanceling(true);
+    try {
+      await salesAPI.cancel(cancelTarget.saleId);
+      const canceledStyle = SALE_STATUS_STYLES.CANCELADO;
+      setUserPurchases((prev) =>
+        prev.map((p) =>
+          p.saleId === cancelTarget.saleId
+            ? { ...p, rawStatus: "CANCELADO", status: canceledStyle.label, statusColor: canceledStyle.color, isPending: false }
+            : p
+        )
+      );
+      if (cancelTarget.isPending) {
+        setPendingSalesCount((prev) => Math.max(0, prev - 1));
+      }
+      showNotification("Pedido cancelado com sucesso.", "success");
+      setCancelTarget(null);
+    } catch (err) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      showNotification(message || "Não foi possível cancelar o pedido. Tente novamente.", "warning");
+    } finally {
+      setIsCanceling(false);
+    }
+  }
+
+  const cancelModal = (
+    <Modal
+      open={cancelTarget !== null}
+      onClose={closeCancelModal}
+      title="Cancelar compra"
+      size="sm"
+      closeOnBackdrop={!isCanceling}
+    >
+      <div className="flex flex-col gap-4">
+        <p>
+          Tem certeza que deseja cancelar este pedido
+          {cancelTarget ? ` (${cancelTarget.item})` : ""}? Essa ação não pode ser desfeita e o
+          item voltará a ficar disponível para compra.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={closeCancelModal}
+            disabled={isCanceling}
+            className="px-4 py-2 rounded-lg text-sm font-semibold border border-semcompDarkBlue/20 text-semcompDarkBlue disabled:opacity-50 dark:text-semcompOffWhite dark:border-white/20 cursor-pointer"
+          >
+            Voltar
+          </button>
+          <button
+            type="button"
+            onClick={confirmCancelPurchase}
+            disabled={isCanceling}
+            className="px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-60 flex items-center gap-2 cursor-pointer"
+          >
+            {isCanceling && <Loader2 size={16} className="animate-spin" />}
+            {isCanceling ? "Cancelando..." : "Cancelar pedido"}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
 
   // Versão Mobile/Tablet (< 1280px)
   if (width < 1280) {
@@ -443,6 +535,15 @@ export default function Profile({
                         <div className="mt-2 text-xs font-semibold text-semcompDarkBlue/80">
                           Status: {purchase.status}
                         </div>
+                        {isCancelablePurchase(purchase) && (
+                          <button
+                            type="button"
+                            onClick={() => requestCancelPurchase(purchase)}
+                            className="mt-3 w-full py-2 rounded-lg text-xs font-semibold border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+                          >
+                            Cancelar compra
+                          </button>
+                        )}
                       </div>
                     ))
                   ) : (
@@ -493,6 +594,7 @@ export default function Profile({
         <div className="bg-semcompOffWhite dark:bg-semcompDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite transition-colors duration-300">
           <ContatoSection />
         </div>
+        {cancelModal}
       </div>
     );
   }
@@ -696,6 +798,15 @@ export default function Profile({
                     <span className={`text-sm font-bold ${purchase.statusColor}`}>R$ {purchase.amount.toFixed(2)}</span>
                   </div>
                   <span className="text-xs font-semibold text-semcompDarkBlue/80 mt-1">Status: {purchase.status}</span>
+                  {isCancelablePurchase(purchase) && (
+                    <button
+                      type="button"
+                      onClick={() => requestCancelPurchase(purchase)}
+                      className="mt-3 self-start px-4 py-1.5 rounded-lg text-xs font-semibold border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+                    >
+                      Cancelar compra
+                    </button>
+                  )}
                 </div>
               ))
             ) : (
@@ -810,6 +921,7 @@ export default function Profile({
         <div className="bg-semcompOffWhite dark:bg-semcompDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite transition-colors duration-300">
           <ContatoSection />
         </div>
+        {cancelModal}
       </div>
     );
   }

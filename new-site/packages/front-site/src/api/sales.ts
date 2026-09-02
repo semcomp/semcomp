@@ -52,6 +52,11 @@ interface CreateSaleApiResponse {
   sale: SaleResponse;
 }
 
+interface CancelSaleApiResponse {
+  message: string;
+  sale: SaleResponse;
+}
+
 interface GetMySalesApiResponse {
   sales: SaleResponse[];
 }
@@ -90,5 +95,11 @@ export const salesAPI = {
   getConsumed: async (): Promise<number[]> => {
     const response = await client.get<GetConsumedApiResponse>("/api/sales/consumed");
     return response.data.product_ids;
+  },
+
+  // PATCH /api/sales/:id/cancel — cancela um pedido próprio ainda PENDENTE
+  cancel: async (saleId: number): Promise<SaleResponse> => {
+    const response = await client.patch<CancelSaleApiResponse>(`/api/sales/${saleId}/cancel`);
+    return response.data.sale;
   },
 };
