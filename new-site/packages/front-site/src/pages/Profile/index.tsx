@@ -65,6 +65,8 @@ const SALE_STATUS_STYLES: Record<string, { label: string; color: string }> = {
   EXPIRADO: { label: "Expirado", color: "text-gray-500" },
 };
 
+const formatPresencePercent = (value: number): string => Math.round(value).toString();
+
 function getProductDisplayName(product: any): string {
   if (!product) return "Produto";
 
@@ -612,14 +614,12 @@ export default function Profile({
                       style={{ width: `${presencePercent}%` }}
                     >
                       {presencePercent > 15 && (
-                        <span className="text-white text-[10px] font-bold">
-                          {presencePercent}%
-                        </span>
+                        <span className="text-white text-[10px] font-bold">{formatPresencePercent(presencePercent)}%</span>
                       )}
                     </div>
                     {presencePercent <= 15 && (
                       <div className="absolute right-2 top-1/2 -translate-y-1/2 text-semcompDarkBlue text-[10px] font-bold">
-                        {presencePercent}%
+                        {formatPresencePercent(presencePercent)}%
                       </div>
                     )}
                   </div>
@@ -995,14 +995,12 @@ export default function Profile({
                 style={{ width: `${presencePercent}%` }}
               >
                 {presencePercent > 15 && (
-                  <span className="text-semcompLightBlue text-xs font-bold">
-                    {presencePercent}%
-                  </span>
+                  <span className="text-semcompLightBlue text-xs font-bold">{formatPresencePercent(presencePercent)}%</span>
                 )}
               </div>
               {presencePercent <= 15 && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 text-semcompMidDarkBlue text-xs font-bold">
-                  {presencePercent}%
+                  {formatPresencePercent(presencePercent)}%
                 </div>
               )}
             </div>

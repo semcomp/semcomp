@@ -24,6 +24,8 @@ const mapBackendEvent = (event: any): EventType => {
     dateEnd: event.end_date,
     local: event.location,
     type: event.type,
+    type_name: event.type_name || event.type || "",
+    presence_type_weight_id: event.presence_type_weight_id != null ? Number(event.presence_type_weight_id) : null,
     description: event.description,
     hasPresence: event.has_attendance,
     hasSignin: event.has_signin ?? false,
@@ -51,19 +53,25 @@ const normalizeRFC3339 = (value: unknown): string => {
  * Mapeia formato local para backend
  */
 const mapToBackendEvent = (event: EventType) => {
-  const mapped = {
+  let typeId: number | null = null;
+  if (event.presence_type_weight_id != null && event.presence_type_weight_id !== ("__none__" as any)) {
+    const parsed = Number(event.presence_type_weight_id);
+    typeId = isNaN(parsed) ? null : parsed;
+  }
+
+  const payload: Record<string, unknown> = {
     name: event.nameEvent,
     init_date: normalizeRFC3339(event.dateInit),
     end_date: normalizeRFC3339(event.dateEnd),
-    type: event.type,
-    location: event.local,
-    description: event.description,
+    presence_type_weight_id: typeId,
     has_attendance: normalizeBoolean(event.hasPresence),
     has_signin: normalizeBoolean(event.hasSignin),
     max_participants: Number(event.maxParticipants) || 0,
   };
-  console.log("Mapeamento de evento:", { original: event, mapped });
-  return mapped;
+  if (event.local) payload.location = event.local;
+  if (event.description) payload.description = event.description;
+  console.log("Mapeamento de evento:", { original: event, mapped: payload });
+  return payload;
 };
 
 const fieldMap: Record<string, string> = {
@@ -94,7 +102,7 @@ export const eventsAPI = {
     const backendSortBy = fieldMap[sortBy] ?? sortBy;
     const backendSearchBy = searchBy ? (fieldMap[searchBy] ?? searchBy) : undefined;
 
-    let url = `/events?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
+    let url = `/admin/events?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
     if (backendSearchBy && searchValue) {
       url += `&search_by=${backendSearchBy}&search_value=${searchValue}`;
     }
@@ -141,13 +149,19 @@ export const eventsAPI = {
     initDate: string,
     data: Partial<Omit<EventType, "id">>
   ): Promise<EventType> => {
+    let typeId: number | null = null;
+    if (data.presence_type_weight_id != null && data.presence_type_weight_id !== ("__none__" as any)) {
+      const parsed = Number(data.presence_type_weight_id);
+      typeId = isNaN(parsed) ? null : parsed;
+    }
+
     const response = await client.put<any>(
       `/admin/events/${encodeURIComponent(eventName)}/${encodeURIComponent(initDate)}`,
       {
         name: data.nameEvent,
         init_date: normalizeRFC3339(data.dateInit),
         end_date: normalizeRFC3339(data.dateEnd),
-        type: data.type,
+        presence_type_weight_id: typeId,
         location: data.local,
         description: data.description,
         has_attendance: normalizeBoolean(data.hasPresence),

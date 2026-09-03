@@ -1,16 +1,20 @@
 package event
 
 import (
-	"backend/internal/apierrors"
 	"errors"
+	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"backend/internal/apierrors"
+	"backend/internal/presencesettings"
 
 	"gorm.io/gorm"
 )
 
 type EventService interface {
+	SetRateRecalculator(recalculator RateRecalculator)
 	CreateEvent(request CreateEventRequest) (*Event, error)
 	GetEventByNameAndInitDate(name string, date string) (*Event, error)
 	DeleteEventByNameAndInitDate(name string, date string) error
@@ -18,12 +22,55 @@ type EventService interface {
 	GetEvents(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*EventListResult, error)
 }
 
-type eventService struct {
-	repo EventRepository
+// RateRecalculator dispara o recálculo global das taxas de presença quando a
+// agenda de eventos muda (datas, tipos ou disponibilidade de presença).
+type RateRecalculator interface {
+	RecalculateAll() error
 }
 
-func NewEventService(repo EventRepository) EventService {
-	return &eventService{repo: repo}
+type eventService struct {
+	repo         EventRepository
+	db           *gorm.DB
+	recalculator RateRecalculator
+}
+
+func NewEventService(repo EventRepository, db *gorm.DB) EventService {
+	return &eventService{repo: repo, db: db}
+}
+
+func (s *eventService) SetRateRecalculator(recalculator RateRecalculator) {
+	s.recalculator = recalculator
+}
+
+func (s *eventService) recalculateAll() {
+	if s.recalculator == nil {
+		return
+	}
+	if err := s.recalculator.RecalculateAll(); err != nil {
+		log.Printf("[event] erro ao recalcular taxas de presença: %v", err)
+	}
+}
+
+func (s *eventService) resolveTypeDefaults(presenceTypeID *uint, hasAttendanceSent bool, currentHasAttendance bool) (string, bool, error) {
+	if presenceTypeID == nil {
+		return "", currentHasAttendance, nil
+	}
+
+	var weight presencesettings.PresenceTypeWeight
+	if err := s.db.First(&weight, *presenceTypeID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", false, apierrors.ValidationError("Tipo de evento não encontrado", err)
+		}
+		return "", false, apierrors.InternalServerError("Erro ao buscar tipo de evento", err)
+	}
+
+	typeName := weight.TypeName
+	hasAttendance := currentHasAttendance
+	if !hasAttendanceSent {
+		hasAttendance = weight.DefaultHasAttendance
+	}
+
+	return typeName, hasAttendance, nil
 }
 
 func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
@@ -33,19 +80,38 @@ func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
 		return nil, apierrors.InternalServerError("Erro ao verificar evento já existente", err)
 	}
 
+	hasAttendance := false
+	if request.HasAttendance != nil {
+		hasAttendance = *request.HasAttendance
+	}
+
+	typeName, resolvedHA, err := s.resolveTypeDefaults(request.PresenceTypeID, request.HasAttendanceSent, hasAttendance)
+	if err != nil {
+		return nil, err
+	}
+
+	typeStr := request.Type
+	if typeName != "" {
+		typeStr = typeName
+	}
+
 	newEvent := Event{
-		Name:          request.Name,
-		InitDate:      request.InitDate,
-		EndDate:       request.EndDate,
-		Type:          request.Type,
-		Location:      request.Location,
-		Description:   request.Description,
-		HasAttendance: request.HasAttendance,
+		Name:           request.Name,
+		InitDate:       request.InitDate,
+		EndDate:        request.EndDate,
+		PresenceTypeID: request.PresenceTypeID,
+		TypeName:       typeName,
+		Type:           typeStr,
+		Location:       request.Location,
+		Description:    request.Description,
+		HasAttendance:  resolvedHA,
 	}
 
 	if err := s.repo.Create(&newEvent); err != nil {
 		return nil, apierrors.InternalServerError("Erro ao criar evento", err)
 	}
+
+	s.recalculateAll()
 
 	return &newEvent, nil
 }
@@ -81,6 +147,8 @@ func (s *eventService) DeleteEventByNameAndInitDate(name string, initDate string
 		return apierrors.InternalServerError("Erro ao remover evento", err)
 	}
 
+	s.recalculateAll()
+
 	return nil
 }
 
@@ -98,14 +166,31 @@ func (s *eventService) UpdateEventByNameAndInitDate(name string, initDate string
 		}
 	}
 
+	hasAttendance := false
+	if request.HasAttendance != nil {
+		hasAttendance = *request.HasAttendance
+	}
+
+	typeName, resolvedHA, err := s.resolveTypeDefaults(request.PresenceTypeID, request.HasAttendanceSent, hasAttendance)
+	if err != nil {
+		return nil, err
+	}
+
+	typeStr := request.Type
+	if typeName != "" {
+		typeStr = typeName
+	}
+
 	event := Event{
-		Name:          request.Name,
-		InitDate:      request.InitDate,
-		EndDate:       request.EndDate,
-		Type:          request.Type,
-		Location:      request.Location,
-		Description:   request.Description,
-		HasAttendance: request.HasAttendance,
+		Name:           request.Name,
+		InitDate:       request.InitDate,
+		EndDate:        request.EndDate,
+		PresenceTypeID: request.PresenceTypeID,
+		TypeName:       typeName,
+		Type:           typeStr,
+		Location:       request.Location,
+		Description:    request.Description,
+		HasAttendance:  resolvedHA,
 	}
 
 	err = s.repo.UpdateByNameAndInitTime(name, originalInitTime, &event)
@@ -115,6 +200,8 @@ func (s *eventService) UpdateEventByNameAndInitDate(name string, initDate string
 		}
 		return nil, apierrors.InternalServerError("Erro ao atualizar evento", err)
 	}
+
+	s.recalculateAll()
 
 	return &event, nil
 }
