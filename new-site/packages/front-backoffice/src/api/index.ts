@@ -15,5 +15,6 @@ export { pagesAPI } from "./pages";
 export { sponsorsAPI } from "./sponsors";
 export { absenceJustificationsAPI } from "./absenceJustifications";
 export { salesAPI } from "./sales";
+export { dashboardAPI } from "./dashboard";
 export { default as client } from "./client";
 export type { LoginResponse, RegisterResponse, ProfileResponse, ApiError } from "@/types/APIResponseType";

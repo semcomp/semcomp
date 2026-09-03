@@ -9,6 +9,7 @@ import (
 	"backend/internal/absenceJustification"
 	"backend/internal/auth"
 	"backend/internal/authBackoffice"
+	"backend/internal/dashboardbackoffice"
 	"backend/internal/database"
 	"backend/internal/event"
 	"backend/internal/log"
@@ -178,6 +179,10 @@ func main() {
 	salesRepo := sales.NewSaleRepository(db)
 	salesService := sales.NewSaleService(salesRepo, productRepo, papfeRepo)
 	salesHandler := sales.NewSaleHandler(salesService)
+
+	dashboardRepo := dashboardbackoffice.NewDashboardRepository(db)
+	dashboardService := dashboardbackoffice.NewDashboardService(dashboardRepo)
+	dashboardHandler := dashboardbackoffice.NewDashboardHandler(dashboardService)
 
 	// Sweeper de expiração: persiste o status EXPIRADO nos PIX pendentes fora da
 	// janela de validade e libera as travas de compra única (consumed_items)
@@ -398,6 +403,9 @@ func main() {
 	admin.GET("/sponsors/:cnpj/packages", permMW("Patrocinadores", permission.PermR), sponsorHandler.GetSponsorPackages)
 	admin.POST("/sponsors/:cnpj/packages", permMW("Patrocinadores", permission.PermRW), sponsorHandler.AddSponsorPackage)
 	admin.DELETE("/sponsors/:cnpj/packages/:year/:package", permMW("Patrocinadores", permission.PermRW), sponsorHandler.RemoveSponsorPackage)
+
+	// Dashboard
+	admin.GET("/dashboard", permMW("Dashboard", permission.PermR), dashboardHandler.GetDashboard)
 
 	r.Run(":4000")
 }

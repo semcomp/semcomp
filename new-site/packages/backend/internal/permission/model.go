@@ -38,6 +38,7 @@ var KnownSections = []string{
 	"Avisos",
 	"Justificativas de Ausência",
 	"Inscrições",
+	"Dashboard",
 }
 
 type Permission struct {
