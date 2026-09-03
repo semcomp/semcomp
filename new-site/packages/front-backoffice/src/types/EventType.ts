@@ -10,4 +10,6 @@ export interface EventType  extends CrudItemType {
   presence_type_weight_id: number | null;
   description: string;
   hasPresence: boolean;
+  hasSignin: boolean;
+  maxParticipants: number;
 }

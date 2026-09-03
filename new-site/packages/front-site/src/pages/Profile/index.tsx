@@ -11,16 +11,19 @@ import { useNotification } from "@/contexts/NotificationContext";
 import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 import { isPendingSale } from "@/lib/pendingSale";
 import type { EventType } from "@/types/EventType";
+import type { SigninEventType } from "@/types/SigninEventType";
 import type { UserType } from "@/types/UserType";
 import type { NoticeType } from "@/types/NoticeType";
 import type { PapfeDocumentType } from "@/types/PapfeDocumentType";
 import { papfeStatusOf } from "@/types/PapfeDocumentType";
 import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate";
+import { signinEventsAPI } from "@/api/signinEvents";
 import { useNavigate } from "react-router-dom";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import JustifyAbsenceModal, { JustifyAbsenceStatusBadge } from "@/components/JustifyAbsenceModal";
 import type { JustifyAbsenceStatus } from "@/components/JustifyAbsenceModal";
 import { PapfeStatusBadge } from "@/components/PapfeStatusBadge";
+import PapfeUploadModal from "@/components/PapfeUploadModal";
 import RejectionReasonModal from "@/components/RejectionReasonModal";
 
 type EditableProfile = {
@@ -29,10 +32,6 @@ type EditableProfile = {
   profession: string;
   linkedin: string;
   telegram: string;
-};
-
-type Evento = EventType & {
-  linkInscricao?: string;
 };
 
 function StatusEyeButton({ onClick }: { onClick: () => void }) {
@@ -47,9 +46,6 @@ function StatusEyeButton({ onClick }: { onClick: () => void }) {
     </button>
   );
 }
-
-
-const events: Evento[] = [];
 
 export interface PurchaseType {
   id: string;
@@ -112,7 +108,14 @@ function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
   };
 }
 
-const EventCardMobile = memo(({ ev, onShowNotification }: { ev: Evento; onShowNotification: (msg: string) => void }) => {
+const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCancel, isCanceling }: {
+  ev: EventType;
+  subscription: SigninEventType | undefined;
+  onSignin: () => void;
+  isSigningIn: boolean;
+  onCancel: () => void;
+  isCanceling: boolean;
+}) => {
   const data = formatDate(ev.dateInit, 2);
   const diaSemana = formatWeekDay(ev.dateInit);
 
@@ -129,13 +132,33 @@ const EventCardMobile = memo(({ ev, onShowNotification }: { ev: Evento; onShowNo
         </p>
         <hr className="mb-2 mt-2"/>
       </div>
-      <div className="w-full flex flex-row justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
-        <button
-          className="cursor-pointer w-full p-2"
-          onClick={() => ev.linkInscricao ? window.open(ev.linkInscricao, "_blank") : onShowNotification("Este evento ainda não está aberto para inscrições.")}
-        >
-          Inscreva-se
-        </button>
+      <div className="w-full flex flex-col justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
+        {subscription ? (
+          <>
+            <span className={`w-full p-2 text-center text-sm font-semibold ${
+              subscription.status === "Inscrito" ? "text-green-700 dark:text-green-400" : "text-yellow-700 dark:text-yellow-400"
+            }`}>
+              {subscription.status === "Inscrito"
+                ? "Inscrito"
+                : `Lista de Espera - ${subscription.user_wait_list_position}ª posição`}
+            </span>
+            <button
+              className="cursor-pointer w-full p-2 text-sm text-red-600 dark:text-red-400 border-t border-black/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isCanceling}
+              onClick={onCancel}
+            >
+              {isCanceling ? "Cancelando..." : "Desistir"}
+            </button>
+          </>
+        ) : (
+          <button
+            className="cursor-pointer w-full p-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isSigningIn}
+            onClick={onSignin}
+          >
+            {isSigningIn ? "Inscrevendo..." : "Inscrever-se"}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -177,8 +200,8 @@ export default function Profile({
   const [justifyOpen, setJustifyOpen] = useState(false);
   const [justificationStatus, setJustificationStatus] = useState<JustifyAbsenceStatus | null>(null);
   const [absenceRejectionReason, setAbsenceRejectionReason] = useState("");
-  const [hasPapfe, setHasPapfe] = useState(false);
   const [papfeDoc, setPapfeDoc] = useState<PapfeDocumentType | null>(null);
+  const [papfeModalOpen, setPapfeModalOpen] = useState(false);
   const [reasonModal, setReasonModal] = useState<"papfe" | "absence" | null>(null);
   const [userPurchases, setUserPurchases] = useState<PurchaseType[]>(purchases);
   const [userCity, setUserCity] = useState("");
@@ -186,6 +209,11 @@ export default function Profile({
   const [userLinkedin, setUserLinkedin] = useState("");
   const [userTelegram, setUserTelegram] = useState("");
   const [notices, setNotices] = useState<NoticeType[]>([]);
+  const [signinEvents, setSigninEvents] = useState<EventType[]>([]);
+  const [mySignins, setMySignins] = useState<SigninEventType[]>([]);
+  const [signingInKey, setSigningInKey] = useState<string | null>(null);
+  const [cancelingKey, setCancelingKey] = useState<string | null>(null);
+  const [cancelConfirm, setCancelConfirm] = useState<{ eventName: string; eventInitDate: string } | null>(null);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -210,6 +238,10 @@ export default function Profile({
     setAbsenceRejectionReason("");
   };
 
+  const handlePapfeSubmitted = (doc: PapfeDocumentType) => {
+    setPapfeDoc(doc);
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login", { replace: true });
@@ -226,7 +258,6 @@ export default function Profile({
         setUserEmail(response.email || email);
         setUserCode(response.user_number || 0);
         setPresencePercent(response.presence_rate ?? 0);
-        setHasPapfe(response.hasPapfe ?? false);
         setUserCity(response.city ?? "");
         setUserProfession(response.profession ?? "");
         setUserLinkedin(response.linkedin ?? "");
@@ -239,12 +270,8 @@ export default function Profile({
             setAbsenceRejectionReason(mine.rejection_reason ?? "");
         }
 
-        if (response.hasPapfe) {
-          const doc = await papfeAPI.getMine();
-          setPapfeDoc(doc);
-        } else {
-          setPapfeDoc(null);
-        }
+        const papfeDocResponse = await papfeAPI.getMine();
+        setPapfeDoc(papfeDocResponse);
       } catch (err) {
         if (controller.signal.aborted) return;
         console.error("Erro ao buscar o perfil", err);
@@ -267,15 +294,8 @@ export default function Profile({
 
       try {
         const response = await client.get<BackendNoticeResponse>(
-          "/admin/notices",
-          {
-            params: {
-              page: 1,
-              limit: 10,
-              sort_by: "date_time",
-              sort_order: "desc",
-            },
-          }
+          "/api/notices",
+          { params: { page: 1, limit: 10, sort_by: "date_time", sort_order: "desc" } }
         );
         if (controller.signal.aborted) return;
         const formattedNotices: NoticeType[] = (
@@ -301,6 +321,83 @@ export default function Profile({
     fetchProfile();
     return () => controller.abort();
   }, [isAuthenticated, navigate, name, email]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    Promise.all([signinEventsAPI.getSigninEvents(), signinEventsAPI.getMySignins()])
+      .then(([events, signins]) => {
+        setSigninEvents(events);
+        setMySignins(signins);
+      })
+      .catch((err) => console.error("Erro ao buscar eventos de inscrição", err));
+  }, [isAuthenticated]);
+
+  function getSubscription(ev: EventType): SigninEventType | undefined {
+    return mySignins.find(
+      (s) =>
+        s.event_name === ev.name &&
+        new Date(s.event_init_date).getTime() === new Date(ev.dateInit).getTime()
+    );
+  }
+
+  async function handleCancelSignin(eventName: string, eventInitDate: string) {
+    const key = `${eventName}::${eventInitDate}`;
+    setCancelingKey(key);
+    try {
+      await signinEventsAPI.deleteSignin(eventName, eventInitDate);
+      const updatedSignins = await signinEventsAPI.getMySignins();
+      setMySignins(updatedSignins);
+      showNotification("Inscrição cancelada com sucesso.", "info");
+    } catch {
+      showNotification("Erro ao cancelar inscrição.", "warning");
+    } finally {
+      setCancelingKey(null);
+    }
+  }
+
+  async function handleSignin(eventName: string, eventInitDate: string) {
+    const key = `${eventName}::${eventInitDate}`;
+    setSigningInKey(key);
+    try {
+      await signinEventsAPI.createSignin(eventName, eventInitDate);
+      const updatedSignins = await signinEventsAPI.getMySignins();
+      setMySignins(updatedSignins);
+      showNotification("Inscrição realizada com sucesso!", "info");
+    } catch {
+      showNotification("Erro ao se inscrever no evento.", "warning");
+    } finally {
+      setSigningInKey(null);
+    }
+  }
+
+  const cancelConfirmModal = cancelConfirm && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setCancelConfirm(null)}>
+      <div
+        className="bg-white dark:bg-semcompMidDarkBlue rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl text-semcompDarkBlue dark:text-semcompOffWhite"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-lg font-bold mb-2 text-center">Cancelar inscrição?</h3>
+        <p className="text-sm text-center opacity-70 mb-6">Tem certeza que deseja desistir deste evento? Você pode perder sua vaga.</p>
+        <div className="flex gap-3">
+          <button
+            className="flex-1 py-2.5 rounded-xl border border-black/20 dark:border-white/20 text-sm font-semibold transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+            onClick={() => setCancelConfirm(null)}
+          >
+            Voltar
+          </button>
+          <button
+            className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+            onClick={() => {
+              handleCancelSignin(cancelConfirm.eventName, cancelConfirm.eventInitDate);
+              setCancelConfirm(null);
+            }}
+          >
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   function startEditing() {
     setEditForm({ name: userName, city: userCity, profession: userProfession, linkedin: userLinkedin, telegram: userTelegram });
@@ -335,6 +432,7 @@ export default function Profile({
   if (width < 1280) {
     return (
       <div className="min-h-screen bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue font-poppins transition-colors duration-300">
+        {cancelConfirmModal}
         {/* Header com Background */}
         <div className="relative h-80 w-full overflow-hidden bg-semcompMidLightBlue dark:bg-semcompDarkBlue">
           <AnimatedBackground />
@@ -486,20 +584,19 @@ export default function Profile({
                   </div>
                 )}
 
-                {hasPapfe && (
-                  <div className="flex items-center justify-between gap-2 rounded-lg bg-white/50 border border-black/10 px-3 py-2 mb-6">
-                    <span className="text-sm font-semibold text-semcompDarkBlue">
-                      Comprovante PAPFE
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />
-                      {papfeDoc?.is_approved === false &&
-                        papfeDoc.rejection_reason && (
-                          <StatusEyeButton
-                            onClick={() => setReasonModal("papfe")}
-                          />
-                        )}
-                    </div>
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                  onClick={() => setPapfeModalOpen(true)}>
+                  {papfeDoc ? "Atualizar Comprovante PAPFE" : "Enviar Comprovante PAPFE"}
+                </button>
+                {papfeDoc && (
+                  <div className="flex items-center justify-center gap-2 mb-6">
+                    <PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />
+                    {papfeDoc.is_approved === false &&
+                      papfeDoc.rejection_reason && (
+                        <StatusEyeButton
+                          onClick={() => setReasonModal("papfe")}
+                        />
+                      )}
                   </div>
                 )}
 
@@ -662,15 +759,21 @@ export default function Profile({
         {/* Seção Inscrições */}
         <div className="mt-12 mb-12 px-5">
           <div className="rounded-3xl p-6 border shadow-xl transition-colors bg-semcompOffWhite border-semcompDarkBlue text-semcompDarkBlue dark:bg-[#1A3A4F] dark:border-white/10 dark:text-semcompOffWhite">
-            <h2 className="text-2xl font-bold text-center mb-6">
-              Inscrições em Eventos
-            </h2>
-            {events.length > 0 ? (
-              events.map((ev, i) => <EventCardMobile key={i} ev={ev} onShowNotification={showNotification} />)
+            <h2 className="text-2xl font-bold text-center mb-6">Inscrições em Eventos</h2>
+            {signinEvents.length > 0 ? (
+              signinEvents.map((ev, i) => (
+                <EventCardMobile
+                  key={i}
+                  ev={ev}
+                  subscription={getSubscription(ev)}
+                  onSignin={() => handleSignin(ev.name, ev.dateInit)}
+                  isSigningIn={signingInKey === `${ev.name}::${ev.dateInit}`}
+                  onCancel={() => setCancelConfirm({ eventName: ev.name, eventInitDate: ev.dateInit })}
+                  isCanceling={cancelingKey === `${ev.name}::${ev.dateInit}`}
+                />
+              ))
             ) : (
-              <p className="opacity-60 text-center text-sm italic">
-                Nenhuma inscrição encontrada.
-              </p>
+              <p className="opacity-60 text-center text-sm italic">Nenhum evento disponível para inscrição.</p>
             )}
           </div>
         </div>
@@ -679,6 +782,7 @@ export default function Profile({
           <ContatoSection />
         </div>
         <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
+        <PapfeUploadModal open={papfeModalOpen} onClose={() => setPapfeModalOpen(false)} onSubmitted={handlePapfeSubmitted} />
         <RejectionReasonModal
           open={reasonModal === "absence"}
           onClose={() => setReasonModal(null)}
@@ -864,18 +968,18 @@ export default function Profile({
             </div>
           )}
 
-          {hasPapfe && (
-            <div className="flex items-center justify-between gap-2 rounded-xl border border-border/50 bg-semcompOffWhite/40 px-3 py-2 mb-8">
-              <span className="text-sm font-semibold text-semcompMidDarkBlue">
-                Comprovante PAPFE
-              </span>
-              <div className="flex items-center gap-2">
-                <PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />
-                {papfeDoc?.is_approved === false &&
-                  papfeDoc.rejection_reason && (
-                    <StatusEyeButton onClick={() => setReasonModal("papfe")} />
-                  )}
-              </div>
+          <button
+            onClick={() => setPapfeModalOpen(true)}
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
+          >
+            {papfeDoc ? "Atualizar Comprovante PAPFE" : "Enviar Comprovante PAPFE"}
+          </button>
+          {papfeDoc && (
+            <div className="flex items-center justify-center gap-2 mb-8">
+              <PapfeStatusBadge status={papfeStatusOf(papfeDoc)} />
+              {papfeDoc.is_approved === false && papfeDoc.rejection_reason && (
+                <StatusEyeButton onClick={() => setReasonModal("papfe")} />
+              )}
             </div>
           )}
 
@@ -954,6 +1058,7 @@ export default function Profile({
   if (width >= 1280) {
     return (
       <div className="bg-semcompMidLightBlue text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite min-h-screen">
+        {cancelConfirmModal}
         <div
           className="relative overflow-hidden h-[calc(90vh-70px)] w-full flex flex-row justify-center items-center gap-10 font-poppins"
         >
@@ -1035,52 +1140,34 @@ export default function Profile({
             </div>
             <hr className="w-full border mt-3 mb-3 border-semcompAlmostDarkBlue dark:border-semcompOffWhite" />
             <div className="w-full flex flex-col gap-4">
-              {events && events.length > 0 ? (
-                events.map((evento, index) => {
+              {signinEvents.length > 0 ? (
+                signinEvents.map((evento, index) => {
                   const data = formatDate(evento.dateInit, 2);
                   const diaSemana = formatWeekDay(evento.dateInit);
+                  const subscription = getSubscription(evento);
+                  const key = `${evento.name}::${evento.dateInit}`;
 
                   return (
-                    <div
-                      key={index}
-                      className="flex flex-col justify-center items-center"
-                    >
+                    <div key={index} className="flex flex-col justify-center items-center">
                       <div
-                        className={`w-full flex flex-row justify-between items-center py-3 px-6 ${
-                          openSubscription === index
-                            ? "rounded-t-lg bg-black/15 shadow-inner"
-                            : "rounded-lg bg-black/5 hover:bg-black/10"
-                        } transition-all duration-300 cursor-pointer`}
-                        onClick={() =>
-                          setOpenSubscription(
-                            openSubscription === index ? -1 : index
-                          )
-                        }
+                        className={`w-full flex flex-row justify-between items-center py-3 px-6 ${openSubscription === index ? "rounded-t-lg bg-black/15 shadow-inner" : "rounded-lg bg-black/5 hover:bg-black/10"} transition-all duration-300 cursor-pointer`}
+                        onClick={() => setOpenSubscription(openSubscription === index ? -1 : index)}
                       >
                         <div className="w-1/2 flex flex-col text-left gap-1 items-start pr-4">
-                          <span className="font-bold text-lg shrink-0">
-                            {evento.type}
-                          </span>
-                          <span className="text-sm font-medium wrap-break-words flex-1 opacity-90">
-                            {evento.description}
-                          </span>
+                          <span className="font-bold text-lg shrink-0">{evento.type}</span>
+                          <span className="text-sm font-medium wrap-break-words flex-1 opacity-90">{evento.description}</span>
                         </div>
                         <div className="w-auto flex flex-col items-end shrink-0 gap-1">
                           <div className="flex flex-row gap-3 items-center">
-                            <span className="font-semibold text-md">
-                              {data}
-                            </span>
+                            <span className="font-semibold text-md">{data}</span>
                             <span className="text-xs px-3 py-1 font-bold rounded-full bg-semcompDarkBlue text-semcompOffWhite capitalize dark:bg-semcompOffWhite dark:text-semcompMidDarkBlue">
                               {diaSemana}
                             </span>
                           </div>
                           <span className="text-sm font-medium opacity-80 flex items-center gap-2">
-                            {formatTime(evento.dateInit)} às{" "}
-                            {formatTime(evento.dateEnd)}
+                            {formatTime(evento.dateInit)} às {formatTime(evento.dateEnd)}
                             <ChevronDown
-                              className={`transition-transform duration-300 ${
-                                openSubscription === index ? "rotate-180" : ""
-                              } text-black dark:text-white`}
+                              className={`transition-transform duration-300 ${openSubscription === index ? "rotate-180" : ""} text-black dark:text-white`}
                               size={20}
                             />
                           </span>
@@ -1088,18 +1175,34 @@ export default function Profile({
                       </div>
                       {openSubscription === index && (
                         <div className="w-full p-6 flex flex-row items-center justify-center rounded-b-lg border-t border-black/10 shadow-lg transition-all animate-in fade-in duration-300 bg-black/5 dark:bg-black/20">
-                          <button
-                            className="px-8 py-3 rounded-xl font-bold uppercase tracking-wide shadow-md hover:-translate-y-1 transition-all duration-300 bg-semcompDarkBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-semcompDarkBlue/40 dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white dark:hover:shadow-white/20"
-                            onClick={() =>
-                              evento.linkInscricao
-                                ? window.open(evento.linkInscricao, "_blank")
-                                : showNotification(
-                                    "Este evento ainda não está aberto para inscrições."
-                                  )
-                            }
-                          >
-                            Inscreva-se
-                          </button>
+                          {subscription ? (
+                            <div className="flex flex-col items-center gap-3">
+                              <span className={`text-lg font-bold ${
+                                subscription.status === "Inscrito"
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-yellow-600 dark:text-yellow-400"
+                              }`}>
+                                {subscription.status === "Inscrito"
+                                  ? "Você está inscrito"
+                                  : `Você está na lista de espera (${subscription.user_wait_list_position}ª posição)`}
+                              </span>
+                              <button
+                                className="px-6 py-2 rounded-xl font-bold text-sm uppercase tracking-wide shadow-sm hover:-translate-y-0.5 transition-all duration-300 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                                disabled={cancelingKey === key}
+                                onClick={() => setCancelConfirm({ eventName: evento.name, eventInitDate: evento.dateInit })}
+                              >
+                                {cancelingKey === key ? "Cancelando..." : "Desistir"}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              className="px-8 py-3 rounded-xl font-bold uppercase tracking-wide shadow-md hover:-translate-y-1 transition-all duration-300 bg-semcompDarkBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-semcompDarkBlue/40 dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white dark:hover:shadow-white/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                              disabled={signingInKey === key}
+                              onClick={() => handleSignin(evento.name, evento.dateInit)}
+                            >
+                              {signingInKey === key ? "Inscrevendo..." : "Inscrever-se"}
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1117,6 +1220,7 @@ export default function Profile({
           <ContatoSection />
         </div>
         <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
+        <PapfeUploadModal open={papfeModalOpen} onClose={() => setPapfeModalOpen(false)} onSubmitted={handlePapfeSubmitted} />
         <RejectionReasonModal
           open={reasonModal === "absence"}
           onClose={() => setReasonModal(null)}
@@ -1144,6 +1248,7 @@ export default function Profile({
         {qrAndAccountCard}
       </div>
       <JustifyAbsenceModal open={justifyOpen} onClose={() => setJustifyOpen(false)} onSubmitted={handleJustifySubmitted} />
+      <PapfeUploadModal open={papfeModalOpen} onClose={() => setPapfeModalOpen(false)} onSubmitted={handlePapfeSubmitted} />
       <RejectionReasonModal
         open={reasonModal === "absence"}
         onClose={() => setReasonModal(null)}

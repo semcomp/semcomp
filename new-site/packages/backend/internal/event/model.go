@@ -17,6 +17,8 @@ type Event struct {
 	Location          string                              `json:"location"`
 	Description       string                              `gorm:"type:text" json:"description"`
 	HasAttendance     bool                                `json:"has_attendance"`
+	HasSignin       bool      `gorm:"default:false" json:"has_signin"`
+	MaxParticipants uint      `gorm:"default:0" json:"max_participants"`
 }
 
 type CreateEventRequest struct {
@@ -29,6 +31,8 @@ type CreateEventRequest struct {
 	Description       string    `json:"description"`
 	HasAttendance     *bool     `json:"has_attendance"`
 	HasAttendanceSent bool      `json:"-"`
+	HasSignin       bool      `json:"has_signin"`
+	MaxParticipants uint      `json:"max_participants"`
 }
 
 type UpdateEventRequest struct {
@@ -41,6 +45,8 @@ type UpdateEventRequest struct {
 	Description       string    `json:"description"`
 	HasAttendance     *bool     `json:"has_attendance"`
 	HasAttendanceSent bool      `json:"-"`
+	HasSignin       bool      `json:"has_signin"`
+	MaxParticipants uint      `json:"max_participants"`
 }
 
 type EventListQuery struct {
