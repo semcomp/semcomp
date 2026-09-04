@@ -9,7 +9,6 @@ import { authAPI } from "@/api";
 import TermsModal from "@/components/TermsModal";
 import { getTerms } from "@/mock/terms";
 import { useNavigate } from "react-router";
-import fallbackLoginHero from "@/assets/img/Login/Palestra.avif";
 import { isValidEmail } from "@/utils/validateEmail";
 import FileUpload from "@/components/file-upload";
 
@@ -19,10 +18,9 @@ const FORGOT_COOLDOWN_SECONDS = 60;
 const _loginModules = import.meta.glob("/src/assets/img/Login/*", { eager: true }) as Record<string, { default: string }>;
 const LOGIN_IMAGES = Object.values(_loginModules)
     .map((m) => m.default as string)
-    .filter((s) => /\.(webp)$/i.test(s));
+    .filter((s) => /\.(png)$/i.test(s));
 
-const pickRandomLoginHero = () =>
-    LOGIN_IMAGES.length ? LOGIN_IMAGES[Math.floor(Math.random() * LOGIN_IMAGES.length)] : fallbackLoginHero;
+const pickRandomLoginHero = () => LOGIN_IMAGES[Math.floor(Math.random() * LOGIN_IMAGES.length)];
 
 export default function LoginPage(): ReactElement {
     const { isLogin, setIsLogin } = useSegmentedControl();
