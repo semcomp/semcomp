@@ -15,6 +15,178 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/absence-justifications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna todas as justificativas de ausência cadastradas",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Lista justificativas de ausência",
+                "responses": {
+                    "200": {
+                        "description": "Lista de justificativas de ausência",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/absence-justifications/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Aprova, rejeita, marca como documento inválido ou volta para análise uma justificativa de ausência. Ao negar, o campo rejection_reason é obrigatório e só persiste nesse status.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Atualiza o status de uma justificativa de ausência",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da justificativa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Novo status",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/absenceJustification.UpdateStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status atualizado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Justificativa não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/absence-justifications/{id}/attachment": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna o arquivo comprobatório de uma justificativa de ausência específica",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Obtém o anexo de uma justificativa de ausência",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da justificativa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Arquivo anexo",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Justificativa não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/admin/events": {
             "post": {
                 "security": [
@@ -283,6 +455,387 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/notices": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna uma lista paginada de avisos cadastrados no mural",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notice Backoffice"
+                ],
+                "summary": "Lista avisos",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Página atual",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limite de itens por página",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "date_time",
+                        "description": "Campo de ordenação",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "desc",
+                        "description": "Ordem (asc/desc)",
+                        "name": "sort_order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campo de busca",
+                        "name": "search_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Valor de busca",
+                        "name": "search_value",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de avisos paginada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetro inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cadastra um aviso no mural",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notice Backoffice"
+                ],
+                "summary": "Cria um novo aviso",
+                "parameters": [
+                    {
+                        "description": "Dados do aviso",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/notice.CreateNoticeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Aviso criado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/notices/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna os dados de um aviso específico",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notice Backoffice"
+                ],
+                "summary": "Busca aviso por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do aviso",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Aviso encontrado",
+                        "schema": {
+                            "$ref": "#/definitions/notice.Notice"
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetro 'id' inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Aviso não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Altera os dados de um aviso existente",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notice Backoffice"
+                ],
+                "summary": "Atualiza aviso",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do aviso",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados para atualização",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/notice.UpdateNoticeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Aviso atualizado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Aviso não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove um aviso do mural",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notice Backoffice"
+                ],
+                "summary": "Deleta aviso",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do aviso",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Aviso removido com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetro 'id' inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Aviso não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/papfe-documents": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna metadados de todos os comprovantes PAPFE cadastrados",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Lista comprovantes PAPFE",
+                "responses": {
+                    "200": {
+                        "description": "Lista de comprovantes PAPFE",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "500": {
@@ -682,6 +1235,241 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Permissão não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/presence-settings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna os tipos de evento e seus pesos de presença",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Presence Settings Backoffice"
+                ],
+                "summary": "Lista pesos de presença",
+                "responses": {
+                    "200": {
+                        "description": "Pesos listados com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/presencesettings.PresencesSettingsListResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Associa um tipo de evento a um peso de presença",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Presence Settings Backoffice"
+                ],
+                "summary": "Cria peso de presença",
+                "parameters": [
+                    {
+                        "description": "Dados do peso",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presencesettings.CreatePresenceTypeWeightRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Peso criado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Tipo já cadastrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/presence-settings/{typeName}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Altera o tipo e/ou o peso de presença de uma configuração identificada pelo nome do tipo",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Presence Settings Backoffice"
+                ],
+                "summary": "Atualiza peso de presença",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome atual do tipo de evento",
+                        "name": "typeName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Novos dados do peso",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/presencesettings.UpdatePresenceTypeWeightRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Peso atualizado com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Configuração não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Tipo já cadastrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove o peso associado a um tipo de evento; eventos desse tipo passam a valer 0",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Presence Settings Backoffice"
+                ],
+                "summary": "Remove peso de presença",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome do tipo de evento",
+                        "name": "typeName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Peso removido com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Configuração não encontrada",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1236,6 +2024,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/products/bulk": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cadastra múltiplos produtos atomicamente (todos ou nenhum)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product Backoffice"
+                ],
+                "summary": "Cria produtos em lote",
+                "parameters": [
+                    {
+                        "description": "Lista de produtos",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/product.BulkCreateProductsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Produtos criados com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/admin/products/{id}": {
             "get": {
                 "security": [
@@ -1444,6 +2290,486 @@ const docTemplate = `{
                         }
                     }
                 }
+            }
+        },
+        "/admin/sales": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna uma lista paginada com suporte a filtros e ordenação",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Backoffice Vendas"
+                ],
+                "summary": "Lista todas as vendas (Admin)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Página atual",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limite de itens por página",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "created_at",
+                        "description": "Campo de ordenação",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "desc",
+                        "description": "Ordem (asc/desc)",
+                        "name": "sort_order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campo de busca",
+                        "name": "search_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Valor de busca",
+                        "name": "search_value",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de vendas paginada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/sales/items/{itemId}/pickup": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Marca um produto (ex: Kit) como retirado ou não pelo participante",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Backoffice Vendas"
+                ],
+                "summary": "Atualiza o status de retirada de um item da venda",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do item da venda (SaleItem)",
+                        "name": "itemId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Status de retirada",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sales.UpdateSaleItemPickupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status atualizado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Item não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/sales/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Altera os dados de uma venda existente (ação geralmente administrativa)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Backoffice Vendas"
+                ],
+                "summary": "Atualiza status/dados de uma venda",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da venda",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados para atualização",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sales.UpdateSaleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Venda atualizada com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Venda não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove permanentemente uma venda do sistema e seus itens",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Backoffice Vendas"
+                ],
+                "summary": "Deleta uma venda",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da venda",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Venda removida com sucesso",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Venda não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/sponsors": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Lista todos os patrocinadores (admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Cria patrocinador (admin)",
+                "responses": {}
+            }
+        },
+        "/admin/sponsors/{cnpj}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Busca patrocinador por CNPJ (admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/sponsor.Sponsor"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Atualiza patrocinador (admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Remove patrocinador (admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/admin/sponsors/{cnpj}/packages": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Lista pacotes de patrocinador (admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filtrar por ano",
+                        "name": "year",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Adiciona pacote de patrocinador (admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/admin/sponsors/{cnpj}/packages/{year}/{package}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Sponsors Backoffice"
+                ],
+                "summary": "Remove pacote de patrocinador (admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Ano do pacote",
+                        "name": "year",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nome do pacote",
+                        "name": "package",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
             }
         },
         "/admin/users": {
@@ -1719,6 +3045,143 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Usuário não existe",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/users/{id}/papfe-document": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna o arquivo do comprovante PAPFE de um usuário específico",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Obtém comprovante PAPFE de um usuário",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do usuário",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Arquivo do comprovante PAPFE",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário ou comprovante não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/users/{id}/papfe-document/approval": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Altera o status de aprovação do comprovante PAPFE de um usuário. Ao rejeitar, o campo rejection_reason é obrigatório e só persiste nesse status.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Aprova/rejeita comprovante PAPFE",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID do usuário",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Status de aprovação",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.PapfeApprovalRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status de aprovação atualizado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário ou comprovante não encontrado",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2041,6 +3504,388 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/absence-justifications": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Registra a justificativa de ausência (referente à SEMCOMP como um todo) do usuário autenticado, com anexo comprobatório. Cada usuário só pode ter uma justificativa.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Envia a justificativa de ausência do usuário autenticado",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Motivo da ausência",
+                        "name": "reason",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Comprovante (PDF/JPEG/PNG/WebP, máx 10MB)",
+                        "name": "attachment",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Justificativa enviada com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Justificativa já enviada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/absence-justifications/mine": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna a justificativa de ausência enviada pelo usuário autenticado, se houver",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Obtém a justificativa de ausência do usuário autenticado",
+                "responses": {
+                    "200": {
+                        "description": "Justificativa do usuário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhuma justificativa enviada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/absence-justifications/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Edita o motivo e, opcionalmente, substitui o anexo da justificativa do usuário autenticado. Permitido apenas quando o status for \"em_analise\" ou \"documento_invalido\"; editar reenvia a justificativa para análise.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Atualiza a justificativa de ausência do usuário autenticado",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da justificativa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Motivo da ausência",
+                        "name": "reason",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Novo comprovante (opcional, substitui o anterior)",
+                        "name": "attachment",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Justificativa atualizada com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Justificativa não pertence ao usuário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Justificativa não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Justificativa já aprovada ou negada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/absence-justifications/{id}/attachment": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna o arquivo comprobatório da justificativa do usuário autenticado",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Justificativas de Ausência"
+                ],
+                "summary": "Obtém o anexo da própria justificativa de ausência",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da justificativa",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Arquivo anexo",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Justificativa não pertence ao usuário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Justificativa não encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/papfe-document": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna os metadados do comprovante PAPFE do usuário autenticado (sem os bytes do arquivo), incluindo o motivo da rejeição quando houver",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Obtém o próprio comprovante PAPFE",
+                "responses": {
+                    "200": {
+                        "description": "Comprovante PAPFE do usuário",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhum comprovante enviado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Atualiza o comprovante PAPFE do usuário autenticado. Aceita multipart/form-data.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuários (Participantes)"
+                ],
+                "summary": "Atualiza comprovante PAPFE",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Comprovante PAPFE (PDF/JPEG/PNG/WebP, máx 10MB)",
+                        "name": "papfe_document",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comprovante PAPFE atualizado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/profile": {
             "get": {
                 "security": [
@@ -2062,6 +3907,62 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Atualiza campos não-críticos do perfil: nome, cidade, profissão, LinkedIn e Telegram",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth Público"
+                ],
+                "summary": "Atualiza perfil do usuário autenticado",
+                "parameters": [
+                    {
+                        "description": "Dados a atualizar",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.UpdateProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Perfil atualizado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "500": {
@@ -2485,6 +4386,326 @@ const docTemplate = `{
                 }
             }
         },
+        "/sales": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Realiza o fechamento do pedido (carrinho); se payment_method\nfor \"pix\", a resposta inclui qr_code/qr_code_base64/pix_expiration.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendas"
+                ],
+                "summary": "Cria uma nova venda",
+                "parameters": [
+                    {
+                        "description": "Dados do pedido",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sales.CreateSaleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Pedido criado com sucesso!",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sales/consumed": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna os ids dos produtos de compra única que não podem mais\nser comprados pelo usuário (coffees e combos consumidos/reservados).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendas"
+                ],
+                "summary": "Produtos consumidos do usuário",
+                "responses": {
+                    "200": {
+                        "description": "Lista de ids consumidos",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sales/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna todos os pedidos feitos pelo usuário autenticado",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendas"
+                ],
+                "summary": "Histórico de vendas do usuário",
+                "responses": {
+                    "200": {
+                        "description": "Histórico recuperado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sales/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna dados de um pedido específico",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendas"
+                ],
+                "summary": "Detalhes da venda",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da venda",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalhes recuperados",
+                        "schema": {
+                            "$ref": "#/definitions/sales.Sale"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sales/{id}/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna o status atual de uma venda, considerando expiração de PIX pendente",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendas"
+                ],
+                "summary": "Status da venda (polling)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID da venda",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status atual",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Não encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sponsors": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sponsors"
+                ],
+                "summary": "Lista patrocinadores públicos",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/sponsor.PublicSponsor"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/sponsors/{cnpj}/click": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sponsors"
+                ],
+                "summary": "Registra clique em patrocinador",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CNPJ do patrocinador (14 dígitos)",
+                        "name": "cnpj",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/stats": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stats"
+                ],
+                "summary": "Retorna estatísticas do site",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer",
+                                "format": "int64"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/verify-email": {
             "post": {
                 "description": "Valida o token de verificação enviado por e-mail e ativa a conta",
@@ -2539,9 +4760,43 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/visit": {
+            "post": {
+                "tags": [
+                    "Stats"
+                ],
+                "summary": "Registra visita à home page",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "absenceJustification.UpdateStatusRequest": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "rejection_reason": {
+                    "description": "Obrigatório quando Status=\"negado\"; ignorado/limpo nos demais status.",
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "em_analise",
+                        "aprovado",
+                        "negado",
+                        "documento_invalido"
+                    ]
+                }
+            }
+        },
         "auth.LoginUserRequest": {
             "type": "object",
             "required": [
@@ -2601,6 +4856,9 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 200
                 },
+                "presence_type_weight_id": {
+                    "type": "integer"
+                },
                 "type": {
                     "type": "string",
                     "maxLength": 50
@@ -2628,7 +4886,13 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "presence_type_weight_id": {
+                    "type": "integer"
+                },
                 "type": {
+                    "type": "string"
+                },
+                "type_name": {
                     "type": "string"
                 }
             }
@@ -2660,9 +4924,69 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 200
                 },
+                "presence_type_weight_id": {
+                    "type": "integer"
+                },
                 "type": {
                     "type": "string",
                     "maxLength": 50
+                }
+            }
+        },
+        "notice.CreateNoticeRequest": {
+            "type": "object",
+            "required": [
+                "content",
+                "date_time",
+                "title"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "date_time": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 255
+                }
+            }
+        },
+        "notice.Notice": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "date_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "notice.UpdateNoticeRequest": {
+            "type": "object",
+            "required": [
+                "content",
+                "date_time",
+                "title"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "date_time": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 255
                 }
             }
         },
@@ -2772,6 +5096,91 @@ const docTemplate = `{
                 }
             }
         },
+        "presencesettings.CreatePresenceTypeWeightRequest": {
+            "type": "object",
+            "required": [
+                "type_name"
+            ],
+            "properties": {
+                "default_has_attendance": {
+                    "type": "boolean"
+                },
+                "type_name": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "weight": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            }
+        },
+        "presencesettings.PresenceTypeWeight": {
+            "type": "object",
+            "properties": {
+                "default_has_attendance": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "type_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
+        "presencesettings.PresencesSettingsListResult": {
+            "type": "object",
+            "properties": {
+                "weights": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/presencesettings.PresenceTypeWeight"
+                    }
+                }
+            }
+        },
+        "presencesettings.UpdatePresenceTypeWeightRequest": {
+            "type": "object",
+            "required": [
+                "type_name"
+            ],
+            "properties": {
+                "default_has_attendance": {
+                    "type": "boolean"
+                },
+                "type_name": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "weight": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            }
+        },
+        "product.BulkCreateProductsRequest": {
+            "type": "object",
+            "required": [
+                "products"
+            ],
+            "properties": {
+                "products": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/product.CreateProductRequest"
+                    }
+                }
+            }
+        },
         "product.Coffee": {
             "type": "object",
             "properties": {
@@ -2792,8 +5201,35 @@ const docTemplate = `{
                 "combo_id": {
                     "type": "integer"
                 },
+                "item": {
+                    "description": "Produto completo do item (permite Preload(\"ComboItems.Item\")).\nRESTRICT: não deixa apagar um produto que ainda está sendo usado dentro de um combo.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/product.Product"
+                        }
+                    ]
+                },
                 "item_id": {
                     "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "product.ComboItemRequest": {
+            "type": "object",
+            "required": [
+                "item_id",
+                "quantity"
+            ],
+            "properties": {
+                "item_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer",
+                    "minimum": 1
                 }
             }
         },
@@ -2825,7 +5261,7 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 50
                 },
-                "is_babydoll": {
+                "is_babylook": {
                     "type": "boolean"
                 },
                 "name": {
@@ -2848,17 +5284,26 @@ const docTemplate = `{
                 "coffee": {
                     "$ref": "#/definitions/product.CreateCoffeeRequest"
                 },
+                "description": {
+                    "type": "string"
+                },
                 "is_selling": {
                     "type": "boolean"
                 },
                 "items": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/product.ComboItemRequest"
                     }
                 },
                 "kit": {
                     "$ref": "#/definitions/product.CreateKitRequest"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "picture_url": {
+                    "type": "string"
                 },
                 "price": {
                     "type": "number"
@@ -2886,7 +5331,7 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "is_babydoll": {
+                "is_babylook": {
                     "type": "boolean"
                 },
                 "name": {
@@ -2909,6 +5354,13 @@ const docTemplate = `{
                         "$ref": "#/definitions/product.ComboItem"
                     }
                 },
+                "description": {
+                    "type": "string"
+                },
+                "discounted_price": {
+                    "description": "Preço com desconto PAPFE (50%); calculado em memória, não persistido.",
+                    "type": "number"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -2922,6 +5374,9 @@ const docTemplate = `{
                             "$ref": "#/definitions/product.Kit"
                         }
                     ]
+                },
+                "name": {
+                    "type": "string"
                 },
                 "picture_url": {
                     "type": "string"
@@ -2975,7 +5430,7 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 50
                 },
-                "is_babydoll": {
+                "is_babylook": {
                     "type": "boolean"
                 },
                 "name": {
@@ -2998,17 +5453,26 @@ const docTemplate = `{
                 "coffee": {
                     "$ref": "#/definitions/product.UpdateCoffeeRequest"
                 },
+                "description": {
+                    "type": "string"
+                },
                 "is_selling": {
                     "type": "boolean"
                 },
                 "items": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/product.ComboItemRequest"
                     }
                 },
                 "kit": {
                     "$ref": "#/definitions/product.UpdateKitRequest"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "picture_url": {
+                    "type": "string"
                 },
                 "price": {
                     "type": "number"
@@ -3024,6 +5488,291 @@ const docTemplate = `{
                             "$ref": "#/definitions/product.ProductType"
                         }
                     ]
+                }
+            }
+        },
+        "sales.CreateSaleItemRequest": {
+            "type": "object",
+            "required": [
+                "product_id",
+                "quantity"
+            ],
+            "properties": {
+                "kit_product_id": {
+                    "description": "KitProductID é obrigatório quando ProductID refere um COMBO: indica qual\nvariante de KIT (tamanho/cor/corte) o usuário selecionou dentro do combo.",
+                    "type": "integer"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "sales.CreateSaleRequest": {
+            "type": "object",
+            "required": [
+                "items",
+                "payment_method"
+            ],
+            "properties": {
+                "description": {
+                    "description": "Description é opcional e usada apenas na descrição da cobrança PIX no Mercado Pago.",
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "dietary_restrictions": {
+                    "type": "string",
+                    "maxLength": 1000
+                },
+                "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/sales.CreateSaleItemRequest"
+                    }
+                },
+                "payment_method": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "status": {
+                    "enum": [
+                        "PENDENTE",
+                        "PAGO",
+                        "REJEITADO",
+                        "CANCELADO",
+                        "REEMBOLSADO"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/sales.SaleStatus"
+                        }
+                    ]
+                }
+            }
+        },
+        "sales.Sale": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "dietary_restrictions": {
+                    "description": "DietaryRestrictions só faz sentido para vendas com produtos do tipo\nCOFFEE (direto ou via COMBO).",
+                    "type": "string"
+                },
+                "has_coffee_items": {
+                    "type": "boolean"
+                },
+                "has_kit_items": {
+                    "description": "Campos calculados (não persistidos): indicam se a venda envolve produtos\ndo tipo KIT e/ou COFFEE, considerando também itens dentro de um COMBO.\nPreenchidos por ComputeItemFlags() após o carregamento de Items/Product.",
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sales.SaleItem"
+                    }
+                },
+                "mercadopago_id": {
+                    "description": "MercadoPagoID substitui a antiga tabela ` + "`" + `payments` + "`" + `: só é preenchido\nquando PaymentMethod == \"pix\" (ou outro método processado via MP).",
+                    "type": "string"
+                },
+                "payment_method": {
+                    "type": "string"
+                },
+                "pix_expiration": {
+                    "description": "PixExpiration é transitório (não persistido): o front calcula a expiração\npela janela padrão de 30min a partir de CreatedAt quando o campo vem vazio.",
+                    "type": "string"
+                },
+                "qr_code": {
+                    "description": "QRCode (copia-e-cola) e QRCodeBase64 são persistidos na venda para permitir\nreabrir pagamentos PIX pendentes (ex: tela \"Ver pagamentos pendentes\").",
+                    "type": "string"
+                },
+                "qr_code_base64": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/sales.SaleStatus"
+                },
+                "total_amount": {
+                    "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/user.User"
+                },
+                "user_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "sales.SaleItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "is_picked_up": {
+                    "description": "Indica se o item (ex: KIT / Camiseta) já foi retirado presencialmente.",
+                    "type": "boolean"
+                },
+                "kit_product": {
+                    "$ref": "#/definitions/product.Product"
+                },
+                "kit_product_id": {
+                    "description": "KitProductID registra qual variante de KIT (tamanho/cor) o usuário escolheu\nquando o ProductID é um COMBO. Nullable: nulo para KITs e COFFEEs avulsos.",
+                    "type": "integer"
+                },
+                "product": {
+                    "$ref": "#/definitions/product.Product"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "sale_id": {
+                    "type": "integer"
+                },
+                "unit_price": {
+                    "type": "number"
+                }
+            }
+        },
+        "sales.SaleStatus": {
+            "type": "string",
+            "enum": [
+                "PENDENTE",
+                "PAGO",
+                "REJEITADO",
+                "CANCELADO",
+                "REEMBOLSADO",
+                "EXPIRADO"
+            ],
+            "x-enum-varnames": [
+                "SaleStatusPending",
+                "SaleStatusPaid",
+                "SaleStatusRejected",
+                "SaleStatusCanceled",
+                "SaleStatusRefunded",
+                "SaleStatusExpired"
+            ]
+        },
+        "sales.UpdateSaleItemPickupRequest": {
+            "type": "object",
+            "properties": {
+                "is_picked_up": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "sales.UpdateSaleRequest": {
+            "type": "object",
+            "properties": {
+                "dietary_restrictions": {
+                    "description": "Ponteiro para distinguir \"não enviado\" (nil → não altera) de \"enviado vazio\"\n(ptr para \"\" → limpa o campo no banco).",
+                    "type": "string",
+                    "maxLength": 1000
+                },
+                "payment_method": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "status": {
+                    "enum": [
+                        "PENDENTE",
+                        "PAGO",
+                        "REJEITADO",
+                        "CANCELADO",
+                        "REEMBOLSADO"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/sales.SaleStatus"
+                        }
+                    ]
+                }
+            }
+        },
+        "sponsor.PublicSponsor": {
+            "type": "object",
+            "properties": {
+                "cnpj": {
+                    "type": "string"
+                },
+                "logo": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "website": {
+                    "type": "string"
+                }
+            }
+        },
+        "sponsor.Sponsor": {
+            "type": "object",
+            "properties": {
+                "clicks": {
+                    "type": "integer"
+                },
+                "cnpj": {
+                    "type": "string"
+                },
+                "logo": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "packages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sponsor.SponsorPackage"
+                    }
+                },
+                "website": {
+                    "type": "string"
+                }
+            }
+        },
+        "sponsor.SponsorPackage": {
+            "type": "object",
+            "properties": {
+                "package": {
+                    "type": "string"
+                },
+                "sponsor_cnpj": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "user.PapfeApprovalRequest": {
+            "type": "object",
+            "required": [
+                "approved"
+            ],
+            "properties": {
+                "approved": {
+                    "type": "boolean"
+                },
+                "rejection_reason": {
+                    "description": "Obrigatório quando Approved=false (rejeição).",
+                    "type": "string"
                 }
             }
         },
@@ -3043,6 +5792,9 @@ const docTemplate = `{
             "properties": {
                 "age": {
                     "type": "integer"
+                },
+                "autoriza_compartilhamento": {
+                    "type": "boolean"
                 },
                 "city": {
                     "type": "string"
@@ -3077,10 +5829,37 @@ const docTemplate = `{
                 "profession": {
                     "type": "string"
                 },
+                "quer_cracha": {
+                    "type": "boolean"
+                },
                 "telegram": {
                     "type": "string"
                 },
                 "user_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.UpdateProfileRequest": {
+            "type": "object",
+            "required": [
+                "city",
+                "name"
+            ],
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "linkedin": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "profession": {
+                    "type": "string"
+                },
+                "telegram": {
                     "type": "string"
                 }
             }
@@ -3099,6 +5878,9 @@ const docTemplate = `{
             "properties": {
                 "age": {
                     "type": "integer"
+                },
+                "autoriza_compartilhamento": {
+                    "type": "boolean"
                 },
                 "city": {
                     "type": "string"
@@ -3127,7 +5909,81 @@ const docTemplate = `{
                 "profession": {
                     "type": "string"
                 },
+                "quer_cracha": {
+                    "type": "boolean"
+                },
                 "telegram": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.User": {
+            "type": "object",
+            "properties": {
+                "age": {
+                    "type": "integer"
+                },
+                "autoriza_compartilhamento": {
+                    "type": "boolean"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "disabilities": {
+                    "type": "string"
+                },
+                "education": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "email_verified": {
+                    "type": "boolean"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "hasPapfe": {
+                    "type": "boolean"
+                },
+                "linkedin": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "passwordHash": {
+                    "type": "string"
+                },
+                "presence_rate": {
+                    "type": "number"
+                },
+                "profession": {
+                    "type": "string"
+                },
+                "quer_cracha": {
+                    "type": "boolean"
+                },
+                "telegram": {
+                    "type": "string"
+                },
+                "user_number": {
+                    "type": "integer"
+                },
+                "verificationSendCount": {
+                    "type": "integer"
+                },
+                "verificationSentAt": {
+                    "type": "string"
+                },
+                "verificationTokenExpiresAt": {
+                    "type": "string"
+                },
+                "verificationTokenHash": {
+                    "type": "string"
+                },
+                "verificationWindowStartAt": {
                     "type": "string"
                 }
             }

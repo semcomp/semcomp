@@ -9,11 +9,16 @@ import QRCodeReader from "@/pages/Events/QRCodeReader";
 import SemcompUsersCRUD from "@/pages/UserSemcomp";
 import BackofficeUsersCRUD from "@/pages/UserBackoffice";
 import ParticipationCRUD from "@/pages/Participation";
+import ProductsCRUD from "@/pages/Products";
 import PermissionsCRUD from "@/pages/Permission";
 import PagesAvailability from "@/pages/PagesAvailability";
+import PresenceSettings from "@/pages/PresenceSettings";
 import SponsorsCRUD from "@/pages/Sponsors";
+import SalesCRUD from "@/pages/Sales";
 import PapfeDocuments from "@/pages/PapfeDocuments";
 import EventRegistration from "@/pages/EventRegistration";
+import NoticesCRUD from "@/pages/Notices"
+import AbsenceJustifications from "@/pages/AbsenceJustifications";
 import NotFoundPage from "@/pages/NotFound";
 
 export const router = createBrowserRouter(
@@ -57,6 +62,14 @@ export const router = createBrowserRouter(
               children: [{ path: "/participation", element: <ParticipationCRUD /> }],
             },
             {
+              element: <RequirePermission section="Configurações Presença" />,
+              children: [{ path: "/presence-settings", element: <PresenceSettings /> }],
+            },
+            {
+              element: <RequirePermission section="Produtos" />,
+              children: [{ path: "/products", element: <ProductsCRUD /> }],
+            },
+            {
               element: <RequirePermission section="Permissões" />,
               children: [{ path: "/permissions", element: <PermissionsCRUD /> }],
             },
@@ -69,12 +82,24 @@ export const router = createBrowserRouter(
               children: [{ path: "/sponsors", element: <SponsorsCRUD /> }],
             },
             {
+              element: <RequirePermission section="Vendas" />,
+              children: [{ path: "/sales", element: <SalesCRUD /> }],
+            },
+            {
               element: <RequirePermission section="PAPFE" />,
               children: [{ path: "/papfe-documents", element: <PapfeDocuments /> }],
             },
             {
               element: <RequirePermission section="Inscrições" />,
               children: [{ path: "/event-registration", element: <EventRegistration /> }],
+            },
+            {
+              element: <RequirePermission section="Avisos" />,
+              children: [{ path: "/notices", element: <NoticesCRUD /> }],
+            },
+            {
+              element: <RequirePermission section="Justificativas de Ausência" />,
+              children: [{ path: "/absence-justifications", element: <AbsenceJustifications /> }],
             },
             {
               path: "*",

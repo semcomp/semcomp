@@ -56,6 +56,8 @@ Prop `canWrite?: boolean` (default `true`):
 | `pages/UserSemcomp/index.tsx` | `"Usuários Semcomp"` |
 | `pages/Participation/index.tsx` | `"Participações"` |
 | `pages/Permission/index.tsx` | matrix customizada (não usa CrudTable) |
+| `pages/Sponsors/index.tsx` | `"Patrocinadores"` |
+| `pages/PapfeDocuments/index.tsx` | `"PAPFE"` (usa CrudTable + Dialog de visualização) |
 
 ---
 
@@ -72,8 +74,10 @@ Arquivo: `src/constants/Tabs.tsx`
 | `participation` | `"Participações"` | Participações | `/participation` |
 | `permissions` | `"Permissões"` | Permissões | `/permissions` |
 | `pages-availability` | `"Páginas"` | Páginas | `/pages-availability` |
+| `sponsors` | `"Patrocinadores"` | Patrocinadores | `/sponsors` |
+| `papfe` | `"PAPFE"` | PAPFE | `/papfe-documents` |
 
-> `"Produtos"` existe no `KnownSections` do backend mas **não tem tab no backoffice** — sem UI de gerenciamento por enquanto.  
+> `"Produtos"` e `"Inscrições"` existem no `KnownSections` do backend mas **não têm tab no backoffice** — sem UI de gerenciamento.  
 > O campo `section` em Tabs **deve estar em sync** com `KnownSections` em `backend/internal/permission/model.go`.
 
 ---
@@ -99,6 +103,8 @@ Arquivo: `src/api/index.ts`
 | `userSemcompAPI` | `api/users.ts` | CRUD `/admin/users` |
 | `permissionsAPI` | `api/permissions.ts` | `getAll`, `getMe`, `create`, `update`, `remove` |
 | `pagesAPI` | `api/pages.ts` | `getAll`, `setAvailability` |
+| `sponsorsAPI` | `api/sponsors.ts` | CRUD `/admin/sponsors` + packages; multipart upload |
 | `client` | `api/client.ts` | instância Axios |
 
-> `userSemcompAPI` (não `usersAPI`) é o nome correto para CRUD de participantes.
+> `userSemcompAPI` (não `usersAPI`) é o nome correto para CRUD de participantes.  
+> `papfeAPI` é importado **diretamente** de `api/users.ts` pela página `PapfeDocuments` — não está no barrel.

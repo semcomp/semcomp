@@ -31,6 +31,10 @@ Storage key: `semcomp-site-token`
 | GET | `/events` | `pageMW(cronograma)` | `eventsAPI.getAllEvents` |
 | GET | `/event/:name/:initDate` | `pageMW(cronograma)` | `eventsAPI.getEventByNameAndDate` |
 | GET | `/products` | — | `productsAPI.getAllProducts` |
+| GET | `/sponsors` | — | `sponsorsAPI.getSponsors` (em `api/sponsors.ts`) |
+| POST | `/sponsors/:cnpj/click` | — | `sponsorsAPI.recordClick(cnpj)` |
+| POST | `/visit` | — | (chamado na Home) |
+| GET | `/stats` | — | (chamado na Home) |
 | GET | `/pages/availability` | — | `pagesAPI.getAllAvailability` |
 | GET | `/pages/:page/availability` | — | — |
 | POST | `/webhook/mercadopago` | — | — (backend only) |
@@ -66,3 +70,5 @@ Importados diretamente pelas páginas (não pelo barrel):
 - `productsAPI` → `@/api/products`
 - `paymentAPI` → `@/api/payment`
 - `pagesAPI` → `@/api/pages`
+- `signinEventsAPI` → `@/api/signinEvents` (usado em `pages/Profile`)
+- `sponsorsAPI` → `@/api/sponsors` (usado em `pages/Home/sections/PatrocinadoresSection`)

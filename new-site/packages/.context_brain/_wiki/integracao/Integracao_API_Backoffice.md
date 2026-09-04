@@ -78,6 +78,34 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 | PUT | `/admin/products/:id` |
 | DELETE | `/admin/products/:id` |
 
+### Inscrições (`"Inscrições"`) — sem tab no backoffice (CRUD via API)
+| Método | Path | Handler TS |
+|---|---|---|
+| GET | `/admin/signin-events` | — |
+| GET | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | — |
+| POST | `/admin/signin-events` | — |
+| PUT | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | — |
+| DELETE | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | — |
+
+### Patrocinadores (`"Patrocinadores"`)
+| Método | Path | Handler TS |
+|---|---|---|
+| GET | `/admin/sponsors` | `sponsorsAPI.getAll(page, ...)` |
+| GET | `/admin/sponsors/:cnpj` | `sponsorsAPI.getByCNPJ(cnpj)` |
+| POST | `/admin/sponsors` | `sponsorsAPI.create(formData)` — multipart |
+| PUT | `/admin/sponsors/:cnpj` | `sponsorsAPI.update(cnpj, formData)` — multipart |
+| DELETE | `/admin/sponsors/:cnpj` | `sponsorsAPI.delete(cnpj)` |
+| GET | `/admin/sponsors/:cnpj/packages` | `sponsorsAPI.getPackages(cnpj, year?)` |
+| POST | `/admin/sponsors/:cnpj/packages` | `sponsorsAPI.addPackage(cnpj, year, pkg)` |
+| DELETE | `/admin/sponsors/:cnpj/packages/:year/:package` | `sponsorsAPI.removePackage(cnpj, year, pkg)` |
+
+### PAPFE (`"PAPFE"`)
+| Método | Path | Handler TS |
+|---|---|---|
+| GET | `/admin/papfe-documents` | `papfeAPI.getAll()` (de `api/users.ts`) |
+| GET | `/admin/users/:id/papfe-document` | `papfeAPI.getDocument(id)` |
+| PUT | `/admin/users/:id/papfe-document/approval` | `papfeAPI.approve(id, bool)` |
+
 ### Permissões (`"Permissões"`)
 | Método | Path | Guard extra | Handler TS |
 |---|---|---|---|
@@ -125,4 +153,6 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 ---
 
 ## API Barrel (Backoffice)
-Arquivo: `src/api/index.ts` — exporta: `authAPI`, `userBackofficeAPI`, `userSemcompAPI`, `eventsAPI`, `participationAPI`, `permissionsAPI`, `pagesAPI`, `client`
+Arquivo: `src/api/index.ts` — exporta: `authAPI`, `userBackofficeAPI`, `userSemcompAPI`, `eventsAPI`, `sectionsAPI`, `participationAPI`, `permissionsAPI`, `pagesAPI`, `sponsorsAPI`, `client`
+
+> `papfeAPI` é exportado diretamente de `api/users.ts` (não está no barrel).

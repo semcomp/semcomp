@@ -5,24 +5,30 @@ import "time"
 type ProductType string
 
 const (
-	ProductTypeKit   ProductType = "KIT"
+	ProductTypeKit    ProductType = "KIT"
 	ProductTypeCoffee ProductType = "COFFEE"
-	ProductTypeCombo ProductType = "COMBO"
+	ProductTypeCombo  ProductType = "COMBO"
 )
 
 // Product é a entidade base de um produto
 type Product struct {
 	ID         uint        `gorm:"primaryKey;autoIncrement" json:"id"`
-	Type       ProductType `gorm:"size:10;not null" json:"type"`
-	IsSelling  bool        `gorm:"not null" json:"is_selling"`
-	Price      float64     `gorm:"not null" json:"price"`
-	PictureURL string      `gorm:"size:255" json:"picture_url"`
+
+	Type        ProductType `gorm:"size:10;not null" json:"type"`
+	Name        string      `gorm:"size:200" json:"name"`
+	IsSelling   bool        `gorm:"not null" json:"is_selling"`
+	Price       float64     `gorm:"not null" json:"price"`
+	PictureURL  string      `gorm:"size:255" json:"picture_url"`
+	Description string      `gorm:"type:text" json:"description"`
+
+	// Preço com desconto PAPFE (50%); calculado em memória, não persistido.
+	DiscountedPrice *float64 `gorm:"-" json:"discounted_price,omitempty"`
 
 	// Relacionamentos (preload)
 	// li que é uma boa prática usar isso aqui
 	Kit        *Kit        `gorm:"foreignKey:ID;constraint:OnDelete:CASCADE" json:"kit,omitempty"`
 	Coffee     *Coffee     `gorm:"foreignKey:ID;constraint:OnDelete:CASCADE" json:"coffee,omitempty"`
-	ComboItems []ComboItem `gorm:"foreignKey:ComboID;constraint:OnDelete:CASCADE" json:"combo_items,omitempty"`
+	ComboItems []ComboItem `gorm:"foreignKey:ComboID;references:ID;constraint:OnDelete:CASCADE" json:"combo_items,omitempty"`
 }
 
 // Kit é uma especialização de Product (tipo KIT)
@@ -33,7 +39,7 @@ type Kit struct {
 	Name       string `gorm:"size:200;not null" json:"name"`
 	Size       string `gorm:"size:50;not null" json:"size"`
 	Color      string `gorm:"size:50;not null" json:"color"`
-	IsBabydoll bool   `gorm:"not null" json:"is_babydoll"`
+	IsBabylook bool   `gorm:"not null" json:"is_babylook"`
 }
 
 // Coffee é uma especialização de Product (tipo COFFEE)
@@ -43,19 +49,25 @@ type Coffee struct {
 	DateTime time.Time `gorm:"type:timestamptz;not null" json:"date_time"`
 }
 
-// ComboItem representa a relação N:M entre um combo e seus itens
+// ComboItem representa a relação N:M entre um combo e os produtos que o compõem.
+// ComboID e ItemID apontam para Product (self-referencing).
 type ComboItem struct {
-	ComboID uint `gorm:"primaryKey;not null" json:"combo_id"`
-	ItemID  uint `gorm:"primaryKey;not null" json:"item_id"`
+	ComboID  uint `gorm:"primaryKey;not null" json:"combo_id"`
+	ItemID   uint `gorm:"primaryKey;not null" json:"item_id"`
+	Quantity int  `gorm:"not null;default:1" json:"quantity"`
+
+	// Produto completo do item (permite Preload("ComboItems.Item")).
+	// RESTRICT: não deixa apagar um produto que ainda está sendo usado dentro de um combo.
+	Item *Product `gorm:"foreignKey:ItemID;references:ID;constraint:OnDelete:RESTRICT" json:"item,omitempty"`
 }
 
 // DTOs de Requisição ---------
 
 type CreateKitRequest struct {
-	Name       string `json:"name" binding:"required,max=200"`
-	Size       string `json:"size" binding:"required,max=50"`
-	Color      string `json:"color" binding:"required,max=50"`
-	IsBabydoll bool   `json:"is_babydoll"`
+	Name         string `json:"name" binding:"required,max=200"`
+	Size         string `json:"size" binding:"required,max=50"`
+	Color        string `json:"color" binding:"required,max=50"`
+	IsBabylook   bool   `json:"is_babylook"`
 }
 
 type CreateCoffeeRequest struct {
@@ -63,20 +75,29 @@ type CreateCoffeeRequest struct {
 	DateTime time.Time `json:"date_time" binding:"required"`
 }
 
+// ComboItemRequest representa um item dentro de um combo, com a quantidade desejada.
+type ComboItemRequest struct {
+	ItemID   uint `json:"item_id" binding:"required"`
+	Quantity int  `json:"quantity" binding:"required,min=1"`
+}
+
 type CreateProductRequest struct {
-	Type      ProductType          `json:"type" binding:"required,oneof=KIT COFFEE COMBO"`
-	IsSelling bool                 `json:"is_selling"`
-	Price     float64              `json:"price" binding:"required,gt=0"`
-	Kit       *CreateKitRequest    `json:"kit,omitempty"`
-	Coffee    *CreateCoffeeRequest `json:"coffee,omitempty"`
-	Items     []uint               `json:"items,omitempty"`
+	Type        ProductType          `json:"type" binding:"required,oneof=KIT COFFEE COMBO"`
+	Name        string               `json:"name"`
+	IsSelling   bool                 `json:"is_selling"`
+	Price       float64              `json:"price" binding:"required,gt=0"`
+	PictureURL  string               `json:"picture_url"`
+	Description string               `json:"description"`
+	Kit         *CreateKitRequest    `json:"kit,omitempty"`
+	Coffee      *CreateCoffeeRequest `json:"coffee,omitempty"`
+	Items       []ComboItemRequest   `json:"items,omitempty"`
 }
 
 type UpdateKitRequest struct {
-	Name       string `json:"name" binding:"required,max=200"`
-	Size       string `json:"size" binding:"required,max=50"`
-	Color      string `json:"color" binding:"required,max=50"`
-	IsBabydoll bool   `json:"is_babydoll"`
+	Name         string `json:"name" binding:"required,max=200"`
+	Size         string `json:"size" binding:"required,max=50"`
+	Color        string `json:"color" binding:"required,max=50"`
+	IsBabylook   bool   `json:"is_babylook"`
 }
 
 type UpdateCoffeeRequest struct {
@@ -85,12 +106,15 @@ type UpdateCoffeeRequest struct {
 }
 
 type UpdateProductRequest struct {
-	Type      ProductType          `json:"type" binding:"required,oneof=KIT COFFEE COMBO"`
-	IsSelling bool                 `json:"is_selling"`
-	Price     float64              `json:"price" binding:"required,gt=0"`
-	Kit       *UpdateKitRequest    `json:"kit,omitempty"`
-	Coffee    *UpdateCoffeeRequest `json:"coffee,omitempty"`
-	Items     []uint               `json:"items,omitempty"`
+	Type        ProductType          `json:"type" binding:"required,oneof=KIT COFFEE COMBO"`
+	Name        string               `json:"name"`
+	IsSelling   bool                 `json:"is_selling"`
+	Price       float64              `json:"price" binding:"required,gt=0"`
+	PictureURL  string               `json:"picture_url"`
+	Description string               `json:"description"`
+	Kit         *UpdateKitRequest    `json:"kit,omitempty"`
+	Coffee      *UpdateCoffeeRequest `json:"coffee,omitempty"`
+	Items       []ComboItemRequest   `json:"items,omitempty"`
 }
 
 // DTOs de Listagem ---------
@@ -102,10 +126,15 @@ type ProductListQuery struct {
 	SortOrder   string
 	SearchBy    string
 	SearchValue string
+	TypeFilter  string
 }
 
 type ProductListResult struct {
 	Products        []Product `json:"products"`
 	TotalRecords    int64     `json:"total_records"`
 	FilteredRecords int64     `json:"filtered_records"`
+}
+
+type BulkCreateProductsRequest struct {
+	Products []CreateProductRequest `json:"products" binding:"required,min=1,max=100"`
 }

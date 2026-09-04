@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -25,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -40,13 +41,21 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  ExternalLink,
 } from "lucide-react";
+
+// ─── Interfaces ───────────────────────────────────────────────────────────────
 
 export interface CrudField {
   value: string;
+  /** Coluna real usada para ordenação quando `value` é um campo de exibição
+   *  (ex.: "total_amount_formatted" ordena por "total_amount"). */
+  sortValue?: string;
   label: string;
   type?:
     | "text"
+    | "url"
+    | "textarea"
     | "select"
     | "date"
     | "number"
@@ -54,8 +63,11 @@ export interface CrudField {
     | "boolean"
     | "file";
   selectVariants?: Record<string, string>;
+  selectLabels?: Record<string, string>;
   multiValueOptions?: string[];
+  readOnly?: boolean;
   accept?: string;
+  /** Hides the field in the form unless formData[field] === value */
   showWhen?: { field: string; value: unknown };
   /** Quando true, o campo é exibido no dialog mas não pode ser editado */
   readonly?: boolean;
@@ -76,27 +88,139 @@ export interface CrudTableProps {
   onEdit: (item: CrudItemType, itemKey: string) => void;
   onDelete: (id: string) => void;
   onCreate?: (item: CrudItemType) => void;
-  /** Quando false, oculta os botões de criar, editar e excluir */
+  /** When false, hides create/edit/delete buttons */
   canWrite?: boolean;
   onAction?: (item: CrudItemType, itemKey: string) => void;
   getItemKey?: (item: CrudItemType) => string;
   entityLabel?: string;
   defaultPageSize?: number;
-  /** Ativa modo server-side: filtragem/sort/paginação são delegados ao pai */
-  serverSide?: boolean;
-  /** Total de registros no servidor (usado para calcular páginas no modo server-side) */
+  /** Total records on the server (used to calculate page count) */
   totalRecords?: number;
-  /** Callback chamado sempre que page, pageSize, sort ou filtro mudam (modo server-side) */
+  /** Called whenever page, pageSize, sort or filter changes */
   onQueryChange?: (params: CrudQueryParams) => void;
-  /** Quando fornecido, substitui o comportamento padrão do botão de editar (não abre o dialog interno) */
+  /** Overrides the default edit button behavior (skips the internal dialog) */
   onEditClick?: (item: CrudItemType, itemKey: string) => void;
-  /** Ícone customizado para o botão de ação (padrão: ScanQrCode) */
+  /** Custom icon for the action button (default: ScanQrCode) */
   actionIcon?: React.ReactNode;
-  /** Tooltip do botão de ação (padrão: "Coletar presença") */
+  /** Tooltip for the action button */
   actionTitle?: string;
+  /** Called when a form field value changes. Receives the field name, new value, and full form data. Can return field overrides to apply. */
+  onFieldChange?: (fieldName: string, value: unknown, formData: Record<string, unknown>) => Record<string, unknown> | void;
 }
 
+type FormValue = string | string[] | boolean | File | null;
+
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100, 200];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function normalizeToStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map((v) => String(v));
+  if (typeof value === "string")
+    return value
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+  return [];
+}
+
+function formatForCompare(value: unknown): string {
+  if (Array.isArray(value)) return value.map((v) => String(v)).join(", ");
+  return String(value ?? "");
+}
+
+function formatDateForInput(val: unknown): string {
+  if (!val || typeof val !== "string") return "";
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return val;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// ─── FilterControl ─────────────────────────────────────────────────────────────
+
+// Type-aware filter: boolean → Sim/Não select, select+variants → variant select, others → text input.
+function FilterControl({
+  activeField,
+  filter,
+  onChange,
+}: {
+  activeField: CrudField | undefined;
+  filter: string;
+  onChange: (v: string) => void;
+}) {
+  const triggerCls = "flex-1 bg-muted/40 border-muted/30 text-foreground text-sm";
+  const itemCls = "text-primary focus:bg-muted/50 cursor-pointer";
+
+  if (activeField?.type === "boolean") {
+    return (
+      <Select
+        value={filter || "__all__"}
+        onValueChange={(v) => onChange(v === "__all__" ? "" : v)}
+      >
+        <SelectTrigger className={triggerCls}>
+          <SelectValue placeholder="Todos" />
+        </SelectTrigger>
+        <SelectContent
+          position="popper"
+          sideOffset={4}
+          className="bg-white border-muted/30 shadow-md"
+        >
+          <SelectItem value="__all__" className={itemCls}>Todos</SelectItem>
+          <SelectItem value="true" className={itemCls}>Sim</SelectItem>
+          <SelectItem value="false" className={itemCls}>Não</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+  }
+
+  if (activeField?.type === "select" && activeField.selectVariants) {
+    return (
+      <Select
+        value={filter || "__all__"}
+        onValueChange={(v) => onChange(v === "__all__" ? "" : v)}
+      >
+        <SelectTrigger className={triggerCls}>
+          <SelectValue placeholder="Todos" />
+        </SelectTrigger>
+        <SelectContent
+          position="popper"
+          sideOffset={4}
+          className="bg-white border-muted/30 shadow-md"
+        >
+          <SelectItem value="__all__" className={itemCls}>Todos</SelectItem>
+          {Object.keys(activeField.selectVariants).map((v) => (
+            <SelectItem key={v} value={v} className={itemCls}>
+              {v}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  }
+
+  return (
+    <div className="relative flex-1">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+      <Input
+        placeholder={`Filtrar por ${activeField?.label ?? "campo"}…`}
+        value={filter}
+        onChange={(e) => onChange(e.target.value)}
+        className="pl-9 bg-muted/40 border-muted/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
+      />
+      {filter && (
+        <button
+          onClick={() => onChange("")}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── CrudTable ────────────────────────────────────────────────────────────────
 
 export function CrudTable({
   data,
@@ -107,18 +231,25 @@ export function CrudTable({
   onAction,
   onEditClick,
   actionIcon,
-  actionTitle = "Coletar presença",
+  actionTitle,
   getItemKey,
   entityLabel = "item",
   defaultPageSize = 10,
-  serverSide = false,
   totalRecords,
   onQueryChange,
   canWrite = true,
+  onFieldChange,
 }: CrudTableProps) {
+  // Fields that make sense as filter targets (files cannot be text-searched)
+  const filterableFields = fields.filter((f) => f.type !== "file");
+
   const [filter, setFilter] = useState("");
-  const [filterField, setFilterField] = useState(fields[0]?.value ?? "name");
-  const [sortField, setSortField] = useState(fields[0]?.value ?? "name");
+  const [filterField, setFilterField] = useState(
+    filterableFields[0]?.value ?? "name"
+  );
+  const [sortField, setSortField] = useState(
+    fields[0]?.sortValue ?? fields[0]?.value ?? "name"
+  );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(defaultPageSize);
@@ -128,49 +259,48 @@ export function CrudTable({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CrudItemType | null>(null);
   const [selectedItemKey, setSelectedItemKey] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  type FormValue = string | string[] | boolean | File | null;
   const [formData, setFormData] = useState<Record<string, FormValue>>({});
 
-  // Helpers para multivalue
-  const normalizeToStringArray = (value: unknown): string[] => {
-    if (Array.isArray(value)) return value.map((v) => String(v));
-    if (typeof value === "string") {
-      return value
-        .split(",")
-        .map((v) => v.trim())
-        .filter(Boolean);
-    }
-    return [];
-  };
-
-  const formatForCompare = (value: unknown): string => {
-    if (Array.isArray(value)) return value.map((v) => String(v)).join(", ");
-    return String(value ?? "");
-  };
+  // Linhas com texto longo expandidas por clique (chave: resolveItemKey(item)).
+  // Ao contrário da versão anterior (expandedCells), o toggle é por linha inteira.
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const resolveItemKey = (item: CrudItemType): string => {
     if (getItemKey) return getItemKey(item);
-
     const id = (item as Record<string, unknown>)["id"];
     if (typeof id === "string" && id.trim()) return id;
-
     const fieldKey = fields
       .map((field) =>
-        formatForCompare((item as Record<string, unknown>)[field.value]).trim()
+        formatForCompare(
+          (item as Record<string, unknown>)[field.value]
+        ).trim()
       )
       .filter(Boolean)
       .join("|");
-
     return fieldKey || JSON.stringify(item);
   };
 
-  // formata a hora vinda do GET do backend para deixar como valor no input
-  const formatDateForInput = (val: unknown): string => {
-    if (!val || typeof val !== "string") return "";
-    const d = new Date(val);
-    if (isNaN(d.getTime())) return val;
-    return d.toISOString().slice(0, 16);
+  // Indica se a linha tem célula de texto longo (textarea >120 ou string >40),
+  // o que habilita o toggle de expandir/recolher ao clicar na linha.
+  const rowHasExpandableContent = (item: CrudItemType): boolean => {
+    return fields.some((field) => {
+      if (field.type === "url") return false; // URL tem truncate próprio
+      const raw = (item as Record<string, unknown>)[field.value];
+      const val = String(raw ?? "");
+      if (field.type === "textarea") return val.length > 120;
+      return val.length > 40;
+    });
+  };
+
+  const toggleRowExpanded = (rowKey: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(rowKey)) next.delete(rowKey);
+      else next.add(rowKey);
+      return next;
+    });
   };
 
   const toggleMultiValue = (fieldValue: string, option: string) => {
@@ -184,9 +314,8 @@ export function CrudTable({
     });
   };
 
-  // Notifica o pai quando qualquer parâmetro de query muda (modo server-side)
   useEffect(() => {
-    if (!serverSide || !onQueryChange) return;
+    if (!onQueryChange) return;
     onQueryChange({
       page,
       pageSize,
@@ -218,60 +347,13 @@ export function CrudTable({
     setPage(1);
   };
 
-  // Modo local: filtra e ordena no cliente
-  const filteredAll = useMemo(() => {
-    if (serverSide) return data; // server já entregou os dados corretos
-    let result = [...data];
-    if (filter.trim()) {
-      result = result.filter((item) => {
-        const val = formatForCompare(
-          (item as Record<string, unknown>)[filterField]
-        ).toLowerCase();
-        return val.includes(filter.toLowerCase());
-      });
-    }
-    result.sort((a, b) => {
-      const aVal = (a as any)[sortField];
-      const bVal = (b as any)[sortField];
+  const activeFilterField = filterableFields.find(
+    (f) => f.value === filterField
+  );
 
-      const direction = sortOrder === "asc" ? 1 : -1;
-
-      // tenta número
-      if (typeof aVal === "number" && typeof bVal === "number") {
-        const numA = Number(String(aVal).replace(/[^0-9.-]+/g, ""));
-        const numB = Number(String(bVal).replace(/[^0-9.-]+/g, ""));
-        if (!Number.isNaN(numA) && !Number.isNaN(numB)) {
-          return (numA - numB) * direction;
-        }
-      }
-
-      // tenta data
-      if (aVal instanceof Date && bVal instanceof Date) {
-        return (aVal.getTime() - bVal.getTime()) * direction;
-      }
-
-      // fallback string
-      return (
-        formatForCompare(aVal).localeCompare(formatForCompare(bVal), "pt-BR", {
-          numeric: true,
-        }) * direction
-      );
-    });
-    return result;
-  }, [data, filter, filterField, sortField, sortOrder, serverSide]);
-
-  // No modo server-side o total vem do backend; no local é o array filtrado
-  const effectiveTotal = serverSide
-    ? totalRecords ?? data.length
-    : filteredAll.length;
+  const effectiveTotal = totalRecords ?? data.length;
   const totalPages = Math.max(1, Math.ceil(effectiveTotal / pageSize));
   const safePage = Math.min(page, totalPages);
-
-  const paginated = useMemo(() => {
-    if (serverSide) return data; // backend já paginiu
-    const start = (safePage - 1) * pageSize;
-    return filteredAll.slice(start, start + pageSize);
-  }, [filteredAll, safePage, pageSize, serverSide, data]);
 
   const openEdit = (item: CrudItemType) => {
     setSelectedItem(item);
@@ -281,8 +363,9 @@ export function CrudTable({
       if (f.readonly) return;
       const raw = (item as Record<string, unknown>)[f.value];
       if (f.type === "multivalue") fd[f.value] = normalizeToStringArray(raw);
-      else if (f.type === "boolean") fd[f.value] = Boolean(raw);
+      else if (f.type === "boolean") fd[f.value] = raw === true || raw === "true";
       else if (f.type === "date") fd[f.value] = formatDateForInput(raw);
+      else if (f.type === "select" && (raw == null || raw === "")) fd[f.value] = "__none__";
       else fd[f.value] = String(raw ?? "");
     });
     setFormData(fd);
@@ -316,7 +399,9 @@ export function CrudTable({
 
   const SortIcon = ({ field }: { field: string }) => {
     if (sortField !== field)
-      return <ChevronsUpDown className="inline ml-1 w-3.5 h-3.5 opacity-30" />;
+      return (
+        <ChevronsUpDown className="inline ml-1 w-3.5 h-3.5 opacity-30" />
+      );
     return sortOrder === "asc" ? (
       <ChevronUp className="inline ml-1 w-3.5 h-3.5 text-primary" />
     ) : (
@@ -327,6 +412,21 @@ export function CrudTable({
   const renderCell = (item: CrudItemType, field: CrudField) => {
     const raw = (item as Record<string, unknown>)[field.value];
     const val = String(raw ?? "—");
+
+    if (field.type === "boolean") {
+      const bool = Boolean(raw);
+      return (
+        <Badge
+          className={`text-xs font-medium px-2 py-0.5 ${
+            bool
+              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+              : "bg-slate-600/40 text-slate-400 border border-slate-600/30"
+          }`}
+        >
+          {bool ? "Sim" : "Não"}
+        </Badge>
+      );
+    }
 
     if (field.type === "multivalue") {
       const values = normalizeToStringArray(raw);
@@ -345,51 +445,107 @@ export function CrudTable({
       );
     }
 
-    // formata o valor de data passado ja como UTC vindo do back ou do input
-    // e oculta a timezone tambem deixando em estilo short
     if (field.type === "date") {
+      const parsedDate = new Date(val);
       return (
         <span className="text-foreground">
-          {isNaN(Date.parse(val))
+          {isNaN(parsedDate.getTime())
             ? val
-            : new Date(val).toISOString().slice(0, 16).replace("T", " ")}
+            : parsedDate.toLocaleString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })}
         </span>
       );
     }
 
-    // For long text fields, ensure word-based wrapping in table cells
+    // Para campos de texto longos, trunca com reticências em vez de quebrar
+    // linha — quebrar em uma tabela com layout automático faz a coluna
+    // colapsar e as letras empilharem verticalmente. Texto completo fica
+    // disponível ao abrir a ação de visualizar/editar da linha.
     if (field.type === "text" && val.length > 30) {
       return (
-        <span className="wrap-break-word whitespace-normal block text-foreground">
+        <span
+          className="block max-w-xs min-w-40 truncate text-foreground"
+          title={val}
+        >
           {val}
         </span>
       );
     }
 
     if (field.type === "select" && field.selectVariants) {
-      const cls = field.selectVariants[val] ?? "bg-muted/50 text-foreground";
+      const cls =
+        field.selectVariants[val] ?? "bg-muted/50 text-foreground";
+      const label = val === "__none__" ? "Nenhum" : (field.selectLabels?.[val] ?? val);
       return (
         <Badge className={`text-xs font-medium px-2 py-0.5 ${cls}`}>
-          {val}
+          {label}
         </Badge>
       );
     }
 
-    // Se o texto for muito longo, quebra em múltiplas linhas e limita largura
-    if (typeof val === "string" && val.length > 40) {
+    if (field.type === "textarea") {
+      if (!val || val === "—") return <span className="text-muted-foreground">—</span>;
+      // O expandir/recolher é controlado pela linha (TableRow onClick).
+      const expanded = expandedRows.has(resolveItemKey(item));
       return (
-        <span className="text-foreground whitespace-pre-line wrap-break-word max-w-xs block">
+        <div className="max-w-2xs" title={val}>
+          {/* whitespace-normal sobrescreve o whitespace-nowrap do TableCell do
+              shadcn (que impediria a quebra de linha ao expandir).
+              max-w-2xs fixa o teto da coluna — max-w-xs NÃO usar: neste projeto
+              resolve pra 6px (--spacing-xs) e empilha os caracteres.
+              `block` e line-clamp-2 são mutuamente exclusivos: o `block`
+              sobrescreve o display:-webkit-box que o clamp exige. */}
+          <span
+            className={`text-foreground whitespace-normal break-words max-w-2xs ${expanded ? "block" : "line-clamp-2"}`}
+          >
+            {val}
+          </span>
+        </div>
+      );
+    }
+
+    if (field.type === "url") {
+      if (!val || val === "—") return <span className="text-muted-foreground">—</span>;
+      return (
+        <a
+          href={val}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 hover:underline max-w-40 truncate"
+          title={val}
+        >
+          <ExternalLink className="w-3 h-3 shrink-0" />
+          <span className="truncate">{val.replace(/^https?:\/\//, "")}</span>
+        </a>
+      );
+    }
+
+    if (val.length > 40) {
+      // Texto longo: recua para 2 linhas por padrão; expande quando a linha é
+      // clicada (toggle por linha, igual ao textarea).
+      const expanded = expandedRows.has(resolveItemKey(item));
+      return (
+        <span
+          className={`text-foreground whitespace-normal break-words max-w-2xs ${expanded ? "block" : "line-clamp-2"}`}
+          title={val}
+        >
           {val}
         </span>
       );
     }
+
     return <span className="text-foreground">{val}</span>;
   };
 
   const startItem = effectiveTotal === 0 ? 0 : (safePage - 1) * pageSize + 1;
-  const endItem = serverSide
-    ? Math.min(safePage * pageSize, effectiveTotal)
-    : Math.min(safePage * pageSize, filteredAll.length);
+  const endItem = Math.min(safePage * pageSize, effectiveTotal);
 
   const getPageNumbers = (): (number | "...")[] => {
     if (totalPages <= 7)
@@ -417,13 +573,12 @@ export function CrudTable({
             <SelectTrigger className="w-36 bg-muted/40 border-muted/30 text-foreground text-sm">
               <SelectValue />
             </SelectTrigger>
-
             <SelectContent
               position="popper"
               sideOffset={4}
               className="w-36 bg-white border-muted/30 shadow-md"
             >
-              {fields.map((f) => (
+              {filterableFields.map((f) => (
                 <SelectItem
                   key={f.value}
                   value={f.value}
@@ -434,48 +589,14 @@ export function CrudTable({
               ))}
             </SelectContent>
           </Select>
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-            <Input
-              placeholder={`Filtrar por ${
-                fields.find((f) => f.value === filterField)?.label ?? "campo"
-              }…`}
-              value={filter}
-              onChange={(e) => {
-                handleFilterChange(e.target.value);
-                if (serverSide && onQueryChange)
-                  onQueryChange({
-                    page,
-                    pageSize,
-                    sortField,
-                    sortOrder,
-                    filterField,
-                    filterValue: e.target.value,
-                  });
-              }}
-              className="pl-9 bg-muted/40 border-muted/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
-            />
-            {filter && (
-              <button
-                onClick={() => {
-                  handleFilterChange("");
-                  if (serverSide && onQueryChange)
-                    onQueryChange({
-                      page,
-                      pageSize,
-                      sortField,
-                      sortOrder,
-                      filterField,
-                      filterValue: "",
-                    });
-                }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+
+          <FilterControl
+            activeField={activeFilterField}
+            filter={filter}
+            onChange={handleFilterChange}
+          />
         </div>
+
         {canWrite && onCreate && (
           <Button
             onClick={openCreate}
@@ -487,9 +608,8 @@ export function CrudTable({
         )}
       </div>
 
-      {/* Paginação */}
+      {/* Pagination info + page size */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-        {/* Info + Quantidade por página */}
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span>
             {effectiveTotal === 0
@@ -497,11 +617,6 @@ export function CrudTable({
               : `${startItem}–${endItem} de ${effectiveTotal} registro${
                   effectiveTotal !== 1 ? "s" : ""
                 }`}
-            {!serverSide && filter && filteredAll.length !== data.length && (
-              <span className="ml-1 text-slate-600">
-                (filtrado de {data.length})
-              </span>
-            )}
           </span>
           <div className="flex items-center gap-1.5">
             <span className="text-slate-600">Por página:</span>
@@ -510,21 +625,11 @@ export function CrudTable({
               onValueChange={(v) => {
                 setPageSize(Number(v));
                 setPage(1);
-                if (serverSide && onQueryChange)
-                  onQueryChange({
-                    page,
-                    pageSize: Number(v),
-                    sortField,
-                    sortOrder,
-                    filterField,
-                    filterValue: filter,
-                  });
               }}
             >
               <SelectTrigger className="h-7 w-14 bg-muted/40 border-muted/30 text-foreground text-xs px-2">
                 <SelectValue />
               </SelectTrigger>
-
               <SelectContent
                 position="popper"
                 sideOffset={4}
@@ -544,7 +649,7 @@ export function CrudTable({
           </div>
         </div>
 
-        {/* Números Paginação */}
+        {/* Page numbers */}
         {totalPages > 1 && (
           <div className="flex items-center gap-1">
             <Button
@@ -626,18 +731,7 @@ export function CrudTable({
                 <TableHead
                   key={f.value}
                   className="cursor-pointer select-none text-muted-foreground text-xs font-semibold uppercase tracking-wider hover:text-primary transition-colors"
-                  onClick={() => {
-                    handleSort(f.value);
-                    if (serverSide && onQueryChange)
-                      onQueryChange({
-                        page,
-                        pageSize,
-                        sortField,
-                        sortOrder,
-                        filterField,
-                        filterValue: filter,
-                      });
-                  }}
+                  onClick={() => handleSort(f.sortValue ?? f.value)}
                 >
                   {f.label}
                   <SortIcon field={f.value} />
@@ -649,7 +743,7 @@ export function CrudTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginated.length === 0 ? (
+            {data.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={fields.length + 1}
@@ -670,57 +764,84 @@ export function CrudTable({
                 </TableCell>
               </TableRow>
             ) : (
-              paginated.map((item, i) => (
-                <TableRow
-                  key={resolveItemKey(item) || `row-${i}`}
-                  className={`border-border transition-colors hover:bg-muted/20 ${
-                    i % 2 === 0 ? "bg-transparent" : "bg-muted/10"
-                  }`}
-                >
-                  {fields.map((f) => (
-                    <TableCell key={f.value} className="py-3">
-                      {renderCell(item, f)}
+              data.map((item, i) => {
+                const rowKey = resolveItemKey(item) || `row-${i}`;
+                const expandable = rowHasExpandableContent(item);
+                const expanded = expandable && expandedRows.has(rowKey);
+                return (
+                  <TableRow
+                    key={rowKey}
+                    onClick={expandable ? () => toggleRowExpanded(rowKey) : undefined}
+                    className={`border-border transition-colors ${
+                      expandable ? "cursor-pointer select-none" : ""
+                    } ${
+                      i % 2 === 0
+                        ? expanded
+                          ? "bg-muted/20"
+                          : "bg-transparent hover:bg-muted/20"
+                        : expanded
+                          ? "bg-muted/20"
+                          : "bg-muted/10 hover:bg-muted/20"
+                    }`}
+                  >
+                    {fields.map((f) => (
+                      <TableCell key={f.value} className="py-3">
+                        {renderCell(item, f)}
+                      </TableCell>
+                    ))}
+                    <TableCell className="py-3">
+                      <div className="flex gap-1.5">
+                        {onAction && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAction(item, resolveItemKey(item));
+                            }}
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-secondary hover:bg-secondary/10 rounded-lg"
+                            title={actionTitle}
+                          >
+                            {actionIcon ?? (
+                              <ScanQrCode className="w-3.5 h-3.5" />
+                            )}
+                          </Button>
+                        )}
+                        {canWrite && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEditClick
+                                  ? onEditClick(item, resolveItemKey(item))
+                                  : openEdit(item);
+                              }}
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
+                              title="Editar"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDelete(item);
+                              }}
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                              title="Excluir"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
-                  ))}
-                  <TableCell className="py-3">
-                    <div className="flex gap-1.5">
-                      {onAction && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onAction(item, resolveItemKey(item))}
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-secondary hover:bg-secondary/10 rounded-lg"
-                          title={actionTitle}
-                        >
-                          {actionIcon ?? <ScanQrCode className="w-3.5 h-3.5" />}
-                        </Button>
-                      )}
-                      {canWrite && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => onEditClick ? onEditClick(item, resolveItemKey(item)) : openEdit(item)}
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
-                            title="Editar"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => openDelete(item)}
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
-                            title="Excluir"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
@@ -746,9 +867,12 @@ export function CrudTable({
                 {f.type === "select" && f.selectVariants ? (
                   <Select
                     value={formData[f.value] as string}
-                    onValueChange={(v) =>
-                      setFormData((d) => ({ ...d, [f.value]: v }))
-                    }
+                    onValueChange={(v) => {
+                      const newData = { ...formData, [f.value]: v };
+                      const overrides = onFieldChange?.(f.value, v, newData);
+                      if (overrides) Object.assign(newData, overrides);
+                      setFormData(newData);
+                    }}
                   >
                     <SelectTrigger className="bg-muted/40 border-muted/30 text-foreground">
                       <SelectValue placeholder={`Selecionar ${f.label}`} />
@@ -764,7 +888,7 @@ export function CrudTable({
                           value={v}
                           className="text-primary focus:bg-accent focus:text-accent-foreground cursor-pointer"
                         >
-                          {v}
+                          {f.selectLabels?.[v] ?? v}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -860,17 +984,12 @@ export function CrudTable({
                   />
                 ) : f.type === "boolean" ? (
                   <div className="flex items-center gap-2 pt-1">
-                    <input
-                      type="checkbox"
+                    <Switch
                       id={`field-${f.value}`}
                       checked={Boolean(formData[f.value])}
-                      onChange={(e) =>
-                        setFormData((d) => ({
-                          ...d,
-                          [f.value]: e.target.checked,
-                        }))
+                      onCheckedChange={(checked) =>
+                        setFormData((d) => ({ ...d, [f.value]: checked }))
                       }
-                      className="h-4 w-4 rounded border-muted-foreground/30 text-primary focus:ring-primary"
                     />
                     <Label
                       htmlFor={`field-${f.value}`}
@@ -937,17 +1056,25 @@ export function CrudTable({
             </Button>
             <Button
               className="bg-primary hover:bg-primary/90"
-              onClick={() => {
-                if (onCreate)
-                  onCreate({
+              disabled={saving}
+              onClick={async () => {
+                if (!onCreate) return;
+                setSaving(true);
+                try {
+                  await onCreate({
                     id: "",
                     name: formData["name"] ?? "",
                     ...formData,
                   } as CrudItemType);
-                setCreateOpen(false);
+                  setCreateOpen(false);
+                } catch {
+                  // Mantém o dialog aberto; o handler já notifica o erro.
+                } finally {
+                  setSaving(false);
+                }
               }}
             >
-              Criar
+              {saving ? "Criando..." : "Criar"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -984,9 +1111,12 @@ export function CrudTable({
                 ) : f.type === "select" && f.selectVariants ? (
                   <Select
                     value={formData[f.value] as string}
-                    onValueChange={(v) =>
-                      setFormData((d) => ({ ...d, [f.value]: v }))
-                    }
+                    onValueChange={(v) => {
+                      const newData = { ...formData, [f.value]: v };
+                      const overrides = onFieldChange?.(f.value, v, newData);
+                      if (overrides) Object.assign(newData, overrides);
+                      setFormData(newData);
+                    }}
                   >
                     <SelectTrigger className="bg-muted/40 border-muted/30 text-foreground">
                       <SelectValue />
@@ -1002,7 +1132,7 @@ export function CrudTable({
                           value={v}
                           className="text-primary focus:bg-muted/50"
                         >
-                          {v}
+                          {f.selectLabels?.[v] ?? v}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1095,17 +1225,12 @@ export function CrudTable({
                   />
                 ) : f.type === "boolean" ? (
                   <div className="flex items-center gap-2 pt-1">
-                    <input
-                      type="checkbox"
+                    <Switch
                       id={`field-${f.value}`}
                       checked={Boolean(formData[f.value])}
-                      onChange={(e) =>
-                        setFormData((d) => ({
-                          ...d,
-                          [f.value]: e.target.checked,
-                        }))
+                      onCheckedChange={(checked) =>
+                        setFormData((d) => ({ ...d, [f.value]: checked }))
                       }
-                      className="h-4 w-4 rounded border-muted-foreground/30 text-primary focus:ring-primary"
                     />
                     <Label
                       htmlFor={`field-${f.value}`}
@@ -1164,16 +1289,24 @@ export function CrudTable({
             </Button>
             <Button
               className="bg-primary hover:bg-primary/90"
-              onClick={() => {
-                if (selectedItem)
-                  onEdit(
+              disabled={saving}
+              onClick={async () => {
+                if (!selectedItem) return;
+                setSaving(true);
+                try {
+                  await onEdit(
                     { ...selectedItem, ...formData } as CrudItemType,
                     selectedItemKey
                   );
-                setEditOpen(false);
+                  setEditOpen(false);
+                } catch {
+                  // Mantém o dialog aberto; o handler já notifica o erro.
+                } finally {
+                  setSaving(false);
+                }
               }}
             >
-              Salvar alterações
+              {saving ? "Salvando..." : "Salvar alterações"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1187,13 +1320,11 @@ export function CrudTable({
               Confirmar exclusão
             </DialogTitle>
           </DialogHeader>
-
           <div className="py-4 text-center">
             <p className="text-muted-foreground text-sm">
               Tem certeza que deseja excluir? Esta ação não pode ser desfeita.
             </p>
           </div>
-
           <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0">
             <Button
               variant="ghost"
@@ -1205,16 +1336,24 @@ export function CrudTable({
             <Button
               variant="destructive"
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                if (selectedItem) {
-                  const itemId =
-                    selectedItemKey || resolveItemKey(selectedItem);
-                  if (itemId) onDelete(itemId);
+              disabled={saving}
+              onClick={async () => {
+                if (!selectedItem) return;
+                const itemId =
+                  selectedItemKey || resolveItemKey(selectedItem);
+                if (!itemId) return;
+                setSaving(true);
+                try {
+                  await onDelete(itemId);
+                  setDeleteOpen(false);
+                } catch {
+                  // Mantém o dialog aberto; o handler já notifica o erro.
+                } finally {
+                  setSaving(false);
                 }
-                setDeleteOpen(false);
               }}
             >
-              Excluir
+              {saving ? "Excluindo..." : "Excluir"}
             </Button>
           </DialogFooter>
         </DialogContent>

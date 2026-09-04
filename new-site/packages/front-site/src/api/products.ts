@@ -10,7 +10,7 @@ export const productsAPI = {
    * @returns Lista paginada de produtos
    */
   getAllProducts: async (): Promise<ProductsResponse> => {
-    const response = await client.get<ProductsResponse>("/products?limit=1000");
+    const response = await client.get<ProductsResponse>("/api/products?limit=1000");
     return response.data;
   },
 };

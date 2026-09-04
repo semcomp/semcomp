@@ -36,9 +36,12 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 ### user
 - Rotas públicas: `POST /register`, `POST /forgot-password`, `POST /reset-password`, `POST /verify-email`, `POST /resend-verification`
 - Rotas backoffice: `GET/POST /admin/users`, `GET/PUT/DELETE /admin/users/:id`
+- Rotas PAPFE backoffice: `GET /admin/papfe-documents` (PermR), `GET /admin/users/:id/papfe-document` (PermR), `PUT /admin/users/:id/papfe-document/approval` (PermRW)
+- Rota autenticada: `PUT /api/papfe-document` — upload multipart do comprovante PAPFE
 - Expõe `SafeUser` (sem `PasswordHash`) | `UserNumber` formatado como `%05d`
 - Campo `email_verified bool` — novos usuários nascem `false`; grandfathered via migration
-- `PapfeDocument` — entidade associada ao usuário (documentos)
+- Campos novos: `quer_cracha bool` (default false), `autoriza_compartilhamento bool` (default false)
+- `PapfeDocument` — entidade associada ao usuário; → [[Feature_PAPFE]]
 - Depende de: `token`, `mailer`, `providers`
 
 ### userBackoffice
@@ -54,13 +57,20 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - Campos de inscrição: `has_signin bool` (habilita inscrição), `max_participants uint` (0 = sem limite)
 
 ### signinEvent
-- Rotas autenticadas (`/api`, guard: `AuthMiddleware` + `pageMW("profile","cronograma")`):
+- Rotas autenticadas (`/api`, guard: `AuthMiddleware` + `pageMW("profile")` + `pageMW("cronograma")`):
   - `POST /api/signin-events` — inscreve usuário (handler: `CreateSignin`)
   - `GET /api/signin-events` — lista eventos com `has_signin=true` (handler: `GetSigninEvents`)
   - `GET /api/signin-events/me` — lista inscrições ativas do usuário (handler: `GetMySignins`)
   - `DELETE /api/signin-events/:eventName/:eventInitDate` — cancela inscrição (handler: `DeleteSignin`)
+- Rotas backoffice (guard: `AuthBackofficeMiddleware` + `permMW("Inscrições", ...)`):
+  - `GET /admin/signin-events` — lista todas as inscrições (PermR)
+  - `GET /admin/signin-events/:userNumber/:eventName/:eventInitDate` — busca inscrição (PermR)
+  - `POST /admin/signin-events` — cria inscrição manualmente (PermRW)
+  - `PUT /admin/signin-events/:userNumber/:eventName/:eventInitDate` — edita inscrição (PermRW)
+  - `DELETE /admin/signin-events/:userNumber/:eventName/:eventInitDate` — remove inscrição (PermRW)
 - Lógica de fila: se vagas esgotadas (`max_participants > 0`), insere com `StatusWaitListed` e calcula posição; cancelamento de inscrito confirmado promove primeiro da lista de espera
 - Repository: `Create`, `GetByUserEventAndInitDate`, `CountByStatus`, `CountActiveByEvent`, `FindActiveByUser`, `UpdateStatus`, `GetFirstWaitListed`, `PromoteToRegistered`
+- → [[Feature_SigninEvent]]
 
 ### presence
 - Rotas backoffice: `GET/POST /admin/presences`, `GET/PUT/DELETE /admin/presences/:userNumber/:eventName/:eventInitDate`
@@ -106,6 +116,21 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - Sem handler HTTP — usado por `user` para enviar emails
 - Config via env: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `FRONTEND_URL`
 
+### sponsor
+- Rotas públicas: `GET /sponsors` (retorna `PublicSponsor[]`, sem `clicks`), `POST /sponsors/:cnpj/click` (incrementa counter)
+- Rotas backoffice (`permMW("Patrocinadores", ...)`):
+  - `GET/POST /admin/sponsors`, `GET/PUT/DELETE /admin/sponsors/:cnpj`
+  - `GET /admin/sponsors/:cnpj/packages`, `POST /admin/sponsors/:cnpj/packages`
+  - `DELETE /admin/sponsors/:cnpj/packages/:year/:package`
+- Logo enviada via multipart form-data; servida como estático em `/uploads/`
+- → [[Feature_Patrocinadores]]
+
+### sitestat
+- Modelo: `SiteStat { Key string PK; Value int64 }` — contador genérico key/value
+- Rota pública: `POST /visit` — incrementa `"visits"`; `GET /stats` — retorna todos os pares
+- Sem UI; usado pela Home do site para contar visitantes
+- → [[Feature_SiteStat]]
+
 ### log
 - Sem handler próprio — escrita via `AuditMiddleware` em toda requisição
 - Registra: method, path, status, latency, userNumber, userEmail, responseMessage
@@ -128,6 +153,7 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 ## Sequência de Startup (main.go)
 
 1. Conecta DB + `AutoMigrate` (User, PapfeDocument, Event, Presence, SigninEvent, UserBackoffice, AuditLog, Permission, Product, Kit, Coffee, ComboItem, Token, Payment, Sponsor, SponsorPackage, SiteStat)
+   → módulos registrados: auth, authBackoffice, user, userBackoffice, event, signinEvent, presence, section, permission, product, payment, pages, token, mailer, log, sponsor, sitestat
 2. Grandfather de `email_verified = true` para usuários existentes (se coluna era nova)
 3. Instancia providers + repos + services + handlers
 4. `userBackofficeService.InitializeAdmin()`

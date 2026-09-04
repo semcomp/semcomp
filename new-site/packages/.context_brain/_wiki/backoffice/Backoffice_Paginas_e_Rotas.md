@@ -20,6 +20,8 @@ Porta dev: **5174** | `basename: "/admin"` | Router: React Router v6 (imports es
 | `/participation` | `pages/Participation/index.tsx` | RequireAuth + RequirePermission | `"Participações"` |
 | `/permissions` | `pages/Permission/index.tsx` | RequireAuth + RequirePermission | `"Permissões"` |
 | `/pages-availability` | `pages/PagesAvailability/index.tsx` | RequireAuth + RequirePermission | `"Páginas"` |
+| `/sponsors` | `pages/Sponsors/index.tsx` | RequireAuth + RequirePermission | `"Patrocinadores"` |
+| `/papfe-documents` | `pages/PapfeDocuments/index.tsx` | RequireAuth + RequirePermission | `"PAPFE"` |
 | `*` | `pages/NotFound/index.tsx` | RequireAuth | — |
 
 ## Home do Backoffice (`/home`)
@@ -43,6 +45,24 @@ Rota: `/events/:nameEvent/:datetime/qrcode-reader`
 Navegada a partir de um evento na página `/events`.  
 Parâmetros via `useParams()` + fallback de `location.state`.  
 → [[Feature_Participacao_e_QRCode]]
+
+## Sponsors (`/sponsors`)
+Arquivo: `pages/Sponsors/index.tsx`
+
+- CRUD completo de `Sponsor` (CNPJ, Nome, Website, Logo) via `sponsorsAPI`
+- Upload de logo via multipart form-data; logo servida em `/uploads/`
+- Gestão de `SponsorPackage` (Year + Package) dentro da mesma página
+- `canWrite = useHasPermission("Patrocinadores", "RW")`
+- → [[Feature_Patrocinadores]]
+
+## PapfeDocuments (`/papfe-documents`)
+Arquivo: `pages/PapfeDocuments/index.tsx`
+
+- Lista documentos PAPFE enviados por participantes via `papfeAPI` (importado de `api/users.ts`)
+- Exibe status tri-state: Pendente / Aprovado / Rejeitado (badge colorido)
+- Botão "Visualizar" abre o arquivo em dialog; botão de aprovação/rejeição chama `PUT .../papfe-document/approval`
+- `canWrite = useHasPermission("PAPFE", "RW")`
+- → [[Feature_PAPFE]]
 
 ## PagesAvailability (`/pages-availability`)
 Arquivo: `pages/PagesAvailability/index.tsx`

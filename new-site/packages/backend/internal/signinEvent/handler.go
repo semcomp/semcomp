@@ -18,7 +18,7 @@ func NewSigninEventHandler(service SigninEventService) *SigninEventHandler {
 
 // CreateSignin processa o payload JSON e tenta criar uma nova inscrição.
 // @Summary Inscreve o usuário autenticado em um evento
-// @Description Registra a inscrição do usuário logado em um evento que permite inscrição (has_signin). Se as vagas estiverem esgotadas, insere em lista de espera.
+// @Description Registra a inscrição do usuário logado em um evento que permite inscrição (has_signin). Dentro do limite de vagas o usuário fica com status "Esperando Doação"; se as vagas estiverem esgotadas, entra na lista de espera.
 // @Tags Signin Event
 // @Accept json
 // @Produce json
@@ -95,7 +95,7 @@ func (h *SigninEventHandler) GetMySignins(c *gin.Context) {
 
 // DeleteSignin cancela a inscrição do usuário autenticado em um evento.
 // @Summary Cancela a inscrição do usuário em um evento
-// @Description Cancela (status "Cancelado") a inscrição do usuário logado no evento informado
+// @Description Deleta a inscrição do usuário logado no evento informado, reorganizando as posições da fila
 // @Tags Signin Event
 // @Accept json
 // @Produce json
@@ -104,7 +104,6 @@ func (h *SigninEventHandler) GetMySignins(c *gin.Context) {
 // @Success 200 {object} map[string]string "Inscrição cancelada com sucesso"
 // @Failure 400 {object} map[string]string "Data inválida"
 // @Failure 404 {object} map[string]string "Inscrição não encontrada"
-// @Failure 409 {object} map[string]string "Inscrição já cancelada"
 // @Failure 500 {object} map[string]string "Erro interno"
 // @Security BearerAuth
 // @Router /api/signin-events/{eventName}/{eventInitDate} [delete]
@@ -295,4 +294,63 @@ func (h *SigninEventHandler) DeleteSigninAdmin(c *gin.Context) {
 
 	c.Set("responseMessage", "Inscrição removida com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Inscrição removida com sucesso!"})
+}
+
+// RegisterSigninAdmin marca uma inscrição como registrada (backoffice).
+// @Summary Registra uma inscrição (backoffice)
+// @Description Altera o status de uma inscrição para "Inscrito"
+// @Tags Signin Event Backoffice
+// @Accept json
+// @Produce json
+// @Param userNumber path string true "Número do usuário"
+// @Param eventName path string true "Nome do evento"
+// @Param eventInitDate path string true "Data de início do evento (RFC3339)"
+// @Success 200 {object} map[string]interface{} "Inscrição registrada com sucesso"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 404 {object} map[string]string "Inscrição não encontrada"
+// @Failure 409 {object} map[string]string "Inscrição já registrada"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/signin-events/{userNumber}/{eventName}/{eventInitDate}/register [put]
+func (h *SigninEventHandler) RegisterSigninAdmin(c *gin.Context) {
+	userNumber := c.Param("userNumber")
+	eventName := c.Param("eventName")
+	eventInitDate := c.Param("eventInitDate")
+
+	signin, err := h.service.RegisterSigninAdmin(userNumber, eventName, eventInitDate)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Set("responseMessage", "Inscrição registrada com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "Inscrição registrada com sucesso!", "signin": signin})
+}
+
+// RotateSigninsAdmin remove inscrições aguardando doação e promove a fila de espera (backoffice).
+// @Summary Rotaciona as inscrições de um evento (backoffice)
+// @Description Remove todas as inscrições com status "Esperando Doação" e promove os primeiros da fila de espera para "Inscrito", recompondo as posições da fila
+// @Tags Signin Event Backoffice
+// @Accept json
+// @Produce json
+// @Param eventName path string true "Nome do evento"
+// @Param eventInitDate path string true "Data de início do evento (RFC3339)"
+// @Success 200 {object} map[string]interface{} "Rotação realizada com sucesso"
+// @Failure 400 {object} map[string]string "Dados inválidos"
+// @Failure 404 {object} map[string]string "Evento não encontrado"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/signin-events/rotate/{eventName}/{eventInitDate} [post]
+func (h *SigninEventHandler) RotateSigninsAdmin(c *gin.Context) {
+	eventName := c.Param("eventName")
+	eventInitDate := c.Param("eventInitDate")
+
+	signins, err := h.service.RotateSigninsAdmin(eventName, eventInitDate)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Set("responseMessage", "Rotação de inscrições realizada com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"message": "Rotação de inscrições realizada com sucesso!", "signins": signins})
 }

@@ -27,6 +27,8 @@ Tabela: `users` | Arquivo: `internal/user/model.go`
 | `Linkedin` | `linkedin` | *string, nullable |
 | `Telegram` | `telegram` | *string, nullable |
 | `PresenceRate` | `presence_rate` | float64 |
+| `QuerCracha` | `quer_cracha` | bool, default:false |
+| `AutorizaCompartilhamento` | `autoriza_compartilhamento` | bool, default:false |
 | `EmailVerified` | `email_verified` | bool, default:false |
 
 **Campos internos de verificação** (não expostos): `VerificationTokenHash`, `VerificationTokenExpiresAt`, `VerificationSentAt`, `VerificationWindowStartAt`, `VerificationSendCount`
@@ -34,8 +36,21 @@ Tabela: `users` | Arquivo: `internal/user/model.go`
 **SafeUser** (exposto pela API): todos acima exceto `PasswordHash` e campos de verificação. `UserNumber` formatado como `%05d` (string).
 
 ### PapfeDocument
-Tabela: `papfe_documents` — comprovante PAPFE armazenado como `bytea`.  
-FK → `users.Email` ON DELETE CASCADE. Sem handler HTTP público — manipulado via multipart no cadastro.
+Tabela: `papfe_documents` | Arquivo: `internal/user/model.go`  
+FK → `users.Email` ON DELETE CASCADE. Arquivo armazenado em disco (`uploads/papfe/`); tabela guarda apenas o path relativo.
+
+| Campo | JSON | Notas |
+|---|---|---|
+| `ID` PK | — | uint, autoIncrement |
+| `UserEmail` | — | size:150, FK → users.Email |
+| `Filename` | `filename` | size:255 |
+| `ContentType` | `content_type` | size:100 |
+| `FilePath` | — | path interno, não exposto |
+| `UploadedAt` | `uploaded_at` | time.Time |
+| `IsApproved` | `is_approved` | `*bool` — nil=pendente, true=aprovado, false=rejeitado |
+
+Handler via `userHandler`: upload multipart em `PUT /api/papfe-document`, revisão backoffice em `/admin/papfe-documents` e `/admin/users/:id/papfe-document`.  
+→ [[Feature_PAPFE]]
 
 ---
 
@@ -82,7 +97,8 @@ Registra inscrições de participantes em eventos que têm `has_signin = true`.
 | `UserWaitListPosition` | `user_wait_list_position` | uint, omitempty |
 | `Status` | `status` | `"Inscrito"` / `"Lista de Espera"` / `"Cancelado"` |
 
-> Módulo com model e repository implementados; service e handler ainda vazios — sem rotas HTTP registradas.
+Módulo completamente implementado — service, handler e rotas HTTP registradas.  
+→ [[Feature_SigninEvent]]
 
 ---
 

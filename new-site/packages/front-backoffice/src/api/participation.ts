@@ -39,15 +39,15 @@ const normalizeRFC3339 = (value: unknown): string => {
  */
 const mapFrontendPresence = (presence: ParticipationType) => {
   const normalizedUserNumber =
-    typeof presence.user_number === "string"
-      ? parseInt(presence.user_number, 10)
-      : presence.user_number;
+    typeof presence.userNumber === "string"
+      ? parseInt(presence.userNumber, 10)
+      : presence.userNumber;
 
   return {
     user_number: normalizedUserNumber,
-    event_name: presence.name_event,
-    event_init_date: normalizeRFC3339(presence.date_event),
-    email_admin: presence.user_backoffice,
+    event_name: presence.nameEvent,
+    event_init_date: normalizeRFC3339(presence.dateEvent),
+    email_admin: presence.userBackoffice,
   };
 };
 
@@ -93,6 +93,8 @@ export const participationAPI = {
     create: async (
         presence: ParticipationType
     ): Promise<ParticipationType> => {
+        console.log(presence);
+
         const payload = mapFrontendPresence(presence);
 
         console.log("Payload enviado:", payload);
@@ -102,7 +104,7 @@ export const participationAPI = {
         payload
         );
 
-        return mapBackendPresence(response.data.Presences);
+        return mapBackendPresence(response.data.presence);
     },
 
     update: async (
@@ -144,10 +146,10 @@ export const participationAPI = {
         adminEmail: string
     ): Promise<ParticipationType> => {
         const presence: ParticipationType = {
-            user_number: userNumber,
-            name_event: eventName,
-            date_event: eventInitDate,
-            user_backoffice: adminEmail,
+            userNumber: userNumber,
+            nameEvent: eventName,
+            dateEvent: eventInitDate,
+            userBackoffice: adminEmail,
         };
 
         const payload = mapFrontendPresence(presence);

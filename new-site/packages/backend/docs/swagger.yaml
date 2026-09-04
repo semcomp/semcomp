@@ -1,5 +1,21 @@
 basePath: /
 definitions:
+  absenceJustification.UpdateStatusRequest:
+    properties:
+      rejection_reason:
+        description: Obrigatório quando Status="negado"; ignorado/limpo nos demais
+          status.
+        type: string
+      status:
+        enum:
+        - em_analise
+        - aprovado
+        - negado
+        - documento_invalido
+        type: string
+    required:
+    - status
+    type: object
   auth.LoginUserRequest:
     properties:
       email:
@@ -37,6 +53,8 @@ definitions:
       name:
         maxLength: 200
         type: string
+      presence_type_weight_id:
+        type: integer
       type:
         maxLength: 50
         type: string
@@ -59,7 +77,11 @@ definitions:
         type: string
       name:
         type: string
+      presence_type_weight_id:
+        type: integer
       type:
+        type: string
+      type_name:
         type: string
     type: object
   event.UpdateEventRequest:
@@ -77,6 +99,8 @@ definitions:
       name:
         maxLength: 200
         type: string
+      presence_type_weight_id:
+        type: integer
       type:
         maxLength: 50
         type: string
@@ -84,6 +108,45 @@ definitions:
     - end_date
     - init_date
     - name
+    type: object
+  notice.CreateNoticeRequest:
+    properties:
+      content:
+        type: string
+      date_time:
+        type: string
+      title:
+        maxLength: 255
+        type: string
+    required:
+    - content
+    - date_time
+    - title
+    type: object
+  notice.Notice:
+    properties:
+      content:
+        type: string
+      date_time:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+    type: object
+  notice.UpdateNoticeRequest:
+    properties:
+      content:
+        type: string
+      date_time:
+        type: string
+      title:
+        maxLength: 255
+        type: string
+    required:
+    - content
+    - date_time
+    - title
     type: object
   permission.Permission:
     properties:
@@ -159,6 +222,63 @@ definitions:
     - event_name
     - user_number
     type: object
+  presencesettings.CreatePresenceTypeWeightRequest:
+    properties:
+      default_has_attendance:
+        type: boolean
+      type_name:
+        maxLength: 50
+        type: string
+      weight:
+        minimum: 0
+        type: number
+    required:
+    - type_name
+    type: object
+  presencesettings.PresenceTypeWeight:
+    properties:
+      default_has_attendance:
+        type: boolean
+      id:
+        type: integer
+      type_name:
+        type: string
+      updated_at:
+        type: string
+      weight:
+        type: number
+    type: object
+  presencesettings.PresencesSettingsListResult:
+    properties:
+      weights:
+        items:
+          $ref: '#/definitions/presencesettings.PresenceTypeWeight'
+        type: array
+    type: object
+  presencesettings.UpdatePresenceTypeWeightRequest:
+    properties:
+      default_has_attendance:
+        type: boolean
+      type_name:
+        maxLength: 50
+        type: string
+      weight:
+        minimum: 0
+        type: number
+    required:
+    - type_name
+    type: object
+  product.BulkCreateProductsRequest:
+    properties:
+      products:
+        items:
+          $ref: '#/definitions/product.CreateProductRequest'
+        maxItems: 100
+        minItems: 1
+        type: array
+    required:
+    - products
+    type: object
   product.Coffee:
     properties:
       date_time:
@@ -172,8 +292,27 @@ definitions:
     properties:
       combo_id:
         type: integer
+      item:
+        allOf:
+        - $ref: '#/definitions/product.Product'
+        description: |-
+          Produto completo do item (permite Preload("ComboItems.Item")).
+          RESTRICT: não deixa apagar um produto que ainda está sendo usado dentro de um combo.
       item_id:
         type: integer
+      quantity:
+        type: integer
+    type: object
+  product.ComboItemRequest:
+    properties:
+      item_id:
+        type: integer
+      quantity:
+        minimum: 1
+        type: integer
+    required:
+    - item_id
+    - quantity
     type: object
   product.CreateCoffeeRequest:
     properties:
@@ -191,7 +330,7 @@ definitions:
       color:
         maxLength: 50
         type: string
-      is_babydoll:
+      is_babylook:
         type: boolean
       name:
         maxLength: 200
@@ -208,14 +347,20 @@ definitions:
     properties:
       coffee:
         $ref: '#/definitions/product.CreateCoffeeRequest'
+      description:
+        type: string
       is_selling:
         type: boolean
       items:
         items:
-          type: integer
+          $ref: '#/definitions/product.ComboItemRequest'
         type: array
       kit:
         $ref: '#/definitions/product.CreateKitRequest'
+      name:
+        type: string
+      picture_url:
+        type: string
       price:
         type: number
       type:
@@ -235,7 +380,7 @@ definitions:
         type: string
       id:
         type: integer
-      is_babydoll:
+      is_babylook:
         type: boolean
       name:
         type: string
@@ -250,6 +395,11 @@ definitions:
         items:
           $ref: '#/definitions/product.ComboItem'
         type: array
+      description:
+        type: string
+      discounted_price:
+        description: Preço com desconto PAPFE (50%); calculado em memória, não persistido.
+        type: number
       id:
         type: integer
       is_selling:
@@ -260,6 +410,8 @@ definitions:
         description: |-
           Relacionamentos (preload)
           li que é uma boa prática usar isso aqui
+      name:
+        type: string
       picture_url:
         type: string
       price:
@@ -293,7 +445,7 @@ definitions:
       color:
         maxLength: 50
         type: string
-      is_babydoll:
+      is_babylook:
         type: boolean
       name:
         maxLength: 200
@@ -310,14 +462,20 @@ definitions:
     properties:
       coffee:
         $ref: '#/definitions/product.UpdateCoffeeRequest'
+      description:
+        type: string
       is_selling:
         type: boolean
       items:
         items:
-          type: integer
+          $ref: '#/definitions/product.ComboItemRequest'
         type: array
       kit:
         $ref: '#/definitions/product.UpdateKitRequest'
+      name:
+        type: string
+      picture_url:
+        type: string
       price:
         type: number
       type:
@@ -331,6 +489,220 @@ definitions:
     - price
     - type
     type: object
+  sales.CreateSaleItemRequest:
+    properties:
+      kit_product_id:
+        description: |-
+          KitProductID é obrigatório quando ProductID refere um COMBO: indica qual
+          variante de KIT (tamanho/cor/corte) o usuário selecionou dentro do combo.
+        type: integer
+      product_id:
+        type: integer
+      quantity:
+        minimum: 1
+        type: integer
+    required:
+    - product_id
+    - quantity
+    type: object
+  sales.CreateSaleRequest:
+    properties:
+      description:
+        description: Description é opcional e usada apenas na descrição da cobrança
+          PIX no Mercado Pago.
+        maxLength: 255
+        type: string
+      dietary_restrictions:
+        maxLength: 1000
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/sales.CreateSaleItemRequest'
+        minItems: 1
+        type: array
+      payment_method:
+        maxLength: 50
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/sales.SaleStatus'
+        enum:
+        - PENDENTE
+        - PAGO
+        - REJEITADO
+        - CANCELADO
+        - REEMBOLSADO
+    required:
+    - items
+    - payment_method
+    type: object
+  sales.Sale:
+    properties:
+      created_at:
+        type: string
+      dietary_restrictions:
+        description: |-
+          DietaryRestrictions só faz sentido para vendas com produtos do tipo
+          COFFEE (direto ou via COMBO).
+        type: string
+      has_coffee_items:
+        type: boolean
+      has_kit_items:
+        description: |-
+          Campos calculados (não persistidos): indicam se a venda envolve produtos
+          do tipo KIT e/ou COFFEE, considerando também itens dentro de um COMBO.
+          Preenchidos por ComputeItemFlags() após o carregamento de Items/Product.
+        type: boolean
+      id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/sales.SaleItem'
+        type: array
+      mercadopago_id:
+        description: |-
+          MercadoPagoID substitui a antiga tabela `payments`: só é preenchido
+          quando PaymentMethod == "pix" (ou outro método processado via MP).
+        type: string
+      payment_method:
+        type: string
+      pix_expiration:
+        description: |-
+          PixExpiration é transitório (não persistido): o front calcula a expiração
+          pela janela padrão de 30min a partir de CreatedAt quando o campo vem vazio.
+        type: string
+      qr_code:
+        description: |-
+          QRCode (copia-e-cola) e QRCodeBase64 são persistidos na venda para permitir
+          reabrir pagamentos PIX pendentes (ex: tela "Ver pagamentos pendentes").
+        type: string
+      qr_code_base64:
+        type: string
+      status:
+        $ref: '#/definitions/sales.SaleStatus'
+      total_amount:
+        type: number
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/user.User'
+      user_number:
+        type: integer
+    type: object
+  sales.SaleItem:
+    properties:
+      id:
+        type: integer
+      is_picked_up:
+        description: 'Indica se o item (ex: KIT / Camiseta) já foi retirado presencialmente.'
+        type: boolean
+      kit_product:
+        $ref: '#/definitions/product.Product'
+      kit_product_id:
+        description: |-
+          KitProductID registra qual variante de KIT (tamanho/cor) o usuário escolheu
+          quando o ProductID é um COMBO. Nullable: nulo para KITs e COFFEEs avulsos.
+        type: integer
+      product:
+        $ref: '#/definitions/product.Product'
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+      sale_id:
+        type: integer
+      unit_price:
+        type: number
+    type: object
+  sales.SaleStatus:
+    enum:
+    - PENDENTE
+    - PAGO
+    - REJEITADO
+    - CANCELADO
+    - REEMBOLSADO
+    - EXPIRADO
+    type: string
+    x-enum-varnames:
+    - SaleStatusPending
+    - SaleStatusPaid
+    - SaleStatusRejected
+    - SaleStatusCanceled
+    - SaleStatusRefunded
+    - SaleStatusExpired
+  sales.UpdateSaleItemPickupRequest:
+    properties:
+      is_picked_up:
+        type: boolean
+    type: object
+  sales.UpdateSaleRequest:
+    properties:
+      dietary_restrictions:
+        description: |-
+          Ponteiro para distinguir "não enviado" (nil → não altera) de "enviado vazio"
+          (ptr para "" → limpa o campo no banco).
+        maxLength: 1000
+        type: string
+      payment_method:
+        maxLength: 50
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/sales.SaleStatus'
+        enum:
+        - PENDENTE
+        - PAGO
+        - REJEITADO
+        - CANCELADO
+        - REEMBOLSADO
+    type: object
+  sponsor.PublicSponsor:
+    properties:
+      cnpj:
+        type: string
+      logo:
+        type: string
+      name:
+        type: string
+      website:
+        type: string
+    type: object
+  sponsor.Sponsor:
+    properties:
+      clicks:
+        type: integer
+      cnpj:
+        type: string
+      logo:
+        type: string
+      name:
+        type: string
+      packages:
+        items:
+          $ref: '#/definitions/sponsor.SponsorPackage'
+        type: array
+      website:
+        type: string
+    type: object
+  sponsor.SponsorPackage:
+    properties:
+      package:
+        type: string
+      sponsor_cnpj:
+        type: string
+      year:
+        type: integer
+    type: object
+  user.PapfeApprovalRequest:
+    properties:
+      approved:
+        type: boolean
+      rejection_reason:
+        description: Obrigatório quando Approved=false (rejeição).
+        type: string
+    required:
+    - approved
+    type: object
   user.ResendVerificationRequest:
     properties:
       email:
@@ -342,6 +714,8 @@ definitions:
     properties:
       age:
         type: integer
+      autoriza_compartilhamento:
+        type: boolean
       city:
         type: string
       disabilities:
@@ -364,15 +738,35 @@ definitions:
         type: number
       profession:
         type: string
+      quer_cracha:
+        type: boolean
       telegram:
         type: string
       user_number:
         type: string
     type: object
+  user.UpdateProfileRequest:
+    properties:
+      city:
+        type: string
+      linkedin:
+        type: string
+      name:
+        type: string
+      profession:
+        type: string
+      telegram:
+        type: string
+    required:
+    - city
+    - name
+    type: object
   user.UpdateUserRequest:
     properties:
       age:
         type: integer
+      autoriza_compartilhamento:
+        type: boolean
       city:
         type: string
       disabilities:
@@ -391,6 +785,8 @@ definitions:
         type: string
       profession:
         type: string
+      quer_cracha:
+        type: boolean
       telegram:
         type: string
     required:
@@ -401,6 +797,53 @@ definitions:
     - email
     - gender
     - name
+    type: object
+  user.User:
+    properties:
+      age:
+        type: integer
+      autoriza_compartilhamento:
+        type: boolean
+      city:
+        type: string
+      disabilities:
+        type: string
+      education:
+        type: string
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      gender:
+        type: string
+      hasPapfe:
+        type: boolean
+      linkedin:
+        type: string
+      name:
+        type: string
+      passwordHash:
+        type: string
+      presence_rate:
+        type: number
+      profession:
+        type: string
+      quer_cracha:
+        type: boolean
+      telegram:
+        type: string
+      user_number:
+        type: integer
+      verificationSendCount:
+        type: integer
+      verificationSentAt:
+        type: string
+      verificationTokenExpiresAt:
+        type: string
+      verificationTokenHash:
+        type: string
+      verificationWindowStartAt:
+        type: string
     type: object
   user.VerifyEmailRequest:
     properties:
@@ -450,6 +893,119 @@ info:
   title: Semcomp API
   version: "1.0"
 paths:
+  /admin/absence-justifications:
+    get:
+      description: Retorna todas as justificativas de ausência cadastradas
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de justificativas de ausência
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lista justificativas de ausência
+      tags:
+      - Justificativas de Ausência
+  /admin/absence-justifications/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Aprova, rejeita, marca como documento inválido ou volta para análise
+        uma justificativa de ausência. Ao negar, o campo rejection_reason é obrigatório
+        e só persiste nesse status.
+      parameters:
+      - description: ID da justificativa
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Novo status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/absenceJustification.UpdateStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status atualizado com sucesso!
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Justificativa não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza o status de uma justificativa de ausência
+      tags:
+      - Justificativas de Ausência
+  /admin/absence-justifications/{id}/attachment:
+    get:
+      description: Retorna o arquivo comprobatório de uma justificativa de ausência
+        específica
+      parameters:
+      - description: ID da justificativa
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Arquivo anexo
+          schema:
+            type: file
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Justificativa não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtém o anexo de uma justificativa de ausência
+      tags:
+      - Justificativas de Ausência
   /admin/events:
     post:
       consumes:
@@ -634,6 +1190,253 @@ paths:
       summary: Login do backoffice
       tags:
       - Auth Backoffice
+  /admin/notices:
+    get:
+      consumes:
+      - application/json
+      description: Retorna uma lista paginada de avisos cadastrados no mural
+      parameters:
+      - default: 1
+        description: Página atual
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limite de itens por página
+        in: query
+        name: limit
+        type: integer
+      - default: date_time
+        description: Campo de ordenação
+        in: query
+        name: sort_by
+        type: string
+      - default: desc
+        description: Ordem (asc/desc)
+        in: query
+        name: sort_order
+        type: string
+      - description: Campo de busca
+        in: query
+        name: search_by
+        type: string
+      - description: Valor de busca
+        in: query
+        name: search_value
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de avisos paginada
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parâmetro inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lista avisos
+      tags:
+      - Notice Backoffice
+    post:
+      consumes:
+      - application/json
+      description: Cadastra um aviso no mural
+      parameters:
+      - description: Dados do aviso
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/notice.CreateNoticeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Aviso criado com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cria um novo aviso
+      tags:
+      - Notice Backoffice
+  /admin/notices/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove um aviso do mural
+      parameters:
+      - description: ID do aviso
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Aviso removido com sucesso!
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Parâmetro 'id' inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Aviso não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Deleta aviso
+      tags:
+      - Notice Backoffice
+    get:
+      consumes:
+      - application/json
+      description: Retorna os dados de um aviso específico
+      parameters:
+      - description: ID do aviso
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Aviso encontrado
+          schema:
+            $ref: '#/definitions/notice.Notice'
+        "400":
+          description: Parâmetro 'id' inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Aviso não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Busca aviso por ID
+      tags:
+      - Notice Backoffice
+    put:
+      consumes:
+      - application/json
+      description: Altera os dados de um aviso existente
+      parameters:
+      - description: ID do aviso
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Dados para atualização
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/notice.UpdateNoticeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Aviso atualizado com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Aviso não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno do servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza aviso
+      tags:
+      - Notice Backoffice
+  /admin/papfe-documents:
+    get:
+      description: Retorna metadados de todos os comprovantes PAPFE cadastrados
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de comprovantes PAPFE
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lista comprovantes PAPFE
+      tags:
+      - Usuários (Participantes)
   /admin/permissions:
     get:
       consumes:
@@ -898,6 +1701,159 @@ paths:
       summary: Busca permissões por seção
       tags:
       - Permission Backoffice
+  /admin/presence-settings:
+    get:
+      description: Retorna os tipos de evento e seus pesos de presença
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pesos listados com sucesso
+          schema:
+            $ref: '#/definitions/presencesettings.PresencesSettingsListResult'
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lista pesos de presença
+      tags:
+      - Presence Settings Backoffice
+    post:
+      consumes:
+      - application/json
+      description: Associa um tipo de evento a um peso de presença
+      parameters:
+      - description: Dados do peso
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presencesettings.CreatePresenceTypeWeightRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Peso criado com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Tipo já cadastrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cria peso de presença
+      tags:
+      - Presence Settings Backoffice
+  /admin/presence-settings/{typeName}:
+    delete:
+      description: Remove o peso associado a um tipo de evento; eventos desse tipo
+        passam a valer 0
+      parameters:
+      - description: Nome do tipo de evento
+        in: path
+        name: typeName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Peso removido com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Configuração não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remove peso de presença
+      tags:
+      - Presence Settings Backoffice
+    put:
+      consumes:
+      - application/json
+      description: Altera o tipo e/ou o peso de presença de uma configuração identificada
+        pelo nome do tipo
+      parameters:
+      - description: Nome atual do tipo de evento
+        in: path
+        name: typeName
+        required: true
+        type: string
+      - description: Novos dados do peso
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/presencesettings.UpdatePresenceTypeWeightRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Peso atualizado com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Configuração não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Tipo já cadastrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza peso de presença
+      tags:
+      - Presence Settings Backoffice
   /admin/presences:
     get:
       consumes:
@@ -1387,6 +2343,349 @@ paths:
       summary: Atualiza produto
       tags:
       - Product Backoffice
+  /admin/products/bulk:
+    post:
+      consumes:
+      - application/json
+      description: Cadastra múltiplos produtos atomicamente (todos ou nenhum)
+      parameters:
+      - description: Lista de produtos
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.BulkCreateProductsRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Produtos criados com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cria produtos em lote
+      tags:
+      - Product Backoffice
+  /admin/sales:
+    get:
+      description: Retorna uma lista paginada com suporte a filtros e ordenação
+      parameters:
+      - default: 1
+        description: Página atual
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limite de itens por página
+        in: query
+        name: limit
+        type: integer
+      - default: created_at
+        description: Campo de ordenação
+        in: query
+        name: sort_by
+        type: string
+      - default: desc
+        description: Ordem (asc/desc)
+        in: query
+        name: sort_order
+        type: string
+      - description: Campo de busca
+        in: query
+        name: search_by
+        type: string
+      - description: Valor de busca
+        in: query
+        name: search_value
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de vendas paginada
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lista todas as vendas (Admin)
+      tags:
+      - Backoffice Vendas
+  /admin/sales/{id}:
+    delete:
+      description: Remove permanentemente uma venda do sistema e seus itens
+      parameters:
+      - description: ID da venda
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Venda removida com sucesso
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Venda não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Deleta uma venda
+      tags:
+      - Backoffice Vendas
+    put:
+      consumes:
+      - application/json
+      description: Altera os dados de uma venda existente (ação geralmente administrativa)
+      parameters:
+      - description: ID da venda
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dados para atualização
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sales.UpdateSaleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Venda atualizada com sucesso
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Venda não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza status/dados de uma venda
+      tags:
+      - Backoffice Vendas
+  /admin/sales/items/{itemId}/pickup:
+    patch:
+      consumes:
+      - application/json
+      description: 'Marca um produto (ex: Kit) como retirado ou não pelo participante'
+      parameters:
+      - description: ID do item da venda (SaleItem)
+        in: path
+        name: itemId
+        required: true
+        type: string
+      - description: Status de retirada
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sales.UpdateSaleItemPickupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status atualizado
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Item não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza o status de retirada de um item da venda
+      tags:
+      - Backoffice Vendas
+  /admin/sponsors:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lista todos os patrocinadores (admin)
+      tags:
+      - Sponsors Backoffice
+    post:
+      consumes:
+      - multipart/form-data
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Cria patrocinador (admin)
+      tags:
+      - Sponsors Backoffice
+  /admin/sponsors/{cnpj}:
+    delete:
+      parameters:
+      - description: CNPJ do patrocinador
+        in: path
+        name: cnpj
+        required: true
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Remove patrocinador (admin)
+      tags:
+      - Sponsors Backoffice
+    get:
+      parameters:
+      - description: CNPJ do patrocinador
+        in: path
+        name: cnpj
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sponsor.Sponsor'
+      security:
+      - BearerAuth: []
+      summary: Busca patrocinador por CNPJ (admin)
+      tags:
+      - Sponsors Backoffice
+    put:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: CNPJ do patrocinador
+        in: path
+        name: cnpj
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Atualiza patrocinador (admin)
+      tags:
+      - Sponsors Backoffice
+  /admin/sponsors/{cnpj}/packages:
+    get:
+      parameters:
+      - description: CNPJ do patrocinador
+        in: path
+        name: cnpj
+        required: true
+        type: string
+      - description: Filtrar por ano
+        in: query
+        name: year
+        type: integer
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Lista pacotes de patrocinador (admin)
+      tags:
+      - Sponsors Backoffice
+    post:
+      parameters:
+      - description: CNPJ do patrocinador
+        in: path
+        name: cnpj
+        required: true
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Adiciona pacote de patrocinador (admin)
+      tags:
+      - Sponsors Backoffice
+  /admin/sponsors/{cnpj}/packages/{year}/{package}:
+    delete:
+      parameters:
+      - description: CNPJ do patrocinador
+        in: path
+        name: cnpj
+        required: true
+        type: string
+      - description: Ano do pacote
+        in: path
+        name: year
+        required: true
+        type: integer
+      - description: Nome do pacote
+        in: path
+        name: package
+        required: true
+        type: string
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: Remove pacote de patrocinador (admin)
+      tags:
+      - Sponsors Backoffice
   /admin/users:
     get:
       consumes:
@@ -1575,6 +2874,95 @@ paths:
       security:
       - BearerAuth: []
       summary: Atualiza usuário
+      tags:
+      - Usuários (Participantes)
+  /admin/users/{id}/papfe-document:
+    get:
+      description: Retorna o arquivo do comprovante PAPFE de um usuário específico
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Arquivo do comprovante PAPFE
+          schema:
+            type: file
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Usuário ou comprovante não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtém comprovante PAPFE de um usuário
+      tags:
+      - Usuários (Participantes)
+  /admin/users/{id}/papfe-document/approval:
+    put:
+      consumes:
+      - application/json
+      description: Altera o status de aprovação do comprovante PAPFE de um usuário.
+        Ao rejeitar, o campo rejection_reason é obrigatório e só persiste nesse status.
+      parameters:
+      - description: ID do usuário
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Status de aprovação
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.PapfeApprovalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status de aprovação atualizado com sucesso!
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Usuário ou comprovante não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Aprova/rejeita comprovante PAPFE
       tags:
       - Usuários (Participantes)
   /admin/usersBackoffice:
@@ -1773,6 +3161,259 @@ paths:
       summary: Atualiza usuário do backoffice
       tags:
       - Usuários (Admins)
+  /api/absence-justifications:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Registra a justificativa de ausência (referente à SEMCOMP como
+        um todo) do usuário autenticado, com anexo comprobatório. Cada usuário só
+        pode ter uma justificativa.
+      parameters:
+      - description: Motivo da ausência
+        in: formData
+        name: reason
+        required: true
+        type: string
+      - description: Comprovante (PDF/JPEG/PNG/WebP, máx 10MB)
+        in: formData
+        name: attachment
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Justificativa enviada com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Justificativa já enviada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Envia a justificativa de ausência do usuário autenticado
+      tags:
+      - Justificativas de Ausência
+  /api/absence-justifications/{id}:
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Edita o motivo e, opcionalmente, substitui o anexo da justificativa
+        do usuário autenticado. Permitido apenas quando o status for "em_analise"
+        ou "documento_invalido"; editar reenvia a justificativa para análise.
+      parameters:
+      - description: ID da justificativa
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Motivo da ausência
+        in: formData
+        name: reason
+        required: true
+        type: string
+      - description: Novo comprovante (opcional, substitui o anterior)
+        in: formData
+        name: attachment
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Justificativa atualizada com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Justificativa não pertence ao usuário
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Justificativa não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Justificativa já aprovada ou negada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza a justificativa de ausência do usuário autenticado
+      tags:
+      - Justificativas de Ausência
+  /api/absence-justifications/{id}/attachment:
+    get:
+      description: Retorna o arquivo comprobatório da justificativa do usuário autenticado
+      parameters:
+      - description: ID da justificativa
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Arquivo anexo
+          schema:
+            type: file
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Justificativa não pertence ao usuário
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Justificativa não encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtém o anexo da própria justificativa de ausência
+      tags:
+      - Justificativas de Ausência
+  /api/absence-justifications/mine:
+    get:
+      description: Retorna a justificativa de ausência enviada pelo usuário autenticado,
+        se houver
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Justificativa do usuário
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Nenhuma justificativa enviada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtém a justificativa de ausência do usuário autenticado
+      tags:
+      - Justificativas de Ausência
+  /api/papfe-document:
+    get:
+      description: Retorna os metadados do comprovante PAPFE do usuário autenticado
+        (sem os bytes do arquivo), incluindo o motivo da rejeição quando houver
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comprovante PAPFE do usuário
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Nenhum comprovante enviado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtém o próprio comprovante PAPFE
+      tags:
+      - Usuários (Participantes)
+    put:
+      consumes:
+      - multipart/form-data
+      description: Atualiza o comprovante PAPFE do usuário autenticado. Aceita multipart/form-data.
+      parameters:
+      - description: Comprovante PAPFE (PDF/JPEG/PNG/WebP, máx 10MB)
+        in: formData
+        name: papfe_document
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comprovante PAPFE atualizado com sucesso!
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza comprovante PAPFE
+      tags:
+      - Usuários (Participantes)
   /api/profile:
     get:
       description: Retorna os dados do usuário autenticado via token JWT
@@ -1793,6 +3434,43 @@ paths:
       security:
       - BearerAuth: []
       summary: Perfil do usuário
+      tags:
+      - Auth Público
+    put:
+      consumes:
+      - application/json
+      description: 'Atualiza campos não-críticos do perfil: nome, cidade, profissão,
+        LinkedIn e Telegram'
+      parameters:
+      - description: Dados a atualizar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Perfil atualizado com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualiza perfil do usuário autenticado
       tags:
       - Auth Público
   /event/{eventName}/{initDate}:
@@ -2073,6 +3751,215 @@ paths:
       summary: Reenvia e-mail de confirmação
       tags:
       - Usuários (Participantes)
+  /sales:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Realiza o fechamento do pedido (carrinho); se payment_method
+        for "pix", a resposta inclui qr_code/qr_code_base64/pix_expiration.
+      parameters:
+      - description: Dados do pedido
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sales.CreateSaleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Pedido criado com sucesso!
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Dados inválidos
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Não autorizado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Erro interno
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cria uma nova venda
+      tags:
+      - Vendas
+  /sales/{id}:
+    get:
+      description: Retorna dados de um pedido específico
+      parameters:
+      - description: ID da venda
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detalhes recuperados
+          schema:
+            $ref: '#/definitions/sales.Sale'
+        "401":
+          description: Não autorizado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Detalhes da venda
+      tags:
+      - Vendas
+  /sales/{id}/status:
+    get:
+      description: Retorna o status atual de uma venda, considerando expiração de
+        PIX pendente
+      parameters:
+      - description: ID da venda
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status atual
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Não encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Status da venda (polling)
+      tags:
+      - Vendas
+  /sales/consumed:
+    get:
+      description: |-
+        Retorna os ids dos produtos de compra única que não podem mais
+        ser comprados pelo usuário (coffees e combos consumidos/reservados).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de ids consumidos
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Não autorizado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Produtos consumidos do usuário
+      tags:
+      - Vendas
+  /sales/me:
+    get:
+      description: Retorna todos os pedidos feitos pelo usuário autenticado
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Histórico recuperado
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Não autorizado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Histórico de vendas do usuário
+      tags:
+      - Vendas
+  /sponsors:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/sponsor.PublicSponsor'
+            type: array
+      summary: Lista patrocinadores públicos
+      tags:
+      - Sponsors
+  /sponsors/{cnpj}/click:
+    post:
+      parameters:
+      - description: CNPJ do patrocinador (14 dígitos)
+        in: path
+        name: cnpj
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Registra clique em patrocinador
+      tags:
+      - Sponsors
+  /stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              format: int64
+              type: integer
+            type: object
+      summary: Retorna estatísticas do site
+      tags:
+      - Stats
   /verify-email:
     post:
       consumes:
@@ -2109,6 +3996,14 @@ paths:
       summary: Confirma e-mail de um usuário
       tags:
       - Usuários (Participantes)
+  /visit:
+    post:
+      responses:
+        "204":
+          description: No Content
+      summary: Registra visita à home page
+      tags:
+      - Stats
 securityDefinitions:
   BearerAuth:
     description: 'Insira o token no formato: Bearer {seu_token}'

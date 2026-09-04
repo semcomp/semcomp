@@ -10,7 +10,7 @@ RBAC simples por seção. Proteção no middleware Go antes do handler chegar ao
 
 ---
 
-## KnownSections (7 seções)
+## KnownSections (10 seções)
 Definidas em `internal/permission/model.go`.  
 **O campo `section` em `Tabs.tsx` deve estar em sync com esta lista.**
 
@@ -21,8 +21,11 @@ Definidas em `internal/permission/model.go`.
 | `"Usuários Semcomp"` | ✅ | `/semcomp-users` | ✅ |
 | `"Participações"` | ✅ | `/participation` | ✅ |
 | `"Permissões"` | ✅ | `/permissions` | ✅ |
-| `"Páginas"` | ✅ | `/pages-availability` | ✅ |
 | `"Produtos"` | ❌ sem tab | — | ❌ (backend only) |
+| `"Páginas"` | ✅ | `/pages-availability` | ✅ |
+| `"Patrocinadores"` | ✅ | `/sponsors` | ✅ → [[Feature_Patrocinadores]] |
+| `"PAPFE"` | ✅ | `/papfe-documents` | ✅ → [[Feature_PAPFE]] |
+| `"Inscrições"` | ❌ sem tab | — | ❌ (CRUD admin via API, sem página no backoffice) |
 
 **Inicialização:**
 - `InitializeSections()` → cria as 7 seções na startup

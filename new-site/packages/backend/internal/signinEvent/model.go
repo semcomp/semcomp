@@ -5,9 +5,9 @@ import "time"
 type RegistrationStatus string
 
 const (
-	StatusRegistered RegistrationStatus = "Inscrito"
-	StatusWaitListed RegistrationStatus = "Lista de Espera"
-	StatusCancelled  RegistrationStatus = "Cancelado"
+	StatusRegistered      RegistrationStatus = "Inscrito"
+	StatusWaitingDonation RegistrationStatus = "Esperando Doação"
+	StatusWaitListed      RegistrationStatus = "Lista de Espera"
 )
 
 type SigninEvent struct {
