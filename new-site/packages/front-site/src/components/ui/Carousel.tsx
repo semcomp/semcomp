@@ -6,6 +6,7 @@ import { gsap } from "@/lib/gsap";
 
 type ImageType = {
   src: string;
+  srcMobile: string;
   alt: string;
   caption?: string;
 };
@@ -76,15 +77,21 @@ export default function Carousel({ images }: CarouselProps) {
           <div className="flex h-full">
             {images.map((img, i) => (
               <div key={i} className="flex-[0_0_100%] h-full relative">
-                <img
-                  src={img.src}
-                  alt={img.alt}
-                  loading={i === 0 ? "eager" : "lazy"}
-                  decoding="async"
-                  fetchPriority={i === 0 ? "high" : "auto"}
-                  sizes="(max-width: 768px) 100vw, 896px"
-                  className="w-full h-full object-cover"
-                />
+                <picture className="block w-full h-full">
+                  <source
+                    media="(max-width: 768px)"
+                    srcSet={img.srcMobile}
+                  />
+
+                  <img
+                    src={img.src}
+                    alt={img.alt}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    decoding="async"
+                    fetchPriority={"auto"}
+                    className="w-full h-full object-cover"
+                  />
+                </picture>
                 {/* Depth gradient */}
                 <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/45 to-transparent pointer-events-none" />
 

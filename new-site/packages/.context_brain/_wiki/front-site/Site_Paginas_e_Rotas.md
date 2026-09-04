@@ -5,12 +5,12 @@ tags: [frontend, site, pages, routes, react, vite]
 # Front-Site — Páginas e Rotas
 
 Pacote: `packages/front-site/src/`  
-Porta dev: **5173** | Router: React Router v6 `createBrowserRouter` (lazy loading)
+Porta dev: **5173** | Router: React Router v6 `createBrowserRouter`. O layout raiz (`App`) é estático (importado no entry via `Routes.tsx`); apenas as **páginas-filhas são lazy** via `lazy:`.
 
 ## Estrutura de Guards
 
 ```
-App (layout)
+App (layout raiz — estático, não-lazy)
 ├── FeatureGuard("cronograma")
 │   └── /cronograma
 ├── FeatureGuard("login")
