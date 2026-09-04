@@ -42,6 +42,7 @@ type SaleService interface {
 	GetAllSales(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*SaleListResult, error)
 	UpdateSaleByID(id string, request UpdateSaleRequest) (*Sale, error)
 	DeleteSaleByID(id string) error
+	CancelSale(userNumber uint, saleID uint) (*Sale, error)
 
 	// Operação de Item (Backoffice)
 	UpdateItemPickup(itemID string, request UpdateSaleItemPickupRequest) (*SaleItem, error)
@@ -50,6 +51,7 @@ type SaleService interface {
 	// indisponíveis para o usuário — já consumidos ou travados por um pedido
 	// ativo (incluindo o fechamento via combos).
 	GetConsumed(userNumber uint) ([]uint, error)
+	VerifyCoffeeAccess(userNumber uint, coffeeDateTime string) (bool, error)
 }
 
 type saleService struct {
@@ -468,6 +470,33 @@ func (s *saleService) GetStatus(userNumber uint, saleID uint) (string, error) {
 	return string(sale.EffectiveStatus()), nil
 }
 
+func (s *saleService) CancelSale(userNumber uint, saleID uint) (*Sale, error) {
+	sale, err := s.saleRepo.GetByID(saleID)
+	if err != nil {
+		return nil, err
+	}
+	if sale.SaleUserNumber != userNumber {
+		return nil, apierrors.NotFoundError("Venda não encontrada", nil)
+	}
+	if sale.EffectiveStatus() != SaleStatusPending {
+		return nil, apierrors.ValidationError("Apenas vendas com status PENDENTE podem ser canceladas", nil)
+	}
+	if sale.Status != SaleStatusPending {
+		return nil, apierrors.ValidationError("Apenas vendas com status PENDENTE podem ser canceladas", nil)
+	}
+	if err := s.saleRepo.CancelPendingSale(sale.ID); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apierrors.ValidationError("Apenas vendas com status PENDENTE podem ser canceladas", err)
+		}
+		return nil, apierrors.InternalServerError("Erro ao cancelar venda", err)
+	}
+	Hub.Publish(sale.ID, string(SaleStatusCanceled))
+	if err := s.syncConsumptionForSale(sale.ID); err != nil {
+		return nil, apierrors.InternalServerError("Venda cancelada, mas erro ao liberar a disponibilidade dos itens", err)
+	}
+	return s.saleRepo.GetByID(sale.ID)
+}
+
 func (s *saleService) GetSaleByID(userNumber uint, saleID uint) (*Sale, error) {
 	sale, err := s.saleRepo.GetByID(saleID)
 	if err != nil {
@@ -712,4 +741,14 @@ func (s *saleService) syncConsumptionForSale(saleID uint) error {
 // o usuário (o mesmo usado pelo CreateSale para rejeitar compras duplicadas).
 func (s *saleService) GetConsumed(userNumber uint) ([]uint, error) {
 	return s.getUnavailableProductIDs(userNumber)
+}
+
+func (s *saleService) VerifyCoffeeAccess(userNumber uint, coffeeDateTime string) (bool, error) {
+	if coffeeDateTime == "" {
+		return false, apierrors.ValidationError("date_time é obrigatório (RFC3339)", nil)
+	}
+	if _, err := time.Parse(time.RFC3339, coffeeDateTime); err != nil {
+		return false, apierrors.ValidationError("date_time inválido, use RFC3339", err)
+	}
+	return s.saleRepo.HasPaidCoffee(userNumber, coffeeDateTime)
 }

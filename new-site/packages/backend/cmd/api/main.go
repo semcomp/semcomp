@@ -341,6 +341,7 @@ func main() {
 	authRoutes.GET("/sales/:id", pageMW("loja"), salesHandler.GetSaleByID)
 	authRoutes.GET("/sales/:id/status", pageMW("loja"), salesHandler.GetSaleStatus)
 	authRoutes.GET("/sales/:id/events", pageMW("loja"), salesHandler.StreamSaleStatus)
+	authRoutes.POST("/sales/:id/cancel", pageMW("loja"), salesHandler.CancelSale)
 
 	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")
@@ -406,6 +407,8 @@ func main() {
 	admin.DELETE("/usersBackoffice/:email", permMW("Usuários Backoffice", permission.PermRW), userBackofficeHandler.DeleteUser)
 
 	// Produtos
+	admin.GET("/coffees", permMW("Produtos", permission.PermR), productHandler.GetCoffees)
+	admin.GET("/coffees/verify/:userNumber/:dateTime", permMW("Produtos", permission.PermR), salesHandler.VerifyCoffeeAccess)
 	admin.GET("/products", permMW("Produtos", permission.PermR), productHandler.GetProducts)
 	admin.GET("/products/:id", permMW("Produtos", permission.PermR), productHandler.GetProductByID)
 	admin.POST("/products", permMW("Produtos", permission.PermRW), productHandler.CreateProduct)
