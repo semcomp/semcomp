@@ -33,7 +33,7 @@ func (r *eventRepository) Create(event *Event) error {
 func (r *eventRepository) GetByNameAndInitTime(name string, initTime time.Time) (*Event, error) {
 	var event Event
 	err := r.db.Raw(`
-		SELECT e.name, e.init_date, e.end_date, e.presence_type_weight_id, e.type, e.location, e.description, e.has_attendance,
+		SELECT e.name, e.init_date, e.end_date, e.presence_type_weight_id, e.type, e.location, e.description, e.has_attendance, e.has_signin, e.max_participants,
 		       COALESCE(w.type_name, '') AS type_name
 		FROM events e
 		LEFT JOIN presence_type_weights w ON w.id = e.presence_type_weight_id
@@ -79,6 +79,8 @@ func (r *eventRepository) UpdateByNameAndInitTime(name string, initTime time.Tim
 			"location":               event.Location,
 			"description":            event.Description,
 			"has_attendance":         event.HasAttendance,
+			"has_signin":             event.HasSignin,
+			"max_participants":       event.MaxParticipants,
 		})
 
 	if result.Error != nil {
@@ -163,7 +165,7 @@ func (r *eventRepository) GetEvents(query EventListQuery) (*EventListResult, err
 	}
 
 	baseQuery := r.db.Table("events e").
-		Select("e.name, e.init_date, e.end_date, e.presence_type_weight_id, e.type, e.location, e.description, e.has_attendance, COALESCE(w.type_name, '') AS type_name").
+		Select("e.name, e.init_date, e.end_date, e.presence_type_weight_id, e.type, e.location, e.description, e.has_attendance, e.has_signin, e.max_participants, COALESCE(w.type_name, '') AS type_name").
 		Joins("LEFT JOIN presence_type_weights w ON w.id = e.presence_type_weight_id")
 
 	if err := r.db.Raw("SELECT COUNT(*) FROM events").Scan(&totalRecords).Error; err != nil {
@@ -186,6 +188,8 @@ func (r *eventRepository) GetEvents(query EventListQuery) (*EventListResult, err
 		Location            string
 		Description         string
 		HasAttendance       bool
+		HasSignin           bool
+		MaxParticipants     uint
 		TypeName            string
 	}
 
@@ -197,15 +201,17 @@ func (r *eventRepository) GetEvents(query EventListQuery) (*EventListResult, err
 	events = make([]Event, len(rawResults))
 	for i, r := range rawResults {
 		events[i] = Event{
-			Name:           r.Name,
-			InitDate:       r.InitDate,
-			EndDate:        r.EndDate,
-			PresenceTypeID: r.PresenceTypeWeightId,
-			TypeName:       r.TypeName,
-			Type:           r.Type,
-			Location:       r.Location,
-			Description:    r.Description,
-			HasAttendance:  r.HasAttendance,
+			Name:            r.Name,
+			InitDate:        r.InitDate,
+			EndDate:         r.EndDate,
+			PresenceTypeID:  r.PresenceTypeWeightId,
+			TypeName:        r.TypeName,
+			Type:            r.Type,
+			Location:        r.Location,
+			Description:     r.Description,
+			HasAttendance:   r.HasAttendance,
+			HasSignin:       r.HasSignin,
+			MaxParticipants: r.MaxParticipants,
 		}
 		if events[i].PresenceTypeID != nil && events[i].TypeName != "" {
 			events[i].Type = events[i].TypeName

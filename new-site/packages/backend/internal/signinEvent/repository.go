@@ -165,9 +165,10 @@ func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEvent
 			"AND signin_events.user_wait_list_position > events.max_participants "+
 			"THEN signin_events.user_wait_list_position - events.max_participants "+
 			"ELSE signin_events.user_wait_list_position END AS user_wait_list_position, "+
-			"signin_events.status", StatusWaitListed).
+			"signin_events.status, users.name AS user_name", StatusWaitListed).
 		Joins("LEFT JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date").
-		Order(sortClause).Limit(query.Limit).Offset(query.Offset).Find(&signins).Error
+		Joins("LEFT JOIN users ON users.user_number = signin_events.user_number").
+		Order(sortClause).Limit(query.Limit).Offset(query.Offset).Scan(&signins).Error
 	if err != nil {
 		return nil, err
 	}

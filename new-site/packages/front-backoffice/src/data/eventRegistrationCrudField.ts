@@ -1,16 +1,24 @@
 import { type CrudField } from "@/components/CrudTable";
 
+const statusVariants = {
+  Inscrito: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
+  "Lista de Espera": "bg-amber-500/20 text-amber-300 border border-amber-500/30",
+  "Aguardando Aprovação": "bg-blue-500/20 text-blue-300 border border-blue-500/30",
+  Cancelado: "bg-red-500/20 text-red-300 border border-red-500/30",
+};
+
 export const fields: CrudField[] = [
   { value: "userNumber", label: "Número do Participante", type: "text" },
   { value: "eventName", label: "Nome do Evento", type: "text" },
   { value: "eventInitDate", label: "Data do Evento", type: "date" },
-  { value: "status", label: "Status", type: "select", selectVariants: {
-    Inscrito: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
-    "Lista de Espera": "bg-amber-500/20 text-amber-300 border border-amber-500/30",
-    Cancelado: "bg-red-500/20 text-red-300 border border-red-500/30",
-  },
-  },
-  { value: "userWaitListPosition", label: "Posição na Lista de Espera", type: "number", readonly: true, },
+  { value: "status", label: "Status", type: "select", selectVariants: statusVariants },
+  { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true },
+];
+
+export const fieldsForEvent: CrudField[] = [
+  { value: "userNumber", label: "Número do Participante", type: "text" },
+  { value: "status", label: "Status", type: "select", selectVariants: statusVariants },
+  { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true },
 ];
 
 export const API_FIELD_MAP: Record<string, string> = {

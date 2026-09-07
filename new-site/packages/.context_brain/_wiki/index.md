@@ -50,7 +50,7 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 ---
 
 ## ⚠ Gaps Conhecidos
-- **Backoffice**: `"Produtos"` e `"Inscrições"` existem como `KnownSection` no backend (com CRUD em `/admin/products` e `/admin/signin-events`) mas **não há página de gerenciamento no front-backoffice**
+- **Backoffice**: `"Produtos"` existe como `KnownSection` no backend (com CRUD em `/admin/products`) mas **não há página de gerenciamento no front-backoffice**
 - **Cart**: `CartContext` é in-memory apenas — itens são perdidos ao recarregar a página
 - **Payments**: sem operação atômica — se `createPix` falhar após criar o pagamento no MP, o status fica inconsistente
 - **Permissions (bulk)**: salvar permissões faz N chamadas paralelas com `Promise.all`; falha parcial deixa estado inconsistente sem rollback

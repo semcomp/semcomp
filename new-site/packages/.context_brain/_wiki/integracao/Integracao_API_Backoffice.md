@@ -78,14 +78,18 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 | PUT | `/admin/products/:id` |
 | DELETE | `/admin/products/:id` |
 
-### Inscrições (`"Inscrições"`) — sem tab no backoffice (CRUD via API)
+### Inscrições (`"Inscrições"`)
 | Método | Path | Handler TS |
 |---|---|---|
-| GET | `/admin/signin-events` | — |
+| GET | `/admin/signin-events` | `signinEventsAPI.getAll(page, limit, sortBy, sortOrder, filterField?, filterValue?)` |
+| GET | `/admin/signin-events/events` | `signinEventsAPI.getSigninableEvents()` → `SigninableEvent[]` |
 | GET | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | — |
-| POST | `/admin/signin-events` | — |
-| PUT | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | — |
-| DELETE | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | — |
+| POST | `/admin/signin-events` | `signinEventsAPI.create(item)` |
+| POST | `/admin/signin-events/rotate/:eventName/:eventInitDate` | `signinEventsAPI.rotate(name, date)` → `SigninEventType[]` |
+| PUT | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | `signinEventsAPI.update(userNumber, name, date, item)` |
+| DELETE | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | `signinEventsAPI.delete(userNumber, name, date)` |
+
+Arquivo TS: `front-backoffice/src/api/signinEvent.ts` (não está no barrel `index.ts`)
 
 ### Patrocinadores (`"Patrocinadores"`)
 | Método | Path | Handler TS |

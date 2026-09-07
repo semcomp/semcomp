@@ -1,4 +1,4 @@
-import { Calendar, UserCog, User, Key, Hand, ToggleLeft, ShoppingBag, Handshake, DollarSign, FileCheck, SlidersHorizontal, FileWarning, ClipboardList } from "lucide-react";
+import { Calendar, UserCog, User, Key, Hand, ToggleLeft, ShoppingBag, Handshake, DollarSign, FileCheck, SlidersHorizontal, FileWarning, ClipboardList, UserCheck } from "lucide-react";
 
 // section deve coincidir com KnownSections em backend/internal/permission/model.go
 export const Tabs: {
@@ -129,7 +129,17 @@ export const Tabs: {
     description: "Visualize e gerencie as inscrições dos participantes nos eventos da Semcomp.",
     pageNavigate: "/event-registration",
     icon: <ClipboardList className="w-5 h-5" />,
-     bg: "bg-primary/15",
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
+    key: "confirm-registrations",
+    section: "Confirmações de Inscrição",
+    label: "Confirmações de Inscrição",
+    description: "Aprove inscrições que aguardam confirmação presencial no Fernão.",
+    pageNavigate: "/confirm-registrations",
+    icon: <UserCheck className="w-5 h-5" />,
+    bg: "bg-primary/15",
     hoverBg: "bg-primary/25",
   },
   {

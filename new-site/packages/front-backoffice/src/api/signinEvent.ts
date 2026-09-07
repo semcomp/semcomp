@@ -25,6 +25,7 @@ const mapBackendSignin = (signin: any) => {
         eventInitDate: signin.event_init_date,
         userWaitListPosition: signin.user_wait_list_position,
         status: signin.status,
+        userName: signin.user_name,
     };
 };
 
@@ -91,4 +92,73 @@ export const signinEventsAPI = {
 
         return mapBackendSignin(response.data.signin);
     },
+
+    rotate: async (eventName: string, eventInitDate: string): Promise<SigninEventType[]> => {
+        const response = await client.post<any>(
+            `/admin/signin-events/rotate/${encodeURIComponent(eventName)}/${encodeURIComponent(eventInitDate)}`
+        );
+        return (response.data.signins ?? []).map(mapBackendSignin);
+    },
+
+    getSigninableEvents: async (): Promise<SigninableEvent[]> => {
+        const response = await client.get<any>("/admin/signin-events/events");
+        return response.data.events ?? [];
+    },
+
+    register: async (
+        userNumber: number,
+        eventName: string,
+        eventInitDate: string
+    ): Promise<SigninEventType> => {
+        const response = await client.put<any>(
+            `/admin/signin-events/${userNumber}/${encodeURIComponent(eventName)}/${encodeURIComponent(eventInitDate)}/register`
+        );
+        return mapBackendSignin(response.data.signin);
+    },
 };
+
+export const confirmationsAPI = {
+    getAll: async (
+        page = 1,
+        limit = 500,
+        sortBy = "user_wait_list_position",
+        sortOrder: "asc" | "desc" = "asc",
+        searchBy?: string,
+        searchValue?: string
+    ): Promise<SigninsListResponse> => {
+        let url = `/admin/confirmations?page=${page}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+        if (searchBy && searchValue) {
+            url += `&search_by=${encodeURIComponent(searchBy)}&search_value=${encodeURIComponent(searchValue)}`;
+        }
+        const response = await client.get<any>(url);
+        const signins = response.data.signins ?? [];
+        return {
+            ...response.data,
+            signins: signins.map(mapBackendSignin),
+        };
+    },
+
+    getSigninableEvents: async (): Promise<SigninableEvent[]> => {
+        const response = await client.get<any>("/admin/confirmations/events");
+        return response.data.events ?? [];
+    },
+
+    approve: async (
+        userNumber: number,
+        eventName: string,
+        eventInitDate: string
+    ): Promise<SigninEventType> => {
+        const response = await client.put<any>(
+            `/admin/confirmations/${userNumber}/${encodeURIComponent(eventName)}/${encodeURIComponent(eventInitDate)}`
+        );
+        return mapBackendSignin(response.data.signin);
+    },
+};
+
+export interface SigninableEvent {
+    name: string;
+    init_date: string;
+    end_date: string;
+    location: string;
+    max_participants: number;
+}

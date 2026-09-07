@@ -76,8 +76,8 @@ Arquivo: `src/constants/Tabs.tsx`
 | `pages-availability` | `"Páginas"` | Páginas | `/pages-availability` |
 | `sponsors` | `"Patrocinadores"` | Patrocinadores | `/sponsors` |
 | `papfe` | `"PAPFE"` | PAPFE | `/papfe-documents` |
+| `event-registration` | `"Inscrições"` | Inscrições | `/event-registration` |
 
-> `"Produtos"` e `"Inscrições"` existem no `KnownSections` do backend mas **não têm tab no backoffice** — sem UI de gerenciamento.  
 > O campo `section` em Tabs **deve estar em sync** com `KnownSections` em `backend/internal/permission/model.go`.
 
 ---

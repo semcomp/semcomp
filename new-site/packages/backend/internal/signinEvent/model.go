@@ -6,7 +6,7 @@ type RegistrationStatus string
 
 const (
 	StatusRegistered      RegistrationStatus = "Inscrito"
-	StatusWaitingDonation RegistrationStatus = "Esperando Doação"
+	StatusWaitingDonation RegistrationStatus = "Aguardando Aprovação"
 	StatusWaitListed      RegistrationStatus = "Lista de Espera"
 )
 
@@ -16,6 +16,7 @@ type SigninEvent struct {
 	EventInitDate        time.Time          `gorm:"primaryKey" json:"event_init_date"`
 	UserWaitListPosition uint               `json:"user_wait_list_position,omitempty"`
 	Status               RegistrationStatus `gorm:"size:50;not null" json:"status"`
+	UserName             string             `gorm:"->" json:"user_name,omitempty"`
 }
 
 type CreateSigninRequest struct {

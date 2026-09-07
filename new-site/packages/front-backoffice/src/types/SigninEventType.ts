@@ -5,5 +5,6 @@ export interface SigninEventType extends CrudItemType{
     eventName: string;
     eventInitDate: string;
     userWaitListPosition?: number;
-    status: "Inscrito" | "Lista de Espera" | "Cancelado";
+    status: "Inscrito" | "Lista de Espera" | "Aguardando Aprovação" | "Cancelado";
+    userName?: string;
 }

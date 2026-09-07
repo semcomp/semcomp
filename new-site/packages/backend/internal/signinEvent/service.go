@@ -434,6 +434,10 @@ func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate 
 		return nil, apierrors.InternalServerError("Erro ao buscar evento", err)
 	}
 
+	if eventRecord.MaxParticipants == 0 {
+		return nil, apierrors.ValidationError("Não é possível rodar a fila em eventos com vagas ilimitadas", nil)
+	}
+
 	if err := s.repo.DeleteByStatus(eventName, initTime, StatusWaitingDonation); err != nil {
 		return nil, apierrors.InternalServerError("Erro ao remover inscrições aguardando doação", err)
 	}
