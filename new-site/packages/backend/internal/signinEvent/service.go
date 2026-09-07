@@ -429,9 +429,8 @@ func (s *signinEventService) RegisterSigninAdmin(userNumber string, eventName st
 	return s.relativePosition(&updates, max), nil
 }
 
-// RotateSigninsAdmin remove todas as inscrições "Esperando Doação" de um evento,
-// promove os primeiros da fila de espera para "Inscrito" até completar o limite
-// de vagas e reordena as posições da fila.
+// RotateSigninsAdmin remove inscrições "Esperando Doação" sem PAPFE,
+// converte as com PAPFE para "Inscrito", promove fila de espera e reordena posições.
 func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate string) ([]SigninEvent, error) {
 	initTime, err := time.Parse(time.RFC3339, eventInitDate)
 	if err != nil {
@@ -444,6 +443,10 @@ func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate 
 			return nil, apierrors.NotFoundError("Evento não encontrado", err)
 		}
 		return nil, apierrors.InternalServerError("Erro ao buscar evento", err)
+	}
+
+	if err := s.repo.ConfirmPapfeWaitingDonation(eventName, initTime); err != nil {
+		return nil, apierrors.InternalServerError("Erro ao confirmar inscrições PAPFE", err)
 	}
 
 	if err := s.repo.DeleteByStatus(eventName, initTime, StatusWaitingDonation); err != nil {

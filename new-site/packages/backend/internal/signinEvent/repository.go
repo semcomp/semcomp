@@ -25,6 +25,7 @@ type SigninEventRepository interface {
 	PromoteFirstWaitListed(eventName string, initDate time.Time, limit int) error
 	UpdatePosition(userNumber uint, eventName string, initDate time.Time, position uint) error
 	UpdateStatus(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus) error
+	ConfirmPapfeWaitingDonation(eventName string, initDate time.Time) error
 }
 
 type signinEventRepository struct {
@@ -291,4 +292,11 @@ func (r *signinEventRepository) UpdateStatus(userNumber uint, eventName string, 
 	return r.db.Model(&SigninEvent{}).
 		Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).
 		Update("status", status).Error
+}
+
+func (r *signinEventRepository) ConfirmPapfeWaitingDonation(eventName string, initDate time.Time) error {
+	return r.db.Model(&SigninEvent{}).
+		Where("event_name = ? AND event_init_date = ? AND status = ? AND user_number IN (SELECT user_number FROM users WHERE has_papfe = true)",
+			eventName, initDate, StatusWaitingDonation).
+		Update("status", StatusRegistered).Error
 }
