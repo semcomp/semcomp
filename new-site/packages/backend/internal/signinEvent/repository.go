@@ -24,6 +24,7 @@ type SigninEventRepository interface {
 	ListActiveByEvent(eventName string, initDate time.Time) ([]SigninEvent, error)
 	PromoteFirstWaitListed(eventName string, initDate time.Time, limit int) error
 	UpdatePosition(userNumber uint, eventName string, initDate time.Time, position uint) error
+	UpdateStatus(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus) error
 }
 
 type signinEventRepository struct {
@@ -233,6 +234,13 @@ func (r *signinEventRepository) PromoteWithinLimit(eventName string, initDate ti
 		return nil
 	}
 
+	if err := r.db.Model(&SigninEvent{}).
+		Where("event_name = ? AND event_init_date = ? AND status = ? AND user_wait_list_position <= ? AND user_number IN (SELECT user_number FROM users WHERE has_papfe = true)",
+			eventName, initDate, StatusWaitListed, max).
+		Update("status", StatusRegistered).Error; err != nil {
+		return err
+	}
+
 	return r.db.Model(&SigninEvent{}).
 		Where("event_name = ? AND event_init_date = ? AND status = ? AND user_wait_list_position <= ?",
 			eventName, initDate, StatusWaitListed, max).
@@ -277,4 +285,10 @@ func (r *signinEventRepository) UpdatePosition(userNumber uint, eventName string
 	return r.db.Model(&SigninEvent{}).
 		Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).
 		Update("user_wait_list_position", position).Error
+}
+
+func (r *signinEventRepository) UpdateStatus(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus) error {
+	return r.db.Model(&SigninEvent{}).
+		Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).
+		Update("status", status).Error
 }

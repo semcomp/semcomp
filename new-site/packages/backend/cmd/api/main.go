@@ -89,7 +89,7 @@ func main() {
 	eventHandler := event.NewEventHandler(eventService)
 
 	signinEventRepo := signinEvent.NewSigninEventRepository(db)
-	signinEventService := signinEvent.NewSigninEventService(signinEventRepo, eventRepo)
+	signinEventService := signinEvent.NewSigninEventService(signinEventRepo, eventRepo, userRepo)
 	signinEventHandler := signinEvent.NewSigninEventHandler(signinEventService)
 
 	presenceRepo := presence.NewPresenceRepository(db)

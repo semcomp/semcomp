@@ -8,6 +8,7 @@ import (
 
 	"backend/internal/apierrors"
 	"backend/internal/event"
+	"backend/internal/user"
 
 	"gorm.io/gorm"
 )
@@ -29,10 +30,11 @@ type SigninEventService interface {
 type signinEventService struct {
 	repo      SigninEventRepository
 	eventRepo event.EventRepository
+	userRepo  user.UserRepository
 }
 
-func NewSigninEventService(repo SigninEventRepository, eventRepo event.EventRepository) SigninEventService {
-	return &signinEventService{repo: repo, eventRepo: eventRepo}
+func NewSigninEventService(repo SigninEventRepository, eventRepo event.EventRepository, userRepo user.UserRepository) SigninEventService {
+	return &signinEventService{repo: repo, eventRepo: eventRepo, userRepo: userRepo}
 }
 
 // relativeWaitListPosition retorna a posição relativa na fila de espera
@@ -125,9 +127,19 @@ func (s *signinEventService) CreateSignin(userNumber uint, request CreateSigninR
 		return nil, apierrors.InternalServerError("Erro ao calcular posição na fila", err)
 	}
 
+	hasPapfe := false
+	if s.userRepo != nil {
+		if u, err := s.userRepo.GetByID(userNumber); err == nil && u != nil && u.HasPapfe {
+			hasPapfe = true
+		}
+	}
+	hasSpace := eventRecord.MaxParticipants == 0 || active < int64(eventRecord.MaxParticipants)
+
 	status := StatusWaitingDonation
 	if eventRecord.MaxParticipants > 0 && active >= int64(eventRecord.MaxParticipants) {
 		status = StatusWaitListed
+	} else if hasPapfe && hasSpace {
+		status = StatusRegistered
 	}
 
 	newSignin := SigninEvent{
