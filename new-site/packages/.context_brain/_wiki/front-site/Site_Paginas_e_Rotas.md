@@ -60,8 +60,14 @@ Background alterna com `isDarkMode` via `ThemeContext`.
 1. Busca `eventsAPI.getAllEvents()` → `GET /events?limit=1000`
 2. Ordena por `dateInit` crescente
 3. Agrupamento por sobreposição: se `inicio < fimDoGrupoAtual` → mesmo grupo
-4. Renderiza grupos em colunas (multi-coluna para sobreposições)
+4. Renderiza grupos em até 3 colunas (eventos mais longos nas colunas mais à direita)
 5. `eventsAPI` importado **diretamente** de `@/api/events`, não pelo barrel
+6. **Dois modos de visualização** (`"day"` / `"week"`) trocados por botão no cabeçalho
+7. Modo `"day"`: filtra eventos do dia selecionado; navegação por `DayPill` + setas prev/next
+8. Modo `"week"`: todos os dias em scroll horizontal com `maxColumns=2`
+9. Clique em card abre `EventModal` com detalhes completos
+10. Botão "Baixar cronograma" gera PNG via `html-to-image` (div oculta, 2200px)
+→ Componentes: `EventButton`, `EventModal`, `DayPill`, `EventGroups` — ver [[Feature_Cronograma_e_Eventos]]
 
 ## Profile (`/profile`) — Lógica
 1. `authAPI.getProfile()` → `GET /api/profile`
