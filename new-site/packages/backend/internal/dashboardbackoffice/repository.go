@@ -81,6 +81,26 @@ func (r *DashboardRepository) GetUsersStats() (*UsersStats, error) {
 	}
 	stats.MeanRate = rate.MeanRate
 
+	// Participantes USP x externos (baseado no domínio do e-mail)
+	// Válido apontar: essa estimativa não é totalmente confiável 
+	// pelo fato de que alunos USP também podem ter usado email externo 
+	// para o cadastro. Aqui supomos o caso ideal em que todo aluno da USP 
+	// usou o email USP
+	var origin struct {
+		USPParticipants      int64
+		ExternalParticipants int64
+	}
+	if err := r.db.Raw(`
+		SELECT
+			COUNT(*) FILTER (WHERE LOWER(email) LIKE '%@usp.br')         AS usp_participants,
+			COUNT(*) FILTER (WHERE LOWER(email) NOT LIKE '%@usp.br')     AS external_participants
+		FROM users
+	`).Scan(&origin).Error; err != nil {
+		return nil, err
+	}
+	stats.USPParticipants = origin.USPParticipants
+	stats.ExternalParticipants = origin.ExternalParticipants
+
 	stats.LastUpdate = time.Now()
 
 	return stats, nil
@@ -173,32 +193,58 @@ func (r *DashboardRepository) GetKitSalesStats() (*KitSalesStats, error) {
 	now := time.Now()
 	stats := &KitSalesStats{LastUpdate: now}
 
-	// Totais gerais de kits vendidos/pendentes/retirados e receita
-	// Considera sale_items que apontam diretamente para um KIT OU
-	// sale_items que apontam para um COMBO com kit_product_id preenchido.
+	// Totais gerais de kits vendidos/pendentes/retirados e receita.
+	// Inclui tanto sale_items que apontam diretamente para um KIT quanto
+	// sale_items de COMBO que possuem kit_product_id preenchido.
 	if err := r.db.Raw(`
+		WITH kit_items AS (
+			-- Kits comprados avulsos
+			SELECT si.quantity, si.unit_price, si.is_picked_up, s.status,
+			       si.product_id AS kit_id
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			WHERE p.type = 'KIT'
+
+			UNION ALL
+
+			-- Kits comprados dentro de um combo (via kit_product_id)
+			SELECT si.quantity, si.unit_price, si.is_picked_up, s.status,
+			       si.kit_product_id AS kit_id
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			WHERE p.type = 'COMBO' AND si.kit_product_id IS NOT NULL
+		)
 		SELECT
-			COALESCE(SUM(si.quantity) FILTER (WHERE s.status = 'PAGO'), 0)                       AS total_sold,
-			COALESCE(SUM(si.quantity) FILTER (WHERE s.status = 'PENDENTE'), 0)                   AS total_pending,
-			COUNT(*) FILTER (WHERE si.is_picked_up = true AND s.status = 'PAGO')                 AS total_picked_up,
-			COALESCE(SUM(si.unit_price * si.quantity) FILTER (WHERE s.status = 'PAGO'), 0)       AS total_revenue
-		FROM sale_items si
-		JOIN sales s ON s.id = si.sale_id
-		JOIN products p ON p.id = si.product_id
-		WHERE p.type = 'KIT'
+			COALESCE(SUM(quantity) FILTER (WHERE status = 'PAGO'), 0)                       AS total_sold,
+			COALESCE(SUM(quantity) FILTER (WHERE status = 'PENDENTE'), 0)                   AS total_pending,
+			COUNT(*) FILTER (WHERE is_picked_up = true AND status = 'PAGO')                 AS total_picked_up,
+			COALESCE(SUM(unit_price * quantity) FILTER (WHERE status = 'PAGO'), 0)           AS total_revenue
+		FROM kit_items
 	`).Scan(stats).Error; err != nil {
 		return nil, err
 	}
 
-	// Distribuição por cor (vendas pagas)
+	// Distribuição por cor (vendas pagas, incluindo kits de combos)
 	var byColor []LabelCount
 	if err := r.db.Raw(`
-		SELECT k.color AS label, COALESCE(SUM(si.quantity), 0) AS count
-		FROM sale_items si
-		JOIN sales s ON s.id = si.sale_id
-		JOIN products p ON p.id = si.product_id
-		JOIN kits k ON k.id = p.id
-		WHERE p.type = 'KIT' AND s.status = 'PAGO'
+		WITH kit_items AS (
+			SELECT si.quantity, si.product_id AS kit_id
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			WHERE p.type = 'KIT' AND s.status = 'PAGO'
+			UNION ALL
+			SELECT si.quantity, si.kit_product_id AS kit_id
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			WHERE p.type = 'COMBO' AND si.kit_product_id IS NOT NULL AND s.status = 'PAGO'
+		)
+		SELECT k.color AS label, COALESCE(SUM(ki.quantity), 0) AS count
+		FROM kit_items ki
+		JOIN kits k ON k.id = ki.kit_id
 		GROUP BY k.color
 		ORDER BY count DESC
 	`).Scan(&byColor).Error; err != nil {
@@ -206,15 +252,25 @@ func (r *DashboardRepository) GetKitSalesStats() (*KitSalesStats, error) {
 	}
 	stats.ByColor = byColor
 
-	// Distribuição por tamanho
+	// Distribuição por tamanho (incluindo kits de combos)
 	var bySize []LabelCount
 	if err := r.db.Raw(`
-		SELECT k.size AS label, COALESCE(SUM(si.quantity), 0) AS count
-		FROM sale_items si
-		JOIN sales s ON s.id = si.sale_id
-		JOIN products p ON p.id = si.product_id
-		JOIN kits k ON k.id = p.id
-		WHERE p.type = 'KIT' AND s.status = 'PAGO'
+		WITH kit_items AS (
+			SELECT si.quantity, si.product_id AS kit_id
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			WHERE p.type = 'KIT' AND s.status = 'PAGO'
+			UNION ALL
+			SELECT si.quantity, si.kit_product_id AS kit_id
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			WHERE p.type = 'COMBO' AND si.kit_product_id IS NOT NULL AND s.status = 'PAGO'
+		)
+		SELECT k.size AS label, COALESCE(SUM(ki.quantity), 0) AS count
+		FROM kit_items ki
+		JOIN kits k ON k.id = ki.kit_id
 		GROUP BY k.size
 		ORDER BY count DESC
 	`).Scan(&bySize).Error; err != nil {
@@ -222,17 +278,27 @@ func (r *DashboardRepository) GetKitSalesStats() (*KitSalesStats, error) {
 	}
 	stats.BySize = bySize
 
-	// Distribuição por corte (babylook vs. tradicional)
+	// Distribuição por corte (babylook vs. tradicional, incluindo kits de combos)
 	var byCut []LabelCount
 	if err := r.db.Raw(`
+		WITH kit_items AS (
+			SELECT si.quantity, si.product_id AS kit_id
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			WHERE p.type = 'KIT' AND s.status = 'PAGO'
+			UNION ALL
+			SELECT si.quantity, si.kit_product_id AS kit_id
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			WHERE p.type = 'COMBO' AND si.kit_product_id IS NOT NULL AND s.status = 'PAGO'
+		)
 		SELECT
 			CASE WHEN k.is_babylook THEN 'Babylook' ELSE 'Tradicional' END AS label,
-			COALESCE(SUM(si.quantity), 0) AS count
-		FROM sale_items si
-		JOIN sales s ON s.id = si.sale_id
-		JOIN products p ON p.id = si.product_id
-		JOIN kits k ON k.id = p.id
-		WHERE p.type = 'KIT' AND s.status = 'PAGO'
+			COALESCE(SUM(ki.quantity), 0) AS count
+		FROM kit_items ki
+		JOIN kits k ON k.id = ki.kit_id
 		GROUP BY k.is_babylook
 		ORDER BY count DESC
 	`).Scan(&byCut).Error; err != nil {
@@ -240,15 +306,25 @@ func (r *DashboardRepository) GetKitSalesStats() (*KitSalesStats, error) {
 	}
 	stats.ByCut = byCut
 
-	// Cruzamento cor × tamanho × corte
+	// Cruzamento cor × tamanho × corte (incluindo kits de combos)
 	var byVariant []KitVariantStat
 	if err := r.db.Raw(`
-		SELECT k.color, k.size, k.is_babylook, COALESCE(SUM(si.quantity), 0) AS count
-		FROM sale_items si
-		JOIN sales s ON s.id = si.sale_id
-		JOIN products p ON p.id = si.product_id
-		JOIN kits k ON k.id = p.id
-		WHERE p.type = 'KIT' AND s.status = 'PAGO'
+		WITH kit_items AS (
+			SELECT si.quantity, si.product_id AS kit_id
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			WHERE p.type = 'KIT' AND s.status = 'PAGO'
+			UNION ALL
+			SELECT si.quantity, si.kit_product_id AS kit_id
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			WHERE p.type = 'COMBO' AND si.kit_product_id IS NOT NULL AND s.status = 'PAGO'
+		)
+		SELECT k.color, k.size, k.is_babylook, COALESCE(SUM(ki.quantity), 0) AS count
+		FROM kit_items ki
+		JOIN kits k ON k.id = ki.kit_id
 		GROUP BY k.color, k.size, k.is_babylook
 		ORDER BY count DESC
 	`).Scan(&byVariant).Error; err != nil {
@@ -267,34 +343,68 @@ func (r *DashboardRepository) GetCoffeeSalesStats() (*CoffeeSalesStats, error) {
 	now := time.Now()
 	stats := &CoffeeSalesStats{LastUpdate: now}
 
-	// Totais gerais
+	// Totais gerais (incluindo coffees vendidos dentro de combos)
 	if err := r.db.Raw(`
+		WITH coffee_sales AS (
+			-- Coffees comprados avulsos
+			SELECT si.quantity, si.unit_price, s.status
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			WHERE p.type = 'COFFEE'
+
+			UNION ALL
+
+			-- Coffees comprados dentro de um combo (via combo_items)
+			SELECT si.quantity * ci.quantity AS quantity, si.unit_price, s.status
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			JOIN combo_items ci ON ci.combo_id = p.id
+			JOIN products pi ON pi.id = ci.item_id
+			WHERE p.type = 'COMBO' AND pi.type = 'COFFEE'
+		)
 		SELECT
-			COALESCE(SUM(si.quantity) FILTER (WHERE s.status = 'PAGO'), 0)                   AS total_sold,
-			COALESCE(SUM(si.quantity) FILTER (WHERE s.status = 'PENDENTE'), 0)               AS total_pending,
-			COALESCE(SUM(si.unit_price * si.quantity) FILTER (WHERE s.status = 'PAGO'), 0)   AS total_revenue
-		FROM sale_items si
-		JOIN sales s ON s.id = si.sale_id
-		JOIN products p ON p.id = si.product_id
-		WHERE p.type = 'COFFEE'
+			COALESCE(SUM(quantity) FILTER (WHERE status = 'PAGO'), 0)                   AS total_sold,
+			COALESCE(SUM(quantity) FILTER (WHERE status = 'PENDENTE'), 0)               AS total_pending,
+			COALESCE(SUM(unit_price * quantity) FILTER (WHERE status = 'PAGO'), 0)      AS total_revenue
+		FROM coffee_sales
 	`).Scan(stats).Error; err != nil {
 		return nil, err
 	}
 
-	// Detalhamento por coffee
+	// Detalhamento por coffee (incluindo vendas via combo)
 	var byCoffee []CoffeeStat
 	if err := r.db.Raw(`
+		WITH coffee_sales AS (
+			-- Coffees comprados avulsos
+			SELECT si.product_id AS coffee_id, si.quantity, si.unit_price, s.status
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			WHERE p.type = 'COFFEE'
+
+			UNION ALL
+
+			-- Coffees comprados dentro de um combo
+			SELECT ci.item_id AS coffee_id, si.quantity * ci.quantity AS quantity, si.unit_price, s.status
+			FROM sale_items si
+			JOIN sales s ON s.id = si.sale_id
+			JOIN products p ON p.id = si.product_id
+			JOIN combo_items ci ON ci.combo_id = p.id
+			JOIN products pi ON pi.id = ci.item_id
+			WHERE p.type = 'COMBO' AND pi.type = 'COFFEE'
+		)
 		SELECT
 			p.id                                                                             AS coffee_id,
 			c.name                                                                           AS coffee_name,
 			c.date_time                                                                      AS date_time,
-			COALESCE(SUM(si.quantity) FILTER (WHERE s.status = 'PAGO'), 0)                   AS sold,
-			COALESCE(SUM(si.quantity) FILTER (WHERE s.status = 'PENDENTE'), 0)               AS pending,
-			COALESCE(SUM(si.unit_price * si.quantity) FILTER (WHERE s.status = 'PAGO'), 0)   AS revenue
+			COALESCE(SUM(cs.quantity) FILTER (WHERE cs.status = 'PAGO'), 0)                  AS sold,
+			COALESCE(SUM(cs.quantity) FILTER (WHERE cs.status = 'PENDENTE'), 0)               AS pending,
+			COALESCE(SUM(cs.unit_price * cs.quantity) FILTER (WHERE cs.status = 'PAGO'), 0)  AS revenue
 		FROM products p
 		JOIN coffees c ON c.id = p.id
-		LEFT JOIN sale_items si ON si.product_id = p.id
-		LEFT JOIN sales s ON s.id = si.sale_id
+		LEFT JOIN coffee_sales cs ON cs.coffee_id = p.id
 		WHERE p.type = 'COFFEE'
 		GROUP BY p.id, c.name, c.date_time
 		ORDER BY c.date_time

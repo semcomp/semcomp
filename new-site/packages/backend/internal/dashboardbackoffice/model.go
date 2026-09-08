@@ -15,6 +15,8 @@ type UsersStats struct {
 	NotJustified      int64     `json:"notJustified"`       // total com justificativa negada
 	MeanRate          float64   `json:"meanRate"`           // média de presença (excluindo justificados)
 	TotalWithPapfe    int64     `json:"totalWithPapfe"`     // total de usuários com PAPFE
+	USPParticipants   int64     `json:"uspParticipants"`    // participantes com e-mail @usp.br
+	ExternalParticipants int64  `json:"externalParticipants"` // participantes externos (e-mail fora de @usp.br)
 	LastUpdate        time.Time `json:"lastUpdate"`
 }
 
