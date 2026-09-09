@@ -4,7 +4,7 @@ import { BASEURL } from "@/constants/ApiURL";
 
 const client: AxiosInstance = axios.create({
   baseURL: BASEURL,
-  timeout: 10000,
+  timeout: 30000,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",

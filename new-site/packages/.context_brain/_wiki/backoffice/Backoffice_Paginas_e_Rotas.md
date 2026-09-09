@@ -19,10 +19,9 @@ Porta dev: **5174** | `basename: "/admin"` | Router: React Router v6 (imports es
 | `/backoffice-users` | `pages/UserBackoffice/index.tsx` | RequireAuth + RequirePermission | `"Usuários Backoffice"` |
 | `/participation` | `pages/Participation/index.tsx` | RequireAuth + RequirePermission | `"Participações"` |
 | `/permissions` | `pages/Permission/index.tsx` | RequireAuth + RequirePermission | `"Permissões"` |
-| `/products` | `pages/Products/index.tsx` | RequireAuth + RequirePermission | `"Produtos"` |
 | `/pages-availability` | `pages/PagesAvailability/index.tsx` | RequireAuth + RequirePermission | `"Páginas"` |
 | `/sponsors` | `pages/Sponsors/index.tsx` | RequireAuth + RequirePermission | `"Patrocinadores"` |
-| `/sales` | `pages/Sales/index.tsx` | RequireAuth + RequirePermission | `"Vendas"` |
+| `/papfe-documents` | `pages/PapfeDocuments/index.tsx` | RequireAuth + RequirePermission | `"PAPFE"` |
 | `*` | `pages/NotFound/index.tsx` | RequireAuth | — |
 
 ## Home do Backoffice (`/home`)
@@ -47,6 +46,24 @@ Navegada a partir de um evento na página `/events`.
 Parâmetros via `useParams()` + fallback de `location.state`.  
 → [[Feature_Participacao_e_QRCode]]
 
+## Sponsors (`/sponsors`)
+Arquivo: `pages/Sponsors/index.tsx`
+
+- CRUD completo de `Sponsor` (CNPJ, Nome, Website, Logo) via `sponsorsAPI`
+- Upload de logo via multipart form-data; logo servida em `/uploads/`
+- Gestão de `SponsorPackage` (Year + Package) dentro da mesma página
+- `canWrite = useHasPermission("Patrocinadores", "RW")`
+- → [[Feature_Patrocinadores]]
+
+## PapfeDocuments (`/papfe-documents`)
+Arquivo: `pages/PapfeDocuments/index.tsx`
+
+- Lista documentos PAPFE enviados por participantes via `papfeAPI` (importado de `api/users.ts`)
+- Exibe status tri-state: Pendente / Aprovado / Rejeitado (badge colorido)
+- Botão "Visualizar" abre o arquivo em dialog; botão de aprovação/rejeição chama `PUT .../papfe-document/approval`
+- `canWrite = useHasPermission("PAPFE", "RW")`
+- → [[Feature_PAPFE]]
+
 ## PagesAvailability (`/pages-availability`)
 Arquivo: `pages/PagesAvailability/index.tsx`
 
@@ -55,18 +72,3 @@ Arquivo: `pages/PagesAvailability/index.tsx`
 - Otimistic update: reverte ao estado anterior em caso de erro
 - `canWrite = useHasPermission("Páginas", "RW")`
 - → [[Feature_Flags_e_Pages]]
-
-## Products (`/products`)
-Arquivo: `pages/Products/index.tsx` (CrudTable sobre `productsAPI`)
-
-- Abas por tipo: `KIT` / `COFFEE` / `COMBO` (configs em `data/productsCrudField.ts`)
-- CRUD de kit (inclui variante `is_babylook`), coffee (com `date_time`), combo (itens KIT/COFFEE via `ComboFormModal`)
-- `KitBulkModal` — criação em lote de kits por tamanho/cor (+ opção babylook)
-- `canWrite = useHasPermission("Produtos", "RW")`
-
-## Sales (`/sales`)
-Arquivo: `pages/Sales/index.tsx` (CrudTable sobre `salesAPI`)
-
-- Lista vendas (`GET /admin/sales`), atualiza status (`PUT /admin/sales/:id`), exclui (`DELETE /admin/sales/:id`)
-- Retirada de item: `PATCH /admin/sales/items/:itemId/pickup`
-- `canWrite = useHasPermission("Vendas", "RW")`

@@ -2,6 +2,7 @@ package presence
 
 import (
 	"errors"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 )
 
 type PresenceService interface {
+	SetRateRecalculator(recalculator RateRecalculator)
 	CreatePresence(request CreatePresenceRequest) (*Presence, error)
 	GetPresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) (*Presence, error)
 	DeletePresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) error
@@ -19,12 +21,31 @@ type PresenceService interface {
 	GetPresences(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*PresenceListResult, error)
 }
 
+// RateRecalculator dispara o recálculo das taxas de presença após mutações.
+type RateRecalculator interface {
+	RecalculateUsers(userNumbers ...int64) error
+}
+
 type presenceService struct {
-	repo PresenceRepository
+	repo      PresenceRepository
+	recalculator RateRecalculator
 }
 
 func NewPresenceService(repo PresenceRepository) PresenceService {
 	return &presenceService{repo: repo}
+}
+
+func (s *presenceService) SetRateRecalculator(recalculator RateRecalculator) {
+	s.recalculator = recalculator
+}
+
+func (s *presenceService) recalcUsers(userNumbers ...int64) {
+	if s.recalculator == nil || len(userNumbers) == 0 {
+		return
+	}
+	if err := s.recalculator.RecalculateUsers(userNumbers...); err != nil {
+		log.Printf("[presence] erro ao recalcular taxa de presença: %v", err)
+	}
 }
 
 func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presence, error) {
@@ -45,6 +66,9 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 	if err != nil {
 		return nil, apierrors.InternalServerError("Erro ao criar presença", err)
 	}
+
+	s.recalcUsers(newPresence.UserNumber)
+
 	return &newPresence, nil
 }
 
@@ -90,6 +114,8 @@ func (s *presenceService) DeletePresenceByUserEventandInitDate(userNumber string
 		return apierrors.InternalServerError("Erro ao deletar presença", err)
 	}
 
+	s.recalcUsers(num)
+
 	return nil
 }
 
@@ -117,6 +143,12 @@ func (s *presenceService) UpdatePresenceByUserEventandInitDate(userNumber string
 			return apierrors.NotFoundError("Presença não encontrada", err)
 		}
 		return apierrors.InternalServerError("Erro ao atualizar presença", err)
+	}
+
+	if num == request.UserNumber {
+		s.recalcUsers(num)
+	} else {
+		s.recalcUsers(num, request.UserNumber)
 	}
 
 	return nil

@@ -11,6 +11,7 @@ import { useNotification } from "@/contexts/NotificationContext";
 import { useHasPermission } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { RejectionReasonInput } from "@/components/RejectionReasonInput";
 import { Eye } from "lucide-react";
 import {
   Dialog,
@@ -76,6 +77,8 @@ export default function PapfeDocuments() {
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [approving, setApproving] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const rows = useMemo(() => documents.map(toRow), [documents]);
 
@@ -96,6 +99,8 @@ export default function PapfeDocuments() {
   }, [fetchDocuments]);
 
   const openModal = async (doc: PapfeDocumentInfo) => {
+    setRejecting(false);
+    setRejectionReason("");
     setModal({ open: true, doc, blobUrl: null, loading: true });
     try {
       const blob = await papfeAPI.getDocument(doc.user_number);
@@ -110,6 +115,8 @@ export default function PapfeDocuments() {
   const closeModal = () => {
     if (modal.open && modal.blobUrl) URL.revokeObjectURL(modal.blobUrl);
     setModal({ open: false });
+    setRejecting(false);
+    setRejectionReason("");
   };
 
   const handleAction = (item: CrudItemType) => {
@@ -119,14 +126,24 @@ export default function PapfeDocuments() {
 
   const handleApproval = async (approved: boolean) => {
     if (!modal.open) return;
+    if (!approved && !rejectionReason.trim()) {
+      showNotification("Informe o motivo da rejeição.", "warning");
+      return;
+    }
     setApproving(true);
     try {
-      await papfeAPI.approve(modal.doc.user_number, approved);
-      const updatedDoc = { ...modal.doc, is_approved: approved };
+      await papfeAPI.approve(modal.doc.user_number, approved, rejectionReason);
+      const updatedDoc = {
+        ...modal.doc,
+        is_approved: approved,
+        rejection_reason: approved ? null : rejectionReason.trim(),
+      };
       setDocuments((prev) =>
         prev.map((d) => (d.id === modal.doc.id ? updatedDoc : d))
       );
       setModal({ ...modal, doc: updatedDoc });
+      setRejecting(false);
+      setRejectionReason("");
       showNotification(
         approved ? "Comprovante aprovado!" : "Comprovante rejeitado.",
         approved ? "success" : "warning"
@@ -192,6 +209,18 @@ export default function PapfeDocuments() {
                 <StatusBadge value={modal.doc.is_approved} />
               </div>
 
+              {modal.doc.is_approved === false &&
+                modal.doc.rejection_reason && (
+                  <div className="space-y-1.5">
+                    <p className="text-sm text-muted-foreground">
+                      Motivo da rejeição
+                    </p>
+                    <p className="text-sm text-foreground whitespace-pre-line rounded-lg border border-border bg-muted/30 p-3">
+                      {modal.doc.rejection_reason}
+                    </p>
+                  </div>
+                )}
+
               <div className="w-full h-[60vh] rounded-lg overflow-hidden border border-border bg-muted/30">
                 {modal.loading ? (
                   <div className="flex items-center justify-center h-full">
@@ -207,22 +236,53 @@ export default function PapfeDocuments() {
               </div>
 
               {canWrite && (
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleApproval(false)}
-                    disabled={approving}
-                    className="border-red-500/40 text-red-400 hover:bg-red-500/10"
-                  >
-                    Rejeitar
-                  </Button>
-                  <Button
-                    onClick={() => handleApproval(true)}
-                    disabled={approving || modal.doc.is_approved === true}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                  >
-                    Aprovar
-                  </Button>
+                <DialogFooter className="flex-col items-stretch gap-3 sm:flex-col sm:items-stretch">
+                  {rejecting ? (
+                    <div className="flex flex-col gap-3">
+                      <RejectionReasonInput
+                        value={rejectionReason}
+                        onChange={setRejectionReason}
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            setRejecting(false);
+                            setRejectionReason("");
+                          }}
+                          disabled={approving}
+                          className="text-muted-foreground"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          onClick={() => handleApproval(false)}
+                          disabled={approving}
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          Confirmar rejeição
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        variant="outline"
+                        onClick={() => setRejecting(true)}
+                        disabled={approving || modal.doc.is_approved === false}
+                        className="border-red-500/40 text-red-400 hover:bg-red-500/10"
+                      >
+                        Rejeitar
+                      </Button>
+                      <Button
+                        onClick={() => handleApproval(true)}
+                        disabled={approving || modal.doc.is_approved === true}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                      >
+                        Aprovar
+                      </Button>
+                    </div>
+                  )}
                 </DialogFooter>
               )}
             </>

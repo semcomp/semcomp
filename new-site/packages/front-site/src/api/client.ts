@@ -13,7 +13,7 @@ const UNAUTHENTICATED_ENDPOINTS = [
 
 const client: AxiosInstance = axios.create({
   baseURL: BASEURL,
-  timeout: 10000,
+  timeout: 30000,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",

@@ -127,18 +127,27 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 
 		// Valida o KIT selecionado dentro do COMBO.
 		if prod.Type == product.ProductTypeCombo {
-			if itemReq.KitProductID == nil {
-				return nil, apierrors.ValidationError("É necessário informar o tamanho da camiseta (kit_product_id) para o combo", nil)
-			}
-			found := false
+			hasKit := false
 			for _, ci := range prod.ComboItems {
-				if ci.Item != nil && ci.Item.Type == product.ProductTypeKit && ci.ItemID == *itemReq.KitProductID {
-					found = true
+				if ci.Item != nil && ci.Item.Type == product.ProductTypeKit {
+					hasKit = true
 					break
 				}
 			}
-			if !found {
-				return nil, apierrors.ValidationError("O kit selecionado não pertence a este combo", nil)
+			if hasKit {
+				if itemReq.KitProductID == nil {
+					return nil, apierrors.ValidationError("É necessário informar o tamanho da camiseta (kit_product_id) para o combo", nil)
+				}
+				found := false
+				for _, ci := range prod.ComboItems {
+					if ci.Item != nil && ci.Item.Type == product.ProductTypeKit && ci.ItemID == *itemReq.KitProductID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					return nil, apierrors.ValidationError("O kit selecionado não pertence a este combo", nil)
+				}
 			}
 		}
 
