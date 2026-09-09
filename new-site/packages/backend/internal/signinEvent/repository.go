@@ -11,6 +11,7 @@ import (
 
 type SigninEventRepository interface {
 	Create(signin *SigninEvent) error
+	CreateAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) (*SigninEvent, error)
 	GetByUserEventAndInitDate(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error)
 	CountActiveByEvent(eventName string, initDate time.Time) (int64, error)
 	FindActiveByUser(userNumber uint) ([]SigninEventsDetailed, error)
@@ -38,6 +39,53 @@ func (r *signinEventRepository) Create(signin *SigninEvent) error {
 	return r.db.Create(signin).Error
 }
 
+// CreateAtomicSignin conta e insere dentro de uma transação serializada por
+// advisory lock no evento, evitando que inscrições simultâneas ultrapassem
+// o limite de vagas ou gerem posições duplicadas.
+func (r *signinEventRepository) CreateAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) (*SigninEvent, error) {
+	var result *SigninEvent
+
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		// Serializa inscrições do mesmo evento via advisory lock por transação.
+		// hashtext() retorna int4; a variante 2-parâmetros aceita dois int4.
+		if err := tx.Exec(
+			"SELECT pg_advisory_xact_lock(hashtext(?), hashtext(?))",
+			eventName, initDate.Format(time.RFC3339),
+		).Error; err != nil {
+			return err
+		}
+
+		var count int64
+		if err := tx.Model(&SigninEvent{}).
+			Where("event_name = ? AND event_init_date = ? AND status != ?", eventName, initDate, StatusCancelled).
+			Count(&count).Error; err != nil {
+			return err
+		}
+
+		status := StatusWaitingDonation
+		if maxParticipants > 0 && count >= int64(maxParticipants) {
+			status = StatusWaitListed
+		}
+
+		signin := &SigninEvent{
+			UserNumber:           userNumber,
+			EventName:            eventName,
+			EventInitDate:        initDate,
+			UserWaitListPosition: uint(count + 1),
+			Status:               status,
+		}
+
+		if err := tx.Create(signin).Error; err != nil {
+			return err
+		}
+
+		result = signin
+		return nil
+	})
+
+	return result, err
+}
+
 func (r *signinEventRepository) GetByUserEventAndInitDate(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error) {
 	var signin SigninEvent
 	err := r.db.Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).First(&signin).Error
@@ -51,7 +99,7 @@ func (r *signinEventRepository) GetByUserEventAndInitDate(userNumber uint, event
 func (r *signinEventRepository) CountActiveByEvent(eventName string, initDate time.Time) (int64, error) {
 	var count int64
 	err := r.db.Model(&SigninEvent{}).
-		Where("event_name = ? AND event_init_date = ?", eventName, initDate).
+		Where("event_name = ? AND event_init_date = ? AND status != ?", eventName, initDate, StatusCancelled).
 		Count(&count).Error
 	if err != nil {
 		return 0, err
@@ -73,7 +121,7 @@ func (r *signinEventRepository) FindActiveByUser(userNumber uint) ([]SigninEvent
 			"ELSE signin_events.user_wait_list_position END AS user_wait_list_position, "+
 			"signin_events.status", StatusWaitListed).
 		Joins("JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date").
-		Where("signin_events.user_number = ?", userNumber).
+		Where("signin_events.user_number = ? AND signin_events.status != ?", userNumber, StatusCancelled).
 		Order("signin_events.event_init_date asc").
 		Scan(&signins).Error
 	if err != nil {
@@ -247,7 +295,7 @@ func (r *signinEventRepository) DeleteByStatus(eventName string, initDate time.T
 
 func (r *signinEventRepository) ListActiveByEvent(eventName string, initDate time.Time) ([]SigninEvent, error) {
 	var signins []SigninEvent
-	err := r.db.Where("event_name = ? AND event_init_date = ?", eventName, initDate).
+	err := r.db.Where("event_name = ? AND event_init_date = ? AND status != ?", eventName, initDate, StatusCancelled).
 		Order("user_wait_list_position asc").
 		Find(&signins).Error
 	if err != nil {

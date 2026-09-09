@@ -79,13 +79,16 @@ func (s *signinEventService) removeSignin(signin *SigninEvent) error {
 		}
 	}
 
-	eventRecord, err := s.eventRepo.GetByNameAndInitTime(signin.EventName, signin.EventInitDate)
-	if err != nil {
-		return apierrors.InternalServerError("Erro ao buscar evento", err)
-	}
+	// Só abre vaga na fila se a inscrição cancelada ocupava um slot dentro do limite.
+	if signin.Status == StatusRegistered || signin.Status == StatusWaitingDonation {
+		eventRecord, err := s.eventRepo.GetByNameAndInitTime(signin.EventName, signin.EventInitDate)
+		if err != nil {
+			return apierrors.InternalServerError("Erro ao buscar evento", err)
+		}
 
-	if err := s.repo.PromoteWithinLimit(signin.EventName, signin.EventInitDate, eventRecord.MaxParticipants); err != nil {
-		return apierrors.InternalServerError("Erro ao promover usuário da lista de espera", err)
+		if err := s.repo.PromoteWithinLimit(signin.EventName, signin.EventInitDate, eventRecord.MaxParticipants); err != nil {
+			return apierrors.InternalServerError("Erro ao promover usuário da lista de espera", err)
+		}
 	}
 
 	return nil
@@ -120,29 +123,12 @@ func (s *signinEventService) CreateSignin(userNumber uint, request CreateSigninR
 		return nil, apierrors.ConflictError("Usuário já inscrito em outro evento no mesmo horário", err)
 	}
 
-	active, err := s.repo.CountActiveByEvent(request.EventName, request.EventInitDate)
+	newSignin, err := s.repo.CreateAtomicSignin(userNumber, request.EventName, request.EventInitDate, eventRecord.MaxParticipants)
 	if err != nil {
-		return nil, apierrors.InternalServerError("Erro ao calcular posição na fila", err)
-	}
-
-	status := StatusWaitingDonation
-	if eventRecord.MaxParticipants > 0 && active >= int64(eventRecord.MaxParticipants) {
-		status = StatusWaitListed
-	}
-
-	newSignin := SigninEvent{
-		UserNumber:           userNumber,
-		EventName:            request.EventName,
-		EventInitDate:        request.EventInitDate,
-		UserWaitListPosition: uint(active + 1),
-		Status:               status,
-	}
-
-	if err := s.repo.Create(&newSignin); err != nil {
 		return nil, apierrors.InternalServerError("Erro ao criar inscrição", err)
 	}
 
-	return s.relativePosition(&newSignin, eventRecord.MaxParticipants), nil
+	return s.relativePosition(newSignin, eventRecord.MaxParticipants), nil
 }
 
 func (s *signinEventService) GetSigninEvents() ([]event.Event, error) {

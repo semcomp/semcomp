@@ -8,6 +8,7 @@ const (
 	StatusRegistered      RegistrationStatus = "Inscrito"
 	StatusWaitingDonation RegistrationStatus = "Aguardando Aprovação"
 	StatusWaitListed      RegistrationStatus = "Lista de Espera"
+	StatusCancelled       RegistrationStatus = "Cancelado"
 )
 
 type SigninEvent struct {
