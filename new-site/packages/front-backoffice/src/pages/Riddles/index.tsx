@@ -7,15 +7,39 @@ import { Tabs } from "@/constants/Tabs";
 import { fields } from "@/data/riddlesCrudField";
 import { BannerCard } from "@/components/BannerCard";
 import { Button } from "@/components/ui/button";
-import { Upload, Eye } from "lucide-react";
+import { Upload, Eye, Puzzle, Trophy } from "lucide-react";
 import type { RiddleType } from "@/types/RiddleType";
 import { riddlesAPI } from "@/api/riddles";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useHasPermission } from "@/contexts/AuthContext";
+import { RankingTab } from "./RankingTab";
+
+type RiddlesTab = "riddles" | "ranking";
+
+const VIEW_TABS: {
+  key: RiddlesTab;
+  label: string;
+  icon: React.ReactNode;
+  activeClass: string;
+}[] = [
+  {
+    key: "riddles",
+    label: "Riddles",
+    icon: <Puzzle className="w-4 h-4" />,
+    activeClass: "bg-violet-600 text-white border-violet-600",
+  },
+  {
+    key: "ranking",
+    label: "Ranking",
+    icon: <Trophy className="w-4 h-4" />,
+    activeClass: "bg-amber-600 text-white border-amber-600",
+  },
+];
 
 export default function Riddles() {
   const canWrite = useHasPermission("Riddles", "RW");
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<RiddlesTab>("riddles");
   const [data, setData] = useState<RiddleType[]>([]);
   const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -151,7 +175,7 @@ export default function Riddles() {
         iconClassName="text-violet-400"
         label="Riddles"
         title="Gerenciamento de Riddles"
-        description="Cadastre, busque, edite e desative os enigmas do jogo de sequência."
+        description="Cadastre, busque, edite e desative os enigmas do jogo de sequência, e acompanhe o ranking das equipes."
         onBack={() => navigate("/home")}
         cardClassName="border-slate-800 bg-linear-to-br from-slate-900 via-slate-900 to-violet-950/30 overflow-hidden relative"
         labelClassName="text-xs uppercase tracking-[0.3em] text-violet-400 font-medium"
@@ -159,51 +183,79 @@ export default function Riddles() {
         descriptionClassName="text-slate-400 mt-1"
       />
 
+      {/* w-fit: em Produtos este mesmo bloco é filho de um flex container, onde
+          `sm:w-auto` já o encolhe. Aqui ele é filho direto da <section>, então
+          precisa de w-fit para envolver só os botões em vez de esticar. */}
+      <div className="flex w-fit gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
+        {VIEW_TABS.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex flex-1 sm:flex-initial items-center justify-center gap-2 rounded-lg px-3 sm:px-5 py-2 text-sm font-medium border transition-all ${
+              activeTab === tab.key
+                ? tab.activeClass + " shadow-sm"
+                : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+            }`}
+          >
+            {tab.icon}
+            <span className="truncate">{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
       <div className="rounded-xl border border-border bg-card/80 p-5 space-y-4">
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
-            {error}
-          </div>
-        )}
+        {/* A aba de Ranking é desmontada ao sair dela — é assim que o polling
+            para quando ela não está ativa (ver RankingTab). */}
+        {activeTab === "ranking" ? (
+          <RankingTab />
+        ) : (
+          <>
+            {error && (
+              <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
+                {error}
+              </div>
+            )}
 
-        {canWrite && (
-          <div className="flex items-center justify-end">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              hidden
-              onChange={handleFileSelected}
+            {canWrite && (
+              <div className="flex items-center justify-end">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv"
+                  hidden
+                  onChange={handleFileSelected}
+                />
+                <Button
+                  variant="outline"
+                  onClick={handleUploadClick}
+                  disabled={uploading}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {uploading ? "Importando..." : "Importar CSV (substitui tudo)"}
+                </Button>
+              </div>
+            )}
+
+            {loading && data.length === 0 && (
+              <div className="flex items-center justify-center py-12">
+                <p className="text-slate-400">Carregando riddles...</p>
+              </div>
+            )}
+            <CrudTable
+              data={data}
+              fields={fields}
+              onEdit={handleEdit}
+              onCreate={handleCreate}
+              onToggleField={handleToggleActive}
+              editIcon={<Eye className="w-3.5 h-3.5" />}
+              getItemKey={resolveRiddleKey}
+              entityLabel="riddle"
+              totalRecords={totalRecords}
+              onQueryChange={handleQueryChange}
+              canWrite={canWrite}
             />
-            <Button
-              variant="outline"
-              onClick={handleUploadClick}
-              disabled={uploading}
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              {uploading ? "Importando..." : "Importar CSV (substitui tudo)"}
-            </Button>
-          </div>
+          </>
         )}
-
-        {loading && data.length === 0 && (
-          <div className="flex items-center justify-center py-12">
-            <p className="text-slate-400">Carregando riddles...</p>
-          </div>
-        )}
-        <CrudTable
-          data={data}
-          fields={fields}
-          onEdit={handleEdit}
-          onCreate={handleCreate}
-          onToggleField={handleToggleActive}
-          editIcon={<Eye className="w-3.5 h-3.5" />}
-          getItemKey={resolveRiddleKey}
-          entityLabel="riddle"
-          totalRecords={totalRecords}
-          onQueryChange={handleQueryChange}
-          canWrite={canWrite}
-        />
       </div>
     </section>
   );

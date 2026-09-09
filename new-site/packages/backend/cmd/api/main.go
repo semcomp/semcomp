@@ -348,6 +348,9 @@ func main() {
 	admin.PUT("/riddles/:id", permMW("Riddles", permission.PermRW), riddleHandler.UpdateRiddle)
 	admin.DELETE("/riddles/:id", permMW("Riddles", permission.PermRW), riddleHandler.DeleteRiddle)
 
+	// Ranking das equipes do jogo de enigmas (somente leitura)
+	admin.GET("/teams/ranking", permMW("Riddles", permission.PermR), riddleHandler.GetTeamsRanking)
+
 	// Participações
 	admin.GET("/presences", permMW("Participações", permission.PermR), presenceHandler.GetPresences)
 	admin.GET("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermR), presenceHandler.GetPresenceByUserEventandInitDate)

@@ -203,6 +203,35 @@ type RiddleListResult struct {
 	FilteredRecords int64    `json:"filtered_records"`
 }
 
+// --- DTOs de ranking (backoffice, somente leitura) ---------
+
+// TeamRankingEntry é uma linha do ranking de equipes exibido no backoffice.
+// Position NUNCA é persistida: é sempre recalculada a partir da ordenação
+// (ver rankTeams no service). RiddlesTotal é repetido em cada linha só por
+// conveniência de renderização do progresso "X / Y".
+//
+// SolvedCount, e não Team.CurrentRiddleIndex, é o número de progresso exibido:
+// CurrentRiddleIndex é o ID do último enigma resolvido, não uma contagem — com
+// riddles desativados no meio da fila os dois divergem, e mostrar o ID enganaria
+// o admin (ver solvedCount no service). CurrentRiddleIndex é deliberadamente
+// deixado fora deste DTO para ninguém voltar a exibi-lo por engano; ele continua
+// sendo a base da ORDENAÇÃO do ranking, só não do número exibido.
+type TeamRankingEntry struct {
+	Position     int        `json:"position"`
+	TeamID       uint       `json:"team_id"`
+	Name         string     `json:"name"`
+	SolvedCount  int        `json:"solved_count"`
+	RiddlesTotal int64      `json:"riddles_total"`
+	Finished     bool       `json:"finished"`
+	FinishedAt   *time.Time `json:"finished_at,omitempty"`
+	MembersCount int        `json:"members_count"`
+}
+
+type TeamRankingResponse struct {
+	Teams        []TeamRankingEntry `json:"teams"`
+	RiddlesTotal int64              `json:"riddles_total"`
+}
+
 type TeamListQuery struct {
 	Limit       int
 	Offset      int

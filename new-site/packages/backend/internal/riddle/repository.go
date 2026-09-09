@@ -28,6 +28,8 @@ type RiddleRepository interface {
 	AdvanceRiddle(teamID, currentIndex, nextIndex uint) (bool, error)
 	SetFinished(teamID uint) error
 	HasTeamsInProgress() (bool, error)
+	ListTeamsWithMembers() ([]Team, error)
+	ListActiveRiddleIDs() ([]uint, error)
 }
 
 type riddleRepository struct {
@@ -325,6 +327,38 @@ func (r *riddleRepository) SetFinished(teamID uint) error {
 	now := time.Now()
 	return r.db.Model(&Team{}).Where("id = ?", teamID).
 		Updates(map[string]interface{}{"finished_at": &now}).Error
+}
+
+// ListTeamsWithMembers retorna todas as equipes com seus membros carregados,
+// em ordem estável de ID. A ordenação do ranking em si NÃO é feita aqui: fica
+// no service (ver rankTeams), que é onde a regra de negócio pode ser testada
+// sem banco. O volume de equipes de uma edição é pequeno o bastante para
+// carregar tudo de uma vez. Members é carregado sem Members.User: o ranking só
+// precisa da contagem de integrantes, não dos dados pessoais deles.
+func (r *riddleRepository) ListTeamsWithMembers() ([]Team, error) {
+	var teams []Team
+	err := r.db.Preload("Members").Order("id ASC").Find(&teams).Error
+	if err != nil {
+		return nil, err
+	}
+	return teams, nil
+}
+
+// ListActiveRiddleIDs retorna os IDs dos riddles ativos em ordem crescente.
+// O ranking usa essa lista para duas coisas de uma vez: o total de enigmas e,
+// por equipe, quantos deles ficam antes do índice atual (ver solvedCount).
+// Uma consulta só — evita um COUNT por equipe e garante que total e contagens
+// individuais venham do mesmo retrato da fila.
+func (r *riddleRepository) ListActiveRiddleIDs() ([]uint, error) {
+	var ids []uint
+	err := r.db.Model(&Riddle{}).
+		Where("is_active = ?", true).
+		Order("id ASC").
+		Pluck("id", &ids).Error
+	if err != nil {
+		return nil, err
+	}
+	return ids, nil
 }
 
 // HasTeamsInProgress indica se há alguma equipe que já resolveu ao menos um

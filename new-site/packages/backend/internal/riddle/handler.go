@@ -210,6 +210,25 @@ func (h *RiddleHandler) GetRiddles(c *gin.Context) {
 	})
 }
 
+// GetTeamsRanking retorna o ranking das equipes do jogo de enigmas.
+// @Summary Ranking das equipes
+// @Description Retorna todas as equipes ordenadas pelo ranking: primeiro as que terminaram (por data de conclusão crescente), depois as em andamento (por progresso decrescente). A posição é calculada na resposta, nunca persistida. Endpoint somente leitura.
+// @Tags Riddle Backoffice
+// @Produce json
+// @Success 200 {object} riddle.TeamRankingResponse "Ranking das equipes"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/teams/ranking [get]
+func (h *RiddleHandler) GetTeamsRanking(c *gin.Context) {
+	ranking, err := h.riddleService.GetTeamsRanking()
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	c.Set("responseMessage", "Ranking carregado com sucesso!")
+	c.JSON(http.StatusOK, ranking)
+}
+
 // authedUserNumber lê o userNumber autenticado do contexto Gin (injetado pelo
 // AuthMiddleware nas rotas /api). Retorna 0 quando não autenticado.
 func authedUserNumber(c *gin.Context) uint {

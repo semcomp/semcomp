@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"sort"
 	"strings"
 
 	"backend/internal/apierrors"
@@ -27,6 +28,9 @@ type RiddleService interface {
 	JoinTeam(userNumber uint, code string) (*TeamView, error)
 	GetMyGame(userNumber uint) (*MyGameResponse, error)
 	SolveRiddle(userNumber uint, riddleID uint, answer string) (*SolveResult, error)
+
+	// Ranking (backoffice, somente leitura) ---------
+	GetTeamsRanking() (*TeamRankingResponse, error)
 }
 
 type riddleService struct {
@@ -374,6 +378,97 @@ func (s *riddleService) GetMyGame(userNumber uint) (*MyGameResponse, error) {
 	response.CurrentRiddle = &currentPublic
 
 	return response, nil
+}
+
+// --- Ranking (backoffice, somente leitura) ---------
+
+// rankTeams ordena as equipes segundo a regra do ranking:
+//
+//  1. equipes que terminaram (FinishedAt != nil) vêm primeiro, entre si por
+//     FinishedAt crescente — quem terminou antes fica em posição melhor;
+//  2. depois as em andamento, por CurrentRiddleIndex decrescente — quem
+//     avançou mais fica em posição melhor;
+//  3. empate em qualquer um dos critérios é desempatado pelo ID da equipe
+//     (crescente), só para a ordem ser determinística: sem isso, o polling do
+//     backoffice ficaria trocando equipes empatadas de lugar a cada refresh.
+//
+// A ordenação é em memória (e não um ORDER BY) porque é uma regra de negócio
+// que vale a pena testar sem banco, e o número de equipes de uma edição é
+// pequeno. A posição é sempre derivada daqui, nunca lida do banco.
+func rankTeams(teams []Team) {
+	sort.SliceStable(teams, func(i, j int) bool {
+		a, b := teams[i], teams[j]
+
+		aFinished, bFinished := a.FinishedAt != nil, b.FinishedAt != nil
+		if aFinished != bFinished {
+			return aFinished
+		}
+
+		if aFinished && bFinished && !a.FinishedAt.Equal(*b.FinishedAt) {
+			return a.FinishedAt.Before(*b.FinishedAt)
+		}
+
+		if !aFinished && a.CurrentRiddleIndex != b.CurrentRiddleIndex {
+			return a.CurrentRiddleIndex > b.CurrentRiddleIndex
+		}
+
+		return a.ID < b.ID
+	})
+}
+
+// solvedCount conta quantos enigmas a equipe efetivamente resolveu: os riddles
+// ATIVOS com ID <= currentRiddleIndex.
+//
+// Não dá para usar currentRiddleIndex como contagem: ele é o ID do último
+// enigma resolvido, e um soft delete no meio da fila abre um buraco nos IDs.
+// Com a fila [1,2,4,5] (riddle 3 desativado) e índice 5, a equipe resolveu 4
+// enigmas, não 5 — exibir o índice cru inflaria o progresso para o admin.
+//
+// activeIDs vem ordenado de forma crescente, então a contagem é o ponto de
+// corte onde os IDs passam de currentRiddleIndex.
+func solvedCount(activeIDs []uint, currentRiddleIndex uint) int {
+	return sort.Search(len(activeIDs), func(i int) bool {
+		return activeIDs[i] > currentRiddleIndex
+	})
+}
+
+// GetTeamsRanking devolve todas as equipes já ordenadas pela regra do ranking,
+// com a posição (1, 2, 3, ...) calculada na hora. Posições são sequenciais:
+// equipes empatadas ainda recebem números distintos, na ordem determinística
+// definida por rankTeams.
+func (s *riddleService) GetTeamsRanking() (*TeamRankingResponse, error) {
+	activeIDs, err := s.repo.ListActiveRiddleIDs()
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao listar enigmas ativos", err)
+	}
+	riddlesTotal := int64(len(activeIDs))
+
+	teams, err := s.repo.ListTeamsWithMembers()
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao listar equipes", err)
+	}
+
+	// A ordenação continua baseada em CurrentRiddleIndex (o ID), não em
+	// SolvedCount: são monotônicos entre si para uma mesma fila de riddles, e o
+	// índice é o dado autoritativo de progresso.
+	rankTeams(teams)
+
+	entries := make([]TeamRankingEntry, 0, len(teams))
+	for i := range teams {
+		team := teams[i]
+		entries = append(entries, TeamRankingEntry{
+			Position:     i + 1,
+			TeamID:       team.ID,
+			Name:         team.Name,
+			SolvedCount:  solvedCount(activeIDs, team.CurrentRiddleIndex),
+			RiddlesTotal: riddlesTotal,
+			Finished:     team.FinishedAt != nil,
+			FinishedAt:   team.FinishedAt,
+			MembersCount: len(team.Members),
+		})
+	}
+
+	return &TeamRankingResponse{Teams: entries, RiddlesTotal: riddlesTotal}, nil
 }
 
 // resolveNextRiddle converte o resultado de GetNextActiveRiddle: riddle ativo,
