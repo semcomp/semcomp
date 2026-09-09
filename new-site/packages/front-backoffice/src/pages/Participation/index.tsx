@@ -23,7 +23,7 @@ export default function ParticipationCRUD() {
   // Helper para gerar a chave única da linha (identificador composto)
   const resolvePresenceKey = useCallback((item: CrudItemType) => {
     const presence = item as ParticipationType;
-    return `${presence.user_number}__${presence.name_event}__${presence.date_event}`;
+    return `${presence.userNumber}__${presence.nameEvent}__${presence.dateEvent}`;
   }, []);
 
   // Busca de dados (Server-side)
@@ -86,6 +86,7 @@ export default function ParticipationCRUD() {
       setTotalRecords((prev) => prev + 1);
       showNotification("Presença criada com sucesso", "success");
     } catch (err: any) {
+      console.log(err);
       const msg = err.response?.data?.message || "Erro ao criar presença";
       showNotification(msg, "error");
     }
@@ -101,9 +102,9 @@ export default function ParticipationCRUD() {
       if (!originalPresence) return;
 
       await participationAPI.update(
-        originalPresence.user_number,
-        originalPresence.name_event,
-        originalPresence.date_event,
+        originalPresence.userNumber,
+        originalPresence.nameEvent,
+        originalPresence.dateEvent,
         typedItem
       );
 
@@ -124,9 +125,9 @@ export default function ParticipationCRUD() {
       if (!presence) return;
 
       await participationAPI.delete(
-        presence.user_number,
-        presence.name_event,
-        presence.date_event
+        presence.userNumber,
+        presence.nameEvent,
+        presence.dateEvent
       );
 
       setData((prev) => prev.filter((p) => resolvePresenceKey(p) !== itemKey));

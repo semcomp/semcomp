@@ -29,6 +29,7 @@ var KnownSections = []string{
 	"Usuários Backoffice",
 	"Usuários Semcomp",
 	"Participações",
+	"Configurações Presença",
 	"Permissões",
 	"Produtos",
 	"Páginas",
