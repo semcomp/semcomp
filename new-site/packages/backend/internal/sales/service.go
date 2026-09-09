@@ -43,6 +43,11 @@ type SaleService interface {
 	UpdateSaleByID(id string, request UpdateSaleRequest) (*Sale, error)
 	DeleteSaleByID(id string) error
 
+	// CancelSale permite que o próprio usuário cancele um pedido que ainda
+	// esteja PENDENTE (não pago). Libera a trava de compra única do item
+	// (COFFEE/COMBO), se houver.
+	CancelSale(userNumber uint, saleID uint) (*Sale, error)
+
 	// Operação de Item (Backoffice)
 	UpdateItemPickup(itemID string, request UpdateSaleItemPickupRequest) (*SaleItem, error)
 
@@ -595,6 +600,38 @@ func (s *saleService) DeleteSaleByID(id string) error {
 		return apierrors.InternalServerError("Venda deletada, mas erro ao liberar a disponibilidade dos itens", err)
 	}
 	return nil
+}
+
+// CancelSale cancela um pedido do próprio usuário, desde que ainda esteja PENDENTE.
+func (s *saleService) CancelSale(userNumber uint, saleID uint) (*Sale, error) {
+	sale, err := s.saleRepo.GetByID(saleID)
+	if err != nil {
+		return nil, err
+	}
+
+	if sale.SaleUserNumber != userNumber {
+		return nil, apierrors.NotFoundError("Venda não encontrada", nil)
+	}
+
+	if sale.Status != SaleStatusPending {
+		return nil, apierrors.ValidationError("Só é possível cancelar pedidos com pagamento pendente", nil)
+	}
+
+	if err := s.saleRepo.UpdateByID(sale.ID, map[string]interface{}{"status": SaleStatusCanceled}); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apierrors.NotFoundError("Venda não encontrada", err)
+		}
+		return nil, apierrors.InternalServerError("Erro ao cancelar pedido", err)
+	}
+
+	Hub.Publish(sale.ID, string(SaleStatusCanceled))
+
+	// Libera a trava de compra única (COFFEE/COMBO) que esse pedido segurava.
+	if err := s.syncConsumptionForSale(sale.ID); err != nil {
+		return nil, apierrors.InternalServerError("Pedido cancelado, mas erro ao liberar a disponibilidade dos itens", err)
+	}
+
+	return s.saleRepo.GetByID(sale.ID)
 }
 
 func (s *saleService) UpdateItemPickup(itemID string, request UpdateSaleItemPickupRequest) (*SaleItem, error) {

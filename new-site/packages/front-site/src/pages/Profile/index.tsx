@@ -5,8 +5,8 @@ import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { authAPI, absenceJustificationsAPI, papfeAPI, client } from "@/api";
 import { salesAPI } from "@/api/sales";
-import type { SaleResponse } from "@/api/sales";
-import { ChevronDown, Megaphone, Eye } from "lucide-react";
+import type { SaleResponse, SaleItemResponse, SaleProduct } from "@/api/sales";
+import { ChevronDown, Megaphone, Eye, Loader2 } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 import { isPendingSale } from "@/lib/pendingSale";
@@ -20,6 +20,7 @@ import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate";
 import { signinEventsAPI } from "@/api/signinEvents";
 import { useNavigate } from "react-router-dom";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import Modal from "@/components/ui/Modal";
 import JustifyAbsenceModal, { JustifyAbsenceStatusBadge } from "@/components/JustifyAbsenceModal";
 import type { JustifyAbsenceStatus } from "@/components/JustifyAbsenceModal";
 import { PapfeStatusBadge } from "@/components/PapfeStatusBadge";
@@ -49,11 +50,23 @@ function StatusEyeButton({ onClick }: { onClick: () => void }) {
 
 export interface PurchaseType {
   id: string;
+  saleId: number;
   item: string;
+  items: SaleItemResponse[];
   date: string;
   amount: number;
   status: string;
   statusColor: string;
+  rawStatus: string;
+  isPending: boolean;
+}
+
+// Só pedidos PENDENTE (ainda não pagos) podem ser cancelados pelo próprio
+// usuário — mesma regra aplicada em backend/internal/sales/service.go.
+const CANCELABLE_SALE_STATUS = "PENDENTE";
+
+function isCancelablePurchase(purchase: PurchaseType): boolean {
+  return purchase.rawStatus === CANCELABLE_SALE_STATUS;
 }
 
 const SALE_STATUS_STYLES: Record<string, { label: string; color: string }> = {
@@ -70,12 +83,29 @@ const formatPresencePercent = (value: number): string => Math.round(value).toStr
 function getProductDisplayName(product: any): string {
   if (!product) return "Produto";
 
-  if (product.kit?.name) return product.kit.name;
-  if (product.coffee?.name) return product.coffee.name;
+  // Formatação de Kits / Camisetas
+  if (product.kit) {
+    const details = [];
+    if (product.kit.size) details.push(`Tam: ${product.kit.size}`);
+    if (product.kit.color) details.push(product.kit.color);
+    if (product.kit.is_babylook) details.push("Babylook");
 
+    const specString = details.length ? ` (${details.join(" - ")})` : "";
+    return `${product.kit.name || "Kit"}${specString}`;
+  }
+
+  // Formatação de Coffee
+  if (product.coffee) {
+    const dateStr = product.coffee.date_time
+      ? ` - ${formatDate(product.coffee.date_time, 2)}`
+      : "";
+    return `${product.coffee.name || "Coffee"}${dateStr}`;
+  }
+
+  // Formatação de Combos
   if (product.type === "COMBO" && product.combo_items?.length) {
     const itemNames = product.combo_items
-      .map((ci: any) => ci.item?.kit?.name ?? ci.item?.coffee?.name)
+      .map((ci: any) => getProductDisplayName(ci.item))
       .filter(Boolean);
     if (itemNames.length > 0) {
       return `Combo (${itemNames.join(" + ")})`;
@@ -91,7 +121,7 @@ function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
   sale.items?.length
     ? sale.items
         .map((it) => {
-          return `${it.quantity}x ${getProductDisplayName((it as any).product)}`;
+          return `${it.quantity}x ${getProductDisplayName(it.product)}`;
         })
         .join(", ")
     : "Pedido";
@@ -100,12 +130,88 @@ function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
 
   return {
     id: String(sale.id),
+    saleId: sale.id,
     item: itemsLabel,
+    items: sale.items ?? [],
     date: formatDate(sale.created_at, 2),
     amount: sale.total_amount,
     status: style.label,
     statusColor: style.color,
+    rawStatus: sale.status,
+    isPending: isPendingSale(sale),
   };
+}
+
+// Linha expansível (accordion) que exibe os itens de um produto do tipo
+// COMBO dentro de uma compra. Os dados são buscados sob demanda pelo
+// componente pai (GET /api/sales/:id) e passados já resolvidos aqui.
+function ComboItemsRow({
+  isOpen,
+  onToggle,
+  resolvedProduct,
+  isLoading,
+  error,
+  onRetry,
+}: {
+  isOpen: boolean;
+  onToggle: () => void;
+  resolvedProduct?: SaleProduct;
+  isLoading: boolean;
+  error?: string;
+  onRetry: () => void;
+}) {
+  const comboItems = resolvedProduct?.combo_items;
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex items-center gap-1 text-xs font-semibold text-semcompMidDarkBlue hover:underline cursor-pointer"
+      >
+        <ChevronDown
+          size={14}
+          className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+        />
+        {isOpen ? "Ocultar itens do combo" : "Ver itens do combo"}
+      </button>
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-out"
+        style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden">
+          {isOpen && (
+            <div className="mt-2 pl-4 border-l-2 border-semcompMidLightBlue/40 flex flex-col gap-1">
+              {isLoading && !comboItems ? (
+                <span className="flex items-center gap-2 text-xs text-semcompDarkBlue/70">
+                  <Loader2 size={12} className="animate-spin" /> Carregando itens...
+                </span>
+              ) : error && !comboItems ? (
+                <div className="flex items-center justify-between gap-2 text-xs text-red-600">
+                  <span>{error}</span>
+                  <button
+                    type="button"
+                    onClick={onRetry}
+                    className="underline font-semibold cursor-pointer"
+                  >
+                    Tentar de novo
+                  </button>
+                </div>
+              ) : comboItems?.length ? (
+                comboItems.map((ci) => (
+                  <span key={ci.item_id} className="text-xs text-semcompDarkBlue/80">
+                    {ci.quantity}x {getProductDisplayName(ci.item)}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-semcompDarkBlue/60 italic">Nenhum item encontrado.</span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCancel, isCanceling }: {
@@ -227,6 +333,15 @@ export default function Profile({
   const navigate = useNavigate();
   const { isFeatureEnabled } = useFeatureFlags();
   const [pendingSalesCount, setPendingSalesCount] = useState(0);
+  const [cancelTarget, setCancelTarget] = useState<PurchaseType | null>(null);
+  const [isCanceling, setIsCanceling] = useState(false);
+
+  // Detalhe completo de cada venda (com os itens do combo resolvidos),
+  // buscado sob demanda ao expandir "Ver itens do combo" e cacheado por saleId.
+  const [comboSaleDetails, setComboSaleDetails] = useState<Record<number, SaleResponse>>({});
+  const [comboLoadingSaleId, setComboLoadingSaleId] = useState<number | null>(null);
+  const [comboErrorBySaleId, setComboErrorBySaleId] = useState<Record<number, string>>({});
+  const [openComboRows, setOpenComboRows] = useState<Set<string>>(new Set());
 
   const logoutRef = useRef(logout);
   const showNotificationRef = useRef(showNotification);
@@ -241,6 +356,42 @@ export default function Profile({
   const handlePapfeSubmitted = (doc: PapfeDocumentType) => {
     setPapfeDoc(doc);
   };
+
+  async function loadComboSaleDetails(saleId: number) {
+    if (comboSaleDetails[saleId] || comboLoadingSaleId === saleId) return;
+    setComboLoadingSaleId(saleId);
+    setComboErrorBySaleId((prev) => {
+      if (!(saleId in prev)) return prev;
+      const next = { ...prev };
+      delete next[saleId];
+      return next;
+    });
+    try {
+      const sale = await salesAPI.getById(saleId);
+      setComboSaleDetails((prev) => ({ ...prev, [saleId]: sale }));
+    } catch {
+      setComboErrorBySaleId((prev) => ({
+        ...prev,
+        [saleId]: "Não foi possível carregar os itens do combo.",
+      }));
+    } finally {
+      setComboLoadingSaleId((current) => (current === saleId ? null : current));
+    }
+  }
+
+  function toggleComboRow(saleId: number, itemId: number) {
+    const key = `${saleId}:${itemId}`;
+    setOpenComboRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+    loadComboSaleDetails(saleId);
+  }
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -427,6 +578,81 @@ export default function Profile({
       setIsSaving(false);
     }
   }
+
+  function requestCancelPurchase(purchase: PurchaseType) {
+    setCancelTarget(purchase);
+  }
+
+  function closeCancelModal() {
+    if (isCanceling) return;
+    setCancelTarget(null);
+  }
+
+  async function confirmCancelPurchase() {
+    if (!cancelTarget) return;
+    setIsCanceling(true);
+    try {
+      await salesAPI.cancel(cancelTarget.saleId);
+      const canceledStyle = SALE_STATUS_STYLES.CANCELADO;
+      setUserPurchases((prev) =>
+        prev.map((p) =>
+          p.saleId === cancelTarget.saleId
+            ? { ...p, rawStatus: "CANCELADO", status: canceledStyle.label, statusColor: canceledStyle.color, isPending: false }
+            : p
+        )
+      );
+      if (cancelTarget.isPending) {
+        setPendingSalesCount((prev) => Math.max(0, prev - 1));
+      }
+      showNotification("Pedido cancelado com sucesso.", "success");
+      setCancelTarget(null);
+    } catch (err) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      showNotification(message || "Não foi possível cancelar o pedido. Tente novamente.", "warning");
+    } finally {
+      setIsCanceling(false);
+    }
+  }
+
+  const cancelModal = (
+    <Modal
+      open={cancelTarget !== null}
+      onClose={closeCancelModal}
+      title="Cancelar compra"
+      size="sm"
+      closeOnBackdrop={!isCanceling}
+    >
+      <div className="flex flex-col gap-4">
+        <p>
+          Tem certeza que deseja cancelar este pedido
+          {cancelTarget ? ` (${cancelTarget.item})` : ""}? Essa ação não pode ser desfeita e o
+          item voltará a ficar disponível para compra.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={closeCancelModal}
+            disabled={isCanceling}
+            className="px-4 py-2 rounded-lg text-sm font-semibold border border-semcompDarkBlue/20 text-semcompDarkBlue disabled:opacity-50 dark:text-semcompOffWhite dark:border-white/20 cursor-pointer"
+          >
+            Voltar
+          </button>
+          <button
+            type="button"
+            onClick={confirmCancelPurchase}
+            disabled={isCanceling}
+            className="px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-60 flex items-center gap-2 cursor-pointer"
+          >
+            {isCanceling && <Loader2 size={16} className="animate-spin" />}
+            {isCanceling ? "Cancelando..." : "Cancelar pedido"}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
 
   // Versão Mobile/Tablet (< 1280px)
   if (width < 1280) {
@@ -681,6 +907,26 @@ export default function Profile({
                         <div className="mt-2 text-xs font-semibold text-semcompDarkBlue/80">
                           Status: {purchase.status}
                         </div>
+                        {purchase.items
+                          .filter((it) => it.product?.type === "COMBO")
+                          .map((it) => {
+                            const key = `${purchase.saleId}:${it.id}`;
+                            const resolvedSale = comboSaleDetails[purchase.saleId];
+                            const resolvedProduct = resolvedSale?.items?.find(
+                              (ri) => ri.id === it.id
+                            )?.product;
+                            return (
+                              <ComboItemsRow
+                                key={it.id}
+                                isOpen={openComboRows.has(key)}
+                                onToggle={() => toggleComboRow(purchase.saleId, it.id)}
+                                resolvedProduct={resolvedProduct}
+                                isLoading={comboLoadingSaleId === purchase.saleId}
+                                error={comboErrorBySaleId[purchase.saleId]}
+                                onRetry={() => loadComboSaleDetails(purchase.saleId)}
+                              />
+                            );
+                          })}
                       </div>
                     ))
                   ) : (
@@ -1041,6 +1287,26 @@ export default function Profile({
                     <span className={`text-sm font-bold ${purchase.statusColor}`}>R$ {purchase.amount.toFixed(2)}</span>
                   </div>
                   <span className="text-xs font-semibold text-semcompDarkBlue/80 mt-1">Status: {purchase.status}</span>
+                  {purchase.items
+                    .filter((it) => it.product?.type === "COMBO")
+                    .map((it) => {
+                      const key = `${purchase.saleId}:${it.id}`;
+                      const resolvedSale = comboSaleDetails[purchase.saleId];
+                      const resolvedProduct = resolvedSale?.items?.find(
+                        (ri) => ri.id === it.id
+                      )?.product;
+                      return (
+                        <ComboItemsRow
+                          key={it.id}
+                          isOpen={openComboRows.has(key)}
+                          onToggle={() => toggleComboRow(purchase.saleId, it.id)}
+                          resolvedProduct={resolvedProduct}
+                          isLoading={comboLoadingSaleId === purchase.saleId}
+                          error={comboErrorBySaleId[purchase.saleId]}
+                          onRetry={() => loadComboSaleDetails(purchase.saleId)}
+                        />
+                      );
+                    })}
                 </div>
               ))
             ) : (
