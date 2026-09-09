@@ -13,11 +13,39 @@ export interface CreateSalePayload {
   dietary_restrictions?: string;
 }
 
+export interface SaleProductKit {
+  id: number;
+  name: string;
+  size: string;
+  color: string;
+  is_babylook: boolean;
+}
+
+export interface SaleProductCoffee {
+  id: number;
+  name: string;
+  date_time: string;
+}
+
+// ComboItemResponse representa um item que compõe um produto do tipo COMBO
+// (espelha backend/internal/product/model.go: ComboItem).
+export interface ComboItemResponse {
+  combo_id: number;
+  item_id: number;
+  quantity: number;
+  item?: SaleProduct;
+}
+
 export interface SaleProduct {
   id: number;
+  type?: "KIT" | "COFFEE" | "COMBO" | string;
   name: string;
   price: number;
   image_url?: string;
+  kit?: SaleProductKit;
+  coffee?: SaleProductCoffee;
+  // Presente apenas quando type === "COMBO"; lista os produtos que compõem o combo.
+  combo_items?: ComboItemResponse[];
 }
 
 export interface SaleItemResponse {
