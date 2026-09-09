@@ -83,13 +83,30 @@ const formatPresencePercent = (value: number): string => Math.round(value).toStr
 function getProductDisplayName(product: any): string {
   if (!product) return "Produto";
 
-  if (product.kit?.name) return product.kit.name;
-  if (product.coffee?.name) return product.coffee.name;
+  // Formatação de Kits / Camisetas
+  if (product.kit) {
+    const details = [];
+    if (product.kit.size) details.push(`Tam: ${product.kit.size}`);
+    if (product.kit.color) details.push(product.kit.color);
+    if (product.kit.is_babylook) details.push("Babylook");
 
+    const specString = details.length ? ` (${details.join(" - ")})` : "";
+    return `${product.kit.name || "Kit"}${specString}`;
+  }
+
+  // Formatação de Coffee
+  if (product.coffee) {
+    const dateStr = product.coffee.date_time
+      ? ` - ${formatDate(product.coffee.date_time, 2)}`
+      : "";
+    return `${product.coffee.name || "Coffee"}${dateStr}`;
+  }
+
+  // Formatação de Combos
   if (product.type === "COMBO" && product.combo_items?.length) {
     const itemNames = product.combo_items
-      .map((ci) => ci.item?.kit?.name ?? ci.item?.coffee?.name)
-      .filter((n): n is string => Boolean(n));
+      .map((ci: any) => getProductDisplayName(ci.item))
+      .filter(Boolean);
     if (itemNames.length > 0) {
       return `Combo (${itemNames.join(" + ")})`;
     }
