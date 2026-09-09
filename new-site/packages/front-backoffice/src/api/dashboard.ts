@@ -29,6 +29,8 @@ export interface UsersStats {
   notJustified: number;
   meanRate: number;
   totalWithPapfe: number;
+  uspParticipants: number;
+  externalParticipants: number;
   lastUpdate: string;
 }
 
