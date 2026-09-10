@@ -1,6 +1,9 @@
 package event
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -31,11 +34,21 @@ func NewEventHandler(eventService EventService) *EventHandler {
 // @Security BearerAuth
 // @Router /admin/events [post]
 func (h *EventHandler) CreateEvent(c *gin.Context) {
+	rawBody, _ := io.ReadAll(c.Request.Body)
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(rawBody))
+
 	var request CreateEventRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
 		return
+	}
+
+	var rawMap map[string]json.RawMessage
+	if json.Unmarshal(rawBody, &rawMap) == nil {
+		if _, ok := rawMap["has_attendance"]; ok {
+			request.HasAttendanceSent = true
+		}
 	}
 
 	event, err := h.eventService.CreateEvent(request)
@@ -120,10 +133,20 @@ func (h *EventHandler) UpdateEventByNameAndInitDate(c *gin.Context) {
 	name := c.Param("eventName")
 	initDate := c.Param("initDate")
 
+	rawBody, _ := io.ReadAll(c.Request.Body)
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(rawBody))
+
 	var request UpdateEventRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		apierrors.HandleAPIError(c, apierrors.ValidationError("Dados inválidos", err))
 		return
+	}
+
+	var rawMap map[string]json.RawMessage
+	if json.Unmarshal(rawBody, &rawMap) == nil {
+		if _, ok := rawMap["has_attendance"]; ok {
+			request.HasAttendanceSent = true
+		}
 	}
 
 	event, err := h.eventService.UpdateEventByNameAndInitDate(name, initDate, request)

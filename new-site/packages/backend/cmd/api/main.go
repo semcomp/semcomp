@@ -18,6 +18,8 @@ import (
 	"backend/internal/pages"
 	"backend/internal/permission"
 	"backend/internal/presence"
+	"backend/internal/presencerate"
+	"backend/internal/presencesettings"
 	"backend/internal/product"
 	"backend/internal/providers"
 	"backend/internal/sales"
@@ -58,6 +60,7 @@ func main() {
 
 	err := db.AutoMigrate(
 		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{},
+		&presencesettings.PresenceTypeWeight{},
 		&signinEvent.SigninEvent{},
 		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{},
 		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{},
@@ -128,8 +131,12 @@ func main() {
 	userService := user.NewUserService(userRepo, papfeRepo, passwordProvider, tokenProvider, mailProvider, emailValidationProvider, tokenRepo, m)
 	userHandler := user.NewUserHandler(userService)
 
+	presenceSettingsRepo := presencesettings.NewPresenceSettingsRepository(db)
+	presenceSettingsService := presencesettings.NewPresenceSettingsService(presenceSettingsRepo, db)
+	presenceSettingsHandler := presencesettings.NewPresenceSettingsHandler(presenceSettingsService)
+
 	eventRepo := event.NewEventRepository(db)
-	eventService := event.NewEventService(eventRepo)
+	eventService := event.NewEventService(eventRepo, presenceSettingsRepo)
 	eventHandler := event.NewEventHandler(eventService)
 
 	signinEventRepo := signinEvent.NewSigninEventRepository(db)
@@ -140,8 +147,16 @@ func main() {
 	presenceService := presence.NewPresenceService(presenceRepo)
 	presenceHandler := presence.NewPresenceHandler(presenceService)
 
+	// Motor de cálculo das taxas de presença: dispara recálculo automático a
+	// cada mutação de presenças, eventos ou pesos configuráveis.
+	rateCalculator := presencerate.NewCalculator(db)
+	eventService.SetRateRecalculator(rateCalculator)
+	presenceService.SetRateRecalculator(rateCalculator)
+	presenceSettingsService.SetRateRecalculator(rateCalculator)
+	
 	absenceJustificationRepo := absenceJustification.NewAbsenceJustificationRepository(db)
 	absenceJustificationService := absenceJustification.NewAbsenceJustificationService(absenceJustificationRepo)
+	absenceJustificationService.SetRateRecalculator(rateCalculator)
 	absenceJustificationHandler := absenceJustification.NewAbsenceJustificationHandler(absenceJustificationService)
 
 	productRepo := product.NewProductRepository(db)
@@ -218,6 +233,33 @@ func main() {
 	// Inicialização de valores base de permissões para o banco de dados
 	if err := permissionService.InitializePermissions(); err != nil {
 		panic("Failed to initialize admin's permissions in backoffice: " + err.Error())
+	}
+
+	// Pesos padrão de presença (Palestra=1.0, Vitrine=0.5) em banco vazio
+	if err := presenceSettingsService.InitializeDefaults(); err != nil {
+		panic("Failed to initialize presence type weights: " + err.Error())
+	}
+
+	// Migração de dados: vincula eventos existentes ao seu tipo via FK
+	if db.Migrator().HasColumn(&event.Event{}, "presence_type_weight_id") {
+		type eventRow struct {
+			Name     string
+			InitDate time.Time
+			Type     string
+		}
+		var unmapped []eventRow
+		db.Raw("SELECT name, init_date, type FROM events WHERE presence_type_weight_id IS NULL AND type != ''").Scan(&unmapped)
+		for _, e := range unmapped {
+			var weightID uint
+			if err := db.Raw("SELECT id FROM presence_type_weights WHERE LOWER(TRIM(type_name)) = LOWER(TRIM(?))", e.Type).Scan(&weightID).Error; err == nil && weightID > 0 {
+				db.Model(&event.Event{}).Where("name = ? AND init_date = ?", e.Name, e.InitDate).Update("presence_type_weight_id", weightID)
+			}
+		}
+	}
+
+	// Convergência inicial: recalcula as taxas já persistidas com a configuração atual
+	if err := rateCalculator.RecalculateAll(); err != nil {
+		stdlog.Printf("[presence-rate] erro no recálculo inicial das taxas de presença: %v", err)
 	}
 
 	r := gin.Default()
@@ -324,12 +366,13 @@ func main() {
 	admin.DELETE("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.DeleteUser)
 
 	// Eventos
+	admin.GET("/events", permMW("Eventos", permission.PermR), eventHandler.GetEvents)
 	admin.POST("/events", permMW("Eventos", permission.PermRW), eventHandler.CreateEvent)
-	// GET nos eventos - Consulta pública via GET /events
 	admin.PUT("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.UpdateEventByNameAndInitDate)
 	admin.DELETE("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.DeleteEventByNameAndInitDate)
 
 	// Inscrições (Signin Events)
+	admin.GET("/signin-events/events", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninEvents)
 	admin.GET("/signin-events", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninsAdmin)
 	admin.GET("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninAdmin)
 	admin.POST("/signin-events", permMW("Inscrições", permission.PermRW), signinEventHandler.CreateSigninAdmin)
@@ -338,6 +381,11 @@ func main() {
 	admin.PUT("/signin-events/:userNumber/:eventName/:eventInitDate/register", permMW("Inscrições", permission.PermRW), signinEventHandler.RegisterSigninAdmin)
 	admin.POST("/signin-events/rotate/:eventName/:eventInitDate", permMW("Inscrições", permission.PermRW), signinEventHandler.RotateSigninsAdmin)
 
+	// Confirmações de Inscrição — rotas próprias com permissão própria
+	admin.GET("/confirmations/events", permMW("Confirmações de Inscrição", permission.PermR), signinEventHandler.GetSigninEvents)
+	admin.GET("/confirmations", permMW("Confirmações de Inscrição", permission.PermR), signinEventHandler.GetSigninsAdmin)
+	admin.PUT("/confirmations/:userNumber/:eventName/:eventInitDate", permMW("Confirmações de Inscrição", permission.PermRW), signinEventHandler.RegisterSigninAdmin)
+
 	// Participações
 	admin.GET("/presences", permMW("Participações", permission.PermR), presenceHandler.GetPresences)
 	admin.GET("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermR), presenceHandler.GetPresenceByUserEventandInitDate)
@@ -345,6 +393,12 @@ func main() {
 	admin.PUT("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermRW), presenceHandler.UpdatePresenceByUserEventandInitDate)
 	admin.DELETE("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermRW), presenceHandler.DeletePresenceByUserEventandInitDate)
 
+	// Configurações de Presença (pesos por tipo de evento)
+	admin.GET("/presence-settings", permMW("Configurações Presença", permission.PermR), presenceSettingsHandler.GetWeights)
+	admin.POST("/presence-settings", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.CreateWeight)
+	admin.PUT("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.UpdateWeight)
+	admin.DELETE("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.DeleteWeight)
+	
 	// Justificativas de Ausência
 	admin.GET("/absence-justifications", permMW("Justificativas de Ausência", permission.PermR), absenceJustificationHandler.GetAbsenceJustifications)
 	admin.GET("/absence-justifications/:id/attachment", permMW("Justificativas de Ausência", permission.PermR), absenceJustificationHandler.GetAttachment)

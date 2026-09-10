@@ -12,6 +12,7 @@ export { participationAPI } from "./participation";
 export { productsAPI } from "./products";
 export { permissionsAPI } from "./permissions";
 export { pagesAPI } from "./pages";
+export { presenceSettingsAPI } from "./presenceSettings";
 export { sponsorsAPI } from "./sponsors";
 export { absenceJustificationsAPI } from "./absenceJustifications";
 export { salesAPI } from "./sales";

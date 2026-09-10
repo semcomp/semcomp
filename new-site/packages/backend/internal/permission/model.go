@@ -29,6 +29,7 @@ var KnownSections = []string{
 	"Usuários Backoffice",
 	"Usuários Semcomp",
 	"Participações",
+	"Configurações Presença",
 	"Permissões",
 	"Produtos",
 	"Páginas",
@@ -38,6 +39,7 @@ var KnownSections = []string{
 	"Avisos",
 	"Justificativas de Ausência",
 	"Inscrições",
+	"Confirmações de Inscrição",
 }
 
 type Permission struct {

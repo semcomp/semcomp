@@ -3,7 +3,6 @@ package presence
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -38,6 +37,7 @@ func (m *mockPresenceService) UpdatePresenceByUserEventandInitDate(userNumber, e
 func (m *mockPresenceService) GetPresences(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*PresenceListResult, error) {
 	return m.GetPresencesFunc(page, limit, sortBy, sortOrder, searchBy, searchValue)
 }
+func (m *mockPresenceService) SetRateRecalculator(recalculator RateRecalculator) {}
 
 // setupRouter cria um roteador Gin em modo de teste com todas as rotas do PresenceHandler
 func setupRouter(h *PresenceHandler) *gin.Engine {
@@ -153,7 +153,9 @@ func TestHandlerUpdatePresence_NotFound(t *testing.T) {
 	router := setupRouter(NewPresenceHandler(svc))
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodPut, "/admin/presences/123/Evento/2024-01-01T00:00:00Z", nil)
+	body := bytes.NewBufferString(`{"user_number":123,"event_name":"Evento","event_init_date":"2024-01-01T00:00:00Z","email_admin":"a@b.com"}`)
+	req, _ := http.NewRequest(http.MethodPut, "/admin/presences/123/Evento/2024-01-01T00:00:00Z", body)
+	req.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusNotFound {
@@ -181,7 +183,7 @@ func TestHandlerUpdatePresence_ValidationError(t *testing.T) {
 func TestHandlerGetPresences_ServiceError(t *testing.T) {
 	svc := &mockPresenceService{
 		GetPresencesFunc: func(_, _ int, _, _, _, _ string) (*PresenceListResult, error) {
-			return nil, errors.New("invalid sort_by parameter") //Depois substituir por apierrors.ValidationError("Parâmetros inválidos", nil)
+			return nil, apierrors.ValidationError("Parâmetros inválidos", nil)
 		},
 	}
 	router := setupRouter(NewPresenceHandler(svc))

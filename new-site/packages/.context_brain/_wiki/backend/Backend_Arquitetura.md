@@ -55,6 +55,8 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - Rotas backoffice: `POST /admin/events`, `PUT/DELETE /admin/events/:eventName/:initDate`
 - PK composta: `Name + InitDate` (RFC3339)
 - Campos de inscrição: `has_signin bool` (habilita inscrição), `max_participants uint` (0 = sem limite)
+- Validação: `EndDate` deve ser posterior a `InitDate` (Create e Update)
+- `NewEventService` recebe `presenceSettingsRepo` (não mais `db *gorm.DB`) — usa `GetByID` para resolver tipo de presença
 
 ### signinEvent
 - Rotas autenticadas (`/api`, guard: `AuthMiddleware` + `pageMW("profile")` + `pageMW("cronograma")`):
@@ -64,12 +66,15 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
   - `DELETE /api/signin-events/:eventName/:eventInitDate` — cancela inscrição (handler: `DeleteSignin`)
 - Rotas backoffice (guard: `AuthBackofficeMiddleware` + `permMW("Inscrições", ...)`):
   - `GET /admin/signin-events` — lista todas as inscrições (PermR)
+  - `GET /admin/signin-events/events` — lista eventos com `has_signin=true` para uso no admin (PermR)
   - `GET /admin/signin-events/:userNumber/:eventName/:eventInitDate` — busca inscrição (PermR)
   - `POST /admin/signin-events` — cria inscrição manualmente (PermRW)
+  - `POST /admin/signin-events/rotate/:eventName/:eventInitDate` — rota a fila: remove `"Aguardando Aprovação"` e promove espera (PermRW); retorna 400 se `max_participants = 0`
   - `PUT /admin/signin-events/:userNumber/:eventName/:eventInitDate` — edita inscrição (PermRW)
   - `DELETE /admin/signin-events/:userNumber/:eventName/:eventInitDate` — remove inscrição (PermRW)
+- Status: `"Inscrito"` / `"Lista de Espera"` / `"Aguardando Aprovação"` / `"Cancelado"`
 - Lógica de fila: se vagas esgotadas (`max_participants > 0`), insere com `StatusWaitListed` e calcula posição; cancelamento de inscrito confirmado promove primeiro da lista de espera
-- Repository: `Create`, `GetByUserEventAndInitDate`, `CountByStatus`, `CountActiveByEvent`, `FindActiveByUser`, `UpdateStatus`, `GetFirstWaitListed`, `PromoteToRegistered`
+- Repository: `Create`, `GetByUserEventAndInitDate`, `CountByStatus`, `CountActiveByEvent`, `FindActiveByUser`, `UpdateStatus`, `GetFirstWaitListed`, `PromoteToRegistered`, `DeleteByStatus`
 - → [[Feature_SigninEvent]]
 
 ### presence
