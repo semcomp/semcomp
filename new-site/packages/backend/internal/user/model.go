@@ -17,6 +17,9 @@ type PapfeDocument struct {
 	FilePath    string    `gorm:"size:500;not null"`
 	UploadedAt  time.Time
 	IsApproved  *bool     `gorm:"default:null"` // nil=pendente, true=aprovado, false=rejeitado
+	// RejectionReason só existe quando o comprovante foi rejeitado (IsApproved=false);
+	// em qualquer outro status permanece NULL e é omitido nas respostas JSON.
+	RejectionReason *string `gorm:"type:text" json:"rejection_reason,omitempty"`
 }
 
 type User struct {
@@ -174,6 +177,9 @@ type UpdateProfileRequest struct {
 
 type PapfeApprovalRequest struct {
 	Approved *bool `json:"approved" binding:"required"`
+
+	// Obrigatório quando Approved=false (rejeição).
+	RejectionReason string `json:"rejection_reason"`
 }
 
 type PapfeDocumentInfo struct {
@@ -185,4 +191,7 @@ type PapfeDocumentInfo struct {
 	ContentType string    `json:"content_type"`
 	UploadedAt  time.Time `json:"uploaded_at"`
 	IsApproved  *bool     `json:"is_approved"` // nil=pendente, true=aprovado, false=rejeitado
+
+	// Só presente quando IsApproved=false (rejeitado); omitido caso contrário.
+	RejectionReason *string `json:"rejection_reason,omitempty"`
 }

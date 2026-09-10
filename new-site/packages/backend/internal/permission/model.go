@@ -29,12 +29,17 @@ var KnownSections = []string{
 	"Usuários Backoffice",
 	"Usuários Semcomp",
 	"Participações",
+	"Configurações Presença",
 	"Permissões",
 	"Produtos",
 	"Páginas",
 	"Patrocinadores",
 	"Vendas",
 	"PAPFE",
+	"Avisos",
+	"Justificativas de Ausência",
+	"Inscrições",
+	"Confirmações de Inscrição",
 }
 
 type Permission struct {

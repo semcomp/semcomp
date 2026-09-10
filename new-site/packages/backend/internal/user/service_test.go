@@ -1,6 +1,7 @@
 package user
 
 import (
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -57,12 +58,21 @@ func (m *MockTokenProvider) Hash(raw string) string            { return m.HashFu
 // MockMailProvider implementa providers.MailProvider manualmente
 type MockMailProvider struct {
 	SendVerificationEmailFunc func(to string, name string, rawToken string) error
-	Calls                     int
+	Calls                     int32
 }
 
 func (m *MockMailProvider) SendVerificationEmail(to string, name string, rawToken string) error {
-	m.Calls++
+	atomic.AddInt32(&m.Calls, 1)
 	return m.SendVerificationEmailFunc(to, name, rawToken)
+}
+
+// waitForCalls aguarda (com timeout) até o número esperado de envios de e-mail,
+// já que o envio agora acontece em goroutine assíncrona.
+func (m *MockMailProvider) waitForCalls(n int, timeout time.Duration) {
+	deadline := time.Now().Add(timeout)
+	for atomic.LoadInt32(&m.Calls) < int32(n) && time.Now().Before(deadline) {
+		time.Sleep(time.Millisecond)
+	}
 }
 
 // MockEmailValidationProvider implementa providers.EmailValidationProvider manualmente
@@ -112,8 +122,9 @@ func TestCreateUser_NewUser_Success(t *testing.T) {
 	if created.VerificationTokenHash == "" {
 		t.Fatalf("token de verificação deveria ter sido persistido")
 	}
-	if mail.Calls != 1 {
-		t.Fatalf("esperado 1 envio de e-mail, recebido %d", mail.Calls)
+	mail.waitForCalls(1, time.Second)
+	if atomic.LoadInt32(&mail.Calls) != 1 {
+		t.Fatalf("esperado 1 envio de e-mail, recebido %d", atomic.LoadInt32(&mail.Calls))
 	}
 	if safeUser.Email != "ana@example.com" {
 		t.Fatalf("safeUser inesperado: %v", safeUser)
@@ -142,7 +153,7 @@ func TestCreateUser_ExistingVerified_Conflict(t *testing.T) {
 	if apiErr == nil || apiErr.Code != "conflict" {
 		t.Fatalf("esperado erro de conflito, recebido: %v", err)
 	}
-	if mail.Calls != 0 {
+	if atomic.LoadInt32(&mail.Calls) != 0 {
 		t.Fatalf("não deveria reenviar e-mail para conta já verificada")
 	}
 }
@@ -172,7 +183,8 @@ func TestCreateUser_ExistingUnverified_ResendsWithoutOverwrite(t *testing.T) {
 	if updated == nil || updated.Name != "Nome Original" || updated.PasswordHash != "hash-original" {
 		t.Fatalf("nome/senha do usuário existente não deveriam ser sobrescritos: %+v", updated)
 	}
-	if mail.Calls != 1 {
+	mail.waitForCalls(1, time.Second)
+	if atomic.LoadInt32(&mail.Calls) != 1 {
 		t.Fatalf("esperado reenvio do e-mail de confirmação")
 	}
 	if safeUser.Name != "Nome Original" {
@@ -273,7 +285,7 @@ func TestResendVerification_AlwaysGeneric(t *testing.T) {
 		if err := service.ResendVerification("naoexiste@example.com"); err != nil {
 			t.Fatalf("esperado nil, recebido: %v", err)
 		}
-		if mail.Calls != 0 {
+		if atomic.LoadInt32(&mail.Calls) != 0 {
 			t.Fatalf("não deveria enviar e-mail para conta inexistente")
 		}
 	})
@@ -288,7 +300,7 @@ func TestResendVerification_AlwaysGeneric(t *testing.T) {
 		if err := service.ResendVerification("ana@example.com"); err != nil {
 			t.Fatalf("esperado nil, recebido: %v", err)
 		}
-		if mail.Calls != 0 {
+		if atomic.LoadInt32(&mail.Calls) != 0 {
 			t.Fatalf("não deveria reenviar e-mail para conta já verificada")
 		}
 	})
@@ -306,7 +318,7 @@ func TestResendVerification_AlwaysGeneric(t *testing.T) {
 		if err := service.ResendVerification("ana@example.com"); err != nil {
 			t.Fatalf("esperado nil, recebido: %v", err)
 		}
-		if mail.Calls != 0 {
+		if atomic.LoadInt32(&mail.Calls) != 0 {
 			t.Fatalf("não deveria reenviar e-mail durante o cooldown")
 		}
 	})
@@ -322,7 +334,8 @@ func TestResendVerification_AlwaysGeneric(t *testing.T) {
 		if err := service.ResendVerification("ana@example.com"); err != nil {
 			t.Fatalf("esperado nil, recebido: %v", err)
 		}
-		if mail.Calls != 1 {
+		mail.waitForCalls(1, time.Second)
+		if atomic.LoadInt32(&mail.Calls) != 1 {
 			t.Fatalf("esperado reenvio do e-mail de confirmação")
 		}
 	})

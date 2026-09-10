@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"backend/internal/token"
 
@@ -25,6 +26,8 @@ type UserHandler struct {
 func NewUserHandler(userService UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
+
+const maxPapfeSizeBytes = 1 * 1024 * 1024
 
 // CreateUser processa o formulário multipart e tenta criar um novo usuário.
 // @Summary Cria um novo usuário
@@ -71,8 +74,8 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		}
 		defer file.Close()
 
-		if header.Size > 10*1024*1024 {
-			apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 10MB", nil))
+		if header.Size > maxPapfeSizeBytes {
+			apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 1MB", nil))
 			return
 		}
 
@@ -99,9 +102,14 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 			return
 		}
 
-		data, err := io.ReadAll(file)
+		lr := io.LimitReader(file, maxPapfeSizeBytes+1)
+		data, err := io.ReadAll(lr)
 		if err != nil {
 			apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao ler comprovante PAPFE", err))
+			return
+		}
+		if int64(len(data)) > maxPapfeSizeBytes {
+			apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 1MB", nil))
 			return
 		}
 
@@ -178,8 +186,8 @@ func (h *UserHandler) UpdatePapfeDocument(c *gin.Context) {
 	}
 	defer file.Close()
 
-	if header.Size > 10*1024*1024 {
-		apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 10MB", nil))
+	if header.Size > maxPapfeSizeBytes {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 1MB", nil))
 		return
 	}
 
@@ -206,9 +214,14 @@ func (h *UserHandler) UpdatePapfeDocument(c *gin.Context) {
 		return
 	}
 
-	data, err := io.ReadAll(file)
+	lr := io.LimitReader(file, maxPapfeSizeBytes+1)
+	data, err := io.ReadAll(lr)
 	if err != nil {
 		apierrors.HandleAPIError(c, apierrors.InternalServerError("Erro ao ler comprovante PAPFE", err))
+		return
+	}
+	if int64(len(data)) > maxPapfeSizeBytes {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("O comprovante PAPFE não pode ultrapassar 1MB", nil))
 		return
 	}
 
@@ -271,13 +284,37 @@ func (h *UserHandler) GetPapfeDocument(c *gin.Context) {
 		return
 	}
 
-	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, doc.Filename))
+	safeName := strings.NewReplacer(`"`, ``, "\r", ``, "\n", ``).Replace(doc.Filename)
+	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, safeName))
+	c.Header("Cache-Control", "no-store")
 	c.File(doc.FilePath)
+}
+
+// GetMyPapfeDocument serve os metadados do comprovante PAPFE do usuário autenticado.
+// @Summary Obtém o próprio comprovante PAPFE
+// @Description Retorna os metadados do comprovante PAPFE do usuário autenticado (sem os bytes do arquivo), incluindo o motivo da rejeição quando houver
+// @Tags Usuários (Participantes)
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Comprovante PAPFE do usuário"
+// @Failure 404 {object} map[string]string "Nenhum comprovante enviado"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /api/papfe-document [get]
+func (h *UserHandler) GetMyPapfeDocument(c *gin.Context) {
+	email := c.MustGet("email").(string)
+
+	doc, err := h.userService.GetMyPapfeDocument(email)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	c.Set("responseMessage", "Comprovante PAPFE obtido com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"papfe_document": doc})
 }
 
 // ApprovePapfeDocument altera o status de aprovação do comprovante PAPFE de um usuário (admin).
 // @Summary Aprova/rejeita comprovante PAPFE
-// @Description Altera o status de aprovação do comprovante PAPFE de um usuário
+// @Description Altera o status de aprovação do comprovante PAPFE de um usuário. Ao rejeitar, o campo rejection_reason é obrigatório e só persiste nesse status.
 // @Tags Usuários (Participantes)
 // @Accept json
 // @Produce json
@@ -308,7 +345,7 @@ func (h *UserHandler) ApprovePapfeDocument(c *gin.Context) {
 		return
 	}
 
-	if err := h.userService.ApprovePapfeDocument(user.Email, *request.Approved); err != nil {
+	if err := h.userService.ApprovePapfeDocument(user.Email, *request.Approved, request.RejectionReason); err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
 	}

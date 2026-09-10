@@ -188,8 +188,9 @@ func (r *userRepository) Delete(id uint) error {
 type PapfeDocumentRepository interface {
 	FindByEmail(email string) (*PapfeDocument, error)
 	FindAll() ([]PapfeDocumentInfo, error)
+	FindInfoByEmail(email string) (*PapfeDocumentInfo, error)
 	Upsert(doc *PapfeDocument) error
-	UpdateApproval(email string, approved bool) error
+	UpdateApproval(email string, approved bool, rejectionReason *string) error
 	DeleteByEmail(email string) error
 }
 
@@ -201,18 +202,38 @@ func NewPapfeDocumentRepository(db *gorm.DB) PapfeDocumentRepository {
 	return &papfeDocumentRepository{db: db}
 }
 
+// papfeInfoQuery monta a projeção denormalizada (join com users) compartilhada por
+// FindAll e FindInfoByEmail.
+func (r *papfeDocumentRepository) papfeInfoQuery() *gorm.DB {
+	return r.db.Table("papfe_documents pd").
+		Select("pd.id, u.user_number, u.name AS user_name, pd.user_email, pd.filename, pd.content_type, pd.uploaded_at, pd.is_approved, pd.rejection_reason").
+		Joins("JOIN users u ON u.email = pd.user_email")
+}
+
 // FindAll retorna metadados de todos os comprovantes PAPFE, com nome e número do usuário.
 func (r *papfeDocumentRepository) FindAll() ([]PapfeDocumentInfo, error) {
 	var result []PapfeDocumentInfo
-	err := r.db.Table("papfe_documents pd").
-		Select("pd.id, u.user_number, u.name AS user_name, pd.user_email, pd.filename, pd.content_type, pd.uploaded_at, pd.is_approved").
-		Joins("JOIN users u ON u.email = pd.user_email").
+	err := r.papfeInfoQuery().
 		Order("pd.uploaded_at DESC").
 		Scan(&result).Error
 	if err != nil {
 		return nil, apierrors.InternalServerError("Erro ao listar comprovantes PAPFE", err)
 	}
 	return result, nil
+}
+
+// FindInfoByEmail retorna a projeção do comprovante PAPFE de um usuário pelo e-mail.
+// Usa Scan (não First), que não retorna gorm.ErrRecordNotFound quando não há linhas —
+// por isso checamos ID == 0.
+func (r *papfeDocumentRepository) FindInfoByEmail(email string) (*PapfeDocumentInfo, error) {
+	var info PapfeDocumentInfo
+	if err := r.papfeInfoQuery().Where("pd.user_email = ?", email).Scan(&info).Error; err != nil {
+		return nil, apierrors.InternalServerError("Erro ao buscar comprovante PAPFE", err)
+	}
+	if info.ID == 0 {
+		return nil, apierrors.NotFoundError("Comprovante PAPFE não encontrado", nil)
+	}
+	return &info, nil
 }
 
 // FindByEmail busca o comprovante PAPFE de um usuário pelo e-mail.
@@ -233,16 +254,21 @@ func (r *papfeDocumentRepository) Upsert(doc *PapfeDocument) error {
 	return r.db.Omit("User").
 		Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "user_email"}},
-			DoUpdates: clause.AssignmentColumns([]string{"filename", "content_type", "file_path", "uploaded_at", "is_approved"}),
+			DoUpdates: clause.AssignmentColumns([]string{"filename", "content_type", "file_path", "uploaded_at", "is_approved", "rejection_reason"}),
 		}).
 		Create(doc).Error
 }
 
 // UpdateApproval atualiza o status de aprovação do comprovante PAPFE de um usuário.
-func (r *papfeDocumentRepository) UpdateApproval(email string, approved bool) error {
+// rejectionReason só deve ser não-nulo quando approved=false (rejeição); em qualquer
+// outro caso deve vir nil para limpar o motivo.
+func (r *papfeDocumentRepository) UpdateApproval(email string, approved bool, rejectionReason *string) error {
 	result := r.db.Model(&PapfeDocument{}).
 		Where("user_email = ?", email).
-		Update("is_approved", approved)
+		Updates(map[string]interface{}{
+			"is_approved":      approved,
+			"rejection_reason": rejectionReason,
+		})
 	if result.Error != nil {
 		return apierrors.InternalServerError("Erro ao atualizar aprovação do comprovante PAPFE", result.Error)
 	}
