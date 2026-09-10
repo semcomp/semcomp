@@ -5,12 +5,18 @@ tags: [frontend, site, pages, routes, react, vite]
 # Front-Site — Páginas e Rotas
 
 Pacote: `packages/front-site/src/`  
-Porta dev: **5173** | Router: React Router v6 `createBrowserRouter` (lazy loading)
+Porta dev: **5173** | Router: React Router v6 `createBrowserRouter`. O layout raiz (`App`) é **estático** (`Component: AppLayout` direto em `Routes.tsx`); todas as páginas-filhas são lazy via `lazy:`.
+
+**Fontes**: Poppins (400/700/800) e Comfortaa (400/500/600/700) servidas como woff2 com unicode-range via `@fontsource/poppins` e `@fontsource/comfortaa` (importados em `src/index.css`). Arquivos TTF locais foram removidos.
+
+**Build** (`vite.config.ts`): manualChunks define `vendor-react`, `vendor-router`, `vendor-gsap`, `vendor-framer` (framer-motion), `vendor-ui` (lucide, embla, clsx), `vendor-misc`.
+
+**Servidor** (`nginx.conf`): gzip nível 6 para assets de texto/SVG; `Cache-Control: public, max-age=31536000, immutable` para `/assets/`; `no-cache` para `index.html`.
 
 ## Estrutura de Guards
 
 ```
-App (layout)
+App (layout raiz — estático, não-lazy)
 ├── FeatureGuard("cronograma")
 │   └── /cronograma
 ├── FeatureGuard("login")
@@ -44,15 +50,24 @@ App (layout)
 | `*` | `pages/NotFound/index.tsx` | — | — |
 
 ## Home (`/`) — Seções
-Componentes renderizados em ordem:
-1. `MainEntrance` — hero com arrow bounce
-2. `SobreSection` — texto sobre a Semcomp
-3. `PatrocinadoresSection` — logos (via `constants/Sponsors.ts`)
-4. `EquipeSection` — membros da equipe
-5. `FAQSection` — perguntas frequentes
-6. `ContatoSection` — formulário de contato
+Componentes renderizados em ordem (todos `lazy()` exceto `MainEntrance`):
 
-Background alterna com `isDarkMode` via `ThemeContext`.
+| Seção | Lazy | Descrição |
+|---|---|---|
+| `MainEntrance` | ❌ estático | hero com countdown + imagem aleatória responsiva |
+| `SobreSection` | ✅ | texto + Carousel com `<picture>` (desktop `/public/` + mobile bundled) |
+| `PatrocinadoresSection` | ✅ | logos (fetch API sponsors) |
+| `EquipeSection` | ✅ | membros da equipe com fotos responsivas (`<picture>`) |
+| `BarraEventsSection` | ✅ | barra de eventos |
+| `NumerosSection` | ✅ | números da edição |
+| `PatrocinadoresAntigosSection` | ✅ | patrocinadores históricos |
+| `TornarPatrocinadorSection` | ✅ | CTA patrocinador |
+| `FAQSection` | ✅ | perguntas frequentes |
+| `ContatoSection` | ✅ | formulário de contato |
+
+**Imagens responsivas**: `MainEntrance`, `Carousel` (via `SobreSection`) e `TeamGrid` usam `<picture><source media="(max-width: 768px)" srcSet={mobile}><img src={desktop}></picture>`. Versões mobile bundled em `src/assets/img/` (woff2); versões desktop servidas de `/public/`.
+
+Background da Home alterna com `isDarkMode` via `ThemeContext`.
 
 ## Cronograma (`/cronograma`) — Lógica
 1. Busca `eventsAPI.getAllEvents()` → `GET /events?limit=1000`

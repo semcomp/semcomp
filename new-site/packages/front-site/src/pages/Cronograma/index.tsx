@@ -5,7 +5,6 @@ import type { EventType } from "@/types/EventType.ts";
 import { useTheme } from "@/contexts/useTheme";
 import { formatTime } from "@/lib/utils/formatDate";
 import SEMCOMPInfo from "@/lib/constants/SEMCOMPInfo";
-import { toPng } from "html-to-image";
 
 const SEMCOMP_YEAR = SEMCOMPInfo.YEAR;
 const SEMCOMP_MONTH = Number(SEMCOMPInfo.START_DATE.slice(5, 7));
@@ -640,6 +639,7 @@ export default function CronogramaPage(): ReactElement {
   const handleDownloadSchedule = async () => {
     if (!downloadRef.current) return;
     try {
+      const { toPng } = await import("html-to-image");
       const image = await toPng(downloadRef.current, { pixelRatio: 2 });
       const link = document.createElement("a");
       link.download = "cronograma-semcomp.png";
@@ -997,7 +997,7 @@ export default function CronogramaPage(): ReactElement {
       <div className="absolute -left-[9999px] top-0">
         <div
           ref={downloadRef}
-          className="w-[2200px] bg-semcompLightBlue dark:bg-semcompAlmostDarkBlue p-8 text-semcompDarkBlue dark:text-semcompLightBlue"
+          className="w-fit bg-semcompLightBlue dark:bg-semcompAlmostDarkBlue p-8 text-semcompDarkBlue dark:text-semcompLightBlue"
         >
           <h1 className="mb-8 text-center font-poppins-bold text-4xl">
             Cronograma SEMCOMP
@@ -1007,7 +1007,7 @@ export default function CronogramaPage(): ReactElement {
             <div
               className="grid gap-4"
               style={{
-                gridTemplateColumns: `repeat(${processedWeek.length}, minmax(0, 1fr))`,
+                gridTemplateColumns: `repeat(${processedWeek.length}, 25rem)`,
               }}
             >
               {processedWeek.map(({ option, events: dayEvents }, index) => {

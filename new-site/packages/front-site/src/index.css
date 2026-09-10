@@ -2,6 +2,13 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/700.css";
+@import "@fontsource/poppins/800.css";
+@import "@fontsource/comfortaa/400.css";
+@import "@fontsource/comfortaa/500.css";
+@import "@fontsource/comfortaa/600.css";
+@import "@fontsource/comfortaa/700.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -58,63 +65,10 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-/* ── Fontes locais ───────────────────────────────────────────────────────────── */
-
-@font-face {
-  font-family: 'Comfortaa';
-  src: url('./assets/fonts/Comfortaa/Comfortaa-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Comfortaa';
-  src: url('./assets/fonts/Comfortaa/Comfortaa-Medium.ttf') format('truetype');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Comfortaa';
-  src: url('./assets/fonts/Comfortaa/Comfortaa-SemiBold.ttf') format('truetype');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Comfortaa';
-  src: url('./assets/fonts/Comfortaa/Comfortaa-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Poppins';
-  src: url('./assets/fonts/Poppins/Poppins-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Poppins';
-  src: url('./assets/fonts/Poppins/Poppins-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Poppins';
-  src: url('./assets/fonts/Poppins/Poppins-ExtraBold.ttf') format('truetype');
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-}
+/* ── Fontes (Poppins/Comfortaa via @fontsource — woff2 + unicode-range) ─────── */
+/* Os @import estão no topo do arquivo. As famílias continuam se chamando
+   "Comfortaa" e "Poppins", então --font-comfortaa/--font-poppins e os @utility
+   (font-poppins-regular/bold/extrabold) continuam resolvendo sem mudança.       */
 
 /* ── Base ────────────────────────────────────────────────────────────────────── */
 
