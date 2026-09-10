@@ -30,7 +30,28 @@ Página: `front-site/src/pages/Cronograma/index.tsx`
      senão → fecha grupo atual, abre novo
      fimAtual = max(fimAtual, fim do evento)
    ```
-4. Resultado: `EventType[][]` — grupos renderizados em colunas lado a lado
+4. Resultado: `EventType[][]` — grupos renderizados em até 3 colunas (eventos mais longos ficam nas colunas mais à direita)
+
+### Modos de visualização
+
+| Modo | Descrição |
+|---|---|
+| `"day"` | Um dia por vez; navegação por `DayPill` (seletor de dias) e setas prev/next; padrão ao entrar na página (hoje se dentro do evento, primeiro dia caso contrário) |
+| `"week"` | Todos os dias da SEMCOMP lado a lado em scroll horizontal (`EventGroups` com `maxColumns=2`) |
+
+### Componentes principais
+
+| Componente | Responsabilidade |
+|---|---|
+| `EventButton` | Card clicável por evento; hover expansível (descrição + localização); ícone e cor por tipo; breakpoint de responsividade em 1500px; suporte a `exportMode` |
+| `EventTypeIcon` | Ícone Lucide por tipo de evento (`Palestra` → `MicVocal`, `Minicurso/Workshop` → `Rocket`, etc.) |
+| `EventModal` | Modal com detalhes completos ao clicar em um evento |
+| `DayPill` | Botão de seleção de dia; estados: ativo, hoje (ponto), passado (cinza), futuro |
+| `EventGroups` | Renderiza grupos de eventos com 2 ou 3 colunas conforme `maxColumns` |
+
+### Download do cronograma
+
+Função `handleDownloadSchedule` usa `html-to-image` (`toPng`) em uma `<div>` oculta (`position: absolute; left: -9999px`) que contém todos os dias da semana no modo exportação (`exportMode=true`). Gera PNG de 2200px de largura com `pixelRatio: 2`.
 
 ### Mapeamento de campos (site)
 `mapBackendEvent` em `front-site/src/api/events.ts`:
@@ -40,8 +61,11 @@ Página: `front-site/src/pages/Cronograma/index.tsx`
 | `name` | `name` |
 | `init_date` | `dateInit` |
 | `end_date` | `dateEnd` |
+| `type` | `type` |
 | `location` | `location` |
+| `description` | `description` |
 | `has_attendance` | `has_attendance` |
+| `image` | `image` (opcional) |
 
 ---
 

@@ -56,4 +56,5 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - **Permissions (bulk)**: salvar permissões faz N chamadas paralelas com `Promise.all`; falha parcial deixa estado inconsistente sem rollback
 - **Sections**: a tab `sections` foi removida do backoffice — seções deixaram de ser gerenciáveis via UI (mas endpoint backend ainda existe)
 - **Feature Flags**: estado das flags vive **em memória no processo Go** — reiniciar o servidor reseta todas as flags para `available: true`
+- **Cronograma (image)**: `EventType` do front-site tem campo `image?: string` e `mapBackendEvent` tenta mapear `event.image`, mas o modelo `Event` do backend não possui esse campo — `image` sempre será `undefined` na API atual
 - **SiteStat**: sem rate-limiting em `POST /visit` — contador vulnerável a inflação por bots
