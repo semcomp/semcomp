@@ -197,6 +197,11 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 	// Se o pagamento for via PIX, dispara a cobrança no Mercado Pago.
 	if strings.EqualFold(request.PaymentMethod, "pix") {
 		if err := s.createPixCharge(&newSale, email, request.Description); err != nil {
+			// A venda já foi persistida mas o MP falhou — cancela imediatamente para
+			// liberar a trava de compra única e permitir nova tentativa sem aguardar
+			// o sweeper de expiração (30 min).
+			_ = s.saleRepo.DeleteConsumedBySale(newSale.ID)
+			_ = s.saleRepo.UpdateByID(newSale.ID, map[string]interface{}{"status": SaleStatusCanceled})
 			return nil, err
 		}
 		// Persiste o QR code (copia-e-cola + base64) na venda, para permitir
