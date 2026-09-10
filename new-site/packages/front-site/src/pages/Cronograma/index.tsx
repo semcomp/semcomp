@@ -5,7 +5,6 @@ import type { EventType } from "@/types/EventType.ts";
 import { useTheme } from "@/contexts/useTheme";
 import { formatTime } from "@/lib/utils/formatDate";
 import SEMCOMPInfo from "@/lib/constants/SEMCOMPInfo";
-import { toPng } from "html-to-image";
 
 const SEMCOMP_YEAR = SEMCOMPInfo.YEAR;
 const SEMCOMP_MONTH = Number(SEMCOMPInfo.START_DATE.slice(5, 7));
@@ -640,6 +639,7 @@ export default function CronogramaPage(): ReactElement {
   const handleDownloadSchedule = async () => {
     if (!downloadRef.current) return;
     try {
+      const { toPng } = await import("html-to-image");
       const image = await toPng(downloadRef.current, { pixelRatio: 2 });
       const link = document.createElement("a");
       link.download = "cronograma-semcomp.png";

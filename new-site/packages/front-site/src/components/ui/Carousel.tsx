@@ -88,7 +88,7 @@ export default function Carousel({ images }: CarouselProps) {
                     alt={img.alt}
                     loading={i === 0 ? "eager" : "lazy"}
                     decoding="async"
-                    fetchPriority={"auto"}
+                    fetchPriority={i === 0 ? "high" : "auto"}
                     className="w-full h-full object-cover"
                   />
                 </picture>
