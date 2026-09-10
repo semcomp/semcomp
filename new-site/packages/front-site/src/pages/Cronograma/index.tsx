@@ -251,6 +251,7 @@ const EventButton = memo(function EventButton({
   exportMode = false,
   compact = false,
   small = false,
+  totalColumns = 1,
 }: {
   evento: EventType;
   onClick: (evento: EventType) => void;
@@ -259,7 +260,9 @@ const EventButton = memo(function EventButton({
   exportMode?: boolean;
   compact?: boolean;
   small?: boolean;
+  totalColumns?: number;
 }): ReactElement {
+  const concurrent = totalColumns >= 2;
   const eventStyle = getEventTypeStyle(evento.type);
 
   // Compact (< 50 px): apenas nome, sem mais nada
@@ -270,7 +273,7 @@ const EventButton = memo(function EventButton({
         className={`w-full h-full overflow-hidden rounded-lg border px-1.5 py-0.5 text-left cursor-pointer transition-colors ${eventStyle.classes}`}
         onClick={() => onClick(evento)}
       >
-        <p className="font-poppins-bold text-[10px] leading-tight truncate">{evento.name}</p>
+        <p className="font-poppins-bold text-[9px] md:text-[10px] leading-tight break-words">{evento.name}</p>
       </button>
     );
   }
@@ -284,10 +287,10 @@ const EventButton = memo(function EventButton({
         onClick={() => onClick(evento)}
       >
         {viewMode === "day" && (
-          <p className={`text-[10px] font-medium truncate ${captionClasses}`}>{evento.type}</p>
+          <p className={`text-[9px] md:text-[10px] font-medium truncate ${captionClasses}`}>{evento.type}</p>
         )}
-        <p className="font-poppins-bold text-[11px] leading-snug line-clamp-2">{evento.name}</p>
-        <p className={`flex items-center gap-1 text-[10px] mt-0.5 ${captionClasses}`}>
+        <p className="font-poppins-bold text-[10px] md:text-[11px] leading-snug break-words">{evento.name}</p>
+        <p className={`flex items-center gap-1 text-[9px] md:text-[10px] mt-0.5 ${captionClasses}`}>
           <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
           {formatTime(evento.dateInit)} – {formatTime(evento.dateEnd)}
         </p>
@@ -299,23 +302,28 @@ const EventButton = memo(function EventButton({
     <button
       type="button"
       className={`
-        flex group w-full h-full overflow-hidden rounded-xl border
+        flex group/btn w-full min-h-full rounded-xl border
         transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md cursor-pointer
-        max-[1500px]:flex-col min-[1500px]:items-start max-[1500px]:gap-2 min-[1500px]:gap-5 max-lg:px-2 max-lg:py-2 min-lg:px-4 min-lg:py-4
-        ${viewMode === "day" ? "text-left" : "text-center justify-center items-center"}
+        max-lg:px-2 max-lg:py-2 min-lg:px-4 min-lg:py-4
+        ${viewMode === "day"
+          ? concurrent
+            ? "max-md:flex-col max-md:gap-0.5 max-md:!px-1.5 max-md:!py-1 md:max-[1500px]:flex-col md:max-[1500px]:gap-2 min-[1500px]:flex-row min-[1500px]:items-start min-[1500px]:gap-5 text-left"
+            : "max-md:flex-row max-md:items-start max-md:gap-2 md:max-[1500px]:flex-col md:max-[1500px]:gap-2 min-[1500px]:flex-row min-[1500px]:items-start min-[1500px]:gap-5 text-left"
+          : "flex-col gap-1.5 items-start text-left"
+        }
         ${eventStyle.classes}`}
       onClick={() => onClick(evento)}
     >
       {viewMode === "day" && (
         <div
           className={`
-            border flex items-center rounded-xl px-2 py-2 md:px-3 md:py-3
-            max-[1500px]:w-full gap-2 md:justify-center
+            border flex items-center justify-center rounded-xl gap-2
+            ${concurrent ? "max-md:hidden" : "max-md:shrink-0 max-md:self-start max-md:p-1.5 max-md:rounded-lg"}
+            md:px-2 md:py-2 md:max-[1500px]:w-full md:justify-center lg:px-3 lg:py-3
             ${eventStyle.classes}`}
         >
           <EventTypeIcon type={evento.type} />
-
-          <div className="min-[1500px]:hidden">
+          <div className="max-md:hidden min-[1500px]:hidden">
             <p className="font-poppins text-[11px] md:text-xs">{evento.type}</p>
             <p
               className={`font-poppins-bold break-words text-left ${
@@ -328,57 +336,52 @@ const EventButton = memo(function EventButton({
         </div>
       )}
 
-      <div>
+      <div className={viewMode === "day" ? "flex-1 min-w-0" : "w-full min-w-0"}>
+        {viewMode === "week" && (
+          <p className={`text-[8px] sm:text-[9px] font-semibold truncate mb-0.5 ${captionClasses}`}>
+            {evento.type}
+          </p>
+        )}
+
         {viewMode === "day" && (
-          <p className="font-poppins text-xs max-[1500px]:hidden">
+          <p className="font-poppins text-[9px] md:text-xs md:max-[1500px]:hidden">
             {evento.type}
           </p>
         )}
 
         <p
-          className={`font-poppins-bold break-words text-sm md:text-base ${
-            viewMode === "day" ? "text-left max-[1500px]:hidden" : "text-center"
+          className={`font-poppins-bold break-words ${
+            viewMode === "week"
+              ? "text-[10px] sm:text-[11px] md:text-xs text-left"
+              : `text-[11px] md:text-sm lg:text-base text-left md:max-[1500px]:hidden ${concurrent ? "max-md:text-[10px]" : ""}`
           }`}
         >
           {evento.name}
         </p>
 
         <div
-          className={`
-            items-center w-full max-[1500px]:mt-1
-            ${exportMode ? "grid" : "min-[1500px]:flex max-[1500px]:grid"}
-            ${viewMode === "day" ? "gap-1.5" : "justify-center text-center"}`}
+          className={`items-center w-full mt-0.5 ${exportMode ? "grid gap-1" : "flex flex-col gap-0.5"}`}
         >
           <p
-            className={`text-xs leading-relaxed wrap-break-word md:hidden ${
-              viewMode === "day" ? "" : "text-center"
-            } ${captionClasses}`}
-          >
-            {evento.description || "Mais detalhes deste evento."}
-          </p>
-
-          <p
-            className={`flex items-center gap-1 text-xs ${
-              viewMode === "day" ? "" : "justify-center"
-            } ${captionClasses}`}
+            className={`flex items-center gap-1 text-[9px] sm:text-[10px] md:text-xs ${captionClasses}`}
           >
             <Clock className={`h-3 w-3 shrink-0 ${exportMode ? "hidden" : ""}`} aria-hidden="true" />
             {formatTime(evento.dateInit)} – {formatTime(evento.dateEnd)}
           </p>
 
           <p
-            className={`flex items-center gap-1 text-xs ${
-              viewMode === "day" || exportMode ? "" : "md:hidden mx-auto"
-            } ${captionClasses}`}
+            className={`flex items-center gap-1 text-[9px] sm:text-[10px] md:text-xs ${
+              viewMode === "day" || exportMode ? "" : "md:hidden"
+            } ${concurrent ? "max-md:hidden" : ""} ${captionClasses}`}
           >
             <MapPin className={`h-3 w-3 shrink-0 ${exportMode ? "hidden" : ""}`} aria-hidden="true" />
-            <span className="break-words min-w-10 text-center">Local: {evento.location}</span>
+            <span className="break-words">Local: {evento.location}</span>
           </p>
         </div>
 
-        <div className="grid max-h-none grid-rows-[0fr] overflow-hidden opacity-0 transition-all duration-300 group-hover:mt-2 group-hover:grid-rows-[1fr] group-hover:opacity-100">
+        <div className="grid max-h-none grid-rows-[0fr] overflow-hidden opacity-0 transition-all duration-300 group-hover/btn:mt-2 group-hover/btn:grid-rows-[1fr] group-hover/btn:opacity-100">
           <div className="overflow-hidden">
-            <div className={`flex flex-col gap-2 ${viewMode === "day" ? "text-left" : "text-center justify-center"}`}>
+            <div className="flex flex-col gap-2 text-left">
               {evento.image && (
                 <div className="w-full flex justify-left">
                   <img
@@ -390,12 +393,12 @@ const EventButton = memo(function EventButton({
                 </div>
               )}
               {viewMode === "week" && (
-                <p className={`flex items-center gap-1 text-xs mx-auto justify-center max-md:hidden ${captionClasses}`}>
+                <p className={`flex items-center gap-1 text-[9px] sm:text-[10px] max-md:hidden ${captionClasses}`}>
                   <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
-                  <span className="mx-auto break-all min-w-5 text-left">Local: {evento.location}</span>
+                  <span className="break-words">Local: {evento.location}</span>
                 </p>
               )}
-              <p className={`text-xs leading-relaxed wrap-break-word max-md:hidden ${captionClasses}`}>
+              <p className={`text-[10px] sm:text-xs leading-relaxed break-words max-md:hidden ${captionClasses}`}>
                 {evento.description || "Mais detalhes deste evento."}
               </p>
             </div>
@@ -588,7 +591,7 @@ function TimeGrid({
           return (
             <div
               key={`${event.name}-${event.dateInit}`}
-              className="absolute box-border p-0.5"
+              className="absolute box-border p-0.5 group/card hover:z-10"
               style={{
                 top: topPx,
                 height: Math.max(heightPx, 28),
@@ -604,6 +607,7 @@ function TimeGrid({
                 exportMode={exportMode}
                 compact={heightPx < 50}
                 small={heightPx >= 50 && heightPx < 100}
+                totalColumns={event.totalColumns}
               />
             </div>
           );
@@ -680,6 +684,30 @@ export default function CronogramaPage(): ReactElement {
 
   const dayTimeRange = useMemo(() => getTimeRange(filteredEvents), [filteredEvents]);
 
+  // Compute px/hour so every card fits its slot without overflow.
+  // Iterates until convergence: for each event, estimates min rendered height
+  // per variant (compact/small/normal) and derives the minimum px/hour needed.
+  const dayPxPerHour = useMemo(() => {
+    if (!filteredEvents.length) return PX_PER_HOUR_DAY;
+    let p = PX_PER_HOUR_DAY;
+    for (let iter = 0; iter < 10; iter++) {
+      let next = p;
+      for (const ev of filteredEvents) {
+        const d =
+          (new Date(ev.dateEnd).getTime() - new Date(ev.dateInit).getTime()) /
+          MS_PER_HOUR;
+        if (d <= 0) continue;
+        const slot = d * p;
+        // min heights match the rendered variants (after mobile text reduction)
+        const minH = slot < 50 ? 22 : slot < 100 ? 50 : 88;
+        if (slot < minH) next = Math.max(next, minH / d);
+      }
+      if (next <= p + 0.5) break;
+      p = next;
+    }
+    return Math.ceil(p);
+  }, [filteredEvents]);
+
   const processedWeek = useMemo(
     () =>
       dayOptions.map((option) => {
@@ -742,7 +770,7 @@ export default function CronogramaPage(): ReactElement {
         <div className="absolute -right-32 bottom-4 h-[500px] w-[500px] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-semcompAlmostDarkBlue/12 dark:from-semcompLightBlue/8 to-transparent" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-[80%] px-4 py-10 md:px-6 md:py-14">
+      <div className="relative z-10 mx-auto max-w-[95%] md:max-w-[80%] px-3 py-8 md:px-6 md:py-14">
         <header>
           <div className="flex w-full flex-col gap-4 md:flex-row md:justify-between">
             <div>
@@ -893,7 +921,7 @@ export default function CronogramaPage(): ReactElement {
                 captionClasses={captionClasses}
                 viewMode="day"
                 showHourLabels
-                pxPerHour={PX_PER_HOUR_DAY}
+                pxPerHour={dayPxPerHour}
               />
             ) : null}
           </div>
@@ -907,7 +935,7 @@ export default function CronogramaPage(): ReactElement {
             </div>
           ) : (
             <div
-              className="flex w-full gap-5 overflow-x-auto custom-scrollbar p-5 rounded-b-md border border-t-0"
+              className="flex w-full gap-2 sm:gap-3 md:gap-5 overflow-x-auto custom-scrollbar p-3 sm:p-4 md:p-5 rounded-b-md border border-t-0"
               style={{
                 backgroundImage: `linear-gradient(to top, ${gradientColor} 100%, ${gradientColor}00 100%)`,
               }}
@@ -920,13 +948,13 @@ export default function CronogramaPage(): ReactElement {
                 return (
                   <div
                     key={option.day}
-                    className={`w-56 sm:w-72 md:w-100 shrink-0 ${
+                    className={`w-100 shrink-0 ${
                       index !== processedWeek.length - 1
-                        ? "border-r border-semcompMidDarkBlue/20 pr-4 md:pr-5"
+                        ? "border-r border-semcompMidDarkBlue/20 pr-2 sm:pr-3 md:pr-5"
                         : ""
                     }`}
                   >
-                    <h2 className="mb-3 font-poppins-bold text-sm sm:text-base md:text-lg text-white text-center">
+                    <h2 className="mb-2 font-poppins-bold text-[10px] sm:text-xs md:text-sm text-white text-center">
                       <span className="hidden sm:inline">{option.weekdayLong} — </span>
                       <span className="sm:hidden">{option.weekdayShort} </span>
                       {option.label}
