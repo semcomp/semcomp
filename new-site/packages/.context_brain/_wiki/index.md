@@ -21,7 +21,7 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - [[Backend_Providers]] — JWT (2 fluxos), bcrypt, email, token
 
 ## Frontend — Site Público (`front-site`)
-- [[Site_Paginas_e_Rotas]] — rotas (layout `App` estático + páginas lazy), FeatureGuard, RequireAuth
+- [[Site_Paginas_e_Rotas]] — rotas (layout `App` estático + todas seções da Home lazy), FeatureGuard, RequireAuth; imagens responsivas `<picture>`, woff2 via @fontsource, nginx gzip+cache, manualChunks Vite
 - [[Site_Contextos_Auth]] — AuthContext, API client, API barrel
 - [[Site_Contextos_UI]] — ThemeContext, NotificationContext, FeatureFlagsContext, CartContext
 

@@ -997,7 +997,7 @@ export default function CronogramaPage(): ReactElement {
       <div className="absolute -left-[9999px] top-0">
         <div
           ref={downloadRef}
-          className="w-[2200px] bg-semcompLightBlue dark:bg-semcompAlmostDarkBlue p-8 text-semcompDarkBlue dark:text-semcompLightBlue"
+          className="w-fit bg-semcompLightBlue dark:bg-semcompAlmostDarkBlue p-8 text-semcompDarkBlue dark:text-semcompLightBlue"
         >
           <h1 className="mb-8 text-center font-poppins-bold text-4xl">
             Cronograma SEMCOMP
@@ -1007,7 +1007,7 @@ export default function CronogramaPage(): ReactElement {
             <div
               className="grid gap-4"
               style={{
-                gridTemplateColumns: `repeat(${processedWeek.length}, minmax(0, 1fr))`,
+                gridTemplateColumns: `repeat(${processedWeek.length}, 25rem)`,
               }}
             >
               {processedWeek.map(({ option, events: dayEvents }, index) => {

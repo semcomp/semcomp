@@ -51,7 +51,7 @@ Página: `front-site/src/pages/Cronograma/index.tsx`
 
 ### Download do cronograma
 
-Função `handleDownloadSchedule` usa `html-to-image` (`toPng`) em uma `<div>` oculta (`position: absolute; left: -9999px`) que contém todos os dias da semana no modo exportação (`exportMode=true`). Gera PNG de 2200px de largura com `pixelRatio: 2`.
+Função `handleDownloadSchedule` usa `html-to-image` (`toPng`) **com dynamic import** (`await import("html-to-image")`) — a biblioteca só é carregada quando o usuário clica no botão, não no bundle inicial. Renderiza uma `<div>` oculta (`position: absolute; left: -9999px`) com todos os dias no modo exportação (`exportMode=true`). Gera PNG de 2200px de largura com `pixelRatio: 2`.
 
 ### Mapeamento de campos (site)
 `mapBackendEvent` em `front-site/src/api/events.ts`:
