@@ -17,6 +17,7 @@ type ProductRepository interface {
 	UpdateByID(id uint, product *Product) error
 	GetProducts(query ProductListQuery) (*ProductListResult, error)
 	CountComboItemRefs(itemID uint) (int64, error)
+	GetAvailableCoffees() ([]Product, error)
 }
 
 type productRepository struct {
@@ -177,6 +178,17 @@ func (r *productRepository) CountComboItemRefs(itemID uint) (int64, error) {
 	var count int64
 	err := r.db.Model(&ComboItem{}).Where("item_id = ?", itemID).Count(&count).Error
 	return count, err
+}
+
+func (r *productRepository) GetAvailableCoffees() ([]Product, error) {
+	var coffees []Product
+	err := r.db.
+		Preload("Coffee").
+		Joins("JOIN coffees ON coffees.id = products.id").
+		Where("products.type = ? AND products.is_selling = ?", ProductTypeCoffee, true).
+		Order("coffees.date_time ASC").
+		Find(&coffees).Error
+	return coffees, err
 }
 
 func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB {

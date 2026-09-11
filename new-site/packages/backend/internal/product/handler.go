@@ -159,6 +159,25 @@ func (h *ProductHandler) UpdateProductByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Produto atualizado com sucesso!", "product": product})
 }
 
+// GetCoffees lista apenas coffees disponíveis (type=COFFEE, is_selling=true)
+// @Summary Lista coffees disponíveis
+// @Description Retorna todos os produtos do tipo COFFEE com is_selling=true ordenados por date_time
+// @Tags Product Backoffice
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Lista de coffees disponíveis"
+// @Failure 500 {object} map[string]string "Erro interno"
+// @Security BearerAuth
+// @Router /admin/coffees [get]
+func (h *ProductHandler) GetCoffees(c *gin.Context) {
+	coffees, err := h.productService.GetAvailableCoffees()
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	c.Set("responseMessage", "Coffees listados com sucesso!")
+	c.JSON(http.StatusOK, gin.H{"coffees": coffees})
+}
+
 // GetProducts retorna a lista paginada de produtos com suporte a filtros e ordenação.
 // Quando chamado por um usuário com PAPFE aprovado, inclui `discounted_price` em cada produto.
 // @Summary Lista produtos

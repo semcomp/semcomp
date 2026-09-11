@@ -1,10 +1,14 @@
 import { Linkedin, Instagram } from "lucide-react";
 import SEMCOMPInfo from "../../../lib/constants/SEMCOMPInfo";
 import SectionWatermark from "@/components/ui/SectionWatermark";
+import { useTheme } from "@/contexts/useTheme";
 
 type ContatoSectionProps = { className?: string };
 
-const ContatoSection = ({ className }: ContatoSectionProps) => (
+const ContatoSection = ({ className }: ContatoSectionProps) => {
+  const { isDarkMode } = useTheme();
+
+  return (
   <footer
     id="contato"
     className={`border-t border-white/10 py-10 md:py-16 relative overflow-hidden ${className}`}
@@ -62,9 +66,16 @@ const ContatoSection = ({ className }: ContatoSectionProps) => (
     </div>
 
     <div className="mt-10 text-center mx-auto text-sm opacity-70">
-      © {new Date().getFullYear()} SEMCOMP — ICMC USP — Feito com 🤍 por{" "}
+      © {new Date().getFullYear()} SEMCOMP — ICMC USP — Feito com {isDarkMode ? "🤍" : "❤️"} por{" "}
       <a href="https://codelab.icmc.usp.br/" className="no-underline hover:underline text-[#488578] dark:text-[#5fccad]">
         USPCodelab Sanca
+      </a>
+    </div>
+
+    <div className="mt-10 text-center mx-auto text-sm opacity-70">
+      Projeto aberto com código disponível no {" "}
+      <a href="https://github.com/semcomp/semcomp" className="no-underline hover:underline text-[#488578] dark:text-[#5fccad]">
+        github
       </a>
     </div>
 
@@ -74,6 +85,7 @@ const ContatoSection = ({ className }: ContatoSectionProps) => (
       </a>
     </div>
   </footer>
-);
+  );
+};
 
 export default ContatoSection;

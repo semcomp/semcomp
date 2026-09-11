@@ -18,7 +18,9 @@ type SaleRepository interface {
 	GetByUserNumber(userNumber uint) ([]Sale, error)
 	GetAll(query SaleListQuery) (*SaleListResult, error)
 	UpdateByID(id uint, updateData map[string]interface{}) error
+	CancelPendingSale(id uint) error
 	DeleteByID(id uint) error
+	HasPaidCoffee(userNumber uint, coffeeDateTime string) (bool, error)
 
 	// SetMercadoPagoID grava o ID do pagamento do MP assim que ele é conhecido
 	// (equivalente ao antigo PaymentRepository.SetMercadoPagoID).
@@ -125,6 +127,17 @@ func (r *saleRepository) GetByUserNumber(userNumber uint) ([]Sale, error) {
 
 func (r *saleRepository) UpdateByID(id uint, updateData map[string]interface{}) error {
 	result := r.db.Model(&Sale{}).Where("id = ?", id).Updates(updateData)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func (r *saleRepository) CancelPendingSale(id uint) error {
+	result := r.db.Model(&Sale{}).Where("id = ? AND status = ?", id, SaleStatusPending).Update("status", SaleStatusCanceled)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -401,6 +414,41 @@ func (r *saleRepository) GetComboIDsContainingCoffee(coffeeIDs []uint) ([]uint, 
 		coffeeIDs,
 	).Scan(&ids).Error
 	return ids, err
+}
+
+// HasPaidCoffee verifica se o usuário possui venda PAGA para o coffee do horário informado
+// (considera também combos que contêm o coffee).
+func (r *saleRepository) HasPaidCoffee(userNumber uint, coffeeDateTime string) (bool, error) {
+	var coffeeIDs []uint
+	if err := r.db.Model(&product.Coffee{}).Where("date_time = ?", coffeeDateTime).Pluck("id", &coffeeIDs).Error; err != nil {
+		return false, err
+	}
+	if len(coffeeIDs) == 0 {
+		return false, apierrors.NotFoundError("Coffee não encontrado para o horário informado", nil)
+	}
+
+	comboIDs, err := r.GetComboIDsContainingCoffee(coffeeIDs)
+	if err != nil {
+		return false, err
+	}
+	allowedIDs := append(coffeeIDs, comboIDs...)
+	allowedSet := make(map[uint]bool, len(allowedIDs))
+	for _, id := range allowedIDs {
+		allowedSet[id] = true
+	}
+
+	var sales []Sale
+	if err := r.db.Preload("Items").Where("sale_user_number = ? AND status = ?", userNumber, SaleStatusPaid).Find(&sales).Error; err != nil {
+		return false, err
+	}
+	for i := range sales {
+		for _, item := range sales[i].Items {
+			if allowedSet[item.ProductID] {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }
 
 // ExpirePendingPixSales persiste o status EXPIRADO nas cobranças PIX pendentes
