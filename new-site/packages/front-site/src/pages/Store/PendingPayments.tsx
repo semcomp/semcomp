@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, ChevronDown, RefreshCw, Wallet } from "lucide-react";
+import { ArrowLeft, ChevronDown, RefreshCw, Wallet, XCircle } from "lucide-react";
 import { useTheme } from "@/contexts/useTheme";
 import { useNotification } from "@/contexts/NotificationContext";
 import { salesAPI, type SaleResponse } from "@/api/sales";
@@ -28,8 +28,13 @@ export default function PendingPaymentsPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [sales, setSales] = useState<SaleResponse[]>([]);
   const [openId, setOpenId] = useState<number | null>(null);
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
 
   const esRef = useRef<EventSource | null>(null);
+  // Guarda qual venda está sendo cancelada pelo botão desta página. Usado para
+  // suprimir a notificação genérica do SSE quando o próprio usuário cancelou.
+  const cancellingIdRef = useRef<number | null>(null);
 
   const openSale = sales.find((s) => s.id === openId) ?? null;
 
@@ -78,10 +83,18 @@ export default function PendingPaymentsPage() {
         setOpenId(null);
         removeSale(openSale.id);
       } else if (data === "REJEITADO" || data === "CANCELADO" || data === "REEMBOLSADO") {
-        showNotification("Este pagamento não foi aprovado.", "warning");
-        es.close();
-        setOpenId(null);
-        removeSale(openSale.id);
+        if (data === "CANCELADO" && cancellingIdRef.current === openSale.id) {
+          // Cancelamento iniciado pelo próprio usuário: o botão desta página já
+          // cuida do feedback (success) e da remoção — não duplicar aviso.
+          es.close();
+          setOpenId(null);
+          removeSale(openSale.id);
+        } else {
+          showNotification("Este pagamento não foi aprovado.", "warning");
+          es.close();
+          setOpenId(null);
+          removeSale(openSale.id);
+        }
       }
     };
     return () => es.close();
@@ -97,6 +110,30 @@ export default function PendingPaymentsPage() {
       }
     },
     [openId, showNotification, removeSale]
+  );
+
+  // Cancela uma venda PENDENTE. O backend publica "CANCELADO" no SSE — por isso
+  // marcamos cancellingIdRef antes: o listener do SSE suprime a notificação
+  // genérica e quem dá o feedback é este handler (mensagem de sucesso + remoção).
+  const cancelSale = useCallback(
+    async (id: number) => {
+      setCancellingId(id);
+      cancellingIdRef.current = id;
+      try {
+        await salesAPI.cancelSale(id);
+        showNotification("Pagamento cancelado com sucesso.", "success");
+        esRef.current?.close();
+        setConfirmId(null);
+        setOpenId(null);
+        removeSale(id);
+      } catch {
+        showNotification("Não foi possível cancelar o pagamento. Tente novamente.", "warning");
+      } finally {
+        cancellingIdRef.current = null;
+        setCancellingId(null);
+      }
+    },
+    [removeSale, showNotification]
   );
 
   // ─── Cores ──────────────────────────────────────────────
@@ -255,6 +292,52 @@ export default function PendingPaymentsPage() {
                     {isOpen && (
                       <div className="px-5 pb-6 flex flex-col items-center gap-6">
                         <PixQrCard sale={sale} onStatusChange={handleStatusChange} />
+
+                        {/* Cancelamento de pedido pendente */}
+                        <div
+                          className={`w-full border-t pt-4 flex flex-col items-center gap-3 ${
+                            isDarkMode ? "border-white/10" : "border-semcompMidLightBlue/20"
+                          }`}
+                        >
+                          {confirmId === sale.id ? (
+                            <>
+                              <p className={`text-sm font-semibold ${textPrimary}`}>
+                                Cancelar este pagamento?
+                              </p>
+                              <p className={`text-xs text-center ${textMuted}`}>
+                                O PIX deixará de valer e os itens deste pedido voltarão a
+                                ficar disponíveis.
+                              </p>
+                              <div className="flex items-center gap-3">
+                                <button
+                                  type="button"
+                                  disabled={cancellingId === sale.id}
+                                  onClick={() => cancelSale(sale.id)}
+                                  className="inline-flex items-center gap-2 rounded-full bg-red-500 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:brightness-110 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {cancellingId === sale.id ? "Cancelando..." : "Confirmar cancelamento"}
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={cancellingId === sale.id}
+                                  onClick={() => setConfirmId(null)}
+                                  className="rounded-full bg-semcompMidDarkBlue/10 px-5 py-2.5 text-sm font-bold text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/20 transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  Voltar
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setConfirmId(sale.id)}
+                              className="inline-flex items-center gap-2 rounded-full border border-red-400/40 px-5 py-2.5 text-sm font-bold text-red-400 hover:bg-red-400/10 transition-all cursor-pointer"
+                            >
+                              <XCircle size={15} />
+                              Cancelar pedido
+                            </button>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
