@@ -37,13 +37,21 @@ export default function Riddle() {
   const [isSolving, setIsSolving] = useState(false);
   const [lastSolveResult, setLastSolveResult] = useState<SolveResult | null>(null);
 
-  const cardBg = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidLightBlue";
   // Mesmo fundo das demais páginas do site (ver Profile: bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue).
   const pageBg = isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompMidLightBlue";
-  const inputBg = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidDarkBlue";
+  const cardBg = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidLightBlue";
   const textPrimary = isDarkMode ? "text-white" : "text-semcompDarkBlue";
   const textMuted = isDarkMode ? "text-slate-400" : "text-slate-600";
   const sectionBorder = isDarkMode ? "border-slate-700" : "border-slate-300";
+
+  // Card da pregunta — "bolha branca" da referencia, com sombra; escuro usa tokens do projeto.
+  const questionCard = isDarkMode
+    ? "rounded-2xl border border-slate-700 shadow-xl p-8 flex flex-col items-center bg-semcompDarkBlue"
+    : "rounded-2xl border border-gray-100 shadow-xl p-8 flex flex-col items-center bg-white";
+
+  const questionInput = isDarkMode
+    ? "border-2 border-semcompOffWhite bg-semcompDarkBlue text-white placeholder:text-white"
+    : "border-2 border-gray-300 bg-white text-gray-800 placeholder:text-gray-400";
 
   // --- Fetch inicial ---------
 
@@ -137,6 +145,15 @@ export default function Riddle() {
     }
   };
 
+  const handleAnswerSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    if (!answer.trim()) {
+      showNotification("Você deve fornecer uma resposta.", "warning");
+      return;
+    }
+    handleSolve();
+  };
+
   // --- Estados de UI ---------
 
   if (loading) {
@@ -190,7 +207,7 @@ export default function Riddle() {
         </div>
 
         {/* Criar equipe */}
-        <div className={`w-full rounded-2xl border p-6 ${cardBg} ${sectionBorder}`}>
+        <div className={`w-full rounded-2xl border p-6 shadow-md ${cardBg} ${sectionBorder}`}>
           <div className="mb-4 flex items-center gap-2">
             <UserPlus className={`h-5 w-5 ${textPrimary}`} />
             <h2 className={`text-lg font-semibold ${textPrimary}`}>Criar equipe</h2>
@@ -212,10 +229,10 @@ export default function Riddle() {
         </div>
 
         {/* Entrar em equipe */}
-        <div className={`w-full rounded-2xl border p-6 ${cardBg} ${sectionBorder}`}>
+        <div className={`w-full rounded-2xl border p-6 shadow-md ${cardBg} ${sectionBorder}`}>
           <div className="mb-4 flex items-center gap-2">
             <LogIn className={`h-5 w-5 ${textPrimary}`} />
-            <h2 className={`text-lg font-semibold ${textPrimary}`}>Entrar em uma equipe</h2>
+            <h2 className={`text-lg font-semibold ${textPrimary}`}>Entrar em una equipe</h2>
           </div>
           <Input
             label="Código de convite"
@@ -238,7 +255,7 @@ export default function Riddle() {
     );
   }
 
-  // --- Com time — progresso ---------
+  // --- Com time — finalizado ---------
 
   if (isFinished) {
     return (
@@ -249,7 +266,7 @@ export default function Riddle() {
         <p className={`text-lg ${textMuted}`}>
           Seu time completou todos os {riddlesTotal} enigmas!
         </p>
-        <div className={`mt-4 w-full rounded-2xl border p-6 ${cardBg} ${sectionBorder}`}>
+        <div className={`w-full rounded-2xl border border-gray-100 shadow-xl bg-white p-6 dark:border-slate-700 dark:bg-semcompDarkBlue`}>
           <h3 className={`mb-3 text-sm font-semibold uppercase tracking-widest ${textMuted}`}>Membros</h3>
           <ul className="space-y-2">
             {team.members?.map((m) => (
@@ -268,99 +285,126 @@ export default function Riddle() {
     );
   }
 
+  // --- Com time — jogo ativo ---------
+
+  const riddleTitle = currentRiddle?.hint_1?.trim() || (currentRiddle ? `Enigma #${currentRiddle.id}` : "");
+  const riddleClue = currentRiddle?.hint_2?.trim() ?? null;
+  const progressPct = riddlesTotal > 0 ? Math.round((progressIndex / riddlesTotal) * 100) : 0;
+
   return (
     <div className={`min-h-screen w-full pt-28 ${pageBg}`}>
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pb-20">
-      {/* Card da equipe */}
-      <div className={`w-full rounded-2xl border p-6 ${cardBg} ${sectionBorder}`}>
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
-            <h1 className={`text-2xl font-bold ${textPrimary}`}>{team.name}</h1>
-            <p className={`mt-1 text-sm ${textMuted}`}>
-              Progresso: {progressIndex} / {riddlesTotal} enigma{riddlesTotal !== 1 ? "s" : ""}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className={`text-xs uppercase tracking-wider ${textMuted}`}>Código da equipe</p>
-            <p className={`mt-1 text-lg font-mono font-bold tracking-[0.25em] text-violet-400`}>
-              {team.code}
-            </p>
-          </div>
+    <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-8 px-4 pb-20">
+      {/* Barra da equipe */}
+      <div className="flex flex-col items-center gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className={`text-2xl font-bold ${textPrimary}`}>{team.name}</h1>
+          <span className="rounded-md border px-2 py-0.5 font-mono text-sm font-bold tracking-[0.2em] text-violet-400">
+            {team.code}
+          </span>
         </div>
-
-        {/* Membros */}
-        <div className={`border-t pt-4 ${sectionBorder}`}>
-          <h3 className={`mb-2 text-sm font-semibold uppercase tracking-widest ${textMuted}`}>
-            Membros ({team.members?.length ?? 0}/{5})
-          </h3>
-          <div className="flex flex-wrap gap-3">
-            {team.members?.map((m) => (
-              <span
-                key={m.user_number}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm ${cardBg} ${sectionBorder} ${textPrimary}`}
-              >
-                <Users className="h-3.5 w-3.5 opacity-60" />
-                {m.name || `#${m.user_number}`}
-              </span>
-            ))}
-          </div>
+        <div className="flex flex-wrap justify-center gap-2">
+          {team.members?.map((m) => (
+            <span
+              key={m.user_number}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm ${cardBg} ${sectionBorder} ${textPrimary}`}
+            >
+              <Users className="h-3.5 w-3.5 opacity-60" />
+              {m.name || `#${m.user_number}`}
+            </span>
+          ))}
+          <span className={`text-xs ${textMuted}`}>
+            {team.members?.length ?? 0}/{5} membros
+          </span>
         </div>
       </div>
 
-      {/* Enigma atual */}
+      {/* Card da pregunta — bolha branca da referencia */}
       {currentRiddle ? (
-        <div className={`w-full rounded-2xl border p-6 ${cardBg} ${sectionBorder}`}>
-          <h2 className={`mb-6 text-xl font-bold ${textPrimary}`}>Enigma #{currentRiddle.id}</h2>
-
-          {/* Dica 1 */}
-          <div className={`mb-4 rounded-xl border p-4 ${inputBg} ${sectionBorder}`}>
-            <div className="mb-1 flex items-center gap-1.5 text-amber-500">
-              <Lightbulb className="h-4 w-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">Dica 1</span>
-            </div>
-            <p className={`${textPrimary}`}>{currentRiddle.hint_1}</p>
+        <div className={questionCard}>
+          {/* Título */}
+          <div className="flex items-center justify-center gap-2">
+            <Lightbulb className="h-5 w-5 shrink-0 text-yellow-500" />
+            <h1
+              className={`text-2xl leading-tight font-bold sm:text-3xl ${
+                isDarkMode ? "text-white" : "text-gray-800"
+              }`}
+            >
+              {riddleTitle}
+            </h1>
           </div>
 
-          {/* Dica 2 */}
-          <div className={`mb-6 rounded-xl border p-4 ${inputBg} ${sectionBorder}`}>
-            <div className="mb-1 flex items-center gap-1.5 text-amber-500">
-              <Lightbulb className="h-4 w-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">Dica 2</span>
+          {/* Progreso */}
+          <div className="mt-6 w-full max-w-sm">
+            <div className={`flex justify-between text-xs ${textMuted}`}>
+              <span>Enigma {progressIndex} de {riddlesTotal}</span>
+              <span>{progressPct}%</span>
             </div>
-            <p className={`${textPrimary}`}>{currentRiddle.hint_2}</p>
+            <div className="mt-1 h-1.5 rounded-full bg-primary/20">
+              <div className="h-1.5 rounded-full bg-primary" style={{ width: `${progressPct}%` }} />
+            </div>
           </div>
 
           {/* Imagem (se existir) */}
           {currentRiddle.image_url && (
-            <div className="mb-6 flex justify-center">
+            <div className="mt-6 rounded-xl overflow-hidden shadow-lg">
               <img
                 src={currentRiddle.image_url}
                 alt="Ilustração do enigma"
-                className="max-h-64 rounded-xl object-contain"
+                className="max-h-64 w-[500px] object-contain"
               />
+            </div>
+          )}
+
+          {/* Dica — chip amarelo (hint_2) */}
+          {riddleClue && (
+            <div
+              className={`mt-6 w-full max-w-xl rounded-xl border p-5 shadow-sm ${
+                isDarkMode
+                  ? "bg-yellow-500/15 border-yellow-500/40"
+                  : "bg-yellow-50 border-yellow-200"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Lightbulb
+                  className={`h-4 w-4 shrink-0 ${
+                    isDarkMode ? "text-yellow-300" : "text-yellow-700"
+                  }`}
+                />
+                <p
+                  className={`text-sm leading-relaxed ${
+                    isDarkMode ? "text-yellow-300" : "text-yellow-700"
+                  }`}
+                >
+                  {riddleClue}
+                </p>
+              </div>
             </div>
           )}
 
           {/* Feedback da última tentativa */}
           {lastSolveResult && !lastSolveResult.correct && (
-            <div className={`mb-4 rounded-lg border border-red-600/40 ${isDarkMode ? "bg-red-900/20" : "bg-red-100"} p-3`}>
+            <div
+              className={`mt-4 rounded-lg border border-red-600/40 p-3 ${
+                isDarkMode ? "bg-red-900/20" : "bg-red-100"
+              }`}
+            >
               <p className="text-sm text-red-600">{lastSolveResult.message}</p>
             </div>
           )}
 
-          {/* Form de resposta */}
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <div className="flex-1">
-              <Input
-                label="Sua resposta"
+          {/* Form de resposta — input com botón dentro, como a referencia */}
+          <form className="mt-6 w-full max-w-xl" onSubmit={handleAnswerSubmit}>
+            <div className="relative">
+              <input
+                className={`w-full rounded-lg border-2 py-4 pl-4 pr-32 text-sm ${questionInput}`}
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
-                placeholder="Digite a resposta do enigma..."
+                placeholder="Digite sua resposta aqui..."
+                aria-label="Sua resposta"
               />
-            </div>
-            <div className="flex items-end pb-3">
               <Button
-                onClick={handleSolve}
+                type="submit"
+                className={`absolute right-2 top-1/2 -translate-y-1/2 h-9`}
                 disabled={isSolving || !answer.trim()}
               >
                 {isSolving ? (
@@ -368,10 +412,10 @@ export default function Riddle() {
                 ) : (
                   <Send className="mr-2 h-4 w-4" />
                 )}
-                Responder
+                Enviar
               </Button>
             </div>
-          </div>
+          </form>
         </div>
       ) : (
         <div className={`w-full rounded-2xl border p-8 text-center ${cardBg} ${sectionBorder}`}>

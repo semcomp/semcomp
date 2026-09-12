@@ -1,4 +1,5 @@
 import client from "./client";
+import { mockRiddleAPI } from "./riddle.mock";
 
 // --- Tipos públicos (sem answer) ---------
 
@@ -57,7 +58,7 @@ interface MyGameApiResponse {
 
 // --- Objeto API ---------
 
-export const riddleAPI = {
+const realRiddleAPI = {
   // POST /api/riddles/create-team — cria equipe com o usuário autenticado como fundador
   createTeam: async (name: string): Promise<Team> => {
     const response = await client.post<CreateTeamApiResponse>("/api/riddles/create-team", { name });
@@ -89,3 +90,8 @@ export const riddleAPI = {
     return response.data;
   },
 };
+
+// Mock para iterar o visual de /riddle sem backend — ver riddle.mock.ts.
+const MOCK_RIDDLE = import.meta.env.VITE_MOCK_RIDDLE === "true";
+
+export const riddleAPI = MOCK_RIDDLE ? mockRiddleAPI : realRiddleAPI;
