@@ -95,7 +95,7 @@ Registra inscrições de participantes em eventos que têm `has_signin = true`.
 | `EventName` PK | `event_name` | size:200 |
 | `EventInitDate` PK | `event_init_date` | timestamptz |
 | `UserWaitListPosition` | `user_wait_list_position` | uint, omitempty |
-| `Status` | `status` | `"Inscrito"` / `"Lista de Espera"` / `"Cancelado"` |
+| `Status` | `status` | `"Inscrito"` / `"Lista de Espera"` / `"Aguardando Aprovação"` / `"Cancelado"` |
 
 Módulo completamente implementado — service, handler e rotas HTTP registradas.  
 → [[Feature_SigninEvent]]

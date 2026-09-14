@@ -108,13 +108,14 @@ function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
   };
 }
 
-const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCancel, isCanceling }: {
+const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCancel, isCanceling, papfeApproved }: {
   ev: EventType;
   subscription: SigninEventType | undefined;
   onSignin: () => void;
   isSigningIn: boolean;
   onCancel: () => void;
   isCanceling: boolean;
+  papfeApproved: boolean;
 }) => {
   const data = formatDate(ev.dateInit, 2);
   const diaSemana = formatWeekDay(ev.dateInit);
@@ -123,7 +124,10 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
     <div className="border rounded-xl p-4 mb-3 bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white flex flex-col items-start">
       <div className="w-full">
         <div className="flex items-start gap-2">
-          <span className="font-bold whitespace-nowrap">{ev.type}</span>
+          <div className="flex flex-col shrink-0">
+            <span className="font-bold">{ev.name}</span>
+            <span className="text-xs opacity-60">{ev.type}</span>
+          </div>
           <span className="opacity-60">|</span>
           <p className="text-sm leading-relaxed opacity-90 wrap-break-words">{ev.description}</p>
         </div>
@@ -135,13 +139,21 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
       <div className="w-full flex flex-col justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
         {subscription ? (
           <>
-            <span className={`w-full p-2 text-center text-sm font-semibold ${
-              subscription.status === "Inscrito" ? "text-green-700 dark:text-green-400" : "text-yellow-700 dark:text-yellow-400"
-            }`}>
-              {subscription.status === "Inscrito"
-                ? "Inscrito"
-                : `Lista de Espera - ${subscription.user_wait_list_position}ª posição`}
-            </span>
+            {subscription.status === "Aguardando Aprovação" ? (
+              <span className="w-full p-2 text-center text-sm font-semibold text-blue-700 dark:text-blue-400">
+                {papfeApproved
+                  ? "Você deve confirmar a sua presença no Fernão"
+                  : "Traga 1kg de alimento para confirmar sua inscrição na entrada do Fernão"}
+              </span>
+            ) : (
+              <span className={`w-full p-2 text-center text-sm font-semibold ${
+                subscription.status === "Inscrito" ? "text-green-700 dark:text-green-400" : "text-yellow-700 dark:text-yellow-400"
+              }`}>
+                {subscription.status === "Inscrito"
+                  ? "Inscrito"
+                  : `Lista de Espera - ${subscription.user_wait_list_position}ª posição`}
+              </span>
+            )}
             <button
               className="cursor-pointer w-full p-2 text-sm text-red-600 dark:text-red-400 border-t border-black/10 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isCanceling}
@@ -770,6 +782,7 @@ export default function Profile({
                   isSigningIn={signingInKey === `${ev.name}::${ev.dateInit}`}
                   onCancel={() => setCancelConfirm({ eventName: ev.name, eventInitDate: ev.dateInit })}
                   isCanceling={cancelingKey === `${ev.name}::${ev.dateInit}`}
+                  papfeApproved={papfeDoc?.is_approved === true}
                 />
               ))
             ) : (
@@ -1154,7 +1167,8 @@ export default function Profile({
                         onClick={() => setOpenSubscription(openSubscription === index ? -1 : index)}
                       >
                         <div className="w-1/2 flex flex-col text-left gap-1 items-start pr-4">
-                          <span className="font-bold text-lg shrink-0">{evento.type}</span>
+                          <span className="font-bold text-lg shrink-0">{evento.name}</span>
+                          <span className="text-xs opacity-60 shrink-0">{evento.type}</span>
                           <span className="text-sm font-medium wrap-break-words flex-1 opacity-90">{evento.description}</span>
                         </div>
                         <div className="w-auto flex flex-col items-end shrink-0 gap-1">
@@ -1177,15 +1191,23 @@ export default function Profile({
                         <div className="w-full p-6 flex flex-row items-center justify-center rounded-b-lg border-t border-black/10 shadow-lg transition-all animate-in fade-in duration-300 bg-black/5 dark:bg-black/20">
                           {subscription ? (
                             <div className="flex flex-col items-center gap-3">
-                              <span className={`text-lg font-bold ${
-                                subscription.status === "Inscrito"
-                                  ? "text-green-600 dark:text-green-400"
-                                  : "text-yellow-600 dark:text-yellow-400"
-                              }`}>
-                                {subscription.status === "Inscrito"
-                                  ? "Você está inscrito"
-                                  : `Você está na lista de espera (${subscription.user_wait_list_position}ª posição)`}
-                              </span>
+                              {subscription.status === "Aguardando Aprovação" ? (
+                                <span className="text-lg font-bold text-blue-600 dark:text-blue-400 text-center">
+                                  {papfeDoc?.is_approved === true
+                                    ? "Você deve confirmar a sua presença no Fernão"
+                                    : "Traga 1kg de alimento para confirmar sua inscrição na entrada do Fernão"}
+                                </span>
+                              ) : (
+                                <span className={`text-lg font-bold ${
+                                  subscription.status === "Inscrito"
+                                    ? "text-green-600 dark:text-green-400"
+                                    : "text-yellow-600 dark:text-yellow-400"
+                                }`}>
+                                  {subscription.status === "Inscrito"
+                                    ? "Você está inscrito"
+                                    : `Você está na lista de espera (${subscription.user_wait_list_position}ª posição)`}
+                                </span>
+                              )}
                               <button
                                 className="px-6 py-2 rounded-xl font-bold text-sm uppercase tracking-wide shadow-sm hover:-translate-y-0.5 transition-all duration-300 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                                 disabled={cancelingKey === key}

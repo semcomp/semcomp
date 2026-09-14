@@ -18,7 +18,7 @@ func NewSigninEventHandler(service SigninEventService) *SigninEventHandler {
 
 // CreateSignin processa o payload JSON e tenta criar uma nova inscrição.
 // @Summary Inscreve o usuário autenticado em um evento
-// @Description Registra a inscrição do usuário logado em um evento que permite inscrição (has_signin). Dentro do limite de vagas o usuário fica com status "Esperando Doação"; se as vagas estiverem esgotadas, entra na lista de espera.
+// @Description Registra a inscrição do usuário logado em um evento que permite inscrição (has_signin). Dentro do limite de vagas o usuário fica com status "Aguardando Aprovação"; se as vagas estiverem esgotadas, entra na lista de espera.
 // @Tags Signin Event
 // @Accept json
 // @Produce json
@@ -329,7 +329,7 @@ func (h *SigninEventHandler) RegisterSigninAdmin(c *gin.Context) {
 
 // RotateSigninsAdmin remove inscrições aguardando doação e promove a fila de espera (backoffice).
 // @Summary Rotaciona as inscrições de um evento (backoffice)
-// @Description Remove todas as inscrições com status "Esperando Doação" e promove os primeiros da fila de espera para "Inscrito", recompondo as posições da fila
+// @Description Remove todas as inscrições com status "Aguardando Aprovação" e promove os primeiros da fila de espera para "Inscrito", recompondo as posições da fila
 // @Tags Signin Event Backoffice
 // @Accept json
 // @Produce json
