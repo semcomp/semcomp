@@ -1,18 +1,5 @@
 import { useState, useEffect } from "react";
 import SEMCOMPInfo from "../lib/constants/SEMCOMPInfo";
-import Banner1Mobile from "../assets/img/Home/Hero/Banner1-mobile.webp";
-import Banner2Mobile from "../assets/img/Home/Hero/Banner2-mobile.webp";
-import Palestra1Mobile from "../assets/img/Home/Hero/Palestra1-mobile.webp";
-import Palestra2Mobile from "../assets/img/Home/Hero/Palestra2-mobile.webp";
-import SemcompMobile from "../assets/img/Home/Hero/Semcomp-mobile.webp";
-
-const MOBILE_HERO_IMAGES = {
-  Banner1: Banner1Mobile,
-  Banner2: Banner2Mobile,
-  Palestra1: Palestra1Mobile,
-  Palestra2: Palestra2Mobile,
-  Semcomp: SemcompMobile,
-};
 
 const HERO_NAMES = [
   "Banner1",
@@ -24,7 +11,7 @@ const HERO_NAMES = [
 
 const HERO_IMAGES = HERO_NAMES.map((name) => ({
   desktop: `/img/Home/Hero/${name}.webp`,
-  mobile: MOBILE_HERO_IMAGES[name],
+  mobile: `/img/Home/Hero/${name}-mobile.webp`,
 }));
 
 const pickRandomHero = () => HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)];
