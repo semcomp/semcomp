@@ -15,10 +15,13 @@ import FileUpload from "@/components/file-upload";
 const RESEND_COOLDOWN_SECONDS = 60;
 const FORGOT_COOLDOWN_SECONDS = 60;
 
-const _loginModules = import.meta.glob("/src/assets/img/Login/*", { eager: true }) as Record<string, { default: string }>;
-const LOGIN_IMAGES = Object.values(_loginModules)
-    .map((m) => m.default as string)
-    .filter((s) => /\.(png)$/i.test(s));
+const LOGIN_IMAGES = [
+    '/img/Login/1.webp',
+    '/img/Login/2.webp',
+    '/img/Login/3.webp',
+    '/img/Login/4.webp',
+    '/img/Login/5.webp',
+];
 
 const pickRandomLoginHero = () => LOGIN_IMAGES[Math.floor(Math.random() * LOGIN_IMAGES.length)];
 
