@@ -1,12 +1,39 @@
 import Carousel from "@/components/ui/Carousel";
 import SectionWatermark from "@/components/ui/SectionWatermark";
 
+import ContextMobile from "@/assets/img/Home/Carousel/Context-mobile.webp";
+import FeiraMobile from "@/assets/img/Home/Carousel/Feira-mobile.webp";
+import HackathonMobile from "@/assets/img/Home/Carousel/Hackathon-mobile.webp";
+import IntegracaoMobile from "@/assets/img/Home/Carousel/Integracao-mobile.webp";
+import PerguntaMobile from "@/assets/img/Home/Carousel/Pergunta-mobile.webp";
+import Semcomp28Mobile from "@/assets/img/Home/Carousel/Semcomp28-mobile.webp";
+
+const MOBILE_IMAGES = {
+  Context: ContextMobile,
+  Feira: FeiraMobile,
+  Hackathon: HackathonMobile,
+  Integracao: IntegracaoMobile,
+  Pergunta: PerguntaMobile,
+  Semcomp28: Semcomp28Mobile,
+};
+
 const altFromPath = (name: string) =>
   name.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 const CAROUSEL_IMAGES = [
-  "Context", "Feira", "Hackathon", "Integracao", "Pergunta", "Semcomp28",
-].map((name) => ({ src: `/img/Home/Carousel/${name}.webp`, alt: altFromPath(name) }));
+  "Context",
+  "Feira",
+  "Hackathon",
+  "Integracao",
+  "Pergunta",
+  "Semcomp28",
+] as const;
+
+const images = CAROUSEL_IMAGES.map((name) => ({
+  src: `/img/Home/Carousel/${name}.webp`,
+  srcMobile: MOBILE_IMAGES[name],
+  alt: altFromPath(name),
+}));
 
 type SobreProps = { className?: string };
 
@@ -50,7 +77,7 @@ const SobreSection = ({ className }: SobreProps) => (
 
         <div className="self-start relative">
           <div className="relative z-20">
-            <Carousel images={CAROUSEL_IMAGES} />
+            <Carousel images={images} />
           </div>
         </div>
       </div>

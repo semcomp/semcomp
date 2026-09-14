@@ -17,6 +17,7 @@ type AbsenceJustificationRepository interface {
 	FindInfoByID(id uint) (*AbsenceJustificationInfo, error)
 	FindInfoByUserEmail(email string) (*AbsenceJustificationInfo, error)
 	UpdateStatus(id uint, status string, rejectionReason *string) error
+	FindUserNumberByEmail(email string) (int64, error)
 }
 
 type absenceJustificationRepository struct {
@@ -132,4 +133,17 @@ func (r *absenceJustificationRepository) UpdateStatus(id uint, status string, re
 		return apierrors.NotFoundError("Justificativa de ausência não encontrada", nil)
 	}
 	return nil
+}
+
+// FindUserNumberByEmail encontra o user_number correspondente ao email na tabela users.
+func (r *absenceJustificationRepository) FindUserNumberByEmail(email string) (int64, error) {
+	var userNumber int64
+	err := r.db.Raw("SELECT user_number FROM users WHERE email = ?", email).Scan(&userNumber).Error
+	if err != nil {
+		return 0, apierrors.InternalServerError("Erro ao buscar número do usuário", err)
+	}
+	if userNumber == 0 {
+		return 0, apierrors.NotFoundError("Usuário não encontrado", nil)
+	}
+	return userNumber, nil
 }
