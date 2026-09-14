@@ -5,6 +5,7 @@ import { isNightCoffee } from "@/utils/coffeeRules";
 
 function formatDateTime(dateTime: string): string {
   return new Date(dateTime).toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

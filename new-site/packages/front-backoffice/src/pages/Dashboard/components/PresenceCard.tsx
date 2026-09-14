@@ -26,7 +26,7 @@ export default function PresenceCard({
     const present = events.reduce((acc, e) => acc + e.present, 0);
     const total = events.reduce((acc, e) => acc + e.total, 0);
     const rate = total > 0 ? (present / total) * 100 : 0;
-    return { events: events.length, present, rate };
+    return { events: data?.totalEvents ?? events.length, present, rate };
   }, [data]);
 
   const items = [
