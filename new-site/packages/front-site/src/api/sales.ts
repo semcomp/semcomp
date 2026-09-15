@@ -56,6 +56,10 @@ export interface SaleItemResponse {
   unit_price: number;
   is_picked_up: boolean;
   product?: SaleProduct;
+  // Preenchido pelo backend quando o produto é um COMBO: indica o kit
+  // específico (tamanho/cor) escolhido pelo usuário no momento da compra.
+  kit_product_id?: number;
+  kit_product?: SaleProduct;
 }
 
 export interface SaleResponse {

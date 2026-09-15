@@ -5,7 +5,7 @@ import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { authAPI, absenceJustificationsAPI, papfeAPI, client } from "@/api";
 import { salesAPI } from "@/api/sales";
-import type { SaleResponse, SaleItemResponse, SaleProduct } from "@/api/sales";
+import type { SaleResponse, SaleItemResponse, SaleProduct, ComboItemResponse } from "@/api/sales";
 import { ChevronDown, Megaphone, Eye, Loader2 } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
@@ -80,7 +80,7 @@ const SALE_STATUS_STYLES: Record<string, { label: string; color: string }> = {
 
 const formatPresencePercent = (value: number): string => Math.round(value).toString();
 
-function getProductDisplayName(product: any): string {
+function getProductDisplayName(product: any, kitProduct?: SaleProduct): string {
   if (!product) return "Produto";
 
   // Formatação de Kits / Camisetas
@@ -102,15 +102,14 @@ function getProductDisplayName(product: any): string {
     return `${product.coffee.name || "Coffee"}${dateStr}`;
   }
 
-  // Formatação de Combos
-  if (product.type === "COMBO" && product.combo_items?.length) {
-    const itemNames = product.combo_items
-      .map((ci: any) => getProductDisplayName(ci.item))
-      .filter(Boolean);
-    if (itemNames.length > 0) {
-      return `Combo (${itemNames.join(" + ")})`;
+  // Formatação de Combos: mostra o nome do produto + o kit escolhido entre
+  // parênteses (sem listar todas as variantes da definição do produto).
+  if (product.type === "COMBO") {
+    const comboName = product.name || "Combo";
+    if (kitProduct) {
+      return `${comboName} (${getProductDisplayName(kitProduct)})`;
     }
-    return "Combo";
+    return comboName;
   }
 
   return product.type ?? "Produto";
@@ -121,7 +120,7 @@ function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
   sale.items?.length
     ? sale.items
         .map((it) => {
-          return `${it.quantity}x ${getProductDisplayName(it.product)}`;
+          return `${it.quantity}x ${getProductDisplayName(it.product, it.kit_product)}`;
         })
         .join(", ")
     : "Pedido";
@@ -142,25 +141,21 @@ function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
   };
 }
 
-// Linha expansível (accordion) que exibe os itens de um produto do tipo
-// COMBO dentro de uma compra. Os dados são buscados sob demanda pelo
-// componente pai (GET /api/sales/:id) e passados já resolvidos aqui.
+// Linha expansível (accordion) que exibe o kit escolhido e os cafés
+// incluídos em um produto do tipo COMBO. Os dados vêm diretamente do
+// SaleItemResponse retornado por getMySales (sem fetch adicional).
 function ComboItemsRow({
   isOpen,
   onToggle,
-  resolvedProduct,
-  isLoading,
-  error,
-  onRetry,
+  kitProduct,
+  coffeeItems,
 }: {
   isOpen: boolean;
   onToggle: () => void;
-  resolvedProduct?: SaleProduct;
-  isLoading: boolean;
-  error?: string;
-  onRetry: () => void;
+  kitProduct?: SaleProduct;
+  coffeeItems: ComboItemResponse[];
 }) {
-  const comboItems = resolvedProduct?.combo_items;
+  const hasContent = !!kitProduct || coffeeItems.length > 0;
 
   return (
     <div className="mt-2">
@@ -182,29 +177,21 @@ function ComboItemsRow({
         <div className="overflow-hidden">
           {isOpen && (
             <div className="mt-2 pl-4 border-l-2 border-semcompMidLightBlue/40 flex flex-col gap-1">
-              {isLoading && !comboItems ? (
-                <span className="flex items-center gap-2 text-xs text-semcompDarkBlue/70">
-                  <Loader2 size={12} className="animate-spin" /> Carregando itens...
-                </span>
-              ) : error && !comboItems ? (
-                <div className="flex items-center justify-between gap-2 text-xs text-red-600">
-                  <span>{error}</span>
-                  <button
-                    type="button"
-                    onClick={onRetry}
-                    className="underline font-semibold cursor-pointer"
-                  >
-                    Tentar de novo
-                  </button>
-                </div>
-              ) : comboItems?.length ? (
-                comboItems.map((ci) => (
-                  <span key={ci.item_id} className="text-xs text-semcompDarkBlue/80">
-                    {ci.quantity}x {getProductDisplayName(ci.item)}
-                  </span>
-                ))
-              ) : (
+              {!hasContent ? (
                 <span className="text-xs text-semcompDarkBlue/60 italic">Nenhum item encontrado.</span>
+              ) : (
+                <>
+                  {kitProduct && (
+                    <span className="text-xs text-semcompDarkBlue/80">
+                      1x {getProductDisplayName(kitProduct)}
+                    </span>
+                  )}
+                  {coffeeItems.map((ci) => (
+                    <span key={ci.item_id} className="text-xs text-semcompDarkBlue/80">
+                      {ci.quantity}x {getProductDisplayName(ci.item)}
+                    </span>
+                  ))}
+                </>
               )}
             </div>
           )}
@@ -348,11 +335,6 @@ export default function Profile({
   const [cancelTarget, setCancelTarget] = useState<PurchaseType | null>(null);
   const [isCanceling, setIsCanceling] = useState(false);
 
-  // Detalhe completo de cada venda (com os itens do combo resolvidos),
-  // buscado sob demanda ao expandir "Ver itens do combo" e cacheado por saleId.
-  const [comboSaleDetails, setComboSaleDetails] = useState<Record<number, SaleResponse>>({});
-  const [comboLoadingSaleId, setComboLoadingSaleId] = useState<number | null>(null);
-  const [comboErrorBySaleId, setComboErrorBySaleId] = useState<Record<number, string>>({});
   const [openComboRows, setOpenComboRows] = useState<Set<string>>(new Set());
 
   const logoutRef = useRef(logout);
@@ -369,28 +351,6 @@ export default function Profile({
     setPapfeDoc(doc);
   };
 
-  async function loadComboSaleDetails(saleId: number) {
-    if (comboSaleDetails[saleId] || comboLoadingSaleId === saleId) return;
-    setComboLoadingSaleId(saleId);
-    setComboErrorBySaleId((prev) => {
-      if (!(saleId in prev)) return prev;
-      const next = { ...prev };
-      delete next[saleId];
-      return next;
-    });
-    try {
-      const sale = await salesAPI.getById(saleId);
-      setComboSaleDetails((prev) => ({ ...prev, [saleId]: sale }));
-    } catch {
-      setComboErrorBySaleId((prev) => ({
-        ...prev,
-        [saleId]: "Não foi possível carregar os itens do combo.",
-      }));
-    } finally {
-      setComboLoadingSaleId((current) => (current === saleId ? null : current));
-    }
-  }
-
   function toggleComboRow(saleId: number, itemId: number) {
     const key = `${saleId}:${itemId}`;
     setOpenComboRows((prev) => {
@@ -402,7 +362,6 @@ export default function Profile({
       }
       return next;
     });
-    loadComboSaleDetails(saleId);
   }
 
   useEffect(() => {
@@ -670,6 +629,7 @@ export default function Profile({
   if (width < 1280) {
     return (
       <div className="min-h-screen bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue font-poppins transition-colors duration-300">
+        {cancelModal}
         {cancelConfirmModal}
         {/* Header com Background */}
         <div className="relative h-80 w-full overflow-hidden bg-semcompMidLightBlue dark:bg-semcompDarkBlue">
@@ -923,22 +883,28 @@ export default function Profile({
                           .filter((it) => it.product?.type === "COMBO")
                           .map((it) => {
                             const key = `${purchase.saleId}:${it.id}`;
-                            const resolvedSale = comboSaleDetails[purchase.saleId];
-                            const resolvedProduct = resolvedSale?.items?.find(
-                              (ri) => ri.id === it.id
-                            )?.product;
+                            const coffeeItems = (it.product?.combo_items ?? []).filter(
+                              (ci) => ci.item?.type === "COFFEE"
+                            );
                             return (
                               <ComboItemsRow
                                 key={it.id}
                                 isOpen={openComboRows.has(key)}
                                 onToggle={() => toggleComboRow(purchase.saleId, it.id)}
-                                resolvedProduct={resolvedProduct}
-                                isLoading={comboLoadingSaleId === purchase.saleId}
-                                error={comboErrorBySaleId[purchase.saleId]}
-                                onRetry={() => loadComboSaleDetails(purchase.saleId)}
+                                kitProduct={it.kit_product}
+                                coffeeItems={coffeeItems}
                               />
                             );
                           })}
+                        {isCancelablePurchase(purchase) && (
+                          <button
+                            type="button"
+                            onClick={() => requestCancelPurchase(purchase)}
+                            className="mt-3 w-full text-sm font-semibold text-red-600 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors"
+                          >
+                            Cancelar pedido
+                          </button>
+                        )}
                       </div>
                     ))
                   ) : (
@@ -1304,22 +1270,28 @@ export default function Profile({
                     .filter((it) => it.product?.type === "COMBO")
                     .map((it) => {
                       const key = `${purchase.saleId}:${it.id}`;
-                      const resolvedSale = comboSaleDetails[purchase.saleId];
-                      const resolvedProduct = resolvedSale?.items?.find(
-                        (ri) => ri.id === it.id
-                      )?.product;
+                      const coffeeItems = (it.product?.combo_items ?? []).filter(
+                        (ci) => ci.item?.type === "COFFEE"
+                      );
                       return (
                         <ComboItemsRow
                           key={it.id}
                           isOpen={openComboRows.has(key)}
                           onToggle={() => toggleComboRow(purchase.saleId, it.id)}
-                          resolvedProduct={resolvedProduct}
-                          isLoading={comboLoadingSaleId === purchase.saleId}
-                          error={comboErrorBySaleId[purchase.saleId]}
-                          onRetry={() => loadComboSaleDetails(purchase.saleId)}
+                          kitProduct={it.kit_product}
+                          coffeeItems={coffeeItems}
                         />
                       );
                     })}
+                  {isCancelablePurchase(purchase) && (
+                    <button
+                      type="button"
+                      onClick={() => requestCancelPurchase(purchase)}
+                      className="mt-3 w-full text-sm font-semibold text-red-600 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors"
+                    >
+                      Cancelar pedido
+                    </button>
+                  )}
                 </div>
               ))
             ) : (
@@ -1337,6 +1309,7 @@ export default function Profile({
   if (width >= 1280) {
     return (
       <div className="bg-semcompMidLightBlue text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite min-h-screen">
+        {cancelModal}
         {cancelConfirmModal}
         <div
           className="relative overflow-hidden h-[calc(90vh-70px)] w-full flex flex-row justify-center items-center gap-10 font-poppins"

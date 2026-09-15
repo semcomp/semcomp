@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, ChevronDown, RefreshCw, Wallet } from "lucide-react";
+import { ArrowLeft, ChevronDown, Loader2, RefreshCw, Wallet } from "lucide-react";
 import { useTheme } from "@/contexts/useTheme";
 import { useNotification } from "@/contexts/NotificationContext";
 import { salesAPI, type SaleResponse } from "@/api/sales";
 import { BASEURL } from "@/constants/ApiURL";
 import PixQrCard from "@/components/PixQrCard";
 import { isPendingSale } from "@/lib/pendingSale";
+import Modal from "@/components/ui/Modal";
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -28,6 +29,8 @@ export default function PendingPaymentsPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [sales, setSales] = useState<SaleResponse[]>([]);
   const [openId, setOpenId] = useState<number | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<SaleResponse | null>(null);
+  const [isCanceling, setIsCanceling] = useState(false);
 
   const esRef = useRef<EventSource | null>(null);
 
@@ -86,6 +89,26 @@ export default function PendingPaymentsPage() {
     };
     return () => es.close();
   }, [openSale, showNotification, removeSale]);
+
+  async function confirmCancelPurchase() {
+    if (!cancelTarget) return;
+    setIsCanceling(true);
+    try {
+      await salesAPI.cancel(cancelTarget.id);
+      if (openId === cancelTarget.id) setOpenId(null);
+      removeSale(cancelTarget.id);
+      showNotification("Pedido cancelado com sucesso.", "success");
+      setCancelTarget(null);
+    } catch (err) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      showNotification(message || "Não foi possível cancelar o pedido. Tente novamente.", "warning");
+    } finally {
+      setIsCanceling(false);
+    }
+  }
 
   // O countdown dentro do PixQrCard avisa quando o PIX expira no cliente.
   const handleStatusChange = useCallback(
@@ -181,9 +204,47 @@ export default function PendingPaymentsPage() {
     );
   }
 
+  const cancelModal = (
+    <Modal
+      open={cancelTarget !== null}
+      onClose={() => { if (!isCanceling) setCancelTarget(null); }}
+      title="Cancelar compra"
+      size="sm"
+      closeOnBackdrop={!isCanceling}
+    >
+      <div className="flex flex-col gap-4">
+        <p>
+          Tem certeza que deseja cancelar este pedido
+          {cancelTarget ? ` (${formatItems(cancelTarget)})` : ""}? Essa ação não pode ser desfeita e o
+          item voltará a ficar disponível para compra.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setCancelTarget(null)}
+            disabled={isCanceling}
+            className="px-4 py-2 rounded-lg text-sm font-semibold border border-semcompDarkBlue/20 text-semcompDarkBlue disabled:opacity-50 dark:text-semcompOffWhite dark:border-white/20 cursor-pointer"
+          >
+            Voltar
+          </button>
+          <button
+            type="button"
+            onClick={confirmCancelPurchase}
+            disabled={isCanceling}
+            className="px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-60 flex items-center gap-2 cursor-pointer"
+          >
+            {isCanceling && <Loader2 size={16} className="animate-spin" />}
+            {isCanceling ? "Cancelando..." : "Cancelar pedido"}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+
   // ─── Lista expansível de pagamentos pendentes ───────────
   return (
     <div className={`min-h-screen font-poppins ${bg} transition-colors duration-300`}>
+      {cancelModal}
       <div className="mx-auto max-w-lg px-4 pt-28 pb-16 flex flex-col gap-6">
         {/* Voltar */}
         <Link
@@ -255,6 +316,13 @@ export default function PendingPaymentsPage() {
                     {isOpen && (
                       <div className="px-5 pb-6 flex flex-col items-center gap-6">
                         <PixQrCard sale={sale} onStatusChange={handleStatusChange} />
+                        <button
+                          type="button"
+                          onClick={() => setCancelTarget(sale)}
+                          className={`w-full text-sm font-semibold text-red-500 border border-red-300/40 rounded-xl py-2.5 transition-colors hover:bg-red-500/10`}
+                        >
+                          Cancelar pedido
+                        </button>
                       </div>
                     )}
                   </div>
