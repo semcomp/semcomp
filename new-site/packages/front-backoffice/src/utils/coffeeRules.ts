@@ -7,5 +7,13 @@ export function isNightCoffee(dateTime: string): boolean {
   if (!dateTime) return false;
   const parsed = new Date(dateTime);
   if (Number.isNaN(parsed.getTime())) return false;
-  return parsed.getHours() >= NIGHT_HOUR;
+  const hour = parseInt(
+    parsed.toLocaleString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      hour: "2-digit",
+      hour12: false,
+    }),
+    10,
+  );
+  return hour >= NIGHT_HOUR;
 }

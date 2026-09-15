@@ -30,12 +30,12 @@ type RateRecalculator interface {
 
 type eventService struct {
 	repo         EventRepository
-	db           *gorm.DB
+	presenceRepo presencesettings.PresenceSettingsRepository
 	recalculator RateRecalculator
 }
 
-func NewEventService(repo EventRepository, db *gorm.DB) EventService {
-	return &eventService{repo: repo, db: db}
+func NewEventService(repo EventRepository, presenceRepo presencesettings.PresenceSettingsRepository) EventService {
+	return &eventService{repo: repo, presenceRepo: presenceRepo}
 }
 
 func (s *eventService) SetRateRecalculator(recalculator RateRecalculator) {
@@ -56,8 +56,8 @@ func (s *eventService) resolveTypeDefaults(presenceTypeID *uint, hasAttendanceSe
 		return "", currentHasAttendance, nil
 	}
 
-	var weight presencesettings.PresenceTypeWeight
-	if err := s.db.First(&weight, *presenceTypeID).Error; err != nil {
+	weight, err := s.presenceRepo.GetByID(*presenceTypeID)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return "", false, apierrors.ValidationError("Tipo de evento não encontrado", err)
 		}
@@ -74,6 +74,10 @@ func (s *eventService) resolveTypeDefaults(presenceTypeID *uint, hasAttendanceSe
 }
 
 func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
+	if !request.EndDate.After(request.InitDate) {
+		return nil, apierrors.ValidationError("A data de término deve ser posterior à data de início", nil)
+	}
+
 	if _, err := s.repo.GetByNameAndInitTime(request.Name, request.InitDate); err == nil {
 		return nil, apierrors.ConflictError("Evento já existe", err)
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -96,15 +100,17 @@ func (s *eventService) CreateEvent(request CreateEventRequest) (*Event, error) {
 	}
 
 	newEvent := Event{
-		Name:           request.Name,
-		InitDate:       request.InitDate,
-		EndDate:        request.EndDate,
-		PresenceTypeID: request.PresenceTypeID,
-		TypeName:       typeName,
-		Type:           typeStr,
-		Location:       request.Location,
-		Description:    request.Description,
-		HasAttendance:  resolvedHA,
+		Name:            request.Name,
+		InitDate:        request.InitDate,
+		EndDate:         request.EndDate,
+		PresenceTypeID:  request.PresenceTypeID,
+		TypeName:        typeName,
+		Type:            typeStr,
+		Location:        request.Location,
+		Description:     request.Description,
+		HasAttendance:   resolvedHA,
+		HasSignin:       request.HasSignin,
+		MaxParticipants: request.MaxParticipants,
 	}
 
 	if err := s.repo.Create(&newEvent); err != nil {
@@ -158,6 +164,10 @@ func (s *eventService) UpdateEventByNameAndInitDate(name string, initDate string
 		return nil, apierrors.ValidationError("Data inválida. Use o formato RFC3339", err)
 	}
 
+	if !request.EndDate.After(request.InitDate) {
+		return nil, apierrors.ValidationError("A data de término deve ser posterior à data de início", nil)
+	}
+
 	if name != request.Name || !originalInitTime.Equal(request.InitDate) {
 		if _, err := s.repo.GetByNameAndInitTime(request.Name, request.InitDate); err == nil {
 			return nil, apierrors.ConflictError("Evento já existe", err)
@@ -182,15 +192,17 @@ func (s *eventService) UpdateEventByNameAndInitDate(name string, initDate string
 	}
 
 	event := Event{
-		Name:           request.Name,
-		InitDate:       request.InitDate,
-		EndDate:        request.EndDate,
-		PresenceTypeID: request.PresenceTypeID,
-		TypeName:       typeName,
-		Type:           typeStr,
-		Location:       request.Location,
-		Description:    request.Description,
-		HasAttendance:  resolvedHA,
+		Name:            request.Name,
+		InitDate:        request.InitDate,
+		EndDate:         request.EndDate,
+		PresenceTypeID:  request.PresenceTypeID,
+		TypeName:        typeName,
+		Type:            typeStr,
+		Location:        request.Location,
+		Description:     request.Description,
+		HasAttendance:   resolvedHA,
+		HasSignin:       request.HasSignin,
+		MaxParticipants: request.MaxParticipants,
 	}
 
 	err = s.repo.UpdateByNameAndInitTime(name, originalInitTime, &event)

@@ -6,5 +6,5 @@ export type SigninEventType = {
     event_location: string;
     event_description: string;
     user_wait_list_position?: number;
-    status: "Inscrito" | "Lista de Espera";
+    status: "Inscrito" | "Lista de Espera" | "Aguardando Aprovação";
 };

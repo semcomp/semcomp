@@ -96,7 +96,7 @@ func (s *permissionService) InitializePermissions() error {
 		if notFound {
 			curPermissions = []Permission{}
 		} else {
-			return errors.New("erro na inicialização das permissões")
+			return fmt.Errorf("erro na inicialização das permissões: %w", err)
 		}
 	}
 

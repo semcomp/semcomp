@@ -9,6 +9,7 @@ import (
 	"backend/internal/absenceJustification"
 	"backend/internal/auth"
 	"backend/internal/authBackoffice"
+	"backend/internal/dashboardbackoffice"
 	"backend/internal/database"
 	"backend/internal/event"
 	"backend/internal/log"
@@ -131,8 +132,12 @@ func main() {
 	userService := user.NewUserService(userRepo, papfeRepo, passwordProvider, tokenProvider, mailProvider, emailValidationProvider, tokenRepo, m)
 	userHandler := user.NewUserHandler(userService)
 
+	presenceSettingsRepo := presencesettings.NewPresenceSettingsRepository(db)
+	presenceSettingsService := presencesettings.NewPresenceSettingsService(presenceSettingsRepo, db)
+	presenceSettingsHandler := presencesettings.NewPresenceSettingsHandler(presenceSettingsService)
+
 	eventRepo := event.NewEventRepository(db)
-	eventService := event.NewEventService(eventRepo, db)
+	eventService := event.NewEventService(eventRepo, presenceSettingsRepo)
 	eventHandler := event.NewEventHandler(eventService)
 
 	signinEventRepo := signinEvent.NewSigninEventRepository(db)
@@ -142,10 +147,6 @@ func main() {
 	presenceRepo := presence.NewPresenceRepository(db)
 	presenceService := presence.NewPresenceService(presenceRepo)
 	presenceHandler := presence.NewPresenceHandler(presenceService)
-
-	presenceSettingsRepo := presencesettings.NewPresenceSettingsRepository(db)
-	presenceSettingsService := presencesettings.NewPresenceSettingsService(presenceSettingsRepo, db)
-	presenceSettingsHandler := presencesettings.NewPresenceSettingsHandler(presenceSettingsService)
 
 	// Motor de cálculo das taxas de presença: dispara recálculo automático a
 	// cada mutação de presenças, eventos ou pesos configuráveis.
@@ -193,6 +194,10 @@ func main() {
 	salesRepo := sales.NewSaleRepository(db)
 	salesService := sales.NewSaleService(salesRepo, productRepo, papfeRepo)
 	salesHandler := sales.NewSaleHandler(salesService)
+
+	dashboardRepo := dashboardbackoffice.NewDashboardRepository(db)
+	dashboardService := dashboardbackoffice.NewDashboardService(dashboardRepo)
+	dashboardHandler := dashboardbackoffice.NewDashboardHandler(dashboardService)
 
 	// Sweeper de expiração: persiste o status EXPIRADO nos PIX pendentes fora da
 	// janela de validade e libera as travas de compra única (consumed_items)
@@ -373,6 +378,7 @@ func main() {
 	admin.DELETE("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.DeleteEventByNameAndInitDate)
 
 	// Inscrições (Signin Events)
+	admin.GET("/signin-events/events", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninEvents)
 	admin.GET("/signin-events", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninsAdmin)
 	admin.GET("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninAdmin)
 	admin.POST("/signin-events", permMW("Inscrições", permission.PermRW), signinEventHandler.CreateSigninAdmin)
@@ -380,6 +386,11 @@ func main() {
 	admin.DELETE("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermRW), signinEventHandler.DeleteSigninAdmin)
 	admin.PUT("/signin-events/:userNumber/:eventName/:eventInitDate/register", permMW("Inscrições", permission.PermRW), signinEventHandler.RegisterSigninAdmin)
 	admin.POST("/signin-events/rotate/:eventName/:eventInitDate", permMW("Inscrições", permission.PermRW), signinEventHandler.RotateSigninsAdmin)
+
+	// Confirmações de Inscrição — rotas próprias com permissão própria
+	admin.GET("/confirmations/events", permMW("Confirmações de Inscrição", permission.PermR), signinEventHandler.GetSigninEvents)
+	admin.GET("/confirmations", permMW("Confirmações de Inscrição", permission.PermR), signinEventHandler.GetSigninsAdmin)
+	admin.PUT("/confirmations/:userNumber/:eventName/:eventInitDate", permMW("Confirmações de Inscrição", permission.PermRW), signinEventHandler.RegisterSigninAdmin)
 
 	// Participações
 	admin.GET("/presences", permMW("Participações", permission.PermR), presenceHandler.GetPresences)
@@ -447,6 +458,9 @@ func main() {
 	admin.GET("/sponsors/:cnpj/packages", permMW("Patrocinadores", permission.PermR), sponsorHandler.GetSponsorPackages)
 	admin.POST("/sponsors/:cnpj/packages", permMW("Patrocinadores", permission.PermRW), sponsorHandler.AddSponsorPackage)
 	admin.DELETE("/sponsors/:cnpj/packages/:year/:package", permMW("Patrocinadores", permission.PermRW), sponsorHandler.RemoveSponsorPackage)
+
+	// Dashboard
+	admin.GET("/dashboard", permMW("Dashboard", permission.PermR), dashboardHandler.GetDashboard)
 
 	r.Run(":4000")
 }

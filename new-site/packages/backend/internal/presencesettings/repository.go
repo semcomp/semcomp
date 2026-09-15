@@ -7,6 +7,7 @@ import (
 type PresenceSettingsRepository interface {
 	Create(weight *PresenceTypeWeight) error
 	GetAll() ([]PresenceTypeWeight, error)
+	GetByID(id uint) (*PresenceTypeWeight, error)
 	GetByTypeName(typeName string) (*PresenceTypeWeight, error)
 	UpdateByTypeName(typeName string, updated *PresenceTypeWeight) error
 	DeleteByTypeName(typeName string) error
@@ -33,9 +34,18 @@ func (r *presenceSettingsRepository) GetAll() ([]PresenceTypeWeight, error) {
 	return weights, nil
 }
 
+func (r *presenceSettingsRepository) GetByID(id uint) (*PresenceTypeWeight, error) {
+	var weight PresenceTypeWeight
+	err := r.db.First(&weight, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &weight, nil
+}
+
 func (r *presenceSettingsRepository) GetByTypeName(typeName string) (*PresenceTypeWeight, error) {
 	var weight PresenceTypeWeight
-	err := r.db.Where("LOWER(TRIM(type_name)) = LOWER(?)", typeName).First(&weight).Error
+	err := r.db.Where("LOWER(TRIM(type_name)) = LOWER(TRIM(?))", typeName).First(&weight).Error
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +54,7 @@ func (r *presenceSettingsRepository) GetByTypeName(typeName string) (*PresenceTy
 
 func (r *presenceSettingsRepository) UpdateByTypeName(typeName string, updated *PresenceTypeWeight) error {
 	result := r.db.Model(&PresenceTypeWeight{}).
-		Where("LOWER(TRIM(type_name)) = LOWER(?)", typeName).
+		Where("LOWER(TRIM(type_name)) = LOWER(TRIM(?))", typeName).
 		Updates(map[string]interface{}{
 			"type_name":              updated.TypeName,
 			"weight":                 updated.Weight,
@@ -63,7 +73,7 @@ func (r *presenceSettingsRepository) UpdateByTypeName(typeName string, updated *
 }
 
 func (r *presenceSettingsRepository) DeleteByTypeName(typeName string) error {
-	result := r.db.Where("LOWER(TRIM(type_name)) = LOWER(?)", typeName).Delete(&PresenceTypeWeight{})
+	result := r.db.Where("LOWER(TRIM(type_name)) = LOWER(TRIM(?))", typeName).Delete(&PresenceTypeWeight{})
 	if result.Error != nil {
 		return result.Error
 	}
