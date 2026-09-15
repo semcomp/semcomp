@@ -319,7 +319,7 @@ export default function PendingPaymentsPage() {
                         <button
                           type="button"
                           onClick={() => setCancelTarget(sale)}
-                          className={`w-full text-sm font-semibold text-red-500 border border-red-300/40 rounded-xl py-2.5 transition-colors hover:bg-red-500/10`}
+                          className={`w-full text-sm font-semibold text-white border border-red-300/40 rounded-xl py-2.5 transition-colors hover:bg-red-700 bg-red-600 `}
                         >
                           Cancelar pedido
                         </button>
