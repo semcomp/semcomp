@@ -34,8 +34,9 @@ type UserService interface {
 	DeleteUser(id uint) error
 	GetAllPapfeDocuments() ([]PapfeDocumentInfo, error)
 	GetPapfeDocument(email string) (*PapfeDocument, error)
+	GetMyPapfeDocument(email string) (*PapfeDocumentInfo, error)
 	UpdatePapfeDocument(email string, filename string, contentType string, data []byte) error
-	ApprovePapfeDocument(email string, approved bool) error
+	ApprovePapfeDocument(email string, approved bool, rejectionReason string) error
 	VerifyEmail(rawToken string) error
 	ResendVerification(email string) error
 	RequestPasswordReset(email string) error
@@ -240,9 +241,13 @@ func (s *userService) regenerateAndSendVerification(u *User) {
 		return
 	}
 
-	if err := s.mailProvider.SendVerificationEmail(u.Email, u.Name, raw); err != nil {
-		log.Printf("[email] falha ao enviar verificação para %s: %v", u.Email, err)
-	}
+	// Envio assíncrono: o SMTP não deve bloquear a resposta do request — o token já
+	// foi persistido acima e falhas de envio são best-effort (o usuário pode reenviar).
+	go func() {
+		if err := s.mailProvider.SendVerificationEmail(u.Email, u.Name, raw); err != nil {
+			log.Printf("[email] falha ao enviar verificação para %s: %v", u.Email, err)
+		}
+	}()
 }
 
 func verificationTokenTTL() time.Duration {
@@ -490,6 +495,11 @@ func (s *userService) GetPapfeDocument(email string) (*PapfeDocument, error) {
 	return doc, nil
 }
 
+// GetMyPapfeDocument retorna a projeção do comprovante PAPFE do usuário autenticado.
+func (s *userService) GetMyPapfeDocument(email string) (*PapfeDocumentInfo, error) {
+	return s.papfeRepo.FindInfoByEmail(email)
+}
+
 // UpdatePapfeDocument atualiza (ou insere) o comprovante PAPFE do usuário autenticado.
 // O arquivo anterior é removido do disco antes de salvar o novo.
 func (s *userService) UpdatePapfeDocument(email string, filename string, contentType string, data []byte) error {
@@ -507,6 +517,7 @@ func (s *userService) UpdatePapfeDocument(email string, filename string, content
 		FilePath:    filePath,
 		UploadedAt:  time.Now(),
 		IsApproved:  nil, // reset para pendente ao enviar novo comprovante
+		// RejectionReason permanece nil: novo envio limpa qualquer motivo anterior.
 	}
 	if err := s.papfeRepo.Upsert(doc); err != nil {
 		_ = os.Remove(filePath)
@@ -520,8 +531,16 @@ func (s *userService) UpdatePapfeDocument(email string, filename string, content
 }
 
 // ApprovePapfeDocument atualiza o status de aprovação do comprovante PAPFE de um usuário.
-func (s *userService) ApprovePapfeDocument(email string, approved bool) error {
-	return s.papfeRepo.UpdateApproval(email, approved)
+// O motivo da rejeição é obrigatório quando approved=false e só persiste nesse caso;
+// ao aprovar (ou voltar para análise) o motivo é sempre limpo.
+func (s *userService) ApprovePapfeDocument(email string, approved bool, rejectionReason string) error {
+	if approved {
+		return s.papfeRepo.UpdateApproval(email, true, nil)
+	}
+	if strings.TrimSpace(rejectionReason) == "" {
+		return apierrors.ValidationError("Informe o motivo da rejeição do comprovante", nil)
+	}
+	return s.papfeRepo.UpdateApproval(email, false, &rejectionReason)
 }
 
 func (s *userService) RequestPasswordReset(email string) error {

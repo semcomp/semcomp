@@ -43,6 +43,9 @@ Tokens HS256, TTL configurado por `JWT_EXPIRES_IN_HOURS` (default 24h), secret `
 | `permission` | RBAC por seção (`"R"` / `"RW"`) |
 | `product` | Catálogo de produtos (KIT/COFFEE/COMBO) |
 | `payment` | Pagamento PIX via Mercado Pago |
+| `signinEvent` | Inscrições em eventos com fila de espera |
+| `sponsor` | CRUD de patrocinadores + pacotes por ano |
+| `sitestat` | Contador de visitas (key/value) |
 | `pages` | Feature flags / toggle de páginas |
 | `token` | Tokens de verificação de email e reset de senha |
 | `mailer` | Envio de emails via SMTP |
@@ -56,5 +59,5 @@ Rotas principais: `/` Home, `/cronograma`, `/login`, `/verify-email`, `/reset-pa
 ## Frontend — Backoffice
 → Ver [[Backoffice_Paginas_e_Rotas]] e [[Backoffice_Contextos_e_Lib]]
 
-6 módulos CRUD em `/admin/*`, cada um protegido por `RequirePermission(section)`:
-Eventos, Usuários Backoffice, Usuários Semcomp, Participações, Permissões, Páginas
+8 módulos CRUD em `/admin/*`, cada um protegido por `RequirePermission(section)`:
+Eventos, Usuários Backoffice, Usuários Semcomp, Participações, Permissões, Páginas, Patrocinadores, PAPFE

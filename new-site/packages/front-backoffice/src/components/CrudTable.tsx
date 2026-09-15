@@ -64,6 +64,7 @@ export interface CrudField {
     | "file"
     | "image-preview";
   selectVariants?: Record<string, string>;
+  selectLabels?: Record<string, string>;
   multiValueOptions?: string[];
   readOnly?: boolean;
   accept?: string;
@@ -125,6 +126,8 @@ export interface CrudTableProps {
    *  tabela. O chamador decide se atualiza `data` (ex.: após confirmação e
    *  chamada à API) — se não atualizar, o Switch permanece como estava. */
   onToggleField?: (item: CrudItemType, field: string, value: boolean) => void | Promise<void>;
+  /** Called when a form field value changes. Receives the field name, new value, and full form data. Can return field overrides to apply. */
+  onFieldChange?: (fieldName: string, value: unknown, formData: Record<string, unknown>) => Record<string, unknown> | void;
 }
 
 type FormValue = string | string[] | boolean | File | null;
@@ -291,6 +294,7 @@ export function CrudTable({
   onQueryChange,
   canWrite = true,
   onToggleField,
+  onFieldChange,
 }: CrudTableProps) {
   // Fields that make sense as filter targets (files cannot be text-searched)
   const filterableFields = fields.filter(
@@ -422,6 +426,7 @@ export function CrudTable({
       if (f.type === "multivalue") fd[f.value] = normalizeToStringArray(raw);
       else if (f.type === "boolean") fd[f.value] = raw === true || raw === "true";
       else if (f.type === "date") fd[f.value] = formatDateForInput(raw);
+      else if (f.type === "select" && (raw == null || raw === "")) fd[f.value] = "__none__";
       else fd[f.value] = String(raw ?? "");
     });
     setFormData(fd);
@@ -439,6 +444,7 @@ export function CrudTable({
     fields.forEach((f) => {
       if (f.type === "multivalue") fd[f.value] = [];
       else if (f.type === "boolean") fd[f.value] = false;
+      else if (f.type === "number") fd[f.value] = "0";
       else if (f.type === "file") fd[f.value] = null;
       else if (f.type === "date") {
         const now = new Date();
@@ -530,12 +536,28 @@ export function CrudTable({
       );
     }
 
+    // Para campos de texto longos, trunca com reticências em vez de quebrar
+    // linha — quebrar em uma tabela com layout automático faz a coluna
+    // colapsar e as letras empilharem verticalmente. Texto completo fica
+    // disponível ao abrir a ação de visualizar/editar da linha.
+    if (field.type === "text" && val.length > 30) {
+      return (
+        <span
+          className="block max-w-xs min-w-40 truncate text-foreground"
+          title={val}
+        >
+          {val}
+        </span>
+      );
+    }
+
     if (field.type === "select" && field.selectVariants) {
       const cls =
         field.selectVariants[val] ?? "bg-muted/50 text-foreground";
+      const label = val === "__none__" ? "Nenhum" : (field.selectLabels?.[val] ?? val);
       return (
         <Badge className={`text-xs font-medium px-2 py-0.5 ${cls}`}>
-          {val}
+          {label}
         </Badge>
       );
     }
@@ -922,9 +944,12 @@ export function CrudTable({
                 ) : f.type === "select" && f.selectVariants ? (
                   <Select
                     value={formData[f.value] as string}
-                    onValueChange={(v) =>
-                      setFormData((d) => ({ ...d, [f.value]: v }))
-                    }
+                    onValueChange={(v) => {
+                      const newData = { ...formData, [f.value]: v };
+                      const overrides = onFieldChange?.(f.value, v, newData);
+                      if (overrides) Object.assign(newData, overrides);
+                      setFormData(newData);
+                    }}
                   >
                     <SelectTrigger className="bg-muted/40 border-muted/30 text-foreground">
                       <SelectValue placeholder={`Selecionar ${f.label}`} />
@@ -940,7 +965,7 @@ export function CrudTable({
                           value={v}
                           className="text-primary focus:bg-accent focus:text-accent-foreground cursor-pointer"
                         >
-                          {v}
+                          {f.selectLabels?.[v] ?? v}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1050,6 +1075,17 @@ export function CrudTable({
                       {f.label}
                     </Label>
                   </div>
+                ) : f.type === "number" ? (
+                  <Input
+                    type="number"
+                    min="0"
+                    id={`create-${f.value}`}
+                    value={(formData[f.value] as string) ?? "0"}
+                    onChange={(e) =>
+                      setFormData((d) => ({ ...d, [f.value]: e.target.value }))
+                    }
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+                  />
                 ) : f.type === "file" ? (
                   (!f.showWhen || formData[f.showWhen.field] === f.showWhen.value) ? (
                     <div className="space-y-1">
@@ -1156,9 +1192,12 @@ export function CrudTable({
                 ) : f.type === "select" && f.selectVariants ? (
                   <Select
                     value={formData[f.value] as string}
-                    onValueChange={(v) =>
-                      setFormData((d) => ({ ...d, [f.value]: v }))
-                    }
+                    onValueChange={(v) => {
+                      const newData = { ...formData, [f.value]: v };
+                      const overrides = onFieldChange?.(f.value, v, newData);
+                      if (overrides) Object.assign(newData, overrides);
+                      setFormData(newData);
+                    }}
                   >
                     <SelectTrigger className="bg-muted/40 border-muted/30 text-foreground">
                       <SelectValue />
@@ -1174,7 +1213,7 @@ export function CrudTable({
                           value={v}
                           className="text-primary focus:bg-muted/50"
                         >
-                          {v}
+                          {f.selectLabels?.[v] ?? v}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1281,6 +1320,16 @@ export function CrudTable({
                       {f.label}
                     </Label>
                   </div>
+                ) : f.type === "number" ? (
+                  <Input
+                    type="number"
+                    min="0"
+                    value={(formData[f.value] as string) ?? "0"}
+                    onChange={(e) =>
+                      setFormData((d) => ({ ...d, [f.value]: e.target.value }))
+                    }
+                    className="bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+                  />
                 ) : f.type === "file" ? (
                   (!f.showWhen || formData[f.showWhen.field] === f.showWhen.value) ? (
                     <div className="space-y-1">

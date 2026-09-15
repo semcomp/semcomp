@@ -59,6 +59,8 @@ Prop `canWrite?: boolean` (default `true`):
 | `pages/Sales/index.tsx` | `"Vendas"` |
 | `pages/Riddles/index.tsx` | `"Riddles"` |
 | `pages/Permission/index.tsx` | matrix customizada (não usa CrudTable) |
+| `pages/Sponsors/index.tsx` | `"Patrocinadores"` |
+| `pages/PapfeDocuments/index.tsx` | `"PAPFE"` (usa CrudTable + Dialog de visualização) |
 
 ### Capacidades extras (adicionadas para a página Riddles)
 - `type: "image-preview"` — pré-visualização ao vivo de uma URL de imagem dentro do modal de criar/editar (com `previewFrom` opcional e placeholder quando vazia/falha).
@@ -91,14 +93,18 @@ Arquivo: `src/constants/Tabs.tsx`
 | `users-semcomp` | `"Usuários Semcomp"` | Usuários Semcomp | `/semcomp-users` |
 | `participation` | `"Participações"` | Participações | `/participation` |
 | `permissions` | `"Permissões"` | Permissões | `/permissions` |
-| `products` | `"Produtos"` | Produtos | `/products` |
 | `pages-availability` | `"Páginas"` | Páginas | `/pages-availability` |
 | `sponsors` | `"Patrocinadores"` | Patrocinadores | `/sponsors` |
 | `sales` | `"Vendas"` | Vendas | `/sales` |
 | `riddles` | `"Riddles"` | Riddles | `/riddles` |
 | `papfe` | `"PAPFE"` | PAPFE | `/papfe-documents` |
+| `event-registration` | `"Inscrições"` | Inscrições | `/event-registration` |
+| `confirm-registrations` | `"Confirmações de Inscrição"` | Confirmações de Inscrição | `/confirm-registrations` |
+| `avisos` | `"Avisos"` | Avisos | `/notices` |
+| `absence-justifications` | `"Justificativas de Ausência"` | Justificativas de Ausência | `/absence-justifications` |
+| `dashboard` | `"Dashboard"` | Dados | `/dashboard` |
 
-> O campo `section` em Tabs **deve estar em sync** com `KnownSections` em `backend/internal/permission/model.go` (11 seções: Eventos, Usuários Backoffice, Usuários Semcomp, Participações, Permissões, Produtos, Páginas, Patrocinadores, Vendas, Riddles, PAPFE).
+> O campo `section` em Tabs **deve estar em sync** com `KnownSections` em `backend/internal/permission/model.go` (17 seções).
 
 ---
 
@@ -124,9 +130,11 @@ Arquivo: `src/api/index.ts`
 | `permissionsAPI` | `api/permissions.ts` | `getAll`, `getMe`, `create`, `update`, `remove` |
 | `pagesAPI` | `api/pages.ts` | `getAll`, `setAvailability` |
 | `productsAPI` | `api/products.ts` | CRUD `/admin/products` + `createCombo`/`updateCombo`/`bulkCreate` |
-| `sponsorsAPI` | `api/sponsors.ts` | CRUD `/admin/sponsors` |
+| `sponsorsAPI` | `api/sponsors.ts` | CRUD `/admin/sponsors` + packages; multipart upload |
 | `salesAPI` | `api/sales.ts` | `GET /admin/sales`, `PUT/DELETE /admin/sales/:id`, `PATCH /admin/sales/items/:itemId/pickup` |
 | `riddlesAPI` | `api/riddles.ts` | CRUD `/admin/riddles` + `uploadCSV` |
+| `dashboardAPI` | `api/dashboard.ts` | `GET /admin/dashboard` |
 | `client` | `api/client.ts` | instância Axios |
 
-> `userSemcompAPI` (não `usersAPI`) é o nome correto para CRUD de participantes.
+> `userSemcompAPI` (não `usersAPI`) é o nome correto para CRUD de participantes.  
+> `papfeAPI` é importado **diretamente** de `api/users.ts` pela página `PapfeDocuments` — não está no barrel.

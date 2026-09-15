@@ -43,6 +43,11 @@ type SaleService interface {
 	UpdateSaleByID(id string, request UpdateSaleRequest) (*Sale, error)
 	DeleteSaleByID(id string) error
 
+	// CancelSale permite que o próprio usuário cancele um pedido que ainda
+	// esteja PENDENTE (não pago). Libera a trava de compra única do item
+	// (COFFEE/COMBO), se houver.
+	CancelSale(userNumber uint, saleID uint) (*Sale, error)
+
 	// Operação de Item (Backoffice)
 	UpdateItemPickup(itemID string, request UpdateSaleItemPickupRequest) (*SaleItem, error)
 
@@ -127,18 +132,27 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 
 		// Valida o KIT selecionado dentro do COMBO.
 		if prod.Type == product.ProductTypeCombo {
-			if itemReq.KitProductID == nil {
-				return nil, apierrors.ValidationError("É necessário informar o tamanho da camiseta (kit_product_id) para o combo", nil)
-			}
-			found := false
+			hasKit := false
 			for _, ci := range prod.ComboItems {
-				if ci.Item != nil && ci.Item.Type == product.ProductTypeKit && ci.ItemID == *itemReq.KitProductID {
-					found = true
+				if ci.Item != nil && ci.Item.Type == product.ProductTypeKit {
+					hasKit = true
 					break
 				}
 			}
-			if !found {
-				return nil, apierrors.ValidationError("O kit selecionado não pertence a este combo", nil)
+			if hasKit {
+				if itemReq.KitProductID == nil {
+					return nil, apierrors.ValidationError("É necessário informar o tamanho da camiseta (kit_product_id) para o combo", nil)
+				}
+				found := false
+				for _, ci := range prod.ComboItems {
+					if ci.Item != nil && ci.Item.Type == product.ProductTypeKit && ci.ItemID == *itemReq.KitProductID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					return nil, apierrors.ValidationError("O kit selecionado não pertence a este combo", nil)
+				}
 			}
 		}
 
@@ -188,6 +202,11 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 	// Se o pagamento for via PIX, dispara a cobrança no Mercado Pago.
 	if strings.EqualFold(request.PaymentMethod, "pix") {
 		if err := s.createPixCharge(&newSale, email, request.Description); err != nil {
+			// A venda já foi persistida mas o MP falhou — cancela imediatamente para
+			// liberar a trava de compra única e permitir nova tentativa sem aguardar
+			// o sweeper de expiração (30 min).
+			_ = s.saleRepo.DeleteConsumedBySale(newSale.ID)
+			_ = s.saleRepo.UpdateByID(newSale.ID, map[string]interface{}{"status": SaleStatusCanceled})
 			return nil, err
 		}
 		// Persiste o QR code (copia-e-cola + base64) na venda, para permitir
@@ -586,6 +605,33 @@ func (s *saleService) DeleteSaleByID(id string) error {
 		return apierrors.InternalServerError("Venda deletada, mas erro ao liberar a disponibilidade dos itens", err)
 	}
 	return nil
+}
+
+// CancelSale cancela um pedido do próprio usuário, desde que ainda esteja PENDENTE.
+func (s *saleService) CancelSale(userNumber uint, saleID uint) (*Sale, error) {
+	sale, err := s.saleRepo.GetByID(saleID)
+	if err != nil {
+		return nil, err
+	}
+
+	if sale.SaleUserNumber != userNumber {
+		return nil, apierrors.NotFoundError("Venda não encontrada", nil)
+	}
+
+	if sale.Status != SaleStatusPending {
+		return nil, apierrors.ValidationError("Só é possível cancelar pedidos com pagamento pendente", nil)
+	}
+
+	if err := s.saleRepo.CancelWithRelease(sale.ID); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apierrors.NotFoundError("Venda não encontrada", err)
+		}
+		return nil, apierrors.InternalServerError("Erro ao cancelar pedido", err)
+	}
+
+	Hub.Publish(sale.ID, string(SaleStatusCanceled))
+
+	return s.saleRepo.GetByID(sale.ID)
 }
 
 func (s *saleService) UpdateItemPickup(itemID string, request UpdateSaleItemPickupRequest) (*SaleItem, error) {

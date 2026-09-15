@@ -10,7 +10,7 @@ RBAC simples por seção. Proteção no middleware Go antes do handler chegar ao
 
 ---
 
-## KnownSections (11 seções)
+## KnownSections (17 seções)
 Definidas em `internal/permission/model.go`.  
 **O campo `section` em `Tabs.tsx` deve estar em sync com esta lista.**
 
@@ -21,15 +21,20 @@ Definidas em `internal/permission/model.go`.
 | `"Usuários Semcomp"` | ✅ | `/semcomp-users` | ✅ |
 | `"Participações"` | ✅ | `/participation` | ✅ |
 | `"Permissões"` | ✅ | `/permissions` | ✅ |
-| `"Produtos"` | ✅ | `/products` | ✅ |
+| `"Produtos"` | ❌ sem tab | — | ❌ (backend only) |
 | `"Páginas"` | ✅ | `/pages-availability` | ✅ |
-| `"Patrocinadores"` | ✅ | `/sponsors` | ✅ |
+| `"Patrocinadores"` | ✅ | `/sponsors` | ✅ → [[Feature_Patrocinadores]] |
 | `"Vendas"` | ✅ | `/sales` | ✅ |
-| `"PAPFE"` | ✅ | `/papfe-documents` | ✅ |
+| `"PAPFE"` | ✅ | `/papfe-documents` | ✅ → [[Feature_PAPFE]] |
 | `"Riddles"` | ✅ | `/riddles` | ✅ |
+| `"Inscrições"` | ✅ | `/event-registration` | ✅ |
+| `"Avisos"` | ✅ | `/notices` | ✅ |
+| `"Justificativas de Ausência"` | ✅ | `/absence-justifications` | ✅ |
+| `"Dashboard"` | ✅ | `/dashboard` | ✅ |
+| `"Confirmações de Inscrição"` | ✅ | `/confirm-registrations` | ✅ |
 
 **Inicialização:**
-- `InitializeSections()` → cria as 11 seções na startup
+- `InitializeSections()` → cria as 17 seções na startup
 - Admin padrão (`ADMIN_EMAIL`) recebe `"RW"` em todas via `InitializePermissions()`
 - Novo admin criado: `SeedUserPermissions` é chamado → sem permissões (admin define depois)
 

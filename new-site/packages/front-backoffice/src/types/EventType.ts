@@ -6,6 +6,10 @@ export interface EventType  extends CrudItemType {
   dateEnd: string; // RFC3339 format
   local: string;
   type: string;
+  type_name: string;
+  presence_type_weight_id: number | null;
   description: string;
   hasPresence: boolean;
+  hasSignin: boolean;
+  maxParticipants: number;
 }

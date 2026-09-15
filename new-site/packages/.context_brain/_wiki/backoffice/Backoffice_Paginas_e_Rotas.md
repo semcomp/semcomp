@@ -19,11 +19,16 @@ Porta dev: **5174** | `basename: "/admin"` | Router: React Router v6 (imports es
 | `/backoffice-users` | `pages/UserBackoffice/index.tsx` | RequireAuth + RequirePermission | `"Usuários Backoffice"` |
 | `/participation` | `pages/Participation/index.tsx` | RequireAuth + RequirePermission | `"Participações"` |
 | `/permissions` | `pages/Permission/index.tsx` | RequireAuth + RequirePermission | `"Permissões"` |
-| `/products` | `pages/Products/index.tsx` | RequireAuth + RequirePermission | `"Produtos"` |
 | `/pages-availability` | `pages/PagesAvailability/index.tsx` | RequireAuth + RequirePermission | `"Páginas"` |
 | `/sponsors` | `pages/Sponsors/index.tsx` | RequireAuth + RequirePermission | `"Patrocinadores"` |
 | `/sales` | `pages/Sales/index.tsx` | RequireAuth + RequirePermission | `"Vendas"` |
 | `/riddles` | `pages/Riddles/index.tsx` | RequireAuth + RequirePermission | `"Riddles"` |
+| `/papfe-documents` | `pages/PapfeDocuments/index.tsx` | RequireAuth + RequirePermission | `"PAPFE"` |
+| `/event-registration` | `pages/EventRegistration/index.tsx` | RequireAuth + RequirePermission | `"Inscrições"` |
+| `/confirm-registrations` | `pages/ConfirmRegistrations/index.tsx` | RequireAuth + RequirePermission | `"Confirmações de Inscrição"` |
+| `/notices` | `pages/Notices/index.tsx` | RequireAuth + RequirePermission | `"Avisos"` |
+| `/absence-justifications` | `pages/AbsenceJustifications/index.tsx` | RequireAuth + RequirePermission | `"Justificativas de Ausência"` |
+| `/dashboard` | `pages/Dashboard/index.tsx` | RequireAuth + RequirePermission | `"Dashboard"` |
 | `*` | `pages/NotFound/index.tsx` | RequireAuth | — |
 
 ## Home do Backoffice (`/home`)
@@ -47,6 +52,34 @@ Rota: `/events/:nameEvent/:datetime/qrcode-reader`
 Navegada a partir de um evento na página `/events`.  
 Parâmetros via `useParams()` + fallback de `location.state`.  
 → [[Feature_Participacao_e_QRCode]]
+
+## Sponsors (`/sponsors`)
+Arquivo: `pages/Sponsors/index.tsx`
+
+- CRUD completo de `Sponsor` (CNPJ, Nome, Website, Logo) via `sponsorsAPI`
+- Upload de logo via multipart form-data; logo servida em `/uploads/`
+- Gestão de `SponsorPackage` (Year + Package) dentro da mesma página
+- `canWrite = useHasPermission("Patrocinadores", "RW")`
+- → [[Feature_Patrocinadores]]
+
+## PapfeDocuments (`/papfe-documents`)
+Arquivo: `pages/PapfeDocuments/index.tsx`
+
+- Lista documentos PAPFE enviados por participantes via `papfeAPI` (importado de `api/users.ts`)
+- Exibe status tri-state: Pendente / Aprovado / Rejeitado (badge colorido)
+- Botão "Visualizar" abre o arquivo em dialog; botão de aprovação/rejeição chama `PUT .../papfe-document/approval`
+- `canWrite = useHasPermission("PAPFE", "RW")`
+- → [[Feature_PAPFE]]
+
+## EventRegistration (`/event-registration`)
+Arquivo: `pages/EventRegistration/index.tsx`
+
+- Seletor de evento (dropdown via `signinEventsAPI.getSigninableEvents()` — eventos com `has_signin=true`)
+- Quando evento selecionado: exibe info (nome, datas, local, vagas) + contadores (inscritos / espera / aguardando aprovação)
+- Botão "Rodar fila" (`signinEventsAPI.rotate`): promove lista de espera; desabilitado se `max_participants = 0`
+- Tabela CRUD (`CrudTable`) com campos distintos para visão global (`fields`) e visão por evento (`fieldsForEvent`)
+- `canWrite = useHasPermission("Inscrições", "RW")`
+- → [[Feature_SigninEvent]]
 
 ## PagesAvailability (`/pages-availability`)
 Arquivo: `pages/PagesAvailability/index.tsx`
