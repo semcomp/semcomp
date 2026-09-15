@@ -953,22 +953,6 @@ export default function Profile({
           )}
 
           <button
-            onClick={() => setJustifyOpen(true)}
-            disabled={justificationLocked}
-            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Justificar Ausência
-          </button>
-          {justificationStatus && (
-            <div className="flex items-center justify-center gap-2 mb-8">
-              <JustifyAbsenceStatusBadge status={justificationStatus} />
-              {justificationStatus === "negado" && absenceRejectionReason && (
-                <StatusEyeButton onClick={() => setReasonModal("absence")} />
-              )}
-            </div>
-          )}
-
-          <button
             onClick={() => setPapfeModalOpen(true)}
             className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
           >
@@ -1007,6 +991,23 @@ export default function Profile({
               )}
             </div>
           </div>
+
+          
+          <button
+            onClick={() => setJustifyOpen(true)}
+            disabled={justificationLocked}
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mt-4 mb-4 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Justificar Ausência
+          </button>
+          {justificationStatus && (
+            <div className="flex items-center justify-center gap-2 mb-8">
+              <JustifyAbsenceStatusBadge status={justificationStatus} />
+              {justificationStatus === "negado" && absenceRejectionReason && (
+                <StatusEyeButton onClick={() => setReasonModal("absence")} />
+              )}
+            </div>
+          )}
 
           <button
             onClick={logout}
