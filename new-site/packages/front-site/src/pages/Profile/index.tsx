@@ -567,23 +567,6 @@ export default function Profile({
                   </div>
                 )}
 
-                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={justificationLocked}
-                  onClick={() => setJustifyOpen(true)}>
-                  Justificar Ausência
-                </button>
-                {justificationStatus && (
-                  <div className="flex items-center justify-center gap-2 mb-6">
-                    <JustifyAbsenceStatusBadge status={justificationStatus} />
-                    {justificationStatus === "negado" &&
-                      absenceRejectionReason && (
-                        <StatusEyeButton
-                          onClick={() => setReasonModal("absence")}
-                        />
-                      )}
-                  </div>
-                )}
-
                 <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
                   onClick={() => setPapfeModalOpen(true)}>
                   {papfeDoc ? "Atualizar Comprovante PAPFE" : "Enviar Comprovante PAPFE"}
@@ -624,6 +607,23 @@ export default function Profile({
                     )}
                   </div>
                 </div>
+
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mt-4 mb-4 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={justificationLocked}
+                  onClick={() => setJustifyOpen(true)}>
+                  Justificar Ausência
+                </button>
+                {justificationStatus && (
+                  <div className="flex items-center justify-center gap-2 mb-6">
+                    <JustifyAbsenceStatusBadge status={justificationStatus} />
+                    {justificationStatus === "negado" &&
+                      absenceRejectionReason && (
+                        <StatusEyeButton
+                          onClick={() => setReasonModal("absence")}
+                        />
+                      )}
+                  </div>
+                )}
 
                 {isEditing ? (
                   <div className="flex gap-3 mb-4">
