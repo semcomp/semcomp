@@ -622,7 +622,7 @@ func (s *saleService) CancelSale(userNumber uint, saleID uint) (*Sale, error) {
 		return nil, apierrors.ValidationError("Só é possível cancelar pedidos com pagamento pendente", nil)
 	}
 
-	if err := s.saleRepo.UpdateByID(sale.ID, map[string]interface{}{"status": SaleStatusCanceled}); err != nil {
+	if err := s.saleRepo.CancelWithRelease(sale.ID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, apierrors.NotFoundError("Venda não encontrada", err)
 		}
@@ -630,11 +630,6 @@ func (s *saleService) CancelSale(userNumber uint, saleID uint) (*Sale, error) {
 	}
 
 	Hub.Publish(sale.ID, string(SaleStatusCanceled))
-
-	// Libera a trava de compra única (COFFEE/COMBO) que esse pedido segurava.
-	if err := s.syncConsumptionForSale(sale.ID); err != nil {
-		return nil, apierrors.InternalServerError("Pedido cancelado, mas erro ao liberar a disponibilidade dos itens", err)
-	}
 
 	return s.saleRepo.GetByID(sale.ID)
 }
