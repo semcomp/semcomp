@@ -177,7 +177,6 @@ export default function Riddle() {
   const currentRiddle = myGame?.current_riddle ?? null;
   const riddlesTotal = myGame?.riddles_total ?? 0;
   const isFinished = team?.finished_at != null;
-  const progressIndex = team ? Math.min(team.current_riddle_index + 1, riddlesTotal) : 0;
 
   // --- Sem time — criar ou entrar ---------
 
@@ -289,7 +288,6 @@ export default function Riddle() {
 
   const riddleTitle = currentRiddle?.hint_1?.trim() || (currentRiddle ? `Enigma #${currentRiddle.id}` : "");
   const riddleClue = currentRiddle?.hint_2?.trim() ?? null;
-  const progressPct = riddlesTotal > 0 ? Math.round((progressIndex / riddlesTotal) * 100) : 0;
 
   return (
     <div className={`min-h-screen w-full pt-28 ${pageBg}`}>
