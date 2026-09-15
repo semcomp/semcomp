@@ -262,7 +262,7 @@ export default function Riddle() {
       <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-6 px-4 pb-20 text-center">
         <Trophy className="h-20 w-20 text-yellow-400" />
         <h1 className={`text-3xl font-bold ${textPrimary}`}>Parabéns, {team.name}!</h1>
-        <p className={`text-lg ${textMuted}`}>
+        <p className={`text-lg text-white/80`}>
           Seu time completou todos os {riddlesTotal} enigmas!
         </p>
         <div className={`w-full rounded-2xl border border-gray-100 shadow-xl bg-white p-6 dark:border-slate-700 dark:bg-semcompDarkBlue`}>

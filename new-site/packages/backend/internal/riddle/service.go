@@ -367,7 +367,7 @@ func (s *riddleService) GetMyGame(userNumber uint) (*MyGameResponse, error) {
 	view := TeamToView(team)
 	response.Team = &view
 
-	current, err := s.repo.GetNextActiveRiddle(team.CurrentRiddleIndex)
+	current, err := s.repo.GetNextActiveRiddle(team.CurrentRiddleIndex + 1)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return response, nil // time terminou (CurrentRiddle nil)
@@ -475,7 +475,7 @@ func (s *riddleService) GetTeamsRanking() (*TeamRankingResponse, error) {
 // time já terminou (nil), ou erro de domínio quando ainda há enigma a resolver
 // mas o índice corrente está esgotado (cenário de consistência).
 func (s *riddleService) resolveNextRiddle(team *Team) (*Riddle, bool, error) {
-	next, err := s.repo.GetNextActiveRiddle(team.CurrentRiddleIndex)
+	next, err := s.repo.GetNextActiveRiddle(team.CurrentRiddleIndex + 1)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, true, nil // sem próximo ativo → terminou
