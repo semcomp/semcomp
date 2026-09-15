@@ -1,0 +1,76 @@
+name: "Visual / Design"
+description: Problemas ou melhorias de UI, UX ou identidade visual
+labels: ["design", "visual"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use este template para reportar inconsistências visuais, problemas de responsividade ou sugerir melhorias de design.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Tipo
+      options:
+        - Bug visual (algo está errado/quebrado)
+        - Melhoria de UI/UX
+        - Responsividade / mobile
+        - Acessibilidade
+        - Identidade visual / branding
+    validations:
+      required: true
+
+  - type: dropdown
+    id: page
+    attributes:
+      label: Página / seção afetada
+      options:
+        - Home
+        - Sobre
+        - Palestrantes
+        - Programação
+        - Patrocinadores
+        - Contato
+        - Backoffice
+        - Outra
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição
+      description: Descreva o problema visual ou a melhoria desejada.
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_vs_expected
+    attributes:
+      label: Atual vs. esperado
+      placeholder: |
+        **Atual:** ...
+        **Esperado:** ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / referências
+      description: Prints, gravações ou links de referência de design.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: devices
+    attributes:
+      label: Dispositivos afetados
+      multiple: true
+      options:
+        - Desktop
+        - Tablet
+        - Mobile
+        - Todos
+    validations:
+      required: false
