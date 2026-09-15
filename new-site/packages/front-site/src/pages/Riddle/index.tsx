@@ -39,7 +39,7 @@ export default function Riddle() {
 
   // Mesmo fundo das demais páginas do site (ver Profile: bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue).
   const pageBg = isDarkMode ? "bg-semcompAlmostDarkBlue" : "bg-semcompMidLightBlue";
-  const cardBg = isDarkMode ? "bg-semcompDarkBlue" : "bg-semcompMidLightBlue";
+  const cardBg = isDarkMode ? "bg-semcompDarkBlue" : "bg-white/80";
   const textPrimary = isDarkMode ? "text-white" : "text-semcompDarkBlue";
   const textMuted = isDarkMode ? "text-slate-400" : "text-slate-600";
   const sectionBorder = isDarkMode ? "border-slate-700" : "border-slate-300";
@@ -47,7 +47,7 @@ export default function Riddle() {
   // Card da pregunta — "bolha branca" da referencia, com sombra; escuro usa tokens do projeto.
   const questionCard = isDarkMode
     ? "rounded-2xl border border-slate-700 shadow-xl p-8 flex flex-col items-center bg-semcompDarkBlue"
-    : "rounded-2xl border border-gray-100 shadow-xl p-8 flex flex-col items-center bg-white";
+    : "rounded-2xl border border-gray-100 shadow-xl p-8 flex flex-col items-center bg-white/90";
 
   const questionInput = isDarkMode
     ? "border-2 border-semcompOffWhite bg-semcompDarkBlue text-white placeholder:text-white"
@@ -296,7 +296,7 @@ export default function Riddle() {
       <div className="flex flex-col items-center gap-3">
         <div className="flex items-center gap-3">
           <h1 className={`text-2xl font-bold ${textPrimary}`}>{team.name}</h1>
-          <span className="rounded-md border px-2 py-0.5 font-mono text-sm font-bold tracking-[0.2em] text-violet-400">
+          <span className={`rounded-md border px-2 py-0.5 font-mono text-sm font-bold tracking-[0.2em] ${isDarkMode ? "text-violet-400" : "text-violet-200"}`}>
             {team.code}
           </span>
         </div>
@@ -310,7 +310,7 @@ export default function Riddle() {
               {m.name || `#${m.user_number}`}
             </span>
           ))}
-          <span className={`text-xs ${textMuted}`}>
+          <span className={`text-xs text-white/80`}>
             {team.members?.length ?? 0}/{5} membros
           </span>
         </div>
