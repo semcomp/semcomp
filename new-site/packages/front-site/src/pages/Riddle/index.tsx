@@ -322,59 +322,46 @@ export default function Riddle() {
       {currentRiddle ? (
         <div className={questionCard}>
           {/* Título */}
-          <div className="flex items-center justify-center gap-2">
-            <Lightbulb className="h-5 w-5 shrink-0 text-yellow-500" />
-            <h1
-              className={`text-2xl leading-tight font-bold sm:text-3xl ${
-                isDarkMode ? "text-white" : "text-gray-800"
+          
+          {riddleClue && (
+            <div
+              className={`mt-6 w-full max-w-xl rounded-xl border p-5 shadow-sm ${
+                isDarkMode 
+                  ? "bg-zinc-900 border-zinc-700 text-white" 
+                  : "bg-zinc-100 border-zinc-300 text-zinc-900"
               }`}
             >
-              {riddleTitle}
-            </h1>
-          </div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm leading-relaxed">
+                  {riddleTitle}
+                </p>
+              </div>
+            </div>
+          )}
 
-          {/* Progreso */}
-          <div className="mt-6 w-full max-w-sm">
-            <div className={`flex justify-between text-xs ${textMuted}`}>
-              <span>Enigma {progressIndex} de {riddlesTotal}</span>
-              <span>{progressPct}%</span>
-            </div>
-            <div className="mt-1 h-1.5 rounded-full bg-primary/20">
-              <div className="h-1.5 rounded-full bg-primary" style={{ width: `${progressPct}%` }} />
-            </div>
-          </div>
 
           {/* Imagem (se existir) */}
           {currentRiddle.image_url && (
-            <div className="mt-6 rounded-xl overflow-hidden shadow-lg">
+            <div className="mt-6 overflow-hidden shadow-lg">
               <img
                 src={currentRiddle.image_url}
                 alt="Ilustração do enigma"
-                className="max-h-64 w-[500px] object-contain"
+                className="max-h-64 max-w-180 object-contain"
               />
             </div>
           )}
 
-          {/* Dica — chip amarelo (hint_2) */}
+          {/* Dica 2 */}
           {riddleClue && (
             <div
               className={`mt-6 w-full max-w-xl rounded-xl border p-5 shadow-sm ${
-                isDarkMode
-                  ? "bg-yellow-500/15 border-yellow-500/40"
-                  : "bg-yellow-50 border-yellow-200"
+                isDarkMode 
+                  ? "bg-zinc-900 border-zinc-700 text-white" 
+                  : "bg-zinc-100 border-zinc-300 text-zinc-900"
               }`}
             >
               <div className="flex items-center gap-2">
-                <Lightbulb
-                  className={`h-4 w-4 shrink-0 ${
-                    isDarkMode ? "text-yellow-300" : "text-yellow-700"
-                  }`}
-                />
-                <p
-                  className={`text-sm leading-relaxed ${
-                    isDarkMode ? "text-yellow-300" : "text-yellow-700"
-                  }`}
-                >
+                <p className="text-sm leading-relaxed">
                   {riddleClue}
                 </p>
               </div>
