@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTheme } from "@/contexts/useTheme";
 import { useCart } from "@/contexts/CartContext";
+import { useNotification } from "@/contexts/NotificationContext";
 import { salesAPI, type SaleResponse } from "@/api/sales";
 import PixQrCard from "@/components/PixQrCard";
 import { BASEURL } from "@/constants/ApiURL";
@@ -22,6 +23,7 @@ type Status = "loading" | "pending" | "approved" | "rejected" | "expired";
 export default function CheckoutPage() {
   const { isDarkMode } = useTheme();
   const { clearCart, subtotal, items } = useCart();
+  const { showNotification } = useNotification();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -37,7 +39,13 @@ export default function CheckoutPage() {
   const [status, setStatus] = useState<Status>(sale ? "pending" : "loading");
   const [error, setError] = useState<string | null>(null);
 
+  const [confirming, setConfirming] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
   const esRef = useRef<EventSource | null>(null);
+  // Guarda se o cancelamento foi iniciado pelo botão desta tela. Evita que o
+  // SSE (que publica "CANCELADO") mude o estado para "rejected" no meio do fluxo.
+  const cancelInFlightRef = useRef(false);
 
   useEffect(() => {
     if (sale || items.length === 0) return;
@@ -73,8 +81,13 @@ export default function CheckoutPage() {
       if (data === "PAGO") {
         setStatus("approved");
         es.close();
-      } else if (data === "REJEITADO" || data === "REEMBOLSADO" || data === "CANCELADO") {
+      } else if (data === "REJEITADO" || data === "REEMBOLSADO") {
         setStatus("rejected");
+        es.close();
+      } else if (data === "CANCELADO") {
+        // Cancelamento iniciado pelo botão desta tela: o handler já navega e dá
+        // o feedback — não mostrar a tela genérica de "Pagamento não aprovado".
+        if (!cancelInFlightRef.current) setStatus("rejected");
         es.close();
       } else if (data === "EXPIRADO") {
         setStatus("expired");
@@ -98,6 +111,26 @@ export default function CheckoutPage() {
   const handleStatusChange = (statusChanged: string) => {
     if (statusChanged === "EXPIRADO") setStatus("expired");
   };
+
+  // Cancela o pedido pendente direto do checkout. O backend publica
+  // "CANCELADO" no SSE — fechamos o EventSource antes da requisição e mantemos
+  // cancelInFlightRef como redundância para o listener não disparar "rejected".
+  const cancelRequest = useCallback(async () => {
+    if (!sale || cancelling || cancelInFlightRef.current) return;
+    setCancelling(true);
+    cancelInFlightRef.current = true;
+    esRef.current?.close();
+    try {
+      await salesAPI.cancelSale(sale.id);
+      showNotification("Pedido cancelado com sucesso.", "success");
+      navigate("/loja/carrinho");
+    } catch {
+      cancelInFlightRef.current = false;
+      setCancelling(false);
+      setConfirming(false);
+      showNotification("Não foi possível cancelar o pedido. Tente novamente.", "warning");
+    }
+  }, [sale, cancelling, showNotification, navigate]);
 
   // ─── Cores ──────────────────────────────────────────────
   const bg = isDarkMode
@@ -230,6 +263,52 @@ export default function CheckoutPage() {
 
           {/* QR Code + Copia e Cola + Countdown */}
           {sale && <PixQrCard sale={sale} onStatusChange={handleStatusChange} />}
+
+          {/* Cancelamento de pedido pendente */}
+          <div
+            className={`w-full border-t pt-5 flex flex-col items-center gap-3 ${
+              isDarkMode ? "border-white/10" : "border-semcompMidLightBlue/20"
+            }`}
+          >
+            {confirming ? (
+              <>
+                <p className={`text-sm font-semibold ${textPrimary}`}>
+                  Cancelar este pedido?
+                </p>
+                <p className={`text-xs text-center ${textMuted}`}>
+                  O PIX deixará de valer e os itens deste pedido voltarão a
+                  ficar disponíveis.
+                </p>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    disabled={cancelling}
+                    onClick={cancelRequest}
+                    className="inline-flex items-center gap-2 rounded-full bg-red-500 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:brightness-110 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {cancelling ? "Cancelando..." : "Confirmar cancelamento"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={cancelling}
+                    onClick={() => setConfirming(false)}
+                    className="rounded-full bg-semcompMidDarkBlue/10 px-5 py-2.5 text-sm font-bold text-semcompMidDarkBlue hover:bg-semcompMidDarkBlue/20 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    Voltar
+                  </button>
+                </div>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirming(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-red-400/40 px-5 py-2.5 text-sm font-bold text-red-400 hover:bg-red-400/10 transition-all cursor-pointer"
+              >
+                <XCircle size={15} />
+                Cancelar pedido
+              </button>
+            )}
+          </div>
 
           <div className="text-center">
             <p className={`mt-1 text-sm ${textMuted}`}>

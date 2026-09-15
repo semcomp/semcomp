@@ -91,4 +91,13 @@ export const salesAPI = {
     const response = await client.get<GetConsumedApiResponse>("/api/sales/consumed");
     return response.data.product_ids;
   },
+
+  // POST /api/sales/:id/cancel — cancela uma venda PENDENTE do próprio usuário.
+  // Só funciona enquanto a venda estiver com status PENDENTE (aguardando pagamento).
+  cancelSale: async (saleId: number): Promise<SaleResponse> => {
+    const response = await client.post<{ message: string; sale: SaleResponse }>(
+      `/api/sales/${saleId}/cancel`
+    );
+    return response.data.sale;
+  },
 };
