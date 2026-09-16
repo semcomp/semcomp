@@ -1,8 +1,8 @@
 import { lazy, Suspense } from "react";
 import MainEntrance from "@/components/MainEntrance";
-import SobreSection from "@/pages/Home/sections/SobreSection";
-import PatrocinadoresSection from "@/pages/Home/sections/PatrocinadoresSection";
 
+const SobreSection              = lazy(() => import("@/pages/Home/sections/SobreSection"));
+const PatrocinadoresSection     = lazy(() => import("@/pages/Home/sections/PatrocinadoresSection"));
 const EquipeSection             = lazy(() => import("@/pages/Home/sections/EquipeSection"));
 const BarraEventsSection        = lazy(() => import("@/pages/Home/sections/BarraEventsSection"));
 const FAQSection                = lazy(() => import("@/pages/Home/sections/FAQSection"));
@@ -19,10 +19,14 @@ export default function HomePage() {
       <MainEntrance />
       <main>
 
-        <SobreSection className={`${sectionStyles}`} />
+        <Suspense>
+          <SobreSection className={`${sectionStyles}`} />
+        </Suspense>
 
         <div className="bg-semcompMidDarkBlue">
-          <PatrocinadoresSection />
+          <Suspense>
+            <PatrocinadoresSection />
+          </Suspense>
         </div>
 
         <Suspense>

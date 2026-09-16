@@ -5,8 +5,8 @@ import ContatoSection from "../Home/sections/ContatoSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { authAPI, absenceJustificationsAPI, papfeAPI, client } from "@/api";
 import { salesAPI } from "@/api/sales";
-import type { SaleResponse } from "@/api/sales";
-import { ChevronDown, Megaphone, Eye } from "lucide-react";
+import type { SaleResponse, SaleItemResponse, SaleProduct, ComboItemResponse } from "@/api/sales";
+import { ChevronDown, Megaphone, Eye, Loader2 } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 import { isPendingSale } from "@/lib/pendingSale";
@@ -20,6 +20,7 @@ import { formatTime, formatDate, formatWeekDay } from "@/lib/utils/formatDate";
 import { signinEventsAPI } from "@/api/signinEvents";
 import { useNavigate } from "react-router-dom";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import Modal from "@/components/ui/Modal";
 import JustifyAbsenceModal, { JustifyAbsenceStatusBadge } from "@/components/JustifyAbsenceModal";
 import type { JustifyAbsenceStatus } from "@/components/JustifyAbsenceModal";
 import { PapfeStatusBadge } from "@/components/PapfeStatusBadge";
@@ -49,11 +50,23 @@ function StatusEyeButton({ onClick }: { onClick: () => void }) {
 
 export interface PurchaseType {
   id: string;
+  saleId: number;
   item: string;
+  items: SaleItemResponse[];
   date: string;
   amount: number;
   status: string;
   statusColor: string;
+  rawStatus: string;
+  isPending: boolean;
+}
+
+// Só pedidos PENDENTE (ainda não pagos) podem ser cancelados pelo próprio
+// usuário — mesma regra aplicada em backend/internal/sales/service.go.
+const CANCELABLE_SALE_STATUS = "PENDENTE";
+
+function isCancelablePurchase(purchase: PurchaseType): boolean {
+  return purchase.rawStatus === CANCELABLE_SALE_STATUS;
 }
 
 const SALE_STATUS_STYLES: Record<string, { label: string; color: string }> = {
@@ -65,20 +78,38 @@ const SALE_STATUS_STYLES: Record<string, { label: string; color: string }> = {
   EXPIRADO: { label: "Expirado", color: "text-gray-500" },
 };
 
-function getProductDisplayName(product: any): string {
+const formatPresencePercent = (value: number): string => Math.round(value).toString();
+
+function getProductDisplayName(product: any, kitProduct?: SaleProduct): string {
   if (!product) return "Produto";
 
-  if (product.kit?.name) return product.kit.name;
-  if (product.coffee?.name) return product.coffee.name;
+  // Formatação de Kits / Camisetas
+  if (product.kit) {
+    const details = [];
+    if (product.kit.size) details.push(`Tam: ${product.kit.size}`);
+    if (product.kit.color) details.push(product.kit.color);
+    if (product.kit.is_babylook) details.push("Babylook");
 
-  if (product.type === "COMBO" && product.combo_items?.length) {
-    const itemNames = product.combo_items
-      .map((ci: any) => ci.item?.kit?.name ?? ci.item?.coffee?.name)
-      .filter(Boolean);
-    if (itemNames.length > 0) {
-      return `Combo (${itemNames.join(" + ")})`;
+    const specString = details.length ? ` (${details.join(" - ")})` : "";
+    return `${product.kit.name || "Kit"}${specString}`;
+  }
+
+  // Formatação de Coffee
+  if (product.coffee) {
+    const dateStr = product.coffee.date_time
+      ? ` - ${formatDate(product.coffee.date_time, 2)}`
+      : "";
+    return `${product.coffee.name || "Coffee"}${dateStr}`;
+  }
+
+  // Formatação de Combos: mostra o nome do produto + o kit escolhido entre
+  // parênteses (sem listar todas as variantes da definição do produto).
+  if (product.type === "COMBO") {
+    const comboName = product.name || "Combo";
+    if (kitProduct) {
+      return `${comboName} (${getProductDisplayName(kitProduct)})`;
     }
-    return "Combo";
+    return comboName;
   }
 
   return product.type ?? "Produto";
@@ -89,7 +120,7 @@ function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
   sale.items?.length
     ? sale.items
         .map((it) => {
-          return `${it.quantity}x ${getProductDisplayName((it as any).product)}`;
+          return `${it.quantity}x ${getProductDisplayName(it.product, it.kit_product)}`;
         })
         .join(", ")
     : "Pedido";
@@ -98,21 +129,86 @@ function mapSaleToPurchase(sale: SaleResponse): PurchaseType {
 
   return {
     id: String(sale.id),
+    saleId: sale.id,
     item: itemsLabel,
+    items: sale.items ?? [],
     date: formatDate(sale.created_at, 2),
     amount: sale.total_amount,
     status: style.label,
     statusColor: style.color,
+    rawStatus: sale.status,
+    isPending: isPendingSale(sale),
   };
 }
 
-const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCancel, isCanceling }: {
+// Linha expansível (accordion) que exibe o kit escolhido e os cafés
+// incluídos em um produto do tipo COMBO. Os dados vêm diretamente do
+// SaleItemResponse retornado por getMySales (sem fetch adicional).
+function ComboItemsRow({
+  isOpen,
+  onToggle,
+  kitProduct,
+  coffeeItems,
+}: {
+  isOpen: boolean;
+  onToggle: () => void;
+  kitProduct?: SaleProduct;
+  coffeeItems: ComboItemResponse[];
+}) {
+  const hasContent = !!kitProduct || coffeeItems.length > 0;
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex items-center gap-1 text-xs font-semibold text-semcompMidDarkBlue hover:underline cursor-pointer"
+      >
+        <ChevronDown
+          size={14}
+          className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+        />
+        {isOpen ? "Ocultar itens do combo" : "Ver itens do combo"}
+      </button>
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-out"
+        style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden">
+          {isOpen && (
+            <div className="mt-2 pl-4 border-l-2 border-semcompMidLightBlue/40 flex flex-col gap-1">
+              {!hasContent ? (
+                <span className="text-xs text-semcompDarkBlue/60 italic">Nenhum item encontrado.</span>
+              ) : (
+                <>
+                  {kitProduct && (
+                    <span className="text-xs text-semcompDarkBlue/80">
+                      1x {getProductDisplayName(kitProduct)}
+                    </span>
+                  )}
+                  {coffeeItems.map((ci) => (
+                    <span key={ci.item_id} className="text-xs text-semcompDarkBlue/80">
+                      {ci.quantity}x {getProductDisplayName(ci.item)}
+                    </span>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCancel, isCanceling, papfeApproved }: {
   ev: EventType;
   subscription: SigninEventType | undefined;
   onSignin: () => void;
   isSigningIn: boolean;
   onCancel: () => void;
   isCanceling: boolean;
+  papfeApproved: boolean;
 }) => {
   const data = formatDate(ev.dateInit, 2);
   const diaSemana = formatWeekDay(ev.dateInit);
@@ -121,7 +217,10 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
     <div className="border rounded-xl p-4 mb-3 bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white flex flex-col items-start">
       <div className="w-full">
         <div className="flex items-start gap-2">
-          <span className="font-bold whitespace-nowrap">{ev.type}</span>
+          <div className="flex flex-col shrink-0">
+            <span className="font-bold">{ev.name}</span>
+            <span className="text-xs opacity-60">{ev.type}</span>
+          </div>
           <span className="opacity-60">|</span>
           <p className="text-sm leading-relaxed opacity-90 wrap-break-words">{ev.description}</p>
         </div>
@@ -133,13 +232,21 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
       <div className="w-full flex flex-col justify-center bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white/90 rounded-sm">
         {subscription ? (
           <>
-            <span className={`w-full p-2 text-center text-sm font-semibold ${
-              subscription.status === "Inscrito" ? "text-green-700 dark:text-green-400" : "text-yellow-700 dark:text-yellow-400"
-            }`}>
-              {subscription.status === "Inscrito"
-                ? "Inscrito"
-                : `Lista de Espera - ${subscription.user_wait_list_position}ª posição`}
-            </span>
+            {subscription.status === "Aguardando Aprovação" ? (
+              <span className="w-full p-2 text-center text-sm font-semibold text-blue-700 dark:text-blue-400">
+                {papfeApproved
+                  ? "Você deve confirmar a sua presença no Fernão"
+                  : "Traga 1kg de alimento para confirmar sua inscrição na entrada do Fernão"}
+              </span>
+            ) : (
+              <span className={`w-full p-2 text-center text-sm font-semibold ${
+                subscription.status === "Inscrito" ? "text-green-700 dark:text-green-400" : "text-yellow-700 dark:text-yellow-400"
+              }`}>
+                {subscription.status === "Inscrito"
+                  ? "Inscrito"
+                  : `Lista de Espera - ${subscription.user_wait_list_position}ª posição`}
+              </span>
+            )}
             <button
               className="cursor-pointer w-full p-2 text-sm text-red-600 dark:text-red-400 border-t border-black/10 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isCanceling}
@@ -225,6 +332,10 @@ export default function Profile({
   const navigate = useNavigate();
   const { isFeatureEnabled } = useFeatureFlags();
   const [pendingSalesCount, setPendingSalesCount] = useState(0);
+  const [cancelTarget, setCancelTarget] = useState<PurchaseType | null>(null);
+  const [isCanceling, setIsCanceling] = useState(false);
+
+  const [openComboRows, setOpenComboRows] = useState<Set<string>>(new Set());
 
   const logoutRef = useRef(logout);
   const showNotificationRef = useRef(showNotification);
@@ -239,6 +350,19 @@ export default function Profile({
   const handlePapfeSubmitted = (doc: PapfeDocumentType) => {
     setPapfeDoc(doc);
   };
+
+  function toggleComboRow(saleId: number, itemId: number) {
+    const key = `${saleId}:${itemId}`;
+    setOpenComboRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -426,10 +550,86 @@ export default function Profile({
     }
   }
 
+  function requestCancelPurchase(purchase: PurchaseType) {
+    setCancelTarget(purchase);
+  }
+
+  function closeCancelModal() {
+    if (isCanceling) return;
+    setCancelTarget(null);
+  }
+
+  async function confirmCancelPurchase() {
+    if (!cancelTarget) return;
+    setIsCanceling(true);
+    try {
+      await salesAPI.cancel(cancelTarget.saleId);
+      const canceledStyle = SALE_STATUS_STYLES.CANCELADO;
+      setUserPurchases((prev) =>
+        prev.map((p) =>
+          p.saleId === cancelTarget.saleId
+            ? { ...p, rawStatus: "CANCELADO", status: canceledStyle.label, statusColor: canceledStyle.color, isPending: false }
+            : p
+        )
+      );
+      if (cancelTarget.isPending) {
+        setPendingSalesCount((prev) => Math.max(0, prev - 1));
+      }
+      showNotification("Pedido cancelado com sucesso.", "success");
+      setCancelTarget(null);
+    } catch (err) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      showNotification(message || "Não foi possível cancelar o pedido. Tente novamente.", "warning");
+    } finally {
+      setIsCanceling(false);
+    }
+  }
+
+  const cancelModal = (
+    <Modal
+      open={cancelTarget !== null}
+      onClose={closeCancelModal}
+      title="Cancelar compra"
+      size="sm"
+      closeOnBackdrop={!isCanceling}
+    >
+      <div className="flex flex-col gap-4">
+        <p>
+          Tem certeza que deseja cancelar este pedido
+          {cancelTarget ? ` (${cancelTarget.item})` : ""}? Essa ação não pode ser desfeita e o
+          item voltará a ficar disponível para compra.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={closeCancelModal}
+            disabled={isCanceling}
+            className="px-4 py-2 rounded-lg text-sm font-semibold border border-semcompDarkBlue/20 text-semcompDarkBlue disabled:opacity-50 dark:text-semcompOffWhite dark:border-white/20 cursor-pointer"
+          >
+            Voltar
+          </button>
+          <button
+            type="button"
+            onClick={confirmCancelPurchase}
+            disabled={isCanceling}
+            className="px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-60 flex items-center gap-2 cursor-pointer"
+          >
+            {isCanceling && <Loader2 size={16} className="animate-spin" />}
+            {isCanceling ? "Cancelando..." : "Cancelar pedido"}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+
   // Versão Mobile/Tablet (< 1280px)
   if (width < 1280) {
     return (
       <div className="min-h-screen bg-semcompMidLightBlue dark:bg-semcompAlmostDarkBlue font-poppins transition-colors duration-300">
+        {cancelModal}
         {cancelConfirmModal}
         {/* Header com Background */}
         <div className="relative h-80 w-full overflow-hidden bg-semcompMidLightBlue dark:bg-semcompDarkBlue">
@@ -565,23 +765,6 @@ export default function Profile({
                   </div>
                 )}
 
-                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={justificationLocked}
-                  onClick={() => setJustifyOpen(true)}>
-                  Justificar Ausência
-                </button>
-                {justificationStatus && (
-                  <div className="flex items-center justify-center gap-2 mb-6">
-                    <JustifyAbsenceStatusBadge status={justificationStatus} />
-                    {justificationStatus === "negado" &&
-                      absenceRejectionReason && (
-                        <StatusEyeButton
-                          onClick={() => setReasonModal("absence")}
-                        />
-                      )}
-                  </div>
-                )}
-
                 <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
                   onClick={() => setPapfeModalOpen(true)}>
                   {papfeDoc ? "Atualizar Comprovante PAPFE" : "Enviar Comprovante PAPFE"}
@@ -612,18 +795,33 @@ export default function Profile({
                       style={{ width: `${presencePercent}%` }}
                     >
                       {presencePercent > 15 && (
-                        <span className="text-white text-[10px] font-bold">
-                          {presencePercent}%
-                        </span>
+                        <span className="text-white text-[10px] font-bold">{formatPresencePercent(presencePercent)}%</span>
                       )}
                     </div>
                     {presencePercent <= 15 && (
                       <div className="absolute right-2 top-1/2 -translate-y-1/2 text-semcompDarkBlue text-[10px] font-bold">
-                        {presencePercent}%
+                        {formatPresencePercent(presencePercent)}%
                       </div>
                     )}
                   </div>
                 </div>
+
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mt-4 mb-4 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={justificationLocked}
+                  onClick={() => setJustifyOpen(true)}>
+                  Justificar Ausência
+                </button>
+                {justificationStatus && (
+                  <div className="flex items-center justify-center gap-2 mb-6">
+                    <JustifyAbsenceStatusBadge status={justificationStatus} />
+                    {justificationStatus === "negado" &&
+                      absenceRejectionReason && (
+                        <StatusEyeButton
+                          onClick={() => setReasonModal("absence")}
+                        />
+                      )}
+                  </div>
+                )}
 
                 {isEditing ? (
                   <div className="flex gap-3 mb-4">
@@ -681,6 +879,32 @@ export default function Profile({
                         <div className="mt-2 text-xs font-semibold text-semcompDarkBlue/80">
                           Status: {purchase.status}
                         </div>
+                        {purchase.items
+                          .filter((it) => it.product?.type === "COMBO")
+                          .map((it) => {
+                            const key = `${purchase.saleId}:${it.id}`;
+                            const coffeeItems = (it.product?.combo_items ?? []).filter(
+                              (ci) => ci.item?.type === "COFFEE"
+                            );
+                            return (
+                              <ComboItemsRow
+                                key={it.id}
+                                isOpen={openComboRows.has(key)}
+                                onToggle={() => toggleComboRow(purchase.saleId, it.id)}
+                                kitProduct={it.kit_product}
+                                coffeeItems={coffeeItems}
+                              />
+                            );
+                          })}
+                        {isCancelablePurchase(purchase) && (
+                          <button
+                            type="button"
+                            onClick={() => requestCancelPurchase(purchase)}
+                            className="mt-3 w-full text-sm font-semibold text-red-600 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors"
+                          >
+                            Cancelar pedido
+                          </button>
+                        )}
                       </div>
                     ))
                   ) : (
@@ -770,6 +994,7 @@ export default function Profile({
                   isSigningIn={signingInKey === `${ev.name}::${ev.dateInit}`}
                   onCancel={() => setCancelConfirm({ eventName: ev.name, eventInitDate: ev.dateInit })}
                   isCanceling={cancelingKey === `${ev.name}::${ev.dateInit}`}
+                  papfeApproved={papfeDoc?.is_approved === true}
                 />
               ))
             ) : (
@@ -995,14 +1220,12 @@ export default function Profile({
                 style={{ width: `${presencePercent}%` }}
               >
                 {presencePercent > 15 && (
-                  <span className="text-semcompLightBlue text-xs font-bold">
-                    {presencePercent}%
-                  </span>
+                  <span className="text-semcompLightBlue text-xs font-bold">{formatPresencePercent(presencePercent)}%</span>
                 )}
               </div>
               {presencePercent <= 15 && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 text-semcompMidDarkBlue text-xs font-bold">
-                  {presencePercent}%
+                  {formatPresencePercent(presencePercent)}%
                 </div>
               )}
             </div>
@@ -1043,6 +1266,32 @@ export default function Profile({
                     <span className={`text-sm font-bold ${purchase.statusColor}`}>R$ {purchase.amount.toFixed(2)}</span>
                   </div>
                   <span className="text-xs font-semibold text-semcompDarkBlue/80 mt-1">Status: {purchase.status}</span>
+                  {purchase.items
+                    .filter((it) => it.product?.type === "COMBO")
+                    .map((it) => {
+                      const key = `${purchase.saleId}:${it.id}`;
+                      const coffeeItems = (it.product?.combo_items ?? []).filter(
+                        (ci) => ci.item?.type === "COFFEE"
+                      );
+                      return (
+                        <ComboItemsRow
+                          key={it.id}
+                          isOpen={openComboRows.has(key)}
+                          onToggle={() => toggleComboRow(purchase.saleId, it.id)}
+                          kitProduct={it.kit_product}
+                          coffeeItems={coffeeItems}
+                        />
+                      );
+                    })}
+                  {isCancelablePurchase(purchase) && (
+                    <button
+                      type="button"
+                      onClick={() => requestCancelPurchase(purchase)}
+                      className="mt-3 w-full text-sm font-semibold text-red-600 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors"
+                    >
+                      Cancelar pedido
+                    </button>
+                  )}
                 </div>
               ))
             ) : (
@@ -1060,6 +1309,7 @@ export default function Profile({
   if (width >= 1280) {
     return (
       <div className="bg-semcompMidLightBlue text-semcompDarkBlue dark:bg-semcompDarkBlue dark:text-semcompOffWhite min-h-screen">
+        {cancelModal}
         {cancelConfirmModal}
         <div
           className="relative overflow-hidden h-[calc(90vh-70px)] w-full flex flex-row justify-center items-center gap-10 font-poppins"
@@ -1156,7 +1406,8 @@ export default function Profile({
                         onClick={() => setOpenSubscription(openSubscription === index ? -1 : index)}
                       >
                         <div className="w-1/2 flex flex-col text-left gap-1 items-start pr-4">
-                          <span className="font-bold text-lg shrink-0">{evento.type}</span>
+                          <span className="font-bold text-lg shrink-0">{evento.name}</span>
+                          <span className="text-xs opacity-60 shrink-0">{evento.type}</span>
                           <span className="text-sm font-medium wrap-break-words flex-1 opacity-90">{evento.description}</span>
                         </div>
                         <div className="w-auto flex flex-col items-end shrink-0 gap-1">
@@ -1179,15 +1430,23 @@ export default function Profile({
                         <div className="w-full p-6 flex flex-row items-center justify-center rounded-b-lg border-t border-black/10 shadow-lg transition-all animate-in fade-in duration-300 bg-black/5 dark:bg-black/20">
                           {subscription ? (
                             <div className="flex flex-col items-center gap-3">
-                              <span className={`text-lg font-bold ${
-                                subscription.status === "Inscrito"
-                                  ? "text-green-600 dark:text-green-400"
-                                  : "text-yellow-600 dark:text-yellow-400"
-                              }`}>
-                                {subscription.status === "Inscrito"
-                                  ? "Você está inscrito"
-                                  : `Você está na lista de espera (${subscription.user_wait_list_position}ª posição)`}
-                              </span>
+                              {subscription.status === "Aguardando Aprovação" ? (
+                                <span className="text-lg font-bold text-blue-600 dark:text-blue-400 text-center">
+                                  {papfeDoc?.is_approved === true
+                                    ? "Você deve confirmar a sua presença no Fernão"
+                                    : "Traga 1kg de alimento para confirmar sua inscrição na entrada do Fernão"}
+                                </span>
+                              ) : (
+                                <span className={`text-lg font-bold ${
+                                  subscription.status === "Inscrito"
+                                    ? "text-green-600 dark:text-green-400"
+                                    : "text-yellow-600 dark:text-yellow-400"
+                                }`}>
+                                  {subscription.status === "Inscrito"
+                                    ? "Você está inscrito"
+                                    : `Você está na lista de espera (${subscription.user_wait_list_position}ª posição)`}
+                                </span>
+                              )}
                               <button
                                 className="px-6 py-2 rounded-xl font-bold text-sm uppercase tracking-wide shadow-sm hover:-translate-y-0.5 transition-all duration-300 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                                 disabled={cancelingKey === key}

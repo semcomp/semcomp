@@ -4,9 +4,20 @@ import SectionWatermark from "@/components/ui/SectionWatermark";
 const altFromPath = (name: string) =>
   name.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-const CAROUSEL_IMAGES = [
-  "Context", "Feira", "Hackathon", "Integracao", "Pergunta", "Semcomp28",
-].map((name) => ({ src: `/img/Home/Carousel/${name}.webp`, alt: altFromPath(name) }));
+const CAROUSEL_NAMES = [
+  "Context",
+  "Feira",
+  "Hackathon",
+  "Integracao",
+  "Pergunta",
+  "Semcomp28",
+] as const;
+
+const images = CAROUSEL_NAMES.map((name) => ({
+  src: `/img/Home/Carousel/${name}.webp`,
+  srcMobile: `/img/Home/Carousel/${name}-mobile.webp`,
+  alt: altFromPath(name),
+}));
 
 type SobreProps = { className?: string };
 
@@ -50,7 +61,7 @@ const SobreSection = ({ className }: SobreProps) => (
 
         <div className="self-start relative">
           <div className="relative z-20">
-            <Carousel images={CAROUSEL_IMAGES} />
+            <Carousel images={images} />
           </div>
         </div>
       </div>

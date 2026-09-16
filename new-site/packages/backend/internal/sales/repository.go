@@ -8,6 +8,7 @@ import (
 
 	"backend/internal/apierrors"
 	"backend/internal/product"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -44,6 +45,9 @@ type SaleRepository interface {
 	// re-travar após mudança de status.
 	UpsertConsumed(userNumber uint, sourceSaleID uint, productIDs []uint) error
 	DeleteConsumedBySale(sourceSaleID uint) error
+	// CancelWithRelease marca a venda como CANCELADO e remove as travas de
+	// consumed_items na mesma transação, garantindo consistência entre os dois.
+	CancelWithRelease(saleID uint) error
 	GetConsumedProductIDs(userNumber uint) ([]uint, error)
 	// GetCoffeeIDsInCombos retorna os coffees (item_id) dentro dos combos dados.
 	GetCoffeeIDsInCombos(comboIDs []uint) ([]uint, error)
@@ -109,6 +113,10 @@ func (r *saleRepository) GetByUserNumber(userNumber uint) ([]Sale, error) {
 		Preload("Items.Product.Coffee").
 		Preload("Items.Product.ComboItems").
 		Preload("Items.Product.ComboItems.Item").
+		Preload("Items.Product.ComboItems.Item.Kit").
+		Preload("Items.Product.ComboItems.Item.Coffee").
+		Preload("Items.KitProduct").
+		Preload("Items.KitProduct.Kit").
 		Order("created_at desc").
 		Find(&sales).Error
 
@@ -358,6 +366,21 @@ func (r *saleRepository) UpsertConsumed(userNumber uint, sourceSaleID uint, prod
 // expirar, cancelar ou reembolsar a venda).
 func (r *saleRepository) DeleteConsumedBySale(sourceSaleID uint) error {
 	return r.db.Where("source_sale_id = ?", sourceSaleID).Delete(&ConsumedItem{}).Error
+}
+
+// CancelWithRelease marca a venda como CANCELADO e remove as travas de
+// consumed_items na mesma transação, garantindo consistência entre os dois.
+func (r *saleRepository) CancelWithRelease(saleID uint) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		result := tx.Model(&Sale{}).Where("id = ?", saleID).Updates(map[string]interface{}{"status": SaleStatusCanceled})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+		return tx.Where("source_sale_id = ?", saleID).Delete(&ConsumedItem{}).Error
+	})
 }
 
 // GetConsumedProductIDs retorna a base de ids consumidos do usuário (produtos

@@ -1,4 +1,4 @@
-import { Calendar, UserCog, User, Key, Hand, ToggleLeft, ShoppingBag, Handshake, DollarSign, FileCheck, FileWarning } from "lucide-react";
+import { Calendar, UserCog, User, Key, Hand, ToggleLeft, ShoppingBag, Handshake, DollarSign, FileCheck, SlidersHorizontal, FileWarning, ClipboardList, UserCheck, BarChart3 } from "lucide-react";
 
 // section deve coincidir com KnownSections em backend/internal/permission/model.go
 export const Tabs: {
@@ -49,6 +49,16 @@ export const Tabs: {
       "Gerencie as participações dos usuários nos eventos da Semcomp.",
     pageNavigate: "/participation",
     icon: <Hand className="w-5 h-5" />,
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
+    key: "presence-settings",
+    section: "Configurações Presença",
+    label: "Configurações Presença",
+    description: "Configure o peso de presença de cada tipo de evento (palestras, vitrines...).",
+    pageNavigate: "/presence-settings",
+    icon: <SlidersHorizontal className="w-5 h-5" />,
     bg: "bg-primary/15",
     hoverBg: "bg-primary/25",
   },
@@ -113,6 +123,26 @@ export const Tabs: {
     hoverBg: "bg-primary/25",
   },
   {
+    key: "event-registration",
+    section: "Inscrições",
+    label: "Inscrições",
+    description: "Visualize e gerencie as inscrições dos participantes nos eventos da Semcomp.",
+    pageNavigate: "/event-registration",
+    icon: <ClipboardList className="w-5 h-5" />,
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
+    key: "confirm-registrations",
+    section: "Confirmações de Inscrição",
+    label: "Confirmações de Inscrição",
+    description: "Aprove inscrições que aguardam confirmação presencial no Fernão.",
+    pageNavigate: "/confirm-registrations",
+    icon: <UserCheck className="w-5 h-5" />,
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
     key: "avisos",
     section: "Avisos",
     label: "Avisos",
@@ -129,6 +159,16 @@ export const Tabs: {
     description: "Revise e aprove justificativas de ausência dos participantes.",
     pageNavigate: "/absence-justifications",
     icon: <FileWarning className="w-5 h-5" />,
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
+    key: "dashboard",
+    section: "Dashboard",
+    label: "Dados",
+    description: "Visualize métricas e dados da Semcomp.",
+    pageNavigate: "/dashboard",
+    icon: <BarChart3 className="w-5 h-5" />,
     bg: "bg-primary/15",
     hoverBg: "bg-primary/25",
   },

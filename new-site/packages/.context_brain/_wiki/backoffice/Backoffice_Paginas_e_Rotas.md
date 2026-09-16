@@ -22,6 +22,7 @@ Porta dev: **5174** | `basename: "/admin"` | Router: React Router v6 (imports es
 | `/pages-availability` | `pages/PagesAvailability/index.tsx` | RequireAuth + RequirePermission | `"Páginas"` |
 | `/sponsors` | `pages/Sponsors/index.tsx` | RequireAuth + RequirePermission | `"Patrocinadores"` |
 | `/papfe-documents` | `pages/PapfeDocuments/index.tsx` | RequireAuth + RequirePermission | `"PAPFE"` |
+| `/event-registration` | `pages/EventRegistration/index.tsx` | RequireAuth + RequirePermission | `"Inscrições"` |
 | `*` | `pages/NotFound/index.tsx` | RequireAuth | — |
 
 ## Home do Backoffice (`/home`)
@@ -63,6 +64,16 @@ Arquivo: `pages/PapfeDocuments/index.tsx`
 - Botão "Visualizar" abre o arquivo em dialog; botão de aprovação/rejeição chama `PUT .../papfe-document/approval`
 - `canWrite = useHasPermission("PAPFE", "RW")`
 - → [[Feature_PAPFE]]
+
+## EventRegistration (`/event-registration`)
+Arquivo: `pages/EventRegistration/index.tsx`
+
+- Seletor de evento (dropdown via `signinEventsAPI.getSigninableEvents()` — eventos com `has_signin=true`)
+- Quando evento selecionado: exibe info (nome, datas, local, vagas) + contadores (inscritos / espera / aguardando aprovação)
+- Botão "Rodar fila" (`signinEventsAPI.rotate`): promove lista de espera; desabilitado se `max_participants = 0`
+- Tabela CRUD (`CrudTable`) com campos distintos para visão global (`fields`) e visão por evento (`fieldsForEvent`)
+- `canWrite = useHasPermission("Inscrições", "RW")`
+- → [[Feature_SigninEvent]]
 
 ## PagesAvailability (`/pages-availability`)
 Arquivo: `pages/PagesAvailability/index.tsx`

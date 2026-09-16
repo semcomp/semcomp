@@ -1,0 +1,63 @@
+name: "Task / Tarefa"
+description: Tarefa técnica interna do time (refactor, infra, débito técnico, etc.)
+labels: ["task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use este template para tarefas técnicas que não são bugs nem features diretas para o usuário final.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Tipo de tarefa
+      options:
+        - Refatoração
+        - Débito técnico
+        - Infraestrutura / DevOps
+        - Testes
+        - Documentação
+        - Configuração / Setup
+        - Outro
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - Site (front-site)
+        - Backoffice (front-backoffice)
+        - Backend (API)
+        - Infraestrutura / Deploy
+        - Monorepo / geral
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição da tarefa
+      description: O que precisa ser feito e por quê?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceitação
+      description: Como saberemos que a tarefa está concluída?
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: references
+    attributes:
+      label: Referências / contexto adicional
+      description: Links, PRs relacionados, documentação, etc.
+    validations:
+      required: false
