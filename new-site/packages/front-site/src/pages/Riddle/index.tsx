@@ -231,7 +231,7 @@ export default function Riddle() {
         <div className={`w-full rounded-2xl border p-6 shadow-md ${cardBg} ${sectionBorder}`}>
           <div className="mb-4 flex items-center gap-2">
             <LogIn className={`h-5 w-5 ${textPrimary}`} />
-            <h2 className={`text-lg font-semibold ${textPrimary}`}>Entrar em una equipe</h2>
+            <h2 className={`text-lg font-semibold ${textPrimary}`}>Entrar em uma equipe</h2>
           </div>
           <Input
             label="Código de convite"
