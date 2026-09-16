@@ -765,6 +765,33 @@ export default function Profile({
                   </div>
                 )}
 
+
+                {isEditing ? (
+                  <div className="flex gap-3 mb-4">
+                    <button
+                      className="flex-1 bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold disabled:opacity-60"
+                      onClick={saveProfile}
+                      disabled={isSaving || !editForm.name.trim() || !editForm.city.trim()}
+                    >
+                      {isSaving ? "Salvando..." : "Salvar"}
+                    </button>
+                    <button
+                      className="flex-1 border border-semcompDarkBlue text-semcompDarkBlue py-3 rounded-lg text-sm font-semibold"
+                      onClick={() => setIsEditing(false)}
+                      disabled={isSaving}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                    onClick={startEditing}
+                  >
+                    Editar Informações
+                  </button>
+                )}
+
                 <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
                   onClick={() => setPapfeModalOpen(true)}>
                   {papfeDoc ? "Atualizar Comprovante PAPFE" : "Enviar Comprovante PAPFE"}
@@ -823,31 +850,6 @@ export default function Profile({
                   </div>
                 )}
 
-                {isEditing ? (
-                  <div className="flex gap-3 mb-4">
-                    <button
-                      className="flex-1 bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold disabled:opacity-60"
-                      onClick={saveProfile}
-                      disabled={isSaving || !editForm.name.trim() || !editForm.city.trim()}
-                    >
-                      {isSaving ? "Salvando..." : "Salvar"}
-                    </button>
-                    <button
-                      className="flex-1 border border-semcompDarkBlue text-semcompDarkBlue py-3 rounded-lg text-sm font-semibold"
-                      onClick={() => setIsEditing(false)}
-                      disabled={isSaving}
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
-                    onClick={startEditing}
-                  >
-                    Editar Informações
-                  </button>
-                )}
                 <button className="w-full text-red-700 font-bold text-sm py-2" onClick={logout}>
                   Sair da conta
                 </button>
@@ -1111,7 +1113,7 @@ export default function Profile({
           </div>
 
           {isEditing ? (
-            <div className="flex flex-col space-y-3 mb-6">
+            <div className="flex flex-col space-y-3 mb-4">
               {([
                 { label: "Nome Completo", key: "name" as const, required: true },
                 { label: "Cidade de Residência", key: "city" as const, required: true },
@@ -1152,7 +1154,7 @@ export default function Profile({
           )}
 
           {isEditing ? (
-            <div className="flex gap-2 mb-8">
+            <div className="flex gap-2 mb-4">
               <button
                 className="flex-1 bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-60"
                 onClick={saveProfile}
@@ -1178,22 +1180,6 @@ export default function Profile({
           )}
 
           <button
-            onClick={() => setJustifyOpen(true)}
-            disabled={justificationLocked}
-            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Justificar Ausência
-          </button>
-          {justificationStatus && (
-            <div className="flex items-center justify-center gap-2 mb-8">
-              <JustifyAbsenceStatusBadge status={justificationStatus} />
-              {justificationStatus === "negado" && absenceRejectionReason && (
-                <StatusEyeButton onClick={() => setReasonModal("absence")} />
-              )}
-            </div>
-          )}
-
-          <button
             onClick={() => setPapfeModalOpen(true)}
             className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
           >
@@ -1208,7 +1194,7 @@ export default function Profile({
             </div>
           )}
 
-          <div className="bg-semcompOffWhite/40 rounded-xl p-5 border border-border/50">
+          <div className="bg-semcompOffWhite/40 rounded-xl mb-6 p-5 border border-border/50">
             <h3 className="text-center text-semcompMidDarkBlue text-md font-bold text-semcomp-900 mb-4">
               Minha Presença na SEMCOMP
             </h3>
@@ -1230,6 +1216,22 @@ export default function Profile({
               )}
             </div>
           </div>
+
+          <button
+            onClick={() => setJustifyOpen(true)}
+            disabled={justificationLocked}
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Justificar Ausência
+          </button>
+          {justificationStatus && (
+            <div className="flex items-center justify-center gap-2 mb-8">
+              <JustifyAbsenceStatusBadge status={justificationStatus} />
+              {justificationStatus === "negado" && absenceRejectionReason && (
+                <StatusEyeButton onClick={() => setReasonModal("absence")} />
+              )}
+            </div>
+          )}
 
           <button
             onClick={logout}

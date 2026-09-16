@@ -29,7 +29,10 @@ App (layout raiz — estático, não-lazy)
 │   └── FeatureGuard("loja")
 │       ├── /loja
 │       ├── /loja/carrinho
-│       └── /loja/checkout
+│       ├── /loja/checkout
+│       └── /loja/pagamentos
+│   └── FeatureGuard("riddle")
+│       └── /riddle              ← jogo de enigmas
 ├── /                         ← Home (sempre disponível)
 └── *                         ← NotFound
 ```
@@ -44,9 +47,11 @@ App (layout raiz — estático, não-lazy)
 | `/reset-password` | `pages/ResetPassword/index.tsx` | FeatureGuard(`login`) | `POST /reset-password` |
 | `/verify-email` | `pages/VerifyEmail/index.tsx` | — | `GET /api/verify-email` (param: token) |
 | `/profile` | `pages/Profile/index.tsx` | RequireAuth + FeatureGuard(`login`) | `GET /api/profile` |
-| `/loja` | `pages/Store/StorePage.tsx` | RequireAuth + FeatureGuard(`loja`) | `GET /products?limit=1000` |
-| `/loja/carrinho` | `pages/Store/Cart.tsx` | RequireAuth + FeatureGuard(`loja`) | `POST /api/payments/pix` |
-| `/loja/checkout` | `pages/Store/Checkout.tsx` | RequireAuth + FeatureGuard(`loja`) | `GET /api/payments/:id/status` |
+| `/loja` | `pages/Store/StorePage.tsx` | RequireAuth + FeatureGuard(`loja`) | `GET /products?limit=1000` + `GET /api/sales/consumed` + `GET /api/sales/profile` (banner pagamentos pendentes) |
+| `/loja/carrinho` | `pages/Store/Cart.tsx` | RequireAuth + FeatureGuard(`loja`) | `POST /api/sales` |
+| `/loja/checkout` | `pages/Store/Checkout.tsx` | RequireAuth + FeatureGuard(`loja`) | SSE `GET /api/sales/:id/events` |
+| `/loja/pagamentos` | `pages/Store/PendingPayments.tsx` | RequireAuth + FeatureGuard(`loja`) | `GET /api/sales/profile` + SSE `GET /api/sales/:id/events` |
+| `/riddle` | `pages/Riddle/index.tsx` | RequireAuth + FeatureGuard(`riddle`) | `GET /api/riddles/my-game` + `POST /api/riddles/*` (create-team/join-team/solve) |
 | `*` | `pages/NotFound/index.tsx` | — | — |
 
 ## Home (`/`) — Seções

@@ -88,7 +88,7 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 ### permission
 - Rotas backoffice: `GET /admin/permissions`, `GET /admin/permissions/me`, `GET /admin/permissions/section/:section`, `POST /admin/permissions`, `PUT/DELETE /admin/permissions/:user/:section`
 - `GetMyPermissions` — email lido do JWT, sem URL param
-- `InitializePermissions()` — concede `RW` em todas as 7 seções ao admin padrão
+- `InitializePermissions()` — concede `RW` em todas as 17 seções ao admin padrão
 - → Detalhes: [[Feature_Controle_Backend]]
 
 ### product
@@ -110,6 +110,15 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - Estado in-memory — reiniciar servidor reseta para `available: true`
 - Inicializado com: `["home", "login", "cronograma", "profile", "riddle", "loja"]`
 - → Detalhes: [[Feature_Flags_e_Pages]]
+
+### riddle
+- Bloco novo — jogo de enigmas em sequência (backoffice + participante)
+- Rotas backoffice (`/admin`, seção `"Riddles"`): `GET/POST /admin/riddles`, `GET/PUT/DELETE /admin/riddles/:id`, `POST /admin/riddles/upload-csv`
+- Rotas site (`/api`, guard `AuthMiddleware` + `pageMW("riddle")`): `GET /api/riddles/my-game`, `POST /api/riddles/create-team`, `POST /api/riddles/join-team`, `POST /api/riddles/solve`
+- `Riddle`: PK autoincrement que define a ordem da fila; `IsActive` = soft delete + visibilidade no jogo
+- `Team`/`TeamMember`: equipes de até 5 (MaxTeamSize); progresso por `CurrentRiddleIndex`; convite por `Code` (8 chars)
+- `PublicRiddle` esconde `Answer` (padrão `user.SafeUser`) — o struct cru `Riddle` só é usado nas rotas de backoffice
+- → Detalhes: [[Feature_Riddle_e_Jogo]]
 
 ### token
 - Sem handler HTTP — usado internamente por `user`
@@ -157,15 +166,19 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 
 ## Sequência de Startup (main.go)
 
-1. Conecta DB + `AutoMigrate` (User, PapfeDocument, Event, Presence, SigninEvent, UserBackoffice, AuditLog, Permission, Product, Kit, Coffee, ComboItem, Token, Payment, Sponsor, SponsorPackage, SiteStat)
-   → módulos registrados: auth, authBackoffice, user, userBackoffice, event, signinEvent, presence, section, permission, product, payment, pages, token, mailer, log, sponsor, sitestat
-2. Grandfather de `email_verified = true` para usuários existentes (se coluna era nova)
-3. Instancia providers + repos + services + handlers
-4. `userBackofficeService.InitializeAdmin()`
-5. `permissionService.InitializePermissions()`
-6. `productService.InitializeProducts()`
-7. Registra rotas + CORS + `AuditMiddleware`
-8. `r.Run(":4000")`
+1. Conecta DB + `AutoMigrate` (User, PapfeDocument, Event, Presence, SigninEvent, UserBackoffice, AuditLog, Permission, Product, Kit, Coffee, ComboItem, Token, Sponsor, SponsorPackage, SiteStat, Sale, SaleItem, ConsumedItem, Riddle, AbsenceJustification, Notice, …)
+2. Migrações manuais pós-AutoMigrate:
+   - dropa a coluna órfã `kits.is_babydoll` (modelo usa `is_babylook`)
+   - recria `sales.status_chk` aceitando `EXPIRADO` (AutoMigrate não altera CHECK existente)
+   - cria `teams` + `team_members` via SQL manual (GORM inverte FK em AutoMigrate)
+3. Grandfather de `email_verified = true` para usuários existentes (se coluna era nova)
+4. Instancia providers + repos + services + handlers
+5. `userBackofficeService.InitializeAdmin()`
+6. `permissionService.InitializePermissions()`
+7. `productService.InitializeProducts()`
+8. **Sweeper de expiração** (goroutine, ticker 1 min): `ExpirePendingPixSales()` persiste `EXPIRADO` (via `UPDATE ... RETURNING`) e, para cada venda expirada, `DeleteConsumedBySale` libera as travas de compra única
+9. Registra rotas + CORS + `AuditMiddleware`
+10. `r.Run(":4000")`
 
 → Rotas site: [[Integracao_API_Site]] | Rotas backoffice: [[Integracao_API_Backoffice]]  
 → Entidades core: [[Backend_Modelos_Core]] | Entidades loja: [[Backend_Modelos_Loja]]

@@ -10,7 +10,7 @@ RBAC simples por seção. Proteção no middleware Go antes do handler chegar ao
 
 ---
 
-## KnownSections (10 seções)
+## KnownSections (17 seções)
 Definidas em `internal/permission/model.go`.  
 **O campo `section` em `Tabs.tsx` deve estar em sync com esta lista.**
 
@@ -24,11 +24,17 @@ Definidas em `internal/permission/model.go`.
 | `"Produtos"` | ❌ sem tab | — | ❌ (backend only) |
 | `"Páginas"` | ✅ | `/pages-availability` | ✅ |
 | `"Patrocinadores"` | ✅ | `/sponsors` | ✅ → [[Feature_Patrocinadores]] |
+| `"Vendas"` | ✅ | `/sales` | ✅ |
 | `"PAPFE"` | ✅ | `/papfe-documents` | ✅ → [[Feature_PAPFE]] |
-| `"Inscrições"` | ❌ sem tab | — | ❌ (CRUD admin via API, sem página no backoffice) |
+| `"Riddles"` | ✅ | `/riddles` | ✅ |
+| `"Inscrições"` | ✅ | `/event-registration` | ✅ |
+| `"Avisos"` | ✅ | `/notices` | ✅ |
+| `"Justificativas de Ausência"` | ✅ | `/absence-justifications` | ✅ |
+| `"Dashboard"` | ✅ | `/dashboard` | ✅ |
+| `"Confirmações de Inscrição"` | ✅ | `/confirm-registrations` | ✅ |
 
 **Inicialização:**
-- `InitializeSections()` → cria as 7 seções na startup
+- `InitializeSections()` → cria as 17 seções na startup
 - Admin padrão (`ADMIN_EMAIL`) recebe `"RW"` em todas via `InitializePermissions()`
 - Novo admin criado: `SeedUserPermissions` é chamado → sem permissões (admin define depois)
 

@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 import type { FeatureKey } from "@/types/FeatureKeyType";
 
-type TabKey = "home" | "loja" | "login" | "perfil" | "cronograma";
+type TabKey = "home" | "loja" | "login" | "perfil" | "cronograma" | "riddle";
 
 export default function Header() {
   const { width } = useWindowDimensions();
@@ -18,6 +18,7 @@ export default function Header() {
     { key: "home", featureKey: "home", label: "HOME", path: "/", status: true },
     { key: "cronograma", featureKey: "cronograma", label: "CRONOGRAMA", path: "/cronograma", status: true },
     { key: "loja", featureKey: "loja", label: "LOJA", path: "/loja", status: isAuthenticated },
+    { key: "riddle", featureKey: "riddle", label: "RIDDLE", path: "/riddle", status: isAuthenticated },
     { key: "login", featureKey: "login", label: "INSCRIÇÃO", path: "/login", status: !isAuthenticated },
     { key: "perfil", featureKey: "login", label: "PERFIL", path: "/profile", status: isAuthenticated },
   ];

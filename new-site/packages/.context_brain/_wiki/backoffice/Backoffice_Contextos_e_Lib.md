@@ -55,9 +55,29 @@ Prop `canWrite?: boolean` (default `true`):
 | `pages/UserBackoffice/index.tsx` | `"Usuários Backoffice"` |
 | `pages/UserSemcomp/index.tsx` | `"Usuários Semcomp"` |
 | `pages/Participation/index.tsx` | `"Participações"` |
+| `pages/Products/index.tsx` | `"Produtos"` |
+| `pages/Sales/index.tsx` | `"Vendas"` |
+| `pages/Riddles/index.tsx` | `"Riddles"` |
 | `pages/Permission/index.tsx` | matrix customizada (não usa CrudTable) |
 | `pages/Sponsors/index.tsx` | `"Patrocinadores"` |
 | `pages/PapfeDocuments/index.tsx` | `"PAPFE"` (usa CrudTable + Dialog de visualização) |
+
+### Capacidades extras (adicionadas para a página Riddles)
+- `type: "image-preview"` — pré-visualização ao vivo de uma URL de imagem dentro do modal de criar/editar (com `previewFrom` opcional e placeholder quando vazia/falha).
+- `hideInEdit` — campo aparece como coluna na tabela mas não no modal de edição.
+- `hideInTable` — campo só nos modais, não vira coluna (ex.: `image-preview`).
+- `interactiveToggle` (boolean) — renderiza um Switch clicável na célula da tabela em vez do Badge estático; efeito imediato via `onToggleField` (a página decide atualizar `data` após chamada à API).
+- `onDelete` tornou-se **opcional** — quando omitido, o botão "Excluir" não aparece nas ações da linha.
+
+### Expansão de linha (texto longo)
+CrudTable expande/recolhe **a linha inteira** ao clicar nela (não mais por célula):
+
+- `rowHasExpandableContent(item)`: a linha é clicável se tem `textarea` com mais de 120 chars **ou** texto com mais de 40 chars (campos `url` são excluídos — têm truncate próprio).
+- Estado: `expandedRows: Set<string>` chaveado por `resolveItemKey(item)`.
+- Colapsado: `line-clamp-2` + `max-w-2xs` (288px) + `whitespace-normal break-words`; expandido: vira `block` (sem clamp) para mostrar o texto completo.
+- **Cuidado com `max-w-xs`**: neste projeto compila para `--spacing-xs` = 6px (Tailwind v4.2.2) e empilha os caracteres — usar `max-w-2xs`.
+- `block` e `line-clamp-2` são mutuamente exclusivos (o `block` sobrescreve o `display:-webkit-box` exigido pelo clamp).
+- Botões de ação (`onAction`/Editar/Excluir) chamam `e.stopPropagation()` para não alternar a linha; linhas expandíveis ganham `cursor-pointer`.
 
 ---
 
@@ -75,10 +95,16 @@ Arquivo: `src/constants/Tabs.tsx`
 | `permissions` | `"Permissões"` | Permissões | `/permissions` |
 | `pages-availability` | `"Páginas"` | Páginas | `/pages-availability` |
 | `sponsors` | `"Patrocinadores"` | Patrocinadores | `/sponsors` |
+| `sales` | `"Vendas"` | Vendas | `/sales` |
+| `riddles` | `"Riddles"` | Riddles | `/riddles` |
 | `papfe` | `"PAPFE"` | PAPFE | `/papfe-documents` |
 | `event-registration` | `"Inscrições"` | Inscrições | `/event-registration` |
+| `confirm-registrations` | `"Confirmações de Inscrição"` | Confirmações de Inscrição | `/confirm-registrations` |
+| `avisos` | `"Avisos"` | Avisos | `/notices` |
+| `absence-justifications` | `"Justificativas de Ausência"` | Justificativas de Ausência | `/absence-justifications` |
+| `dashboard` | `"Dashboard"` | Dados | `/dashboard` |
 
-> O campo `section` em Tabs **deve estar em sync** com `KnownSections` em `backend/internal/permission/model.go`.
+> O campo `section` em Tabs **deve estar em sync** com `KnownSections` em `backend/internal/permission/model.go` (17 seções).
 
 ---
 
@@ -103,7 +129,11 @@ Arquivo: `src/api/index.ts`
 | `userSemcompAPI` | `api/users.ts` | CRUD `/admin/users` |
 | `permissionsAPI` | `api/permissions.ts` | `getAll`, `getMe`, `create`, `update`, `remove` |
 | `pagesAPI` | `api/pages.ts` | `getAll`, `setAvailability` |
+| `productsAPI` | `api/products.ts` | CRUD `/admin/products` + `createCombo`/`updateCombo`/`bulkCreate` |
 | `sponsorsAPI` | `api/sponsors.ts` | CRUD `/admin/sponsors` + packages; multipart upload |
+| `salesAPI` | `api/sales.ts` | `GET /admin/sales`, `PUT/DELETE /admin/sales/:id`, `PATCH /admin/sales/items/:itemId/pickup` |
+| `riddlesAPI` | `api/riddles.ts` | CRUD `/admin/riddles` + `uploadCSV` |
+| `dashboardAPI` | `api/dashboard.ts` | `GET /admin/dashboard` |
 | `client` | `api/client.ts` | instância Axios |
 
 > `userSemcompAPI` (não `usersAPI`) é o nome correto para CRUD de participantes.  

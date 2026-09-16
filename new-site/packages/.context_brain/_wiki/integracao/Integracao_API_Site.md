@@ -49,13 +49,23 @@ Storage key: `semcomp-site-token`
 |---|---|---|---|
 | GET | `/api/profile` | `authAPI.getProfile` | retorna SafeUser |
 | GET | `/api/verify-email?token=` | — | verifica token de email |
-| GET | `/api/payments` | — | lista pagamentos do user |
-| POST | `/api/payments/pix` | `paymentAPI.createPix` | → [[Feature_Loja_e_Pagamentos]] |
-| GET | `/api/payments/:id/status` | `paymentAPI.getStatus` | polling a cada 4s |
+| POST | `/api/sales` | `salesAPI.create` | cria venda (PENDENTE) + PIX → [[Feature_Loja_e_Pagamentos]] |
+| GET | `/api/sales/profile` | `salesAPI.getMySales` | histórico de compras |
+| GET | `/api/sales/consumed` | `salesAPI.getConsumed` | ids de COFFEE/COMBO indisponíveis (consumidos/travados) |
+| GET | `/api/sales/:id` | `salesAPI.getById` | detalhes da venda |
+| GET | `/api/sales/:id/status` | `salesAPI.getStatus` | status efetivo da venda (polling; hoje sem uso no front) |
+| GET | `/api/sales/:id/events` | — (EventSource) | SSE de status PIX — Checkout e PendingPayments |
 | GET | `/api/signin-events` | `signinEventsAPI.getSigninEvents` | lista eventos com `has_signin=true`; retorna chave `events` |
 | GET | `/api/signin-events/me` | `signinEventsAPI.getMySignins` | inscrições ativas do usuário; retorna chave `signins` |
 | POST | `/api/signin-events` | `signinEventsAPI.createSignin` | body: `{ event_name, event_init_date }` |
 | DELETE | `/api/signin-events/:eventName/:eventInitDate` | `signinEventsAPI.deleteSignin` | cancela inscrição |
+| GET | `/api/riddles/my-game` | `riddleAPI.getMyGame` | estado do jogo (equipe, total, próximo enigma — nunca a resposta) |
+| POST | `/api/riddles/create-team` | `riddleAPI.createTeam` | cria equipe (participante vira fundador) + código de convite |
+| POST | `/api/riddles/join-team` | `riddleAPI.joinTeam` | entra em equipe pelo código |
+| POST | `/api/riddles/solve` | `riddleAPI.solve` | responde ao enigma atual; avança em ordem |
+
+> Rotas de riddle usam guard `AuthMiddleware` + `pageMW("riddle")`.
+> → [[Feature_Riddle_e_Jogo]]
 
 **POST `/api/payments/pix` payload**: `{ amount: float, product_ids: uint[], description?: string }`  
 **Resposta**: `{ payment_id, qr_code, qr_code_base64, amount }`
@@ -70,5 +80,10 @@ Importados diretamente pelas páginas (não pelo barrel):
 - `productsAPI` → `@/api/products`
 - `paymentAPI` → `@/api/payment`
 - `pagesAPI` → `@/api/pages`
+- `salesAPI` → `@/api/sales` (criação de venda, histórico, consumidos, status)
 - `signinEventsAPI` → `@/api/signinEvents` (usado em `pages/Profile`)
 - `sponsorsAPI` → `@/api/sponsors` (usado em `pages/Home/sections/PatrocinadoresSection`)
+- `riddleAPI` → `@/api/riddle` (jogo do participante: my-game, create-team, join-team, solve)
+
+> `paymentAPI` (`@/api/payment`) ainda existe no barrel, mas `Checkout`/`Cart`
+> usam `salesAPI` — o barrel antigo de pagamentos ficou órfão.
