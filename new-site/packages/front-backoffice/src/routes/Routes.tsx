@@ -16,6 +16,7 @@ import PresenceSettings from "@/pages/PresenceSettings";
 import SponsorsCRUD from "@/pages/Sponsors";
 import SalesCRUD from "@/pages/Sales";
 import PapfeDocuments from "@/pages/PapfeDocuments";
+import RiddlesCRUD from "@/pages/Riddles";
 import EventRegistration from "@/pages/EventRegistration";
 import ConfirmRegistrations from "@/pages/ConfirmRegistrations";
 import NoticesCRUD from "@/pages/Notices"
@@ -91,6 +92,10 @@ export const router = createBrowserRouter(
             {
               element: <RequirePermission section="PAPFE" />,
               children: [{ path: "/papfe-documents", element: <PapfeDocuments /> }],
+            },
+            {
+              element: <RequirePermission section="Riddles" />,
+              children: [{ path: "/riddles", element: <RiddlesCRUD /> }],
             },
             {
               element: <RequirePermission section="Inscrições" />,

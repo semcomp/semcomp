@@ -36,6 +36,7 @@ var KnownSections = []string{
 	"Patrocinadores",
 	"Vendas",
 	"PAPFE",
+	"Riddles",
 	"Avisos",
 	"Justificativas de Ausência",
 	"Inscrições",

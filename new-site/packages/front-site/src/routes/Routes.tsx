@@ -103,6 +103,18 @@ export const router = createBrowserRouter([
               },
             ],
           },
+          {
+            element: <FeatureGuard featureKey="riddle" />,
+            children: [
+              {
+                path: "riddle",
+                lazy: async () => {
+                  const { default: RiddlePage } = await import("@/pages/Riddle");
+                  return { Component: RiddlePage };
+                },
+              },
+            ],
+          },
         ],
       },
       {
