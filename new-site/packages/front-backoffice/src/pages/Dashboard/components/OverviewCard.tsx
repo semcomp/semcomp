@@ -60,9 +60,11 @@ export default function OverviewCard({ data, loading }: OverviewCardProps) {
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-xl border border-border/50 bg-muted/20 p-4 text-center"
+                  className="min-w-0 rounded-xl border border-border/50 bg-muted/20 p-4 text-center"
                 >
-                  <p className={`text-2xl md:text-3xl font-bold ${stat.accent}`}>{stat.value}</p>
+                  <p className={`break-words text-2xl font-bold leading-tight md:text-3xl ${stat.accent}`}>
+                    {stat.value}
+                  </p>
                   <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
                     {stat.label}
                   </p>

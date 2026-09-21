@@ -78,9 +78,11 @@ export default function ProductsCard({
               {tiles.map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-lg border border-border/50 bg-muted/20 p-3 text-center"
+                  className="min-w-0 rounded-lg border border-border/50 bg-muted/20 p-3 text-center"
                 >
-                  <p className="text-base md:text-lg font-bold text-primary">{stat.value}</p>
+                  <p className="break-words text-sm font-bold leading-tight text-primary md:text-base">
+                    {stat.value}
+                  </p>
                   <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
                     {stat.label}
                   </p>
