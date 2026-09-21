@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import FitText from "@/components/FitText";
 import { Users } from "lucide-react";
 import type { UsersStats } from "@/api/dashboard";
 
@@ -62,9 +63,10 @@ export default function OverviewCard({ data, loading }: OverviewCardProps) {
                   key={stat.label}
                   className="min-w-0 rounded-xl border border-border/50 bg-muted/20 p-4 text-center"
                 >
-                  <p className={`break-words text-2xl font-bold leading-tight md:text-3xl ${stat.accent}`}>
-                    {stat.value}
-                  </p>
+                  <FitText
+                    value={stat.value}
+                    className={`text-2xl font-bold md:text-3xl ${stat.accent}`}
+                  />
                   <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
                     {stat.label}
                   </p>
