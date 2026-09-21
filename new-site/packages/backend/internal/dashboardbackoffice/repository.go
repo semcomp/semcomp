@@ -27,17 +27,21 @@ func (r *DashboardRepository) GetUsersStats() (*UsersStats, error) {
 	// destino de cada Scan, então escanear direto em *stats apagaria os
 	// valores das consultas anteriores.
 	var totals struct {
-		Total          int64
-		Confirmed      int64
-		Unconfirmed    int64
-		TotalWithPapfe int64
+		Total                     int64
+		Confirmed                 int64
+		Unconfirmed               int64
+		TotalWithPapfe            int64
+		WantsBadge                int64
+		AuthorizesSponsorSharing  int64
 	}
 	if err := r.db.Raw(`
 		SELECT
 			COUNT(*)                                       AS total,
 			COUNT(*) FILTER (WHERE email_verified = true)  AS confirmed,
 			COUNT(*) FILTER (WHERE email_verified = false) AS unconfirmed,
-			COUNT(*) FILTER (WHERE has_papfe = true)       AS total_with_papfe
+			COUNT(*) FILTER (WHERE has_papfe = true)       AS total_with_papfe,
+			COUNT(*) FILTER (WHERE quer_cracha = true)                      AS wants_badge,
+			COUNT(*) FILTER (WHERE autoriza_compartilhamento = true)        AS authorizes_sponsor_sharing
 		FROM users
 	`).Scan(&totals).Error; err != nil {
 		return nil, err
@@ -46,6 +50,8 @@ func (r *DashboardRepository) GetUsersStats() (*UsersStats, error) {
 	stats.Confirmed = totals.Confirmed
 	stats.Unconfirmed = totals.Unconfirmed
 	stats.TotalWithPapfe = totals.TotalWithPapfe
+	stats.WantsBadge = totals.WantsBadge
+	stats.AuthorizesSponsorSharing = totals.AuthorizesSponsorSharing
 
 	// Justificativas de ausência
 	var justifications struct {
