@@ -87,6 +87,7 @@ export interface CoffeeStat {
   sold: number;
   pending: number;
   revenue: number;
+  vegetarian: number;
 }
 
 export interface CoffeeSalesStats {

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coffee } from "lucide-react";
+import { Coffee, UtensilsCrossed } from "lucide-react";
 import type { CoffeeSalesStats } from "@/api/dashboard";
 import { isNightCoffee } from "@/utils/coffeeRules";
 
@@ -74,6 +74,10 @@ export default function CoffeesCard({
                         >
                           {isNightCoffee(coffee.dateTime) ? "Noturno" : "Diurno"}
                         </span>
+                        <p className="mt-1 flex items-center gap-1 text-xs text-emerald-400">
+                          <UtensilsCrossed className="w-3.5 h-3.5" />
+                          {coffee.vegetarian.toLocaleString("pt-BR")} vegetariano(s)
+                        </p>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-semibold text-foreground">
