@@ -24,7 +24,7 @@ export default function CoffeesCard({
   const coffees = data?.byCoffee ?? [];
 
   return (
-    <Card className="border-border bg-card/80 rounded-2xl transition-colors hover:border-primary/40">
+    <Card className="max-h-[40rem] border-border bg-card/80 rounded-2xl transition-colors hover:border-primary/40">
       <CardHeader>
         <div className="mb-1 flex items-center gap-2">
           <span className="rounded-lg bg-primary/15 p-2 text-primary">
@@ -34,13 +34,13 @@ export default function CoffeesCard({
         </div>
         <CardDescription>Quantidade total de coffes vendidos.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-1 min-h-0 flex-col px-4">
         {loading ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex flex-1 items-center justify-center py-8">
             <p className="text-sm text-muted-foreground">Carregando...</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="flex flex-1 min-h-0 flex-col space-y-4">
             <div className="flex flex-col items-center justify-center py-6">
               <p className="text-4xl md:text-5xl font-bold text-primary">
                 {(data?.totalSold ?? 0).toLocaleString("pt-BR")}
@@ -50,12 +50,12 @@ export default function CoffeesCard({
               </p>
             </div>
 
-            <div className="space-y-3">
+            <div className="flex flex-1 min-h-0 flex-col space-y-3">
               <p className="text-sm font-semibold text-foreground">Por dia</p>
               {coffees.length === 0 ? (
-                <p className="py-4 text-center text-sm text-muted-foreground">Sem dados de coffes vendidos.</p>
+                <p className="flex flex-1 items-center justify-center py-4 text-center text-sm text-muted-foreground">Sem dados de coffes vendidos.</p>
               ) : (
-                <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                <div className="flex-1 min-h-0 space-y-2 overflow-y-auto pr-1">
                   {coffees.map((coffee) => (
                     <div
                       key={coffee.coffeeId}
