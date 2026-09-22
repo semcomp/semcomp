@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coffee, UtensilsCrossed } from "lucide-react";
 import type { CoffeeSalesStats } from "@/api/dashboard";
@@ -21,7 +22,13 @@ export default function CoffeesCard({
   data?: CoffeeSalesStats;
   loading: boolean;
 }) {
-  const coffees = data?.byCoffee ?? [];
+  const coffees = useMemo(() => data?.byCoffee ?? [], [data]);
+  const [sortMode, setSortMode] = useState<"date" | "sold">("date");
+
+  const ordered = useMemo(
+    () => (sortMode === "sold" ? [...coffees].sort((a, b) => b.sold - a.sold) : coffees),
+    [coffees, sortMode],
+  );
 
   return (
     <Card className="max-h-[40rem] border-border bg-card/80 rounded-2xl transition-colors hover:border-primary/40">
@@ -51,12 +58,38 @@ export default function CoffeesCard({
             </div>
 
             <div className="flex flex-1 min-h-0 flex-col space-y-3">
-              <p className="text-sm font-semibold text-foreground">Por dia</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-foreground">Por dia</p>
+                <div className="flex rounded-lg border border-border bg-muted/20 p-0.5 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setSortMode("date")}
+                    className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                      sortMode === "date"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Por data
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSortMode("sold")}
+                    className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                      sortMode === "sold"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Mais vendidos
+                  </button>
+                </div>
+              </div>
               {coffees.length === 0 ? (
                 <p className="flex flex-1 items-center justify-center py-4 text-center text-sm text-muted-foreground">Sem dados de coffes vendidos.</p>
               ) : (
                 <div className="flex-1 min-h-0 space-y-2 overflow-y-auto pr-1">
-                  {coffees.map((coffee) => (
+                  {ordered.map((coffee) => (
                     <div
                       key={coffee.coffeeId}
                       className="flex items-center justify-between gap-2 rounded-xl border border-border/50 bg-muted/20 p-3"
