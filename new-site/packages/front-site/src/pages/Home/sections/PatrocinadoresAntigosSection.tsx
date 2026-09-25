@@ -21,10 +21,10 @@ export default function PatrocinadoresAntigosSection() {
 
       <div className="relative z-10">
         <div className="section-container-wide text-center px-4 mb-12">
-          <p className="section-eyebrow">Edições 2012 – 2025</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold font-poppins text-semcompDarkBlue dark:text-semcompOffWhite">
+          <p className="section-eyebrow text-semcompOffWhite">Edições 2012 – 2025</p>
+          <h2 className="text-3xl md:text-4xl font-extrabold font-poppins text-semcompOffWhite">
             Quem já confiou na{' '}
-            <span className="bg-clip-text text-transparent bg-linear-to-r from-semcompDarkBlue to-semcompMidDarkBlue dark:from-semcompMidLightBlue dark:to-semcompLightBlue">
+            <span className="bg-clip-text text-transparent bg-linear-to-r from-semcompLightBlue/80 via-semcompLightBlue to-semcompOffWhite dark:from-semcompMidLightBlue dark:to-semcompLightBlue">
               SEMCOMP
             </span>
           </h2>
@@ -61,7 +61,7 @@ export default function PatrocinadoresAntigosSection() {
           />
         </div>
 
-        <p className="text-center mt-12 text-sm text-semcompDarkBlue/85 dark:text-semcompOffWhite/55 font-poppins px-4">
+        <p className="text-center mt-12 text-sm text-semcompOffWhite dark:text-semcompOffWhite/55 font-poppins px-4">
           {PREVIOUS_SPONSORS.length}+ parceiros distintos ao longo de uma década de SEMCOMP.
         </p>
       </div>
