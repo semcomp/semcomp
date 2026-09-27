@@ -8,6 +8,11 @@ import type { FeatureKey } from "@/types/FeatureKeyType";
 
 type TabKey = "home" | "loja" | "login" | "perfil" | "cronograma" | "riddle";
 
+// Definição de rotas que permitem o menu sólido
+const pagesWithBackground = [
+  "/profile",
+];
+
 export default function Header() {
   const { width } = useWindowDimensions();
   const location = useLocation();
@@ -44,6 +49,8 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
 
+  const solidMenu = pagesWithBackground.includes(location.pathname);
+
   useEffect(() => {
     const handleScroll = () => {
       setHasScrolled(window.scrollY > 50);
@@ -76,7 +83,7 @@ export default function Header() {
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 pt-[env(safe-area-inset-top)] ${
-      hasScrolled ? "bg-semcompMidLightBlue dark:bg-semcompDarkBlue backdrop-blur-sm shadow-lg" : "bg-transparent"
+      solidMenu || hasScrolled ? "bg-semcompMidLightBlue dark:bg-semcompDarkBlue backdrop-blur-sm shadow-lg" : "bg-transparent"
     }`}>
       <div className="mx-auto flex w-[80%] items-center justify-end pt-5 pb-5">
 

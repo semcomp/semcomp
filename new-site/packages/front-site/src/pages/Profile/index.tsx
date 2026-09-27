@@ -634,7 +634,7 @@ export default function Profile({
         {/* Header com Background */}
         <div className="relative h-80 w-full overflow-hidden bg-semcompMidLightBlue dark:bg-semcompDarkBlue">
           <AnimatedBackground />
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1]">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1] mt-15">
             <img src="/img/semcomp/logo_default_branco.webp" alt="SEMCOMP Logo" className="w-1/2 max-w-50 object-contain drop-shadow-2xl" />
           </div>
           <div className="absolute inset-0 bg-linear-to-b from-transparent to-semcompMidLightBlue dark:to-semcompAlmostDarkBlue" />
@@ -1314,7 +1314,7 @@ export default function Profile({
         {cancelModal}
         {cancelConfirmModal}
         <div
-          className="relative overflow-hidden h-[calc(90vh-70px)] w-full flex flex-row justify-center items-center gap-10 font-poppins"
+          className="relative overflow-hidden h-[calc(90vh-70px)] w-full flex flex-row justify-center items-center gap-10 font-poppins mt-15"
         >
           <AnimatedBackground />
           <div
