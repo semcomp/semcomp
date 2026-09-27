@@ -1077,7 +1077,7 @@ export default function Profile({
             {qrAndAccountCard}
           </div>
 
-          <div className="relative z-10 w-[28%] min-w-[320px] bg-semcompMidDarkBlue dark:bg-semcompDarkBlue flex flex-col rounded-sm overflow-hidden text-semcompOffWhite p-10">
+          <div className="relative z-10 h-[85%] w-[28%] bg-semcompMidDarkBlue dark:bg-semcompDarkBlue flex flex-col rounded-sm overflow-hidden text-semcompOffWhite p-10">
             <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP 29</h1>
             
             <p className="text-center text-md pb-4">
