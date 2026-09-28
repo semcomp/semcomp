@@ -29,6 +29,8 @@ export interface UsersStats {
   notJustified: number;
   meanRate: number;
   totalWithPapfe: number;
+  wantsBadge: number;
+  authorizesSponsorSharing: number;
   uspParticipants: number;
   externalParticipants: number;
   lastUpdate: string;
@@ -85,6 +87,7 @@ export interface CoffeeStat {
   sold: number;
   pending: number;
   revenue: number;
+  vegetarian: number;
 }
 
 export interface CoffeeSalesStats {

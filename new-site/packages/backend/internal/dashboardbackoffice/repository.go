@@ -27,17 +27,21 @@ func (r *DashboardRepository) GetUsersStats() (*UsersStats, error) {
 	// destino de cada Scan, então escanear direto em *stats apagaria os
 	// valores das consultas anteriores.
 	var totals struct {
-		Total          int64
-		Confirmed      int64
-		Unconfirmed    int64
-		TotalWithPapfe int64
+		Total                     int64
+		Confirmed                 int64
+		Unconfirmed               int64
+		TotalWithPapfe            int64
+		WantsBadge                int64
+		AuthorizesSponsorSharing  int64
 	}
 	if err := r.db.Raw(`
 		SELECT
 			COUNT(*)                                       AS total,
 			COUNT(*) FILTER (WHERE email_verified = true)  AS confirmed,
 			COUNT(*) FILTER (WHERE email_verified = false) AS unconfirmed,
-			COUNT(*) FILTER (WHERE has_papfe = true)       AS total_with_papfe
+			COUNT(*) FILTER (WHERE has_papfe = true)       AS total_with_papfe,
+			COUNT(*) FILTER (WHERE quer_cracha = true)                      AS wants_badge,
+			COUNT(*) FILTER (WHERE autoriza_compartilhamento = true)        AS authorizes_sponsor_sharing
 		FROM users
 	`).Scan(&totals).Error; err != nil {
 		return nil, err
@@ -46,6 +50,8 @@ func (r *DashboardRepository) GetUsersStats() (*UsersStats, error) {
 	stats.Confirmed = totals.Confirmed
 	stats.Unconfirmed = totals.Unconfirmed
 	stats.TotalWithPapfe = totals.TotalWithPapfe
+	stats.WantsBadge = totals.WantsBadge
+	stats.AuthorizesSponsorSharing = totals.AuthorizesSponsorSharing
 
 	// Justificativas de ausência
 	var justifications struct {
@@ -378,7 +384,8 @@ func (r *DashboardRepository) GetCoffeeSalesStats() (*CoffeeSalesStats, error) {
 	if err := r.db.Raw(`
 		WITH coffee_sales AS (
 			-- Coffees comprados avulsos
-			SELECT si.product_id AS coffee_id, si.quantity, si.unit_price, s.status
+			SELECT si.product_id AS coffee_id, si.quantity, si.unit_price, s.status,
+			       s.sale_user_number, s.dietary_restrictions
 			FROM sale_items si
 			JOIN sales s ON s.id = si.sale_id
 			JOIN products p ON p.id = si.product_id
@@ -387,7 +394,8 @@ func (r *DashboardRepository) GetCoffeeSalesStats() (*CoffeeSalesStats, error) {
 			UNION ALL
 
 			-- Coffees comprados dentro de um combo
-			SELECT ci.item_id AS coffee_id, si.quantity * ci.quantity AS quantity, si.unit_price, s.status
+			SELECT ci.item_id AS coffee_id, si.quantity * ci.quantity AS quantity, si.unit_price, s.status,
+			       s.sale_user_number, s.dietary_restrictions
 			FROM sale_items si
 			JOIN sales s ON s.id = si.sale_id
 			JOIN products p ON p.id = si.product_id
@@ -401,7 +409,10 @@ func (r *DashboardRepository) GetCoffeeSalesStats() (*CoffeeSalesStats, error) {
 			c.date_time                                                                      AS date_time,
 			COALESCE(SUM(cs.quantity) FILTER (WHERE cs.status = 'PAGO'), 0)                  AS sold,
 			COALESCE(SUM(cs.quantity) FILTER (WHERE cs.status = 'PENDENTE'), 0)               AS pending,
-			COALESCE(SUM(cs.unit_price * cs.quantity) FILTER (WHERE cs.status = 'PAGO'), 0)  AS revenue
+			COALESCE(SUM(cs.unit_price * cs.quantity) FILTER (WHERE cs.status = 'PAGO'), 0)  AS revenue,
+			COALESCE(COUNT(DISTINCT cs.sale_user_number) FILTER (
+				WHERE cs.status = 'PAGO' AND LOWER(TRIM(cs.dietary_restrictions)) = 'vegetariano'
+			), 0)                                                                            AS vegetarian
 		FROM products p
 		JOIN coffees c ON c.id = p.id
 		LEFT JOIN coffee_sales cs ON cs.coffee_id = p.id

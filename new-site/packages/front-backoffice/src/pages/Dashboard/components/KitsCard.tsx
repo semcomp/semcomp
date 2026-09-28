@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Shirt } from "lucide-react";
 import type { KitSalesStats } from "@/api/dashboard";
 
-type GroupMode = "color" | "size";
+type GroupMode = "color" | "size" | "cut";
 
 interface KitGroup {
   label: string;
@@ -12,15 +12,17 @@ interface KitGroup {
 }
 
 // Monta a árvore de agrupamento a partir da lista plana byColorAndSize do backend
-// (cor × tamanho × corte). O corte (is_babylook) não é separado no toggle; as
-// quantidades são somadas dentro do agrupamento escolhido.
+// (cor × tamanho × corte). Em "color"/"size" as quantidades dos dois cortes são
+// somadas dentro do agrupamento; em "cut" o agrupamento é por corte (babylook
+// vs. tradicional), detalhado por cor.
 function buildGroups(data: KitSalesStats | undefined, mode: GroupMode): KitGroup[] {
   const variants = data?.byColorAndSize ?? [];
 
   const groups = new Map<string, Map<string, number>>();
   for (const variant of variants) {
-    const outer = mode === "color" ? variant.color : variant.size;
-    const inner = mode === "color" ? variant.size : variant.color;
+    const outer =
+      mode === "color" ? variant.color : mode === "size" ? variant.size : variant.isBabylook ? "Babylook" : "Tradicional";
+    const inner = mode === "cut" ? variant.color : mode === "color" ? variant.size : variant.color;
 
     if (!groups.has(outer)) groups.set(outer, new Map());
     const innerMap = groups.get(outer)!;
@@ -38,13 +40,27 @@ function buildGroups(data: KitSalesStats | undefined, mode: GroupMode): KitGroup
     .sort((a, b) => b.total - a.total);
 }
 
+// Totaliza as vendas por corte (Babylook vs. Tradicional) a partir do byCut.
+function buildCutTotals(data: KitSalesStats | undefined): { babylook: number; traditional: number } {
+  const totals = (data?.byCut ?? []).reduce(
+    (acc, cut) => {
+      if (cut.label.toLowerCase() === "babylook") acc.babylook += cut.count;
+      else acc.traditional += cut.count;
+      return acc;
+    },
+    { babylook: 0, traditional: 0 },
+  );
+  return totals;
+}
+
 export default function KitsCard({ data, loading }: { data?: KitSalesStats; loading: boolean }) {
   const [mode, setMode] = useState<GroupMode>("color");
 
   const groups = useMemo(() => buildGroups(data, mode), [data, mode]);
+  const cutTotals = useMemo(() => buildCutTotals(data), [data]);
 
-  const outerLabel = mode === "color" ? "Cor" : "Tamanho";
-  const innerLabel = mode === "color" ? "Tamanho" : "Cor";
+  const outerLabel = mode === "cut" ? "Corte" : mode === "color" ? "Cor" : "Tamanho";
+  const innerLabel = mode === "cut" ? "Cor" : mode === "color" ? "Tamanho" : "Cor";
 
   return (
     <Card className="border-border bg-card/80 rounded-2xl transition-colors hover:border-primary/40">
@@ -58,7 +74,7 @@ export default function KitsCard({ data, loading }: { data?: KitSalesStats; load
           </div>
 
           <div className="flex rounded-lg border border-border bg-muted/20 p-0.5 text-xs">
-            {(["color", "size"] as GroupMode[]).map((m) => (
+            {(["color", "size", "cut"] as GroupMode[]).map((m) => (
               <button
                 key={m}
                 type="button"
@@ -69,13 +85,14 @@ export default function KitsCard({ data, loading }: { data?: KitSalesStats; load
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {m === "color" ? "Por cor" : "Por tamanho"}
+                {m === "color" ? "Por cor" : m === "size" ? "Por tamanho" : "Por corte"}
               </button>
             ))}
           </div>
         </div>
         <CardDescription>
-          Quantidade vendida agrupada por {outerLabel.toLowerCase()}.
+          Quantidade vendida agrupada por {outerLabel.toLowerCase()}, discriminando camisas
+          babylook e tradicionais.
         </CardDescription>
       </CardHeader>
 
@@ -87,40 +104,66 @@ export default function KitsCard({ data, loading }: { data?: KitSalesStats; load
         ) : groups.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de kits vendidos.</p>
         ) : (
-          <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-            {groups.map((group) => (
-              <div key={group.label} className="rounded-xl border border-border/50 bg-muted/20 p-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <p className="text-sm font-semibold text-foreground">{group.label}</p>
-                  <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
-                    {group.total.toLocaleString("pt-BR")} no total
-                  </span>
-                </div>
-
-                <div className="space-y-1.5">
-                  {group.children.map((child) => {
-                    const width = group.total > 0 ? (child.count / group.total) * 100 : 0;
-                    return (
-                      <div key={child.label} className="flex items-center gap-2">
-                        <span className="w-24 shrink-0 text-xs text-muted-foreground">
-                          {innerLabel}: {child.label}
-                        </span>
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                          <div
-                            className="h-full rounded-full bg-primary/60"
-                            style={{ width: `${width}%` }}
-                          />
-                        </div>
-                        <span className="w-12 shrink-0 text-right text-xs font-medium text-foreground">
-                          {child.count.toLocaleString("pt-BR")}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
+          <>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-center">
+                <p className="text-base md:text-lg font-bold text-primary">
+                  {cutTotals.babylook.toLocaleString("pt-BR")}
+                </p>
+                <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Babylook
+                </p>
               </div>
-            ))}
-          </div>
+              <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-center">
+                <p className="text-base md:text-lg font-bold text-primary">
+                  {cutTotals.traditional.toLocaleString("pt-BR")}
+                </p>
+                <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Tradicional
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                {groups.map((group) => (
+                  <div
+                    key={group.label}
+                    className="rounded-xl border border-border/50 bg-muted/20 p-3"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-sm font-semibold text-foreground">{group.label}</p>
+                      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
+                        {group.total.toLocaleString("pt-BR")} no total
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      {group.children.map((child) => {
+                        const width = group.total > 0 ? (child.count / group.total) * 100 : 0;
+                        return (
+                          <div key={child.label} className="flex items-center gap-2">
+                            <span className="w-24 shrink-0 text-xs text-muted-foreground">
+                              {innerLabel}: {child.label}
+                            </span>
+                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                              <div
+                                className="h-full rounded-full bg-primary/60"
+                                style={{ width: `${width}%` }}
+                              />
+                            </div>
+                            <span className="w-12 shrink-0 text-right text-xs font-medium text-foreground">
+                              {child.count.toLocaleString("pt-BR")}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>
