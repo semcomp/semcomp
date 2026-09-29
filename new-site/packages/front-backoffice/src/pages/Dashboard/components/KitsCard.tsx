@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shirt } from "lucide-react";
-import type { KitSalesStats } from "@/api/dashboard";
+import type { KitSalesStats, KitVariantStat } from "@/api/dashboard";
 
-type GroupMode = "color" | "size" | "cut";
+type AxisMode = "color" | "size";
+type CutFilter = "all" | "babylook" | "traditional";
 
 interface KitGroup {
   label: string;
@@ -11,18 +12,24 @@ interface KitGroup {
   children: { label: string; count: number }[];
 }
 
+// Seleciona as variantes de um corte de camiseta. "all" mantém babylooks e
+// tradicionais no mesmo agrupamento; os demais restringem a um corte só.
+function matchesCut(variant: KitVariantStat, cut: CutFilter): boolean {
+  if (cut === "all") return true;
+  return variant.isBabylook === (cut === "babylook");
+}
+
 // Monta a árvore de agrupamento a partir da lista plana byColorAndSize do backend
-// (cor × tamanho × corte). Em "color"/"size" as quantidades dos dois cortes são
-// somadas dentro do agrupamento; em "cut" o agrupamento é por corte (babylook
-// vs. tradicional), detalhado por cor.
-function buildGroups(data: KitSalesStats | undefined, mode: GroupMode): KitGroup[] {
-  const variants = data?.byColorAndSize ?? [];
+// (cor × tamanho × corte), já filtrada pelo corte escolhido. O eixo externo é a
+// cor ou o tamanho e o interno é o outro, de forma que o total exibido em cada
+// grupo sempre some apenas as variantes do corte em questão.
+function buildGroups(data: KitSalesStats | undefined, cut: CutFilter, axis: AxisMode): KitGroup[] {
+  const variants = (data?.byColorAndSize ?? []).filter((variant) => matchesCut(variant, cut));
 
   const groups = new Map<string, Map<string, number>>();
   for (const variant of variants) {
-    const outer =
-      mode === "color" ? variant.color : mode === "size" ? variant.size : variant.isBabylook ? "Babylook" : "Tradicional";
-    const inner = mode === "cut" ? variant.color : mode === "color" ? variant.size : variant.color;
+    const outer = axis === "color" ? variant.color : variant.size;
+    const inner = axis === "color" ? variant.size : variant.color;
 
     if (!groups.has(outer)) groups.set(outer, new Map());
     const innerMap = groups.get(outer)!;
@@ -40,27 +47,13 @@ function buildGroups(data: KitSalesStats | undefined, mode: GroupMode): KitGroup
     .sort((a, b) => b.total - a.total);
 }
 
-// Totaliza as vendas por corte (Babylook vs. Tradicional) a partir do byCut.
-function buildCutTotals(data: KitSalesStats | undefined): { babylook: number; traditional: number } {
-  const totals = (data?.byCut ?? []).reduce(
-    (acc, cut) => {
-      if (cut.label.toLowerCase() === "babylook") acc.babylook += cut.count;
-      else acc.traditional += cut.count;
-      return acc;
-    },
-    { babylook: 0, traditional: 0 },
-  );
-  return totals;
-}
-
 export default function KitsCard({ data, loading }: { data?: KitSalesStats; loading: boolean }) {
-  const [mode, setMode] = useState<GroupMode>("color");
+  const [axis, setAxis] = useState<AxisMode>("color");
 
-  const groups = useMemo(() => buildGroups(data, mode), [data, mode]);
-  const cutTotals = useMemo(() => buildCutTotals(data), [data]);
+  const groups = useMemo(() => buildGroups(data, "all", axis), [data, axis]);
 
-  const outerLabel = mode === "cut" ? "Corte" : mode === "color" ? "Cor" : "Tamanho";
-  const innerLabel = mode === "cut" ? "Cor" : mode === "color" ? "Tamanho" : "Cor";
+  const outerLabel = axis === "color" ? "Cor" : "Tamanho";
+  const innerLabel = axis === "color" ? "Tamanho" : "Cor";
 
   return (
     <Card className="border-border bg-card/80 rounded-2xl transition-colors hover:border-primary/40">
@@ -74,25 +67,25 @@ export default function KitsCard({ data, loading }: { data?: KitSalesStats; load
           </div>
 
           <div className="flex rounded-lg border border-border bg-muted/20 p-0.5 text-xs">
-            {(["color", "size", "cut"] as GroupMode[]).map((m) => (
+            {(["color", "size"] as AxisMode[]).map((m) => (
               <button
                 key={m}
                 type="button"
-                onClick={() => setMode(m)}
+                onClick={() => setAxis(m)}
                 className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
-                  mode === m
+                  axis === m
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {m === "color" ? "Por cor" : m === "size" ? "Por tamanho" : "Por corte"}
+                {m === "color" ? "Por cor" : "Por tamanho"}
               </button>
             ))}
           </div>
         </div>
         <CardDescription>
-          Quantidade vendida agrupada por {outerLabel.toLowerCase()}, discriminando camisas
-          babylook e tradicionais.
+          Quantidade vendida de kits, agrupada por {outerLabel.toLowerCase()} e detalhada por{" "}
+          {innerLabel.toLowerCase()}.
         </CardDescription>
       </CardHeader>
 
@@ -105,63 +98,39 @@ export default function KitsCard({ data, loading }: { data?: KitSalesStats; load
           <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de kits vendidos.</p>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-center">
-                <p className="text-base md:text-lg font-bold text-primary">
-                  {cutTotals.babylook.toLocaleString("pt-BR")}
-                </p>
-                <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                  Babylook
-                </p>
-              </div>
-              <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-center">
-                <p className="text-base md:text-lg font-bold text-primary">
-                  {cutTotals.traditional.toLocaleString("pt-BR")}
-                </p>
-                <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                  Tradicional
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-                {groups.map((group) => (
-                  <div
-                    key={group.label}
-                    className="rounded-xl border border-border/50 bg-muted/20 p-3"
-                  >
-                    <div className="mb-2 flex items-center justify-between">
-                      <p className="text-sm font-semibold text-foreground">{group.label}</p>
-                      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
-                        {group.total.toLocaleString("pt-BR")} no total
-                      </span>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      {group.children.map((child) => {
-                        const width = group.total > 0 ? (child.count / group.total) * 100 : 0;
-                        return (
-                          <div key={child.label} className="flex items-center gap-2">
-                            <span className="w-24 shrink-0 text-xs text-muted-foreground">
-                              {innerLabel}: {child.label}
-                            </span>
-                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                              <div
-                                className="h-full rounded-full bg-primary/60"
-                                style={{ width: `${width}%` }}
-                              />
-                            </div>
-                            <span className="w-12 shrink-0 text-right text-xs font-medium text-foreground">
-                              {child.count.toLocaleString("pt-BR")}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
+            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+              {groups.map((group) => (
+                <div key={group.label} className="rounded-xl border border-border/50 bg-muted/20 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm font-semibold text-foreground">{group.label}</p>
+                    <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
+                      {group.total.toLocaleString("pt-BR")} no total
+                    </span>
                   </div>
-                ))}
-              </div>
+
+                  <div className="space-y-1.5">
+                    {group.children.map((child) => {
+                      const width = group.total > 0 ? (child.count / group.total) * 100 : 0;
+                      return (
+                        <div key={child.label} className="flex items-center gap-2">
+                          <span className="w-24 shrink-0 text-xs text-muted-foreground">
+                            {innerLabel}: {child.label}
+                          </span>
+                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                            <div
+                              className="h-full rounded-full bg-primary/60"
+                              style={{ width: `${width}%` }}
+                            />
+                          </div>
+                          <span className="w-12 shrink-0 text-right text-xs font-medium text-foreground">
+                            {child.count.toLocaleString("pt-BR")}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           </>
         )}
