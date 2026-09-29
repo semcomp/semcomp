@@ -12,6 +12,38 @@ interface KitGroup {
   children: { label: string; count: number }[];
 }
 
+const CUT_FILTERS = ["all", "babylook", "traditional"] as CutFilter[];
+const AXIS_MODES = ["color", "size"] as AxisMode[];
+
+const CUT_LABELS: Record<CutFilter, string> = {
+  all: "Todos",
+  babylook: "Babylook",
+  traditional: "Tradicional",
+};
+
+// Trecho usado na descrição do card, para casar com o filtro de corte ativo.
+const CUT_PHRASES: Record<CutFilter, string> = {
+  all: "de kits (babylook e tradicional)",
+  babylook: "de babylooks",
+  traditional: "de camisas tradicionais",
+};
+
+const CUT_EMPTY: Record<CutFilter, string> = {
+  all: "Sem dados de kits vendidos.",
+  babylook: "Sem babylooks vendidos.",
+  traditional: "Sem camisas tradicionais vendidas.",
+};
+
+const AXIS_LABELS: Record<AxisMode, string> = {
+  color: "Por cor",
+  size: "Por tamanho",
+};
+
+const SEGMENT_CONTAINER = "flex rounded-lg border border-border bg-muted/20 p-0.5 text-xs";
+const SEGMENT_ITEM = "rounded-md px-2.5 py-1 font-medium transition-colors";
+const SEGMENT_ACTIVE = "bg-primary text-primary-foreground";
+const SEGMENT_IDLE = "text-muted-foreground hover:text-foreground";
+
 // Seleciona as variantes de um corte de camiseta. "all" mantém babylooks e
 // tradicionais no mesmo agrupamento; os demais restringem a um corte só.
 function matchesCut(variant: KitVariantStat, cut: CutFilter): boolean {
@@ -48,9 +80,10 @@ function buildGroups(data: KitSalesStats | undefined, cut: CutFilter, axis: Axis
 }
 
 export default function KitsCard({ data, loading }: { data?: KitSalesStats; loading: boolean }) {
+  const [cut, setCut] = useState<CutFilter>("all");
   const [axis, setAxis] = useState<AxisMode>("color");
 
-  const groups = useMemo(() => buildGroups(data, "all", axis), [data, axis]);
+  const groups = useMemo(() => buildGroups(data, cut, axis), [data, cut, axis]);
 
   const outerLabel = axis === "color" ? "Cor" : "Tamanho";
   const innerLabel = axis === "color" ? "Tamanho" : "Cor";
@@ -58,34 +91,44 @@ export default function KitsCard({ data, loading }: { data?: KitSalesStats; load
   return (
     <Card className="border-border bg-card/80 rounded-2xl transition-colors hover:border-primary/40">
       <CardHeader>
-        <div className="mb-1 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="rounded-lg bg-primary/15 p-2 text-primary">
-              <Shirt className="w-5 h-5" />
-            </span>
-            <CardTitle>Vendas de kits</CardTitle>
+        <div className="mb-1 flex items-center gap-2">
+          <span className="rounded-lg bg-primary/15 p-2 text-primary">
+            <Shirt className="w-5 h-5" />
+          </span>
+          <CardTitle>Vendas de kits</CardTitle>
+        </div>
+
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <div className={SEGMENT_CONTAINER}>
+            {CUT_FILTERS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setCut(option)}
+                className={`${SEGMENT_ITEM} ${cut === option ? SEGMENT_ACTIVE : SEGMENT_IDLE}`}
+              >
+                {CUT_LABELS[option]}
+              </button>
+            ))}
           </div>
 
-          <div className="flex rounded-lg border border-border bg-muted/20 p-0.5 text-xs">
-            {(["color", "size"] as AxisMode[]).map((m) => (
+          <div className={SEGMENT_CONTAINER}>
+            {AXIS_MODES.map((option) => (
               <button
-                key={m}
+                key={option}
                 type="button"
-                onClick={() => setAxis(m)}
-                className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
-                  axis === m
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                onClick={() => setAxis(option)}
+                className={`${SEGMENT_ITEM} ${axis === option ? SEGMENT_ACTIVE : SEGMENT_IDLE}`}
               >
-                {m === "color" ? "Por cor" : "Por tamanho"}
+                {AXIS_LABELS[option]}
               </button>
             ))}
           </div>
         </div>
+
         <CardDescription>
-          Quantidade vendida de kits, agrupada por {outerLabel.toLowerCase()} e detalhada por{" "}
-          {innerLabel.toLowerCase()}.
+          Quantidade vendida {CUT_PHRASES[cut]}, agrupada por {outerLabel.toLowerCase()} e
+          detalhada por {innerLabel.toLowerCase()}.
         </CardDescription>
       </CardHeader>
 
@@ -95,7 +138,7 @@ export default function KitsCard({ data, loading }: { data?: KitSalesStats; load
             <p className="text-sm text-muted-foreground">Carregando...</p>
           </div>
         ) : groups.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de kits vendidos.</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">{CUT_EMPTY[cut]}</p>
         ) : (
           <>
             <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
