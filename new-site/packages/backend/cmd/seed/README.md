@@ -1,97 +1,118 @@
 # Seed do Banco de Dados
 
-Script Go que popula o banco PostgreSQL local com dados de exemplo para desenvolvimento.
-
-## O que é inserido
-
-| Entidade              | Qtd | Detalhes                                                                          |
-|-----------------------|-----|-----------------------------------------------------------------------------------|
-| Pesos de presença     | 16  | Todos os tipos (Palestra=1.0, Vitrine=0.5, demais=0.0)                            |
-| Usuários Semcomp      | 12  | Senha padrão `senha1234`; 2 com e-mail não verificado; variados perfis e cidades  |
-| Eventos               | 22  | Programação completa de 5 dias: abertura, palestras, minicursos, oficinas, luau…  |
-| Patrocinadores        | 7   | 2 Ouro, 2 Prata, 3 Bronze — alguns com pacotes de anos anteriores também          |
-| Produtos              | 16  | 7 kits (P/M/G/GG + babylook P/M/G), 5 coffees e 4 combos                          |
-| Avisos                | 7   | Avisos gerais, regras do jogo, certificados, resultado do concurso                |
-| Riddles               | 12  | 10 ativos + 2 inativos (exemplos de estados desabilitado e bônus)                 |
-
-> O seed é **idempotente**: pode ser rodado várias vezes sem duplicar dados.
-> Usuários de backoffice e o admin já são criados pela própria API no startup
-> (via `ADMIN_EMAIL`/`ADMIN_PASSWORD` no `.env`), por isso o seed não os recria.
-
----
-
-## Pré-requisitos
-
-1. **Go** ≥ 1.22
-2. **PostgreSQL** em execução (local ou via Docker)
-3. Arquivo **`.env`** configurado na raiz do backend (`packages/backend/.env`)
-
-O `.env.example` tem um modelo completo. Para desenvolvimento local, basta:
-
-```bash
-cp .env.example .env
-# edite as variáveis DB_* se necessário
-```
-
-Se quiser subir o banco via Docker, use o `docker-compose.yml` na pasta `packages/`:
-
-```bash
-# a partir de packages/
-docker compose up -d postgres
-```
+Script Go que popula o banco PostgreSQL com dados de exemplo para facilitar testes no backoffice.  
+Todos os registros são identificados pelo prefixo `[SEED]` (nomes) ou domínio `@teste.semcomp.com` (e-mails), tornando fácil distingui-los e removê-los.
 
 ---
 
 ## Como rodar
 
-A partir do diretório `packages/backend/`:
+O seed roda como um binário separado dentro do container Docker — não interfere na API principal.
 
 ```bash
-# opção 1 - executa diretamente (sem gerar binário)
-go run ./cmd/seed
-
-# opção 2 - compila e executa
-go build -o seed ./cmd/seed
-./seed
+# a partir de packages/
+make seed
 ```
 
-O script lê o `.env` automaticamente (via `godotenv`) e imprime o progresso de cada etapa no stdout.
+O comando rebuilda a imagem do backend (que compila o binário `./seed`) e o executa em um container efêmero com acesso ao banco.
+
+> Requer que o container do banco de dados (`db`) esteja de pé. Rode `make up` ou `make build` antes, se necessário.
 
 ---
 
-## Resetar o banco antes do seed
-
-Para começar do zero (apaga todos os dados):
+## Como desfazer
 
 ```bash
-# via psql (substitua as credenciais conforme seu .env)
-psql -h localhost -U semcomp -d semcompdb -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
-
-# As tabelas são recriadas pelo AutoMigrate da API. Suba a API uma vez antes do seed:
-go run ./cmd/api &   # aguarde "Banco conectado" e mate com Ctrl+C
-go run ./cmd/seed    # popula os dados
+# a partir de packages/
+make unseed
 ```
+
+Executa `backend/scripts/unseed.sql` diretamente no banco via `psql`. Remove todos os dados de seed na ordem correta de FK (sem afetar dados reais).
+
+> Requer apenas o container `db` em execução. Não rebuild da imagem.
+
+---
+
+## Idempotência
+
+O seed é seguro para rodar múltiplas vezes. Antes de cada seção, ele verifica se já existem registros com o prefixo/domínio de seed:
+
+- Se existirem: pula a inserção e reusa os IDs para as tabelas dependentes
+- Se não existirem: insere normalmente
+
+---
+
+## O que é inserido
+
+| Tabela                    | Qtd | Detalhes                                                                                              |
+|---------------------------|-----|-------------------------------------------------------------------------------------------------------|
+| `presence_type_weights`   | 16  | Palestra=1.0, Vitrine=0.5, demais=0.0 — idempotente via `FirstOrCreate`                               |
+| `users`                   | 22  | Senha `senha123`; perfis variados (cidade, deficiência, verificação de e-mail, PAPFE, LinkedIn etc.)  |
+| `events`                  | 22  | Programação completa da Semcomp 29 (06–10/out/2025): abertura, palestras, minicursos, oficinas, luau  |
+| `products`                | 16  | 7 kits (P/M/G/GG + babylook P/M/G), 5 coffees, 4 combos                                               |
+| `signin_events`           | 44  | 2 inscrições por usuário; statuses: REGISTERED, WAIT_LISTED, WAITING_DONATION, CANCELLED              |
+| `presences`               | 44  | 2 presenças por usuário nos eventos com `has_attendance=true`                                          |
+| `sales` + `sale_items`    | 22  | Todos os statuses (PAGO, PENDENTE, CANCELADO, REJEITADO, EXPIRADO, REEMBOLSADO); kits, coffees, combos |
+| `consumed_items`          | 7   | Criados para vendas PAGO/PENDENTE que contêm coffee ou combo (travamento de consumo único)             |
+| `riddles`                 | 15  | 13 ativos + 2 inativos                                                                                 |
+| `teams` + `team_members`  | 5/15| Equipes com 1–5 membros; uma finalizada (`finished_at` preenchido)                                    |
+| `sponsors`                | 7   | 2 Ouro, 2 Prata, 3 Bronze + 9 pacotes (alguns com pacotes de anos anteriores)                          |
+| `notices`                 | 10  | Avisos gerais, regras do jogo, certificados, resultado do concurso                                     |
+| `papfe_documents`         | 10  | Apenas para usuários com `has_papfe=true`; statuses: pendente, aprovado, rejeitado                     |
+| `absence_justifications`  | 10  | Statuses: em_analise, aprovado, negado, documento_invalido                                             |
+
+---
+
+## Identificação dos dados de seed
+
+| Critério             | Padrão                                      |
+|----------------------|---------------------------------------------|
+| E-mails de usuário   | `seed.*@teste.semcomp.com`                 |
+| Nomes de entidades   | prefixo `[SEED]` (eventos, produtos, etc.) |
+| QR codes de venda    | `SEED-QR-<número>`                         |
+| IDs do Mercado Pago  | `SEED-MP-<número>`                         |
+| Arquivos PAPFE       | `uploads/papfe/seed_*`                     |
+| Justificativas       | `uploads/absence-justifications/seed_*`    |
 
 ---
 
 ## Credenciais dos usuários de seed
 
-Todos os usuários abaixo têm senha `senha1234`.
+Senha de todos: **`senha123`**
 
-| #  | Nome              | E-mail                   | Verificado | PAPFE |
-|----|-------------------|--------------------------|------------|-------|
-| 1  | Alice Pereira     | alice@example.com        | ✅          | ✅     |
-| 2  | Bruno Santos      | bruno@example.com        | ✅          | ❌     |
-| 3  | Carla Oliveira    | carla@example.com        | ✅          | ❌     |
-| 4  | Daniel Rocha      | daniel@example.com       | ✅          | ✅     |
-| 5  | Eva Lima          | eva@example.com          | ❌          | ❌     |
-| 6  | Felipe Cardoso    | felipe@example.com       | ✅          | ✅     |
-| 7  | Gabriela Mendes   | gabriela@example.com     | ✅          | ❌     |
-| 8  | Henrique Souza    | henrique@example.com     | ✅          | ❌     |
-| 9  | Isabela Teixeira  | isabela@example.com      | ✅          | ✅     |
-| 10 | João Vitor Nunes  | joaovitor@example.com    | ✅          | ✅     |
-| 11 | Larissa Ferreira  | larissa@example.com      | ✅          | ❌     |
-| 12 | Marcos Alves      | marcos@example.com       | ❌          | ❌     |
+| Nome              | E-mail                              | Verificado | PAPFE |
+|-------------------|-------------------------------------|------------|-------|
+| Alice Pereira     | seed.alice@teste.semcomp.com        | ✅          | ✅     |
+| Bruno Santos      | seed.bruno@teste.semcomp.com        | ✅          | ❌     |
+| Carla Oliveira    | seed.carla@teste.semcomp.com        | ✅          | ❌     |
+| Daniel Rocha      | seed.daniel@teste.semcomp.com       | ✅          | ✅     |
+| Eva Lima          | seed.eva@teste.semcomp.com          | ❌          | ❌     |
+| Felipe Cardoso    | seed.felipe@teste.semcomp.com       | ✅          | ✅     |
+| Gabriela Mendes   | seed.gabriela@teste.semcomp.com     | ✅          | ❌     |
+| Henrique Souza    | seed.henrique@teste.semcomp.com     | ✅          | ❌     |
+| Isabela Teixeira  | seed.isabela@teste.semcomp.com      | ✅          | ✅     |
+| João Vitor Nunes  | seed.joaovitor@teste.semcomp.com    | ✅          | ✅     |
+| Larissa Ferreira  | seed.larissa@teste.semcomp.com      | ✅          | ❌     |
+| Marcos Alves      | seed.marcos@teste.semcomp.com       | ❌          | ❌     |
+| Natalia Costa     | seed.natalia@teste.semcomp.com      | ✅          | ✅     |
+| Otávio Pires      | seed.otavio@teste.semcomp.com       | ✅          | ❌     |
+| Paula Monteiro    | seed.paula@teste.semcomp.com        | ✅          | ❌     |
+| Rafael Neves      | seed.rafael@teste.semcomp.com       | ✅          | ✅     |
+| Sabrina Lopes     | seed.sabrina@teste.semcomp.com      | ❌          | ❌     |
+| Thiago Barbosa    | seed.thiago@teste.semcomp.com       | ✅          | ✅     |
+| Ursula Vaz        | seed.ursula@teste.semcomp.com       | ✅          | ❌     |
+| Vitor Azevedo     | seed.vitor@teste.semcomp.com        | ✅          | ❌     |
+| Wendy Correia     | seed.wendy@teste.semcomp.com        | ✅          | ✅     |
+| Xavier Mello      | seed.xavier@teste.semcomp.com       | ✅          | ✅     |
 
-O admin do backoffice é criado pela API; suas credenciais são as definidas em
-`ADMIN_EMAIL` e `ADMIN_PASSWORD` no `.env`.
+O admin do backoffice é criado pela API na startup; suas credenciais são as definidas em `ADMIN_EMAIL` e `ADMIN_PASSWORD` no `.env`.
+
+---
+
+## Implementação
+
+- **Entrypoint:** `backend/cmd/seed/main.go`
+- **Binário:** compilado no estágio `builder` do `Dockerfile` como `./seed`
+- **Execução:** `docker compose run --rm --entrypoint ./seed backend` (via `make seed`)
+- **Remoção:** `backend/scripts/unseed.sql` executado via `psql` no container `db` (via `make unseed`)
+- **Ordem de FK no unseed:** `consumed_items` → `sales` → `signin_events` → `presences` → `absence_justifications` → `team_members` → `teams` → `users` → `events` → `products COMBO` → `products KIT/COFFEE` → `sponsors` → `notices` → `riddles`
