@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import FitText from "@/components/FitText";
 import { Users } from "lucide-react";
 import type { UsersStats } from "@/api/dashboard";
 
@@ -46,7 +47,7 @@ export default function OverviewCard({ data, loading }: OverviewCardProps) {
           <CardTitle>Overview de participantes</CardTitle>
         </div>
         <CardDescription>
-          Inscritos, justificados de ausência e alunos com PAPFE. Origem: USP × externos.
+          Inscritos, pedidos de crachá, compartilhamento com patrocinadores, justificados de ausência e alunos com PAPFE. Origem: USP × externos.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -60,9 +61,12 @@ export default function OverviewCard({ data, loading }: OverviewCardProps) {
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-xl border border-border/50 bg-muted/20 p-4 text-center"
+                  className="min-w-0 rounded-xl border border-border/50 bg-muted/20 p-4 text-center"
                 >
-                  <p className={`text-2xl md:text-3xl font-bold ${stat.accent}`}>{stat.value}</p>
+                  <FitText
+                    value={stat.value}
+                    className={`text-2xl font-bold md:text-3xl ${stat.accent}`}
+                  />
                   <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
                     {stat.label}
                   </p>
@@ -98,6 +102,27 @@ export default function OverviewCard({ data, loading }: OverviewCardProps) {
               ) : (
                 <p className="py-1 text-center text-xs text-muted-foreground">Sem dados de origem.</p>
               )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-border/50 bg-muted/20 p-4 text-center">
+                <FitText
+                  value={formatNumber(data?.wantsBadge)}
+                  className="text-2xl font-bold md:text-3xl text-amber-400"
+                />
+                <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+                  Pedidos de crachá
+                </p>
+              </div>
+              <div className="rounded-xl border border-border/50 bg-muted/20 p-4 text-center">
+                <FitText
+                  value={formatNumber(data?.authorizesSponsorSharing)}
+                  className="text-2xl font-bold md:text-3xl text-fuchsia-400"
+                />
+                <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+                  Compartilham dados com patrocinadores
+                </p>
+              </div>
             </div>
           </div>
         )}

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import FitText from "@/components/FitText";
 import { ShoppingBag } from "lucide-react";
 import type { SalesOverviewStats } from "@/api/dashboard";
 
@@ -78,9 +79,12 @@ export default function ProductsCard({
               {tiles.map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-lg border border-border/50 bg-muted/20 p-3 text-center"
+                  className="min-w-0 rounded-lg border border-border/50 bg-muted/20 p-3 text-center"
                 >
-                  <p className="text-base md:text-lg font-bold text-primary">{stat.value}</p>
+                  <FitText
+                    value={stat.value}
+                    className="text-base font-bold text-primary md:text-lg"
+                  />
                   <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
                     {stat.label}
                   </p>
@@ -111,16 +115,20 @@ export default function ProductsCard({
                             </span>
                           </div>
                         </div>
-                        <div className="shrink-0 text-right">
-                          <p className="text-sm font-bold text-foreground">
-                            {mode === "sold"
-                              ? product.sold.toLocaleString("pt-BR")
-                              : formatCurrency(product.revenue)}
-                          </p>
+                        <div className="min-w-0 text-right">
+                          <FitText
+                            value={
+                              mode === "sold"
+                                ? product.sold.toLocaleString("pt-BR")
+                                : formatCurrency(product.revenue)
+                            }
+                            className="text-sm font-bold text-foreground"
+                          />
                           {mode === "sold" ? (
-                            <p className="text-[11px] text-muted-foreground">
-                              {formatCurrency(product.revenue)}
-                            </p>
+                            <FitText
+                              value={formatCurrency(product.revenue)}
+                              className="text-[11px] text-muted-foreground"
+                            />
                           ) : (
                             <p className="text-[11px] text-muted-foreground">
                               {product.sold.toLocaleString("pt-BR")} vendidos
