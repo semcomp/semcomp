@@ -18,7 +18,7 @@ export default function Header() {
 
   const allTabs: Array<Tab> = [
     { key: "home", featureKey: "home", label: "HOME", path: "/", status: true },
-    { key: "cronograma", featureKey: "cronograma", label: "CRONOGRAMA", path: "/cronograma", status: true },
+    { key: "cronograma", featureKey: "cronograma", label: "CRONOGRAMA", path: "/cronograma", status: true, solidHeader: true },
     { key: "loja", featureKey: "loja", label: "LOJA", path: "/loja", status: isAuthenticated },
     { key: "riddle", featureKey: "riddle", label: "RIDDLE", path: "/riddle", status: isAuthenticated },
     { key: "login", featureKey: "login", label: "INSCRIÇÃO", path: "/login", status: !isAuthenticated },
