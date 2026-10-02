@@ -93,11 +93,6 @@ const TEAM: TeamType = {
           linkedin: "https://www.linkedin.com/in/christyan-nantes/",
         },
         {
-          nome: "Artur Kenzo Obara Kawazoe",
-          position: "Membro de Patrocínio",
-          linkedin: "https://www.linkedin.com/in/arturkenzo",
-        },
-        {
           nome: "Fabrício Sampaio",
           position: "Membro de Patrocínio",
           linkedin: "https://www.linkedin.com/in/fabricio-sampaio/",
@@ -153,6 +148,11 @@ const TEAM: TeamType = {
           position: "Membro de Extracurriculares",
           linkedin:
             "https://www.linkedin.com/in/arthur-amorim-ruschel-61870a379/",
+        },
+        {
+          nome: "Bruno Dias de Campos Filho",
+          position: "Membro de Extracurriculares",
+          linkedin: "",
         },
         {
           nome: "Caio Cerceau Nanni",
