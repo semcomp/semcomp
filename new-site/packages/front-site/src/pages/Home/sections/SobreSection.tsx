@@ -34,7 +34,6 @@ const SobreSection = ({ className }: SobreProps) => (
         float
       />
 
-      "bg-linear-to-r from-semcompLightBlue/80 via-semcompLightBlue to-semcompOffWhite"
       <h2 className="text-2xl md:text-4xl font-extrabold mb-6 font-poppins">
         <span className="text-semcompMidDarkBlue dark:text-semcompOffWhite">SOBRE A </span>
         <span className="bg-clip-text text-transparent bg-linear-to-r from-semcompMidDarkBlue via-semcompMidLightBlue to-semcompMidLightBlue dark:from-semcompLightBlue/80 dark:via-semcompLightBlue dark:to-semcompOffWhite">
