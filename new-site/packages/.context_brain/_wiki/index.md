@@ -47,6 +47,7 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - [[Feature_Patrocinadores]] — Sponsor + SponsorPackage, CRUD backoffice, GET público, click tracking
 - [[Feature_PAPFE]] — upload de comprovante, revisão tri-state, aprovação backoffice
 - [[Feature_SiteStat]] — contador de visitas key/value, POST /visit, GET /stats
+- [[Feature_Seed]] — seed de dados de exemplo para dev/backoffice: `make seed` / `make unseed`; prefixo [SEED] / @teste.semcomp.com; cobre todas as 16 tabelas; idempotente
 
 ---
 
