@@ -4,6 +4,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 const cx = (...classes: (string | false | null | undefined)[]) =>
   classes.filter(Boolean).join(' ');
 
+/** Tema em que um logo deve ficar branco no hover. */
+export type LogoHoverTheme = 'light' | 'dark' | 'both';
+
 export type LogoItem =
   | {
       node: React.ReactNode;
@@ -20,6 +23,13 @@ export type LogoItem =
       sizes?: string;
       width?: number;
       height?: number;
+      /** Escala extra do <img>, para arquivos com muita área morta em volta da marca. */
+      scale?: number;
+      /**
+       * Tema em que este logo fica branco puro no hover, em vez de revelar a cor do
+       * arquivo. Use quando a cor original da marca se aproxima do fundo da seção.
+       */
+      whiteOnHover?: LogoHoverTheme;
     };
 
 export interface LogoLoopProps {
@@ -46,6 +56,30 @@ const ANIMATION_CONFIG = {
   SMOOTH_TAU: 0.25,
   MIN_COPIES: 2,
   COPY_HEADROOM: 2,
+} as const;
+
+/**
+ * Filtro aplicado no hover, por tema.
+ * - `original`: descarta o grayscale/invert do estado base e devolve a cor do arquivo.
+ * - `white`: zera o RGB (brightness(0)) e inverte para branco puro, preservando o
+ *   canal alpha — a marca vira uma silhueta branca, sem depender da cor original.
+ *
+ * Os literais completos ficam aqui (e não concatenados) porque é o texto no arquivo
+ * que o Tailwind usa para gerar cada classe.
+ */
+const HOVER_FILTER = {
+  light: {
+    original:
+      '[@media(hover:hover)]:group-hover:[filter:brightness(1.2)_drop-shadow(0_0_12px_rgba(0,0,0,0.6))]',
+    white:
+      '[@media(hover:hover)]:group-hover:[filter:brightness(0)_invert(1)_drop-shadow(0_0_12px_rgba(0,0,0,0.6))]',
+  },
+  dark: {
+    original:
+      '[@media(hover:hover)]:group-hover:[filter:brightness(1.2)_drop-shadow(0_0_14px_rgba(255,255,255,0.4))]',
+    white:
+      '[@media(hover:hover)]:group-hover:[filter:brightness(0)_invert(1)_drop-shadow(0_0_14px_rgba(255,255,255,0.4))]',
+  },
 } as const;
 
 const toCssLength = (value?: number | string): string | undefined =>
@@ -242,20 +276,50 @@ export const LogoLoop = React.memo<LogoLoopProps>(
       hasHoverEffect && 'group',
     ), [hasHoverEffect]);
 
-    /** Classes da <img> — filtro + transição + hover effect */
-    const imgClassName = useMemo(() => cx(
-      'block object-contain pointer-events-none select-none [-webkit-user-drag:none]',
-      'transition-[filter,opacity,transform] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none will-change-[filter,opacity,transform]',
+    /** Classes da <img> — filtro + transição + hover effect (por item, por causa de whiteOnHover) */
+    const buildImgClassName = useCallback((whiteOnHover?: LogoHoverTheme) => {
+      const theme = isDarkMode === false ? 'light' : 'dark';
+      const isWhiteOnHover =
+        whiteOnHover === 'both' ||
+        (isDarkMode === true && whiteOnHover === 'dark') ||
+        (isDarkMode === false && whiteOnHover === 'light');
 
-      isDarkMode === true && '[@media(hover:hover)]:[filter:grayscale(1)_brightness(0.35)_invert(1)] [@media(hover:hover)]:opacity-80 [@media(hover:hover)]:group-hover:[filter:brightness(1.2)_drop-shadow(0_0_14px_rgba(255,255,255,0.4))] [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-hover:scale-[1.15] [@media(hover:hover)]:group-hover:origin-center',
-      isDarkMode === false && '[@media(hover:hover)]:[filter:grayscale(1)_brightness(0.35)_invert(1)] [@media(hover:hover)]:opacity-100 [@media(hover:hover)]:group-hover:[filter:brightness(1.2)_drop-shadow(0_0_12px_rgba(0,0,0,0.6))] [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-hover:scale-[1.15] [@media(hover:hover)]:group-hover:origin-center',
-      isDarkMode === undefined && scaleOnHover && 'group-hover:scale-[1.2] group-hover:origin-center',
-    ), [isDarkMode, scaleOnHover]);
+      const hoverFilter = HOVER_FILTER[theme][isWhiteOnHover ? 'white' : 'original'];
 
-    /** Style inline da <img> — dimensões do box */
-    const imgStyle = useMemo((): React.CSSProperties => ({
+      return cx(
+        'block object-contain pointer-events-none select-none [-webkit-user-drag:none]',
+        'transition-[filter,opacity,transform] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none will-change-[filter,opacity,transform]',
+
+        isDarkMode === true && cx(
+          '[@media(hover:hover)]:[filter:grayscale(1)_brightness(0.35)_invert(1)]',
+          '[@media(hover:hover)]:opacity-80',
+          hoverFilter,
+          '[@media(hover:hover)]:group-hover:opacity-100',
+          '[@media(hover:hover)]:group-hover:scale-[1.15]',
+          '[@media(hover:hover)]:group-hover:origin-center',
+        ),
+        isDarkMode === false && cx(
+          '[@media(hover:hover)]:[filter:grayscale(1)_brightness(0.35)_invert(1)]',
+          '[@media(hover:hover)]:opacity-100',
+          hoverFilter,
+          '[@media(hover:hover)]:group-hover:opacity-100',
+          '[@media(hover:hover)]:group-hover:scale-[1.15]',
+          '[@media(hover:hover)]:group-hover:origin-center',
+        ),
+        isDarkMode === undefined && scaleOnHover && 'group-hover:scale-[1.2] group-hover:origin-center',
+      );
+    }, [isDarkMode, scaleOnHover]);
+
+    /**
+     * Style inline da <img> — dimensões do box + escala opcional do item.
+     * A escala usa `transform` (e não `scale`) de propósito: o `scale-[1.15]` do hover
+     * é emitido pelo Tailwind v4 na propriedade `scale`, então `transform` compõe com
+     * ele em vez de ser sobrescrito — o hover cresce os mesmos 15% em qualquer logo.
+     */
+    const buildImgStyle = useCallback((scale?: number): React.CSSProperties => ({
       height: `${logoHeight}px`,
       width: logoWidth !== undefined ? `${logoWidth}px` : 'auto',
+      ...(scale !== undefined ? { transform: `scale(${scale})` } : null),
     }), [logoHeight, logoWidth]);
 
     /** Style inline de cada <li> */
@@ -292,6 +356,9 @@ export const LogoLoop = React.memo<LogoLoopProps>(
 
         const isNodeItem = 'node' in item;
 
+        /** Só a variante de imagem tem metadados de exibição (a de `node` traz o próprio JSX) */
+        const imgItem = isNodeItem ? null : item;
+
         const content = isNodeItem ? (
           <span
             className="inline-flex items-center"
@@ -309,8 +376,8 @@ export const LogoLoop = React.memo<LogoLoopProps>(
             loading="lazy"
             decoding="async"
             draggable={false}
-            className={imgClassName}
-            style={imgStyle}
+            className={buildImgClassName(imgItem?.whiteOnHover)}
+            style={buildImgStyle(imgItem?.scale)}
           />
         );
 
@@ -341,7 +408,7 @@ export const LogoLoop = React.memo<LogoLoopProps>(
           </li>
         );
       },
-      [renderItem, liClassName, imgClassName, imgStyle, itemStyle]
+      [renderItem, liClassName, buildImgClassName, buildImgStyle, itemStyle]
     );
 
     const logoLists = useMemo(
@@ -376,6 +443,15 @@ export const LogoLoop = React.memo<LogoLoopProps>(
         )}
         style={containerStyle}
       >
+        {/*
+          As máscaras laterais se estendem para fora da linha (-inset-y-5, 20px) de propósito:
+          o hover pinta além da altura da linha — scale-[1.15] leva o <img> de 72 para 82.8px
+          (5.4px de cada lado) e o drop-shadow soma ~12px (14px no dark) — e o container só
+          recorta no eixo X. Sem a extensão, o logo que ainda está na zona de fade tem o
+          brilho atenuado pela máscara mas a parte que transborda aparece sem máscara alguma,
+          com um corte reto na altura da caixa da máscara.
+          20px cobre o pior caso medido (5.4 + 12) e fica dentro do vão de 24px entre linhas.
+        */}
         {fadeOut && (
           <div
             aria-hidden="true"
@@ -383,7 +459,7 @@ export const LogoLoop = React.memo<LogoLoopProps>(
               'absolute pointer-events-none z-10',
               isVertical
                 ? 'left-0 right-0 top-0 h-[clamp(24px,8%,120px)]'
-                : 'inset-y-0 left-0 w-[clamp(24px,8%,120px)]'
+                : '-inset-y-5 left-0 w-[clamp(24px,8%,120px)]'
             )}
             style={{
               background: isVertical
@@ -412,7 +488,7 @@ export const LogoLoop = React.memo<LogoLoopProps>(
               'absolute pointer-events-none z-10',
               isVertical
                 ? 'left-0 right-0 bottom-0 h-[clamp(24px,8%,120px)]'
-                : 'inset-y-0 right-0 w-[clamp(24px,8%,120px)]'
+                : '-inset-y-5 right-0 w-[clamp(24px,8%,120px)]'
             )}
             style={{
               background: isVertical
