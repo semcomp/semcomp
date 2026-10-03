@@ -96,7 +96,8 @@ export const Tabs: {
     key: "sponsors",
     section: "Patrocinadores",
     label: "Patrocinadores",
-    description: "Gerencie os patrocinadores da SEMCOMP e seus pacotes por ano.",
+    description:
+      "Gerencie os patrocinadores da SEMCOMP e seus pacotes por ano.",
     pageNavigate: "/sponsors",
     icon: <Handshake className="w-5 h-5" />,
     bg: "bg-primary/15",
@@ -133,6 +134,11 @@ export const Tabs: {
     hoverBg: "bg-primary/25",
   },
   {
+    key: "coffee",
+    section: "Coffee",
+    label: "Coffee",
+    description: "Valide o acesso do usuário aos coffees.",
+    pageNavigate: "/coffee",
     key: "event-registration",
     section: "Inscrições",
     label: "Inscrições",

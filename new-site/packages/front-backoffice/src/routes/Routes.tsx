@@ -16,6 +16,7 @@ import PresenceSettings from "@/pages/PresenceSettings";
 import SponsorsCRUD from "@/pages/Sponsors";
 import SalesCRUD from "@/pages/Sales";
 import PapfeDocuments from "@/pages/PapfeDocuments";
+import ValidateCoffee from "@/pages/Coffee";
 import RiddlesCRUD from "@/pages/Riddles";
 import EventRegistration from "@/pages/EventRegistration";
 import ConfirmRegistrations from "@/pages/ConfirmRegistrations";
@@ -50,20 +51,29 @@ export const router = createBrowserRouter(
               element: <RequirePermission section="Eventos" />,
               children: [
                 { path: "/events", element: <EventsCRUD /> },
-                { path: "/events/:nameEvent/:datetime/qrcode-reader", element: <QRCodeReader /> },
+                {
+                  path: "/events/:nameEvent/:datetime/qrcode-reader",
+                  element: <QRCodeReader />,
+                },
               ],
             },
             {
               element: <RequirePermission section="Usuários Semcomp" />,
-              children: [{ path: "/semcomp-users", element: <SemcompUsersCRUD /> }],
+              children: [
+                { path: "/semcomp-users", element: <SemcompUsersCRUD /> },
+              ],
             },
             {
               element: <RequirePermission section="Usuários Backoffice" />,
-              children: [{ path: "/backoffice-users", element: <BackofficeUsersCRUD /> }],
+              children: [
+                { path: "/backoffice-users", element: <BackofficeUsersCRUD /> },
+              ],
             },
             {
               element: <RequirePermission section="Participações" />,
-              children: [{ path: "/participation", element: <ParticipationCRUD /> }],
+              children: [
+                { path: "/participation", element: <ParticipationCRUD /> },
+              ],
             },
             {
               element: <RequirePermission section="Configurações Presença" />,
@@ -75,11 +85,15 @@ export const router = createBrowserRouter(
             },
             {
               element: <RequirePermission section="Permissões" />,
-              children: [{ path: "/permissions", element: <PermissionsCRUD /> }],
+              children: [
+                { path: "/permissions", element: <PermissionsCRUD /> },
+              ],
             },
             {
               element: <RequirePermission section="Páginas" />,
-              children: [{ path: "/pages-availability", element: <PagesAvailability /> }],
+              children: [
+                { path: "/pages-availability", element: <PagesAvailability /> },
+              ],
             },
             {
               element: <RequirePermission section="Patrocinadores" />,
@@ -91,7 +105,13 @@ export const router = createBrowserRouter(
             },
             {
               element: <RequirePermission section="PAPFE" />,
-              children: [{ path: "/papfe-documents", element: <PapfeDocuments /> }],
+              children: [
+                { path: "/papfe-documents", element: <PapfeDocuments /> },
+              ],
+            },
+            {
+              element: <RequirePermission section="Coffee" />,
+              children: [{ path: "/coffee", element: <ValidateCoffee /> }],
             },
             {
               element: <RequirePermission section="Riddles" />,
