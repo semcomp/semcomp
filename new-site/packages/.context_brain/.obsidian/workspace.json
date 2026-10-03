@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "609be81d0655ffae",
+        "id": "6e1a02aae05004ee",
         "type": "tabs",
         "children": [
           {
-            "id": "a26e539effed970e",
+            "id": "790adfa5c2826d4c",
             "type": "leaf",
             "state": {
               "type": "graph",
@@ -176,6 +176,8 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "a26e539effed970e",
-  "lastOpenFiles": []
+  "active": "790adfa5c2826d4c",
+  "lastOpenFiles": [
+    "_wiki/features/Feature_Loja_e_Pagamentos.md"
+  ]
 }

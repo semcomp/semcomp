@@ -1,0 +1,53 @@
+name: "Feature Request"
+description: Sugira uma nova funcionalidade ou melhoria
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tem uma ideia para melhorar o projeto? Descreva abaixo!
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área relacionada
+      options:
+        - Site (front-site)
+        - Backoffice (front-backoffice)
+        - Backend (API)
+        - Infraestrutura / Deploy
+        - Outra
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qual problema esta feature resolve?
+      description: Contextualize a necessidade. Ex: "Atualmente não consigo fazer X, o que dificulta Y."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solução proposta
+      description: Descreva como você imagina que a feature deveria funcionar.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      description: Você pensou em outras formas de resolver? Se sim, por que prefere esta?
+    validations:
+      required: false
+
+  - type: textarea
+    id: extras
+    attributes:
+      label: Contexto adicional / referências
+      description: Links, prints, protótipos ou qualquer outra informação relevante.
+    validations:
+      required: false

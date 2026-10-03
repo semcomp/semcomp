@@ -78,14 +78,18 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 | PUT | `/admin/products/:id` |
 | DELETE | `/admin/products/:id` |
 
-### Inscrições (`"Inscrições"`) — sem tab no backoffice (CRUD via API)
+### Inscrições (`"Inscrições"`)
 | Método | Path | Handler TS |
 |---|---|---|
-| GET | `/admin/signin-events` | — |
+| GET | `/admin/signin-events` | `signinEventsAPI.getAll(page, limit, sortBy, sortOrder, filterField?, filterValue?)` |
+| GET | `/admin/signin-events/events` | `signinEventsAPI.getSigninableEvents()` → `SigninableEvent[]` |
 | GET | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | — |
-| POST | `/admin/signin-events` | — |
-| PUT | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | — |
-| DELETE | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | — |
+| POST | `/admin/signin-events` | `signinEventsAPI.create(item)` |
+| POST | `/admin/signin-events/rotate/:eventName/:eventInitDate` | `signinEventsAPI.rotate(name, date)` → `SigninEventType[]` |
+| PUT | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | `signinEventsAPI.update(userNumber, name, date, item)` |
+| DELETE | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | `signinEventsAPI.delete(userNumber, name, date)` |
+
+Arquivo TS: `front-backoffice/src/api/signinEvent.ts` (não está no barrel `index.ts`)
 
 ### Patrocinadores (`"Patrocinadores"`)
 | Método | Path | Handler TS |
@@ -121,6 +125,19 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 |---|---|---|
 | PUT | `/admin/pages/:page/availability` | `pagesAPI.setAvailability(page, bool)` |
 
+### Riddles (`"Riddles"`)
+| Método | Path | Handler TS | Notas |
+|---|---|---|---|
+| GET | `/admin/riddles` | `riddlesAPI.getAll(page, ...)` | paginado, ordenação e busca |
+| GET | `/admin/riddles/:id` | `riddlesAPI.getByID(id)` | |
+| POST | `/admin/riddles` | `riddlesAPI.create(data)` | |
+| POST | `/admin/riddles/upload-csv` | `riddlesAPI.uploadCSV(file)` | CSV 4 colunas (título, subtítulo, resposta, imagem) — **hard delete** da fila; 409 se equipes em progresso |
+| PUT | `/admin/riddles/:id` | `riddlesAPI.update(id, data)` | inclui toggle `is_active` |
+| DELETE | `/admin/riddles/:id` | `riddlesAPI.delete(id)` | soft delete |
+
+> UI em `pages/Riddles` (`/riddles`). Campo `is_active` usa `interactiveToggle` na CrudTable.
+> → [[Feature_Riddle_e_Jogo]]
+
 ---
 
 ## Mapeamento de Campos Críticos
@@ -153,6 +170,6 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 ---
 
 ## API Barrel (Backoffice)
-Arquivo: `src/api/index.ts` — exporta: `authAPI`, `userBackofficeAPI`, `userSemcompAPI`, `eventsAPI`, `sectionsAPI`, `participationAPI`, `permissionsAPI`, `pagesAPI`, `sponsorsAPI`, `client`
+Arquivo: `src/api/index.ts` — exporta: `authAPI`, `userBackofficeAPI`, `userSemcompAPI`, `eventsAPI`, `sectionsAPI`, `participationAPI`, `productsAPI`, `permissionsAPI`, `pagesAPI`, `presenceSettingsAPI`, `sponsorsAPI`, `absenceJustificationsAPI`, `salesAPI`, `riddlesAPI`, `dashboardAPI`, `client`
 
 > `papfeAPI` é exportado diretamente de `api/users.ts` (não está no barrel).

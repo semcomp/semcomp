@@ -13,8 +13,11 @@ restart:
 	docker compose -p $(PROJECT) down
 	docker compose -p $(PROJECT) --env-file ./backend/.env  up -d --build
 
+restart-fs:
+	docker compose -p $(PROJECT) --env-file ./backend/.env up -d --build --force-recreate front-site
+
 reset:
-	docker compose -p $(PROJECT) --env-file ./backend/.env down -v 
+	docker compose -p $(PROJECT) --env-file ./backend/.env down -v
 	make build
 
 logs:

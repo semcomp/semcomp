@@ -55,6 +55,8 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - Rotas backoffice: `POST /admin/events`, `PUT/DELETE /admin/events/:eventName/:initDate`
 - PK composta: `Name + InitDate` (RFC3339)
 - Campos de inscrição: `has_signin bool` (habilita inscrição), `max_participants uint` (0 = sem limite)
+- Validação: `EndDate` deve ser posterior a `InitDate` (Create e Update)
+- `NewEventService` recebe `presenceSettingsRepo` (não mais `db *gorm.DB`) — usa `GetByID` para resolver tipo de presença
 
 ### signinEvent
 - Rotas autenticadas (`/api`, guard: `AuthMiddleware` + `pageMW("profile")` + `pageMW("cronograma")`):
@@ -64,12 +66,15 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
   - `DELETE /api/signin-events/:eventName/:eventInitDate` — cancela inscrição (handler: `DeleteSignin`)
 - Rotas backoffice (guard: `AuthBackofficeMiddleware` + `permMW("Inscrições", ...)`):
   - `GET /admin/signin-events` — lista todas as inscrições (PermR)
+  - `GET /admin/signin-events/events` — lista eventos com `has_signin=true` para uso no admin (PermR)
   - `GET /admin/signin-events/:userNumber/:eventName/:eventInitDate` — busca inscrição (PermR)
   - `POST /admin/signin-events` — cria inscrição manualmente (PermRW)
+  - `POST /admin/signin-events/rotate/:eventName/:eventInitDate` — rota a fila: remove `"Aguardando Aprovação"` e promove espera (PermRW); retorna 400 se `max_participants = 0`
   - `PUT /admin/signin-events/:userNumber/:eventName/:eventInitDate` — edita inscrição (PermRW)
   - `DELETE /admin/signin-events/:userNumber/:eventName/:eventInitDate` — remove inscrição (PermRW)
+- Status: `"Inscrito"` / `"Lista de Espera"` / `"Aguardando Aprovação"` / `"Cancelado"`
 - Lógica de fila: se vagas esgotadas (`max_participants > 0`), insere com `StatusWaitListed` e calcula posição; cancelamento de inscrito confirmado promove primeiro da lista de espera
-- Repository: `Create`, `GetByUserEventAndInitDate`, `CountByStatus`, `CountActiveByEvent`, `FindActiveByUser`, `UpdateStatus`, `GetFirstWaitListed`, `PromoteToRegistered`
+- Repository: `Create`, `GetByUserEventAndInitDate`, `CountByStatus`, `CountActiveByEvent`, `FindActiveByUser`, `UpdateStatus`, `GetFirstWaitListed`, `PromoteToRegistered`, `DeleteByStatus`
 - → [[Feature_SigninEvent]]
 
 ### presence
@@ -83,7 +88,7 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 ### permission
 - Rotas backoffice: `GET /admin/permissions`, `GET /admin/permissions/me`, `GET /admin/permissions/section/:section`, `POST /admin/permissions`, `PUT/DELETE /admin/permissions/:user/:section`
 - `GetMyPermissions` — email lido do JWT, sem URL param
-- `InitializePermissions()` — concede `RW` em todas as 7 seções ao admin padrão
+- `InitializePermissions()` — concede `RW` em todas as 17 seções ao admin padrão
 - → Detalhes: [[Feature_Controle_Backend]]
 
 ### product
@@ -105,6 +110,15 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - Estado in-memory — reiniciar servidor reseta para `available: true`
 - Inicializado com: `["home", "login", "cronograma", "profile", "riddle", "loja"]`
 - → Detalhes: [[Feature_Flags_e_Pages]]
+
+### riddle
+- Bloco novo — jogo de enigmas em sequência (backoffice + participante)
+- Rotas backoffice (`/admin`, seção `"Riddles"`): `GET/POST /admin/riddles`, `GET/PUT/DELETE /admin/riddles/:id`, `POST /admin/riddles/upload-csv`
+- Rotas site (`/api`, guard `AuthMiddleware` + `pageMW("riddle")`): `GET /api/riddles/my-game`, `POST /api/riddles/create-team`, `POST /api/riddles/join-team`, `POST /api/riddles/solve`
+- `Riddle`: PK autoincrement que define a ordem da fila; `IsActive` = soft delete + visibilidade no jogo
+- `Team`/`TeamMember`: equipes de até 5 (MaxTeamSize); progresso por `CurrentRiddleIndex`; convite por `Code` (8 chars)
+- `PublicRiddle` esconde `Answer` (padrão `user.SafeUser`) — o struct cru `Riddle` só é usado nas rotas de backoffice
+- → Detalhes: [[Feature_Riddle_e_Jogo]]
 
 ### token
 - Sem handler HTTP — usado internamente por `user`
@@ -152,15 +166,19 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 
 ## Sequência de Startup (main.go)
 
-1. Conecta DB + `AutoMigrate` (User, PapfeDocument, Event, Presence, SigninEvent, UserBackoffice, AuditLog, Permission, Product, Kit, Coffee, ComboItem, Token, Payment, Sponsor, SponsorPackage, SiteStat)
-   → módulos registrados: auth, authBackoffice, user, userBackoffice, event, signinEvent, presence, section, permission, product, payment, pages, token, mailer, log, sponsor, sitestat
-2. Grandfather de `email_verified = true` para usuários existentes (se coluna era nova)
-3. Instancia providers + repos + services + handlers
-4. `userBackofficeService.InitializeAdmin()`
-5. `permissionService.InitializePermissions()`
-6. `productService.InitializeProducts()`
-7. Registra rotas + CORS + `AuditMiddleware`
-8. `r.Run(":4000")`
+1. Conecta DB + `AutoMigrate` (User, PapfeDocument, Event, Presence, SigninEvent, UserBackoffice, AuditLog, Permission, Product, Kit, Coffee, ComboItem, Token, Sponsor, SponsorPackage, SiteStat, Sale, SaleItem, ConsumedItem, Riddle, AbsenceJustification, Notice, …)
+2. Migrações manuais pós-AutoMigrate:
+   - dropa a coluna órfã `kits.is_babydoll` (modelo usa `is_babylook`)
+   - recria `sales.status_chk` aceitando `EXPIRADO` (AutoMigrate não altera CHECK existente)
+   - cria `teams` + `team_members` via SQL manual (GORM inverte FK em AutoMigrate)
+3. Grandfather de `email_verified = true` para usuários existentes (se coluna era nova)
+4. Instancia providers + repos + services + handlers
+5. `userBackofficeService.InitializeAdmin()`
+6. `permissionService.InitializePermissions()`
+7. `productService.InitializeProducts()`
+8. **Sweeper de expiração** (goroutine, ticker 1 min): `ExpirePendingPixSales()` persiste `EXPIRADO` (via `UPDATE ... RETURNING`) e, para cada venda expirada, `DeleteConsumedBySale` libera as travas de compra única
+9. Registra rotas + CORS + `AuditMiddleware`
+10. `r.Run(":4000")`
 
 → Rotas site: [[Integracao_API_Site]] | Rotas backoffice: [[Integracao_API_Backoffice]]  
 → Entidades core: [[Backend_Modelos_Core]] | Entidades loja: [[Backend_Modelos_Loja]]

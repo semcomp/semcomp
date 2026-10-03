@@ -46,6 +46,8 @@ const SECTIONS: { key: string; label: string }[] = [
   { key: "Justificativas de Ausência",  label: "Justificativas de Ausência" },
   { key: "Produtos",       label: "Produtos" },
   { key: "Avisos", label: "Avisos" },
+  { key: "Dashboard", label: "Dados" },
+  { key: "Configurações Presença", label: "Configurações Presença"}
 ];
 
 type PermLevel = "R" | "RW" | "—";

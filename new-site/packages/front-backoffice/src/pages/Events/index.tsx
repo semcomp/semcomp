@@ -1,13 +1,14 @@
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
 import type { CrudQueryParams } from "@/components/CrudTable";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs } from "@/constants/Tabs";
-import { fields } from "@/data/eventsCrudField";
+import { buildFields } from "@/data/eventsCrudField";
 import { BannerCard } from "@/components/BannerCard";
 import type { EventType } from "@/types/EventType";
 import { eventsAPI } from "@/api/events";
+import { presenceSettingsAPI, type PresenceTypeWeight } from "@/api/presenceSettings";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useHasPermission } from "@/contexts/AuthContext";
 
@@ -18,7 +19,17 @@ export default function Events() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [weights, setWeights] = useState<PresenceTypeWeight[]>([]);
+  const [weightsLoaded, setWeightsLoaded] = useState(false);
   const { showNotification } = useNotification();
+
+  useEffect(() => {
+    presenceSettingsAPI.getAll()
+      .then((w) => { setWeights(w); setWeightsLoaded(true); })
+      .catch(() => setWeightsLoaded(true));
+  }, []);
+
+  const fields = useMemo(() => buildFields(weights), [weights]);
 
   const fetchEvents = useCallback(async (params?: CrudQueryParams) => {
     try {
@@ -157,6 +168,7 @@ export default function Events() {
             <p className="text-slate-400">Carregando eventos...</p>
           </div>
         )}
+        {weightsLoaded && (
           <CrudTable
             data={data}
             fields={fields}
@@ -169,7 +181,17 @@ export default function Events() {
             totalRecords={totalRecords}
             onQueryChange={handleQueryChange}
             canWrite={canWrite}
+            onFieldChange={(fieldName, value, _formData) => {
+              if (fieldName === "presence_type_weight_id" && weights.length > 0) {
+                const weightId = value === "__none__" ? null : Number(value);
+                const weight = weights.find((w) => w.id === weightId);
+                if (weight) {
+                  return { hasPresence: String(weight.default_has_attendance) };
+                }
+              }
+            }}
           />
+        )}
       </div>
     </section>
   );

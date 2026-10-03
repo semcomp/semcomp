@@ -19,18 +19,33 @@ type mockPresenceRepository struct {
 }
 
 func (m *mockPresenceRepository) Create(p *Presence) error {
+	if m.CreateFunc == nil {
+		return nil
+	}
 	return m.CreateFunc(p)
 }
 func (m *mockPresenceRepository) GetByUserEventandInitDate(n int64, e string, d time.Time) (*Presence, error) {
+	if m.GetByUserEventandInitDateFunc == nil {
+		return nil, gorm.ErrRecordNotFound
+	}
 	return m.GetByUserEventandInitDateFunc(n, e, d)
 }
 func (m *mockPresenceRepository) DeleteByUserEventandInitDate(n int64, e string, d time.Time) error {
+	if m.DeleteByUserEventandInitDateFunc == nil {
+		return nil
+	}
 	return m.DeleteByUserEventandInitDateFunc(n, e, d)
 }
 func (m *mockPresenceRepository) UpdateByUserEventandInitDate(n int64, e string, d time.Time, u *Presence) error {
+	if m.UpdateByUserEventandInitDateFunc == nil {
+		return nil
+	}
 	return m.UpdateByUserEventandInitDateFunc(n, e, d, u)
 }
 func (m *mockPresenceRepository) GetPresences(q PresenceListQuery) (*PresenceListResult, error) {
+	if m.GetPresencesFunc == nil {
+		return &PresenceListResult{}, nil
+	}
 	return m.GetPresencesFunc(q)
 }
 
@@ -49,6 +64,9 @@ func assertAPIError(t *testing.T, err error, expectedCode string) {
 
 func TestCreatePresence_Success(t *testing.T) {
 	repo := &mockPresenceRepository{
+		GetByUserEventandInitDateFunc: func(_ int64, _ string, _ time.Time) (*Presence, error) {
+			return nil, gorm.ErrRecordNotFound
+		},
 		CreateFunc: func(p *Presence) error { return nil },
 	}
 	svc := NewPresenceService(repo)

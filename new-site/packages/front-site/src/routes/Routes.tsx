@@ -1,14 +1,12 @@
 import { createBrowserRouter } from "react-router-dom";
 import RequireAuth from "@/lib/RequireAuth";
 import FeatureGuard from "@/components/FeatureGuard";
+import AppLayout from "@/App";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    lazy: async () => {
-      const { default: AppLayout } = await import("@/App");
-      return { Component: AppLayout };
-    },
+    Component: AppLayout,
     children: [
       {
         index: true,
@@ -101,6 +99,18 @@ export const router = createBrowserRouter([
                 lazy: async () => {
                   const { default: PendingPaymentsPage } = await import("@/pages/Store/PendingPayments");
                   return { Component: PendingPaymentsPage };
+                },
+              },
+            ],
+          },
+          {
+            element: <FeatureGuard featureKey="riddle" />,
+            children: [
+              {
+                path: "riddle",
+                lazy: async () => {
+                  const { default: RiddlePage } = await import("@/pages/Riddle");
+                  return { Component: RiddlePage };
                 },
               },
             ],

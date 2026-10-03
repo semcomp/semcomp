@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
 import SEMCOMPInfo from "../lib/constants/SEMCOMPInfo";
 
-const HERO_IMAGES = [
-  "/img/Home/Hero/Banner1.webp",
-  "/img/Home/Hero/Banner2.webp",
-  "/img/Home/Hero/Palestra1.webp",
-  "/img/Home/Hero/Palestra2.webp",
-  "/img/Home/Hero/Semcomp.webp",
-];
+const HERO_NAMES = [
+  "Banner1",
+  "Banner2",
+  "Palestra1",
+  "Palestra2",
+  "Semcomp",
+] as const;
+
+const HERO_IMAGES = HERO_NAMES.map((name) => ({
+  desktop: `/img/Home/Hero/${name}.webp`,
+  mobile: `/img/Home/Hero/${name}-mobile.webp`,
+}));
+
 const pickRandomHero = () => HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)];
 
 const TARGET_DATE = new Date("2026-10-17T00:00:00");
@@ -40,7 +46,7 @@ const tileStyle: React.CSSProperties = {
 };
 
 export default function MainEntrance() {
-  const [heroSrc] = useState<string>(() => pickRandomHero());
+  const [hero] = useState(() => pickRandomHero());
   const [countdown, setCountdown] = useState(getCountdown);
 
   useEffect(() => {
@@ -61,15 +67,20 @@ export default function MainEntrance() {
     >
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute inset-x-0 w-full h-full">
-          <img
-            src={heroSrc}
-            alt={`SEMCOMP ${SEMCOMPInfo.EDITION}`}
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-            sizes="100vw"
-            className="w-full h-full object-cover"
-          />
+          <picture className="block w-full h-full">
+            <source
+              media="(max-width: 768px)"
+              srcSet={hero.mobile}
+
+            />
+            <img
+              src={hero.desktop}
+              alt={`SEMCOMP ${SEMCOMPInfo.EDITION}`}
+              loading="eager"
+              decoding="async"
+              className="w-full h-full object-cover"
+            />
+          </picture>
         </div>
       </div>
       <div className="absolute inset-0 bg-gradient-to-b from-semcompOffBlack/40 to-semcompOffBlack/80" />
@@ -78,7 +89,14 @@ export default function MainEntrance() {
         <div className="flex flex-col gap-8 md:gap-12">
 
           <div className="flex items-center gap-6">
-            <img src="/img/semcomp/logo_default_branco.webp" alt="Logo da SEMCOMP" className="h-24 w-24 md:h-42 md:w-42 flex-shrink-0 object-contain" />
+            <img 
+              src="/img/semcomp/logo_default_branco.webp" 
+              alt="Logo da SEMCOMP" 
+              loading="eager" 
+              decoding="async" 
+              fetchPriority="high" 
+              className="h-24 w-24 md:h-42 md:w-42 flex-shrink-0 object-contain" 
+            />
             <div className="flex flex-col justify-center">
               <h1 className="text-4xl sm:text-5xl md:text-8xl font-comfortaa text-semcompOffWhite leading-tight">
                 semcomp
