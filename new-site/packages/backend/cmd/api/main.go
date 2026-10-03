@@ -9,6 +9,7 @@ import (
 	"backend/internal/absenceJustification"
 	"backend/internal/auth"
 	"backend/internal/authBackoffice"
+	"backend/internal/dashboardbackoffice"
 	"backend/internal/database"
 	"backend/internal/event"
 	"backend/internal/log"
@@ -18,8 +19,11 @@ import (
 	"backend/internal/pages"
 	"backend/internal/permission"
 	"backend/internal/presence"
+	"backend/internal/presencerate"
+	"backend/internal/presencesettings"
 	"backend/internal/product"
 	"backend/internal/providers"
+	"backend/internal/riddle"
 	"backend/internal/sales"
 	"backend/internal/signinEvent"
 	"backend/internal/sitestat"
@@ -58,16 +62,50 @@ func main() {
 
 	err := db.AutoMigrate(
 		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{},
+		&presencesettings.PresenceTypeWeight{},
 		&signinEvent.SigninEvent{},
 		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{},
 		&product.Product{}, &product.Kit{}, &product.Coffee{}, &product.ComboItem{},
 		&token.Token{}, &sponsor.Sponsor{}, &sponsor.SponsorPackage{},
 		&sitestat.SiteStat{}, &sales.Sale{}, &sales.SaleItem{}, &sales.ConsumedItem{},
+		&riddle.Riddle{},
 		&absenceJustification.AbsenceJustification{}, &notice.Notice{},
 	)
 
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
+	}
+
+	// As tabelas `teams` e `team_members` (jogo de enigmas) são criadas com SQL
+	// manual em vez de AutoMigrate: o struct TeamMember tem PK composta
+	// (team_id + user_number) com associação belongs-to em UserNumber, e o
+	// AutoMigrate do GORM inverte a FK (tentava criar fk_team_members_user na
+	// tabela `users` referenciando `team_members`, que ainda não existia),
+	// panicking no startup. Em runtime o GORM hidrata a associação via tags do
+	// struct (Preload), sem depender dessas constraints.
+	if err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS teams (
+			id                    BIGSERIAL PRIMARY KEY,
+			name                  VARCHAR(200) NOT NULL,
+			code                  VARCHAR(10)  NOT NULL,
+			current_riddle_index  BIGINT NOT NULL DEFAULT 0,
+			finished_at           TIMESTAMPTZ,
+			created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			CONSTRAINT uni_teams_name UNIQUE (name),
+			CONSTRAINT uni_teams_code UNIQUE (code)
+		);
+		CREATE TABLE IF NOT EXISTS team_members (
+			team_id    BIGINT NOT NULL,
+			user_number BIGINT NOT NULL,
+			joined_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			PRIMARY KEY (team_id, user_number),
+			CONSTRAINT idx_team_member_user UNIQUE (user_number),
+			CONSTRAINT fk_team_members_team FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE,
+			CONSTRAINT fk_team_members_user FOREIGN KEY (user_number) REFERENCES users (user_number) ON DELETE CASCADE
+		);
+	`).Error; err != nil {
+		panic("Failed to create riddle teams tables: " + err.Error())
 	}
 
 	// A coluna kits.is_babydoll é órfã: o modelo atual usa is_babylook (camiseta
@@ -128,9 +166,17 @@ func main() {
 	userService := user.NewUserService(userRepo, papfeRepo, passwordProvider, tokenProvider, mailProvider, emailValidationProvider, tokenRepo, m)
 	userHandler := user.NewUserHandler(userService)
 
+	presenceSettingsRepo := presencesettings.NewPresenceSettingsRepository(db)
+	presenceSettingsService := presencesettings.NewPresenceSettingsService(presenceSettingsRepo, db)
+	presenceSettingsHandler := presencesettings.NewPresenceSettingsHandler(presenceSettingsService)
+
 	eventRepo := event.NewEventRepository(db)
-	eventService := event.NewEventService(eventRepo)
+	eventService := event.NewEventService(eventRepo, presenceSettingsRepo)
 	eventHandler := event.NewEventHandler(eventService)
+
+	riddleRepo := riddle.NewRiddleRepository(db)
+	riddleService := riddle.NewRiddleService(riddleRepo)
+	riddleHandler := riddle.NewRiddleHandler(riddleService)
 
 	signinEventRepo := signinEvent.NewSigninEventRepository(db)
 	signinEventService := signinEvent.NewSigninEventService(signinEventRepo, eventRepo)
@@ -140,8 +186,16 @@ func main() {
 	presenceService := presence.NewPresenceService(presenceRepo)
 	presenceHandler := presence.NewPresenceHandler(presenceService)
 
+	// Motor de cálculo das taxas de presença: dispara recálculo automático a
+	// cada mutação de presenças, eventos ou pesos configuráveis.
+	rateCalculator := presencerate.NewCalculator(db)
+	eventService.SetRateRecalculator(rateCalculator)
+	presenceService.SetRateRecalculator(rateCalculator)
+	presenceSettingsService.SetRateRecalculator(rateCalculator)
+	
 	absenceJustificationRepo := absenceJustification.NewAbsenceJustificationRepository(db)
 	absenceJustificationService := absenceJustification.NewAbsenceJustificationService(absenceJustificationRepo)
+	absenceJustificationService.SetRateRecalculator(rateCalculator)
 	absenceJustificationHandler := absenceJustification.NewAbsenceJustificationHandler(absenceJustificationService)
 
 	productRepo := product.NewProductRepository(db)
@@ -178,6 +232,10 @@ func main() {
 	salesRepo := sales.NewSaleRepository(db)
 	salesService := sales.NewSaleService(salesRepo, productRepo, papfeRepo)
 	salesHandler := sales.NewSaleHandler(salesService)
+
+	dashboardRepo := dashboardbackoffice.NewDashboardRepository(db)
+	dashboardService := dashboardbackoffice.NewDashboardService(dashboardRepo)
+	dashboardHandler := dashboardbackoffice.NewDashboardHandler(dashboardService)
 
 	// Sweeper de expiração: persiste o status EXPIRADO nos PIX pendentes fora da
 	// janela de validade e libera as travas de compra única (consumed_items)
@@ -218,6 +276,33 @@ func main() {
 	// Inicialização de valores base de permissões para o banco de dados
 	if err := permissionService.InitializePermissions(); err != nil {
 		panic("Failed to initialize admin's permissions in backoffice: " + err.Error())
+	}
+
+	// Pesos padrão de presença (Palestra=1.0, Vitrine=0.5) em banco vazio
+	if err := presenceSettingsService.InitializeDefaults(); err != nil {
+		panic("Failed to initialize presence type weights: " + err.Error())
+	}
+
+	// Migração de dados: vincula eventos existentes ao seu tipo via FK
+	if db.Migrator().HasColumn(&event.Event{}, "presence_type_weight_id") {
+		type eventRow struct {
+			Name     string
+			InitDate time.Time
+			Type     string
+		}
+		var unmapped []eventRow
+		db.Raw("SELECT name, init_date, type FROM events WHERE presence_type_weight_id IS NULL AND type != ''").Scan(&unmapped)
+		for _, e := range unmapped {
+			var weightID uint
+			if err := db.Raw("SELECT id FROM presence_type_weights WHERE LOWER(TRIM(type_name)) = LOWER(TRIM(?))", e.Type).Scan(&weightID).Error; err == nil && weightID > 0 {
+				db.Model(&event.Event{}).Where("name = ? AND init_date = ?", e.Name, e.InitDate).Update("presence_type_weight_id", weightID)
+			}
+		}
+	}
+
+	// Convergência inicial: recalcula as taxas já persistidas com a configuração atual
+	if err := rateCalculator.RecalculateAll(); err != nil {
+		stdlog.Printf("[presence-rate] erro no recálculo inicial das taxas de presença: %v", err)
 	}
 
 	r := gin.Default()
@@ -299,6 +384,13 @@ func main() {
 	authRoutes.GET("/sales/:id", pageMW("loja"), salesHandler.GetSaleByID)
 	authRoutes.GET("/sales/:id/status", pageMW("loja"), salesHandler.GetSaleStatus)
 	authRoutes.GET("/sales/:id/events", pageMW("loja"), salesHandler.StreamSaleStatus)
+	authRoutes.PATCH("/sales/:id/cancel", pageMW("loja"), salesHandler.CancelSale)
+
+	// Riddle (jogo do participante)
+	authRoutes.GET("/riddles/my-game", pageMW("riddle"), riddleHandler.GetMyGame)
+	authRoutes.POST("/riddles/create-team", pageMW("riddle"), riddleHandler.CreateTeam)
+	authRoutes.POST("/riddles/join-team", pageMW("riddle"), riddleHandler.JoinTeam)
+	authRoutes.POST("/riddles/solve", pageMW("riddle"), riddleHandler.SolveRiddle)
 
 	// Rota Login Backoffice - Públicas
 	adminRoutes := r.Group("/admin")
@@ -324,12 +416,24 @@ func main() {
 	admin.DELETE("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.DeleteUser)
 
 	// Eventos
+	admin.GET("/events", permMW("Eventos", permission.PermR), eventHandler.GetEvents)
 	admin.POST("/events", permMW("Eventos", permission.PermRW), eventHandler.CreateEvent)
-	// GET nos eventos - Consulta pública via GET /events
 	admin.PUT("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.UpdateEventByNameAndInitDate)
 	admin.DELETE("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.DeleteEventByNameAndInitDate)
 
+	// Riddles
+	admin.GET("/riddles", permMW("Riddles", permission.PermR), riddleHandler.GetRiddles)
+	admin.GET("/riddles/:id", permMW("Riddles", permission.PermR), riddleHandler.GetRiddleByID)
+	admin.POST("/riddles", permMW("Riddles", permission.PermRW), riddleHandler.CreateRiddle)
+	admin.POST("/riddles/upload-csv", permMW("Riddles", permission.PermRW), riddleHandler.UploadRiddlesCSV)
+	admin.PUT("/riddles/:id", permMW("Riddles", permission.PermRW), riddleHandler.UpdateRiddle)
+	admin.DELETE("/riddles/:id", permMW("Riddles", permission.PermRW), riddleHandler.DeleteRiddle)
+
+	// Ranking das equipes do jogo de enigmas (somente leitura)
+	admin.GET("/teams/ranking", permMW("Riddles", permission.PermR), riddleHandler.GetTeamsRanking)
+
 	// Inscrições (Signin Events)
+	admin.GET("/signin-events/events", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninEvents)
 	admin.GET("/signin-events", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninsAdmin)
 	admin.GET("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninAdmin)
 	admin.POST("/signin-events", permMW("Inscrições", permission.PermRW), signinEventHandler.CreateSigninAdmin)
@@ -338,6 +442,11 @@ func main() {
 	admin.PUT("/signin-events/:userNumber/:eventName/:eventInitDate/register", permMW("Inscrições", permission.PermRW), signinEventHandler.RegisterSigninAdmin)
 	admin.POST("/signin-events/rotate/:eventName/:eventInitDate", permMW("Inscrições", permission.PermRW), signinEventHandler.RotateSigninsAdmin)
 
+	// Confirmações de Inscrição — rotas próprias com permissão própria
+	admin.GET("/confirmations/events", permMW("Confirmações de Inscrição", permission.PermR), signinEventHandler.GetSigninEvents)
+	admin.GET("/confirmations", permMW("Confirmações de Inscrição", permission.PermR), signinEventHandler.GetSigninsAdmin)
+	admin.PUT("/confirmations/:userNumber/:eventName/:eventInitDate", permMW("Confirmações de Inscrição", permission.PermRW), signinEventHandler.RegisterSigninAdmin)
+
 	// Participações
 	admin.GET("/presences", permMW("Participações", permission.PermR), presenceHandler.GetPresences)
 	admin.GET("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermR), presenceHandler.GetPresenceByUserEventandInitDate)
@@ -345,6 +454,12 @@ func main() {
 	admin.PUT("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermRW), presenceHandler.UpdatePresenceByUserEventandInitDate)
 	admin.DELETE("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermRW), presenceHandler.DeletePresenceByUserEventandInitDate)
 
+	// Configurações de Presença (pesos por tipo de evento)
+	admin.GET("/presence-settings", permMW("Configurações Presença", permission.PermR), presenceSettingsHandler.GetWeights)
+	admin.POST("/presence-settings", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.CreateWeight)
+	admin.PUT("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.UpdateWeight)
+	admin.DELETE("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.DeleteWeight)
+	
 	// Justificativas de Ausência
 	admin.GET("/absence-justifications", permMW("Justificativas de Ausência", permission.PermR), absenceJustificationHandler.GetAbsenceJustifications)
 	admin.GET("/absence-justifications/:id/attachment", permMW("Justificativas de Ausência", permission.PermR), absenceJustificationHandler.GetAttachment)
@@ -400,6 +515,9 @@ func main() {
 	admin.GET("/sponsors/:cnpj/packages", permMW("Patrocinadores", permission.PermR), sponsorHandler.GetSponsorPackages)
 	admin.POST("/sponsors/:cnpj/packages", permMW("Patrocinadores", permission.PermRW), sponsorHandler.AddSponsorPackage)
 	admin.DELETE("/sponsors/:cnpj/packages/:year/:package", permMW("Patrocinadores", permission.PermRW), sponsorHandler.RemoveSponsorPackage)
+
+	// Dashboard
+	admin.GET("/dashboard", permMW("Dashboard", permission.PermR), dashboardHandler.GetDashboard)
 
 	r.Run(":4000")
 }

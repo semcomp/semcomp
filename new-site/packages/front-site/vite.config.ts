@@ -35,6 +35,10 @@ export default defineConfig({
           if (id.includes('/gsap/')) {
             return 'vendor-gsap';
           }
+          // Framer Motion — usado só nas páginas da Loja (lazy-loaded)
+          if (id.includes('/framer-motion/')) {
+            return 'vendor-framer';
+          }
           // UI helpers leves — lucide, embla, cva, clsx
           if (
             id.includes('/lucide-react/') ||

@@ -3,6 +3,7 @@ package absenceJustification
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,6 +13,7 @@ import (
 )
 
 type AbsenceJustificationService interface {
+	SetRateRecalculator(recalculator RateRecalculator)
 	CreateAbsenceJustification(userEmail string, request CreateAbsenceJustificationRequest) (*AbsenceJustificationInfo, error)
 	GetMine(userEmail string) (*AbsenceJustificationInfo, error)
 	UpdateJustification(userEmail string, id uint, request UpdateAbsenceJustificationRequest) (*AbsenceJustificationInfo, error)
@@ -21,12 +23,37 @@ type AbsenceJustificationService interface {
 	UpdateStatus(id uint, status string, rejectionReason string) error
 }
 
+// RateRecalculator dispara o recálculo das taxas de presença após mutações.
+type RateRecalculator interface {
+	RecalculateUsers(userNumbers ...int64) error
+}
+
 type absenceJustificationService struct {
-	repo AbsenceJustificationRepository
+	repo         AbsenceJustificationRepository
+	recalculator RateRecalculator
 }
 
 func NewAbsenceJustificationService(repo AbsenceJustificationRepository) AbsenceJustificationService {
 	return &absenceJustificationService{repo: repo}
+}
+
+func (s *absenceJustificationService) SetRateRecalculator(recalculator RateRecalculator) {
+	s.recalculator = recalculator
+}
+
+// recalcUserByEmail resolve o email para user_number e dispara o recálculo.
+func (s *absenceJustificationService) recalcUserByEmail(email string) {
+	if s.recalculator == nil {
+		return
+	}
+	userNumber, err := s.repo.FindUserNumberByEmail(email)
+	if err != nil {
+		log.Printf("[absenceJustification] erro ao resolver user_number para recálculo: %v", err)
+		return
+	}
+	if err := s.recalculator.RecalculateUsers(userNumber); err != nil {
+		log.Printf("[absenceJustification] erro ao recalcular taxa de presença: %v", err)
+	}
 }
 
 // CreateAbsenceJustification cria a justificativa do usuário autenticado. Cada
@@ -143,13 +170,32 @@ func (s *absenceJustificationService) GetAttachment(id uint) (*AbsenceJustificat
 // obrigatório quando status="negado" e só persiste nesse status; em qualquer outro
 // status o motivo é sempre limpo.
 func (s *absenceJustificationService) UpdateStatus(id uint, status string, rejectionReason string) error {
+	// Buscar o status atual e o email para disparar recálculo se necessário
+	justification, err := s.repo.FindByID(id)
+	if err != nil {
+		return err
+	}
+	oldStatus := justification.Status
+
 	if status == StatusNegado {
 		if strings.TrimSpace(rejectionReason) == "" {
 			return apierrors.ValidationError("Informe o motivo da negativa da justificativa", nil)
 		}
-		return s.repo.UpdateStatus(id, status, &rejectionReason)
+		if err := s.repo.UpdateStatus(id, status, &rejectionReason); err != nil {
+			return err
+		}
+	} else {
+		if err := s.repo.UpdateStatus(id, status, nil); err != nil {
+			return err
+		}
 	}
-	return s.repo.UpdateStatus(id, status, nil)
+
+	// Se o status virou ou deixou de ser "aprovado", recalcular taxa de presença do usuário
+	if oldStatus != status && (oldStatus == StatusAprovado || status == StatusAprovado) {
+		s.recalcUserByEmail(justification.UserEmail)
+	}
+
+	return nil
 }
 
 const attachmentUploadDir = "uploads/absence-justifications"

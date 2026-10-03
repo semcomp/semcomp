@@ -21,7 +21,7 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - [[Backend_Providers]] — JWT (2 fluxos), bcrypt, email, token
 
 ## Frontend — Site Público (`front-site`)
-- [[Site_Paginas_e_Rotas]] — rotas, lazy loading, FeatureGuard, RequireAuth
+- [[Site_Paginas_e_Rotas]] — rotas (layout `App` estático + todas seções da Home lazy), FeatureGuard, RequireAuth; imagens responsivas `<picture>`, woff2 via @fontsource, nginx gzip+cache, manualChunks Vite
 - [[Site_Contextos_Auth]] — AuthContext, API client, API barrel
 - [[Site_Contextos_UI]] — ThemeContext, NotificationContext, FeatureFlagsContext, CartContext
 
@@ -43,6 +43,7 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - [[Feature_Participacao_e_QRCode]] — scan via câmera (backoffice), QR exibido no Profile (site)
 - [[Feature_Loja_e_Pagamentos]] — produtos (KIT/COFFEE/COMBO), carrinho, checkout PIX, polling, webhook
 - [[Feature_Flags_e_Pages]] — feature toggle via API, FeatureGuard, backoffice toggle UI
+- [[Feature_Riddle_e_Jogo]] — jogo de enigmas em sequência: CRUD backoffice (com CSV), equipes de até 5, progresso por índice, resolução em ordem
 - [[Feature_Patrocinadores]] — Sponsor + SponsorPackage, CRUD backoffice, GET público, click tracking
 - [[Feature_PAPFE]] — upload de comprovante, revisão tri-state, aprovação backoffice
 - [[Feature_SiteStat]] — contador de visitas key/value, POST /visit, GET /stats
@@ -50,10 +51,13 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 ---
 
 ## ⚠ Gaps Conhecidos
-- **Backoffice**: `"Produtos"` e `"Inscrições"` existem como `KnownSection` no backend (com CRUD em `/admin/products` e `/admin/signin-events`) mas **não há página de gerenciamento no front-backoffice**
+- **Backoffice**: `"Produtos"` existe como `KnownSection` no backend (com CRUD em `/admin/products`) mas **não há página de gerenciamento no front-backoffice**
 - **Cart**: `CartContext` é in-memory apenas — itens são perdidos ao recarregar a página
 - **Payments**: sem operação atômica — se `createPix` falhar após criar o pagamento no MP, o status fica inconsistente
 - **Permissions (bulk)**: salvar permissões faz N chamadas paralelas com `Promise.all`; falha parcial deixa estado inconsistente sem rollback
 - **Sections**: a tab `sections` foi removida do backoffice — seções deixaram de ser gerenciáveis via UI (mas endpoint backend ainda existe)
 - **Feature Flags**: estado das flags vive **em memória no processo Go** — reiniciar o servidor reseta todas as flags para `available: true`
+- **Riddle (Answer)**: o struct `Riddle` serializa `Answer` e só é seguro porque hoje é usado apenas nas rotas de backoffice; um futuro endpoint público do participante **não deve** expor esse struct diretamente — deve usar `PublicRiddle` (sem `Answer`) ou vaza as respostas do jogo
+- **Riddle (CSV)**: o upload substitui a fila com **hard delete** e é bloqueado (409) enquanto houver equipes em progresso — o fluxo exige a fila zerada antes de recriar
+- **Cronograma (image)**: `EventType` do front-site tem campo `image?: string` e `mapBackendEvent` tenta mapear `event.image`, mas o modelo `Event` do backend não possui esse campo — `image` sempre será `undefined` na API atual
 - **SiteStat**: sem rate-limiting em `POST /visit` — contador vulnerável a inflação por bots

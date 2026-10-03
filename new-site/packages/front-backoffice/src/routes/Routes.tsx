@@ -12,12 +12,18 @@ import ParticipationCRUD from "@/pages/Participation";
 import ProductsCRUD from "@/pages/Products";
 import PermissionsCRUD from "@/pages/Permission";
 import PagesAvailability from "@/pages/PagesAvailability";
+import PresenceSettings from "@/pages/PresenceSettings";
 import SponsorsCRUD from "@/pages/Sponsors";
 import SalesCRUD from "@/pages/Sales";
 import PapfeDocuments from "@/pages/PapfeDocuments";
 import ValidateCoffee from "@/pages/Coffee";
+import RiddlesCRUD from "@/pages/Riddles";
+import EventRegistration from "@/pages/EventRegistration";
+import ConfirmRegistrations from "@/pages/ConfirmRegistrations";
 import NoticesCRUD from "@/pages/Notices"
 import AbsenceJustifications from "@/pages/AbsenceJustifications";
+import DashboardPage from "@/pages/Dashboard";
+import PresencePage from "@/pages/Dashboard/presence";
 import NotFoundPage from "@/pages/NotFound";
 
 export const router = createBrowserRouter(
@@ -70,6 +76,10 @@ export const router = createBrowserRouter(
               ],
             },
             {
+              element: <RequirePermission section="Configurações Presença" />,
+              children: [{ path: "/presence-settings", element: <PresenceSettings /> }],
+            },
+            {
               element: <RequirePermission section="Produtos" />,
               children: [{ path: "/products", element: <ProductsCRUD /> }],
             },
@@ -104,12 +114,35 @@ export const router = createBrowserRouter(
               children: [{ path: "/coffee", element: <ValidateCoffee /> }],
             },
             {
+              element: <RequirePermission section="Riddles" />,
+              children: [{ path: "/riddles", element: <RiddlesCRUD /> }],
+            },
+            {
+              element: <RequirePermission section="Inscrições" />,
+              children: [
+                { path: "/event-registration", element: <EventRegistration /> },
+              ],
+            },
+            {
+              element: <RequirePermission section="Confirmações de Inscrição" />,
+              children: [
+                { path: "/confirm-registrations", element: <ConfirmRegistrations /> },
+              ],
+            },
+            {
               element: <RequirePermission section="Avisos" />,
               children: [{ path: "/notices", element: <NoticesCRUD /> }],
             },
             {
               element: <RequirePermission section="Justificativas de Ausência" />,
               children: [{ path: "/absence-justifications", element: <AbsenceJustifications /> }],
+            },
+            {
+              element: <RequirePermission section="Dashboard" />,
+              children: [
+                { path: "/dashboard", element: <DashboardPage /> },
+                { path: "/dashboard/presence", element: <PresencePage /> },
+              ],
             },
             {
               path: "*",

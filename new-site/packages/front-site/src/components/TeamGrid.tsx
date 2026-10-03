@@ -52,6 +52,8 @@ export default function TeamGrid({ data }: { data: TeamType }) {
   const DEFAULT_PHOTO = "/img/team/membro_default.webp";
   const getPhoto = (name: string) => `/img/team/${name}.webp`;
 
+  const getSmallPhoto = (name: string) => `/img/team/mobile/${name}.webp`;
+
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.from('.team-card', {
@@ -148,12 +150,23 @@ export default function TeamGrid({ data }: { data: TeamType }) {
                 key={index}
                 className="team-card bg-white dark:bg-semcompAlmostDarkBlue rounded-xl p-5 flex flex-col items-center text-center w-full max-w-[260px] shadow-[8px_8px_0px_0px_rgba(53,123,163,0.12)] dark:shadow-[12px_12px_0px_0px_#0B2639]"
               >
-                <img
-                  src={getPhoto(member.nome)}
-                  alt={member.nome}
-                  onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_PHOTO; }}
-                  className="bg-semcompMidLightBlue/15 dark:bg-[#34729c7f] border-solid border-2 border-semcompMidLightBlue/35 dark:border-[#50aae632] w-32 h-32 object-cover rounded-full"
-                />
+                <picture>
+                  <source
+                    media="(max-width: 768px)"
+                    srcSet={getSmallPhoto(member.nome)}
+                  />
+
+                  <img
+                    src={getPhoto(member.nome)}
+                    alt={member.nome}
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = DEFAULT_PHOTO;
+                    }}
+                    className="bg-semcompMidLightBlue/15 dark:bg-[#34729c7f] border-solid border-2 border-semcompMidLightBlue/35 dark:border-[#50aae632] w-32 h-32 object-cover rounded-full"
+                  />
+                </picture>
 
                 <p className="mt-4 font-bold text-lg text-semcompDarkBlue dark:text-semcompOffWhite">
                   {member.nome}

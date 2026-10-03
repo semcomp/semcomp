@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Dúvidas gerais
+    url: https://github.com/semcomp/semcomp/discussions
+    about: Para dúvidas que não se encaixam em nenhum template, use as Discussions.

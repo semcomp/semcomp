@@ -1,0 +1,131 @@
+import { useMemo, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Coffee, UtensilsCrossed } from "lucide-react";
+import type { CoffeeSalesStats } from "@/api/dashboard";
+import { isNightCoffee } from "@/utils/coffeeRules";
+
+function formatDateTime(dateTime: string): string {
+  return new Date(dateTime).toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export default function CoffeesCard({
+  data,
+  loading,
+}: {
+  data?: CoffeeSalesStats;
+  loading: boolean;
+}) {
+  const coffees = useMemo(() => data?.byCoffee ?? [], [data]);
+  const [sortMode, setSortMode] = useState<"date" | "sold">("date");
+
+  const ordered = useMemo(
+    () => (sortMode === "sold" ? [...coffees].sort((a, b) => b.sold - a.sold) : coffees),
+    [coffees, sortMode],
+  );
+
+  return (
+    <Card className="max-h-[40rem] border-border bg-card/80 rounded-2xl transition-colors hover:border-primary/40">
+      <CardHeader>
+        <div className="mb-1 flex items-center gap-2">
+          <span className="rounded-lg bg-primary/15 p-2 text-primary">
+            <Coffee className="w-5 h-5" />
+          </span>
+          <CardTitle>Coffes vendidos</CardTitle>
+        </div>
+        <CardDescription>Quantidade total de coffes vendidos.</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-1 min-h-0 flex-col px-4">
+        {loading ? (
+          <div className="flex flex-1 items-center justify-center py-8">
+            <p className="text-sm text-muted-foreground">Carregando...</p>
+          </div>
+        ) : (
+          <div className="flex flex-1 min-h-0 flex-col space-y-4">
+            <div className="flex flex-col items-center justify-center py-6">
+              <p className="text-4xl md:text-5xl font-bold text-primary">
+                {(data?.totalSold ?? 0).toLocaleString("pt-BR")}
+              </p>
+              <p className="mt-2 text-xs uppercase tracking-wide text-muted-foreground">
+                Coffes vendidos
+              </p>
+            </div>
+
+            <div className="flex flex-1 min-h-0 flex-col space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-foreground">Por dia</p>
+                <div className="flex rounded-lg border border-border bg-muted/20 p-0.5 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setSortMode("date")}
+                    className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                      sortMode === "date"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Por data
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSortMode("sold")}
+                    className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                      sortMode === "sold"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Mais vendidos
+                  </button>
+                </div>
+              </div>
+              {coffees.length === 0 ? (
+                <p className="flex flex-1 items-center justify-center py-4 text-center text-sm text-muted-foreground">Sem dados de coffes vendidos.</p>
+              ) : (
+                <div className="flex-1 min-h-0 space-y-2 overflow-y-auto pr-1">
+                  {ordered.map((coffee) => (
+                    <div
+                      key={coffee.coffeeId}
+                      className="flex items-center justify-between gap-2 rounded-xl border border-border/50 bg-muted/20 p-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {formatDateTime(coffee.dateTime)}
+                        </p>
+                        <span
+                          className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                            isNightCoffee(coffee.dateTime)
+                              ? "bg-amber-400/15 text-amber-400"
+                              : "bg-sky-400/15 text-sky-400"
+                          }`}
+                        >
+                          {isNightCoffee(coffee.dateTime) ? "Noturno" : "Diurno"}
+                        </span>
+                        <p className="mt-1 flex items-center gap-1 text-xs text-emerald-400">
+                          <UtensilsCrossed className="w-3.5 h-3.5" />
+                          {coffee.vegetarian.toLocaleString("pt-BR")} vegetariano(s)
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-semibold text-foreground">
+                          {coffee.sold.toLocaleString("pt-BR")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">vendidos</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
