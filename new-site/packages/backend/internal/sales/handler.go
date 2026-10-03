@@ -423,3 +423,49 @@ func (h *SaleHandler) UpdateItemPickup(c *gin.Context) {
 	c.Set("responseMessage", "Status de retirada do item atualizado com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Status atualizado com sucesso!", "item": item})
 }
+
+// VerifyCoffeeAccess verifica se o usuário possui compra PAGA para o coffee do horário informado
+// @Summary Verifica acesso ao coffee
+// @Description Verifica se o usuário (via QR code) possui venda PAGA para o coffee do date_time informado (considera também combos que contêm o coffee)
+// @Tags Coffee Backoffice
+// @Produce json
+// @Param userNumber path string true "Número do usuário (ex: 123)"
+// @Param dateTime path string true "Horário do coffee em RFC3339 (ex: 2026-08-01T09:00:00Z)"
+// @Success 200 {object} map[string]interface{} "Resultado da verificação"
+// @Failure 400 {object} map[string]string "Parâmetro inválido"
+// @Failure 404 {object} map[string]string "Coffee não encontrado"
+// @Security BearerAuth
+// @Router /admin/coffees/verify/{userNumber}/{dateTime} [get]
+func (h *SaleHandler) VerifyCoffeeAccess(c *gin.Context) {
+	userNumberStr := c.Param("userNumber")
+	if userNumberStr == "" {
+		userNumberStr = c.Query("user_number")
+	}
+	dateTime := c.Param("dateTime")
+	if dateTime == "" {
+		dateTime = c.Query("date_time")
+	}
+	if dateTime == "" {
+		dateTime = c.Query("dateTime")
+	}
+	if userNumberStr == "" || dateTime == "" {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("user_number e date_time são obrigatórios", nil))
+		return
+	}
+	userNumber, err := strconv.ParseUint(userNumberStr, 10, 64)
+	if err != nil {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("user_number inválido", err))
+		return
+	}
+	hasAccess, err := h.saleService.VerifyCoffeeAccess(uint(userNumber), dateTime)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	c.Set("responseMessage", "Verificação de acesso ao coffee concluída")
+	c.JSON(http.StatusOK, gin.H{
+		"user_number": userNumber,
+		"date_time":   dateTime,
+		"has_access":  hasAccess,
+	})
+}

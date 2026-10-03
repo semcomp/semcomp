@@ -29,6 +29,7 @@ export interface ProfileResponse {
   email: string;
   name: string;
   presence_rate: number;
+  hasPapfe?: boolean;
   city?: string;
   profession?: string | null;
   linkedin?: string | null;

@@ -60,8 +60,15 @@ Usa `CrudTable` com `canWrite={useHasPermission("Eventos", "RW")}`.
 | `end_date` | `dateEnd` (RFC3339) |
 | `location` | `local` |
 | `has_attendance` | `hasPresence` |
+| `has_signin` | `hasSignin` |
+| `max_participants` | `maxParticipants` |
 
-Normalização no envio: `normalizeRFC3339(date)` + `normalizeBoolean(hasPresence)`
+Normalização no envio: `normalizeRFC3339(date)` + `normalizeBoolean(hasPresence)` + `normalizeBoolean(hasSignin)` + `Number(maxParticipants)`
+
+### Campos CRUD no backoffice
+`front-backoffice/src/data/eventsCrudField.ts` define os campos exibidos no `CrudTable`:
+- `hasSignin` — campo `select` com variantes visuais (azul = true, cinza = false)
+- `maxParticipants` — campo `number` (0 = vagas ilimitadas); suportado pelo `CrudTable` via tipo `"number"` adicionado ao componente
 
 ### Navegação para QR Code
 A partir de `/events` → `/events/:nameEvent/:datetime/qrcode-reader`  

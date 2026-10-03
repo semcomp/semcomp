@@ -69,27 +69,42 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 | PUT | `/admin/presences/:u/:e/:d` | `participationAPI.update(...)` |
 | DELETE | `/admin/presences/:u/:e/:d` | `participationAPI.delete(u, e, d)` |
 
-### Produtos (`"Produtos"`)
-| Método | Path | Handler TS | Notas |
-|---|---|---|---|
-| GET | `/admin/products` | `productsAPI.getAll(page, ...)` | paginado |
-| GET | `/admin/products/:id` | `productsAPI.getByID(id)` | |
-| POST | `/admin/products` | `productsAPI.create(data)` / `bulkCreate` | |
-| PUT | `/admin/products/:id` | `productsAPI.update(id, data)` | |
-| DELETE | `/admin/products/:id` | `productsAPI.delete(id)` | bloqueado se for item de combo (409) |
-| POST | `/admin/products` | `productsAPI.createCombo` / `updateCombo` | payload COMBO (`items: [{item_id, quantity}]`) |
+### Produtos (`"Produtos"`) — sem UI no backoffice
+| Método | Path |
+|---|---|
+| GET | `/admin/products` |
+| GET | `/admin/products/:id` |
+| POST | `/admin/products` |
+| PUT | `/admin/products/:id` |
+| DELETE | `/admin/products/:id` |
 
-> UI em `pages/Products` (`/products`).
+### Inscrições (`"Inscrições"`) — sem tab no backoffice (CRUD via API)
+| Método | Path | Handler TS |
+|---|---|---|
+| GET | `/admin/signin-events` | — |
+| GET | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | — |
+| POST | `/admin/signin-events` | — |
+| PUT | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | — |
+| DELETE | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | — |
 
-### Vendas (`"Vendas"`)
-| Método | Path | Handler TS | Notas |
-|---|---|---|---|
-| GET | `/admin/sales` | `salesAPI.getAll(page, ...)` | lista vendas |
-| PUT | `/admin/sales/:id` | `salesAPI.update(id, payload)` | mudar status destrava/retrava consumido |
-| DELETE | `/admin/sales/:id` | `salesAPI.delete(id)` | libera travas `consumed_items` |
-| PATCH | `/admin/sales/items/:itemId/pickup` | `salesAPI.updateItemPickup(itemId, {is_picked_up})` | retirada de item |
+### Patrocinadores (`"Patrocinadores"`)
+| Método | Path | Handler TS |
+|---|---|---|
+| GET | `/admin/sponsors` | `sponsorsAPI.getAll(page, ...)` |
+| GET | `/admin/sponsors/:cnpj` | `sponsorsAPI.getByCNPJ(cnpj)` |
+| POST | `/admin/sponsors` | `sponsorsAPI.create(formData)` — multipart |
+| PUT | `/admin/sponsors/:cnpj` | `sponsorsAPI.update(cnpj, formData)` — multipart |
+| DELETE | `/admin/sponsors/:cnpj` | `sponsorsAPI.delete(cnpj)` |
+| GET | `/admin/sponsors/:cnpj/packages` | `sponsorsAPI.getPackages(cnpj, year?)` |
+| POST | `/admin/sponsors/:cnpj/packages` | `sponsorsAPI.addPackage(cnpj, year, pkg)` |
+| DELETE | `/admin/sponsors/:cnpj/packages/:year/:package` | `sponsorsAPI.removePackage(cnpj, year, pkg)` |
 
-> UI em `pages/Sales` (`/sales`).
+### PAPFE (`"PAPFE"`)
+| Método | Path | Handler TS |
+|---|---|---|
+| GET | `/admin/papfe-documents` | `papfeAPI.getAll()` (de `api/users.ts`) |
+| GET | `/admin/users/:id/papfe-document` | `papfeAPI.getDocument(id)` |
+| PUT | `/admin/users/:id/papfe-document/approval` | `papfeAPI.approve(id, bool)` |
 
 ### Permissões (`"Permissões"`)
 | Método | Path | Guard extra | Handler TS |
@@ -118,6 +133,8 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 | `dateEnd` | `end_date` |
 | `local` | `location` |
 | `hasPresence` | `has_attendance` |
+| `hasSignin` | `has_signin` |
+| `maxParticipants` | `max_participants` |
 
 ### Presence
 | Frontend | Backend |
@@ -133,15 +150,9 @@ Todas as rotas abaixo exigem autenticação. As que indicam `PermR`/`PermRW` exi
 | `id` | `user_number` (string formatado como `%05d`) |
 | `presence_rate` | `presence_rate` |
 
-### Kit
-| Frontend | Backend |
-|---|---|
-| `kitName` | `name` |
-| `kitSize` | `size` |
-| `kitColor` | `color` |
-| `kitIsBabylook` | `is_babylook` (antes `is_babydoll`) |
-
 ---
 
 ## API Barrel (Backoffice)
-Arquivo: `src/api/index.ts` — exporta: `authAPI`, `userBackofficeAPI`, `userSemcompAPI`, `eventsAPI`, `sectionsAPI`, `participationAPI`, `productsAPI`, `permissionsAPI`, `pagesAPI`, `sponsorsAPI`, `salesAPI`, `client`
+Arquivo: `src/api/index.ts` — exporta: `authAPI`, `userBackofficeAPI`, `userSemcompAPI`, `eventsAPI`, `sectionsAPI`, `participationAPI`, `permissionsAPI`, `pagesAPI`, `sponsorsAPI`, `client`
+
+> `papfeAPI` é exportado diretamente de `api/users.ts` (não está no barrel).

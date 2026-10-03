@@ -23,8 +23,7 @@ App (layout)
 │   └── FeatureGuard("loja")
 │       ├── /loja
 │       ├── /loja/carrinho
-│       ├── /loja/checkout
-│       └── /loja/pagamentos
+│       └── /loja/checkout
 ├── /                         ← Home (sempre disponível)
 └── *                         ← NotFound
 ```
@@ -39,10 +38,9 @@ App (layout)
 | `/reset-password` | `pages/ResetPassword/index.tsx` | FeatureGuard(`login`) | `POST /reset-password` |
 | `/verify-email` | `pages/VerifyEmail/index.tsx` | — | `GET /api/verify-email` (param: token) |
 | `/profile` | `pages/Profile/index.tsx` | RequireAuth + FeatureGuard(`login`) | `GET /api/profile` |
-| `/loja` | `pages/Store/StorePage.tsx` | RequireAuth + FeatureGuard(`loja`) | `GET /products?limit=1000` + `GET /api/sales/consumed` + `GET /api/sales/profile` (banner pagamentos pendentes) |
-| `/loja/carrinho` | `pages/Store/Cart.tsx` | RequireAuth + FeatureGuard(`loja`) | `POST /api/sales` |
-| `/loja/checkout` | `pages/Store/Checkout.tsx` | RequireAuth + FeatureGuard(`loja`) | SSE `GET /api/sales/:id/events` |
-| `/loja/pagamentos` | `pages/Store/PendingPayments.tsx` | RequireAuth + FeatureGuard(`loja`) | `GET /api/sales/profile` + SSE `GET /api/sales/:id/events` |
+| `/loja` | `pages/Store/StorePage.tsx` | RequireAuth + FeatureGuard(`loja`) | `GET /products?limit=1000` |
+| `/loja/carrinho` | `pages/Store/Cart.tsx` | RequireAuth + FeatureGuard(`loja`) | `POST /api/payments/pix` |
+| `/loja/checkout` | `pages/Store/Checkout.tsx` | RequireAuth + FeatureGuard(`loja`) | `GET /api/payments/:id/status` |
 | `*` | `pages/NotFound/index.tsx` | — | — |
 
 ## Home (`/`) — Seções
@@ -65,18 +63,16 @@ Background alterna com `isDarkMode` via `ThemeContext`.
 
 ## Profile (`/profile`) — Lógica
 1. `authAPI.getProfile()` → `GET /api/profile`
-2. Exibe QR Code com `user_number` via `react-qr-code`
-3. Aba `"qr"` (default) + aba `"account"` (dados pessoais)
-4. Imagem hero aleatória via `import.meta.glob("/src/assets/img/Home/Hero/*.webp")`
-5. Reutiliza `<ContatoSection>` no rodapé
-6. Na aba `"compras"`, se houver pedido `PENDENTE` e a flag `loja` ativa, mostra
-   o botão "Ver pagamentos pendentes (N)" → `/loja/pagamentos`
-
-## Header (navegação ativa)
-Arquivo: `src/components/Header.tsx`
-- A seção "LOJA" fica ativa em qualquer rota `/loja/*` (loja, carrinho, checkout
-  e `/loja/pagamentos`) — o matching usa `path === "/loja" && pathname.startsWith("/loja")`,
-  não apenas igualdade exata.
+2. `signinEventsAPI.getSigninEvents()` → `GET /api/signin-events` (eventos inscritiveis)
+3. `signinEventsAPI.getMySignins()` → `GET /api/signin-events/me` (inscrições ativas)
+4. Exibe QR Code com `user_number` via `react-qr-code`
+5. Seção de inscrição em eventos: lista `EventType[]` com `has_signin=true`, botão "Inscrever-se" / "Desistir", status "Inscrito" / "Lista de Espera - Nª posição"
+6. Background: `<AnimatedBackground />` (vídeo `.webm` em loop em `public/img/Profile/background.webm`)
+7. Card SVG temático em `public/img/Profile/Card.svg`
+8. Componente `EventCardMobile` (memo) para renderizar cada evento
+9. Reutiliza `<ContatoSection>` no rodapé
+- `signinEventsAPI` importado diretamente de `@/api/signinEvents` (não pelo barrel)
+- → [[Feature_SigninEvent]]
 
 ## RequireAuth
 Arquivo: `src/lib/RequireAuth.tsx` — redireciona para `/login` se não autenticado.

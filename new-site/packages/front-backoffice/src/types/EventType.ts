@@ -8,4 +8,6 @@ export interface EventType  extends CrudItemType {
   type: string;
   description: string;
   hasPresence: boolean;
+  hasSignin: boolean;
+  maxParticipants: number;
 }
