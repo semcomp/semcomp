@@ -78,15 +78,6 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 	var saleItems []SaleItem
 	var consumedProductIDs []uint
 
-	status := request.Status
-	if status == "" {
-		status = SaleStatusPending
-	}
-
-	// Só pedidos ativos (PENDENTE/PAGO) travam a compra única. Pedidos criados
-	// direto em status final não reservam o item.
-	shouldLock := status == SaleStatusPending || status == SaleStatusPaid
-
 	// Conjunto fechado de produtos indisponíveis para este usuário (coffees e
 	// combos já consumidos/travados). Calculado uma única vez para todos os itens.
 	unavailable, err := s.getUnavailableProductIDs(userNumber)
@@ -125,9 +116,7 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 			if _, taken := unavailableSet[prod.ID]; taken {
 				return nil, apierrors.ValidationError("Este item já foi consumido ou já está reservado em outro pedido", nil)
 			}
-			if shouldLock {
-				consumedProductIDs = append(consumedProductIDs, prod.ID)
-			}
+			consumedProductIDs = append(consumedProductIDs, prod.ID)
 		}
 
 		// Valida o KIT selecionado dentro do COMBO.
@@ -174,7 +163,7 @@ func (s *saleService) CreateSale(userNumber uint, email string, request CreateSa
 
 	newSale := Sale{
 		SaleUserNumber:      userNumber,
-		Status:              status,
+		Status:              SaleStatusPending,
 		PaymentMethod:       request.PaymentMethod,
 		TotalAmount:         totalAmount,
 		Items:               saleItems,

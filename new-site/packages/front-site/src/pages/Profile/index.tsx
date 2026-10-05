@@ -1331,18 +1331,28 @@ export default function Profile({
             {qrAndAccountCard}
           </div>
 
-          <div className="relative z-10 h-[85%] w-[28%] bg-semcompMidDarkBlue dark:bg-semcompDarkBlue flex flex-col rounded-sm overflow-hidden text-semcompOffWhite pt-12 pr-10 pl-10 pb-10">
+          <div className="relative z-10 h-[85%] w-[28%] bg-semcompMidDarkBlue dark:bg-semcompDarkBlue flex flex-col rounded-sm overflow-y-auto text-semcompOffWhite p-10">
             <h1 className="text-center text-3xl font-bold pb-4">SEMCOMP 29</h1>
-            <p className="text-center text-md pb-2">
-            Um encontro entre a computação, a cultura e a diversidade brasileira
+            
+            <p className="text-center text-md pb-4">
+              Um encontro entre a computação, a cultura e a diversidade brasileira
             </p>
-            <div className="relative h-[50%] bg-semcompOffWhite dark:bg-semcompDarkBlue overflow-hidden rounded-xl">
-              <img src="/img/Profile/Card.svg" className="absolute inset-0 w-full h-full object-cover" alt="background"/>
+
+            <div className="w-full">
+              <div className="relative w-full aspect-[2310/1300] bg-semcompOffWhite dark:bg-semcompDarkBlue overflow-hidden rounded-xl flex items-center justify-center">
+                <img 
+                  src="/img/Profile/Card.svg" 
+                  className="w-full h-full object-contain" 
+                  alt="Card SEMCOMP"
+                />
+              </div>
+
+              <hr className="border-semcompOffWhite mt-6 mb-3 opacity-30" />
+
+              <span className="block text-sm text-justify">
+                Este ano, a SEMCOMP celebra o tema BRASILIDADES! Essa proposta nasce da diversidade, criatividade e riqueza cultural do Brasil, conectando a computação às diferentes formas de expressão que fazem parte da nossa identidade. Venha descobrir, compartilhar e vivenciar as muitas faces do nosso país durante a SEMCOMP!
+              </span>
             </div>
-            <hr className="border-semcompOffWhite mt-6 mb-3" />
-            <span className="text-sm text-justify">
-              Este ano, a SEMCOMP celebra o tema BRASILIDADES! Essa proposta nasce da diversidade, criatividade e riqueza cultural do Brasil, conectando a computação às diferentes formas de expressão que fazem parte da nossa identidade. Venha descobrir, compartilhar e vivenciar as muitas faces do nosso país durante a SEMCOMP!
-            </span>
           </div>
         </div>
 

@@ -15,6 +15,8 @@ type UsersStats struct {
 	NotJustified      int64     `json:"notJustified"`       // total com justificativa negada
 	MeanRate          float64   `json:"meanRate"`           // média de presença (excluindo justificados)
 	TotalWithPapfe    int64     `json:"totalWithPapfe"`     // total de usuários com PAPFE
+	WantsBadge                    int64     `json:"wantsBadge"`                // total que marcou querer crachá
+	AuthorizesSponsorSharing      int64     `json:"authorizesSponsorSharing"`  // total que autorizou compartilhar dados com patrocinadores
 	USPParticipants   int64     `json:"uspParticipants"`    // participantes com e-mail @usp.br
 	ExternalParticipants int64  `json:"externalParticipants"` // participantes externos (e-mail fora de @usp.br)
 	LastUpdate        time.Time `json:"lastUpdate"`
@@ -91,6 +93,7 @@ type CoffeeStat struct {
 	Sold       int64     `json:"sold"`       // quantidade vendida (PAGO)
 	Pending    int64     `json:"pending"`    // quantidade em pedidos pendentes
 	Revenue    float64   `json:"revenue"`    // receita do coffee específico
+	Vegetarian int64     `json:"vegetarian"` // pessoas que pediram opção vegetariana (PAGO)
 }
 
 // SalesOverviewStats é o resumo geral de vendas de todos os tipos de produto.
