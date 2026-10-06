@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { ComboFormModal } from "@/components/ComboFormModal";
 import { KitBulkModal } from "@/components/KitBulkModal";
 import { CoffeeBulkModal } from "@/components/CoffeeBulkModal";
+import axios from "axios";
 
 const TYPE_TABS: {
   type: ProductKind;
@@ -92,13 +93,22 @@ export default function ProductsCRUD() {
 
       setData(response.products || []);
       setTotalRecords(response.filtered_records ?? response.total_records ?? 0);
-    } catch (err) {
-      console.error("Erro ao buscar produtos:", err);
+  } catch (err: unknown) {
+    console.error("Erro ao buscar produtos:", err);
+
+    if (axios.isAxiosError(err)) {
+      const body = err.response?.data as { code?: string; message?: string } | undefined;
+
+      if (body?.code === "validation_error") {
+        setError(body.message ?? "Erro de validação");
+      } else {
+        setError("Erro ao carregar produtos");
+      }
+    } else {
       setError("Erro ao carregar produtos");
-      setData([]);
-    } finally {
-      setLoading(false);
     }
+    setData([]);
+  }
   }, []);
 
   const handleQueryChange = useCallback(
