@@ -179,6 +179,47 @@ func (r *productRepository) CountComboItemRefs(itemID uint) (int64, error) {
 	return count, err
 }
 
+const (
+	kitJoinClause    = "LEFT JOIN kits ON kits.id = products.id"
+	coffeeJoinClause = "LEFT JOIN coffees ON coffees.id = products.id"
+)
+
+// joinForProductField devolve o LEFT JOIN necessário para filtrar ou ordenar por um
+// campo de sub-tabela. Campos da tabela base (products) dispensam join.
+func joinForProductField(field string) string {
+	switch {
+	case strings.HasPrefix(field, "kit."):
+		return kitJoinClause
+	case strings.HasPrefix(field, "coffee."):
+		return coffeeJoinClause
+	default:
+		return ""
+	}
+}
+
+// applyProductJoins aplica os LEFT JOINs exigidos pela busca e/ou pela ordenação,
+// deduplicados para não repetir a mesma tabela quando ambas usam sub-tabelas.
+func applyProductJoins(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB {
+	joins := make([]string, 0, 2)
+	for _, field := range []string{query.SearchBy, query.SortBy} {
+		join := joinForProductField(field)
+		if join != "" && !slices.Contains(joins, join) {
+			joins = append(joins, join)
+		}
+	}
+
+	for _, join := range joins {
+		dbQuery = dbQuery.Joins(join)
+	}
+	return dbQuery
+}
+
+// productListBaseQuery monta a base das queries de listagem. O Select("products.*")
+// evita as colunas duplicadas (id, name) que a tabela do join traria em SELECT *.
+func productListBaseQuery(db *gorm.DB, query ProductListQuery) *gorm.DB {
+	return applyProductJoins(db.Model(&Product{}).Select("products.*"), query)
+}
+
 func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB {
 	if query.TypeFilter != "" {
 		dbQuery = dbQuery.Where("products.type = ?", strings.ToUpper(query.TypeFilter))
@@ -200,21 +241,13 @@ func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB
 	case "price":
 		return dbQuery.Where("products.price::text ILIKE ?", "%"+query.SearchValue+"%")
 	case "kit.name":
-		return dbQuery.
-			Joins("JOIN kits ON kits.id = products.id").
-			Where("kits.name ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("kits.name ILIKE ?", "%"+query.SearchValue+"%")
 	case "kit.size":
-		return dbQuery.
-			Joins("JOIN kits ON kits.id = products.id").
-			Where("kits.size ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("kits.size ILIKE ?", "%"+query.SearchValue+"%")
 	case "kit.color":
-		return dbQuery.
-			Joins("JOIN kits ON kits.id = products.id").
-			Where("kits.color ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("kits.color ILIKE ?", "%"+query.SearchValue+"%")
 	case "coffee.name":
-		return dbQuery.
-			Joins("JOIN coffees ON coffees.id = products.id").
-			Where("coffees.name ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("coffees.name ILIKE ?", "%"+query.SearchValue+"%")
 	default:
 		return dbQuery
 	}
@@ -250,12 +283,12 @@ func (r *productRepository) GetProducts(query ProductListQuery) (*ProductListRes
 		return nil, err
 	}
 
-	filteredQuery := applyProductSearchFilter(r.db.Model(&Product{}), query)
+	filteredQuery := applyProductSearchFilter(productListBaseQuery(r.db, query), query)
 	if err := filteredQuery.Count(&filteredRecords).Error; err != nil {
 		return nil, err
 	}
 
-	dataQuery := applyProductSearchFilter(r.db.Model(&Product{}), query)
+	dataQuery := applyProductSearchFilter(productListBaseQuery(r.db, query), query)
 	err = dataQuery.
 		Preload("Kit").
 		Preload("Coffee").
