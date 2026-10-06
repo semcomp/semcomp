@@ -190,32 +190,32 @@ func seedEvents(db *gorm.DB, ptypes []presencesettings.PresenceTypeWeight) []eve
 	if !skip("Events", n) {
 		rows := []event.Event{
 			// ── Segunda-feira 06/10 ──────────────────────────────────────
-			{Name: "[SEED] Abertura Semcomp 29", InitDate: dt(2025, 10, 6, 19, 0), EndDate: dt(2025, 10, 6, 21, 0), PresenceTypeID: ptypeID(ptypes, "Abertura"), Type: "Abertura", Location: "Auditório Fernandinho - ICMC", Description: "Cerimônia de abertura da 29ª edição da Semcomp.", HasAttendance: false, HasSignin: false},
-			{Name: "[SEED] Coffee de Abertura", InitDate: dt(2025, 10, 6, 21, 0), EndDate: dt(2025, 10, 6, 22, 0), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee de confraternização após a cerimônia de abertura.", HasAttendance: false, HasSignin: false},
+			{Name: "[SEED] Abertura Semcomp 29", InitDate: dt(2026, 10, 6, 19, 0), EndDate: dt(2026, 10, 6, 21, 0), PresenceTypeID: ptypeID(ptypes, "Abertura"), Type: "Abertura", Location: "Auditório Fernandinho - ICMC", Description: "Cerimônia de abertura da 29ª edição da Semcomp.", HasAttendance: false, HasSignin: false},
+			{Name: "[SEED] Coffee de Abertura", InitDate: dt(2026, 10, 6, 21, 0), EndDate: dt(2026, 10, 6, 22, 0), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee de confraternização após a cerimônia de abertura.", HasAttendance: false, HasSignin: false},
 			// ── Terça-feira 07/10 ────────────────────────────────────────
-			{Name: "[SEED] Minicurso: Go para Iniciantes", InitDate: dt(2025, 10, 7, 10, 0), EndDate: dt(2025, 10, 7, 12, 0), PresenceTypeID: ptypeID(ptypes, "Minicurso"), Type: "Minicurso", Location: "Sala 5-001 - ICMC", Description: "Introdução à linguagem Go com foco em APIs REST e concorrência.", HasAttendance: false, HasSignin: true, MaxParticipants: 30},
-			{Name: "[SEED] Coffee da manhã - Terça", InitDate: dt(2025, 10, 7, 9, 0), EndDate: dt(2025, 10, 7, 9, 30), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee break matinal do segundo dia.", HasAttendance: false, HasSignin: false},
-			{Name: "[SEED] Palestra: Inteligência Artificial na Prática", InitDate: dt(2025, 10, 7, 14, 0), EndDate: dt(2025, 10, 7, 15, 30), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Aplicações reais de IA em produtos de grande escala.", HasAttendance: true, HasSignin: false},
-			{Name: "[SEED] Oficina: Docker do Zero", InitDate: dt(2025, 10, 7, 16, 0), EndDate: dt(2025, 10, 7, 18, 0), PresenceTypeID: ptypeID(ptypes, "Oficina"), Type: "Oficina", Location: "Laboratório de Sistemas - ICMC", Description: "Oficina prática de containerização com Docker e Docker Compose.", HasAttendance: false, HasSignin: true, MaxParticipants: 25},
-			{Name: "[SEED] Rodas de Conversa: Carreira em Tech", InitDate: dt(2025, 10, 7, 18, 30), EndDate: dt(2025, 10, 7, 20, 0), PresenceTypeID: ptypeID(ptypes, "Rodas de conversa"), Type: "Rodas de conversa", Location: "Sala 3-010 - ICMC", Description: "Bate-papo aberto sobre carreira em tecnologia.", HasAttendance: false, HasSignin: false},
+			{Name: "[SEED] Minicurso: Go para Iniciantes", InitDate: dt(2026, 10, 7, 10, 0), EndDate: dt(2026, 10, 7, 12, 0), PresenceTypeID: ptypeID(ptypes, "Minicurso"), Type: "Minicurso", Location: "Sala 5-001 - ICMC", Description: "Introdução à linguagem Go com foco em APIs REST e concorrência.", HasAttendance: false, HasSignin: true, MaxParticipants: 30},
+			{Name: "[SEED] Coffee da manhã - Terça", InitDate: dt(2026, 10, 7, 9, 0), EndDate: dt(2026, 10, 7, 9, 30), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee break matinal do segundo dia.", HasAttendance: false, HasSignin: false},
+			{Name: "[SEED] Palestra: Inteligência Artificial na Prática", InitDate: dt(2026, 10, 7, 14, 0), EndDate: dt(2026, 10, 7, 15, 30), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Aplicações reais de IA em produtos de grande escala.", HasAttendance: true, HasSignin: false},
+			{Name: "[SEED] Oficina: Docker do Zero", InitDate: dt(2026, 10, 7, 16, 0), EndDate: dt(2026, 10, 7, 18, 0), PresenceTypeID: ptypeID(ptypes, "Oficina"), Type: "Oficina", Location: "Laboratório de Sistemas - ICMC", Description: "Oficina prática de containerização com Docker e Docker Compose.", HasAttendance: false, HasSignin: true, MaxParticipants: 25},
+			{Name: "[SEED] Rodas de Conversa: Carreira em Tech", InitDate: dt(2026, 10, 7, 18, 30), EndDate: dt(2026, 10, 7, 20, 0), PresenceTypeID: ptypeID(ptypes, "Rodas de conversa"), Type: "Rodas de conversa", Location: "Sala 3-010 - ICMC", Description: "Bate-papo aberto sobre carreira em tecnologia.", HasAttendance: false, HasSignin: false},
 			// ── Quarta-feira 08/10 ───────────────────────────────────────
-			{Name: "[SEED] Coffee da manhã - Quarta", InitDate: dt(2025, 10, 8, 9, 0), EndDate: dt(2025, 10, 8, 9, 30), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee break matinal do terceiro dia.", HasAttendance: false, HasSignin: false},
-			{Name: "[SEED] Minicurso: Machine Learning com Python", InitDate: dt(2025, 10, 8, 10, 0), EndDate: dt(2025, 10, 8, 12, 0), PresenceTypeID: ptypeID(ptypes, "Minicurso"), Type: "Minicurso", Location: "Sala 5-002 - ICMC", Description: "Introdução ao aprendizado de máquina com scikit-learn e pandas.", HasAttendance: false, HasSignin: true, MaxParticipants: 35},
-			{Name: "[SEED] Vitrine de Empresas", InitDate: dt(2025, 10, 8, 13, 0), EndDate: dt(2025, 10, 8, 17, 0), PresenceTypeID: ptypeID(ptypes, "Vitrine"), Type: "Vitrine", Location: "Hall do ICMC", Description: "Stands de empresas parceiras com oportunidades de estágio e networking.", HasAttendance: true, HasSignin: false},
-			{Name: "[SEED] Palestra: Segurança em APIs REST", InitDate: dt(2025, 10, 8, 16, 0), EndDate: dt(2025, 10, 8, 17, 30), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Boas práticas de segurança para APIs modernas.", HasAttendance: true, HasSignin: false},
-			{Name: "[SEED] Gamenight", InitDate: dt(2025, 10, 8, 19, 0), EndDate: dt(2025, 10, 8, 22, 0), PresenceTypeID: ptypeID(ptypes, "Gamenight"), Type: "Gamenight", Location: "Corredor do ICMC", Description: "Noite de jogos de tabuleiro, card games e videogame.", HasAttendance: false, HasSignin: true, MaxParticipants: 60},
+			{Name: "[SEED] Coffee da manhã - Quarta", InitDate: dt(2026, 10, 8, 9, 0), EndDate: dt(2026, 10, 8, 9, 30), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee break matinal do terceiro dia.", HasAttendance: false, HasSignin: false},
+			{Name: "[SEED] Minicurso: Machine Learning com Python", InitDate: dt(2026, 10, 8, 10, 0), EndDate: dt(2026, 10, 8, 12, 0), PresenceTypeID: ptypeID(ptypes, "Minicurso"), Type: "Minicurso", Location: "Sala 5-002 - ICMC", Description: "Introdução ao aprendizado de máquina com scikit-learn e pandas.", HasAttendance: false, HasSignin: true, MaxParticipants: 35},
+			{Name: "[SEED] Vitrine de Empresas", InitDate: dt(2026, 10, 8, 13, 0), EndDate: dt(2026, 10, 8, 17, 0), PresenceTypeID: ptypeID(ptypes, "Vitrine"), Type: "Vitrine", Location: "Hall do ICMC", Description: "Stands de empresas parceiras com oportunidades de estágio e networking.", HasAttendance: true, HasSignin: false},
+			{Name: "[SEED] Palestra: Segurança em APIs REST", InitDate: dt(2026, 10, 8, 16, 0), EndDate: dt(2026, 10, 8, 17, 30), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Boas práticas de segurança para APIs modernas.", HasAttendance: true, HasSignin: false},
+			{Name: "[SEED] Gamenight", InitDate: dt(2026, 10, 8, 19, 0), EndDate: dt(2026, 10, 8, 22, 0), PresenceTypeID: ptypeID(ptypes, "Gamenight"), Type: "Gamenight", Location: "Corredor do ICMC", Description: "Noite de jogos de tabuleiro, card games e videogame.", HasAttendance: false, HasSignin: true, MaxParticipants: 60},
 			// ── Quinta-feira 09/10 ───────────────────────────────────────
-			{Name: "[SEED] Coffee da manhã - Quinta", InitDate: dt(2025, 10, 9, 9, 0), EndDate: dt(2025, 10, 9, 9, 30), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee break matinal do quarto dia.", HasAttendance: false, HasSignin: false},
-			{Name: "[SEED] Palestra: Sistemas Distribuídos na Nuvem", InitDate: dt(2025, 10, 9, 10, 0), EndDate: dt(2025, 10, 9, 11, 30), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Arquiteturas modernas de microsserviços, Kubernetes e observabilidade.", HasAttendance: true, HasSignin: false},
-			{Name: "[SEED] Oficina: Git Avançado", InitDate: dt(2025, 10, 9, 14, 0), EndDate: dt(2025, 10, 9, 16, 0), PresenceTypeID: ptypeID(ptypes, "Oficina"), Type: "Oficina", Location: "Laboratório de Sistemas - ICMC", Description: "Dominando rebase, cherry-pick, hooks e workflows colaborativos.", HasAttendance: false, HasSignin: true, MaxParticipants: 25},
-			{Name: "[SEED] Concurso de Programação", InitDate: dt(2025, 10, 9, 14, 0), EndDate: dt(2025, 10, 9, 18, 0), PresenceTypeID: ptypeID(ptypes, "Concursos"), Type: "Concursos", Location: "Laboratório de Computação - ICMC", Description: "Maratona de programação com premiação.", HasAttendance: false, HasSignin: true, MaxParticipants: 50},
-			{Name: "[SEED] Palestra: Open Source: Como Contribuir", InitDate: dt(2025, 10, 9, 16, 30), EndDate: dt(2025, 10, 9, 18, 0), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Como fazer sua primeira contribuição a projetos open source.", HasAttendance: true, HasSignin: false},
-			{Name: "[SEED] Luau Semcomp", InitDate: dt(2025, 10, 9, 20, 0), EndDate: dt(2025, 10, 9, 23, 59), PresenceTypeID: ptypeID(ptypes, "Luau"), Type: "Luau", Location: "Área externa do ICMC", Description: "Luau de integração com música ao vivo.", HasAttendance: false, HasSignin: true, MaxParticipants: 200},
+			{Name: "[SEED] Coffee da manhã - Quinta", InitDate: dt(2026, 10, 9, 9, 0), EndDate: dt(2026, 10, 9, 9, 30), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee break matinal do quarto dia.", HasAttendance: false, HasSignin: false},
+			{Name: "[SEED] Palestra: Sistemas Distribuídos na Nuvem", InitDate: dt(2026, 10, 9, 10, 0), EndDate: dt(2026, 10, 9, 11, 30), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Arquiteturas modernas de microsserviços, Kubernetes e observabilidade.", HasAttendance: true, HasSignin: false},
+			{Name: "[SEED] Oficina: Git Avançado", InitDate: dt(2026, 10, 9, 14, 0), EndDate: dt(2026, 10, 9, 16, 0), PresenceTypeID: ptypeID(ptypes, "Oficina"), Type: "Oficina", Location: "Laboratório de Sistemas - ICMC", Description: "Dominando rebase, cherry-pick, hooks e workflows colaborativos.", HasAttendance: false, HasSignin: true, MaxParticipants: 25},
+			{Name: "[SEED] Concurso de Programação", InitDate: dt(2026, 10, 9, 14, 0), EndDate: dt(2026, 10, 9, 18, 0), PresenceTypeID: ptypeID(ptypes, "Concursos"), Type: "Concursos", Location: "Laboratório de Computação - ICMC", Description: "Maratona de programação com premiação.", HasAttendance: false, HasSignin: true, MaxParticipants: 50},
+			{Name: "[SEED] Palestra: Open Source: Como Contribuir", InitDate: dt(2026, 10, 9, 16, 30), EndDate: dt(2026, 10, 9, 18, 0), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Como fazer sua primeira contribuição a projetos open source.", HasAttendance: true, HasSignin: false},
+			{Name: "[SEED] Luau Semcomp", InitDate: dt(2026, 10, 9, 20, 0), EndDate: dt(2026, 10, 9, 23, 59), PresenceTypeID: ptypeID(ptypes, "Luau"), Type: "Luau", Location: "Área externa do ICMC", Description: "Luau de integração com música ao vivo.", HasAttendance: false, HasSignin: true, MaxParticipants: 200},
 			// ── Sexta-feira 10/10 ────────────────────────────────────────
-			{Name: "[SEED] Coffee da manhã - Sexta", InitDate: dt(2025, 10, 10, 9, 0), EndDate: dt(2025, 10, 10, 9, 30), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee break matinal do último dia.", HasAttendance: false, HasSignin: false},
-			{Name: "[SEED] Palestra: Empreendedorismo em Tech", InitDate: dt(2025, 10, 10, 10, 0), EndDate: dt(2025, 10, 10, 11, 30), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Da ideia ao produto: lições de fundadores de startups.", HasAttendance: true, HasSignin: false},
-			{Name: "[SEED] Jogos de Rua", InitDate: dt(2025, 10, 10, 14, 0), EndDate: dt(2025, 10, 10, 17, 0), PresenceTypeID: ptypeID(ptypes, "Jogos de rua"), Type: "Jogos de rua", Location: "Área externa do ICMC", Description: "Gincana e jogos de rua para encerrar a semana.", HasAttendance: false, HasSignin: true, MaxParticipants: 80},
-			{Name: "[SEED] Encerramento Semcomp 29", InitDate: dt(2025, 10, 10, 19, 0), EndDate: dt(2025, 10, 10, 21, 0), PresenceTypeID: ptypeID(ptypes, "Encerramento"), Type: "Encerramento", Location: "Auditório Fernandinho - ICMC", Description: "Cerimônia de encerramento com premiações e retrospectiva.", HasAttendance: false, HasSignin: false},
+			{Name: "[SEED] Coffee da manhã - Sexta", InitDate: dt(2026, 10, 10, 9, 0), EndDate: dt(2026, 10, 10, 9, 30), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee break matinal do último dia.", HasAttendance: false, HasSignin: false},
+			{Name: "[SEED] Palestra: Empreendedorismo em Tech", InitDate: dt(2026, 10, 10, 10, 0), EndDate: dt(2026, 10, 10, 11, 30), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Da ideia ao produto: lições de fundadores de startups.", HasAttendance: true, HasSignin: false},
+			{Name: "[SEED] Jogos de Rua", InitDate: dt(2026, 10, 10, 14, 0), EndDate: dt(2026, 10, 10, 17, 0), PresenceTypeID: ptypeID(ptypes, "Jogos de rua"), Type: "Jogos de rua", Location: "Área externa do ICMC", Description: "Gincana e jogos de rua para encerrar a semana.", HasAttendance: false, HasSignin: true, MaxParticipants: 80},
+			{Name: "[SEED] Encerramento Semcomp 29", InitDate: dt(2026, 10, 10, 19, 0), EndDate: dt(2026, 10, 10, 21, 0), PresenceTypeID: ptypeID(ptypes, "Encerramento"), Type: "Encerramento", Location: "Auditório Fernandinho - ICMC", Description: "Cerimônia de encerramento com premiações e retrospectiva.", HasAttendance: false, HasSignin: false},
 		}
 		res := db.Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(rows, 50)
 		if res.Error != nil {
@@ -296,11 +296,11 @@ func insertCoffees(db *gorm.DB) []product.Product {
 		price                  float64
 	}
 	rows := []spec{
-		{"[SEED] Coffee - Dia 07/10 (manhã)", "Coffee Manhã 07/10", "Coffee break da manhã do segundo dia.", dt(2025, 10, 7, 9, 0), 15.00},
-		{"[SEED] Coffee - Dia 08/10 (manhã)", "Coffee Manhã 08/10", "Coffee break da manhã do terceiro dia.", dt(2025, 10, 8, 9, 0), 15.00},
-		{"[SEED] Coffee - Dia 09/10 (manhã)", "Coffee Manhã 09/10", "Coffee break da manhã do quarto dia.", dt(2025, 10, 9, 9, 0), 15.00},
-		{"[SEED] Coffee - Dia 10/10 (manhã)", "Coffee Manhã 10/10", "Coffee break da manhã do último dia.", dt(2025, 10, 10, 9, 0), 15.00},
-		{"[SEED] Coffee Noturno - Abertura", "Coffee Noturno 06/10", "Coffee especial após a cerimônia de abertura.", dt(2025, 10, 6, 21, 0), 20.00},
+		{"[SEED] Coffee - Dia 07/10 (manhã)", "Coffee Manhã 07/10", "Coffee break da manhã do segundo dia.", dt(2026, 10, 7, 9, 0), 15.00},
+		{"[SEED] Coffee - Dia 08/10 (manhã)", "Coffee Manhã 08/10", "Coffee break da manhã do terceiro dia.", dt(2026, 10, 8, 9, 0), 15.00},
+		{"[SEED] Coffee - Dia 09/10 (manhã)", "Coffee Manhã 09/10", "Coffee break da manhã do quarto dia.", dt(2026, 10, 9, 9, 0), 15.00},
+		{"[SEED] Coffee - Dia 10/10 (manhã)", "Coffee Manhã 10/10", "Coffee break da manhã do último dia.", dt(2026, 10, 10, 9, 0), 15.00},
+		{"[SEED] Coffee Noturno - Abertura", "Coffee Noturno 06/10", "Coffee especial após a cerimônia de abertura.", dt(2026, 10, 6, 21, 0), 20.00},
 	}
 	var out []product.Product
 	for _, r := range rows {
@@ -701,31 +701,31 @@ func seedSponsors(db *gorm.DB) {
 	data := []entry{
 		{
 			sponsor.Sponsor{CNPJ: "00000000000191", Name: "[SEED] TechCorp Brasil", Website: "https://techcorp.example.com", Clicks: 142},
-			[]sponsor.SponsorPackage{{SponsorCNPJ: "00000000000191", Year: 2024, Package: "Prata"}, {SponsorCNPJ: "00000000000191", Year: 2025, Package: "Ouro"}},
+			[]sponsor.SponsorPackage{{SponsorCNPJ: "00000000000191", Year: 2024, Package: "Prata"}, {SponsorCNPJ: "00000000000191", Year: 2026, Package: "Ouro"}},
 		},
 		{
 			sponsor.Sponsor{CNPJ: "33333333000191", Name: "[SEED] MegaByte Corp", Website: "https://megabyte.example.com", Clicks: 0},
-			[]sponsor.SponsorPackage{{SponsorCNPJ: "33333333000191", Year: 2025, Package: "Ouro"}},
+			[]sponsor.SponsorPackage{{SponsorCNPJ: "33333333000191", Year: 2026, Package: "Ouro"}},
 		},
 		{
 			sponsor.Sponsor{CNPJ: "11111111000191", Name: "[SEED] DataSoft Solutions", Website: "https://datasoft.example.com", Clicks: 87},
-			[]sponsor.SponsorPackage{{SponsorCNPJ: "11111111000191", Year: 2025, Package: "Prata"}},
+			[]sponsor.SponsorPackage{{SponsorCNPJ: "11111111000191", Year: 2026, Package: "Prata"}},
 		},
 		{
 			sponsor.Sponsor{CNPJ: "44444444000191", Name: "[SEED] InfraCloud Ltda", Website: "https://infracloud.example.com", Clicks: 0},
-			[]sponsor.SponsorPackage{{SponsorCNPJ: "44444444000191", Year: 2024, Package: "Bronze"}, {SponsorCNPJ: "44444444000191", Year: 2025, Package: "Prata"}},
+			[]sponsor.SponsorPackage{{SponsorCNPJ: "44444444000191", Year: 2024, Package: "Bronze"}, {SponsorCNPJ: "44444444000191", Year: 2026, Package: "Prata"}},
 		},
 		{
 			sponsor.Sponsor{CNPJ: "22222222000191", Name: "[SEED] CloudNet Startup", Website: "https://cloudnet.example.com", Clicks: 55},
-			[]sponsor.SponsorPackage{{SponsorCNPJ: "22222222000191", Year: 2025, Package: "Bronze"}},
+			[]sponsor.SponsorPackage{{SponsorCNPJ: "22222222000191", Year: 2026, Package: "Bronze"}},
 		},
 		{
 			sponsor.Sponsor{CNPJ: "55555555000191", Name: "[SEED] ByteForce Consultoria", Website: "https://byteforce.example.com", Clicks: 310},
-			[]sponsor.SponsorPackage{{SponsorCNPJ: "55555555000191", Year: 2025, Package: "Bronze"}},
+			[]sponsor.SponsorPackage{{SponsorCNPJ: "55555555000191", Year: 2026, Package: "Bronze"}},
 		},
 		{
 			sponsor.Sponsor{CNPJ: "66666666000191", Name: "[SEED] PixelDev Agency", Website: "https://pixeldev.example.com", Clicks: 203},
-			[]sponsor.SponsorPackage{{SponsorCNPJ: "66666666000191", Year: 2025, Package: "Bronze"}},
+			[]sponsor.SponsorPackage{{SponsorCNPJ: "66666666000191", Year: 2026, Package: "Bronze"}},
 		},
 	}
 
@@ -757,16 +757,16 @@ func seedNotices(db *gorm.DB) {
 	}
 
 	rows := []notice.Notice{
-		{Title: "[SEED] Bem-vindos à Semcomp 29!", Content: "Este é o portal oficial da 29ª edição da Semana da Computação do ICMC-USP. Fique atento ao cronograma!", DateTime: dt(2025, 10, 1, 9, 0)},
-		{Title: "[SEED] Credenciamento aberto", Content: "O credenciamento está aberto no Hall do ICMC das 08h às 18h durante a semana do evento.", DateTime: dt(2025, 10, 6, 8, 0)},
-		{Title: "[SEED] Loja online disponível", Content: "A loja online está aberta! Adquira seu kit, babylook e coffee antes que esgotem.", DateTime: dt(2025, 10, 5, 12, 0)},
-		{Title: "[SEED] Vagas limitadas - Minicursos", Content: "Os minicursos de Go e Machine Learning têm vagas limitadas. Garanta a sua inscrição!", DateTime: dt(2025, 10, 4, 10, 0)},
-		{Title: "[SEED] Regras do Jogo de Riddles", Content: "O jogo de riddles começa na abertura. Forme sua equipe de até 5 pessoas e resolva os riddles em ordem.", DateTime: dt(2025, 10, 3, 15, 0)},
-		{Title: "[SEED] Certificados de participação", Content: "Certificados serão emitidos para participantes com taxa de presença ≥ 75%.", DateTime: dt(2025, 10, 2, 11, 0)},
-		{Title: "[SEED] Resultado do Concurso de Programação", Content: "Os resultados serão anunciados na cerimônia de encerramento na sexta-feira às 19h.", DateTime: dt(2025, 10, 9, 19, 0)},
-		{Title: "[SEED] Prazo para envio de PAPFE", Content: "Lembrete: o prazo para envio do comprovante PAPFE encerra em 48 horas.", DateTime: dt(2025, 10, 7, 12, 0)},
-		{Title: "[SEED] Atualização: formulário de presença", Content: "O formulário de presença foi atualizado. Verifique sua taxa de presença no portal.", DateTime: dt(2025, 10, 8, 14, 0)},
-		{Title: "[SEED] Luau confirmado!", Content: "O luau de quinta-feira à noite está confirmado. Local: área externa do ICMC.", DateTime: dt(2025, 10, 8, 18, 0)},
+		{Title: "[SEED] Bem-vindos à Semcomp 29!", Content: "Este é o portal oficial da 29ª edição da Semana da Computação do ICMC-USP. Fique atento ao cronograma!", DateTime: dt(2026, 10, 1, 9, 0)},
+		{Title: "[SEED] Credenciamento aberto", Content: "O credenciamento está aberto no Hall do ICMC das 08h às 18h durante a semana do evento.", DateTime: dt(2026, 10, 6, 8, 0)},
+		{Title: "[SEED] Loja online disponível", Content: "A loja online está aberta! Adquira seu kit, babylook e coffee antes que esgotem.", DateTime: dt(2026, 10, 5, 12, 0)},
+		{Title: "[SEED] Vagas limitadas - Minicursos", Content: "Os minicursos de Go e Machine Learning têm vagas limitadas. Garanta a sua inscrição!", DateTime: dt(2026, 10, 4, 10, 0)},
+		{Title: "[SEED] Regras do Jogo de Riddles", Content: "O jogo de riddles começa na abertura. Forme sua equipe de até 5 pessoas e resolva os riddles em ordem.", DateTime: dt(2026, 10, 3, 15, 0)},
+		{Title: "[SEED] Certificados de participação", Content: "Certificados serão emitidos para participantes com taxa de presença ≥ 75%.", DateTime: dt(2026, 10, 2, 11, 0)},
+		{Title: "[SEED] Resultado do Concurso de Programação", Content: "Os resultados serão anunciados na cerimônia de encerramento na sexta-feira às 19h.", DateTime: dt(2026, 10, 9, 19, 0)},
+		{Title: "[SEED] Prazo para envio de PAPFE", Content: "Lembrete: o prazo para envio do comprovante PAPFE encerra em 48 horas.", DateTime: dt(2026, 10, 7, 12, 0)},
+		{Title: "[SEED] Atualização: formulário de presença", Content: "O formulário de presença foi atualizado. Verifique sua taxa de presença no portal.", DateTime: dt(2026, 10, 8, 14, 0)},
+		{Title: "[SEED] Luau confirmado!", Content: "O luau de quinta-feira à noite está confirmado. Local: área externa do ICMC.", DateTime: dt(2026, 10, 8, 18, 0)},
 	}
 
 	for i := range rows {

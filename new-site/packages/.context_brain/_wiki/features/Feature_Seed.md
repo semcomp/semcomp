@@ -134,7 +134,7 @@ COMMIT;
 
 ## Dados dos eventos
 
-Programação completa da Semcomp 29 (06–10/out/2025) com nomes reais dos tipos de evento:
+Programação completa da Semcomp 29 (06–10/out/2026) com nomes reais dos tipos de evento:
 `Abertura`, `Coffee`, `Minicurso`, `Palestra`, `Oficina`, `Rodas de conversa`, `Vitrine`, `Gamenight`, `Concursos`, `Luau`, `Jogos de rua`, `Encerramento`.
 
 Eventos com `has_attendance=true` (Palestra, Vitrine) recebem presenças.  

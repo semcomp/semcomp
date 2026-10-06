@@ -48,7 +48,7 @@ O seed é seguro para rodar múltiplas vezes. Antes de cada seção, ele verific
 |---------------------------|-----|-------------------------------------------------------------------------------------------------------|
 | `presence_type_weights`   | 16  | Palestra=1.0, Vitrine=0.5, demais=0.0 — idempotente via `FirstOrCreate`                               |
 | `users`                   | 22  | Senha `senha123`; perfis variados (cidade, deficiência, verificação de e-mail, PAPFE, LinkedIn etc.)  |
-| `events`                  | 22  | Programação completa da Semcomp 29 (06–10/out/2025): abertura, palestras, minicursos, oficinas, luau  |
+| `events`                  | 22  | Programação completa da Semcomp 29 (06–10/out/2026): abertura, palestras, minicursos, oficinas, luau  |
 | `products`                | 16  | 7 kits (P/M/G/GG + babylook P/M/G), 5 coffees, 4 combos                                               |
 | `signin_events`           | 44  | 2 inscrições por usuário; statuses: REGISTERED, WAIT_LISTED, WAITING_DONATION, CANCELLED              |
 | `presences`               | 44  | 2 presenças por usuário nos eventos com `has_attendance=true`                                          |
