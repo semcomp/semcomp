@@ -359,13 +359,16 @@ func (s *productService) GetProducts(page int, limit int, sortBy string, sortOrd
 	if searchBy != "" {
 		searchBy = strings.ToLower(searchBy)
 		allowedSearchFields := map[string]bool{
-			"id":           true,
-			"is_selling":   true,
-			"price":        true,
-			"kit.name":     true,
-			"kit.size":     true,
-			"kit.color":    true,
-			"coffee.name":  true,
+			"id":          true,
+			"is_selling":  true,
+			"price":       true,
+			"name":        true,
+			"picture_url": true,
+			"description": true,
+			"kit.name":    true,
+			"kit.size":    true,
+			"kit.color":   true,
+			"coffee.name": true,
 		}
 		if !allowedSearchFields[searchBy] {
 			return nil, apierrors.ValidationError("Parâmetro 'search_by' inválido", nil)

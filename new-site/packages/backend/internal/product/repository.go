@@ -240,6 +240,12 @@ func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB
 		return dbQuery.Where("products.is_selling = ?", strings.ToLower(query.SearchValue) == "true")
 	case "price":
 		return dbQuery.Where("products.price::text ILIKE ?", "%"+query.SearchValue+"%")
+	case "name":
+		return dbQuery.Where("products.name ILIKE ?", "%"+query.SearchValue+"%")
+	case "picture_url":
+		return dbQuery.Where("products.picture_url ILIKE ?", "%"+query.SearchValue+"%")
+	case "description":
+		return dbQuery.Where("products.description ILIKE ?", "%"+query.SearchValue+"%")
 	case "kit.name":
 		return dbQuery.Where("kits.name ILIKE ?", "%"+query.SearchValue+"%")
 	case "kit.size":

@@ -149,13 +149,24 @@ Erros comuns:
 
 Campos permitidos em `search_by`:
 
-- `type`
+- `id`
 - `is_selling`
 - `price`
+- `name`
+- `picture_url`
+- `description`
+- `kit.name`
+- `kit.size`
+- `kit.color`
+- `coffee.name`
+
+Observações:
+
+- `name`, `picture_url` e `description` respondem a busca parcial (`ILIKE`), case-insensitive.
 
 Exemplo:
 
-`GET /admin/products?page=1&limit=10&sort_by=price&sort_order=desc&search_by=type&search_value=KIT`
+`GET /admin/products?page=1&limit=10&sort_by=price&sort_order=desc&search_by=description&search_value=malha`
 
 Resposta de sucesso (`200`):
 
@@ -165,8 +176,8 @@ Resposta de sucesso (`200`):
   "limit": 10,
   "sort_by": "price",
   "sort_order": "desc",
-  "search_by": "type",
-  "search_value": "KIT",
+  "search_by": "description",
+  "search_value": "malha",
   "total_records": 5,
   "filtered_records": 2,
   "products": [...]
