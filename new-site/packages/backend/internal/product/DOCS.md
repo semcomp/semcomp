@@ -184,7 +184,7 @@ Observações:
 - `id` aceita apenas o número exato; um valor não numérico é ignorado (sem filtro) em vez de gerar erro.
 - `kit.is_babylook` e `is_selling` comparam com `true`/`false` (qualquer outro valor conta como `false`).
 - `coffee.date_time` compara apenas o dia (`DATE(...)`), aceitando `AAAA-MM-DD`, `AAAA-MM-DDTHH:MM`, ISO 8601 completo e `DD/MM/AAAA`. Valores fora desses formatos retornam `400`.
-- A comparação de dia usa o fuso da sessão do Postgres (o DSN conecta com `TimeZone=UTC`), então um café cadastrado de madrugada aparece no dia UTC, que pode ser o dia anterior no horário de São Paulo.
+- A comparação de dia converte para o fuso do app (`America/Sao_Paulo`), e não para o da sessão do Postgres (UTC). A diferença importa no período noturno: um café registrado a partir das 21h de São Paulo tem dia UTC **posterior** ao que aparece na tela, então, sem a conversão, o filtro não encontraria o registro que o usuário está vendo. Café de manhã e à tarde não são afetados.
 
 Exemplo:
 

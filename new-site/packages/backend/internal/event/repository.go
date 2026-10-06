@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"backend/internal/database"
+
 	"gorm.io/gorm"
 )
 
@@ -109,9 +111,9 @@ func applySearchFilter(dbQuery *gorm.DB, query EventListQuery) *gorm.DB {
 	case "description":
 		return dbQuery.Where("e.description ILIKE ?", "%"+query.SearchValue+"%")
 	case "init_date":
-		return dbQuery.Where("DATE(init_date) = DATE(?)", query.SearchValue)
+		return dbQuery.Where("DATE(e.init_date AT TIME ZONE ?) = DATE(?)", database.AppTimezone, query.SearchValue)
 	case "end_date":
-		return dbQuery.Where("DATE(end_date) = DATE(?)", query.SearchValue)
+		return dbQuery.Where("DATE(e.end_date AT TIME ZONE ?) = DATE(?)", database.AppTimezone, query.SearchValue)
 	case "has_attendance":
 		return dbQuery.Where("e.has_attendance = ?", query.SearchValue)
 	default:

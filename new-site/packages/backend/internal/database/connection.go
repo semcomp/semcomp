@@ -10,6 +10,23 @@ import (
 	"gorm.io/gorm"
 )
 
+// AppTimezone é o fuso em que o app interpreta "o dia" de um registro.
+//
+// A sessão do Postgres conecta em UTC (ver ConnectDB) de propósito: o front
+// converte o horário digitado para o instante absoluto antes de enviar, então
+// guardar em timestamptz já é o suficiente. A consequência é que comparar só a
+// data direto com DATE() usaria o dia UTC, e um café registrado às 22h de São
+// Paulo cairia no dia seguinte: o filtro não encontraria o que a tela mostra.
+// Por isso os filtros por data convertem explicitamente com AT TIME ZONE.
+//
+// Trocar a sessão para este fuso NÃO é alternativa: os eventos são gravados com
+// o instante absoluto já convertido, então um evento criado às 10h passaria a
+// filtrar pelo dia anterior.
+//
+// O nome é resolvido pelo próprio Postgres, então a imagem distroless do backend
+// não precisa de tzdata.
+const AppTimezone = "America/Sao_Paulo"
+
 func ConnectDB() (*gorm.DB, error) {
 	err := godotenv.Load()
 

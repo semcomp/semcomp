@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"backend/internal/database"
+
 	"gorm.io/gorm"
 )
 
@@ -318,7 +320,13 @@ func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB
 		if !ok {
 			return dbQuery
 		}
-		return dbQuery.Where("DATE(coffees.date_time) = DATE(?)", parsedDate.Format("2006-01-02"))
+		// Compara no fuso do app e não no da sessão (UTC): um café registrado à
+		// noite em São Paulo tem dia UTC posterior ao que aparece na tela, e sem
+		// a conversão o filtro não acha o registro que o usuário está vendo.
+		return dbQuery.Where(
+			"DATE(coffees.date_time AT TIME ZONE ?) = DATE(?)",
+			database.AppTimezone, parsedDate.Format("2006-01-02"),
+		)
 	default:
 		return dbQuery
 	}
