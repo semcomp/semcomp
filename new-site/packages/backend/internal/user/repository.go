@@ -124,6 +124,9 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 		"linkedin",
 		"telegram",
 		"presence_rate",
+		"quer_cracha",
+		"autoriza_compartilhamento",
+		"disabilities",
 	}
 
 	field := strings.ToLower(sortBy)

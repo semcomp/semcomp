@@ -309,6 +309,10 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 		"profession":  true,
 		"linkedin":    true,
 		"telegram":    true,
+
+		"quer_cracha":               true,
+		"autoriza_compartilhamento": true,
+		"disabilities":              true,
 	}
 
 	if !allowedSortFields[sortBy] {
