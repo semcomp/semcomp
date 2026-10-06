@@ -68,6 +68,13 @@ export interface CrudField {
   multiValueOptions?: string[];
   readOnly?: boolean;
   accept?: string;
+  /** Quando false, o cabeçalho da coluna não ordena e não mostra o ícone de
+   * ordenação. Use em colunas que não existem como campo no backend (ex.: um
+   * resumo montado no front). Default: true. */
+  sortable?: boolean;
+  /** Quando false, o campo não aparece na lista de "Filtrar por". Use quando o
+   * backend não sabe filtrar pelo campo. Default: true. */
+  searchable?: boolean;
   /** Hides the field in the form unless formData[field] === value */
   showWhen?: { field: string; value: unknown };
   /** Quando true, o campo é exibido no dialog mas não pode ser editado */
@@ -296,10 +303,14 @@ export function CrudTable({
   onToggleField,
   onFieldChange,
 }: CrudTableProps) {
-  // Fields that make sense as filter targets (files cannot be text-searched)
+  // Fields that make sense as filter targets (files cannot be text-searched,
+  // and fields explicitly marked as not searchable are left out)
   const filterableFields = fields.filter(
-    (f) => f.type !== "file" && f.type !== "image-preview"
+    (f) => f.type !== "file" && f.type !== "image-preview" && f.searchable !== false
   );
+  // Colunas que podem ordenar no servidor (default: todas, exceto as marcadas
+  // como `sortable: false`, cujo valor não existe como campo no backend).
+  const sortableFields = fields.filter((f) => f.sortable !== false).map((f) => f.value);
   // Colunas de fato exibidas na tabela (hideInTable tira campos só-de-form,
   // como "image-preview", que só fazem sentido dentro do modal).
   const tableFields = fields.filter((f) => !f.hideInTable);
@@ -459,6 +470,7 @@ export function CrudTable({
   };
 
   const SortIcon = ({ field }: { field: string }) => {
+    if (!sortableFields.includes(field)) return null;
     if (sortField !== field)
       return (
         <ChevronsUpDown className="inline ml-1 w-3.5 h-3.5 opacity-30" />
@@ -800,16 +812,21 @@ export function CrudTable({
         <Table>
           <TableHeader>
             <TableRow className="border-border bg-muted/30 hover:bg-muted/30">
-              {tableFields.map((f) => (
-                <TableHead
-                  key={f.value}
-                  className="cursor-pointer select-none text-muted-foreground text-xs font-semibold uppercase tracking-wider hover:text-primary transition-colors"
-                  onClick={() => handleSort(f.sortValue ?? f.value)}
-                >
-                  {f.label}
-                  <SortIcon field={f.value} />
-                </TableHead>
-              ))}
+              {tableFields.map((f) => {
+                const isSortable = sortableFields.includes(f.value);
+                return (
+                  <TableHead
+                    key={f.value}
+                    className={`select-none text-muted-foreground text-xs font-semibold uppercase tracking-wider transition-colors ${
+                      isSortable ? "cursor-pointer hover:text-primary" : ""
+                    }`}
+                    onClick={isSortable ? () => handleSort(f.sortValue ?? f.value) : undefined}
+                  >
+                    {f.label}
+                    <SortIcon field={f.value} />
+                  </TableHead>
+                );
+              })}
               <TableHead className="text-muted-foreground text-xs font-semibold uppercase tracking-wider w-24">
                 Ações
               </TableHead>

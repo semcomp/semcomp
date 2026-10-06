@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { ComboFormModal } from "@/components/ComboFormModal";
 import { KitBulkModal } from "@/components/KitBulkModal";
 import { CoffeeBulkModal } from "@/components/CoffeeBulkModal";
+import axios from "axios";
 
 const TYPE_TABS: {
   type: ProductKind;
@@ -76,28 +77,38 @@ export default function ProductsCRUD() {
       const sortFieldApi = API_FIELD_MAP[params?.sortField ?? ""] || params?.sortField || "id";
 
       const hasUserFilter = !!(params?.filterField && params?.filterValue);
-      const searchBy = hasUserFilter ? params!.filterField : undefined;
-      const searchValue = hasUserFilter ? params!.filterValue : undefined;
+      const filterFieldApi = hasUserFilter
+        ? API_FIELD_MAP[params!.filterField] || params!.filterField
+        : undefined;
 
       const response = await productsAPI.getAll(
         params?.page ?? 1,
         params?.pageSize ?? 10,
         sortFieldApi,
         params?.sortOrder ?? "asc",
-        searchBy,
-        searchValue,
+        filterFieldApi,
+        params?.filterValue || undefined,
         type,
       );
 
       setData(response.products || []);
       setTotalRecords(response.filtered_records ?? response.total_records ?? 0);
-    } catch (err) {
-      console.error("Erro ao buscar produtos:", err);
+  } catch (err: unknown) {
+    console.error("Erro ao buscar produtos:", err);
+
+    if (axios.isAxiosError(err)) {
+      const body = err.response?.data as { code?: string; message?: string } | undefined;
+
+      if (body?.code === "validation_error") {
+        setError(body.message ?? "Erro de validação");
+      } else {
+        setError("Erro ao carregar produtos");
+      }
+    } else {
       setError("Erro ao carregar produtos");
-      setData([]);
-    } finally {
-      setLoading(false);
     }
+    setData([]);
+  }
   }, []);
 
   const handleQueryChange = useCallback(

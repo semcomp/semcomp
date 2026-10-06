@@ -139,6 +139,18 @@ Erros comuns:
 - `type`
 - `is_selling`
 - `price`
+- `name`
+- `picture_url`
+- `description`
+- `kit.name`
+- `kit.size`
+- `kit.color`
+- `kit.is_babylook`
+- `coffee.name`
+- `coffee.date_time`
+
+Campos com prefixo `kit.`/`coffee.` ordenam pela tabela de especialização (LEFT JOIN),
+enquanto os demais ordenam pela tabela base `products`.
 
 ### Valores permitidos em `sort_order`
 
@@ -149,13 +161,34 @@ Erros comuns:
 
 Campos permitidos em `search_by`:
 
-- `type`
+- `id`
 - `is_selling`
 - `price`
+- `name`
+- `picture_url`
+- `description`
+- `kit.name`
+- `kit.size`
+- `kit.color`
+- `kit.is_babylook`
+- `coffee.name`
+- `coffee.date_time`
+
+Observações:
+
+- `name`, `picture_url`, `description`, `price`, `kit.name`, `kit.size`, `kit.color` e `coffee.name` respondem a busca parcial (`ILIKE`), case-insensitive e **ignorando acento** (a busca usa a extensão `unaccent`, criada no startup): `cafe` encontra `Café`, `CAFÉ` também.
+- Nessas buscas de texto o `search_value` é quebrado em palavras: cada palavra vira um `ILIKE` próprio combinado com `AND`. Consequências:
+  - a ordem digitada não importa e **todas** as palavras precisam aparecer no valor gravado;
+  - espaços, tabs e quebras de linha são equivalentes, então `kit azul` encontra `kit` + quebra de linha + `azul`;
+  - `search_value` só com espaços é ignorado (não filtra nada) em vez de procurar por espaços em branco.
+- `id` aceita apenas o número exato; um valor não numérico é ignorado (sem filtro) em vez de gerar erro.
+- `kit.is_babylook` e `is_selling` comparam com `true`/`false` (qualquer outro valor conta como `false`).
+- `coffee.date_time` compara apenas o dia (`DATE(...)`), aceitando `AAAA-MM-DD`, `AAAA-MM-DDTHH:MM`, ISO 8601 completo e `DD/MM/AAAA`. Valores fora desses formatos retornam `400`.
+- A comparação de dia converte para o fuso do app (`America/Sao_Paulo`), e não para o da sessão do Postgres (UTC). A diferença importa no período noturno: um café registrado a partir das 21h de São Paulo tem dia UTC **posterior** ao que aparece na tela, então, sem a conversão, o filtro não encontraria o registro que o usuário está vendo. Café de manhã e à tarde não são afetados.
 
 Exemplo:
 
-`GET /admin/products?page=1&limit=10&sort_by=price&sort_order=desc&search_by=type&search_value=KIT`
+`GET /admin/products?page=1&limit=10&sort_by=price&sort_order=desc&search_by=description&search_value=malha`
 
 Resposta de sucesso (`200`):
 
@@ -165,8 +198,8 @@ Resposta de sucesso (`200`):
   "limit": 10,
   "sort_by": "price",
   "sort_order": "desc",
-  "search_by": "type",
-  "search_value": "KIT",
+  "search_by": "description",
+  "search_value": "malha",
   "total_records": 5,
   "filtered_records": 2,
   "products": [...]

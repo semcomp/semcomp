@@ -99,8 +99,19 @@ Campos permitidos em `search_by`:
 - `type`
 - `location`
 - `description`
-- `init_date` (valor em RFC3339)
+- `init_date` (data em RFC3339)
+- `end_date` (data em RFC3339)
 - `has_attendance` (`true` ou `false`)
+
+Observações:
+
+- `init_date`/`end_date` comparam apenas o dia e o `search_value` precisa estar
+  em RFC3339 (ex.: `2026-08-20T00:00:00Z`); o horário é ignorado e um valor
+  fora do formato retorna `400`.
+- A coluna é convertida para o fuso do app (`America/Sao_Paulo`) antes da
+  comparação, e não comparada no fuso da sessão do Postgres (UTC). Assim o
+  filtro encontra o evento no dia que aparece na tela: um evento às 22h de São
+  Paulo tem dia UTC posterior, e comparar direto com `DATE()` deslocaria a busca.
 
 Exemplo:
 
