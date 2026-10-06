@@ -23,6 +23,17 @@ const kitSize: CrudField = {
   ),
 };
 
+// "Itens" é um resumo montado no front a partir de combo_items, então não existe
+// como coluna no backend para ordenar nem para filtrar.
+const comboItems: CrudField = {
+  value: "comboItems",
+  label: "Itens",
+  type: "text",
+  readOnly: true,
+  sortable: false,
+  searchable: false,
+};
+
 export const kitFields: CrudField[] = [
   productId,
   isSelling,
@@ -58,7 +69,7 @@ export const comboFields: CrudField[] = [
   { value: "name", label: "Nome", type: "text", readOnly: true },
   isSelling,
   price,
-  { value: "comboItems", label: "Itens", type: "text", readOnly: true },
+  comboItems,
   pictureUrl,
   description,
 ];
