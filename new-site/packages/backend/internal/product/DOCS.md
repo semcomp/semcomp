@@ -176,7 +176,7 @@ Campos permitidos em `search_by`:
 
 Observações:
 
-- `name`, `picture_url`, `description`, `price`, `kit.name`, `kit.size`, `kit.color` e `coffee.name` respondem a busca parcial (`ILIKE`), case-insensitive.
+- `name`, `picture_url`, `description`, `price`, `kit.name`, `kit.size`, `kit.color` e `coffee.name` respondem a busca parcial (`ILIKE`), case-insensitive e **ignorando acento** (a busca usa a extensão `unaccent`, criada no startup): `cafe` encontra `Café`, `CAFÉ` também.
 - Nessas buscas de texto o `search_value` é quebrado em palavras: cada palavra vira um `ILIKE` próprio combinado com `AND`. Consequências:
   - a ordem digitada não importa e **todas** as palavras precisam aparecer no valor gravado;
   - espaços, tabs e quebras de linha são equivalentes, então `kit azul` encontra `kit` + quebra de linha + `azul`;

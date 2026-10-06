@@ -272,9 +272,12 @@ func likeTerms(value string) []string {
 // valor for vazio ou só de espaços, nenhuma condição é adicionada: o filtro é
 // ignorado em vez de procurar por espaços em branco. `column` sempre vem de
 // literal do código, nunca do input do usuário.
+//
+// Os dois lados passam por unaccent, então digitar "cafe" acha "Café" e "CAFÉ"
+// também. A extensão é criada no startup (cmd/api/main.go).
 func applyTextSearch(dbQuery *gorm.DB, column string, value string) *gorm.DB {
 	for _, term := range likeTerms(value) {
-		dbQuery = dbQuery.Where(column+" ILIKE ?", term)
+		dbQuery = dbQuery.Where("unaccent("+column+") ILIKE unaccent(?)", term)
 	}
 	return dbQuery
 }
