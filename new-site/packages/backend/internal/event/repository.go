@@ -103,13 +103,13 @@ func applySearchFilter(dbQuery *gorm.DB, query EventListQuery) *gorm.DB {
 
 	switch query.SearchBy {
 	case "name":
-		return dbQuery.Where("e.name ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("unaccent(e.name) ILIKE unaccent(?)", "%"+query.SearchValue+"%")
 	case "type":
-		return dbQuery.Where("w.type_name ILIKE ? OR e.type ILIKE ?", "%"+query.SearchValue+"%", "%"+query.SearchValue+"%")
+		return dbQuery.Where("unaccent(w.type_name) ILIKE unaccent(?) OR unaccent(e.type) ILIKE unaccent(?)", "%"+query.SearchValue+"%", "%"+query.SearchValue+"%")
 	case "location":
-		return dbQuery.Where("e.location ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("unaccent(e.location) ILIKE unaccent(?)", "%"+query.SearchValue+"%")
 	case "description":
-		return dbQuery.Where("e.description ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("unaccent(e.description) ILIKE unaccent(?)", "%"+query.SearchValue+"%")
 	case "init_date":
 		return dbQuery.Where("DATE(e.init_date AT TIME ZONE ?) = DATE(?)", database.AppTimezone, query.SearchValue)
 	case "end_date":
