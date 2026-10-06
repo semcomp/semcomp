@@ -1,4 +1,4 @@
-import { Calendar, UserCog, User, Key, Hand, ToggleLeft, ShoppingBag, Handshake, DollarSign, FileCheck, Puzzle, SlidersHorizontal, FileWarning, ClipboardList, UserCheck, BarChart3 } from "lucide-react";
+import { Calendar, UserCog, User, Key, Hand, ToggleLeft, ShoppingBag, Handshake, DollarSign, FileCheck, Puzzle, SlidersHorizontal, FileWarning, ClipboardList, UserCheck, BarChart3, Coffee } from "lucide-react";
 
 // section deve coincidir com KnownSections em backend/internal/permission/model.go
 export const Tabs: {
@@ -139,6 +139,11 @@ export const Tabs: {
     label: "Coffee",
     description: "Valide o acesso do usuário aos coffees.",
     pageNavigate: "/coffee",
+    icon: <Coffee className="w-5 h-5" />,
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
     key: "event-registration",
     section: "Inscrições",
     label: "Inscrições",
