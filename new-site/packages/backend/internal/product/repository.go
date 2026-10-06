@@ -291,11 +291,28 @@ func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB
 	}
 }
 
-func resolveProductSortClause(sortBy string, sortOrder string) (string, error) {
-	allowedSortFields := []string{"id", "type", "is_selling", "price"}
+// productSortColumns mapeia o campo aceito na ordenação para a coluna SQL
+// correspondente. As colunas são sempre qualificadas com o nome da tabela porque a
+// listagem pode trazer JOIN de kits/coffees, onde `id` e `name` existem nas duas.
+var productSortColumns = map[string]string{
+	"id":               "products.id",
+	"type":             "products.type",
+	"is_selling":       "products.is_selling",
+	"price":            "products.price",
+	"name":             "products.name",
+	"picture_url":      "products.picture_url",
+	"description":      "products.description",
+	"kit.name":         "kits.name",
+	"kit.size":         "kits.size",
+	"kit.color":        "kits.color",
+	"kit.is_babylook":  "kits.is_babylook",
+	"coffee.name":      "coffees.name",
+	"coffee.date_time": "coffees.date_time",
+}
 
-	field := strings.ToLower(sortBy)
-	if !slices.Contains(allowedSortFields, field) {
+func resolveProductSortClause(sortBy string, sortOrder string) (string, error) {
+	column, isAllowedField := productSortColumns[strings.ToLower(sortBy)]
+	if !isAllowedField {
 		return "", fmt.Errorf("invalid sort field")
 	}
 
@@ -304,7 +321,7 @@ func resolveProductSortClause(sortBy string, sortOrder string) (string, error) {
 		return "", fmt.Errorf("invalid sort order")
 	}
 
-	return field + " " + order, nil
+	return column + " " + order, nil
 }
 
 func (r *productRepository) GetProducts(query ProductListQuery) (*ProductListResult, error) {

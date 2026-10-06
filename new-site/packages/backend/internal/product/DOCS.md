@@ -139,6 +139,18 @@ Erros comuns:
 - `type`
 - `is_selling`
 - `price`
+- `name`
+- `picture_url`
+- `description`
+- `kit.name`
+- `kit.size`
+- `kit.color`
+- `kit.is_babylook`
+- `coffee.name`
+- `coffee.date_time`
+
+Campos com prefixo `kit.`/`coffee.` ordenam pela tabela de especialização (LEFT JOIN),
+enquanto os demais ordenam pela tabela base `products`.
 
 ### Valores permitidos em `sort_order`
 

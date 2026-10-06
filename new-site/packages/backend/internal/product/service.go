@@ -339,13 +339,9 @@ func (s *productService) GetProducts(page int, limit int, sortBy string, sortOrd
 	sortBy = strings.ToLower(sortBy)
 	sortOrder = strings.ToLower(sortOrder)
 
-	allowedSortFields := map[string]bool{
-		"id":         true,
-		"type":       true,
-		"is_selling": true,
-		"price":      true,
-	}
-	if !allowedSortFields[sortBy] {
+	// A lista de campos aceitos na ordenação é a mesma do repository, para que as
+	// duas camadas não aceitem conjuntos diferentes.
+	if _, isAllowedField := productSortColumns[sortBy]; !isAllowedField {
 		return nil, apierrors.ValidationError("Parâmetro 'sort_by' inválido", nil)
 	}
 	if sortOrder != "asc" && sortOrder != "desc" {
