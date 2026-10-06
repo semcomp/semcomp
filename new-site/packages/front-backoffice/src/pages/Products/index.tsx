@@ -76,16 +76,17 @@ export default function ProductsCRUD() {
       const sortFieldApi = API_FIELD_MAP[params?.sortField ?? ""] || params?.sortField || "id";
 
       const hasUserFilter = !!(params?.filterField && params?.filterValue);
-      const searchBy = hasUserFilter ? params!.filterField : undefined;
-      const searchValue = hasUserFilter ? params!.filterValue : undefined;
+      const filterFieldApi = hasUserFilter
+        ? API_FIELD_MAP[params!.filterField] || params!.filterField
+        : undefined;
 
       const response = await productsAPI.getAll(
         params?.page ?? 1,
         params?.pageSize ?? 10,
         sortFieldApi,
         params?.sortOrder ?? "asc",
-        searchBy,
-        searchValue,
+        filterFieldApi,
+        params?.filterValue || undefined,
         type,
       );
 

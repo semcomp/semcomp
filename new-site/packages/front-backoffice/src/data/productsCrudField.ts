@@ -63,9 +63,21 @@ export const comboFields: CrudField[] = [
   description,
 ];
 
+// Fonte única do mapeamento coluna da tabela -> campo esperado pelo backend.
+// Vale para ordenação (sort_by) e busca (search_by); campos ausentes aqui são
+// repassados ao backend com o nome cru.
 export const API_FIELD_MAP: Record<string, string> = {
   productId: "id",
   type: "type",
   isSelling: "is_selling",
   price: "price",
+  name: "name",
+  kitName: "kit.name",
+  kitSize: "kit.size",
+  kitColor: "kit.color",
+  kitIsBabylook: "kit.is_babylook",
+  coffeeName: "coffee.name",
+  coffeeDateTime: "coffee.date_time",
+  pictureUrl: "picture_url",
+  description: "description",
 };
