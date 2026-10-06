@@ -252,6 +252,8 @@ func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB
 		return dbQuery.Where("kits.size ILIKE ?", "%"+query.SearchValue+"%")
 	case "kit.color":
 		return dbQuery.Where("kits.color ILIKE ?", "%"+query.SearchValue+"%")
+	case "kit.is_babylook":
+		return dbQuery.Where("kits.is_babylook = ?", strings.ToLower(query.SearchValue) == "true")
 	case "coffee.name":
 		return dbQuery.Where("coffees.name ILIKE ?", "%"+query.SearchValue+"%")
 	default:

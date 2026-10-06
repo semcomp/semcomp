@@ -365,10 +365,11 @@ func (s *productService) GetProducts(page int, limit int, sortBy string, sortOrd
 			"name":        true,
 			"picture_url": true,
 			"description": true,
-			"kit.name":    true,
-			"kit.size":    true,
-			"kit.color":   true,
-			"coffee.name": true,
+			"kit.name":        true,
+			"kit.size":        true,
+			"kit.color":       true,
+			"kit.is_babylook": true,
+			"coffee.name":     true,
 		}
 		if !allowedSearchFields[searchBy] {
 			return nil, apierrors.ValidationError("Parâmetro 'search_by' inválido", nil)

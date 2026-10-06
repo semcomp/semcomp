@@ -158,11 +158,13 @@ Campos permitidos em `search_by`:
 - `kit.name`
 - `kit.size`
 - `kit.color`
+- `kit.is_babylook`
 - `coffee.name`
 
 Observações:
 
 - `name`, `picture_url` e `description` respondem a busca parcial (`ILIKE`), case-insensitive.
+- `kit.is_babylook` aceita `true`/`false`.
 
 Exemplo:
 
