@@ -24,12 +24,13 @@ export interface CoffeeListResponse {
  * Mapeia dados do backend para formato local
  */
 const mapBackendCoffee = (coffee: any): CoffeeType => {
+  console.log(coffee)
   return {
     id: coffee.id || coffee.code,
     name: coffee.name || coffee.title,
     description: coffee.description,
     price: coffee.price,
-    date: coffee.created_at || coffee.date,
+    date: coffee.created_at || coffee.coffee?.date_time,
   };
 };
 
@@ -52,9 +53,9 @@ export const coffeeAPI = {
     coffeeId: string
   ): Promise<CoffeeValidationResponse> => {
     try {
-      const response = await client.post<any>("/admin/coffee/validate", {
+      const response = await client.post<any>("/admin/coffee/verify", {
         user_number: userNumber,
-        coffee_id: coffeeId,
+        date_time: coffeeId,
       });
 
       return {
@@ -85,7 +86,7 @@ export const coffeeAPI = {
       ? fieldMap[searchBy] ?? searchBy
       : undefined;
 
-    let url = `/coffees?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
+    let url = `/admin/coffees?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
     if (backendSearchBy && searchValue) {
       url += `&search_by=${backendSearchBy}&search_value=${searchValue}`;
     }

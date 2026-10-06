@@ -9,7 +9,7 @@ export const fields: CrudField[] = [
   {
     value: "date",
     label: "Data / Horário",
-    type: "text",
+    type: "date",
   },
   {
     value: "price",

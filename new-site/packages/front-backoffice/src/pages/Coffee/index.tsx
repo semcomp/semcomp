@@ -102,7 +102,7 @@ export default function CoffeePage() {
   // Ação ao clicar no botão da linha -> Navega para a leitura do QR especificando qual coffee é
   const handleAction = (item: CrudItemType) => {
     const coffee = item as CoffeeType;
-    navigate(`/coffee/${encodeURIComponent(coffee.id)}/qrcode-reader`, {
+    navigate(`/coffees/${encodeURIComponent(coffee.id)}/qrcode-reader`, {
       state: {
         coffeeName: coffee.name,
         coffeeId: coffee.id,
