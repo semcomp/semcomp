@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef, memo, type ReactElement } from "react";
+import { useState, useEffect, useMemo, useCallback, memo, type ReactElement } from "react";
 import { MicVocal, Rocket, Trophy, Target, Gamepad2, Flag, Coffee, Clock, MapPin } from "lucide-react";
 import { eventsAPI } from "@/api/events";
 import type { EventType } from "@/types/EventType.ts";
@@ -634,22 +634,6 @@ export default function CronogramaPage(): ReactElement {
     return withinEventWindow ? today.getDate() : EVENT_DAYS[0];
   });
 
-  const downloadRef = useRef<HTMLDivElement>(null);
-
-  const handleDownloadSchedule = async () => {
-    if (!downloadRef.current) return;
-    try {
-      const { toPng } = await import("html-to-image");
-      const image = await toPng(downloadRef.current, { pixelRatio: 2 });
-      const link = document.createElement("a");
-      link.download = "cronograma-semcomp.png";
-      link.href = image;
-      link.click();
-    } catch (error) {
-      console.error("Erro ao baixar cronograma:", error);
-    }
-  };
-
   const captionClasses = "text-semcompMidDarkBlue/85 dark:text-semcompLightBlue/90";
   const gradientColor = isDarkMode ? "#0B2639" : "#357BA3";
 
@@ -762,7 +746,7 @@ export default function CronogramaPage(): ReactElement {
     "cursor-not-allowed border-neutral-300/80 bg-neutral-200/40 text-neutral-400 dark:border-neutral-700/60 dark:bg-neutral-800/40 dark:text-neutral-600";
 
   return (
-    <section className="relative min-h-[calc(100vh-70px)] w-full overflow-x-hidden font-poppins isolate text-semcompDarkBlue dark:text-semcompOffWhite">
+    <section className="relative min-h-[calc(100vh-70px)] w-full overflow-x-hidden font-poppins isolate text-semcompDarkBlue dark:text-semcompOffWhite pt-17.5">
       <div className="fixed inset-0 z-0 bg-cover bg-center bg-semcompLightBlue dark:bg-semcompDarkBlue" />
 
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
@@ -774,32 +758,18 @@ export default function CronogramaPage(): ReactElement {
         <header>
           <div className="flex w-full flex-col gap-4 md:flex-row md:justify-between">
             <div>
-              <h1 className="animate-slide font-poppins-bold text-3xl text-semcompMidLightBlue dark:text-white animation-duration-[900ms] [animation-timing-function:cubic-bezier(0.22,1,0.36,1)] md:text-4xl">
-                Cronograma
-              </h1>
-              <p className="animate-slide [animation-delay:120ms] animation-duration-[900ms] fill-mode-[both] mt-2 text-sm text-semcompDarkBlue dark:text-white md:text-base">
-                Programação completa da SEMCOMP.
+              <p className="text-sm font-semibold uppercase tracking-widest text-semcompDarkBlue/60 dark:text-semcompOffWhite/60 mb-2">
+                Confira a programação
               </p>
+              <h1 className="text-2xl md:text-4xl font-extrabold mb-4">
+                <span className="font-poppins text-semcompDarkBlue dark:text-semcompOffWhite">NOSSO </span>
+                <span className="font-poppins bg-clip-text text-transparent bg-linear-to-r from-semcompDarkBlue via-semcompDarkBlue/80 to-semcompMidDarkBlue dark:from-semcompMidLightBlue/80 dark:via-semcompMidLightBlue dark:to-semcompLightBlue">
+                  CRONOGRAMA
+                </span>
+              </h1>
             </div>
 
             <div className="flex flex-wrap md:items-end md:justify-end gap-3">
-              <button
-                type="button"
-                onClick={handleDownloadSchedule}
-                className="inline-flex gap-2 items-center cursor-pointer text-xs md:text-sm dark:text-white/80 rounded-xl border bg-white/70 border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 dark:hover:bg-semcompMidLightBlue hover:bg-semcompMidLightBlue/30 transition-all px-5 py-3"
-              >
-                <svg
-                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
-                  className="h-4 w-4 hidden md:flex" aria-hidden="true"
-                >
-                  <path d="M12 3v12" />
-                  <path d="m7 10 5 5 5-5" />
-                  <path d="M5 21h14" />
-                </svg>
-                Baixar cronograma
-              </button>
-
               <div className="inline-flex rounded-xl border border-semcompLightBlue bg-white/70 p-1 border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75">
                 <button
                   type="button"
@@ -993,57 +963,6 @@ export default function CronogramaPage(): ReactElement {
         )}
       </div>
 
-      {/* ── Export area (off-screen, rendered for html-to-image) ── */}
-      <div className="absolute -left-[9999px] top-0">
-        <div
-          ref={downloadRef}
-          className="w-fit bg-semcompLightBlue dark:bg-semcompAlmostDarkBlue p-8 text-semcompDarkBlue dark:text-semcompLightBlue"
-        >
-          <h1 className="mb-8 text-center font-poppins-bold text-4xl">
-            Cronograma SEMCOMP
-          </h1>
-
-          {weekTimeOfDayRange && (
-            <div
-              className="grid gap-4"
-              style={{
-                gridTemplateColumns: `repeat(${processedWeek.length}, 25rem)`,
-              }}
-            >
-              {processedWeek.map(({ option, events: dayEvents }, index) => {
-                const dayRange = getDayRangeForWeek(option.day, weekTimeOfDayRange);
-                return (
-                  <div
-                    key={option.day}
-                    className={
-                      index !== processedWeek.length - 1
-                        ? "border-r border-semcompDarkBlue/20 px-4"
-                        : "px-4"
-                    }
-                  >
-                    <h2 className="mb-4 text-center font-poppins-bold text-md">
-                      {option.weekdayLong} {option.label}
-                    </h2>
-                    {dayEvents.length === 0 ? (
-                      <p className="text-center text-sm">Nenhum evento</p>
-                    ) : (
-                      <TimeGrid
-                        events={dayEvents}
-                        timeRange={dayRange}
-                        onSelect={() => {}}
-                        captionClasses={captionClasses}
-                        viewMode="week"
-                        exportMode
-                        pxPerHour={PX_PER_HOUR_WEEK}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
     </section>
   );
 }

@@ -190,3 +190,15 @@ Todos os comandos devem ser executados a partir do diretório `packages/`.
 | `make bash-backoffice`| Shell no container do backoffice      |
 | `make bash-backend`   | Shell no container do backend         |
 | `make psql`           | Abre o cliente `psql` no container do banco |
+
+### Seed de dados de exemplo
+
+| Comando        | Descrição                                                                      |
+| -------------- | ------------------------------------------------------------------------------ |
+| `make seed`    | Rebuilda a imagem do backend e popula o banco com dados de exemplo             |
+| `make unseed`  | Remove todos os dados de seed via SQL (sem rebuild; banco deve estar de pé)    |
+
+O `make seed` requer que os containers estejam rodando (`make up` ou `make build` antes).  
+O `make unseed` requer apenas o container do banco em execução.
+
+Veja a documentação completa em [`backend/cmd/seed/README.md`](./backend/cmd/seed/README.md).

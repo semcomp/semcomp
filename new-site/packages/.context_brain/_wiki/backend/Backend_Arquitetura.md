@@ -73,8 +73,8 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
   - `PUT /admin/signin-events/:userNumber/:eventName/:eventInitDate` — edita inscrição (PermRW)
   - `DELETE /admin/signin-events/:userNumber/:eventName/:eventInitDate` — remove inscrição (PermRW)
 - Status: `"Inscrito"` / `"Lista de Espera"` / `"Aguardando Aprovação"` / `"Cancelado"`
-- Lógica de fila: se vagas esgotadas (`max_participants > 0`), insere com `StatusWaitListed` e calcula posição; cancelamento de inscrito confirmado promove primeiro da lista de espera
-- Repository: `Create`, `GetByUserEventAndInitDate`, `CountByStatus`, `CountActiveByEvent`, `FindActiveByUser`, `UpdateStatus`, `GetFirstWaitListed`, `PromoteToRegistered`, `DeleteByStatus`
+- Lógica de fila: todas as mutações da fila (criar, remover, rotar) são atômicas via `pg_advisory_xact_lock` — criação usa dois locks (por usuário + por evento), remoção e rotação usam lock por evento
+- Repository (8 métodos): `CreateAtomicSignin`, `CreateAdminSignin`, `RemoveAtomicSignin`, `GetByUserEventAndInitDate`, `FindActiveByUser`, `UpdateByComposite`, `GetAll`, `RotateAtomicSignins`
 - → [[Feature_SigninEvent]]
 
 ### presence

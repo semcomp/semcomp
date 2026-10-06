@@ -5,6 +5,9 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
+
+	"backend/internal/database"
 
 	"gorm.io/gorm"
 )
@@ -179,6 +182,106 @@ func (r *productRepository) CountComboItemRefs(itemID uint) (int64, error) {
 	return count, err
 }
 
+const (
+	kitJoinClause    = "LEFT JOIN kits ON kits.id = products.id"
+	coffeeJoinClause = "LEFT JOIN coffees ON coffees.id = products.id"
+)
+
+// joinForProductField devolve o LEFT JOIN necessário para filtrar ou ordenar por um
+// campo de sub-tabela. Campos da tabela base (products) dispensam join.
+func joinForProductField(field string) string {
+	switch {
+	case strings.HasPrefix(field, "kit."):
+		return kitJoinClause
+	case strings.HasPrefix(field, "coffee."):
+		return coffeeJoinClause
+	default:
+		return ""
+	}
+}
+
+// applyProductJoins aplica os LEFT JOINs exigidos pela busca e/ou pela ordenação,
+// deduplicados para não repetir a mesma tabela quando ambas usam sub-tabelas.
+func applyProductJoins(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB {
+	joins := make([]string, 0, 2)
+	for _, field := range []string{query.SearchBy, query.SortBy} {
+		join := joinForProductField(field)
+		if join != "" && !slices.Contains(joins, join) {
+			joins = append(joins, join)
+		}
+	}
+
+	for _, join := range joins {
+		dbQuery = dbQuery.Joins(join)
+	}
+	return dbQuery
+}
+
+// productListBaseQuery monta a base das queries de listagem (modelo + JOINs).
+//
+// A lista de colunas NÃO é definida aqui de propósito: no GORM v1.31, Count()
+// reescreve a cláusula SELECT, mas quando Selects tem um único nome ele gera
+// COUNT("products.*") em vez de count(*) (utils.IsInvalidDBNameChar considera
+// '.' e '*' válidos, então o nome não é fragmentado). O Postgres rejeita isso
+// com SQLSTATE 42703 ("column products.* does not exist") e a listagem inteira
+// responde 500. A seleção explícita é aplicada só na query de dados, que é onde
+// as colunas duplicadas do JOIN (id, name) atrapalham.
+func productListBaseQuery(db *gorm.DB, query ProductListQuery) *gorm.DB {
+	return applyProductJoins(db.Model(&Product{}), query)
+}
+
+// productSearchDateFormats são os formatos aceitos ao buscar por um campo de data.
+// O primeiro é o canônico (AAAA-MM-DD), pois é o formato com que o valor é
+// repassado ao Postgres na comparação com DATE().
+var productSearchDateFormats = []string{
+	"2006-01-02",
+	"2006-01-02T15:04",
+	time.RFC3339,
+	"02/01/2006",
+}
+
+// parseProductSearchDate converte o valor digitado no filtro em time.Time.
+// Retorna false quando o valor não é uma data válida, para que a camada de
+// serviço possa responder 400 em vez de deixar o Postgres estourar erro de sintaxe.
+func parseProductSearchDate(value string) (time.Time, bool) {
+	value = strings.TrimSpace(value)
+	for _, format := range productSearchDateFormats {
+		if parsed, err := time.Parse(format, value); err == nil {
+			return parsed, true
+		}
+	}
+	return time.Time{}, false
+}
+
+// likeTerms quebra o valor digitado no filtro em termos, ignorando espaços, tabs
+// e quebras de linha. O motivo: o que parece separado na tela pode estar gravado
+// com "\n" no banco (uma descrição digitada com Enter, por exemplo), e um ILIKE
+// com o texto inteiro não encontraria nada. Cada termo vira um ILIKE próprio
+// combinado com AND, então a ordem digitada não importa e todas as palavras
+// precisam aparecer em algum lugar do valor.
+func likeTerms(value string) []string {
+	words := strings.Fields(value)
+	terms := make([]string, 0, len(words))
+	for _, word := range words {
+		terms = append(terms, "%"+word+"%")
+	}
+	return terms
+}
+
+// applyTextSearch aplica todos os termos do valor em uma coluna de texto. Se o
+// valor for vazio ou só de espaços, nenhuma condição é adicionada: o filtro é
+// ignorado em vez de procurar por espaços em branco. `column` sempre vem de
+// literal do código, nunca do input do usuário.
+//
+// Os dois lados passam por unaccent, então digitar "cafe" acha "Café" e "CAFÉ"
+// também. A extensão é criada no startup (cmd/api/main.go).
+func applyTextSearch(dbQuery *gorm.DB, column string, value string) *gorm.DB {
+	for _, term := range likeTerms(value) {
+		dbQuery = dbQuery.Where("unaccent("+column+") ILIKE unaccent(?)", term)
+	}
+	return dbQuery
+}
+
 func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB {
 	if query.TypeFilter != "" {
 		dbQuery = dbQuery.Where("products.type = ?", strings.ToUpper(query.TypeFilter))
@@ -198,33 +301,62 @@ func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB
 	case "is_selling":
 		return dbQuery.Where("products.is_selling = ?", strings.ToLower(query.SearchValue) == "true")
 	case "price":
-		return dbQuery.Where("products.price::text ILIKE ?", "%"+query.SearchValue+"%")
+		return applyTextSearch(dbQuery, "products.price::text", query.SearchValue)
+	case "name":
+		return applyTextSearch(dbQuery, "products.name", query.SearchValue)
+	case "picture_url":
+		return applyTextSearch(dbQuery, "products.picture_url", query.SearchValue)
+	case "description":
+		return applyTextSearch(dbQuery, "products.description", query.SearchValue)
 	case "kit.name":
-		return dbQuery.
-			Joins("JOIN kits ON kits.id = products.id").
-			Where("kits.name ILIKE ?", "%"+query.SearchValue+"%")
+		return applyTextSearch(dbQuery, "kits.name", query.SearchValue)
 	case "kit.size":
-		return dbQuery.
-			Joins("JOIN kits ON kits.id = products.id").
-			Where("kits.size ILIKE ?", "%"+query.SearchValue+"%")
+		return applyTextSearch(dbQuery, "kits.size", query.SearchValue)
 	case "kit.color":
-		return dbQuery.
-			Joins("JOIN kits ON kits.id = products.id").
-			Where("kits.color ILIKE ?", "%"+query.SearchValue+"%")
+		return applyTextSearch(dbQuery, "kits.color", query.SearchValue)
+	case "kit.is_babylook":
+		return dbQuery.Where("kits.is_babylook = ?", strings.ToLower(query.SearchValue) == "true")
 	case "coffee.name":
-		return dbQuery.
-			Joins("JOIN coffees ON coffees.id = products.id").
-			Where("coffees.name ILIKE ?", "%"+query.SearchValue+"%")
+		return applyTextSearch(dbQuery, "coffees.name", query.SearchValue)
+	case "coffee.date_time":
+		parsedDate, ok := parseProductSearchDate(query.SearchValue)
+		if !ok {
+			return dbQuery
+		}
+		// Compara no fuso do app e não no da sessão (UTC): um café registrado à
+		// noite em São Paulo tem dia UTC posterior ao que aparece na tela, e sem
+		// a conversão o filtro não acha o registro que o usuário está vendo.
+		return dbQuery.Where(
+			"DATE(coffees.date_time AT TIME ZONE ?) = DATE(?)",
+			database.AppTimezone, parsedDate.Format("2006-01-02"),
+		)
 	default:
 		return dbQuery
 	}
 }
 
-func resolveProductSortClause(sortBy string, sortOrder string) (string, error) {
-	allowedSortFields := []string{"id", "type", "is_selling", "price"}
+// productSortColumns mapeia o campo aceito na ordenação para a coluna SQL
+// correspondente. As colunas são sempre qualificadas com o nome da tabela porque a
+// listagem pode trazer JOIN de kits/coffees, onde `id` e `name` existem nas duas.
+var productSortColumns = map[string]string{
+	"id":               "products.id",
+	"type":             "products.type",
+	"is_selling":       "products.is_selling",
+	"price":            "products.price",
+	"name":             "products.name",
+	"picture_url":      "products.picture_url",
+	"description":      "products.description",
+	"kit.name":         "kits.name",
+	"kit.size":         "kits.size",
+	"kit.color":        "kits.color",
+	"kit.is_babylook":  "kits.is_babylook",
+	"coffee.name":      "coffees.name",
+	"coffee.date_time": "coffees.date_time",
+}
 
-	field := strings.ToLower(sortBy)
-	if !slices.Contains(allowedSortFields, field) {
+func resolveProductSortClause(sortBy string, sortOrder string) (string, error) {
+	column, isAllowedField := productSortColumns[strings.ToLower(sortBy)]
+	if !isAllowedField {
 		return "", fmt.Errorf("invalid sort field")
 	}
 
@@ -233,7 +365,7 @@ func resolveProductSortClause(sortBy string, sortOrder string) (string, error) {
 		return "", fmt.Errorf("invalid sort order")
 	}
 
-	return field + " " + order, nil
+	return column + " " + order, nil
 }
 
 func (r *productRepository) GetProducts(query ProductListQuery) (*ProductListResult, error) {
@@ -250,13 +382,14 @@ func (r *productRepository) GetProducts(query ProductListQuery) (*ProductListRes
 		return nil, err
 	}
 
-	filteredQuery := applyProductSearchFilter(r.db.Model(&Product{}), query)
+	filteredQuery := applyProductSearchFilter(productListBaseQuery(r.db, query), query)
 	if err := filteredQuery.Count(&filteredRecords).Error; err != nil {
 		return nil, err
 	}
 
-	dataQuery := applyProductSearchFilter(r.db.Model(&Product{}), query)
+	dataQuery := applyProductSearchFilter(productListBaseQuery(r.db, query), query)
 	err = dataQuery.
+		Select("products.*").
 		Preload("Kit").
 		Preload("Coffee").
 		Preload("ComboItems.Item.Kit").

@@ -9,6 +9,7 @@ import (
 	"backend/internal/absenceJustification"
 	"backend/internal/auth"
 	"backend/internal/authBackoffice"
+	"backend/internal/cache"
 	"backend/internal/dashboardbackoffice"
 	"backend/internal/database"
 	"backend/internal/event"
@@ -74,6 +75,14 @@ func main() {
 
 	if err != nil {
 		panic("Failed to migrate database: " + err.Error())
+	}
+
+	// A busca de produtos e eventos ignora acento: unaccent(name) ILIKE '%cafe%'
+	// precisa achar "Café". A extensão é criada aqui porque a busca depende dela, e
+	// se o usuário do banco não puder instalar, o startup para com uma mensagem
+	// clara em vez de a listagem responder 500 em produção.
+	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS unaccent").Error; err != nil {
+		panic("Failed to create the unaccent extension: " + err.Error())
 	}
 
 	// As tabelas `teams` e `team_members` (jogo de enigmas) são criadas com SQL
@@ -305,6 +314,8 @@ func main() {
 		stdlog.Printf("[presence-rate] erro no recálculo inicial das taxas de presença: %v", err)
 	}
 
+	cacheStore := cache.NewStore()
+
 	r := gin.Default()
 	r.Use(middleware.AuditMiddleware(logService))
 
@@ -339,10 +350,10 @@ func main() {
 	r.POST("/verify-email", pageMW("login"), userHandler.VerifyEmail)
 	r.POST("/resend-verification", pageMW("login"), userHandler.ResendVerification)
 
-	r.GET("/events", pageMW("cronograma"), eventHandler.GetEvents)
-	r.GET("/event/:eventName/:initDate", pageMW("cronograma"), eventHandler.GetEventByNameAndInitDate)
+	r.GET("/events", pageMW("cronograma"), middleware.CacheResponse(cacheStore), eventHandler.GetEvents)
+	r.GET("/event/:eventName/:initDate", pageMW("cronograma"), middleware.CacheResponse(cacheStore), eventHandler.GetEventByNameAndInitDate)
 
-	r.GET("/sponsors", sponsorHandler.GetSponsors)
+	r.GET("/sponsors", middleware.CacheResponse(cacheStore), sponsorHandler.GetSponsors)
 	r.POST("/sponsors/:cnpj/click", sponsorHandler.RecordClick)
 
 	r.POST("/visit", siteStatHandler.RecordVisit)
@@ -416,10 +427,11 @@ func main() {
 	admin.DELETE("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.DeleteUser)
 
 	// Eventos
+	eventInvalidate := middleware.CacheInvalidate(cacheStore, "GET:/events", "GET:/event/")
 	admin.GET("/events", permMW("Eventos", permission.PermR), eventHandler.GetEvents)
-	admin.POST("/events", permMW("Eventos", permission.PermRW), eventHandler.CreateEvent)
-	admin.PUT("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.UpdateEventByNameAndInitDate)
-	admin.DELETE("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventHandler.DeleteEventByNameAndInitDate)
+	admin.POST("/events", permMW("Eventos", permission.PermRW), eventInvalidate, eventHandler.CreateEvent)
+	admin.PUT("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventInvalidate, eventHandler.UpdateEventByNameAndInitDate)
+	admin.DELETE("/events/:eventName/:initDate", permMW("Eventos", permission.PermRW), eventInvalidate, eventHandler.DeleteEventByNameAndInitDate)
 
 	// Riddles
 	admin.GET("/riddles", permMW("Riddles", permission.PermR), riddleHandler.GetRiddles)
@@ -455,7 +467,7 @@ func main() {
 	admin.DELETE("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermRW), presenceHandler.DeletePresenceByUserEventandInitDate)
 
 	// Configurações de Presença (pesos por tipo de evento)
-	admin.GET("/presence-settings", permMW("Configurações Presença", permission.PermR), presenceSettingsHandler.GetWeights)
+	admin.GET("/presence-settings", presenceSettingsHandler.GetWeights)
 	admin.POST("/presence-settings", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.CreateWeight)
 	admin.PUT("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.UpdateWeight)
 	admin.DELETE("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.DeleteWeight)
@@ -505,14 +517,15 @@ func main() {
 	admin.PUT("/pages/:page/availability", permMW("Páginas", permission.PermRW), pagesHandler.SetPageAvailabilityHandler)
 
 	// Patrocinadores
+	sponsorInvalidate := middleware.CacheInvalidate(cacheStore, "GET:/sponsors")
 	admin.GET("/sponsors", permMW("Patrocinadores", permission.PermR), sponsorHandler.GetAllSponsors)
 	admin.GET("/sponsors/:cnpj", permMW("Patrocinadores", permission.PermR), sponsorHandler.GetSponsorByCNPJ)
-	admin.POST("/sponsors", permMW("Patrocinadores", permission.PermRW), sponsorHandler.CreateSponsor)
-	admin.PUT("/sponsors/:cnpj", permMW("Patrocinadores", permission.PermRW), sponsorHandler.UpdateSponsor)
-	admin.DELETE("/sponsors/:cnpj", permMW("Patrocinadores", permission.PermRW), sponsorHandler.DeleteSponsor)
+	admin.POST("/sponsors", permMW("Patrocinadores", permission.PermRW), sponsorInvalidate, sponsorHandler.CreateSponsor)
+	admin.PUT("/sponsors/:cnpj", permMW("Patrocinadores", permission.PermRW), sponsorInvalidate, sponsorHandler.UpdateSponsor)
+	admin.DELETE("/sponsors/:cnpj", permMW("Patrocinadores", permission.PermRW), sponsorInvalidate, sponsorHandler.DeleteSponsor)
 	admin.GET("/sponsors/:cnpj/packages", permMW("Patrocinadores", permission.PermR), sponsorHandler.GetSponsorPackages)
-	admin.POST("/sponsors/:cnpj/packages", permMW("Patrocinadores", permission.PermRW), sponsorHandler.AddSponsorPackage)
-	admin.DELETE("/sponsors/:cnpj/packages/:year/:package", permMW("Patrocinadores", permission.PermRW), sponsorHandler.RemoveSponsorPackage)
+	admin.POST("/sponsors/:cnpj/packages", permMW("Patrocinadores", permission.PermRW), sponsorInvalidate, sponsorHandler.AddSponsorPackage)
+	admin.DELETE("/sponsors/:cnpj/packages/:year/:package", permMW("Patrocinadores", permission.PermRW), sponsorInvalidate, sponsorHandler.RemoveSponsorPackage)
 
 	// Dashboard
 	admin.GET("/dashboard", permMW("Dashboard", permission.PermR), dashboardHandler.GetDashboard)
