@@ -35,9 +35,6 @@ func NewSigninEventService(repo SigninEventRepository, eventRepo event.EventRepo
 	return &signinEventService{repo: repo, eventRepo: eventRepo}
 }
 
-// relativeWaitListPosition retorna a posição relativa na fila de espera
-// (posição - max) quando o usuário está na lista de espera; caso contrário
-// mantém a posição geral.
 func relativeWaitListPosition(status RegistrationStatus, max uint, position uint) uint {
 	if status == StatusWaitListed && max > 0 && position > max {
 		return position - max
@@ -45,15 +42,11 @@ func relativeWaitListPosition(status RegistrationStatus, max uint, position uint
 	return position
 }
 
-// relativePosition aplica relativeWaitListPosition sobre uma inscrição,
-// usando o número máximo de participantes do próprio evento.
 func (s *signinEventService) relativePosition(signin *SigninEvent, max uint) *SigninEvent {
 	signin.UserWaitListPosition = relativeWaitListPosition(signin.Status, max, signin.UserWaitListPosition)
 	return signin
 }
 
-// eventMaxParticipants retorna o número máximo de participantes do evento.
-// Se o evento não existir, retorna 0 (nenhuma lista de espera).
 func (s *signinEventService) eventMaxParticipants(eventName string, initDate time.Time) (uint, error) {
 	eventRecord, err := s.eventRepo.GetByNameAndInitTime(eventName, initDate)
 	if err != nil {
@@ -64,34 +57,6 @@ func (s *signinEventService) eventMaxParticipants(eventName string, initDate tim
 	}
 
 	return eventRecord.MaxParticipants, nil
-}
-
-// removeSignin deleta a inscrição e reorganiza a fila: decrementa as posições
-// posteriores e promove inscritos da lista de espera que passaram a ficar dentro do limite.
-func (s *signinEventService) removeSignin(signin *SigninEvent) error {
-	if err := s.repo.DeleteByComposite(signin.UserNumber, signin.EventName, signin.EventInitDate); err != nil {
-		return apierrors.InternalServerError("Erro ao cancelar inscrição", err)
-	}
-
-	if signin.UserWaitListPosition > 0 {
-		if err := s.repo.DecrementPositionsAfter(signin.EventName, signin.EventInitDate, signin.UserWaitListPosition); err != nil {
-			return apierrors.InternalServerError("Erro ao reorganizar a fila", err)
-		}
-	}
-
-	// Só abre vaga na fila se a inscrição cancelada ocupava um slot dentro do limite.
-	if signin.Status == StatusRegistered || signin.Status == StatusWaitingDonation {
-		eventRecord, err := s.eventRepo.GetByNameAndInitTime(signin.EventName, signin.EventInitDate)
-		if err != nil {
-			return apierrors.InternalServerError("Erro ao buscar evento", err)
-		}
-
-		if err := s.repo.PromoteWithinLimit(signin.EventName, signin.EventInitDate, eventRecord.MaxParticipants); err != nil {
-			return apierrors.InternalServerError("Erro ao promover usuário da lista de espera", err)
-		}
-	}
-
-	return nil
 }
 
 func (s *signinEventService) CreateSignin(userNumber uint, request CreateSigninRequest) (*SigninEvent, error) {
@@ -107,25 +72,26 @@ func (s *signinEventService) CreateSignin(userNumber uint, request CreateSigninR
 		return nil, apierrors.ValidationError("Este evento não permite inscrição", nil)
 	}
 
-	// Impede inscrição duplicada (o cancelamento deleta o registro).
-	if _, err := s.repo.GetByUserEventAndInitDate(userNumber, request.EventName, request.EventInitDate); err == nil {
-		return nil, apierrors.ConflictError("Usuário já inscrito neste evento", err)
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, apierrors.InternalServerError("Erro ao verificar inscrição existente", err)
-	}
-
-	// Impede inscrição em eventos concomitantes
-	conflicting, err := s.repo.FindActiveOverlapping(userNumber, request.EventName, request.EventInitDate, eventRecord.EndDate)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, apierrors.InternalServerError("Erro ao verificar inscrições conflitantes", err)
-	}
-	if conflicting != nil {
-		return nil, apierrors.ConflictError("Usuário já inscrito em outro evento no mesmo horário", err)
-	}
-
-	newSignin, err := s.repo.CreateAtomicSignin(userNumber, request.EventName, request.EventInitDate, eventRecord.MaxParticipants)
+	// Duplicate check, overlap check, count, and insert are all performed
+	// atomically inside CreateAtomicSignin under advisory locks. UserWaitListPosition
+	// is assigned server-side (count+1) — it is not part of the request DTO and
+	// cannot be influenced by the caller.
+	newSignin, err := s.repo.CreateAtomicSignin(
+		userNumber,
+		request.EventName,
+		request.EventInitDate,
+		eventRecord.MaxParticipants,
+		eventRecord.EndDate,
+	)
 	if err != nil {
-		return nil, apierrors.InternalServerError("Erro ao criar inscrição", err)
+		switch {
+		case errors.Is(err, ErrDuplicateInscription):
+			return nil, apierrors.ConflictError("Usuário já inscrito neste evento", err)
+		case errors.Is(err, ErrOverlappingInscription):
+			return nil, apierrors.ConflictError("Usuário já inscrito em outro evento no mesmo horário", err)
+		default:
+			return nil, apierrors.InternalServerError("Erro ao criar inscrição", err)
+		}
 	}
 
 	return s.relativePosition(newSignin, eventRecord.MaxParticipants), nil
@@ -155,15 +121,19 @@ func (s *signinEventService) DeleteSignin(userNumber uint, eventName string, eve
 		return apierrors.ValidationError("Data do evento inválida. Use o formato RFC3339", err)
 	}
 
-	signin, err := s.repo.GetByUserEventAndInitDate(userNumber, eventName, initTime)
-	if err != nil {
+	maxParticipants := uint(0)
+	if eventRecord, err := s.eventRepo.GetByNameAndInitTime(eventName, initTime); err == nil {
+		maxParticipants = eventRecord.MaxParticipants
+	}
+
+	if err := s.repo.RemoveAtomicSignin(userNumber, eventName, initTime, maxParticipants); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apierrors.NotFoundError("Inscrição não encontrada", err)
 		}
-		return apierrors.InternalServerError("Erro ao buscar inscrição", err)
+		return apierrors.InternalServerError("Erro ao cancelar inscrição", err)
 	}
 
-	return s.removeSignin(signin)
+	return nil
 }
 
 func (s *signinEventService) GetSigninsAdmin(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*SigninEventListResult, error) {
@@ -267,26 +237,11 @@ func (s *signinEventService) GetSigninAdmin(userNumber string, eventName string,
 }
 
 func (s *signinEventService) CreateSigninAdmin(request CreateSigninAdminRequest) (*SigninEvent, error) {
-	if _, err := s.repo.GetByUserEventAndInitDate(request.UserNumber, request.EventName, request.EventInitDate); err == nil {
-		return nil, apierrors.ConflictError("Inscrição já existente", err)
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, apierrors.InternalServerError("Erro ao verificar inscrição existente", err)
-	}
-
-	active, err := s.repo.CountActiveByEvent(request.EventName, request.EventInitDate)
+	newSignin, err := s.repo.CreateAdminSignin(request.UserNumber, request.EventName, request.EventInitDate, request.Status)
 	if err != nil {
-		return nil, apierrors.InternalServerError("Erro ao calcular posição na fila", err)
-	}
-
-	newSignin := SigninEvent{
-		UserNumber:           request.UserNumber,
-		EventName:            request.EventName,
-		EventInitDate:        request.EventInitDate,
-		UserWaitListPosition: uint(active + 1),
-		Status:               request.Status,
-	}
-
-	if err := s.repo.Create(&newSignin); err != nil {
+		if errors.Is(err, ErrDuplicateInscription) {
+			return nil, apierrors.ConflictError("Inscrição já existente", err)
+		}
 		return nil, apierrors.InternalServerError("Erro ao criar inscrição", err)
 	}
 
@@ -295,7 +250,7 @@ func (s *signinEventService) CreateSigninAdmin(request CreateSigninAdminRequest)
 		return nil, err
 	}
 
-	return s.relativePosition(&newSignin, max), nil
+	return s.relativePosition(newSignin, max), nil
 }
 
 func (s *signinEventService) UpdateSigninAdmin(userNumber string, eventName string, eventInitDate string, request UpdateSigninAdminRequest) (*SigninEvent, error) {
@@ -348,18 +303,21 @@ func (s *signinEventService) DeleteSigninAdmin(userNumber string, eventName stri
 		return apierrors.ValidationError("Número do usuário inválido", err)
 	}
 
-	signin, err := s.repo.GetByUserEventAndInitDate(uint(num), eventName, initTime)
-	if err != nil {
+	maxParticipants := uint(0)
+	if eventRecord, err := s.eventRepo.GetByNameAndInitTime(eventName, initTime); err == nil {
+		maxParticipants = eventRecord.MaxParticipants
+	}
+
+	if err := s.repo.RemoveAtomicSignin(uint(num), eventName, initTime, maxParticipants); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apierrors.NotFoundError("Inscrição não encontrada", err)
 		}
-		return apierrors.InternalServerError("Erro ao buscar inscrição", err)
+		return apierrors.InternalServerError("Erro ao remover inscrição", err)
 	}
 
-	return s.removeSignin(signin)
+	return nil
 }
 
-// RegisterSigninAdmin altera o status de uma inscrição para "Inscrito".
 func (s *signinEventService) RegisterSigninAdmin(userNumber string, eventName string, eventInitDate string) (*SigninEvent, error) {
 	initTime, err := time.Parse(time.RFC3339, eventInitDate)
 	if err != nil {
@@ -403,9 +361,6 @@ func (s *signinEventService) RegisterSigninAdmin(userNumber string, eventName st
 	return s.relativePosition(&updates, max), nil
 }
 
-// RotateSigninsAdmin remove todas as inscrições "Esperando Doação" de um evento,
-// promove os primeiros da fila de espera para "Inscrito" até completar o limite
-// de vagas e reordena as posições da fila.
 func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate string) ([]SigninEvent, error) {
 	initTime, err := time.Parse(time.RFC3339, eventInitDate)
 	if err != nil {
@@ -424,55 +379,14 @@ func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate 
 		return nil, apierrors.ValidationError("Não é possível rodar a fila em eventos com vagas ilimitadas", nil)
 	}
 
-	if err := s.repo.DeleteByStatus(eventName, initTime, StatusWaitingDonation); err != nil {
-		return nil, apierrors.InternalServerError("Erro ao remover inscrições aguardando doação", err)
-	}
-
-	remaining, err := s.repo.ListActiveByEvent(eventName, initTime)
+	signins, err := s.repo.RotateAtomicSignins(eventName, initTime, eventRecord.MaxParticipants)
 	if err != nil {
-		return nil, apierrors.InternalServerError("Erro ao listar inscrições", err)
+		return nil, apierrors.InternalServerError("Erro ao rodar a fila de inscrições", err)
 	}
 
-	if len(remaining) == 0 {
-		return remaining, nil
+	for i := range signins {
+		s.relativePosition(&signins[i], eventRecord.MaxParticipants)
 	}
 
-	registeredCount := 0
-	for i := range remaining {
-		if remaining[i].Status == StatusRegistered {
-			registeredCount++
-		}
-	}
-
-	// Promove os primeiros da fila de espera até completar o limite do evento.
-	toPromote := 0
-	if eventRecord.MaxParticipants > uint(registeredCount) {
-		toPromote = min(int(eventRecord.MaxParticipants)-registeredCount, len(remaining)-registeredCount)
-	}
-
-	if toPromote > 0 {
-		if err := s.repo.PromoteFirstWaitListed(eventName, initTime, toPromote); err != nil {
-			return nil, apierrors.InternalServerError("Erro ao promover inscrições da fila de espera", err)
-		}
-	}
-
-	// Reordena as posições na fila (1..N, na ordem original).
-	for i := range remaining {
-		if err := s.repo.UpdatePosition(remaining[i].UserNumber, eventName, initTime, uint(i+1)); err != nil {
-			return nil, apierrors.InternalServerError("Erro ao atualizar posições na fila", err)
-		}
-	}
-
-	// Espelha as mudanças na resposta.
-	promoted := 0
-	for i := range remaining {
-		if remaining[i].Status == StatusWaitListed && promoted < toPromote {
-			remaining[i].Status = StatusRegistered
-			promoted++
-		}
-		remaining[i].UserWaitListPosition = uint(i + 1)
-		s.relativePosition(&remaining[i], eventRecord.MaxParticipants)
-	}
-
-	return remaining, nil
+	return signins, nil
 }
