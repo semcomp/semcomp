@@ -39,7 +39,7 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - [[Feature_Controle_Backend]] — RBAC: 10 KnownSections, middleware Go, validações do handler
 - [[Feature_Controle_Frontend]] — guards de rota, filtragem UI, matrix de permissões, refresh
 - [[Feature_Cronograma_e_Eventos]] — cronograma público (agrupamento), CRUD backoffice
-- [[Feature_SigninEvent]] — inscrição em eventos com fila de espera, Profile page, admin CRUD
+- [[Feature_SigninEvent]] — inscrição em eventos com fila de espera, Profile page, admin CRUD; operações atômicas via advisory locks (sem race/overbooking)
 - [[Feature_Participacao_e_QRCode]] — scan via câmera (backoffice), QR exibido no Profile (site)
 - [[Feature_Loja_e_Pagamentos]] — produtos (KIT/COFFEE/COMBO), carrinho, checkout PIX, polling, webhook
 - [[Feature_Flags_e_Pages]] — feature toggle via API, FeatureGuard, backoffice toggle UI
