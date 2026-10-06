@@ -251,6 +251,32 @@ func parseProductSearchDate(value string) (time.Time, bool) {
 	return time.Time{}, false
 }
 
+// likeTerms quebra o valor digitado no filtro em termos, ignorando espaços, tabs
+// e quebras de linha. O motivo: o que parece separado na tela pode estar gravado
+// com "\n" no banco (uma descrição digitada com Enter, por exemplo), e um ILIKE
+// com o texto inteiro não encontraria nada. Cada termo vira um ILIKE próprio
+// combinado com AND, então a ordem digitada não importa e todas as palavras
+// precisam aparecer em algum lugar do valor.
+func likeTerms(value string) []string {
+	words := strings.Fields(value)
+	terms := make([]string, 0, len(words))
+	for _, word := range words {
+		terms = append(terms, "%"+word+"%")
+	}
+	return terms
+}
+
+// applyTextSearch aplica todos os termos do valor em uma coluna de texto. Se o
+// valor for vazio ou só de espaços, nenhuma condição é adicionada: o filtro é
+// ignorado em vez de procurar por espaços em branco. `column` sempre vem de
+// literal do código, nunca do input do usuário.
+func applyTextSearch(dbQuery *gorm.DB, column string, value string) *gorm.DB {
+	for _, term := range likeTerms(value) {
+		dbQuery = dbQuery.Where(column+" ILIKE ?", term)
+	}
+	return dbQuery
+}
+
 func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB {
 	if query.TypeFilter != "" {
 		dbQuery = dbQuery.Where("products.type = ?", strings.ToUpper(query.TypeFilter))
@@ -270,23 +296,23 @@ func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB
 	case "is_selling":
 		return dbQuery.Where("products.is_selling = ?", strings.ToLower(query.SearchValue) == "true")
 	case "price":
-		return dbQuery.Where("products.price::text ILIKE ?", "%"+query.SearchValue+"%")
+		return applyTextSearch(dbQuery, "products.price::text", query.SearchValue)
 	case "name":
-		return dbQuery.Where("products.name ILIKE ?", "%"+query.SearchValue+"%")
+		return applyTextSearch(dbQuery, "products.name", query.SearchValue)
 	case "picture_url":
-		return dbQuery.Where("products.picture_url ILIKE ?", "%"+query.SearchValue+"%")
+		return applyTextSearch(dbQuery, "products.picture_url", query.SearchValue)
 	case "description":
-		return dbQuery.Where("products.description ILIKE ?", "%"+query.SearchValue+"%")
+		return applyTextSearch(dbQuery, "products.description", query.SearchValue)
 	case "kit.name":
-		return dbQuery.Where("kits.name ILIKE ?", "%"+query.SearchValue+"%")
+		return applyTextSearch(dbQuery, "kits.name", query.SearchValue)
 	case "kit.size":
-		return dbQuery.Where("kits.size ILIKE ?", "%"+query.SearchValue+"%")
+		return applyTextSearch(dbQuery, "kits.size", query.SearchValue)
 	case "kit.color":
-		return dbQuery.Where("kits.color ILIKE ?", "%"+query.SearchValue+"%")
+		return applyTextSearch(dbQuery, "kits.color", query.SearchValue)
 	case "kit.is_babylook":
 		return dbQuery.Where("kits.is_babylook = ?", strings.ToLower(query.SearchValue) == "true")
 	case "coffee.name":
-		return dbQuery.Where("coffees.name ILIKE ?", "%"+query.SearchValue+"%")
+		return applyTextSearch(dbQuery, "coffees.name", query.SearchValue)
 	case "coffee.date_time":
 		parsedDate, ok := parseProductSearchDate(query.SearchValue)
 		if !ok {

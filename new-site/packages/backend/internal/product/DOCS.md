@@ -176,9 +176,15 @@ Campos permitidos em `search_by`:
 
 Observações:
 
-- `name`, `picture_url` e `description` respondem a busca parcial (`ILIKE`), case-insensitive.
-- `kit.is_babylook` aceita `true`/`false`.
+- `name`, `picture_url`, `description`, `price`, `kit.name`, `kit.size`, `kit.color` e `coffee.name` respondem a busca parcial (`ILIKE`), case-insensitive.
+- Nessas buscas de texto o `search_value` é quebrado em palavras: cada palavra vira um `ILIKE` próprio combinado com `AND`. Consequências:
+  - a ordem digitada não importa e **todas** as palavras precisam aparecer no valor gravado;
+  - espaços, tabs e quebras de linha são equivalentes, então `kit azul` encontra `kit` + quebra de linha + `azul`;
+  - `search_value` só com espaços é ignorado (não filtra nada) em vez de procurar por espaços em branco.
+- `id` aceita apenas o número exato; um valor não numérico é ignorado (sem filtro) em vez de gerar erro.
+- `kit.is_babylook` e `is_selling` comparam com `true`/`false` (qualquer outro valor conta como `false`).
 - `coffee.date_time` compara apenas o dia (`DATE(...)`), aceitando `AAAA-MM-DD`, `AAAA-MM-DDTHH:MM`, ISO 8601 completo e `DD/MM/AAAA`. Valores fora desses formatos retornam `400`.
+- A comparação de dia usa o fuso da sessão do Postgres (o DSN conecta com `TimeZone=UTC`), então um café cadastrado de madrugada aparece no dia UTC, que pode ser o dia anterior no horário de São Paulo.
 
 Exemplo:
 
