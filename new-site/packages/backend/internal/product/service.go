@@ -359,20 +359,29 @@ func (s *productService) GetProducts(page int, limit int, sortBy string, sortOrd
 	if searchBy != "" {
 		searchBy = strings.ToLower(searchBy)
 		allowedSearchFields := map[string]bool{
-			"id":          true,
-			"is_selling":  true,
-			"price":       true,
-			"name":        true,
-			"picture_url": true,
-			"description": true,
-			"kit.name":        true,
-			"kit.size":        true,
-			"kit.color":       true,
-			"kit.is_babylook": true,
-			"coffee.name":     true,
+			"id":               true,
+			"is_selling":       true,
+			"price":            true,
+			"name":             true,
+			"picture_url":      true,
+			"description":      true,
+			"kit.name":         true,
+			"kit.size":         true,
+			"kit.color":        true,
+			"kit.is_babylook":  true,
+			"coffee.name":      true,
+			"coffee.date_time": true,
 		}
 		if !allowedSearchFields[searchBy] {
 			return nil, apierrors.ValidationError("Parâmetro 'search_by' inválido", nil)
+		}
+
+		// Busca por data exige um valor em formato conhecido: sem isso o Postgres
+		// receberia um texto solto e responderia 500 em vez de um erro de validação.
+		if searchBy == "coffee.date_time" {
+			if _, ok := parseProductSearchDate(searchValue); !ok {
+				return nil, apierrors.ValidationError("Valor de busca para data inválido. Use o formato AAAA-MM-DD", nil)
+			}
 		}
 	}
 

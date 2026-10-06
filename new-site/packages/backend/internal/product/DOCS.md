@@ -160,11 +160,13 @@ Campos permitidos em `search_by`:
 - `kit.color`
 - `kit.is_babylook`
 - `coffee.name`
+- `coffee.date_time`
 
 Observações:
 
 - `name`, `picture_url` e `description` respondem a busca parcial (`ILIKE`), case-insensitive.
 - `kit.is_babylook` aceita `true`/`false`.
+- `coffee.date_time` compara apenas o dia (`DATE(...)`), aceitando `AAAA-MM-DD`, `AAAA-MM-DDTHH:MM`, ISO 8601 completo e `DD/MM/AAAA`. Valores fora desses formatos retornam `400`.
 
 Exemplo:
 

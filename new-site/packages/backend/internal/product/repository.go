@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -220,6 +221,29 @@ func productListBaseQuery(db *gorm.DB, query ProductListQuery) *gorm.DB {
 	return applyProductJoins(db.Model(&Product{}).Select("products.*"), query)
 }
 
+// productSearchDateFormats são os formatos aceitos ao buscar por um campo de data.
+// O primeiro é o canônico (AAAA-MM-DD), pois é o formato com que o valor é
+// repassado ao Postgres na comparação com DATE().
+var productSearchDateFormats = []string{
+	"2006-01-02",
+	"2006-01-02T15:04",
+	time.RFC3339,
+	"02/01/2006",
+}
+
+// parseProductSearchDate converte o valor digitado no filtro em time.Time.
+// Retorna false quando o valor não é uma data válida, para que a camada de
+// serviço possa responder 400 em vez de deixar o Postgres estourar erro de sintaxe.
+func parseProductSearchDate(value string) (time.Time, bool) {
+	value = strings.TrimSpace(value)
+	for _, format := range productSearchDateFormats {
+		if parsed, err := time.Parse(format, value); err == nil {
+			return parsed, true
+		}
+	}
+	return time.Time{}, false
+}
+
 func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB {
 	if query.TypeFilter != "" {
 		dbQuery = dbQuery.Where("products.type = ?", strings.ToUpper(query.TypeFilter))
@@ -256,6 +280,12 @@ func applyProductSearchFilter(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB
 		return dbQuery.Where("kits.is_babylook = ?", strings.ToLower(query.SearchValue) == "true")
 	case "coffee.name":
 		return dbQuery.Where("coffees.name ILIKE ?", "%"+query.SearchValue+"%")
+	case "coffee.date_time":
+		parsedDate, ok := parseProductSearchDate(query.SearchValue)
+		if !ok {
+			return dbQuery
+		}
+		return dbQuery.Where("DATE(coffees.date_time) = DATE(?)", parsedDate.Format("2006-01-02"))
 	default:
 		return dbQuery
 	}
