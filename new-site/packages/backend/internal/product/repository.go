@@ -215,10 +215,17 @@ func applyProductJoins(dbQuery *gorm.DB, query ProductListQuery) *gorm.DB {
 	return dbQuery
 }
 
-// productListBaseQuery monta a base das queries de listagem. O Select("products.*")
-// evita as colunas duplicadas (id, name) que a tabela do join traria em SELECT *.
+// productListBaseQuery monta a base das queries de listagem (modelo + JOINs).
+//
+// A lista de colunas NÃO é definida aqui de propósito: no GORM v1.31, Count()
+// reescreve a cláusula SELECT, mas quando Selects tem um único nome ele gera
+// COUNT("products.*") em vez de count(*) (utils.IsInvalidDBNameChar considera
+// '.' e '*' válidos, então o nome não é fragmentado). O Postgres rejeita isso
+// com SQLSTATE 42703 ("column products.* does not exist") e a listagem inteira
+// responde 500. A seleção explícita é aplicada só na query de dados, que é onde
+// as colunas duplicadas do JOIN (id, name) atrapalham.
 func productListBaseQuery(db *gorm.DB, query ProductListQuery) *gorm.DB {
-	return applyProductJoins(db.Model(&Product{}).Select("products.*"), query)
+	return applyProductJoins(db.Model(&Product{}), query)
 }
 
 // productSearchDateFormats são os formatos aceitos ao buscar por um campo de data.
@@ -345,6 +352,7 @@ func (r *productRepository) GetProducts(query ProductListQuery) (*ProductListRes
 
 	dataQuery := applyProductSearchFilter(productListBaseQuery(r.db, query), query)
 	err = dataQuery.
+		Select("products.*").
 		Preload("Kit").
 		Preload("Coffee").
 		Preload("ComboItems.Item.Kit").
