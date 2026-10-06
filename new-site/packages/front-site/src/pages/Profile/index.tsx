@@ -234,8 +234,8 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
             {subscription.status === "Aguardando Aprovação" ? (
               <span className="w-full p-2 text-center text-sm font-semibold text-blue-700 dark:text-blue-400">
                 {papfeApproved
-                  ? "Você deve confirmar a sua presença no Fernão"
-                  : "Traga 1kg de alimento para confirmar sua inscrição na entrada do Fernão"}
+                  ? "Você deve confirmar a sua presença na entrada do Fernão"
+                  : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição"}
               </span>
             ) : (
               <span className={`w-full p-2 text-center text-sm font-semibold ${
@@ -444,14 +444,14 @@ export default function Profile({
   }, [isAuthenticated, navigate, name, email]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !isFeatureEnabled("cronograma")) return;
     Promise.all([signinEventsAPI.getSigninEvents(), signinEventsAPI.getMySignins()])
       .then(([events, signins]) => {
         setSigninEvents(events);
         setMySignins(signins);
       })
       .catch((err) => console.error("Erro ao buscar eventos de inscrição", err));
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isFeatureEnabled]);
 
   function getSubscription(ev: EventType): SigninEventType | undefined {
     return mySignins.find(
@@ -1444,8 +1444,8 @@ export default function Profile({
                               {subscription.status === "Aguardando Aprovação" ? (
                                 <span className="text-lg font-bold text-blue-600 dark:text-blue-400 text-center">
                                   {papfeDoc?.is_approved === true
-                                    ? "Você deve confirmar a sua presença no Fernão"
-                                    : "Traga 1kg de alimento para confirmar sua inscrição na entrada do Fernão"}
+                                    ? "Você deve confirmar a sua presença na entrada do Fernão"
+                                    : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição"}
                                 </span>
                               ) : (
                                 <span className={`text-lg font-bold ${

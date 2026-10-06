@@ -84,11 +84,15 @@ export default function ConfirmRegistrations() {
           500,
           "user_wait_list_position",
           "asc",
-          activeEvent ? "event_name" : "status",
-          activeEvent ? activeEvent.name : "Aguardando Aprovação"
+          "status",
+          "Aguardando Aprovação"
         );
         const pending = activeEvent
-          ? response.signins.filter((s) => s.status === "Aguardando Aprovação")
+          ? response.signins.filter(
+              (s) =>
+                s.eventName === activeEvent.name &&
+                s.eventInitDate === activeEvent.init_date
+            )
           : response.signins;
         setData(pending);
       } catch {

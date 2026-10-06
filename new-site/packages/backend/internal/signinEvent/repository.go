@@ -192,7 +192,7 @@ func (r *signinEventRepository) RemoveAtomicSignin(userNumber uint, eventName st
 			return err
 		}
 
-		if signin.UserWaitListPosition > 0 {
+		if signin.UserWaitListPosition > 0 && signin.Status != StatusCancelled {
 			if err := tx.Model(&SigninEvent{}).
 				Where("event_name = ? AND event_init_date = ? AND user_wait_list_position > ?",
 					eventName, initDate, signin.UserWaitListPosition).
@@ -288,7 +288,7 @@ func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEvent
 		return nil, err
 	}
 
-	dataQuery := applySearchFilter(r.db.Model(&SigninEvent{}), query)
+	dataQuery := applySearchFilter(r.db.Table("signin_events"), query)
 	err = dataQuery.
 		Select("signin_events.user_number, signin_events.event_name, signin_events.event_init_date, "+
 			"CASE WHEN signin_events.status = ? AND events.max_participants > 0 "+
@@ -391,14 +391,14 @@ func applySearchFilter(dbQuery *gorm.DB, query SigninEventListQuery) *gorm.DB {
 
 	switch query.SearchBy {
 	case "user_number":
-		return dbQuery.Where("user_number::text ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("signin_events.user_number::text ILIKE ?", "%"+query.SearchValue+"%")
 	case "event_name":
-		return dbQuery.Where("event_name ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("signin_events.event_name ILIKE ?", "%"+query.SearchValue+"%")
 	case "event_init_date":
 		parsedTime, _ := time.Parse(time.RFC3339, query.SearchValue)
-		return dbQuery.Where("DATE(event_init_date) = DATE(?)", parsedTime)
+		return dbQuery.Where("DATE(signin_events.event_init_date) = DATE(?)", parsedTime)
 	case "status":
-		return dbQuery.Where("status ILIKE ?", "%"+query.SearchValue+"%")
+		return dbQuery.Where("signin_events.status ILIKE ?", "%"+query.SearchValue+"%")
 	default:
 		return dbQuery
 	}
