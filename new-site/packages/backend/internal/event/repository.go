@@ -114,6 +114,10 @@ func applySearchFilter(dbQuery *gorm.DB, query EventListQuery) *gorm.DB {
 		return dbQuery.Where("DATE(end_date) = DATE(?)", query.SearchValue)
 	case "has_attendance":
 		return dbQuery.Where("e.has_attendance = ?", query.SearchValue)
+	case "has_signin":
+		return dbQuery.Where("e.has_signin = ?", query.SearchValue)
+	case "max_participants":
+		return dbQuery.Where("e.max_participants = ?", query.SearchValue)
 	default:
 		return dbQuery
 	}
