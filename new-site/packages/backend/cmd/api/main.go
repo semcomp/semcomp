@@ -459,7 +459,7 @@ func main() {
 	admin.DELETE("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermRW), presenceHandler.DeletePresenceByUserEventandInitDate)
 
 	// Configurações de Presença (pesos por tipo de evento)
-	admin.GET("/presence-settings", permMW("Configurações Presença", permission.PermR), presenceSettingsHandler.GetWeights)
+	admin.GET("/presence-settings", presenceSettingsHandler.GetWeights)
 	admin.POST("/presence-settings", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.CreateWeight)
 	admin.PUT("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.UpdateWeight)
 	admin.DELETE("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.DeleteWeight)
