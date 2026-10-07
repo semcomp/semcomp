@@ -192,7 +192,7 @@ func main() {
 	signinEventHandler := signinEvent.NewSigninEventHandler(signinEventService)
 
 	presenceRepo := presence.NewPresenceRepository(db)
-	presenceService := presence.NewPresenceService(presenceRepo)
+	presenceService := presence.NewPresenceService(presenceRepo, eventRepo, signinEventRepo)
 	presenceHandler := presence.NewPresenceHandler(presenceService)
 
 	// Motor de cálculo das taxas de presença: dispara recálculo automático a

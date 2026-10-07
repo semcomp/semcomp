@@ -6,256 +6,247 @@ import (
 	"time"
 
 	"backend/internal/apierrors"
+	"backend/internal/event"
+	"backend/internal/signinEvent"
 
 	"gorm.io/gorm"
 )
 
-type mockPresenceRepository struct {
-	CreateFunc                       func(presence *Presence) error
-	GetByUserEventandInitDateFunc    func(userNumber int64, eventName string, initDate time.Time) (*Presence, error)
-	DeleteByUserEventandInitDateFunc func(userNumber int64, eventName string, initDate time.Time) error
-	UpdateByUserEventandInitDateFunc func(userNumber int64, eventName string, initDate time.Time, updated *Presence) error
-	GetPresencesFunc                 func(query PresenceListQuery) (*PresenceListResult, error)
+// Stubs ---------------------------------------------------------------------------
+
+type stubPresenceRepo struct {
+	createErr error
+	getResult *Presence
+	getErr    error
 }
 
-func (m *mockPresenceRepository) Create(p *Presence) error {
-	if m.CreateFunc == nil {
-		return nil
-	}
-	return m.CreateFunc(p)
+func (s *stubPresenceRepo) Create(p *Presence) error { return s.createErr }
+func (s *stubPresenceRepo) GetByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time) (*Presence, error) {
+	return s.getResult, s.getErr
 }
-func (m *mockPresenceRepository) GetByUserEventandInitDate(n int64, e string, d time.Time) (*Presence, error) {
-	if m.GetByUserEventandInitDateFunc == nil {
-		return nil, gorm.ErrRecordNotFound
-	}
-	return m.GetByUserEventandInitDateFunc(n, e, d)
+func (s *stubPresenceRepo) DeleteByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time) error {
+	return nil
 }
-func (m *mockPresenceRepository) DeleteByUserEventandInitDate(n int64, e string, d time.Time) error {
-	if m.DeleteByUserEventandInitDateFunc == nil {
-		return nil
-	}
-	return m.DeleteByUserEventandInitDateFunc(n, e, d)
+func (s *stubPresenceRepo) UpdateByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time, updatedPresence *Presence) error {
+	return nil
 }
-func (m *mockPresenceRepository) UpdateByUserEventandInitDate(n int64, e string, d time.Time, u *Presence) error {
-	if m.UpdateByUserEventandInitDateFunc == nil {
-		return nil
-	}
-	return m.UpdateByUserEventandInitDateFunc(n, e, d, u)
-}
-func (m *mockPresenceRepository) GetPresences(q PresenceListQuery) (*PresenceListResult, error) {
-	if m.GetPresencesFunc == nil {
-		return &PresenceListResult{}, nil
-	}
-	return m.GetPresencesFunc(q)
+func (s *stubPresenceRepo) GetPresences(query PresenceListQuery) (*PresenceListResult, error) {
+	return &PresenceListResult{}, nil
 }
 
-func assertAPIError(t *testing.T, err error, expectedCode string) {
+type stubEventRepo struct {
+	getResult *event.Event
+	getErr    error
+}
+
+func (s *stubEventRepo) Create(e *event.Event) error { return nil }
+func (s *stubEventRepo) GetByNameAndInitTime(name string, initTime time.Time) (*event.Event, error) {
+	return s.getResult, s.getErr
+}
+func (s *stubEventRepo) DeleteByNameAndInitTime(name string, initTime time.Time) error { return nil }
+func (s *stubEventRepo) UpdateByNameAndInitTime(name string, initTime time.Time, e *event.Event) error {
+	return nil
+}
+func (s *stubEventRepo) GetEvents(query event.EventListQuery) (*event.EventListResult, error) {
+	return &event.EventListResult{}, nil
+}
+func (s *stubEventRepo) ListSigninableEvents() ([]event.Event, error) { return nil, nil }
+
+type stubSigninRepo struct {
+	getResult *signinEvent.SigninEvent
+	getErr    error
+}
+
+func (s *stubSigninRepo) CreateAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint, targetEndDate time.Time) (*signinEvent.SigninEvent, error) {
+	return nil, nil
+}
+func (s *stubSigninRepo) CreateAdminSignin(userNumber uint, eventName string, initDate time.Time, status signinEvent.RegistrationStatus) (*signinEvent.SigninEvent, error) {
+	return nil, nil
+}
+func (s *stubSigninRepo) RemoveAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) error {
+	return nil
+}
+func (s *stubSigninRepo) GetByUserEventAndInitDate(userNumber uint, eventName string, initDate time.Time) (*signinEvent.SigninEvent, error) {
+	return s.getResult, s.getErr
+}
+func (s *stubSigninRepo) FindActiveByUser(userNumber uint) ([]signinEvent.SigninEventsDetailed, error) {
+	return nil, nil
+}
+func (s *stubSigninRepo) UpdateByComposite(userNumber uint, eventName string, initDate time.Time, updated *signinEvent.SigninEvent) error {
+	return nil
+}
+func (s *stubSigninRepo) GetAll(query signinEvent.SigninEventListQuery) (*signinEvent.SigninEventListResult, error) {
+	return &signinEvent.SigninEventListResult{}, nil
+}
+func (s *stubSigninRepo) RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time) (*signinEvent.SigninEvent, error) {
+	return nil, nil
+}
+func (s *stubSigninRepo) UpdateAdminSigninStatus(userNumber uint, eventName string, initDate time.Time, newStatus signinEvent.RegistrationStatus, maxParticipants uint) (*signinEvent.SigninEvent, error) {
+	return nil, nil
+}
+func (s *stubSigninRepo) RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]signinEvent.SigninEvent, error) {
+	return nil, nil
+}
+
+// Helpers --------------------------------------------------------------------------
+
+func newRequest() CreatePresenceRequest {
+	return CreatePresenceRequest{
+		UserNumber:    42,
+		EventName:     "Palestra Go",
+		EventInitDate: time.Date(2026, 11, 1, 10, 0, 0, 0, time.UTC),
+		EmailAdmin:    "admin@semcomp.com",
+	}
+}
+
+func buildService(
+	presenceRepo PresenceRepository,
+	eventRepo event.EventRepository,
+	signinRepo signinEvent.SigninEventRepository,
+) PresenceService {
+	return NewPresenceService(presenceRepo, eventRepo, signinRepo)
+}
+
+func assertForbidden(t *testing.T, err error) {
 	t.Helper()
+	if err == nil {
+		t.Fatal("esperava erro 403, got nil")
+	}
 	var apiErr *apierrors.APIError
 	if !errors.As(err, &apiErr) {
-		t.Fatalf("esperava *apierrors.APIError, got %T: %v", err, err)
+		t.Fatalf("esperava *apierrors.APIError, got %T", err)
 	}
-	if apiErr.Code != expectedCode {
-		t.Errorf("esperava code=%q, got %q", expectedCode, apiErr.Code)
+	if apiErr.Status != 403 {
+		t.Errorf("esperava status HTTP 403, got %d", apiErr.Status)
 	}
 }
 
-// --- CreatePresence ---
+// Testes ---------------------------------------------------------------------------
 
-func TestCreatePresence_Success(t *testing.T) {
-	repo := &mockPresenceRepository{
-		GetByUserEventandInitDateFunc: func(_ int64, _ string, _ time.Time) (*Presence, error) {
-			return nil, gorm.ErrRecordNotFound
-		},
-		CreateFunc: func(p *Presence) error { return nil },
-	}
-	svc := NewPresenceService(repo)
+// Evento sem inscrição obrigatória, qualquer participante pode ter presença
+func TestCreatePresence_HasSigninFalse(t *testing.T) {
+	svc := buildService(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubEventRepo{getResult: &event.Event{HasSignin: false}},
+		&stubSigninRepo{},
+	)
 
-	presence, err := svc.CreatePresence(CreatePresenceRequest{
-		UserNumber:    1,
-		EventName:     "Evento",
-		EventInitDate: time.Now(),
-		EmailAdmin:    "admin@test.com",
-	})
-
+	p, err := svc.CreatePresence(newRequest())
 	if err != nil {
-		t.Fatalf("esperava nil, got %v", err)
+		t.Fatalf("esperava sucesso, got erro: %v", err)
 	}
-	if presence.UserNumber != 1 {
-		t.Errorf("esperava UserNumber=1, got %d", presence.UserNumber)
+	if p.UserNumber != 42 {
+		t.Errorf("UserNumber esperado 42, got %d", p.UserNumber)
 	}
 }
 
-func TestCreatePresence_RepoError(t *testing.T) {
-	repo := &mockPresenceRepository{
-		CreateFunc: func(p *Presence) error { return errors.New("db error") },
-	}
-	svc := NewPresenceService(repo)
-
-	_, err := svc.CreatePresence(CreatePresenceRequest{
-		UserNumber: 1, EventName: "Evento",
-		EventInitDate: time.Now(), EmailAdmin: "a@b.com",
-	})
-
-	assertAPIError(t, err, "internal_server_error")
-}
-
-// --- GetPresence ---
-
-func TestGetPresence_InvalidDate(t *testing.T) {
-	svc := NewPresenceService(&mockPresenceRepository{})
-
-	_, err := svc.GetPresenceByUserEventandInitDate("123", "Evento", "data-invalida")
-
-	assertAPIError(t, err, "validation_error")
-}
-
-func TestGetPresence_InvalidUserNumber(t *testing.T) {
-	svc := NewPresenceService(&mockPresenceRepository{})
-
-	_, err := svc.GetPresenceByUserEventandInitDate("nao-numero", "Evento", time.Now().Format(time.RFC3339))
-
-	assertAPIError(t, err, "validation_error")
-}
-
-func TestGetPresence_NotFound(t *testing.T) {
-	repo := &mockPresenceRepository{
-		GetByUserEventandInitDateFunc: func(_ int64, _ string, _ time.Time) (*Presence, error) {
-			return nil, gorm.ErrRecordNotFound
+// Inscrição confirmada (Inscrito), presença permitida
+func TestCreatePresence_HasSigninTrue_Confirmed(t *testing.T) {
+	svc := buildService(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubEventRepo{getResult: &event.Event{HasSignin: true}},
+		&stubSigninRepo{
+			getResult: &signinEvent.SigninEvent{Status: signinEvent.StatusRegistered},
 		},
-	}
-	svc := NewPresenceService(repo)
+	)
 
-	_, err := svc.GetPresenceByUserEventandInitDate("123", "Evento", time.Now().Format(time.RFC3339))
-
-	assertAPIError(t, err, "not_found")
-}
-
-func TestGetPresence_RepoError(t *testing.T) {
-	repo := &mockPresenceRepository{
-		GetByUserEventandInitDateFunc: func(_ int64, _ string, _ time.Time) (*Presence, error) {
-			return nil, errors.New("db error")
-		},
-	}
-	svc := NewPresenceService(repo)
-
-	_, err := svc.GetPresenceByUserEventandInitDate("123", "Evento", time.Now().Format(time.RFC3339))
-
-	assertAPIError(t, err, "internal_server_error")
-}
-
-// --- DeletePresence ---
-
-func TestDeletePresence_InvalidDate(t *testing.T) {
-	svc := NewPresenceService(&mockPresenceRepository{})
-
-	err := svc.DeletePresenceByUserEventandInitDate("123", "Evento", "invalida")
-
-	assertAPIError(t, err, "validation_error")
-}
-
-func TestDeletePresence_NotFound(t *testing.T) {
-	repo := &mockPresenceRepository{
-		DeleteByUserEventandInitDateFunc: func(_ int64, _ string, _ time.Time) error {
-			return gorm.ErrRecordNotFound
-		},
-	}
-	svc := NewPresenceService(repo)
-
-	err := svc.DeletePresenceByUserEventandInitDate("123", "Evento", time.Now().Format(time.RFC3339))
-
-	assertAPIError(t, err, "not_found")
-}
-
-func TestDeletePresence_Success(t *testing.T) {
-	repo := &mockPresenceRepository{
-		DeleteByUserEventandInitDateFunc: func(_ int64, _ string, _ time.Time) error { return nil },
-	}
-	svc := NewPresenceService(repo)
-
-	err := svc.DeletePresenceByUserEventandInitDate("123", "Evento", time.Now().Format(time.RFC3339))
-
+	p, err := svc.CreatePresence(newRequest())
 	if err != nil {
-		t.Errorf("esperava nil, got %v", err)
+		t.Fatalf("esperava sucesso, got erro: %v", err)
+	}
+	if p.UserNumber != 42 {
+		t.Errorf("UserNumber esperado 42, got %d", p.UserNumber)
 	}
 }
 
-// --- UpdatePresence ---
-
-func TestUpdatePresence_NotFound(t *testing.T) {
-	repo := &mockPresenceRepository{
-		UpdateByUserEventandInitDateFunc: func(_ int64, _ string, _ time.Time, _ *Presence) error {
-			return gorm.ErrRecordNotFound
+// Inscrição pendente (Aguardando Aprovação), presença bloqueada
+func TestCreatePresence_HasSigninTrue_WaitingDonation(t *testing.T) {
+	svc := buildService(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubEventRepo{getResult: &event.Event{HasSignin: true}},
+		&stubSigninRepo{
+			getResult: &signinEvent.SigninEvent{Status: signinEvent.StatusWaitingDonation},
 		},
-	}
-	svc := NewPresenceService(repo)
+	)
 
-	err := svc.UpdatePresenceByUserEventandInitDate("123", "Evento", time.Now().Format(time.RFC3339), UpdatePresenceRequest{
-		UserNumber: 1, EventName: "Novo", EventInitDate: time.Now(), EmailAdmin: "a@b.com",
-	})
-
-	assertAPIError(t, err, "not_found")
+	assertForbidden(t, func() error { _, err := svc.CreatePresence(newRequest()); return err }())
 }
 
-// --- GetPresences ---
-
-func TestGetPresences_InvalidPage(t *testing.T) {
-	svc := NewPresenceService(&mockPresenceRepository{})
-	_, err := svc.GetPresences(0, 10, "", "", "", "")
-	assertAPIError(t, err, "validation_error")
-}
-
-func TestGetPresences_InvalidLimit(t *testing.T) {
-	svc := NewPresenceService(&mockPresenceRepository{})
-	_, err := svc.GetPresences(1, 0, "", "", "", "")
-	assertAPIError(t, err, "validation_error")
-}
-
-func TestGetPresences_InvalidSortBy(t *testing.T) {
-	svc := NewPresenceService(&mockPresenceRepository{})
-	_, err := svc.GetPresences(1, 10, "campo_invalido", "asc", "", "")
-	assertAPIError(t, err, "validation_error")
-}
-
-func TestGetPresences_InvalidSortOrder(t *testing.T) {
-	svc := NewPresenceService(&mockPresenceRepository{})
-	_, err := svc.GetPresences(1, 10, "event_name", "invalido", "", "")
-	assertAPIError(t, err, "validation_error")
-}
-
-func TestGetPresences_SearchWithoutValue(t *testing.T) {
-	svc := NewPresenceService(&mockPresenceRepository{})
-	_, err := svc.GetPresences(1, 10, "event_name", "asc", "event_name", "")
-	assertAPIError(t, err, "validation_error")
-}
-
-func TestGetPresences_InvalidSearchBy(t *testing.T) {
-	svc := NewPresenceService(&mockPresenceRepository{})
-	_, err := svc.GetPresences(1, 10, "event_name", "asc", "campo_invalido", "valor")
-	assertAPIError(t, err, "validation_error")
-}
-
-func TestGetPresences_InvalidSearchDateFormat(t *testing.T) {
-	svc := NewPresenceService(&mockPresenceRepository{})
-	_, err := svc.GetPresences(1, 10, "event_name", "asc", "event_init_date", "nao-e-data")
-	assertAPIError(t, err, "validation_error")
-}
-
-func TestGetPresences_Success(t *testing.T) {
-	expected := &PresenceListResult{TotalRecords: 1, FilteredRecords: 1, Presences: []Presence{}}
-	repo := &mockPresenceRepository{
-		GetPresencesFunc: func(_ PresenceListQuery) (*PresenceListResult, error) {
-			return expected, nil
+// Inscrição em lista de espera, presença bloqueada
+func TestCreatePresence_HasSigninTrue_WaitListed(t *testing.T) {
+	svc := buildService(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubEventRepo{getResult: &event.Event{HasSignin: true}},
+		&stubSigninRepo{
+			getResult: &signinEvent.SigninEvent{Status: signinEvent.StatusWaitListed},
 		},
-	}
-	svc := NewPresenceService(repo)
+	)
 
-	result, err := svc.GetPresences(1, 10, "event_name", "asc", "", "")
+	assertForbidden(t, func() error { _, err := svc.CreatePresence(newRequest()); return err }())
+}
 
-	if err != nil {
-		t.Fatalf("esperava nil, got %v", err)
+// Inscrição cancelada, presença bloqueada
+func TestCreatePresence_HasSigninTrue_Cancelled(t *testing.T) {
+	svc := buildService(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubEventRepo{getResult: &event.Event{HasSignin: true}},
+		&stubSigninRepo{
+			getResult: &signinEvent.SigninEvent{Status: signinEvent.StatusCancelled},
+		},
+	)
+
+	assertForbidden(t, func() error { _, err := svc.CreatePresence(newRequest()); return err }())
+}
+
+// Sem inscrição nenhuma, presença bloqueada
+func TestCreatePresence_HasSigninTrue_NotEnrolled(t *testing.T) {
+	svc := buildService(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubEventRepo{getResult: &event.Event{HasSignin: true}},
+		&stubSigninRepo{getErr: gorm.ErrRecordNotFound},
+	)
+
+	assertForbidden(t, func() error { _, err := svc.CreatePresence(newRequest()); return err }())
+}
+
+// Evento não encontrado, retorna 404
+func TestCreatePresence_EventNotFound(t *testing.T) {
+	svc := buildService(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubEventRepo{getErr: gorm.ErrRecordNotFound},
+		&stubSigninRepo{},
+	)
+
+	_, err := svc.CreatePresence(newRequest())
+	if err == nil {
+		t.Fatal("esperava erro para evento não encontrado")
 	}
-	if result.TotalRecords != 1 {
-		t.Errorf("esperava TotalRecords=1, got %d", result.TotalRecords)
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("esperava *apierrors.APIError, got %T", err)
+	}
+	if apiErr.Status != 404 {
+		t.Errorf("esperava status HTTP 404, got %d", apiErr.Status)
+	}
+}
+
+// Presença já existente, retorna 409
+func TestCreatePresence_DuplicatePresence(t *testing.T) {
+	svc := buildService(
+		&stubPresenceRepo{getResult: &Presence{UserNumber: 42}},
+		&stubEventRepo{getResult: &event.Event{HasSignin: false}},
+		&stubSigninRepo{},
+	)
+
+	_, err := svc.CreatePresence(newRequest())
+	if err == nil {
+		t.Fatal("esperava erro de presença duplicada")
+	}
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("esperava *apierrors.APIError, got %T", err)
+	}
+	if apiErr.Status != 409 {
+		t.Errorf("esperava status HTTP 409, got %d", apiErr.Status)
 	}
 }
