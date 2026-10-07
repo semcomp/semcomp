@@ -272,7 +272,7 @@ const EventButton = memo(function EventButton({
     return (
       <button
         type="button"
-        className={`w-full h-full overflow-hidden rounded-lg border px-1.5 py-0.5 text-left cursor-pointer transition-colors ${eventStyle.classes}`}
+        className={`w-full h-full overflow-hidden rounded-lg border px-1.5 py-0.5 text-left cursor-pointer transition-all hover:scale-[1.02] ${eventStyle.classes}`}
         onClick={() => onClick(evento)}
       >
         <p className="font-poppins-bold text-[9px] md:text-[10px] leading-tight break-words">{evento.name}</p>
@@ -285,7 +285,7 @@ const EventButton = memo(function EventButton({
     return (
       <button
         type="button"
-        className={`w-full h-full overflow-hidden rounded-xl border px-2 py-1.5 text-left cursor-pointer transition-colors hover:brightness-95 ${eventStyle.classes}`}
+        className={`w-full h-full overflow-hidden rounded-xl border px-2 py-1.5 text-left cursor-pointer transition-all hover:scale-[1.02] ${eventStyle.classes}`}
         onClick={() => onClick(evento)}
       >
         {viewMode === "day" && (
