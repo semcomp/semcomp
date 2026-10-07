@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, memo, type ReactElement } from "react";
-import { MicVocal, Rocket, Trophy, Target, Gamepad2, Flag, Coffee, Clock, MapPin, X } from "lucide-react";
+import { MicVocal, Rocket, Trophy, Target, Gamepad2, Flag, Coffee, Clock, MapPin, X, MessageCircle, Store, Award, Music} from "lucide-react";
 import { eventsAPI } from "@/api/events";
 import type { EventType } from "@/types/EventType.ts";
 import { useTheme } from "@/contexts/useTheme";
@@ -21,6 +21,14 @@ const MS_PER_HOUR = 60 * 60 * 1000;
 const BR_OFFSET_MS = 3 * MS_PER_HOUR;
 const PX_PER_HOUR_DAY = 120;
 const PX_PER_HOUR_WEEK = 90;
+
+// Tamanhos de fonte padronizados entre os cards
+const FONT = {
+  type: "text-[10px] md:text-[11px]",   // tipo do evento
+  name: "text-[11px] md:text-xs",       // nome do evento
+  meta: "text-[10px] md:text-[11px]",   // horário e local
+};
+const ICON_META = "h-3 w-3 shrink-0";   // relógio e pin
 
 type DayOption = {
   day: number;
@@ -192,6 +200,15 @@ const getEventTypeStyle = (type: string) => {
         icon: "rocket",
       };
     case "Concurso":
+      return {
+        classes: "bg-purple-100 border-purple-300 dark:bg-purple-950/60 dark:border-purple-700",
+        icon: "award",
+      };
+    case "Vitrine":
+      return {
+        classes: "bg-orange-100 border-orange-300 dark:bg-orange-950/60 dark:border-orange-700",
+        icon: "store",
+      };
     case "Competicao":
       return {
         classes: "bg-yellow-100 border-yellow-300 dark:bg-yellow-950/60 dark:border-yellow-700",
@@ -199,10 +216,10 @@ const getEventTypeStyle = (type: string) => {
       };
     case "Hackathon":
       return {
-        classes: "bg-red-200 border-red-400 dark:bg-red-900/70 dark:border-red-500",
+        classes: "bg-red-100 border-red-300 dark:bg-red-950/60 dark:border-red-700",
         icon: "target",
       };
-    case "Game Night":
+    case "Gamenight":
       return {
         classes: "bg-pink-100 border-pink-300 dark:bg-pink-950/60 dark:border-pink-700",
         icon: "gamepad",
@@ -220,6 +237,18 @@ const getEventTypeStyle = (type: string) => {
         classes: "bg-violet-100 border-violet-300 dark:bg-violet-950/60 dark:border-violet-700",
         icon: "flag",
       };
+    case "Rodas de conversa":
+      return {
+        classes:
+          "bg-white/70 border-semcompLightBlue dark:bg-semcompAlmostDarkBlue/75 dark:border-semcompMidDarkBlue",
+        icon: "talk",
+      };
+    case "Luau":
+      return {
+        classes:
+          "bg-amber-100 border-amber-300 dark:bg-amber-950/60 dark:border-amber-700",
+        icon: "music",
+      };
     default:
       return {
         classes:
@@ -229,9 +258,9 @@ const getEventTypeStyle = (type: string) => {
   }
 };
 
-function EventTypeIcon({ type }: { type: string }) {
+function EventTypeIcon({ type, className }: { type: string; className?: string }) {
   const icon = getEventTypeStyle(type).icon;
-  const cls = "h-5 w-5 md:h-6 md:w-6 shrink-0";
+  const cls = className ?? "h-5 w-5 md:h-6 md:w-6 shrink-0";
   switch (icon) {
     case "microphone": return <MicVocal className={cls} />;
     case "rocket":     return <Rocket className={cls} />;
@@ -239,6 +268,10 @@ function EventTypeIcon({ type }: { type: string }) {
     case "target":     return <Target className={cls} />;
     case "gamepad":    return <Gamepad2 className={cls} />;
     case "coffee":     return <Coffee className={cls} />;
+    case "talk":       return <MessageCircle className={cls}/>;
+    case "music":      return <Music className={cls}/>
+    case "award": return <Award className={cls} />;
+    case "store": return <Store className={cls} />;
     default:           return <Flag className={cls} />;
   }
 }
@@ -249,138 +282,103 @@ const EventButton = memo(function EventButton({
   evento,
   onClick,
   captionClasses,
-  viewMode,
-  exportMode = false,
   compact = false,
   small = false,
-  totalColumns = 1,
 }: {
   evento: EventType;
   onClick: (evento: EventType) => void;
   captionClasses: string;
-  viewMode: "day" | "week";
+  viewMode?: "day" | "week";
   exportMode?: boolean;
   compact?: boolean;
   small?: boolean;
   totalColumns?: number;
 }): ReactElement {
-  const concurrent = totalColumns >= 2;
   const eventStyle = getEventTypeStyle(evento.type);
+  const isSmall = compact || small;
 
-  // Compact (< 50 px): apenas nome, sem mais nada
-  if (compact) {
+  const base =
+    "h-full w-full overflow-hidden rounded-xl border text-left cursor-pointer transition-all duration-300 hover:scale-[1.02]";
+
+    if (isSmall) {
     return (
       <button
         type="button"
-        className={`w-full h-full overflow-hidden rounded-lg border px-1.5 py-0.5 text-left cursor-pointer transition-all hover:scale-[1.02] ${eventStyle.classes}`}
+        className={`${base} flex items-center gap-1.5 ${
+          compact ? "px-2 py-1" : "px-2.5 py-2"
+        } ${eventStyle.classes}`}
         onClick={() => onClick(evento)}
       >
-        <p className="font-poppins-bold text-[9px] md:text-[10px] leading-tight break-words">{evento.name}</p>
-      </button>
-    );
-  }
-
-  // Small (50–100 px): nome + tipo (só no dia) + horário — sem ícone nem localização
-  if (small) {
-    return (
-      <button
-        type="button"
-        className={`w-full h-full overflow-hidden rounded-xl border px-2 py-1.5 text-left cursor-pointer transition-all hover:scale-[1.02] ${eventStyle.classes}`}
-        onClick={() => onClick(evento)}
-      >
-        {viewMode === "day" && (
-          <p className={`text-[9px] md:text-[10px] font-medium truncate ${captionClasses}`}>{evento.type}</p>
-        )}
-        <p className="font-poppins-bold text-[10px] md:text-[11px] leading-snug break-words">{evento.name}</p>
-        <p className={`flex items-center gap-1 text-[9px] md:text-[10px] mt-0.5 ${captionClasses}`}>
-          <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
-          {formatTime(evento.dateInit)} – {formatTime(evento.dateEnd)}
-        </p>
-      </button>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      className={`
-        flex w-full min-h-full rounded-xl border
-        transition-all duration-300 hover:scale-[1.02] cursor-pointer
-        max-lg:px-2 max-lg:py-2 min-lg:px-4 min-lg:py-4
-        ${viewMode === "day"
-          ? concurrent
-            ? "max-md:flex-col max-md:gap-0.5 max-md:!px-1.5 max-md:!py-1 md:max-[1500px]:flex-col md:max-[1500px]:gap-2 min-[1500px]:flex-row min-[1500px]:items-start min-[1500px]:gap-5 text-left"
-            : "max-md:flex-row max-md:items-start max-md:gap-2 md:max-[1500px]:flex-col md:max-[1500px]:gap-2 min-[1500px]:flex-row min-[1500px]:items-start min-[1500px]:gap-5 text-left"
-          : "flex-col gap-1.5 items-start text-left"
-        }
-        ${eventStyle.classes}`}
-      onClick={() => onClick(evento)}
-    >
-      {viewMode === "day" && (
         <div
-          className={`
-            border flex items-center justify-center rounded-xl gap-2
-            ${concurrent ? "max-md:hidden" : "max-md:shrink-0 max-md:self-start max-md:p-1.5 max-md:rounded-lg"}
-            md:px-2 md:py-2 md:max-[1500px]:w-full md:justify-center lg:px-3 lg:py-3
-            ${eventStyle.classes}`}
+          className={`flex shrink-0 items-center justify-center rounded-md border ${
+            compact ? "p-1" : "p-1.5"
+          } ${eventStyle.classes}`}
         >
-          <EventTypeIcon type={evento.type} />
-          <div className="max-md:hidden min-[1500px]:hidden">
-            <p className="font-poppins text-[11px] md:text-xs">{evento.type}</p>
-            <p
-              className={`font-poppins-bold break-words text-left ${
-                exportMode ? "text-xs" : "text-sm md:text-base"
-              }`}
-            >
-              {evento.name}
-            </p>
-          </div>
+          <EventTypeIcon type={evento.type} className="h-3.5 w-3.5 md:h-4 md:w-4" />
         </div>
-      )}
-
-      <div className={viewMode === "day" ? "flex-1 min-w-0" : "w-full min-w-0"}>
-        {viewMode === "week" && (
-          <p className={`text-[8px] sm:text-[9px] font-semibold truncate mb-0.5 ${captionClasses}`}>
-            {evento.type}
-          </p>
-        )}
-
-        {viewMode === "day" && (
-          <p className="font-poppins text-[9px] md:text-xs md:max-[1500px]:hidden">
-            {evento.type}
-          </p>
-        )}
 
         <p
-          className={`font-poppins-bold break-words ${
-            viewMode === "week"
-              ? "text-[10px] sm:text-[11px] md:text-xs text-left"
-              : `text-[11px] md:text-sm lg:text-base text-left md:max-[1500px]:hidden ${concurrent ? "max-md:text-[10px]" : ""}`
+          className={`min-w-0 flex-1 leading-snug ${FONT.name} ${
+            compact ? "truncate" : "break-words"
           }`}
         >
-          {evento.name}
+          <span className={`font-medium ${FONT.type} ${captionClasses}`}>{evento.type}</span>
+          <span className={`mx-1 ${captionClasses}`}>/</span>
+          <span className="font-poppins-bold">{evento.name}</span>
         </p>
 
         <div
-          className={`items-center w-full mt-0.5 ${exportMode ? "grid gap-1" : "flex flex-col gap-0.5"}`}
+          className={`ml-auto flex shrink-0 flex-col items-end gap-0.5 leading-tight ${FONT.meta} ${captionClasses}`}
         >
-          <p
-            className={`flex items-center gap-1 text-[9px] sm:text-[10px] md:text-xs ${captionClasses}`}
-          >
-            <Clock className={`h-3 w-3 shrink-0 ${exportMode ? "hidden" : ""}`} aria-hidden="true" />
+          <span className="flex items-center gap-1 whitespace-nowrap">
+            <Clock className={ICON_META} aria-hidden="true" />
             {formatTime(evento.dateInit)} – {formatTime(evento.dateEnd)}
-          </p>
-
-          <p
-            className={`flex items-center gap-1 text-[9px] sm:text-[10px] md:text-xs ${
-              viewMode === "day" || exportMode ? "" : "md:hidden"
-            } ${concurrent ? "max-md:hidden" : ""} ${captionClasses}`}
-          >
-            <MapPin className={`h-3 w-3 shrink-0 ${exportMode ? "hidden" : ""}`} aria-hidden="true" />
-            <span className="break-words">Local: {evento.location}</span>
-          </p>
+          </span>
+          {!compact && evento.location && (
+            <span className="flex items-center gap-1">
+              <MapPin className={ICON_META} aria-hidden="true" />
+              <span className="max-w-[90px] truncate md:max-w-[140px]">{evento.location}</span>
+            </span>
+          )}
         </div>
+      </button>
+    );
+  }
 
+    return (
+    <button
+      type="button"
+      className={`${base} flex items-center gap-3 px-3 py-2 md:px-4 md:py-3 ${eventStyle.classes}`}
+      onClick={() => onClick(evento)}
+    >
+      <div
+        className={`flex shrink-0 items-center justify-center rounded-xl border p-2 md:p-3 ${eventStyle.classes}`}
+      >
+        <EventTypeIcon type={evento.type} className="h-5 w-5 md:h-6 md:w-6" />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className={`font-medium uppercase tracking-wide ${FONT.type} ${captionClasses}`}>
+          {evento.type}
+        </p>
+        <p className={`font-poppins-bold break-words leading-snug ${FONT.name}`}>
+          {evento.name}
+        </p>
+      </div>
+
+      <div
+        className={`ml-auto flex shrink-0 flex-col items-end gap-0.5 text-right ${FONT.meta} ${captionClasses}`}
+      >
+        <span className="flex items-center gap-1 whitespace-nowrap">
+          <Clock className={ICON_META} aria-hidden="true" />
+          {formatTime(evento.dateInit)} – {formatTime(evento.dateEnd)}
+        </span>
+        {evento.location && (
+          <span className="flex items-center gap-1">
+            <MapPin className={ICON_META} aria-hidden="true" />
+            <span className="break-words">{evento.location}</span>
+          </span>
+        )}
       </div>
     </button>
   );
@@ -550,7 +548,7 @@ function TimeGrid({
             return (
               <span
                 key={t}
-                className={`absolute right-0 -translate-y-1/2 text-xs ${captionClasses}`}
+                className="absolute right-0 -translate-y-1/2 text-xs text-white/70 dark:text-semcompLightBlue/90 select-none"
                 style={{ top: topPx }}
               >
                 {formatTime(new Date(t).toISOString())}
