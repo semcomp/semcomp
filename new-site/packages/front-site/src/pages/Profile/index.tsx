@@ -1417,7 +1417,7 @@ export default function Profile({
                         onClick={() => setOpenSubscription(openSubscription === index ? -1 : index)}
                       >
                         <div className="w-1/2 flex flex-col text-left gap-1 items-start pr-4">
-                          <span className="font-bold text-lg shrink-0">{evento.name}</span>
+                          <span className="font-bold text-lg wrap-break-word">{evento.name}</span>
                           <span className="text-xs opacity-60 shrink-0">{evento.type}</span>
                           <span className="text-sm font-medium wrap-break-word flex-1 opacity-90">{evento.description}</span>
                         </div>
