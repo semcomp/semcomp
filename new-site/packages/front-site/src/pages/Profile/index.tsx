@@ -269,6 +269,26 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
   );
 });
 
+function getErrorMessage(error: unknown): string {
+  if (typeof error === "string") return error;
+
+  if (typeof error === "object" && error !== null) {
+    // Axios: mensagem enviada pelo backend
+    const data = (error as { response?: { data?: unknown } }).response?.data;
+    if (typeof data === "string" && data) return data;
+    if (typeof data === "object" && data !== null) {
+      const d = data as { message?: unknown; error?: unknown };
+      if (typeof d.message === "string" && d.message) return d.message;
+      if (typeof d.error === "string" && d.error) return d.error;
+    }
+  }
+
+  // Error padrão (fetch, rede, etc.)
+  if (error instanceof Error && error.message) return error.message;
+
+  return "erro desconhecido.";
+}
+
 interface BackendNoticeResponse {
   notices: Array<{
     id: number;
@@ -485,8 +505,12 @@ export default function Profile({
       const updatedSignins = await signinEventsAPI.getMySignins();
       setMySignins(updatedSignins);
       showNotification("Inscrição realizada com sucesso!", "info");
-    } catch {
-      showNotification("Erro ao se inscrever no evento.", "warning");
+    } catch (error) {
+      console.error("Erro ao se inscrever no evento:", error);
+      showNotification(
+        `Erro ao se inscrever no evento: ${getErrorMessage(error)}`,
+        "warning"
+      );
     } finally {
       setSigningInKey(null);
     }
