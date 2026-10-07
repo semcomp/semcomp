@@ -13,6 +13,7 @@ import (
 var (
 	ErrDuplicateInscription   = errors.New("inscription already exists")
 	ErrOverlappingInscription = errors.New("overlapping inscription")
+	ErrAlreadyRegistered      = errors.New("inscription already registered")
 )
 
 type SigninEventRepository interface {
@@ -30,6 +31,13 @@ type SigninEventRepository interface {
 	FindActiveByUser(userNumber uint) ([]SigninEventsDetailed, error)
 	UpdateByComposite(userNumber uint, eventName string, initDate time.Time, updated *SigninEvent) error
 	GetAll(query SigninEventListQuery) (*SigninEventListResult, error)
+	// RegisterAtomicSignin promotes an inscription to StatusRegistered atomically
+	// under the per-event advisory lock, preventing races with RotateAtomicSignins.
+	RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error)
+	// UpdateAdminSigninStatus changes an inscription's status atomically under the
+	// per-event advisory lock. It reorders all waitlist positions after the change
+	// and promotes the first eligible waitlisted user if a confirmed slot was vacated.
+	UpdateAdminSigninStatus(userNumber uint, eventName string, initDate time.Time, newStatus RegistrationStatus, maxParticipants uint) (*SigninEvent, error)
 	// RotateAtomicSignins removes all WaitingDonation inscriptions, promotes
 	// waitlisted users to fill vacancies, and reorders all queue positions,
 	// atomically under the per-event advisory lock.
@@ -127,6 +135,13 @@ func (r *signinEventRepository) CreateAdminSignin(userNumber uint, eventName str
 	var result *SigninEvent
 
 	err := r.db.Transaction(func(tx *gorm.DB) error {
+		// Per-user lock first — same ordering as CreateAtomicSignin so that a
+		// concurrent user self-registration's overlap check sees this admin
+		// insertion once committed, preventing silent double-booking.
+		if err := tx.Exec("SELECT pg_advisory_xact_lock(?)", int64(userNumber)).Error; err != nil {
+			return err
+		}
+
 		if err := tx.Exec(
 			"SELECT pg_advisory_xact_lock(hashtext(?), hashtext(?))",
 			eventName, initDate.Format(time.RFC3339),
@@ -192,7 +207,10 @@ func (r *signinEventRepository) RemoveAtomicSignin(userNumber uint, eventName st
 			return err
 		}
 
-		if signin.UserWaitListPosition > 0 && signin.Status != StatusCancelled {
+		// Always decrement regardless of status: a Cancelled row set via
+		// UpdateSigninAdmin was never decremented at cancel time, so physically
+		// deleting it here must close the gap.
+		if signin.UserWaitListPosition > 0 {
 			if err := tx.Model(&SigninEvent{}).
 				Where("event_name = ? AND event_init_date = ? AND user_wait_list_position > ?",
 					eventName, initDate, signin.UserWaitListPosition).
@@ -201,12 +219,30 @@ func (r *signinEventRepository) RemoveAtomicSignin(userNumber uint, eventName st
 			}
 		}
 
-		if (signin.Status == StatusRegistered || signin.Status == StatusWaitingDonation) && maxParticipants > 0 {
-			if err := tx.Model(&SigninEvent{}).
-				Where("event_name = ? AND event_init_date = ? AND status = ? AND user_wait_list_position <= ?",
-					eventName, initDate, StatusWaitListed, maxParticipants).
-				Update("status", StatusWaitingDonation).Error; err != nil {
-				return err
+		if signin.Status == StatusRegistered || signin.Status == StatusWaitingDonation {
+			if maxParticipants > 0 {
+				// Limited event: exactly one vacancy was freed — promote only the
+				// highest-priority waitlisted user now within the limit.
+				sub := tx.Model(&SigninEvent{}).
+					Select("user_number").
+					Where("event_name = ? AND event_init_date = ? AND status = ? AND user_wait_list_position <= ?",
+						eventName, initDate, StatusWaitListed, maxParticipants).
+					Order("user_wait_list_position asc").
+					Limit(1)
+				if err := tx.Model(&SigninEvent{}).
+					Where("event_name = ? AND event_init_date = ? AND user_number IN (?)",
+						eventName, initDate, sub).
+					Update("status", StatusWaitingDonation).Error; err != nil {
+					return err
+				}
+			} else {
+				// Unlimited event: no capacity constraint — promote all waitlisted.
+				if err := tx.Model(&SigninEvent{}).
+					Where("event_name = ? AND event_init_date = ? AND status = ?",
+						eventName, initDate, StatusWaitListed).
+					Update("status", StatusWaitingDonation).Error; err != nil {
+					return err
+				}
 			}
 		}
 
@@ -308,6 +344,131 @@ func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEvent
 		TotalRecords:    totalRecords,
 		FilteredRecords: filteredRecords,
 	}, nil
+}
+
+func (r *signinEventRepository) RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error) {
+	var result *SigninEvent
+
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec(
+			"SELECT pg_advisory_xact_lock(hashtext(?), hashtext(?))",
+			eventName, initDate.Format(time.RFC3339),
+		).Error; err != nil {
+			return err
+		}
+
+		var signin SigninEvent
+		if err := tx.Where("user_number = ? AND event_name = ? AND event_init_date = ?",
+			userNumber, eventName, initDate).First(&signin).Error; err != nil {
+			return err
+		}
+
+		if signin.Status == StatusRegistered {
+			return ErrAlreadyRegistered
+		}
+
+		if err := tx.Model(&SigninEvent{}).
+			Where("user_number = ? AND event_name = ? AND event_init_date = ?",
+				userNumber, eventName, initDate).
+			Update("status", StatusRegistered).Error; err != nil {
+			return err
+		}
+
+		signin.Status = StatusRegistered
+		result = &signin
+		return nil
+	})
+
+	return result, err
+}
+
+func (r *signinEventRepository) UpdateAdminSigninStatus(userNumber uint, eventName string, initDate time.Time, newStatus RegistrationStatus, maxParticipants uint) (*SigninEvent, error) {
+	var result *SigninEvent
+
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec(
+			"SELECT pg_advisory_xact_lock(hashtext(?), hashtext(?))",
+			eventName, initDate.Format(time.RFC3339),
+		).Error; err != nil {
+			return err
+		}
+
+		var signin SigninEvent
+		if err := tx.Where("user_number = ? AND event_name = ? AND event_init_date = ?",
+			userNumber, eventName, initDate).First(&signin).Error; err != nil {
+			return err
+		}
+
+		oldStatus := signin.Status
+
+		if err := tx.Model(&SigninEvent{}).
+			Where("user_number = ? AND event_name = ? AND event_init_date = ?",
+				userNumber, eventName, initDate).
+			Update("status", newStatus).Error; err != nil {
+			return err
+		}
+
+		// Reorder all active (non-Cancelled) positions to a gapless 1..N sequence
+		// so that status transitions do not leave holes in the waitlist order.
+		if err := tx.Exec(`
+			WITH ranked AS (
+				SELECT user_number,
+				       ROW_NUMBER() OVER (ORDER BY user_wait_list_position ASC) AS new_pos
+				FROM signin_events
+				WHERE event_name = ? AND event_init_date = ? AND status != ?
+			)
+			UPDATE signin_events se
+			SET user_wait_list_position = r.new_pos
+			FROM ranked r
+			WHERE se.user_number = r.user_number
+			  AND se.event_name = ?
+			  AND se.event_init_date = ?
+		`, eventName, initDate, StatusCancelled, eventName, initDate).Error; err != nil {
+			return err
+		}
+
+		// If a confirmed slot was vacated, count remaining confirmed users and
+		// promote the first eligible waitlisted user if a vacancy still exists.
+		// The changed user is excluded from promotion to avoid immediately
+		// re-promoting someone the admin just demoted to WaitListed.
+		wasConfirmed := oldStatus == StatusRegistered || oldStatus == StatusWaitingDonation
+		isNowUnconfirmed := newStatus == StatusCancelled || newStatus == StatusWaitListed
+		if wasConfirmed && isNowUnconfirmed && maxParticipants > 0 {
+			var confirmedCount int64
+			if err := tx.Model(&SigninEvent{}).
+				Where("event_name = ? AND event_init_date = ? AND (status = ? OR status = ?)",
+					eventName, initDate, StatusRegistered, StatusWaitingDonation).
+				Count(&confirmedCount).Error; err != nil {
+				return err
+			}
+
+			if confirmedCount < int64(maxParticipants) {
+				sub := tx.Model(&SigninEvent{}).
+					Select("user_number").
+					Where("event_name = ? AND event_init_date = ? AND status = ? AND user_number != ?",
+						eventName, initDate, StatusWaitListed, userNumber).
+					Order("user_wait_list_position asc").
+					Limit(1)
+
+				if err := tx.Model(&SigninEvent{}).
+					Where("event_name = ? AND event_init_date = ? AND status = ? AND user_number IN (?)",
+						eventName, initDate, StatusWaitListed, sub).
+					Update("status", StatusWaitingDonation).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		if err := tx.Where("user_number = ? AND event_name = ? AND event_init_date = ?",
+			userNumber, eventName, initDate).First(&signin).Error; err != nil {
+			return err
+		}
+
+		result = &signin
+		return nil
+	})
+
+	return result, err
 }
 
 func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, error) {

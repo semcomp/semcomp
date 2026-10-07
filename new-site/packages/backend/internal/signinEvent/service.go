@@ -122,7 +122,10 @@ func (s *signinEventService) DeleteSignin(userNumber uint, eventName string, eve
 	}
 
 	maxParticipants := uint(0)
-	if eventRecord, err := s.eventRepo.GetByNameAndInitTime(eventName, initTime); err == nil {
+	eventRecord, err := s.eventRepo.GetByNameAndInitTime(eventName, initTime)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return apierrors.InternalServerError("Erro ao buscar evento", err)
+	} else if err == nil {
 		maxParticipants = eventRecord.MaxParticipants
 	}
 
@@ -264,32 +267,20 @@ func (s *signinEventService) UpdateSigninAdmin(userNumber string, eventName stri
 		return nil, apierrors.ValidationError("Número do usuário inválido", err)
 	}
 
-	signin, err := s.repo.GetByUserEventAndInitDate(uint(num), eventName, initTime)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, apierrors.NotFoundError("Inscrição não encontrada", err)
-		}
-		return nil, apierrors.InternalServerError("Erro ao buscar inscrição", err)
-	}
-
-	updates := SigninEvent{
-		UserNumber:           signin.UserNumber,
-		EventName:            signin.EventName,
-		EventInitDate:        signin.EventInitDate,
-		UserWaitListPosition: signin.UserWaitListPosition,
-		Status:               request.Status,
-	}
-
-	if err := s.repo.UpdateByComposite(signin.UserNumber, signin.EventName, signin.EventInitDate, &updates); err != nil {
-		return nil, apierrors.InternalServerError("Erro ao atualizar inscrição", err)
-	}
-
-	max, err := s.eventMaxParticipants(updates.EventName, updates.EventInitDate)
+	maxParticipants, err := s.eventMaxParticipants(eventName, initTime)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.relativePosition(&updates, max), nil
+	signin, err := s.repo.UpdateAdminSigninStatus(uint(num), eventName, initTime, request.Status, maxParticipants)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apierrors.NotFoundError("Inscrição não encontrada", err)
+		}
+		return nil, apierrors.InternalServerError("Erro ao atualizar inscrição", err)
+	}
+
+	return s.relativePosition(signin, maxParticipants), nil
 }
 
 func (s *signinEventService) DeleteSigninAdmin(userNumber string, eventName string, eventInitDate string) error {
@@ -304,7 +295,10 @@ func (s *signinEventService) DeleteSigninAdmin(userNumber string, eventName stri
 	}
 
 	maxParticipants := uint(0)
-	if eventRecord, err := s.eventRepo.GetByNameAndInitTime(eventName, initTime); err == nil {
+	eventRecord, err := s.eventRepo.GetByNameAndInitTime(eventName, initTime)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return apierrors.InternalServerError("Erro ao buscar evento", err)
+	} else if err == nil {
 		maxParticipants = eventRecord.MaxParticipants
 	}
 
@@ -329,36 +323,24 @@ func (s *signinEventService) RegisterSigninAdmin(userNumber string, eventName st
 		return nil, apierrors.ValidationError("Número do usuário inválido", err)
 	}
 
-	signin, err := s.repo.GetByUserEventAndInitDate(uint(num), eventName, initTime)
+	signin, err := s.repo.RegisterAtomicSignin(uint(num), eventName, initTime)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
 			return nil, apierrors.NotFoundError("Inscrição não encontrada", err)
+		case errors.Is(err, ErrAlreadyRegistered):
+			return nil, apierrors.ConflictError("Inscrição já registrada", nil)
+		default:
+			return nil, apierrors.InternalServerError("Erro ao registrar inscrição", err)
 		}
-		return nil, apierrors.InternalServerError("Erro ao buscar inscrição", err)
 	}
 
-	if signin.Status == StatusRegistered {
-		return nil, apierrors.ConflictError("Inscrição já registrada", nil)
-	}
-
-	updates := SigninEvent{
-		UserNumber:           signin.UserNumber,
-		EventName:            signin.EventName,
-		EventInitDate:        signin.EventInitDate,
-		UserWaitListPosition: signin.UserWaitListPosition,
-		Status:               StatusRegistered,
-	}
-
-	if err := s.repo.UpdateByComposite(signin.UserNumber, signin.EventName, signin.EventInitDate, &updates); err != nil {
-		return nil, apierrors.InternalServerError("Erro ao atualizar inscrição", err)
-	}
-
-	max, err := s.eventMaxParticipants(updates.EventName, updates.EventInitDate)
+	max, err := s.eventMaxParticipants(signin.EventName, signin.EventInitDate)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.relativePosition(&updates, max), nil
+	return s.relativePosition(signin, max), nil
 }
 
 func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate string) ([]SigninEvent, error) {
