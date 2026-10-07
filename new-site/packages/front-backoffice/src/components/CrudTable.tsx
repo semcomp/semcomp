@@ -220,7 +220,7 @@ function FilterControl({
           <SelectItem value="__all__" className={itemCls}>Todos</SelectItem>
           {Object.keys(activeField.selectVariants).map((v) => (
             <SelectItem key={v} value={v} className={itemCls}>
-              {v}
+              {activeField.selectLabels?.[v] ?? v}
             </SelectItem>
           ))}
         </SelectContent>
