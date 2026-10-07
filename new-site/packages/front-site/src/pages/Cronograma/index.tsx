@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, memo, type ReactElement } from "react";
-import { MicVocal, Rocket, Trophy, Target, Gamepad2, Flag, Coffee, Clock, MapPin } from "lucide-react";
+import { MicVocal, Rocket, Trophy, Target, Gamepad2, Flag, Coffee, Clock, MapPin, X } from "lucide-react";
 import { eventsAPI } from "@/api/events";
 import type { EventType } from "@/types/EventType.ts";
 import { useTheme } from "@/contexts/useTheme";
@@ -199,7 +199,7 @@ const getEventTypeStyle = (type: string) => {
       };
     case "Hackathon":
       return {
-        classes: "bg-purple-100 border-purple-300 dark:bg-purple-950/60 dark:border-purple-700",
+        classes: "bg-red-200 border-red-400 dark:bg-red-900/70 dark:border-red-500",
         icon: "target",
       };
     case "Game Night":
@@ -207,6 +207,9 @@ const getEventTypeStyle = (type: string) => {
         classes: "bg-pink-100 border-pink-300 dark:bg-pink-950/60 dark:border-pink-700",
         icon: "gamepad",
       };
+    case "Coffee":
+    case "Coffee Livre":
+    case "Coffee Noturno":
     case "Intervalo":
       return {
         classes: "bg-orange-100 border-orange-300 dark:bg-orange-950/60 dark:border-orange-700",
@@ -301,8 +304,8 @@ const EventButton = memo(function EventButton({
     <button
       type="button"
       className={`
-        flex group/btn w-full min-h-full rounded-xl border
-        transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md cursor-pointer
+        flex w-full min-h-full rounded-xl border
+        transition-all duration-300 hover:scale-[1.02] cursor-pointer
         max-lg:px-2 max-lg:py-2 min-lg:px-4 min-lg:py-4
         ${viewMode === "day"
           ? concurrent
@@ -378,31 +381,6 @@ const EventButton = memo(function EventButton({
           </p>
         </div>
 
-        <div className="grid max-h-none grid-rows-[0fr] overflow-hidden opacity-0 transition-all duration-300 group-hover/btn:mt-2 group-hover/btn:grid-rows-[1fr] group-hover/btn:opacity-100">
-          <div className="overflow-hidden">
-            <div className="flex flex-col gap-2 text-left">
-              {evento.image && (
-                <div className="w-full flex justify-left">
-                  <img
-                    src={evento.image}
-                    alt={evento.name}
-                    loading="lazy"
-                    className="h-28 w-auto max-w-xs rounded-lg object-cover"
-                  />
-                </div>
-              )}
-              {viewMode === "week" && (
-                <p className={`flex items-center gap-1 text-[9px] sm:text-[10px] max-md:hidden ${captionClasses}`}>
-                  <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
-                  <span className="break-words">Local: {evento.location}</span>
-                </p>
-              )}
-              <p className={`text-[10px] sm:text-xs leading-relaxed break-words max-md:hidden ${captionClasses}`}>
-                {evento.description || "Mais detalhes deste evento."}
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </button>
   );
@@ -421,40 +399,55 @@ function EventModal({
 }): ReactElement | null {
   if (!selected) return null;
 
+  const eventStyle = getEventTypeStyle(selected.type);
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar rounded-2xl border p-6 shadow-2xl border-semcompLightBlue bg-white text-semcompDarkBlue dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue dark:text-semcompOffWhite"
+        className="w-full max-w-md overflow-hidden rounded-2xl shadow-2xl bg-white dark:bg-semcompAlmostDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="font-poppins-bold text-xl">{selected.name}</h2>
-        <div className="text-sm mt-1">
-          <p className={`flex gap-1 items-center ${captionClasses}`}>
-            <Flag className="h-4 w-4" aria-hidden="true" />
-            Tipo de Evento: {selected.type}
-          </p>
-          <p className={`flex gap-1 items-center ${captionClasses}`}>
-            <Clock className="h-4 w-4" aria-hidden="true" />
-            {formatTime(selected.dateInit)} - {formatTime(selected.dateEnd)}
-          </p>
-          <p className={`flex items-center gap-1 ${captionClasses}`}>
+        {/* Header colorido por tipo */}
+        <div className={`relative flex items-center gap-3 px-5 py-4 border-b ${eventStyle.classes}`}>
+          <div className="flex items-center justify-center rounded-xl p-2 bg-white/30 dark:bg-black/20 shrink-0">
+            <EventTypeIcon type={selected.type} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-widest opacity-60">{selected.type}</p>
+            <h2 className="font-poppins-bold text-base sm:text-lg leading-snug">{selected.name}</h2>
+          </div>
+          <button
+            type="button"
+            aria-label="Fechar"
+            onClick={onClose}
+            className="shrink-0 ml-1 p-1.5 rounded-lg cursor-pointer transition-colors hover:bg-black/10 dark:hover:bg-white/10"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Metadados */}
+        <div className="px-5 pt-4 pb-1 flex flex-col gap-2">
+          <div className={`flex items-center gap-2 text-sm ${captionClasses}`}>
+            <Clock className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>{formatTime(selected.dateInit)} – {formatTime(selected.dateEnd)}</span>
+          </div>
+          <div className={`flex items-center gap-2 text-sm ${captionClasses}`}>
             <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="break-words min-w-10 text-left">Local: {selected.location}</span>
-          </p>
-          <hr className="mt-3" />
-          <p className="mt-3 text-center leading-relaxed md:text-base">
-            {selected.description || "Sem descrição."}
+            <span className="break-words">{selected.location}</span>
+          </div>
+        </div>
+
+        {/* Descrição */}
+        <div className="px-5 pt-3 pb-5 max-h-60 overflow-y-auto custom-scrollbar">
+          <hr className="mb-3 border-semcompLightBlue/30 dark:border-semcompMidDarkBlue" />
+          <p className="text-sm leading-relaxed">
+            {selected.description || <span className={`italic ${captionClasses}`}>Sem descrição.</span>}
           </p>
         </div>
-        <button
-          className="mt-6 cursor-pointer inline-flex rounded-lg px-4 py-2 text-sm font-semibold transition-colors bg-semcompMidDarkBlue text-semcompOffWhite hover:bg-semcompAlmostDarkBlue dark:hover:bg-semcompMidLightBlue"
-          onClick={onClose}
-        >
-          Fechar
-        </button>
       </div>
     </div>
   );
@@ -656,11 +649,11 @@ export default function CronogramaPage(): ReactElement {
   const filteredEvents = useMemo(
     () =>
       events.filter((event) => {
-        const date = new Date(event.dateInit);
+        const brDate = new Date(new Date(event.dateInit).getTime() - BR_OFFSET_MS);
         return (
-          date.getUTCFullYear() === SEMCOMP_YEAR &&
-          date.getUTCMonth() === SEMCOMP_MONTH - 1 &&
-          date.getUTCDate() === selectedDay
+          brDate.getUTCFullYear() === SEMCOMP_YEAR &&
+          brDate.getUTCMonth() === SEMCOMP_MONTH - 1 &&
+          brDate.getUTCDate() === selectedDay
         );
       }),
     [events, selectedDay]
@@ -696,11 +689,11 @@ export default function CronogramaPage(): ReactElement {
     () =>
       dayOptions.map((option) => {
         const dayEvents = events.filter((event) => {
-          const date = new Date(event.dateInit);
+          const brDate = new Date(new Date(event.dateInit).getTime() - BR_OFFSET_MS);
           return (
-            date.getUTCFullYear() === SEMCOMP_YEAR &&
-            date.getUTCMonth() === SEMCOMP_MONTH - 1 &&
-            date.getUTCDate() === option.day
+            brDate.getUTCFullYear() === SEMCOMP_YEAR &&
+            brDate.getUTCMonth() === SEMCOMP_MONTH - 1 &&
+            brDate.getUTCDate() === option.day
           );
         });
         return { option, events: dayEvents };
@@ -797,12 +790,17 @@ export default function CronogramaPage(): ReactElement {
             </div>
           </div>
 
-          <div
-            className="w-full h-30 rounded-t-lg mt-4 border border-b-0"
-            style={{
-              backgroundImage: `linear-gradient(to top, ${gradientColor} 5%, ${gradientColor}00 100%), url('/img/backgrounds/schedule.jpg')`,
-            }}
-          />
+          <div className="relative w-full mt-4 border border-b-0 rounded-t-lg overflow-hidden">
+            <img
+              src="/img/backgrounds/cronograma.webp"
+              alt="Cronograma SEMCOMP"
+              className="w-full block"
+            />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: `linear-gradient(to top, ${gradientColor} 5%, transparent 100%)` }}
+            />
+          </div>
         </header>
 
         {/* ── Day navigation ── */}
