@@ -234,8 +234,8 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
             {subscription.status === "Aguardando Aprovação" ? (
               <span className="w-full p-2 text-center text-sm font-semibold text-blue-700 dark:text-blue-400">
                 {papfeApproved
-                  ? "Você deve confirmar a sua presença na entrada do Fernão"
-                  : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição"}
+                  ? "Você deve confirmar a sua presença na entrada do Fernão. Para mais informações, leia o Mural de Avisos acima."
+                  : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição. Para mais informações, leia o Mural de Avisos acima."}
               </span>
             ) : (
               <span className={`w-full p-2 text-center text-sm font-semibold ${
@@ -267,6 +267,26 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
     </div>
   );
 });
+
+function getErrorMessage(error: unknown): string {
+  if (typeof error === "string") return error;
+
+  if (typeof error === "object" && error !== null) {
+    // Axios: mensagem enviada pelo backend
+    const data = (error as { response?: { data?: unknown } }).response?.data;
+    if (typeof data === "string" && data) return data;
+    if (typeof data === "object" && data !== null) {
+      const d = data as { message?: unknown; error?: unknown };
+      if (typeof d.message === "string" && d.message) return d.message;
+      if (typeof d.error === "string" && d.error) return d.error;
+    }
+  }
+
+  // Error padrão (fetch, rede, etc.)
+  if (error instanceof Error && error.message) return error.message;
+
+  return "erro desconhecido.";
+}
 
 interface BackendNoticeResponse {
   notices: Array<{
@@ -484,8 +504,12 @@ export default function Profile({
       const updatedSignins = await signinEventsAPI.getMySignins();
       setMySignins(updatedSignins);
       showNotification("Inscrição realizada com sucesso!", "info");
-    } catch {
-      showNotification("Erro ao se inscrever no evento.", "warning");
+    } catch (error) {
+      console.error("Erro ao se inscrever no evento:", error);
+      showNotification(
+        `Erro ao se inscrever no evento: ${getErrorMessage(error)}`,
+        "warning"
+      );
     } finally {
       setSigningInKey(null);
     }
@@ -1444,8 +1468,8 @@ export default function Profile({
                               {subscription.status === "Aguardando Aprovação" ? (
                                 <span className="text-lg font-bold text-blue-600 dark:text-blue-400 text-center">
                                   {papfeDoc?.is_approved === true
-                                    ? "Você deve confirmar a sua presença na entrada do Fernão"
-                                    : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição"}
+                                    ? "Você deve confirmar a sua presença na entrada do Fernão. Para mais informações, leia o Mural de Avisos acima."
+                                    : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição. Para mais informações, leia o Mural de Avisos acima."}
                                 </span>
                               ) : (
                                 <span className={`text-lg font-bold ${
