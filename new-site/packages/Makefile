@@ -57,6 +57,3 @@ seed:
 
 unseed:
 	docker compose -p $(PROJECT) exec -T db sh -c 'psql -U $$DB_USER -d $$DB_NAME' < ./backend/scripts/unseed.sql
-
-seed-events:
-	docker compose -p $(PROJECT) exec -T db sh -c 'psql -U $$DB_USER -d $$DB_NAME' < ./backend/scripts/seed-events.sql
