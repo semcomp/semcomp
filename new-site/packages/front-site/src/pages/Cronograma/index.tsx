@@ -296,15 +296,25 @@ const EventButton = memo(function EventButton({
   captionClasses,
   compact = false,
   week = false,
+  heightPx = Infinity,
 }: {
   evento: EventType;
   onClick: (evento: EventType) => void;
   captionClasses: string;
   compact?: boolean;
   week?: boolean;
+  heightPx?: number;
 }): ReactElement {
   const eventStyle = getEventTypeStyle(evento.type);
   const effectiveCaptionClasses = eventStyle.captionClasses ?? captionClasses;
+
+  // O que cabe em cada altura
+  const showTime = heightPx >= 30;
+  const showLocation = heightPx >= 55;
+  const showType = heightPx >= 80;
+  const showIconBox = heightPx >= 40;
+
+  
 
   const base =
     "h-full w-full overflow-hidden rounded-xl border text-left cursor-pointer transition-all duration-300 hover:scale-[1.02]";
@@ -358,40 +368,56 @@ const EventButton = memo(function EventButton({
     );
   }
 
-  // full: layout expandido — painel de ícone | tipo/nome | horário+local
-  return (
+      return (
     <button
       type="button"
-      className={`${base} flex items-center gap-3 px-3 py-2 md:px-4 md:py-3 ${eventStyle.classes}`}
+      className={`${base} flex items-center px-2 py-1.5 md:px-4 md:py-3 ${eventStyle.classes}`}
       onClick={() => onClick(evento)}
     >
-      <div
-        className={`flex shrink-0 items-center justify-center rounded-xl border p-2 md:p-3 ${eventStyle.classes}`}
-      >
-        <EventTypeIcon type={evento.type} className="h-5 w-5 md:h-6 md:w-6" />
-      </div>
+      <div className="flex w-full min-w-0 flex-col justify-center gap-0.5 @sm:flex-row @sm:items-center @sm:gap-3">
+        {/* Ícone + tipo e nome */}
+        <div className="flex min-w-0 items-center gap-2 @sm:flex-1">
+          {showIconBox && (
+            <div
+              className={`hidden shrink-0 items-center justify-center rounded-lg border p-1.5 @min-[7rem]:flex @sm:rounded-xl @sm:p-2.5 ${eventStyle.classes}`}
+            >
+              <EventTypeIcon type={evento.type} className="h-4 w-4 @sm:h-6 @sm:w-6" />
+            </div>
+          )}
 
-      <div className="min-w-0 flex-1">
-        <p className={`font-medium uppercase tracking-wide ${FONT.type} ${effectiveCaptionClasses}`}>
-          {evento.type}
-        </p>
-        <p className={`font-poppins-bold break-words leading-snug ${FONT.name}`}>
-          {evento.name}
-        </p>
-      </div>
+          <div className="min-w-0">
+            {showType && (
+              <p
+                className={`hidden truncate font-medium uppercase tracking-wide @min-[12rem]:block ${FONT.type} ${effectiveCaptionClasses}`}
+              >
+                {evento.type}
+              </p>
+            )}
+            <p className={`line-clamp-2 break-words font-poppins-bold leading-snug ${FONT.name}`}>
+              {evento.name}
+            </p>
+          </div>
+        </div>
 
-      <div
-        className={`ml-auto flex shrink-0 flex-col items-end gap-0.5 text-right ${FONT.meta} ${effectiveCaptionClasses}`}
-      >
-        <span className="flex items-center gap-1 whitespace-nowrap">
-          <Clock className={ICON_META} aria-hidden="true" />
-          {formatTime(evento.dateInit)} – {formatTime(evento.dateEnd)}
-        </span>
-        {evento.location && (
-          <span className="flex items-center gap-1">
-            <MapPin className={ICON_META} aria-hidden="true" />
-            <span className="break-words">{evento.location}</span>
-          </span>
+        {/* Horário e local */}
+        {showTime && (
+          <div
+            className={`hidden min-w-0 flex-col gap-0.5 leading-tight @min-[8rem]:flex ${FONT.meta} ${effectiveCaptionClasses}
+              @sm:ml-auto @sm:max-w-[45%] @sm:shrink-0 @sm:items-end @sm:text-right`}
+          >
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <Clock className={ICON_META} aria-hidden="true" />
+              {formatTime(evento.dateInit)} – {formatTime(evento.dateEnd)}
+            </span>
+            {showLocation && evento.location && (
+              <span className="hidden min-w-0 items-center gap-1 @min-[12rem]:flex">
+                <MapPin className={ICON_META} aria-hidden="true" />
+                <span className="truncate @sm:whitespace-normal @sm:break-words">
+                  {evento.location}
+                </span>
+              </span>
+            )}
+          </div>
         )}
       </div>
     </button>
@@ -593,7 +619,7 @@ function TimeGrid({
           return (
             <div
               key={`${event.name}-${event.dateInit}`}
-              className="absolute box-border p-0.5 group/card hover:z-10"
+              className="@container absolute box-border p-0.5 group/card hover:z-10"
               style={{
                 top: topPx,
                 height: Math.max(heightPx, 28),
@@ -605,6 +631,7 @@ function TimeGrid({
                 evento={event}
                 onClick={onSelect}
                 captionClasses={captionClasses}
+                heightPx={Math.max(heightPx, 28)}
                 compact={viewMode === "week" || heightPx < 30}
               />
             </div>
@@ -683,7 +710,7 @@ export default function CronogramaPage(): ReactElement {
         if (d <= 0) continue;
         const slot = d * p;
         // min heights match the rendered variants (after mobile text reduction)
-        const minH = slot < 50 ? 22 : slot < 100 ? 50 : 88;
+        const minH = 44;
         if (slot < minH) next = Math.max(next, minH / d);
       }
       if (next <= p + 0.5) break;
