@@ -234,8 +234,8 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
             {subscription.status === "Aguardando Aprovação" ? (
               <span className="w-full p-2 text-center text-sm font-semibold text-blue-700 dark:text-blue-400">
                 {papfeApproved
-                  ? "Você deve confirmar a sua presença na entrada do Fernão"
-                  : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição"}
+                  ? "Você deve confirmar a sua presença na entrada do Fernão. Para mais informações, leia o Mural de Avisos."
+                  : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição. Para mais informações, leia o Mural de Avisos."}
               </span>
             ) : (
               <span className={`w-full p-2 text-center text-sm font-semibold ${
@@ -1468,8 +1468,8 @@ export default function Profile({
                               {subscription.status === "Aguardando Aprovação" ? (
                                 <span className="text-lg font-bold text-blue-600 dark:text-blue-400 text-center">
                                   {papfeDoc?.is_approved === true
-                                    ? "Você deve confirmar a sua presença na entrada do Fernão"
-                                    : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição"}
+                                    ? "Você deve confirmar a sua presença na entrada do Fernão. Para mais informações, leia o Mural de Avisos."
+                                    : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição. Para mais informações, leia o Mural de Avisos."}
                                 </span>
                               ) : (
                                 <span className={`text-lg font-bold ${
