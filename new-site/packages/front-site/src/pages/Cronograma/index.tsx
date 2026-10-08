@@ -186,73 +186,85 @@ const getDayRangeForWeek = (
 
 // ─── Style helpers ────────────────────────────────────────────────────────────
 
-const getEventTypeStyle = (type: string) => {
+const getEventTypeStyle = (type: string): { classes: string; captionClasses?: string; icon: string } => {
   switch (type) {
+    case "Abertura":
+      return {
+        classes: "text-gray-900 bg-[#fcca00] border-[#fcca00] dark:bg-[#fcca00]/80 dark:border-[#fcca00]/60",
+        captionClasses: "text-gray-800/90",
+        icon: "flag",
+      };
     case "Palestra":
       return {
-        classes: "text-white bg-blue-500 border-blue-700 dark:bg-blue-950/60 dark:border-blue-700",
+        classes: "text-white bg-[#042f94] border-[#042f94] dark:bg-[#042f94]/80 dark:border-[#042f94]/60",
         icon: "microphone",
+      };
+    case "Encerramento":
+      return {
+        classes: "text-gray-900 bg-[#fcca00] border-[#fcca00] dark:bg-[#fcca00]/80 dark:border-[#fcca00]/60",
+        captionClasses: "text-gray-800/90",
+        icon: "flag",
       };
     case "Minicurso":
     case "Workshop":
       return {
-        classes: "text-white bg-emerald-500 border-emerald-700 dark:bg-green-950/60 dark:border-green-700",
+        classes: "text-white bg-[#038511] border-[#038511] dark:bg-[#038511]/80 dark:border-[#038511]/60",
         icon: "rocket",
-      };
-    case "Concurso":
-      return {
-        classes: "text-white bg-violet-500 border-violet-700 dark:bg-purple-950/60 dark:border-purple-700",
-        icon: "award",
-      };
-    case "Vitrine":
-      return {
-        classes: "text-white bg-orange-500 border-orange-700 dark:bg-orange-950/60 dark:border-orange-700",
-        icon: "store",
       };
     case "Competicao":
       return {
-        classes: "text-white bg-amber-600 border-amber-800 dark:bg-yellow-950/60 dark:border-yellow-700",
+        classes: "text-gray-900 bg-[#fcca00] border-[#fcca00] dark:bg-[#fcca00]/80 dark:border-[#fcca00]/60",
+        captionClasses: "text-gray-800/90",
         icon: "trophy",
+      };
+    case "Luau":
+      return {
+        classes: "text-white bg-[#ff5e22] border-[#ff5e22] dark:bg-[#ff5e22]/80 dark:border-[#ff5e22]/60",
+        icon: "music",
+      };
+    case "Concurso":
+      return {
+        classes: "text-white bg-[#ff1d02] border-[#ff1d02] dark:bg-[#ff1d02]/80 dark:border-[#ff1d02]/60",
+        icon: "award",
       };
     case "Hackathon":
       return {
-        classes: "text-white bg-rose-500 border-rose-700 dark:bg-red-950/60 dark:border-red-700",
+        classes: "text-white bg-[#ff1d02] border-[#ff1d02] dark:bg-[#ff1d02]/80 dark:border-[#ff1d02]/60",
         icon: "target",
       };
     case "Gamenight":
       return {
-        classes: "text-white bg-fuchsia-500 border-fuchsia-700 dark:bg-pink-950/60 dark:border-pink-700",
+        classes: "text-white bg-[#ff5e22] border-[#ff5e22] dark:bg-[#ff5e22]/80 dark:border-[#ff5e22]/60",
         icon: "gamepad",
+      };
+    case "Rodas de conversa":
+      return {
+        classes: "text-white bg-[#08201a] border-[#08201a] dark:bg-[#08201a] dark:border-[#08201a]/80",
+        icon: "talk",
       };
     case "Coffee":
     case "Coffee Livre":
     case "Coffee Noturno":
     case "Intervalo":
       return {
-        classes: "text-white bg-stone-500 border-stone-700 dark:bg-orange-950/60 dark:border-orange-700",
+        classes: "text-white bg-[#b7581f] border-[#b7581f] dark:bg-[#b7581f]/80 dark:border-[#b7581f]/60",
         icon: "coffee",
       };
-    case "Encerramento":
+    case "Vitrine":
       return {
-        classes: "text-white bg-indigo-600 border-indigo-800 dark:bg-violet-950/60 dark:border-violet-700",
-        icon: "flag",
+        classes: "text-gray-900 bg-[#fcca00] border-[#fcca00] dark:bg-[#fcca00]/80 dark:border-[#fcca00]/60",
+        captionClasses: "text-gray-800/90",
+        icon: "store",
       };
-    case "Rodas de conversa":
+    case "Contest":
       return {
-        classes:
-          "text-white bg-teal-500 border-teal-700 dark:bg-semcompAlmostDarkBlue/75 dark:border-semcompMidDarkBlue",
-        icon: "talk",
-      };
-    case "Luau":
-      return {
-        classes:
-          "text-white bg-amber-500 border-amber-700 dark:bg-amber-950/60 dark:border-amber-700",
-        icon: "music",
+        classes: "text-gray-900 bg-[#f3e8cb] border-[#f3e8cb] dark:bg-[#f3e8cb]/80 dark:border-[#f3e8cb]/60",
+        captionClasses: "text-gray-800/90",
+        icon: "trophy",
       };
     default:
       return {
-        classes:
-          "text-white bg-slate-500 border-slate-700 dark:bg-semcompAlmostDarkBlue/75 dark:border-semcompMidDarkBlue",
+        classes: "text-white bg-[#08201a] border-[#08201a] dark:bg-[#08201a] dark:border-[#08201a]/80",
         icon: "flag",
       };
   }
@@ -292,6 +304,7 @@ const EventButton = memo(function EventButton({
   week?: boolean;
 }): ReactElement {
   const eventStyle = getEventTypeStyle(evento.type);
+  const effectiveCaptionClasses = eventStyle.captionClasses ?? captionClasses;
 
   const base =
     "h-full w-full overflow-hidden rounded-xl border text-left cursor-pointer transition-all duration-300 hover:scale-[1.02]";
@@ -324,19 +337,19 @@ const EventButton = memo(function EventButton({
         className={`${base} flex flex-col justify-start gap-0.5 p-2 ${eventStyle.classes}`}
         onClick={() => onClick(evento)}
       >
-        <div className={`flex items-center gap-1 ${FONT.type} ${captionClasses}`}>
+        <div className={`flex items-center gap-1 ${FONT.type} ${effectiveCaptionClasses}`}>
           <EventTypeIcon type={evento.type} className="h-3 w-3 shrink-0" />
           <span className="font-medium truncate">{evento.type}</span>
         </div>
         <p className={`font-poppins-bold break-words leading-tight ${FONT.name}`}>
           {evento.name}
         </p>
-        <span className={`flex items-center gap-1 whitespace-nowrap ${FONT.meta} ${captionClasses}`}>
+        <span className={`flex items-center gap-1 whitespace-nowrap ${FONT.meta} ${effectiveCaptionClasses}`}>
           <Clock className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />
           {formatTime(evento.dateInit)} – {formatTime(evento.dateEnd)}
         </span>
         {evento.location && (
-          <span className={`flex items-center gap-1 ${FONT.meta} ${captionClasses}`}>
+          <span className={`flex items-center gap-1 ${FONT.meta} ${effectiveCaptionClasses}`}>
             <MapPin className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />
             <span className="truncate">{evento.location}</span>
           </span>
@@ -359,7 +372,7 @@ const EventButton = memo(function EventButton({
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className={`font-medium uppercase tracking-wide ${FONT.type} ${captionClasses}`}>
+        <p className={`font-medium uppercase tracking-wide ${FONT.type} ${effectiveCaptionClasses}`}>
           {evento.type}
         </p>
         <p className={`font-poppins-bold break-words leading-snug ${FONT.name}`}>
@@ -368,7 +381,7 @@ const EventButton = memo(function EventButton({
       </div>
 
       <div
-        className={`ml-auto flex shrink-0 flex-col items-end gap-0.5 text-right ${FONT.meta} ${captionClasses}`}
+        className={`ml-auto flex shrink-0 flex-col items-end gap-0.5 text-right ${FONT.meta} ${effectiveCaptionClasses}`}
       >
         <span className="flex items-center gap-1 whitespace-nowrap">
           <Clock className={ICON_META} aria-hidden="true" />
@@ -620,7 +633,7 @@ export default function CronogramaPage(): ReactElement {
     return withinEventWindow ? today.getDate() : EVENT_DAYS[0];
   });
 
-  const cardCaptionClasses = "text-white/75 dark:text-semcompLightBlue/90";
+  const cardCaptionClasses = "text-white/95 dark:text-white/85";
   const modalCaptionClasses = "text-semcompMidDarkBlue/85 dark:text-semcompLightBlue/90";
   const gradientColor = isDarkMode ? "#0B2639" : "#D2EDFF";
 
