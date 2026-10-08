@@ -46,6 +46,9 @@ const SECTIONS: { key: string; label: string }[] = [
   { key: "Justificativas de Ausência",  label: "Justificativas de Ausência" },
   { key: "Produtos",       label: "Produtos" },
   { key: "Avisos", label: "Avisos" },
+  { key: "Riddles", label: "Riddles" },
+  { key: "Inscrições", label: "Inscrições" },
+  { key: "Confirmações de Inscrição", label: "Confirmações de Inscrição" },
   { key: "Dashboard", label: "Dados" },
   { key: "Configurações Presença", label: "Configurações Presença"}
 ];
