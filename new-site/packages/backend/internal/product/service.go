@@ -339,13 +339,9 @@ func (s *productService) GetProducts(page int, limit int, sortBy string, sortOrd
 	sortBy = strings.ToLower(sortBy)
 	sortOrder = strings.ToLower(sortOrder)
 
-	allowedSortFields := map[string]bool{
-		"id":         true,
-		"type":       true,
-		"is_selling": true,
-		"price":      true,
-	}
-	if !allowedSortFields[sortBy] {
+	// A lista de campos aceitos na ordenação é a mesma do repository, para que as
+	// duas camadas não aceitem conjuntos diferentes.
+	if _, isAllowedField := productSortColumns[sortBy]; !isAllowedField {
 		return nil, apierrors.ValidationError("Parâmetro 'sort_by' inválido", nil)
 	}
 	if sortOrder != "asc" && sortOrder != "desc" {
@@ -359,16 +355,29 @@ func (s *productService) GetProducts(page int, limit int, sortBy string, sortOrd
 	if searchBy != "" {
 		searchBy = strings.ToLower(searchBy)
 		allowedSearchFields := map[string]bool{
-			"id":           true,
-			"is_selling":   true,
-			"price":        true,
-			"kit.name":     true,
-			"kit.size":     true,
-			"kit.color":    true,
-			"coffee.name":  true,
+			"id":               true,
+			"is_selling":       true,
+			"price":            true,
+			"name":             true,
+			"picture_url":      true,
+			"description":      true,
+			"kit.name":         true,
+			"kit.size":         true,
+			"kit.color":        true,
+			"kit.is_babylook":  true,
+			"coffee.name":      true,
+			"coffee.date_time": true,
 		}
 		if !allowedSearchFields[searchBy] {
 			return nil, apierrors.ValidationError("Parâmetro 'search_by' inválido", nil)
+		}
+
+		// Busca por data exige um valor em formato conhecido: sem isso o Postgres
+		// receberia um texto solto e responderia 500 em vez de um erro de validação.
+		if searchBy == "coffee.date_time" {
+			if _, ok := parseProductSearchDate(searchValue); !ok {
+				return nil, apierrors.ValidationError("Valor de busca para data inválido. Use o formato AAAA-MM-DD", nil)
+			}
 		}
 	}
 

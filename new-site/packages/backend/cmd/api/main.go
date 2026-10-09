@@ -77,6 +77,14 @@ func main() {
 		panic("Failed to migrate database: " + err.Error())
 	}
 
+	// A busca de produtos e eventos ignora acento: unaccent(name) ILIKE '%cafe%'
+	// precisa achar "Café". A extensão é criada aqui porque a busca depende dela, e
+	// se o usuário do banco não puder instalar, o startup para com uma mensagem
+	// clara em vez de a listagem responder 500 em produção.
+	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS unaccent").Error; err != nil {
+		panic("Failed to create the unaccent extension: " + err.Error())
+	}
+
 	// As tabelas `teams` e `team_members` (jogo de enigmas) são criadas com SQL
 	// manual em vez de AutoMigrate: o struct TeamMember tem PK composta
 	// (team_id + user_number) com associação belongs-to em UserNumber, e o
@@ -459,7 +467,7 @@ func main() {
 	admin.DELETE("/presences/:userNumber/:eventName/:eventInitDate", permMW("Participações", permission.PermRW), presenceHandler.DeletePresenceByUserEventandInitDate)
 
 	// Configurações de Presença (pesos por tipo de evento)
-	admin.GET("/presence-settings", permMW("Configurações Presença", permission.PermR), presenceSettingsHandler.GetWeights)
+	admin.GET("/presence-settings", presenceSettingsHandler.GetWeights)
 	admin.POST("/presence-settings", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.CreateWeight)
 	admin.PUT("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.UpdateWeight)
 	admin.DELETE("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.DeleteWeight)
