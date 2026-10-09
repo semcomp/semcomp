@@ -41,13 +41,18 @@ export default function Events() {
         return;
       }
 
+      // O backend busca o tipo pelo nome (type_name), não pelo ID do select
+      const filterValue = params?.filterField === "presence_type_weight_id"
+        ? (weights.find((w) => String(w.id) === params.filterValue)?.type_name ?? params.filterValue)
+        : params?.filterValue;
+
       const response = await eventsAPI.getAll(
         params?.page ?? 1,
         params?.pageSize ?? 10,
         params?.sortField ?? "init_date",
         params?.sortOrder ?? "asc",
-        params?.filterField && params?.filterValue ? params.filterField : undefined,
-        params?.filterValue || undefined,
+        params?.filterField && filterValue ? params.filterField : undefined,
+        filterValue || undefined,
       );
       setData(response.events || []);
       setTotalRecords(response.filtered_records ?? response.total_records ?? 0);
@@ -58,7 +63,7 @@ export default function Events() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [weights]);
 
   // useEffect(() => {
   //   fetchEvents();
