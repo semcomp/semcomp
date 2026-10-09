@@ -96,7 +96,7 @@ func applySearchFilter(dbQuery *gorm.DB, query UserListQuery) *gorm.DB {
 	case "has_papfe":
 		return dbQuery.Where("has_papfe = ?", query.SearchValue)
 	case "disabilities":
-		return dbQuery.Where("EXISTS (SELECT 1 FROM unnest(disabilities) AS disability WHERE disability ILIKE ?)", "%"+query.SearchValue+"%")
+    	return dbQuery.Where("disabilities ILIKE ?", "%"+query.SearchValue+"%")
 	case "profession":
 		return dbQuery.Where("profession ILIKE ?", "%"+query.SearchValue+"%")
 	case "linkedin":
@@ -105,6 +105,10 @@ func applySearchFilter(dbQuery *gorm.DB, query UserListQuery) *gorm.DB {
 		return dbQuery.Where("telegram ILIKE ?", "%"+query.SearchValue+"%")
 	case "presence_rate":
 		return dbQuery.Where("presence_rate = ?", query.SearchValue)
+	case "quer_cracha":
+		return dbQuery.Where("quer_cracha = ?", query.SearchValue)
+	case "autoriza_compartilhamento":
+		return dbQuery.Where("autoriza_compartilhamento = ?", query.SearchValue)
 	default:
 		return dbQuery
 	}
