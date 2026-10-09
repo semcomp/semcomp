@@ -246,6 +246,8 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 		"location":       true,
 		"description":    true,
 		"has_attendance": true,
+		"has_signin":	  true,
+		"max_participants":	true,
 	}
 
 	if !allowedSortFields[sortBy] {
@@ -271,6 +273,8 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 			"location":       true,
 			"description":    true,
 			"has_attendance": true,
+			"has_signin":	  true,
+			"max_participants":	true,
 		}
 
 		if !allowedSearchFields[searchBy] {
