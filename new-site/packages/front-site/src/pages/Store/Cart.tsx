@@ -6,6 +6,7 @@ import useWindowDimensions from "@/hooks/useWindowDimensions";
 import { useCart } from "@/contexts/CartContext";
 import { salesAPI } from "@/api/sales";
 import { useNotification } from "@/contexts/NotificationContext";
+import ProductImage from "@/components/ProductImage";
 import {
   ShoppingBag,
   Trash2,
@@ -192,10 +193,10 @@ export default function CartPage() {
                       className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 rounded-xl overflow-hidden shadow-sm group/img cursor-zoom-in"
                       onClick={() => setZoomedImage({ url: item.image, alt: item.name })}
                     >
-                      <img
+                      <ProductImage
                         src={item.image}
                         alt={item.name}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover/img:scale-105"
+                        className="group-hover/img:scale-105"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-colors duration-300 flex items-center justify-center">
                         <ZoomIn size={20} className="text-white opacity-0 group-hover/img:opacity-100 transition-opacity drop-shadow-lg" />

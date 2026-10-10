@@ -11,6 +11,7 @@ import { salesAPI } from "@/api/sales";
 import type { Product, ProductType } from "@/types/ProductType";
 import { useNotification } from "@/contexts/NotificationContext";
 import { isPendingSale } from "@/lib/pendingSale";
+import ProductImage from "@/components/ProductImage";
 
 const TABELA_DE_MEDIDA = "https://i.imgur.com/TOtrzYj.jpeg";
 
@@ -916,7 +917,7 @@ export default function StorePage() {
                   variants={stagger}
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-stretch"
                 >
-                  {filteredProducts.map((item) => {
+                  {filteredProducts.map((item, index) => {
                     const defaultKey = item.sizeVariants[0] ? variantKey(item.sizeVariants[0]) : "";
                     const quickKey = quickVariantKeyByItemId[item.id] ?? defaultKey;
                     const quickVariant = item.sizeVariants.length > 0
@@ -950,11 +951,11 @@ export default function StorePage() {
                     >
                       {/* Imagem */}
                       <div className="relative overflow-hidden aspect-square shrink-0">
-                        <img
+                        <ProductImage
                           src={item.image}
                           alt={item.name}
-                          loading="lazy"
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          priority={index < 3}
+                          className="group-hover:scale-110"
                         />
 
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300" />
@@ -1169,10 +1170,11 @@ export default function StorePage() {
               className="rounded-2xl overflow-hidden aspect-square shadow-[0_4px_20px_rgba(0,0,0,0.15)] cursor-zoom-in relative group"
               onClick={() => setZoomedImage({ url: selected.image, alt: selected.name })}
             >
-              <img
+              <ProductImage
                 src={selected.image}
                 alt={selected.name}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                priority
+                className="group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-all duration-300 flex items-center justify-center">
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/50 backdrop-blur-sm rounded-full p-3.5 shadow-xl">
