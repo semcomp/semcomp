@@ -111,7 +111,7 @@ export default function TeamGrid({ data }: { data: TeamType }) {
           <p className="flex items-center whitespace-nowrap text-semcompDarkBlue/80 dark:text-semcompOffWhite/80">Escolha a frente:</p>
 
           <select
-            className="appearance-none z-10 ml-3 flex-1 min-w-0 rounded-md p-2 pr-10 bg-white text-semcompDarkBlue border border-semcompMidLightBlue/50 dark:bg-semcompAlmostDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite/40"
+            className="appearance-none z-10 ml-3 flex-1 min-w-0 rounded-md p-2 pr-10 bg-white text-semcompDarkBlue border border-semcompMidLightBlue/50 dark:bg-semcompAlmostDarkBlue dark:text-semcompOffWhite dark:border-semcompOffWhite/40 cursor-pointer"
             value={currentDepartment}
             onChange={(e) => changeDepartment(Number(e.target.value))}
           >
