@@ -259,7 +259,7 @@ export default function LoginPage(): ReactElement {
                 type="button"
                 onClick={handleResend}
                 disabled={resending || resendCooldown > 0}
-                className="w-full px-3 py-3 rounded-md bg-semcompMidDarkBlue text-white text-sm font-bold disabled:opacity-50 hover:brightness-110 transition-all"
+                className="w-full px-3 py-3 rounded-md bg-semcompMidDarkBlue text-white text-sm font-bold disabled:opacity-50 hover:brightness-110 transition-all cursor-pointer disabled:cursor-not-allowed"
             >
                 {resendCooldown > 0
                     ? `Reenviar e-mail (${resendCooldown}s)`
@@ -270,7 +270,7 @@ export default function LoginPage(): ReactElement {
             <button
                 type="button"
                 onClick={() => { setPendingVerificationEmail(null); setIsLogin(true); }}
-                className={`mt-4 text-sm underline ${!isDarkMode ? "text-white" : ""}`}
+                className={`mt-4 text-sm underline cursor-pointer ${!isDarkMode ? "text-white" : ""}`}
             >
                 Ir para o login
             </button>
@@ -289,7 +289,7 @@ export default function LoginPage(): ReactElement {
                         type="button"
                         onClick={() => authAPI.forgotPassword(forgotEmail).then(() => setForgotCooldown(FORGOT_COOLDOWN_SECONDS)).catch(() => {})}
                         disabled={forgotCooldown > 0}
-                        className="w-full px-3 py-3 rounded-md bg-semcompMidDarkBlue text-white text-sm font-bold disabled:opacity-50 hover:brightness-110 transition-all"
+                        className="w-full px-3 py-3 rounded-md bg-semcompMidDarkBlue text-white text-sm font-bold disabled:opacity-50 hover:brightness-110 transition-all cursor-pointer disabled:cursor-not-allowed"
                     >
                         {forgotCooldown > 0 ? `Reenviar (${forgotCooldown}s)` : "Reenviar e-mail"}
                     </button>
@@ -310,7 +310,7 @@ export default function LoginPage(): ReactElement {
                     <button
                         type="submit"
                         disabled={forgotLoading}
-                        className="w-full px-3 py-3 rounded-md bg-semcompMidDarkBlue text-white text-sm font-bold disabled:opacity-50 hover:brightness-110 transition-all"
+                        className="w-full px-3 py-3 rounded-md bg-semcompMidDarkBlue text-white text-sm font-bold disabled:opacity-50 hover:brightness-110 transition-all cursor-pointer disabled:cursor-not-allowed"
                     >
                         {forgotLoading ? "Enviando..." : "Enviar link de recuperação"}
                     </button>
@@ -319,7 +319,7 @@ export default function LoginPage(): ReactElement {
             <button
                 type="button"
                 onClick={() => { setForgotPasswordMode(false); setForgotSent(false); setForgotEmail(""); }}
-                className={`mt-4 text-sm underline ${!isDarkMode ? "text-white" : ""}`}
+                className={`mt-4 text-sm underline cursor-pointer ${!isDarkMode ? "text-white" : ""}`}
             >
                 Voltar para o login
             </button>
@@ -343,7 +343,7 @@ export default function LoginPage(): ReactElement {
                                 <button
                                     type="button"
                                     onClick={() => { setForgotPasswordMode(true); setForgotEmail(email); }}
-                                    className={`text-xs underline opacity-70 hover:opacity-100 transition-opacity ${textColor}`}
+                                    className={`text-xs underline opacity-70 hover:opacity-100 transition-opacity cursor-pointer ${textColor}`}
                                 >
                                     Esqueci minha senha
                                 </button>
@@ -440,7 +440,7 @@ export default function LoginPage(): ReactElement {
                                                 placeholder="Digite e clique em Adicionar"
                                                 className={`flex-1 p-2 rounded-md border text-sm ${inputBg}`}
                                             />
-                                            <button type="button" onClick={handleAddDisability} className="px-3 py-1.5 bg-semcompMidDarkBlue text-white rounded-md text-xs font-bold hover:brightness-110">
+                                            <button type="button" onClick={handleAddDisability} className="px-3 py-1.5 bg-semcompMidDarkBlue text-white rounded-md text-xs font-bold hover:brightness-110 cursor-pointer">
                                                 + Adicionar
                                             </button>
                                         </div>
@@ -449,7 +449,7 @@ export default function LoginPage(): ReactElement {
                                             {disabilities.map((tag, idx) => (
                                                 <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-semcompMidDarkBlue text-white">
                                                     {tag}
-                                                    <button type="button" onClick={() => handleRemoveDisability(tag)} className="hover:text-red-300 font-bold">×</button>
+                                                    <button type="button" onClick={() => handleRemoveDisability(tag)} className="hover:text-red-300 font-bold cursor-pointer">×</button>
                                                 </span>
                                             ))}
                                         </div>
@@ -478,7 +478,7 @@ export default function LoginPage(): ReactElement {
                                 />
                                 <span>
                                     Concordo com os{' '}
-                                    <button type="button" onClick={openTerms} className="underline font-semibold text-semcompOffWhite hover:brightness-110">
+                                    <button type="button" onClick={openTerms} className="underline font-semibold text-semcompOffWhite hover:brightness-110 cursor-pointer">
                                         Termos de Serviço 
                                     </button>
                                 </span>
@@ -517,7 +517,7 @@ export default function LoginPage(): ReactElement {
                                                         setConfirmandoRecusa(true);
                                                         setTimeout(() => campo?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 300);
                                                     }}
-                                                    className={`flex-1 py-2 rounded-lg border text-sm transition-all ${
+                                                    className={`flex-1 py-2 rounded-lg border text-sm transition-all cursor-pointer ${
                                                         autorizaCompartilhamento === valor
                                                             ? "bg-white border-white text-semcompDarkBlue font-bold"
                                                             : "border-gray-400/40 hover:bg-white/10"
@@ -545,7 +545,7 @@ export default function LoginPage(): ReactElement {
                                                 <button
                                                     type="button"
                                                     onClick={() => setConfirmandoRecusa(false)}
-                                                    className="flex-1 py-2 rounded-md border border-gray-400/40 text-white font-semibold hover:brightness-110 transition-all"
+                                                    className="flex-1 py-2 rounded-md border border-gray-400/40 text-white font-semibold hover:brightness-110 transition-all cursor-pointer"
                                                 >
                                                     Voltar
                                                 </button>
@@ -555,7 +555,7 @@ export default function LoginPage(): ReactElement {
                                                         setAutorizaCompartilhamento(false);
                                                         setConfirmandoRecusa(false);
                                                     }}
-                                                    className="flex-1 py-2 rounded-md bg-red-600 text-white font-semibold hover:brightness-110 transition-all"
+                                                    className="flex-1 py-2 rounded-md bg-red-600 text-white font-semibold hover:brightness-110 transition-all cursor-pointer"
                                                 >
                                                     Confirmar
                                                 </button>
@@ -573,7 +573,7 @@ export default function LoginPage(): ReactElement {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full px-3 py-3 rounded-md bg-semcompMidDarkBlue text-white text-sm font-bold disabled:opacity-50 hover:brightness-110 transition-all shadow-md"
+                        className="w-full px-3 py-3 rounded-md bg-semcompMidDarkBlue text-white text-sm font-bold disabled:opacity-50 hover:brightness-110 transition-all shadow-md cursor-pointer disabled:cursor-not-allowed"
                     >
                         {loading ? "Processando..." : isLogin ? "Entrar" : "Criar conta"}
                     </button>

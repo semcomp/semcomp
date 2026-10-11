@@ -848,7 +848,7 @@ export default function CronogramaPage(): ReactElement {
               aria-label="Dia anterior"
               disabled={!canGoPrev}
               onClick={() => handleShiftDay(-1)}
-              className={`${arrowBase} ${canGoPrev ? arrowEnabled : arrowDisabled}`}
+              className={`${arrowBase} cursor-pointer disabled:cursor-not-allowed ${canGoPrev ? arrowEnabled : arrowDisabled}`}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}
                 strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
@@ -887,7 +887,7 @@ export default function CronogramaPage(): ReactElement {
               aria-label="Próximo dia"
               disabled={!canGoNext}
               onClick={() => handleShiftDay(1)}
-              className={`${arrowBase} ${canGoNext ? arrowEnabled : arrowDisabled}`}
+              className={`${arrowBase} cursor-pointer disabled:cursor-not-allowed ${canGoNext ? arrowEnabled : arrowDisabled}`}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}
                 strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
