@@ -125,7 +125,7 @@ export default function ResetPasswordPage(): ReactElement {
                                     <button
                                         type="submit"
                                         disabled={loading}
-                                        className="mt-2 w-full rounded-xl bg-semcompMidDarkBlue px-5 py-3 font-poppins text-sm font-semibold text-semcompOffWhite transition hover:bg-semcompAlmostDarkBlue disabled:opacity-50"
+                                        className="mt-2 w-full rounded-xl bg-semcompMidDarkBlue px-5 py-3 font-poppins text-sm font-semibold text-semcompOffWhite transition hover:bg-semcompAlmostDarkBlue disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                                     >
                                         {loading ? "Salvando..." : "Redefinir senha"}
                                     </button>
