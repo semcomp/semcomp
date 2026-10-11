@@ -11,6 +11,7 @@ QrScanner.WORKER_PATH = new URL(
 
 interface QRCodeScannerProps {
   onScan: (scannedData: string) => Promise<void> | void;
+  onStart?: () => void;
   title?: string;
   description?: string;
   frameColor?: "emerald" | "amber";
@@ -18,16 +19,20 @@ interface QRCodeScannerProps {
 
 export default function QRCodeScanner({
   onScan,
+  onStart,
   title = "Scanner de QR Code",
   description = "Aponte a câmera para o QR Code dentro da moldura.",
   frameColor = "emerald",
 }: QRCodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const scannerRef = useRef<QrScanner | null>(null);
+  const onScanRef = useRef(onScan);
+  useEffect(() => {onScanRef.current = onScan;}, [onScan]);
 
   const [isStarting, setIsStarting] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
 
   const isAmber = frameColor === "amber";
   const borderClass = isAmber ? "border-amber-400/95" : "border-emerald-400/95";
@@ -41,6 +46,7 @@ export default function QRCodeScanner({
   const startScanner = async () => {
     const videoElement = videoRef.current;
     if (!videoElement) return;
+    onStart?.();
 
     const handleDecode = async (scanResult: QrScanner.ScanResult) => {
       const value = scanResult.data.trim();
@@ -48,7 +54,11 @@ export default function QRCodeScanner({
 
       scannerRef.current?.pause(true);
       setIsScanning(false);
-      await onScan(value);
+      try {
+        await onScanRef.current(value);
+      } catch (e) {
+        console.error("Erro no onScan:", e);
+      }
     };
 
     try {

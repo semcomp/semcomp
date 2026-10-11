@@ -1,112 +1,87 @@
 import { CrudTable } from "@/components/CrudTable";
-import type { CrudItemType } from "@/types/CrudItem";
 import type { CrudQueryParams } from "@/components/CrudTable";
-import { useState, useCallback } from "react";
+import type { CrudItemType } from "@/types/CrudItem";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fields } from "@/data/coffeeCrudField";
 import { BannerCard } from "@/components/BannerCard";
 import type { CoffeeType } from "@/types/CoffeeType";
 import { coffeeAPI } from "@/api/coffee";
-import { useNotification } from "@/contexts/NotificationContext";
-import { useHasPermission } from "@/contexts/AuthContext";
 import { Coffee } from "lucide-react";
 
 export default function CoffeePage() {
-  const canWrite = useHasPermission("Coffee", "RW");
   const navigate = useNavigate();
-  const [data, setData] = useState<CoffeeType[]>([]);
-  const [totalRecords, setTotalRecords] = useState(0);
+  const [allCoffees, setAllCoffees] = useState<CoffeeType[]>([]);
+  const [query, setQuery] = useState<CrudQueryParams | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { showNotification } = useNotification();
 
-  const fetchCoffees = useCallback(async (params?: CrudQueryParams) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await coffeeAPI.getAll(
-        params?.page ?? 1,
-        params?.pageSize ?? 10,
-        params?.sortField ?? "name",
-        params?.sortOrder ?? "asc",
-        params?.filterField && params?.filterValue
-          ? params.filterField
-          : undefined,
-        params?.filterValue || undefined
-      );
-
-      setData(response.coffees || []);
-      setTotalRecords(response.filtered_records ?? response.total_records ?? 0);
-    } catch (err) {
-      console.error("Erro ao buscar coffees:", err);
-      setError("Erro ao carregar lista de coffees");
-      setData([]);
-    } finally {
-      setLoading(false);
-    }
+  // Busca única: o backend devolve todos os coffees à venda
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await coffeeAPI.getAll();
+        setAllCoffees(response.coffees);
+      } catch (err) {
+        console.error("Erro ao buscar coffees:", err);
+        setError("Erro ao carregar lista de coffees");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  const handleQueryChange = useCallback(
-    (params: CrudQueryParams) => {
-      fetchCoffees(params);
-    },
-    [fetchCoffees]
-  );
+  // O CrudTable avisa aqui quando página/ordem/filtro mudam
+  const handleQueryChange = useCallback((params: CrudQueryParams) => {
+    setQuery(params);
+  }, []);
 
-  const resolveCoffeeKey = (item: CrudItemType) => {
-    const typed = item as CoffeeType;
-    return typed.id;
-  };
+  // Filtro + ordenação no cliente
+  const filtered = useMemo(() => {
+    let list = [...allCoffees];
 
-  const handleEdit = async (item: CrudItemType, itemKey: string) => {
-    try {
-      const typedItem = item as CoffeeType;
-      await coffeeAPI.update(itemKey, typedItem);
-
-      setData((prev) =>
-        prev.map((c) => (resolveCoffeeKey(c) === itemKey ? typedItem : c))
+    if (query?.filterField && query.filterValue) {
+      const term = query.filterValue.toLowerCase();
+      list = list.filter((c) =>
+        String((c as unknown as Record<string, unknown>)[query.filterField] ?? "")
+          .toLowerCase()
+          .includes(term)
       );
-      showNotification("Coffee editado com sucesso", "success");
-    } catch (err) {
-      console.error("Erro ao editar coffee:", err);
-      setError("Erro ao editar coffee");
     }
-  };
 
-  const handleDelete = async (itemKey: string) => {
-    try {
-      await coffeeAPI.delete(itemKey);
-      setData((prev) => prev.filter((c) => resolveCoffeeKey(c) !== itemKey));
-      setTotalRecords((prev) => prev - 1);
-      showNotification("Coffee removido com sucesso", "success");
-    } catch (err) {
-      console.error("Erro ao deletar coffee:", err);
-      setError("Erro ao deletar coffee");
+    if (query?.sortField) {
+      const dir = query.sortOrder === "desc" ? -1 : 1;
+      list.sort((a, b) => {
+        const av = (a as unknown as Record<string, unknown>)[query.sortField] ?? "";
+        const bv = (b as unknown as Record<string, unknown>)[query.sortField] ?? "";
+        if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
+        return String(av).localeCompare(String(bv), "pt-BR") * dir;
+      });
     }
-  };
 
-  const handleCreate = async (item: CrudItemType) => {
-    try {
-      const typedItem = item as CoffeeType;
-      const created = await coffeeAPI.create(typedItem);
-      setData((prev) => [...prev, created]);
-      setTotalRecords((prev) => prev + 1);
-      showNotification("Coffee criado com sucesso", "success");
-    } catch (err: any) {
-      console.error(err);
-      setError(err.response?.data?.message || "Erro ao criar coffee");
-    }
-  };
+    return list;
+  }, [allCoffees, query]);
 
-  // Ação ao clicar no botão da linha -> Navega para a leitura do QR especificando qual coffee é
+  // Paginação no cliente
+  const pageData = useMemo(() => {
+    const page = query?.page ?? 1;
+    const size = query?.pageSize ?? 10;
+    return filtered.slice((page - 1) * size, page * size);
+  }, [filtered, query]);
+
+  const resolveCoffeeKey = (item: CrudItemType) => (item as CoffeeType).id;
+
+  // Abre o leitor de QR para o coffee escolhido (identificado pelo horário)
   const handleAction = (item: CrudItemType) => {
     const coffee = item as CoffeeType;
-    navigate(`/coffees/${encodeURIComponent(coffee.id)}/qrcode-reader`, {
-      state: {
-        coffeeName: coffee.name,
-        coffeeId: coffee.id,
-      },
+    if (!coffee.date) {
+      setError("Este coffee não possui data/horário cadastrado.");
+      return;
+    }
+    navigate(`/coffee/${encodeURIComponent(coffee.date)}/qrcode-reader`, {
+      state: { coffeeName: coffee.name },
     });
   };
 
@@ -116,8 +91,8 @@ export default function CoffeePage() {
         icon={<Coffee />}
         iconClassName="text-amber-400"
         label="Coffee Break"
-        title="Gerenciamento de Coffees"
-        description="Cadastre os tipos/dias de Coffee Break e acesse o leitor de QR Code para validar as credenciais."
+        title="Validação de Coffees"
+        description="Escolha o coffee e acesse o leitor de QR Code para verificar se o participante tem direito a ele."
         onBack={() => navigate("/home")}
         cardClassName="border-slate-800 bg-linear-to-br from-slate-900 via-slate-900 to-amber-950/30 overflow-hidden relative"
         labelClassName="text-xs uppercase tracking-[0.3em] text-amber-400 font-medium"
@@ -131,23 +106,22 @@ export default function CoffeePage() {
             {error}
           </div>
         )}
-        {loading && data.length === 0 && (
+        {loading && allCoffees.length === 0 && (
           <div className="flex items-center justify-center py-12">
             <p className="text-slate-400">Carregando coffees...</p>
           </div>
         )}
         <CrudTable
-          data={data}
+          data={pageData}
           fields={fields}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onCreate={handleCreate}
+          onEdit={() => {}} /* obrigatório no tipo; nunca é chamado com canWrite={false} */
           onAction={handleAction}
+          actionTitle="Validar QR Code"
           getItemKey={resolveCoffeeKey}
           entityLabel="coffee"
-          totalRecords={totalRecords}
+          totalRecords={filtered.length}
           onQueryChange={handleQueryChange}
-          canWrite={canWrite}
+          canWrite={false}
         />
       </div>
     </section>

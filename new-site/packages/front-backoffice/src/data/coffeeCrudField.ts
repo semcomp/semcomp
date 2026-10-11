@@ -6,10 +6,11 @@ export const fields: CrudField[] = [
     label: "Nome do Coffee",
     type: "text",
   },
-  {
-    value: "date",
-    label: "Data / Horário",
-    type: "date",
+  { 
+    value: "dateLabel", 
+    sortValue: "date", 
+    label: "Data / Horário", 
+    type: "text"
   },
   {
     value: "price",

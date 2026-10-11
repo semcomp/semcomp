@@ -192,7 +192,7 @@ func main() {
 	eventService.SetRateRecalculator(rateCalculator)
 	presenceService.SetRateRecalculator(rateCalculator)
 	presenceSettingsService.SetRateRecalculator(rateCalculator)
-	
+
 	absenceJustificationRepo := absenceJustification.NewAbsenceJustificationRepository(db)
 	absenceJustificationService := absenceJustification.NewAbsenceJustificationService(absenceJustificationRepo)
 	absenceJustificationService.SetRateRecalculator(rateCalculator)
@@ -459,7 +459,7 @@ func main() {
 	admin.POST("/presence-settings", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.CreateWeight)
 	admin.PUT("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.UpdateWeight)
 	admin.DELETE("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.DeleteWeight)
-	
+
 	// Justificativas de Ausência
 	admin.GET("/absence-justifications", permMW("Justificativas de Ausência", permission.PermR), absenceJustificationHandler.GetAbsenceJustifications)
 	admin.GET("/absence-justifications/:id/attachment", permMW("Justificativas de Ausência", permission.PermR), absenceJustificationHandler.GetAttachment)
@@ -473,8 +473,8 @@ func main() {
 	admin.DELETE("/usersBackoffice/:email", permMW("Usuários Backoffice", permission.PermRW), userBackofficeHandler.DeleteUser)
 
 	// Produtos
-	admin.GET("/coffees", permMW("Produtos", permission.PermR), productHandler.GetCoffees)
-	admin.GET("/coffees/verify/:userNumber/:dateTime", permMW("Produtos", permission.PermR), salesHandler.VerifyCoffeeAccess)
+	admin.GET("/coffees", permMW("Coffee", permission.PermR), productHandler.GetCoffees)
+	admin.GET("/coffees/verify/:userNumber/:dateTime", permMW("Coffee", permission.PermR), salesHandler.VerifyCoffeeAccess)
 	admin.GET("/products", permMW("Produtos", permission.PermR), productHandler.GetProducts)
 	admin.GET("/products/:id", permMW("Produtos", permission.PermR), productHandler.GetProductByID)
 	admin.POST("/products", permMW("Produtos", permission.PermRW), productHandler.CreateProduct)

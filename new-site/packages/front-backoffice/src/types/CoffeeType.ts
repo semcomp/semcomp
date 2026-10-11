@@ -23,4 +23,8 @@ export interface CoffeeType {
    * Data de criação ou data vinculada ao evento/dia do Coffee (formato ISO/String)
    */
   date?: string;
+  /** 
+   * Data/hora formatada em pt-BR, só para exibição.
+   */
+  dateLabel?: string;
 }

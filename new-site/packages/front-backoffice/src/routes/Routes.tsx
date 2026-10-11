@@ -16,6 +16,7 @@ import PresenceSettings from "@/pages/PresenceSettings";
 import SponsorsCRUD from "@/pages/Sponsors";
 import SalesCRUD from "@/pages/Sales";
 import PapfeDocuments from "@/pages/PapfeDocuments";
+import CoffeeQRCodeReader from "@/pages/Coffee/QRCodeReader";
 import ValidateCoffee from "@/pages/Coffee";
 import RiddlesCRUD from "@/pages/Riddles";
 import EventRegistration from "@/pages/EventRegistration";
@@ -111,7 +112,10 @@ export const router = createBrowserRouter(
             },
             {
               element: <RequirePermission section="Coffee" />,
-              children: [{ path: "/coffee", element: <ValidateCoffee /> }],
+              children: [
+                { path: "/coffee", element: <ValidateCoffee /> },
+                { path: "/coffee/:datetime/qrcode-reader", element: <CoffeeQRCodeReader /> },
+              ],
             },
             {
               element: <RequirePermission section="Riddles" />,
