@@ -856,7 +856,7 @@ export default function Profile({
                   </div>
                 </div>
 
-                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mt-4 mb-4 disabled:cursor-not-allowed disabled:opacity-50"
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mt-4 mb-4 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
                   disabled={justificationLocked}
                   onClick={() => setJustifyOpen(true)}>
                   Justificar Ausência
@@ -1243,7 +1243,7 @@ export default function Profile({
           <button
             onClick={() => setJustifyOpen(true)}
             disabled={justificationLocked}
-            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           >
             Justificar Ausência
           </button>
@@ -1483,7 +1483,7 @@ export default function Profile({
                                 </span>
                               )}
                               <button
-                                className="px-6 py-2 rounded-xl font-bold text-sm uppercase tracking-wide shadow-sm hover:-translate-y-0.5 transition-all duration-300 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                                className="px-6 py-2 rounded-xl font-bold text-sm uppercase tracking-wide shadow-sm hover:-translate-y-0.5 transition-all duration-300 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 cursor-pointer"
                                 disabled={cancelingKey === key}
                                 onClick={() => setCancelConfirm({ eventName: evento.name, eventInitDate: evento.dateInit })}
                               >
