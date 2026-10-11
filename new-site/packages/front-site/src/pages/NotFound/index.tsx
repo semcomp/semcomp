@@ -19,7 +19,7 @@ export default function NotFoundPage() {
           </Link>
           <button
             onClick={() => window.history.back()}
-            className="rounded-xl border border-semcompMidLightBlue/40 px-5 py-2 font-poppins text-sm font-semibold transition hover:bg-semcompMidLightBlue/10"
+            className="rounded-xl border border-semcompMidLightBlue/40 px-5 py-2 font-poppins text-sm font-semibold transition hover:bg-semcompMidLightBlue/10 cursor-pointer"
           >
             Página anterior
           </button>

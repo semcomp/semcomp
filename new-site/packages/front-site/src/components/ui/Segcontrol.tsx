@@ -35,7 +35,7 @@ export default function SegmentedControl({ islogin, setIslogin, hook }: Segmente
             setIslogin(true)
             if(hook) hook()
           }}
-          className={`relative z-10 flex-1 text-sm font-medium transition-colors duration-300 ${
+          className={`relative z-10 flex-1 cursor-pointer text-sm font-medium transition-colors duration-300 ${
             islogin ? 'text-semcompDarkBlue' : 'text-semcompOffWhite'
           }`}
         >
@@ -48,7 +48,7 @@ export default function SegmentedControl({ islogin, setIslogin, hook }: Segmente
             setIslogin(false)
             if(hook) hook()
           }}
-          className={`relative z-10 flex-1 text-sm font-medium transition-colors duration-300 ${
+          className={`relative z-10 flex-1 cursor-pointer text-sm font-medium transition-colors duration-300 ${
             !islogin ? 'text-semcompDarkBlue' : 'text-semcompOffWhite'
           }`}
         >

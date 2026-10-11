@@ -167,7 +167,7 @@ export function FileUpload({
               type="button"
               onClick={handleRemove}
               aria-label="Remover arquivo"
-              className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+              className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive cursor-pointer"
             >
               <X className="size-4" />
             </button>

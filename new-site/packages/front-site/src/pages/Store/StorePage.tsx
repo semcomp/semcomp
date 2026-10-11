@@ -237,7 +237,7 @@ function OptionChip({
             e.stopPropagation();
             onRemove();
           }}
-          className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/10 disabled:opacity-30 transition-colors"
+          className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/10 disabled:opacity-30 transition-colors cursor-pointer disabled:cursor-not-allowed"
           disabled={count === 0}
           aria-label="Diminuir"
         >
@@ -256,7 +256,7 @@ function OptionChip({
             e.stopPropagation();
             onAdd();
           }}
-          className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/10 disabled:opacity-30 transition-colors"
+          className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/10 disabled:opacity-30 transition-colors cursor-pointer disabled:cursor-not-allowed"
           disabled={atMax}
           aria-label="Aumentar"
         >

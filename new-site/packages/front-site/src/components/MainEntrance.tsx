@@ -135,7 +135,7 @@ export default function MainEntrance() {
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
         <button
           onClick={scrollToContent}
-          className="flex flex-col items-center text-semcompOffWhite hover:text-semcompOffWhite/80 focus:outline-none text-2xl font-light"
+          className="flex flex-col items-center text-semcompOffWhite hover:text-semcompOffWhite/80 focus:outline-none text-2xl font-light cursor-pointer"
         >
           v
         </button>

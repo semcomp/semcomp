@@ -41,7 +41,7 @@ function StatusEyeButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       aria-label="Ver motivo da negativa"
       title="Ver motivo da negativa"
-      className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-semcompDarkBlue text-white transition-colors hover:bg-semcompMidDarkBlue dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white"
+      className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-semcompDarkBlue text-white transition-colors hover:bg-semcompMidDarkBlue dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white cursor-pointer"
     >
       <Eye className="w-4 h-4" />
     </button>
@@ -525,13 +525,13 @@ export default function Profile({
         <p className="text-sm text-center opacity-70 mb-6">Tem certeza que deseja desistir deste evento? Você pode perder sua vaga.</p>
         <div className="flex gap-3">
           <button
-            className="flex-1 py-2.5 rounded-xl border border-black/20 dark:border-white/20 text-sm font-semibold transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+            className="flex-1 py-2.5 rounded-xl border border-black/20 dark:border-white/20 text-sm font-semibold transition-colors hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer"
             onClick={() => setCancelConfirm(null)}
           >
             Voltar
           </button>
           <button
-            className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+            className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors cursor-pointer"
             onClick={() => {
               handleCancelSignin(cancelConfirm.eventName, cancelConfirm.eventInitDate);
               setCancelConfirm(null);
@@ -675,7 +675,7 @@ export default function Profile({
           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex backdrop-blur-md rounded-full p-1 border w-[90%] max-w-sm z-20 bg-semcompMidLightBlue/40 border-semcompDarkBlue/20 dark:bg-black/40 dark:border-white/20">
             <button
               onClick={() => setActiveTab("qr")}
-              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold cursor-pointer ${
                 activeTab === "qr"
                   ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
                   : "text-semcompDarkBlue dark:text-white opacity-80"
@@ -685,7 +685,7 @@ export default function Profile({
             </button>
             <button
               onClick={() => setActiveTab("account")}
-              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold cursor-pointer ${
                 activeTab === "account"
                   ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
                   : "text-semcompDarkBlue dark:text-white opacity-80"
@@ -695,7 +695,7 @@ export default function Profile({
             </button>
             <button
               onClick={() => setActiveTab("purchases")}
-              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold cursor-pointer ${
                 activeTab === "purchases"
                   ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
                   : "text-semcompDarkBlue dark:text-white opacity-80"
@@ -792,14 +792,14 @@ export default function Profile({
                 {isEditing ? (
                   <div className="flex gap-3 mb-4">
                     <button
-                      className="flex-1 bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold disabled:opacity-60"
+                      className="flex-1 bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
                       onClick={saveProfile}
                       disabled={isSaving || !editForm.name.trim() || !editForm.city.trim()}
                     >
                       {isSaving ? "Salvando..." : "Salvar"}
                     </button>
                     <button
-                      className="flex-1 border border-semcompDarkBlue text-semcompDarkBlue py-3 rounded-lg text-sm font-semibold"
+                      className="flex-1 border border-semcompDarkBlue text-semcompDarkBlue py-3 rounded-lg text-sm font-semibold cursor-pointer disabled:cursor-not-allowed"
                       onClick={() => setIsEditing(false)}
                       disabled={isSaving}
                     >
@@ -808,14 +808,14 @@ export default function Profile({
                   </div>
                 ) : (
                   <button
-                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 cursor-pointer"
                     onClick={startEditing}
                   >
                     Editar Informações
                   </button>
                 )}
 
-                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 cursor-pointer"
                   onClick={() => setPapfeModalOpen(true)}>
                   {papfeDoc ? "Atualizar Comprovante PAPFE" : "Enviar Comprovante PAPFE"}
                 </button>
@@ -873,7 +873,7 @@ export default function Profile({
                   </div>
                 )}
 
-                <button className="w-full text-red-700 font-bold text-sm py-2" onClick={logout}>
+                <button className="w-full text-red-700 font-bold text-sm py-2 cursor-pointer" onClick={logout}>
                   Sair da conta
                 </button>
               </div>
@@ -885,7 +885,7 @@ export default function Profile({
                 {isFeatureEnabled("loja") && pendingSalesCount > 0 && (
                   <button
                     onClick={() => navigate("/loja/pagamentos")}
-                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 cursor-pointer"
                   >
                     Ver pagamentos pendentes ({pendingSalesCount})
                   </button>
@@ -925,7 +925,7 @@ export default function Profile({
                           <button
                             type="button"
                             onClick={() => requestCancelPurchase(purchase)}
-                            className="mt-3 w-full text-sm font-semibold text-red-600 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors"
+                            className="mt-3 w-full text-sm font-semibold text-red-600 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors cursor-pointer"
                           >
                             Cancelar pedido
                           </button>
@@ -1059,7 +1059,7 @@ export default function Profile({
       <div className="flex mx-auto mb-5 w-[85%] rounded-full m-3 p-1 gap-1 border-2 border-semcompOffWhite/20 bg-semcompMidLight/20">
         <button
           onClick={() => setActiveTab("qr")}
-          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 ${
+          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 cursor-pointer ${
             activeTab === "qr"
               ? "bg-semcompDarkBlue text-semcompOffWhite shadow-md font-semibold"
               : "text-semcompDarkBlue/70 hover:text-semcompDarkBlue"
@@ -1069,7 +1069,7 @@ export default function Profile({
         </button>
         <button
           onClick={() => setActiveTab("account")}
-          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 ${
+          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 cursor-pointer ${
             activeTab === "account"
               ? "bg-semcompDarkBlue text-semcompOffWhite shadow-md font-semibold"
               : "text-semcompDarkBlue/70 hover:text-semcompDarkBlue"
@@ -1079,7 +1079,7 @@ export default function Profile({
         </button>
         <button
           onClick={() => setActiveTab("purchases")}
-          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 ${
+          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 cursor-pointer ${
             activeTab === "purchases"
               ? "bg-semcompDarkBlue text-semcompOffWhite shadow-md font-semibold"
               : "text-semcompDarkBlue/70 hover:text-semcompDarkBlue"
@@ -1179,14 +1179,14 @@ export default function Profile({
           {isEditing ? (
             <div className="flex gap-2 mb-4">
               <button
-                className="flex-1 bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-60"
+                className="flex-1 bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
                 onClick={saveProfile}
                 disabled={isSaving || !editForm.name.trim() || !editForm.city.trim()}
               >
                 {isSaving ? "Salvando..." : "Salvar"}
               </button>
               <button
-                className="flex-1 border border-semcompDarkBlue/40 text-semcompDarkBlue py-2.5 rounded-lg text-sm font-semibold hover:bg-semcompDarkBlue/5 transition-all"
+                className="flex-1 border border-semcompDarkBlue/40 text-semcompDarkBlue py-2.5 rounded-lg text-sm font-semibold hover:bg-semcompDarkBlue/5 transition-all cursor-pointer disabled:cursor-not-allowed"
                 onClick={() => setIsEditing(false)}
                 disabled={isSaving}
               >
@@ -1195,7 +1195,7 @@ export default function Profile({
             </div>
           ) : (
             <button
-              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8"
+              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8 cursor-pointer"
               onClick={startEditing}
             >
               Editar Informações
@@ -1204,7 +1204,7 @@ export default function Profile({
 
           <button
             onClick={() => setPapfeModalOpen(true)}
-            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 cursor-pointer"
           >
             {papfeDoc ? "Atualizar Comprovante PAPFE" : "Enviar Comprovante PAPFE"}
           </button>
@@ -1258,7 +1258,7 @@ export default function Profile({
 
           <button
             onClick={logout}
-            className="mt-6 text-xs text-white font-medium mx-auto bg-destructive/70 hover:text-semcompOffWhite hover:bg-destructive/50 transition-colors py-2 px-3 rounded-lg"
+            className="mt-6 text-xs text-white font-medium mx-auto bg-destructive/70 hover:text-semcompOffWhite hover:bg-destructive/50 transition-colors py-2 px-3 rounded-lg cursor-pointer"
           >
             Sair da conta
           </button>
@@ -1275,7 +1275,7 @@ export default function Profile({
           {isFeatureEnabled("loja") && pendingSalesCount > 0 && (
             <button
               onClick={() => navigate("/loja/pagamentos")}
-              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
+              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 cursor-pointer"
             >
               Ver pagamentos pendentes ({pendingSalesCount})
             </button>
@@ -1312,7 +1312,7 @@ export default function Profile({
                     <button
                       type="button"
                       onClick={() => requestCancelPurchase(purchase)}
-                      className="mt-3 w-full text-sm font-semibold text-red-600 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors"
+                      className="mt-3 w-full text-sm font-semibold text-red-600 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors cursor-pointer"
                     >
                       Cancelar pedido
                     </button>

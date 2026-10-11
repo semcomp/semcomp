@@ -118,7 +118,7 @@ export default function Carousel({ images }: CarouselProps) {
           <button
             onClick={scrollPrev}
             aria-label="Slide anterior"
-            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm border border-white/20 text-white p-2 rounded-full hover:bg-black/55 hover:scale-110 transition-all duration-200"
+            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm border border-white/20 text-white p-2 rounded-full hover:bg-black/55 hover:scale-110 transition-all duration-200 cursor-pointer"
           >
             <ChevronLeft size={18} />
           </button>
@@ -127,7 +127,7 @@ export default function Carousel({ images }: CarouselProps) {
           <button
             onClick={scrollNext}
             aria-label="Próximo slide"
-            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm border border-white/20 text-white p-2 rounded-full hover:bg-black/55 hover:scale-110 transition-all duration-200"
+            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-sm border border-white/20 text-white p-2 rounded-full hover:bg-black/55 hover:scale-110 transition-all duration-200 cursor-pointer"
           >
             <ChevronRight size={18} />
           </button>
@@ -141,7 +141,7 @@ export default function Carousel({ images }: CarouselProps) {
             key={i}
             onClick={() => scrollTo(i)}
             aria-label={`Ir para slide ${i + 1}`}
-            className={`h-1 rounded-full transition-all duration-300 ${
+            className={`h-1 rounded-full cursor-pointer transition-all duration-300 ${
               i === selectedIndex
                 ? 'w-6 bg-semcompMidLightBlue'
                 : 'w-3 bg-semcompOffWhite/25 hover:bg-semcompOffWhite/50'
