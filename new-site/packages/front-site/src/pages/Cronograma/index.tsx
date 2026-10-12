@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, memo, type ReactElement } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo, type ReactElement } from "react";
 import { MicVocal, Rocket, Trophy, Target, Gamepad2, Flag, Coffee, Clock, MapPin, X, MessageCircle, Store, Award, Music} from "lucide-react";
 import { eventsAPI } from "@/api/events";
 import type { EventType } from "@/types/EventType.ts";
@@ -325,7 +325,7 @@ const EventButton = memo(function EventButton({
       <button
         type="button"
         className={`${base} flex items-center gap-1.5 px-2 py-1 ${eventStyle.classes}`}
-        onClick={() => onClick(evento)}
+        onClick={() => onClick(evento)} 
       >
         <div
           className={`flex shrink-0 items-center justify-center rounded-md border p-1 ${eventStyle.classes}`}
@@ -564,9 +564,25 @@ function TimeGrid({
   showHourLabels?: boolean;
   pxPerHour?: number;
 }) {
+  // largura mínima para mobile / tablet
+  const columnWidth = 150;
   const positioned = useMemo(() => computeLayout(events), [events]);
   const totalMs = timeRange.end - timeRange.start;
   const containerHeight = (totalMs / MS_PER_HOUR) * pxPerHour;
+  const maxColumns = Math.max(
+    1,
+    ...positioned.map(event => event.totalColumns)
+  );
+  const gridWidth = maxColumns * columnWidth; 
+
+  const scrollRef = useRef<HTMLDivElement>(null);  
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({
+      left: 0,
+      behavior: "auto",
+    });
+  }, [timeRange.start]);
 
   const hourMarks: number[] = [];
   for (
@@ -596,47 +612,63 @@ function TimeGrid({
         </div>
       )}
 
-      <div className="relative flex-1" style={{ height: containerHeight }}>
-        {hourMarks.map((t) => {
-          const topPx = ((t - timeRange.start) / MS_PER_HOUR) * pxPerHour;
-          return (
-            <div
-              key={t}
-              className="absolute inset-x-0 border-t border-semcompMidDarkBlue/15 dark:border-white/10 pointer-events-none"
-              style={{ top: topPx }}
-            />
-          );
-        })}
-
-        {positioned.map((event) => {
-          const s = new Date(event.dateInit).getTime();
-          const e = new Date(event.dateEnd).getTime();
-          const topPx = ((s - timeRange.start) / MS_PER_HOUR) * pxPerHour;
-          const heightPx = ((e - s) / MS_PER_HOUR) * pxPerHour;
-          const leftPct = (event.column / event.totalColumns) * 100;
-          const widthPct = (1 / event.totalColumns) * 100;
-
-          return (
-            <div
-              key={`${event.name}-${event.dateInit}`}
-              className="@container absolute box-border p-0.5 group/card hover:z-10"
-              style={{
-                top: topPx,
-                height: Math.max(heightPx, 28),
-                left: `${leftPct}%`,
-                width: `${widthPct}%`,
-              }}
-            >
-              <EventButton
-                evento={event}
-                onClick={onSelect}
-                captionClasses={captionClasses}
-                heightPx={Math.max(heightPx, 28)}
-                compact={viewMode === "week" || heightPx < 30}
+      <div ref={scrollRef} className="flex-1 overflow-x-auto overflow-y-hidden snap-x snap-mandatory">
+        <div 
+          className="relative w-[var(--grid-width)] lg:w-full" 
+          style={{ 
+            height: containerHeight,
+            "--grid-width": `${gridWidth}px`,
+          }as any}>
+          {hourMarks.map((t) => {
+            const topPx = ((t - timeRange.start) / MS_PER_HOUR) * pxPerHour;
+            return (
+              <div
+                key={t}
+                className="absolute inset-x-0 border-t border-semcompMidDarkBlue/15 dark:border-white/10 pointer-events-none"
+                style={{ top: topPx }}
               />
-            </div>
-          );
-        })}
+            );
+          })}
+
+          {positioned.map((event) => {
+            const s = new Date(event.dateInit).getTime();
+            const e = new Date(event.dateEnd).getTime();
+            const topPx = ((s - timeRange.start) / MS_PER_HOUR) * pxPerHour;
+            const heightPx = ((e - s) / MS_PER_HOUR) * pxPerHour;
+
+            // Posição calculada para Mobile / Tablet
+            const leftPos = event.column * columnWidth;
+
+            // Grid divida para Desktop
+            const leftPct = (event.column / event.totalColumns) * 100;
+            const widthPct = (1 / event.totalColumns) * 100;
+
+            return (
+              <div
+                key={`${event.name}-${event.dateInit}`}
+                className={`@container absolute box-border p-0.5 group/card hover:z-10 left-[var(--left-mobile)] w-[var(--width-mobile)] lg:left-[var(--left-desktop)] lg:w-[var(--width-desktop)] snap-start`}
+                style={{
+                  top: topPx,
+                  height: Math.max(heightPx, 28),
+
+                  "--left-mobile": `${leftPos}px`,
+                  "--width-mobile": `${columnWidth}px`,
+
+                  "--left-desktop": `${leftPct}%`,
+                  "--width-desktop": `${widthPct}%`,
+                }as any}
+              >
+                <EventButton
+                  evento={event}
+                  onClick={onSelect}
+                  captionClasses={captionClasses}
+                  heightPx={Math.max(heightPx, 28)}
+                  compact={viewMode === "week" || heightPx < 30}
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
