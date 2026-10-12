@@ -153,7 +153,7 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 		"name":           "e.name",
 		"init_date":      "e.init_date",
 		"end_date":       "e.end_date",
-		"type":           "COALESCE(w.type_name, e.type)",
+		"type":           "COALESCE(w.type_name, 'Nenhum')",
 		"location":       "e.location",
 		"description":    "e.description",
 		"has_attendance": "e.has_attendance",
