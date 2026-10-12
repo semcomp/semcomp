@@ -20,7 +20,6 @@ const MS_PER_HOUR = 60 * 60 * 1000;
 // São Paulo = UTC-3; midnight BR = 03:00 UTC (October, before DST)
 const BR_OFFSET_MS = 3 * MS_PER_HOUR;
 const PX_PER_HOUR_DAY = 180;
-const PX_PER_HOUR_WEEK = 90;
 
 // Tamanhos de fonte padronizados entre os cards
 const FONT = {
@@ -34,7 +33,6 @@ type DayOption = {
   day: number;
   label: string;
   weekdayShort: string;
-  weekdayLong: string;
   isToday: boolean;
   isPast: boolean;
 };
@@ -52,15 +50,10 @@ const buildDayOptions = (): DayOption[] => {
       .replace(".", "")
       .toUpperCase();
 
-    const weekdayLong = date
-      .toLocaleDateString("pt-BR", { weekday: "long", timeZone: "UTC" })
-      .toUpperCase();
-
     return {
       day,
       label: `${String(day).padStart(2, "0")}/${String(SEMCOMP_MONTH).padStart(2, "0")}`,
       weekdayShort,
-      weekdayLong,
       isToday: dayUTC === todayUTC,
       isPast: dayUTC < todayUTC,
     };
@@ -143,44 +136,6 @@ const getTimeRange = (events: EventType[]): { start: number; end: number } | nul
   return {
     start: Math.floor(Math.min(...starts) / MS_PER_HOUR) * MS_PER_HOUR,
     end: Math.ceil(Math.max(...ends) / MS_PER_HOUR) * MS_PER_HOUR,
-  };
-};
-
-/**
- * Shared "time-of-day" range (hours since midnight BR) across all week days.
- * Uses the BR calendar day anchor so that events crossing UTC midnight are handled correctly.
- */
-const getWeekTimeOfDayRange = (
-  processedWeek: { option: DayOption; events: EventType[] }[]
-): { startHours: number; endHours: number } | null => {
-  let minH = Infinity;
-  let maxH = -Infinity;
-
-  for (const { option, events: dayEvents } of processedWeek) {
-    if (!dayEvents.length) continue;
-    // Midnight BR = 03:00 UTC of the same UTC calendar day
-    const brDayStart = Date.UTC(SEMCOMP_YEAR, SEMCOMP_MONTH - 1, option.day) + BR_OFFSET_MS;
-    for (const ev of dayEvents) {
-      const s = (new Date(ev.dateInit).getTime() - brDayStart) / MS_PER_HOUR;
-      const e = (new Date(ev.dateEnd).getTime() - brDayStart) / MS_PER_HOUR;
-      if (s < minH) minH = s;
-      if (e > maxH) maxH = e;
-    }
-  }
-
-  if (minH === Infinity) return null;
-  return { startHours: Math.floor(minH), endHours: Math.ceil(maxH) };
-};
-
-/** Converts a time-of-day range into absolute UTC timestamps for a specific UTC calendar day. */
-const getDayRangeForWeek = (
-  utcDay: number,
-  weekRange: { startHours: number; endHours: number }
-): { start: number; end: number } => {
-  const brDayStart = Date.UTC(SEMCOMP_YEAR, SEMCOMP_MONTH - 1, utcDay) + BR_OFFSET_MS;
-  return {
-    start: brDayStart + weekRange.startHours * MS_PER_HOUR,
-    end: brDayStart + weekRange.endHours * MS_PER_HOUR,
   };
 };
 
@@ -295,14 +250,12 @@ const EventButton = memo(function EventButton({
   onClick,
   captionClasses,
   compact = false,
-  week = false,
   heightPx = Infinity,
 }: {
   evento: EventType;
   onClick: (evento: EventType) => void;
   captionClasses: string;
   compact?: boolean;
-  week?: boolean;
   heightPx?: number;
 }): ReactElement {
   const eventStyle = getEventTypeStyle(evento.type);
@@ -339,36 +292,7 @@ const EventButton = memo(function EventButton({
     );
   }
 
-  // week: layout vertical — tipo → nome → horário → local (overflow-hidden corta o que não cabe)
-  if (week) {
-    return (
-      <button
-        type="button"
-        className={`${base} flex flex-col justify-start gap-0.5 p-2 ${eventStyle.classes}`}
-        onClick={() => onClick(evento)}
-      >
-        <div className={`flex items-center gap-1 ${FONT.type} ${effectiveCaptionClasses}`}>
-          <EventTypeIcon type={evento.type} className="h-3 w-3 shrink-0" />
-          <span className="font-medium truncate">{evento.type}</span>
-        </div>
-        <p className={`font-poppins-bold break-words leading-tight ${FONT.name}`}>
-          {evento.name}
-        </p>
-        <span className={`flex items-center gap-1 whitespace-nowrap ${FONT.meta} ${effectiveCaptionClasses}`}>
-          <Clock className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />
-          {formatTime(evento.dateInit)} – {formatTime(evento.dateEnd)}
-        </span>
-        {evento.location && (
-          <span className={`flex items-center gap-1 ${FONT.meta} ${effectiveCaptionClasses}`}>
-            <MapPin className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />
-            <span className="truncate">{evento.location}</span>
-          </span>
-        )}
-      </button>
-    );
-  }
-
-      return (
+  return (
     <button
       type="button"
       className={`${base} flex items-center px-2 py-1.5 md:px-4 md:py-3 ${eventStyle.classes}`}
@@ -747,26 +671,6 @@ export default function CronogramaPage(): ReactElement {
     return Math.ceil(p);
   }, [filteredEvents]);
 
-  const processedWeek = useMemo(
-    () =>
-      dayOptions.map((option) => {
-        const dayEvents = events.filter((event) => {
-          const brDate = new Date(new Date(event.dateInit).getTime() - BR_OFFSET_MS);
-          return (
-            brDate.getUTCFullYear() === SEMCOMP_YEAR &&
-            brDate.getUTCMonth() === SEMCOMP_MONTH - 1 &&
-            brDate.getUTCDate() === option.day
-          );
-        });
-        return { option, events: dayEvents };
-      }),
-    [events]
-  );
-
-  const weekTimeOfDayRange = useMemo(
-    () => getWeekTimeOfDayRange(processedWeek),
-    [processedWeek]
-  );
 
   const handleSelectEvent = useCallback((evento: EventType) => {
     setSelectedEvent(evento);
@@ -922,7 +826,6 @@ export default function CronogramaPage(): ReactElement {
                 timeRange={dayTimeRange}
                 onSelect={handleSelectEvent}
                 captionClasses={cardCaptionClasses}
-                viewMode="day"
                 showHourLabels
                 pxPerHour={dayPxPerHour}
               />
