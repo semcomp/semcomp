@@ -173,10 +173,14 @@ function FilterControl({
   activeField,
   filter,
   onChange,
+  onCommit,
+  onClear,
 }: {
   activeField: CrudField | undefined;
   filter: string;
   onChange: (v: string) => void;
+  onCommit: (v?: string) => void;
+  onClear: () => void;
 }) {
   const triggerCls = "flex-1 bg-muted/40 border-muted/30 text-foreground text-sm";
   const itemCls = "text-primary focus:bg-muted/50 cursor-pointer";
@@ -185,7 +189,11 @@ function FilterControl({
     return (
       <Select
         value={filter || "__all__"}
-        onValueChange={(v) => onChange(v === "__all__" ? "" : v)}
+        onValueChange={(v) => {
+          const val = v === "__all__" ? "" : v;
+          onChange(val);
+          onCommit(val);
+        }}
       >
         <SelectTrigger className={triggerCls}>
           <SelectValue placeholder="Todos" />
@@ -207,7 +215,11 @@ function FilterControl({
     return (
       <Select
         value={filter || "__all__"}
-        onValueChange={(v) => onChange(v === "__all__" ? "" : v)}
+        onValueChange={(v) => {
+          const val = v === "__all__" ? "" : v;
+          onChange(val);
+          onCommit(val);
+        }}
       >
         <SelectTrigger className={triggerCls}>
           <SelectValue placeholder="Todos" />
@@ -235,12 +247,20 @@ function FilterControl({
         placeholder={`Filtrar por ${activeField?.label ?? "campo"}…`}
         value={filter}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            onCommit();
+          }
+        }}
         className="pl-9 bg-muted/40 border-muted/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
       />
       {filter && (
         <button
-          onClick={() => onChange("")}
+          type="button"
+          onClick={onClear}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          aria-label="Limpar filtro"
         >
           <X className="w-4 h-4" />
         </button>
@@ -316,6 +336,7 @@ export function CrudTable({
   const tableFields = fields.filter((f) => !f.hideInTable);
 
   const [filter, setFilter] = useState("");
+  const [committedFilter, setCommittedFilter] = useState("");
   const [filterField, setFilterField] = useState(
     filterableFields[0]?.value ?? "name"
   );
@@ -394,9 +415,9 @@ export function CrudTable({
       sortField,
       sortOrder,
       filterField,
-      filterValue: filter,
+      filterValue: committedFilter,
     });
-  }, [page, pageSize, sortField, sortOrder, filterField, filter]);
+  }, [page, pageSize, sortField, sortOrder, filterField, committedFilter]);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -410,12 +431,24 @@ export function CrudTable({
 
   const handleFilterChange = (value: string) => {
     setFilter(value);
+  };
+
+  const handleFilterCommit = (valueToCommit?: string) => {
+    const val = valueToCommit !== undefined ? valueToCommit : filter;
+    setCommittedFilter(val);
+    setPage(1);
+  };
+
+  const handleFilterClear = () => {
+    setFilter("");
+    setCommittedFilter("");
     setPage(1);
   };
 
   const handleFilterFieldChange = (value: string) => {
     setFilterField(value);
     setFilter("");
+    setCommittedFilter("");
     setPage(1);
   };
 
@@ -679,7 +712,21 @@ export function CrudTable({
             activeField={activeFilterField}
             filter={filter}
             onChange={handleFilterChange}
+            onCommit={handleFilterCommit}
+            onClear={handleFilterClear}
           />
+
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => handleFilterCommit()}
+            className="bg-muted/40 border-muted/30 hover:bg-muted text-foreground shrink-0"
+            title="Buscar"
+            aria-label="Buscar"
+          >
+            <Search className="w-4 h-4" />
+          </Button>
         </div>
 
         {canWrite && onCreate && (
@@ -842,9 +889,9 @@ export function CrudTable({
                   <div className="flex flex-col items-center gap-2">
                     <Search className="w-8 h-8 opacity-30" />
                     <p>Nenhum resultado encontrado</p>
-                    {filter && (
+                    {(committedFilter || filter) && (
                       <button
-                        onClick={() => handleFilterChange("")}
+                        onClick={handleFilterClear}
                         className="text-primary hover:text-primary/80 text-sm"
                       >
                         Limpar filtro
