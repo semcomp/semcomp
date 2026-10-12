@@ -309,7 +309,7 @@ const EventButton = memo(function EventButton({
   const effectiveCaptionClasses = eventStyle.captionClasses ?? captionClasses;
 
   // O que cabe em cada altura
-  const showTime = heightPx >= 30;
+  const showTime = heightPx >= 90;
   const showLocation = heightPx >= 55;
   const showType = heightPx >= 80;
   const showIconBox = heightPx >= 40;
