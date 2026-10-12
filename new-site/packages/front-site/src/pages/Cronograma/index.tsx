@@ -552,7 +552,6 @@ function TimeGrid({
   timeRange,
   onSelect,
   captionClasses,
-  viewMode = "day",
   showHourLabels = false,
   pxPerHour = PX_PER_HOUR_DAY,
 }: {
@@ -560,7 +559,6 @@ function TimeGrid({
   timeRange: { start: number; end: number };
   onSelect: (evento: EventType) => void;
   captionClasses: string;
-  viewMode?: "day" | "week";
   showHourLabels?: boolean;
   pxPerHour?: number;
 }) {
@@ -663,7 +661,6 @@ function TimeGrid({
                   onClick={onSelect}
                   captionClasses={captionClasses}
                   heightPx={Math.max(heightPx, 28)}
-                  compact={viewMode === "week" || heightPx < 30}
                 />
               </div>
             );
@@ -679,7 +676,6 @@ function TimeGrid({
 export default function CronogramaPage(): ReactElement {
   const { isDarkMode } = useTheme();
 
-  const [viewMode, setViewMode] = useState<"day" | "week">("day");
   const [events, setEvents] = useState<EventType[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
@@ -828,32 +824,7 @@ export default function CronogramaPage(): ReactElement {
               </h1>
             </div>
 
-            <div className="flex flex-wrap md:items-end md:justify-end gap-3">
-              <div className="inline-flex rounded-xl border border-semcompLightBlue bg-white/70 p-1 border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75">
-                <button
-                  type="button"
-                  onClick={() => setViewMode("day")}
-                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
-                    viewMode === "day"
-                      ? "dark:bg-semcompMidDarkBlue bg-semcompMidLightBlue text-white"
-                      : "text-semcompDarkBlue dark:text-semcompOffWhite"
-                  }`}
-                >
-                  Por dia
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode("week")}
-                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
-                    viewMode === "week"
-                      ? "dark:bg-semcompMidDarkBlue bg-semcompMidLightBlue text-white"
-                      : "text-semcompDarkBlue dark:text-semcompOffWhite"
-                  }`}
-                >
-                  Semana
-                </button>
-              </div>
-            </div>
+            
           </div>
 
           <div className="relative w-full mt-4 border border-b-0 rounded-t-lg overflow-hidden">
@@ -870,7 +841,6 @@ export default function CronogramaPage(): ReactElement {
         </header>
 
         {/* ── Day navigation ── */}
-        {viewMode === "day" && (
           <nav
             aria-label="Dias do cronograma"
             className="mb-3 flex items-center justify-center gap-2 sm:gap-4 bg-semcompLightBlue dark:bg-semcompDarkBlue border border-t-0 rounded-b-[4px] py-3 px-5"
@@ -927,12 +897,11 @@ export default function CronogramaPage(): ReactElement {
               </svg>
             </button>
           </nav>
-        )}
+        
 
         <EventModal selected={selectedEvent} onClose={handleCloseModal} captionClasses={modalCaptionClasses} />
 
         {/* ── Day view ── */}
-        {viewMode === "day" && (
           <div
             className="overflow-y-auto custom-scrollbar p-5 rounded-lg"
             style={{
@@ -959,72 +928,8 @@ export default function CronogramaPage(): ReactElement {
               />
             ) : null}
           </div>
-        )}
+        
 
-        {/* ── Week view ── */}
-        {viewMode === "week" && (
-          loading ? (
-            <div className="flex items-center justify-center py-12">
-              <p className="text-semcompDarkBlue/60 dark:text-white/70">Carregando eventos...</p>
-            </div>
-          ) : (
-            <div
-              className="flex w-full gap-2 sm:gap-3 md:gap-5 overflow-x-auto custom-scrollbar p-3 sm:p-4 md:p-5 rounded-b-md border border-t-0"
-              style={{
-                backgroundImage: `linear-gradient(to top, ${gradientColor} 100%, ${gradientColor}00 100%)`,
-              }}
-            >
-              {processedWeek.map(({ option, events: dayEvents }, index) => {
-                const dayRange = weekTimeOfDayRange
-                  ? getDayRangeForWeek(option.day, weekTimeOfDayRange)
-                  : null;
-
-                return (
-                  <div
-                    key={option.day}
-                    className={`w-120 shrink-0 ${
-                      index !== processedWeek.length - 1
-                        ? "border-r border-semcompMidDarkBlue/20 pr-2 sm:pr-3 md:pr-5"
-                        : ""
-                    }`}
-                  >
-                    <h2 className="mb-2 font-poppins-bold text-[10px] sm:text-xs md:text-sm text-semcompDarkBlue dark:text-white text-center">
-                      <span className="hidden sm:inline">{option.weekdayLong} — </span>
-                      <span className="sm:hidden">{option.weekdayShort} </span>
-                      {option.label}
-                    </h2>
-
-                    {dayRange ? (
-                      dayEvents.length === 0 ? (
-                        <div
-                          className="relative flex items-center justify-center"
-                          style={{
-                            height:
-                              ((weekTimeOfDayRange!.endHours - weekTimeOfDayRange!.startHours) *
-                                PX_PER_HOUR_WEEK),
-                          }}
-                        >
-                          <p className="text-semcompDarkBlue/40 dark:text-white/40 text-sm">Nenhum evento</p>
-                        </div>
-                      ) : (
-                        <TimeGrid
-                          events={dayEvents}
-                          timeRange={dayRange}
-                          onSelect={handleSelectEvent}
-                          captionClasses={cardCaptionClasses}
-                          viewMode="week"
-                          pxPerHour={PX_PER_HOUR_WEEK}
-                        />
-                      )
-                    ) : (
-                      <p className="text-semcompDarkBlue/60 dark:text-white/60 text-center">Nenhum evento neste dia.</p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )
-        )}
       </div>
 
     </section>
