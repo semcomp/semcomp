@@ -169,7 +169,7 @@ function formatDateForInput(val: unknown): string {
 // ─── FilterControl ─────────────────────────────────────────────────────────────
 
 // Type-aware filter: boolean → Sim/Não select, select+variants → variant select,
-// date → texto livre (data opcionalmente com hora), others → text input.
+// date → data + hora opcional (24h), others → text input.
 function FilterControl({
   activeField,
   filter,
@@ -181,6 +181,40 @@ function FilterControl({
 }) {
   const triggerCls = "flex-1 bg-muted/40 border-muted/30 text-foreground text-sm";
   const itemCls = "text-primary focus:bg-muted/50 cursor-pointer";
+
+  // Filtro de data = dois campos locais (data + hora opcional). A hora é
+  // opcional: deixá-la vazia busca o dia inteiro; preenchida, busca o horário
+  // exato. Guardamos data e hora separados porque o <input type="date"> reporta
+  // value="" enquanto os segmentos estão incompletos — propagar esse "" para o
+  // filtro limparia o campo no meio da digitação. Só sobe data COMPLETA; limpar
+  // o filtro é pelo botão X (ou ao sair do campo vazio, no blur).
+  const [datePart, setDatePart] = useState(
+    activeField?.type === "date" ? filter?.slice(0, 10) ?? "" : ""
+  );
+  const [timePart, setTimePart] = useState(
+    activeField?.type === "date" && filter?.includes(" ")
+      ? filter.slice(11, 16)
+      : ""
+  );
+
+  // Só reage à limpeza externa (troca de campo / X). Não sincroniza valores
+  // não-vazios: o estado local já é a fonte correta dos campos.
+  useEffect(() => {
+    if (activeField?.type === "date" && !filter) {
+      setDatePart("");
+      setTimePart("");
+    }
+  }, [filter, activeField?.type]);
+
+  // Monta o valor do filtro: sem data não há busca; com hora → AAAA-MM-DD HH:MM,
+  // sem hora → AAAA-MM-DD (dia inteiro).
+  const emitDateFilter = (date: string, time: string) => {
+    if (!date) {
+      onChange("");
+      return;
+    }
+    onChange(time ? `${date} ${time}` : date);
+  };
 
   if (activeField?.type === "boolean") {
     return (
@@ -229,18 +263,58 @@ function FilterControl({
     );
   }
 
-  // Campos de data: texto livre com exemplo no placeholder. Aceita só a data
-  // (filtra o dia inteiro) ou data + hora opcional (filtra aquele horário).
-  const placeholder =
-    activeField?.type === "date"
-      ? "ex.: 06/10/2026 ou 06/10/2026 14:30"
-      : `Filtrar por ${activeField?.label ?? "campo"}…`;
+  // Data + hora opcional. A hora deixa o formato em 24h (padrão pt-BR).
+  if (activeField?.type === "date") {
+    return (
+      <div className="flex flex-1 items-center gap-2">
+        <Input
+          type="date"
+          lang="pt-BR"
+          value={datePart}
+          onChange={(e) => {
+            const d = e.target.value;
+            setDatePart(d);
+            if (d) emitDateFilter(d, timePart); // só sobe data completa
+          }}
+          onBlur={() => {
+            if (!datePart) onChange(""); // saiu vazio → limpa o filtro
+          }}
+          className="flex-1 bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+        />
+        <Input
+          type="time"
+          lang="pt-BR"
+          value={timePart}
+          onChange={(e) => {
+            const t = e.target.value;
+            setTimePart(t);
+            if (datePart) emitDateFilter(datePart, t);
+          }}
+          className="w-[6.5rem] bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+          aria-label="Hora (opcional)"
+        />
+        {datePart && (
+          <button
+            onClick={() => {
+              setDatePart("");
+              setTimePart("");
+              onChange("");
+            }}
+            className="shrink-0 text-muted-foreground hover:text-foreground"
+            aria-label="Limpar filtro de data"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex-1">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
       <Input
-        placeholder={placeholder}
+        placeholder={`Filtrar por ${activeField?.label ?? "campo"}…`}
         value={filter}
         onChange={(e) => onChange(e.target.value)}
         className="pl-9 bg-muted/40 border-muted/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
