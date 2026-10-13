@@ -181,7 +181,7 @@ export default function LoginPage(): ReactElement {
         try {
             const response = await authAPI.register(
                 name, email, password, Number(age), gender, city, education,
-                hasPapfe, hasDisability ? disabilities : [], querCracha,
+                hasPapfe, hasDisability ? disabilities : [],
                 autorizaCompartilhamento === true,
                 profession, linkedin, telegram, papfeFile,
             );
@@ -457,11 +457,13 @@ export default function LoginPage(): ReactElement {
                                 )}
                             </div>
 
+                        {/*
                             <p className="text-xs font-bold uppercase tracking-wider opacity-70 border-b border-gray-400/30 pb-1 pt-2">Evento</p>
                             <label className="flex items-center justify-between cursor-pointer text-sm font-medium">
                                 <span>Deseja retirar o crachá físico no evento?</span>
                                 <input type="checkbox" checked={querCracha} onChange={(e) => setQuerCracha(e.target.checked)} className="w-5 h-5 rounded accent-semcompMidDarkBlue cursor-pointer" />
-                            </label>
+                            </label> 
+                        */}
 
                             <p className="text-xs font-bold uppercase tracking-wider opacity-70 border-b border-gray-400/30 pb-1 pt-2">Redes Sociais (Opcional)</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
