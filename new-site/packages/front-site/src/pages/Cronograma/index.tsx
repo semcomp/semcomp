@@ -534,9 +534,9 @@ function TimeGrid({
         </div>
       )}
 
-      <div ref={scrollRef} className="flex-1 overflow-x-auto overflow-y-hidden snap-x snap-mandatory">
+      <div ref={scrollRef} className="flex-1 overflow-x-auto overflow-y-hidden snap-x snap-mandatory lg:overflow-visible lg:overflow-y-visible lg:snap-none">
         <div 
-          className="relative w-[var(--grid-width)] lg:w-full" 
+          className="relative w-[max(100%,var(--grid-width))] lg:w-full" 
           style={{ 
             height: containerHeight,
             "--grid-width": `${gridWidth}px`,
