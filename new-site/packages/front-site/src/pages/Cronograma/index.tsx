@@ -68,6 +68,7 @@ const getDayOption = (day: number): DayOption => dayOptions[day - EVENT_DAYS_STA
 type PositionedEvent = EventType & {
   column: number;
   totalColumns: number;
+  columnSpan: number;
 };
 
 /**
@@ -121,10 +122,27 @@ const computeLayout = (events: EventType[]): PositionedEvent[] => {
     });
   }
 
+  const spans = new Array(n).fill(1);
+
+  for (let i = 0; i < n; i++) {
+    for (let nextCol = cols[i] + 1; nextCol < totalColsArr[i]; nextCol++) {
+      const hasConflict = sorted.some((_, j) =>
+        cols[j] === nextCol &&
+        starts[i] < ends[j] &&
+        starts[j] < ends[i]
+      );
+
+      if (hasConflict) break;
+
+      spans[i]++;
+    }
+  }  
+
   return sorted.map((event, i) => ({
     ...event,
     column: cols[i],
     totalColumns: totalColsArr[i],
+    columnSpan: spans[i],
   }));
 };
 
@@ -558,12 +576,9 @@ function TimeGrid({
             const topPx = ((s - timeRange.start) / MS_PER_HOUR) * pxPerHour;
             const heightPx = ((e - s) / MS_PER_HOUR) * pxPerHour;
 
-            // Posição calculada para Mobile / Tablet
-            const leftPos = event.column * columnWidth;
-
             // Grid divida para Desktop
             const leftPct = (event.column / event.totalColumns) * 100;
-            const widthPct = (1 / event.totalColumns) * 100;
+            const widthPct = (event.columnSpan / event.totalColumns) * 100;
 
             return (
               <div
@@ -573,8 +588,8 @@ function TimeGrid({
                   top: topPx,
                   height: Math.max(heightPx, 28),
 
-                  "--left-mobile": `${leftPos}px`,
-                  "--width-mobile": `${columnWidth}px`,
+                  "--left-mobile": `calc(${event.column} * max(${columnWidth}px, 100% / ${maxColumns}))`,
+                  "--width-mobile": `calc(${event.columnSpan} * max(${columnWidth}px, 100% / ${maxColumns}))`,
 
                   "--left-desktop": `${leftPct}%`,
                   "--width-desktop": `${widthPct}%`,
