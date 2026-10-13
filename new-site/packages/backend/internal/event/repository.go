@@ -105,6 +105,10 @@ func applySearchFilter(dbQuery *gorm.DB, query EventListQuery) *gorm.DB {
 	case "name":
 		return dbQuery.Where("unaccent(e.name) ILIKE unaccent(?)", "%"+query.SearchValue+"%")
 	case "type":
+		// "__none__" é o valor do filtro "Nenhum" do backoffice: eventos sem tipo
+		if query.SearchValue == "__none__" {
+			return dbQuery.Where("w.id IS NULL AND COALESCE(e.type, '') = ''")
+		}
 		return dbQuery.Where("unaccent(w.type_name) ILIKE unaccent(?) OR unaccent(e.type) ILIKE unaccent(?)", "%"+query.SearchValue+"%", "%"+query.SearchValue+"%")
 	case "location":
 		return dbQuery.Where("unaccent(e.location) ILIKE unaccent(?)", "%"+query.SearchValue+"%")

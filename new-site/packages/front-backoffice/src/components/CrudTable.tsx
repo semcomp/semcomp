@@ -218,7 +218,7 @@ function FilterControl({
           className="bg-white border-muted/30 shadow-md"
         >
           <SelectItem value="__all__" className={itemCls}>Todos</SelectItem>
-          {Object.keys(activeField.selectVariants).filter((v) => v !== "__none__").map((v) => (
+          {Object.keys(activeField.selectVariants).map((v) => (
             <SelectItem key={v} value={v} className={itemCls}>
               {activeField.selectLabels?.[v] ?? v}
             </SelectItem>
@@ -564,9 +564,13 @@ export function CrudTable({
     }
 
     if (field.type === "select" && field.selectVariants) {
+      // Valor vazio (sem tipo) é exibido como "Nenhum", igual à opção do
+      // filtro e dos formulários, em vez do "—" genérico.
+      const isEmpty = raw == null || raw === "";
+      const key = isEmpty && "__none__" in field.selectVariants ? "__none__" : val;
       const cls =
-        field.selectVariants[val] ?? "bg-muted/50 text-foreground";
-      const label = val === "__none__" ? "Nenhum" : (field.selectLabels?.[val] ?? val);
+        field.selectVariants[key] ?? "bg-muted/50 text-foreground";
+      const label = key === "__none__" ? "Nenhum" : (field.selectLabels?.[key] ?? key);
       return (
         <Badge className={`text-xs font-medium px-2 py-0.5 ${cls}`}>
           {label}
