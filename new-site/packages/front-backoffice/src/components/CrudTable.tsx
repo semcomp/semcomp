@@ -330,7 +330,9 @@ export function CrudTable({
   );
   // Colunas que podem ordenar no servidor (default: todas, exceto as marcadas
   // como `sortable: false`, cujo valor não existe como campo no backend).
-  const sortableFields = fields.filter((f) => f.sortable !== false).map((f) => f.value);
+  const sortableFields = fields.
+    filter((f) => f.sortable !== false)
+    .map((f) => f.sortValue ?? f.value);
   // Colunas de fato exibidas na tabela (hideInTable tira campos só-de-form,
   // como "image-preview", que só fazem sentido dentro do modal).
   const tableFields = fields.filter((f) => !f.hideInTable);
@@ -860,17 +862,18 @@ export function CrudTable({
           <TableHeader>
             <TableRow className="border-border bg-muted/30 hover:bg-muted/30">
               {tableFields.map((f) => {
-                const isSortable = sortableFields.includes(f.value);
+                const sortKey = f.sortValue ?? f.value;
+                const isSortable = sortableFields.includes(sortKey);
                 return (
                   <TableHead
                     key={f.value}
                     className={`select-none text-muted-foreground text-xs font-semibold uppercase tracking-wider transition-colors ${
                       isSortable ? "cursor-pointer hover:text-primary" : ""
                     }`}
-                    onClick={isSortable ? () => handleSort(f.sortValue ?? f.value) : undefined}
+                    onClick={isSortable ? () => handleSort(sortKey) : undefined}
                   >
                     {f.label}
-                    <SortIcon field={f.value} />
+                    <SortIcon field={(sortKey)} />
                   </TableHead>
                 );
               })}
