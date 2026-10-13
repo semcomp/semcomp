@@ -128,7 +128,7 @@ export default function VerifyEmailPage() {
                 type="button"
                 onClick={handleResend}
                 disabled={resending}
-                className="w-full rounded-xl bg-semcompMidDarkBlue px-5 py-2 font-poppins text-sm font-semibold text-semcompOffWhite transition hover:bg-semcompAlmostDarkBlue disabled:opacity-50"
+                className="w-full rounded-xl bg-semcompMidDarkBlue px-5 py-2 font-poppins text-sm font-semibold text-semcompOffWhite transition hover:bg-semcompAlmostDarkBlue disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
               >
                 {resending ? "Enviando..." : "Reenviar e-mail de confirmação"}
               </button>

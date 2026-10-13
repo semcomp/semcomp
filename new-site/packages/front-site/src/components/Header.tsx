@@ -87,7 +87,7 @@ export default function Header() {
         {isMobile ? (
           <div className="relative">
             <button
-              className="text-semcompOffWhite text-2xl"
+              className="text-semcompOffWhite text-2xl cursor-pointer"
               onClick={() => setIsMenuOpen((prev) => !prev)}
             >
               <Menu />

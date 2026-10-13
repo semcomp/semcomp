@@ -340,3 +340,51 @@ func TestResendVerification_AlwaysGeneric(t *testing.T) {
 		}
 	})
 }
+
+// Testa se GetAllUsers aceita ordenar pelas colunas booleanas e de deficiências da tabela
+// do backoffice, nas duas ordens, repassando o campo ao repositório
+func TestGetAllUsers_SortFields_Success(t *testing.T) {
+	fields := []string{"has_papfe", "quer_cracha", "autoriza_compartilhamento", "disabilities"}
+	orders := []string{"asc", "desc"}
+
+	for _, field := range fields {
+		for _, order := range orders {
+			t.Run(field+" "+order, func(t *testing.T) {
+				var received UserListQuery
+				repo := &MockUserRepository{
+					GetAllFunc: func(query UserListQuery) (*UserListResult, error) {
+						received = query
+						return &UserListResult{}, nil
+					},
+				}
+				svc := newTestService(repo, &MockMailProvider{})
+
+				if _, err := svc.GetAllUsers(1, 10, field, order, "", ""); err != nil {
+					t.Fatalf("erro não esperado: %v", err)
+				}
+				if received.SortBy != field || received.SortOrder != order {
+					t.Errorf("esperado %s %s, obtido %s %s", field, order, received.SortBy, received.SortOrder)
+				}
+			})
+		}
+	}
+}
+
+// Testa se GetAllUsers rejeita o nome em camelCase com erro de validação
+func TestGetAllUsers_SortByCamelCase_ValidationError(t *testing.T) {
+	repo := &MockUserRepository{
+		GetAllFunc: func(query UserListQuery) (*UserListResult, error) {
+			t.Fatal("repositório não deveria ser chamado")
+			return nil, nil
+		},
+	}
+	svc := newTestService(repo, &MockMailProvider{})
+
+	_, err := svc.GetAllUsers(1, 10, "hasPapfe", "asc", "", "")
+	if err == nil {
+		t.Fatal("esperado erro de validação, mas não ocorreu")
+	}
+	if apiErr, ok := err.(*apierrors.APIError); !ok || apiErr.Status != 400 {
+		t.Errorf("esperado APIError 400, obtido %v", err)
+	}
+}
