@@ -96,6 +96,58 @@ func (r *eventRepository) UpdateByNameAndInitTime(name string, initTime time.Tim
 	return nil
 }
 
+// eventSearchDateFormats são os formatos aceitos ao filtrar eventos por data.
+// `hasTime` indica se o formato carrega hora: quando o usuário digita só a data
+// o filtro cobre o dia inteiro; quando digita a hora, cobre aquele horário
+// exato (até o minuto). Os formatos cobrem AAAA-MM-DD, o datetime-local do
+// navegador e o formato brasileiro (DD/MM/AAAA) que aparece na tabela.
+var eventSearchDateFormats = []struct {
+	layout  string
+	hasTime bool
+}{
+	{"2006-01-02", false},
+	{"02/01/2006", false},
+	{"2006-01-02 15:04", true},
+	{"2006-01-02T15:04", true},
+	{"2006-01-02T15:04:05", true},
+	{"02/01/2006 15:04", true},
+	{time.RFC3339, true},
+}
+
+// parseEventSearchDate converte o valor digitado no filtro de data em time.Time.
+// Retorna false quando o valor não é uma data válida, para a camada de serviço
+// responder 400 em vez de deixar o Postgres estourar erro de sintaxe.
+func parseEventSearchDate(value string) (parsed time.Time, hasTime bool, ok bool) {
+	value = strings.TrimSpace(value)
+	for _, format := range eventSearchDateFormats {
+		if t, err := time.Parse(format.layout, value); err == nil {
+			return t, format.hasTime, true
+		}
+	}
+	return time.Time{}, false, false
+}
+
+// eventDateCondition monta o WHERE do filtro de data. Compara sempre no fuso do
+// app (não no da sessão UTC): um evento à noite em São Paulo tem dia UTC
+// posterior ao que aparece na tela, e sem a conversão o filtro não acha o evento
+// que o usuário está vendo. O valor vai como string (não time.Time) para não
+// depender do fuso da sessão. `column` é sempre um literal fixo do chamador.
+//
+//   - só data (hasTime=false) → cobre o dia inteiro
+//   - data + hora (hasTime=true) → cobre o horário exato, até o minuto
+func eventDateCondition(dbQuery *gorm.DB, column string, parsed time.Time, hasTime bool) *gorm.DB {
+	if hasTime {
+		return dbQuery.Where(
+			"date_trunc('minute', "+column+" AT TIME ZONE ?) = ?::timestamp",
+			database.AppTimezone, parsed.Format("2006-01-02 15:04:00"),
+		)
+	}
+	return dbQuery.Where(
+		"DATE("+column+" AT TIME ZONE ?) = DATE(?)",
+		database.AppTimezone, parsed.Format("2006-01-02"),
+	)
+}
+
 func applySearchFilter(dbQuery *gorm.DB, query EventListQuery) *gorm.DB {
 	if query.SearchBy == "" || query.SearchValue == "" {
 		return dbQuery
@@ -111,9 +163,17 @@ func applySearchFilter(dbQuery *gorm.DB, query EventListQuery) *gorm.DB {
 	case "description":
 		return dbQuery.Where("unaccent(e.description) ILIKE unaccent(?)", "%"+query.SearchValue+"%")
 	case "init_date":
-		return dbQuery.Where("DATE(e.init_date AT TIME ZONE ?) = DATE(?)", database.AppTimezone, query.SearchValue)
+		parsed, hasTime, ok := parseEventSearchDate(query.SearchValue)
+		if !ok {
+			return dbQuery.Where("1 = 0")
+		}
+		return eventDateCondition(dbQuery, "e.init_date", parsed, hasTime)
 	case "end_date":
-		return dbQuery.Where("DATE(e.end_date AT TIME ZONE ?) = DATE(?)", database.AppTimezone, query.SearchValue)
+		parsed, hasTime, ok := parseEventSearchDate(query.SearchValue)
+		if !ok {
+			return dbQuery.Where("1 = 0")
+		}
+		return eventDateCondition(dbQuery, "e.end_date", parsed, hasTime)
 	case "has_attendance":
 		return dbQuery.Where("e.has_attendance = ?", query.SearchValue)
 	case "has_signin":
