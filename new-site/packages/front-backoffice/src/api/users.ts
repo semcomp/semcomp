@@ -119,10 +119,11 @@ export const userSemcompAPI = {
       // demais campos já são snake_case
     };
     const backendSortBy = fieldMap[sortBy] ?? sortBy;
+    const backendSearchBy = searchBy ? fieldMap[searchBy] ?? searchBy : searchBy;
 
     let url = `/admin/users?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
-    if (searchBy && searchValue) {
-      url += `&search_by=${searchBy}&search_value=${searchValue}`;
+    if (backendSearchBy && searchValue) {
+      url += `&search_by=${backendSearchBy}&search_value=${searchValue}`;
     }
     const response = await client.get<UsersListBackendResponse>(url);
     return {
