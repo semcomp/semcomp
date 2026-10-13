@@ -218,7 +218,7 @@ function FilterControl({
           className="bg-white border-muted/30 shadow-md"
         >
           <SelectItem value="__all__" className={itemCls}>Todos</SelectItem>
-          {Object.keys(activeField.selectVariants).map((v) => (
+          {Object.keys(activeField.selectVariants).filter((v) => v !== "__none__").map((v) => (
             <SelectItem key={v} value={v} className={itemCls}>
               {activeField.selectLabels?.[v] ?? v}
             </SelectItem>
