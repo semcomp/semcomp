@@ -277,20 +277,10 @@ func (s *eventService) GetEvents(page int, limit int, sortBy string, sortOrder s
 			return nil, apierrors.ValidationError("Parametro 'search_by' inválido", nil)
 		}
 
-		if searchBy == "init_date" {
-			parsedInitDate, err := time.Parse(time.RFC3339, searchValue)
-			if err != nil {
-				return nil, apierrors.ValidationError("Parametro 'search_value' inválido para init_date, use RFC3339", nil)
+		if searchBy == "init_date" || searchBy == "end_date" {
+			if _, _, ok := parseEventSearchDate(searchValue); !ok {
+				return nil, apierrors.ValidationError("Parametro 'search_value' inválido para "+searchBy+", use uma data (ex.: 06/10/2026) ou data e hora (ex.: 06/10/2026 14:30)", nil)
 			}
-			searchValue = parsedInitDate.Format(time.RFC3339)
-		}
-
-		if searchBy == "end_date" {
-			parsedEndDate, err := time.Parse(time.RFC3339, searchValue)
-			if err != nil {
-				return nil, apierrors.ValidationError("Parametro 'search_value' inválido para end_date, use RFC3339", nil)
-			}
-			searchValue = parsedEndDate.Format(time.RFC3339)
 		}
 
 		if searchBy == "has_attendance" {

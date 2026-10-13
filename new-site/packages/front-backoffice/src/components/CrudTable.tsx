@@ -168,7 +168,8 @@ function formatDateForInput(val: unknown): string {
 
 // ─── FilterControl ─────────────────────────────────────────────────────────────
 
-// Type-aware filter: boolean → Sim/Não select, select+variants → variant select, others → text input.
+// Type-aware filter: boolean → Sim/Não select, select+variants → variant select,
+// date → texto livre (data opcionalmente com hora), others → text input.
 function FilterControl({
   activeField,
   filter,
@@ -228,11 +229,18 @@ function FilterControl({
     );
   }
 
+  // Campos de data: texto livre com exemplo no placeholder. Aceita só a data
+  // (filtra o dia inteiro) ou data + hora opcional (filtra aquele horário).
+  const placeholder =
+    activeField?.type === "date"
+      ? "ex.: 06/10/2026 ou 06/10/2026 14:30"
+      : `Filtrar por ${activeField?.label ?? "campo"}…`;
+
   return (
     <div className="relative flex-1">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
       <Input
-        placeholder={`Filtrar por ${activeField?.label ?? "campo"}…`}
+        placeholder={placeholder}
         value={filter}
         onChange={(e) => onChange(e.target.value)}
         className="pl-9 bg-muted/40 border-muted/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
@@ -316,6 +324,7 @@ export function CrudTable({
   const tableFields = fields.filter((f) => !f.hideInTable);
 
   const [filter, setFilter] = useState("");
+  const [debouncedFilter, setDebouncedFilter] = useState("");
   const [filterField, setFilterField] = useState(
     filterableFields[0]?.value ?? "name"
   );
@@ -386,6 +395,14 @@ export function CrudTable({
     });
   };
 
+  // Espera o usuário parar de digitar antes de buscar: sem isso cada tecla
+  // dispara uma requisição e valores parciais de data (ex.: "2026-10-0") voltam
+  // 400, limpando a tabela e piscando o banner de erro durante a digitação.
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedFilter(filter), 400);
+    return () => clearTimeout(timer);
+  }, [filter]);
+
   useEffect(() => {
     if (!onQueryChange) return;
     onQueryChange({
@@ -394,9 +411,9 @@ export function CrudTable({
       sortField,
       sortOrder,
       filterField,
-      filterValue: filter,
+      filterValue: debouncedFilter,
     });
-  }, [page, pageSize, sortField, sortOrder, filterField, filter]);
+  }, [page, pageSize, sortField, sortOrder, filterField, debouncedFilter]);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -416,6 +433,9 @@ export function CrudTable({
   const handleFilterFieldChange = (value: string) => {
     setFilterField(value);
     setFilter("");
+    // Limpa o valor debounced junto: senão a troca de campo dispara uma busca
+    // imediata com o campo novo e o texto antigo ainda pendente.
+    setDebouncedFilter("");
     setPage(1);
   };
 
