@@ -513,7 +513,7 @@ func main() {
 	admin.GET("/sales", permMW("Vendas", permission.PermR), salesHandler.GetAllSales)
 	admin.PUT("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.UpdateSaleByID)
 	admin.DELETE("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.DeleteSaleByID)
-	admin.PATCH("/sales/items/:itemId/pickup", permMW("Vendas", permission.PermRW), salesHandler.UpdateItemPickup)
+	admin.PATCH("/sales/items/:itemId/pickup", permMW("Entregas", permission.PermRW), salesHandler.UpdateItemPickup)
 
 	// Avisos
 	admin.GET("/notices", permMW("Avisos", permission.PermR), noticeHandler.GetNotices)
