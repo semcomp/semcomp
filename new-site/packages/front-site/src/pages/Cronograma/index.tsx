@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback, memo, type ReactElement } from "react";
+import { useState, useEffect, useMemo, useCallback, memo, type ReactElement } from "react";
 import { MicVocal, Rocket, Trophy, Target, Gamepad2, Flag, Coffee, Clock, MapPin, X, MessageCircle, Store, Award, Music} from "lucide-react";
 import { eventsAPI } from "@/api/events";
 import type { EventType } from "@/types/EventType.ts";
@@ -318,38 +318,40 @@ const EventButton = memo(function EventButton({
     >
       <div className="flex w-full min-w-0 flex-col justify-center gap-0.5 @sm:flex-row @sm:items-center @sm:gap-3">
         {/* Ícone + tipo e nome */}
-        <div className="flex min-w-0 items-center gap-2 @sm:flex-1">
-          {showIconBox && (
-            <div
-              className={`hidden shrink-0 items-center justify-center rounded-lg border p-1.5 @min-[7rem]:flex @sm:rounded-xl @sm:p-2.5 ${eventStyle.classes}`}
-            >
-              <EventTypeIcon type={evento.type} className="h-4 w-4 @sm:h-6 @sm:w-6" />
+        <div className="flex min-w-0 flex-col gap-0.5 @sm:flex-1">
+          {(showIconBox || showType) && (
+            <div className="flex min-w-0 items-center gap-1.5">
+              {showIconBox && (
+                <div
+                  className={`flex shrink-0 items-center justify-center rounded-md border p-1 @min-[7rem]:rounded-lg @min-[7rem]:p-1.5 @sm:rounded-xl @sm:p-2.5 ${eventStyle.classes}`}
+                >
+                  <EventTypeIcon type={evento.type} className="h-3.5 w-3.5 @min-[7rem]:h-4 @min-[7rem]:w-4 @sm:h-6 @sm:w-6" />
+                </div>
+              )}
+              {showType && (
+                <p className={`truncate font-medium uppercase tracking-wide ${FONT.type} ${effectiveCaptionClasses}`}>
+                  {evento.type}
+                </p>
+              )}
             </div>
           )}
-
-          <div className="min-w-0">
-            {showType && (
-              <p
-                className={`hidden truncate font-medium uppercase tracking-wide @min-[12rem]:block ${FONT.type} ${effectiveCaptionClasses}`}
-              >
-                {evento.type}
-              </p>
-            )}
-            <p className={`line-clamp-2 break-words font-poppins-bold leading-snug ${FONT.name}`}>
-              {evento.name}
-            </p>
-          </div>
+          <p className={`line-clamp-2 break-words font-poppins-bold leading-snug ${FONT.name}`}>
+            {evento.name}
+          </p>
         </div>
 
         {/* Horário e local */}
         {showTime && (
           <div
-            className={`hidden min-w-0 flex-col gap-0.5 leading-tight @min-[8rem]:flex ${FONT.meta} ${effectiveCaptionClasses}
+            className={`flex min-w-0 flex-col gap-0.5 leading-tight ${FONT.meta} ${effectiveCaptionClasses}
               @sm:ml-auto @sm:max-w-[45%] @sm:shrink-0 @sm:items-end @sm:text-right`}
           >
-            <span className="flex items-center gap-1 whitespace-nowrap">
-              <Clock className={ICON_META} aria-hidden="true" />
-              {formatTime(evento.dateInit)} – {formatTime(evento.dateEnd)}
+            <span className="flex flex-wrap items-center gap-x-1">
+              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                <Clock className={ICON_META} aria-hidden="true" />
+                {formatTime(evento.dateInit)}
+              </span>
+              <span className="whitespace-nowrap">– {formatTime(evento.dateEnd)}</span>
             </span>
             {showLocation && evento.location && (
               <span className="hidden min-w-0 items-center gap-1 @min-[12rem]:flex">
@@ -504,25 +506,9 @@ function TimeGrid({
   showHourLabels?: boolean;
   pxPerHour?: number;
 }) {
-  // largura mínima para mobile / tablet
-  const columnWidth = 150;
   const positioned = useMemo(() => computeLayout(events), [events]);
   const totalMs = timeRange.end - timeRange.start;
   const containerHeight = (totalMs / MS_PER_HOUR) * pxPerHour;
-  const maxColumns = Math.max(
-    1,
-    ...positioned.map(event => event.totalColumns)
-  );
-  const gridWidth = maxColumns * columnWidth; 
-
-  const scrollRef = useRef<HTMLDivElement>(null);  
-
-  useEffect(() => {
-    scrollRef.current?.scrollTo({
-      left: 0,
-      behavior: "auto",
-    });
-  }, [timeRange.start]);
 
   const hourMarks: number[] = [];
   for (
@@ -533,78 +519,67 @@ function TimeGrid({
     hourMarks.push(t);
   }
 
+  const labelW = showHourLabels ? 36 : 0;
+
   return (
-    <div className="flex gap-2 min-h-0">
-      {showHourLabels && (
-        <div className="relative shrink-0 w-10 select-none" style={{ height: containerHeight }}>
-          {hourMarks.map((t) => {
-            const topPx = ((t - timeRange.start) / MS_PER_HOUR) * pxPerHour;
-            return (
-              <span
-                key={t}
-                className="absolute right-0 -translate-y-1/2 text-xs text-semcompDarkBlue/60 dark:text-semcompLightBlue/90 select-none"
-                style={{ top: topPx }}
-              >
-                {formatTime(new Date(t).toISOString())}
-              </span>
-            );
-          })}
-        </div>
-      )}
+    <div className="relative w-full" style={{ height: containerHeight }}>
+      {/* Hour lines — largura total */}
+      {hourMarks.map((t) => {
+        const topPx = ((t - timeRange.start) / MS_PER_HOUR) * pxPerHour;
+        return (
+          <div
+            key={t}
+            className="absolute inset-x-0 border-t border-semcompMidDarkBlue/15 dark:border-white/10 pointer-events-none"
+            style={{ top: topPx }}
+          />
+        );
+      })}
 
-      <div ref={scrollRef} className="flex-1 overflow-x-auto overflow-y-hidden snap-x snap-mandatory lg:overflow-visible lg:overflow-y-visible lg:snap-none">
-        <div 
-          className="relative w-[max(100%,var(--grid-width))] lg:w-full" 
-          style={{ 
-            height: containerHeight,
-            "--grid-width": `${gridWidth}px`,
-          }as any}>
-          {hourMarks.map((t) => {
-            const topPx = ((t - timeRange.start) / MS_PER_HOUR) * pxPerHour;
-            return (
-              <div
-                key={t}
-                className="absolute inset-x-0 border-t border-semcompMidDarkBlue/15 dark:border-white/10 pointer-events-none"
-                style={{ top: topPx }}
+      {/* Labels sobrepostos à esquerda */}
+      {showHourLabels && hourMarks.map((t) => {
+        const topPx = ((t - timeRange.start) / MS_PER_HOUR) * pxPerHour;
+        return (
+          <span
+            key={t}
+            className="absolute left-0 -translate-y-1/2 z-10 text-[10px] leading-none text-semcompDarkBlue/60 dark:text-semcompLightBlue/90 select-none pointer-events-none"
+            style={{ top: topPx }}
+          >
+            {formatTime(new Date(t).toISOString())}
+          </span>
+        );
+      })}
+
+      {/* Eventos — deslocados para não sobrepor os labels */}
+      <div className="absolute inset-y-0 right-0" style={{ left: labelW }}>
+        {positioned.map((event) => {
+          const s = new Date(event.dateInit).getTime();
+          const e = new Date(event.dateEnd).getTime();
+          const topPx = ((s - timeRange.start) / MS_PER_HOUR) * pxPerHour;
+          const heightPx = ((e - s) / MS_PER_HOUR) * pxPerHour;
+
+          const leftPct = (event.column / event.totalColumns) * 100;
+          const widthPct = (event.columnSpan / event.totalColumns) * 100;
+
+          return (
+            <div
+              key={`${event.name}-${event.dateInit}`}
+              className="@container absolute box-border p-0.5 group/card hover:z-10"
+              style={{
+                top: topPx,
+                height: Math.max(heightPx, 28),
+                left: `${leftPct}%`,
+                width: `${widthPct}%`,
+              }}
+            >
+              <EventButton
+                evento={event}
+                onClick={onSelect}
+                captionClasses={captionClasses}
+                heightPx={Math.max(heightPx, 28)}
               />
-            );
-          })}
-
-          {positioned.map((event) => {
-            const s = new Date(event.dateInit).getTime();
-            const e = new Date(event.dateEnd).getTime();
-            const topPx = ((s - timeRange.start) / MS_PER_HOUR) * pxPerHour;
-            const heightPx = ((e - s) / MS_PER_HOUR) * pxPerHour;
-
-            // Grid divida para Desktop
-            const leftPct = (event.column / event.totalColumns) * 100;
-            const widthPct = (event.columnSpan / event.totalColumns) * 100;
-
-            return (
-              <div
-                key={`${event.name}-${event.dateInit}`}
-                className={`@container absolute box-border p-0.5 group/card hover:z-10 left-[var(--left-mobile)] w-[var(--width-mobile)] lg:left-[var(--left-desktop)] lg:w-[var(--width-desktop)] snap-start`}
-                style={{
-                  top: topPx,
-                  height: Math.max(heightPx, 28),
-
-                  "--left-mobile": `calc(${event.column} * max(${columnWidth}px, 100% / ${maxColumns}))`,
-                  "--width-mobile": `calc(${event.columnSpan} * max(${columnWidth}px, 100% / ${maxColumns}))`,
-
-                  "--left-desktop": `${leftPct}%`,
-                  "--width-desktop": `${widthPct}%`,
-                }as any}
-              >
-                <EventButton
-                  evento={event}
-                  onClick={onSelect}
-                  captionClasses={captionClasses}
-                  heightPx={Math.max(heightPx, 28)}
-                />
-              </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -728,7 +703,7 @@ export default function CronogramaPage(): ReactElement {
         <div className="absolute -right-32 bottom-4 h-[500px] w-[500px] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-semcompAlmostDarkBlue/12 dark:from-semcompLightBlue/8 to-transparent" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-[95%] md:max-w-[80%] px-3 py-8 md:px-6 md:py-14">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-3 py-8 md:px-6 md:py-14">
         <header>
           <div className="flex w-full flex-col gap-4 md:flex-row md:justify-between">
             <div>
@@ -822,7 +797,7 @@ export default function CronogramaPage(): ReactElement {
 
         {/* ── Day view ── */}
           <div
-            className="overflow-y-auto custom-scrollbar p-5 rounded-lg"
+            className="overflow-y-auto custom-scrollbar px-2 py-4 md:p-5 rounded-lg"
             style={{
               backgroundImage: `linear-gradient(to top, ${gradientColor} 100%, #ffffff 50%)`,
             }}
