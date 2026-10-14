@@ -114,7 +114,7 @@ export default function PapfeUploadModal({
           </p>
           <button
             onClick={handleClose}
-            className="mt-2 rounded-lg bg-semcompDarkBlue px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-semcompMidDarkBlue dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white"
+            className="mt-2 rounded-lg bg-semcompDarkBlue px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-semcompMidDarkBlue dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white cursor-pointer"
           >
             Fechar
           </button>
@@ -171,7 +171,7 @@ export default function PapfeUploadModal({
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="mt-2 rounded-lg bg-semcompDarkBlue px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-semcompMidDarkBlue disabled:cursor-not-allowed disabled:opacity-50 dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white"
+            className="mt-2 rounded-lg bg-semcompDarkBlue px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-semcompMidDarkBlue disabled:cursor-not-allowed disabled:opacity-50 dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white cursor-pointer"
           >
             {submitting
               ? "Enviando..."

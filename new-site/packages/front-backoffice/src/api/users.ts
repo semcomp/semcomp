@@ -113,9 +113,17 @@ export const userSemcompAPI = {
     searchBy?: string,
     searchValue?: string
   ): Promise<UsersListResponse> => {
-    let url = `/admin/users?page=${page}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
-    if (searchBy && searchValue) {
-      url += `&search_by=${searchBy}&search_value=${searchValue}`;
+    // Traduz os campos do frontend (camelCase) para as colunas do backend (snake_case)
+    const fieldMap: Record<string, string> = {
+      hasPapfe: "has_papfe",
+      // demais campos já são snake_case
+    };
+    const backendSortBy = fieldMap[sortBy] ?? sortBy;
+    const backendSearchBy = searchBy ? fieldMap[searchBy] ?? searchBy : searchBy;
+
+    let url = `/admin/users?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
+    if (backendSearchBy && searchValue) {
+      url += `&search_by=${backendSearchBy}&search_value=${searchValue}`;
     }
     const response = await client.get<UsersListBackendResponse>(url);
     return {

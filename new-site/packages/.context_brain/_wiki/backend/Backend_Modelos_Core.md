@@ -27,7 +27,7 @@ Tabela: `users` | Arquivo: `internal/user/model.go`
 | `Linkedin` | `linkedin` | *string, nullable |
 | `Telegram` | `telegram` | *string, nullable |
 | `PresenceRate` | `presence_rate` | float64 |
-| `QuerCracha` | `quer_cracha` | bool, default:false |
+| `QuerCracha` | `quer_cracha` | bool, default:false — **⚠ TEMPORÁRIO: hardcoded `false` no service (criação + update); campo existe no DB mas não é configurável via API até o prazo de crachá reabrir** |
 | `AutorizaCompartilhamento` | `autoriza_compartilhamento` | bool, default:false |
 | `EmailVerified` | `email_verified` | bool, default:false |
 

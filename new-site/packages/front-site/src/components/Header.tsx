@@ -57,6 +57,17 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Trava o scroll do body enquanto o menu está aberto.
+  // O cleanup roda tanto quando isMenuOpen muda quanto no unmount do componente,
+  // garantindo que o overflow nunca fique residual no <body> (o que desativaria
+  // o pull-to-refresh nativo em navegadores mobile).
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMenuOpen]);
+
   useLayoutEffect(() => {
     const el = btnRefs.current[active];
     const navEl = navRef.current;
@@ -87,7 +98,7 @@ export default function Header() {
         {isMobile ? (
           <div className="relative">
             <button
-              className="text-semcompOffWhite text-2xl"
+              className="text-semcompOffWhite text-2xl cursor-pointer"
               onClick={() => setIsMenuOpen((prev) => !prev)}
             >
               <Menu />

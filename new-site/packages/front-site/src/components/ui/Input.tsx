@@ -43,7 +43,7 @@ type InputProps = {
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-3 flex items-center text-semcompOffWhite opacity-70 hover:opacity-100 transition"
+              className="absolute inset-y-0 right-3 flex items-center text-semcompOffWhite opacity-70 hover:opacity-100 transition cursor-pointer"
               aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
               tabIndex={-1}
             >
