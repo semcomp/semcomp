@@ -62,7 +62,7 @@ func main() {
 	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
 
 	err := db.AutoMigrate(
-		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{},
+		&user.User{}, &user.PapfeDocument{}, &user.BadgeDelivery{}, &event.Event{}, &presence.Presence{},
 		&presencesettings.PresenceTypeWeight{},
 		&signinEvent.SigninEvent{},
 		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{},
@@ -172,7 +172,8 @@ func main() {
 
 	userRepo := user.NewUserRepository(db)
 	papfeRepo := user.NewPapfeDocumentRepository(db)
-	userService := user.NewUserService(userRepo, papfeRepo, passwordProvider, tokenProvider, mailProvider, emailValidationProvider, tokenRepo, m)
+	badgeRepo := user.NewBadgeDeliveryRepository(db)
+	userService := user.NewUserService(userRepo, papfeRepo, badgeRepo, passwordProvider, tokenProvider, mailProvider, emailValidationProvider, tokenRepo, m)
 	userHandler := user.NewUserHandler(userService)
 
 	presenceSettingsRepo := presencesettings.NewPresenceSettingsRepository(db)
@@ -423,6 +424,11 @@ func main() {
 	admin.GET("/users/:id/papfe-document", permMW("PAPFE", permission.PermR), userHandler.GetPapfeDocument)
 	admin.PUT("/users/:id/papfe-document/approval", permMW("PAPFE", permission.PermRW), userHandler.ApprovePapfeDocument)
 	admin.POST("/users", permMW("Usuários Semcomp", permission.PermRW), userHandler.CreateUser)
+
+	// Entregas
+	admin.GET("/badge-deliveries", permMW("Entregas", permission.PermR), userHandler.GetBadgeDeliveries)
+	admin.POST("/badge-deliveries/:userNumber", permMW("Entregas", permission.PermRW), userHandler.MarkBadgeDelivered)
+	admin.DELETE("/badge-deliveries/:userNumber", permMW("Entregas", permission.PermRW), userHandler.UnmarkBadgeDelivered)
 	admin.PUT("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.UpdateUser)
 	admin.DELETE("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.DeleteUser)
 

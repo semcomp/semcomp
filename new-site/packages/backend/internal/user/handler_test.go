@@ -62,6 +62,15 @@ func (m *MockUserService) RequestPasswordReset(email string) error {
 func (m *MockUserService) ResetPassword(tokenPlain string, newPassword string) error {
 	panic("not implemented in mock")
 }
+func (m *MockUserService) GetBadgeDeliveries(page, limit int, sortBy, sortOrder string) (*BadgeDeliveryListResult, error) {
+	panic("not implemented in mock")
+}
+func (m *MockUserService) MarkBadgeDelivered(userNumber uint, adminEmail string) error {
+	panic("not implemented in mock")
+}
+func (m *MockUserService) UnmarkBadgeDelivered(userNumber uint) error {
+	panic("not implemented in mock")
+}
 
 func setupVerificationRouter(handler *UserHandler) *gin.Engine {
 	gin.SetMode(gin.TestMode)
