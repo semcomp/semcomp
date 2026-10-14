@@ -50,7 +50,8 @@ const SECTIONS: { key: string; label: string }[] = [
   { key: "Inscrições", label: "Inscrições" },
   { key: "Confirmações de Inscrição", label: "Confirmações de Inscrição" },
   { key: "Dashboard", label: "Dados" },
-  { key: "Configurações Presença", label: "Configurações Presença"}
+  { key: "Configurações Presença", label: "Configurações Presença"},
+  { key: "Entregas", label: "Entregas"}
 ];
 
 type PermLevel = "R" | "RW" | "—";
