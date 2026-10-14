@@ -86,7 +86,7 @@ type UpdateUserRequest struct {
 	City          string  `json:"city" binding:"required"`
 	Education     string  `json:"education" binding:"required"`
 	HasPapfe      bool    `json:"hasPapfe"`
-	Disabilities  string  `json:"disabilities" binding:"required"`
+	Disabilities  string  `json:"disabilities"`
 	Profession    *string `json:"profession,omitempty"`
 	Linkedin      *string `json:"linkedin,omitempty"`
 	Telegram      *string `json:"telegram,omitempty"`
