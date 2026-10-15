@@ -10,6 +10,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const (
+	ScopeSite       = "site"
+	ScopeBackoffice = "backoffice"
+)
+
 type JWTProvider interface {
 	Generate(userID uint, email string) (string, error)
 	Parse(token string) (*AuthTokenClaims, error)
@@ -20,10 +25,12 @@ type JWTProvider interface {
 type AuthTokenClaims struct {
 	UserNumber uint
 	Email      string
+	Scope      string
 }
 
 type AuthBackofficeTokenClaims struct {
 	Email string
+	Scope string
 }
 
 var (
@@ -32,6 +39,7 @@ var (
 	ErrExpiredToken                   = errors.New("Token expirado")
 	ErrInvalidToken                   = errors.New("Token inválido")
 	ErrInvalidTokenClaims             = errors.New("Reivindicações de token inválidas")
+	ErrInvalidTokenScope              = errors.New("Escopo do token inválido")
 )
 
 type jwtProvider struct{}
@@ -56,6 +64,7 @@ func (p *jwtProvider) Generate(userID uint, email string) (string, error) {
 		"exp":   time.Now().Add(time.Duration(hours) * time.Hour).Unix(),
 		"iat":   time.Now().Unix(),
 		"email": email,
+		"scope": ScopeSite,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -89,6 +98,11 @@ func (p *jwtProvider) Parse(token string) (*AuthTokenClaims, error) {
 		return nil, ErrInvalidTokenClaims
 	}
 
+	scope, ok := claims["scope"].(string)
+	if !ok || scope != ScopeSite {
+		return nil, ErrInvalidTokenScope
+	}
+
 	idFloat, ok := claims["id"].(float64)
 	if !ok {
 		return nil, ErrInvalidTokenClaims
@@ -99,7 +113,7 @@ func (p *jwtProvider) Parse(token string) (*AuthTokenClaims, error) {
 		return nil, ErrInvalidTokenClaims
 	}
 
-	return &AuthTokenClaims{UserNumber: uint(idFloat), Email: email}, nil
+	return &AuthTokenClaims{UserNumber: uint(idFloat), Email: email, Scope: scope}, nil
 }
 
 func (p *jwtProvider) GenerateToBackoffice(email string) (string, error) {
@@ -122,6 +136,7 @@ func (p *jwtProvider) GenerateToBackoffice(email string) (string, error) {
 		"exp":   time.Now().Add(time.Duration(hours) * time.Hour).Unix(),
 		"iat":   time.Now().Unix(),
 		"email": email,
+		"scope": ScopeBackoffice,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -156,12 +171,17 @@ func (p *jwtProvider) ParseToBackoffice(token string) (*AuthBackofficeTokenClaim
 		return nil, ErrInvalidTokenClaims
 	}
 
+	scope, ok := claims["scope"].(string)
+	if !ok || scope != ScopeBackoffice {
+		return nil, ErrInvalidTokenScope
+	}
+
 	email, ok := claims["sub"].(string)
 	if !ok || email == "" {
 		return nil, ErrInvalidTokenClaims
 	}
 
-	return &AuthBackofficeTokenClaims{Email: email}, nil
+	return &AuthBackofficeTokenClaims{Email: email, Scope: scope}, nil
 }
 
 func getJWTSecret() (string, error) {

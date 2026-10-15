@@ -30,6 +30,11 @@ func AuthMiddleware(jwtProvider providers.JWTProvider) gin.HandlerFunc {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
 				return
 			}
+			if errors.Is(err, providers.ErrInvalidTokenScope) {
+				c.Set("responseMessage", "Escopo do token inválido")
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token inválido para esta área"})
+				return
+			}
 			if errors.Is(err, providers.ErrInvalidTokenClaims) {
 				c.Set("responseMessage", "Claims do token de autenticação inválidas")
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
@@ -70,6 +75,11 @@ func AuthBackofficeMiddleware(jwtProvider providers.JWTProvider) gin.HandlerFunc
 
 			if errors.Is(err, providers.ErrInvalidToken) {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
+				return
+			}
+
+			if errors.Is(err, providers.ErrInvalidTokenScope) {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token inválido para o backoffice"})
 				return
 			}
 
