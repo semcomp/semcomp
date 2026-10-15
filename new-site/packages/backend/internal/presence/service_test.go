@@ -9,6 +9,7 @@ import (
 	"backend/internal/event"
 	"backend/internal/signinEvent"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
@@ -18,10 +19,17 @@ type stubPresenceRepo struct {
 	createErr error
 	getResult *Presence
 	getErr    error
+	// getFn, quando setado, tem precedência sobre getResult/getErr. Usado para
+	// simular sequências de chamadas — ex.: a pré-checagem não acha nada e a
+	// releitura após o 23505 acha o registro vencedor da corrida.
+	getFn func() (*Presence, error)
 }
 
 func (s *stubPresenceRepo) Create(p *Presence) error { return s.createErr }
 func (s *stubPresenceRepo) GetByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time) (*Presence, error) {
+	if s.getFn != nil {
+		return s.getFn()
+	}
 	return s.getResult, s.getErr
 }
 func (s *stubPresenceRepo) DeleteByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time) error {
@@ -249,4 +257,81 @@ func TestCreatePresence_DuplicatePresence(t *testing.T) {
 	if apiErr.Status != 409 {
 		t.Errorf("esperava status HTTP 409, got %d", apiErr.Status)
 	}
+}
+
+// Duplicata: a mensagem precisa dizer QUANDO e POR QUEM foi registrada antes.
+// O instante é convertido para o fuso de São Paulo (banco guarda UTC).
+func TestCreatePresence_DuplicateMessage(t *testing.T) {
+	registeredAt := time.Date(2026, 10, 6, 12, 0, 0, 0, time.UTC) // 09:00 em São Paulo
+	svc := buildService(
+		&stubPresenceRepo{getResult: &Presence{
+			UserNumber: 42, EmailAdmin: "admin@semcomp.com", CreatedAt: registeredAt,
+		}},
+		&stubEventRepo{getResult: &event.Event{HasSignin: false}},
+		&stubSigninRepo{},
+	)
+
+	_, err := svc.CreatePresence(newRequest())
+
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("esperava *apierrors.APIError, got %T: %v", err, err)
+	}
+	if apiErr.Status != 409 {
+		t.Fatalf("esperava 409, got %d", apiErr.Status)
+	}
+	expected := "Presença já registrada em 06/10/2026 09:00 por admin@semcomp.com"
+	if apiErr.Message != expected {
+		t.Errorf("esperava %q, got %q", expected, apiErr.Message)
+	}
+}
+
+// Corrida: o insert perde para a constraint UNIQUE (23505). O perdedor recebe o
+// mesmo conflito informativo — não um 500 genérico.
+func TestCreatePresence_UniqueViolationBecomesConflict(t *testing.T) {
+	registeredAt := time.Date(2026, 10, 6, 12, 0, 0, 0, time.UTC)
+	calls := 0
+	svc := buildService(
+		&stubPresenceRepo{
+			createErr: &pgconn.PgError{Code: "23505"},
+			getFn: func() (*Presence, error) {
+				calls++
+				if calls == 1 { // pré-checagem: ninguém registrou ainda
+					return nil, gorm.ErrRecordNotFound
+				}
+				return &Presence{EmailAdmin: "admin@semcomp.com", CreatedAt: registeredAt}, nil
+			},
+		},
+		&stubEventRepo{getResult: &event.Event{HasSignin: false}},
+		&stubSigninRepo{},
+	)
+
+	_, err := svc.CreatePresence(newRequest())
+
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("esperava *apierrors.APIError, got %T: %v", err, err)
+	}
+	if apiErr.Status != 409 {
+		t.Fatalf("esperava 409 (não 500), got %d: %s", apiErr.Status, apiErr.Message)
+	}
+	expected := "Presença já registrada em 06/10/2026 09:00 por admin@semcomp.com"
+	if apiErr.Message != expected {
+		t.Errorf("esperava %q, got %q", expected, apiErr.Message)
+	}
+}
+
+// O caso que motivou a regra: um coffee é um evento com inscrição, então quem
+// não está inscrito no coffee não pode receber presença nele.
+func TestCreatePresence_CoffeeRequiresSignin(t *testing.T) {
+	req := newRequest()
+	req.EventName = "[SEED] Coffee da manhã - Terça"
+
+	svc := buildService(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubEventRepo{getResult: &event.Event{Name: req.EventName, HasSignin: true}},
+		&stubSigninRepo{getErr: gorm.ErrRecordNotFound}, // não inscrito no coffee
+	)
+
+	assertForbidden(t, func() error { _, err := svc.CreatePresence(req); return err }())
 }
