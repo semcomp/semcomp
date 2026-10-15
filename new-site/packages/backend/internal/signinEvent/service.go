@@ -36,19 +36,24 @@ func NewSigninEventService(repo SigninEventRepository, eventRepo event.EventRepo
 }
 
 func relativeWaitListPosition(status RegistrationStatus, confirmedCount uint, position uint) uint {
-	if status == StatusWaitListed && position > confirmedCount {
+	if status != StatusWaitListed {
+		return 0
+	}
+	if position > confirmedCount {
 		return position - confirmedCount
 	}
-	return position
+	return 1
 }
 
 // relativePosition converts a waitlisted inscription's absolute position into
 // its relative queue position (1st, 2nd, ...). The base is the number of
 // confirmed active inscriptions of the event rather than max_participants, so
 // the value stays correct when the event is not completely full. Non-waitlisted
-// inscriptions are returned unchanged.
+// inscriptions have no meaningful queue position, so it is zeroed (and omitted
+// from the JSON via `omitempty`).
 func (s *signinEventService) relativePosition(signin *SigninEvent) (*SigninEvent, error) {
 	if signin.Status != StatusWaitListed {
+		signin.UserWaitListPosition = 0
 		return signin, nil
 	}
 

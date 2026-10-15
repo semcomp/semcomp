@@ -308,13 +308,12 @@ const confirmedCountJoin = `LEFT JOIN (
 		AND confirmed_signins.event_init_date = signin_events.event_init_date`
 
 // relativeWaitListPositionSelect projects the relative queue position for
-// waitlisted inscriptions, leaving every other status with its absolute
-// position (which the presentation layer hides).
+// waitlisted inscriptions. Every other status has no meaningful queue position
+// and projects 0, which the JSON `omitempty` drops entirely.
 const relativeWaitListPositionSelect = `CASE
 		WHEN signin_events.status = ?
-		AND signin_events.user_wait_list_position > COALESCE(confirmed_signins.confirmed_count, 0)
-		THEN signin_events.user_wait_list_position - COALESCE(confirmed_signins.confirmed_count, 0)
-		ELSE signin_events.user_wait_list_position END`
+		THEN GREATEST(signin_events.user_wait_list_position - COALESCE(confirmed_signins.confirmed_count, 0), 1)
+		ELSE 0 END`
 
 func (r *signinEventRepository) FindActiveByUser(userNumber uint) ([]SigninEventsDetailed, error) {
 	var signins []SigninEventsDetailed
@@ -683,5 +682,8 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 		return "", fmt.Errorf("invalid sort order")
 	}
 
-	return field + " " + order, nil
+	// Qualifica a coluna para que o ORDER BY não resolva para o alias
+	// projetado (o CASE de user_wait_list_position), que zera os status
+	// não-espera e embaralharia a ordenação.
+	return "signin_events." + field + " " + order, nil
 }
