@@ -117,6 +117,9 @@ export interface CrudTableProps {
   getItemKey?: (item: CrudItemType) => string;
   entityLabel?: string;
   defaultPageSize?: number;
+  /** Campo de ordenação inicial (chave enviada ao backend). Default: o
+   *  `sortValue`/`value` do primeiro campo. */
+  defaultSortField?: string;
   /** Total records on the server (used to calculate page count) */
   totalRecords?: number;
   /** Called whenever page, pageSize, sort or filter changes */
@@ -399,6 +402,7 @@ export function CrudTable({
   getItemKey,
   entityLabel = "item",
   defaultPageSize = 10,
+  defaultSortField,
   totalRecords,
   onQueryChange,
   canWrite = true,
@@ -425,7 +429,7 @@ export function CrudTable({
     filterableFields[0]?.value ?? "name"
   );
   const [sortField, setSortField] = useState(
-    fields[0]?.sortValue ?? fields[0]?.value ?? "name"
+    defaultSortField ?? fields[0]?.sortValue ?? fields[0]?.value ?? "name"
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);

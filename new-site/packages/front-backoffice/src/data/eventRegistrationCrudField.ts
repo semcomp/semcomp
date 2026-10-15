@@ -11,13 +11,13 @@ export const fields: CrudField[] = [
   { value: "userNumber", label: "Número do Participante", type: "text" },
   { value: "eventName", label: "Nome do Evento", type: "text" },
   { value: "eventInitDate", label: "Data do Evento", type: "date" },
-  { value: "status", label: "Status", type: "select", selectVariants: statusVariants },
+  { value: "status", label: "Status", type: "select", selectVariants: statusVariants, sortValue: "status_priority" },
   { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true },
 ];
 
 export const fieldsForEvent: CrudField[] = [
   { value: "userNumber", label: "Número do Participante", type: "text" },
-  { value: "status", label: "Status", type: "select", selectVariants: statusVariants },
+  { value: "status", label: "Status", type: "select", selectVariants: statusVariants, sortValue: "status_priority" },
   { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true },
 ];
 

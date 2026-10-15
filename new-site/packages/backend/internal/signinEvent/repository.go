@@ -669,6 +669,7 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 		"event_init_date",
 		"status",
 		"user_wait_list_position",
+		"status_priority",
 	}
 
 	field := strings.ToLower(sortBy)
@@ -680,6 +681,22 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 	order := strings.ToLower(sortOrder)
 	if order != "asc" && order != "desc" {
 		return "", fmt.Errorf("invalid sort order")
+	}
+
+	if field == "status_priority" {
+		// Agrupa pelo status na ordem de operação do evento — Inscrito,
+		// Aguardando Aprovação, Lista de Espera (na ordem da fila) e por fim
+		// Cancelado — desempatando por evento e posição de inscrição.
+		statusPriority := fmt.Sprintf(`CASE signin_events.status
+			WHEN '%s' THEN 1
+			WHEN '%s' THEN 2
+			WHEN '%s' THEN 3
+			WHEN '%s' THEN 4
+			ELSE 5 END`, StatusRegistered, StatusWaitingDonation, StatusWaitListed, StatusCancelled)
+		return statusPriority + " " + order +
+			", signin_events.event_name asc" +
+			", signin_events.user_wait_list_position asc" +
+			", signin_events.user_number asc", nil
 	}
 
 	// Qualifica a coluna para que o ORDER BY não resolva para o alias

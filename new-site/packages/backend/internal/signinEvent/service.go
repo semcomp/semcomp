@@ -187,6 +187,7 @@ func (s *signinEventService) GetSigninsAdmin(page int, limit int, sortBy string,
 		"event_init_date":         true,
 		"status":                  true,
 		"user_wait_list_position": true,
+		"status_priority":         true,
 	}
 	if !allowedSortFields[sortBy] {
 		return nil, apierrors.ValidationError("Parâmetro 'sort_by' inválido", nil)

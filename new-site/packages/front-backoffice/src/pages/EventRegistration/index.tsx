@@ -1,7 +1,7 @@
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudQueryParams } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
 import { signinEventsAPI, type SigninableEvent } from "@/api/signinEvent.ts";
@@ -44,8 +44,9 @@ export default function EventRegistration() {
   const [loading, setLoading] = useState(false);
   const [rotating, setRotating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const lastParamsRef = useRef<CrudQueryParams | undefined>(undefined);
+  // Muda a key da CrudTable para remontá-la, voltando a ordenação ao padrão
+  // (status/fila) após rodar a fila.
+  const [tableKey, setTableKey] = useState(0);
 
   useEffect(() => {
     signinEventsAPI.getSigninableEvents().then(setSigninableEvents).catch(() => {});
@@ -67,7 +68,7 @@ export default function EventRegistration() {
         const response = await signinEventsAPI.getAll(
           params?.page ?? 1,
           params?.pageSize ?? 10,
-          API_FIELD_MAP[params?.sortField ?? ""] || "user_wait_list_position",
+          API_FIELD_MAP[params?.sortField ?? ""] || "status_priority",
           params?.sortOrder ?? "asc",
           filterField,
           filterValue
@@ -91,7 +92,6 @@ export default function EventRegistration() {
       setSelectedEvent(null);
       setData([]);
       setTotalRecords(0);
-      lastParamsRef.current = undefined;
       fetchSignins(undefined, null);
       return;
     }
@@ -100,13 +100,11 @@ export default function EventRegistration() {
     setSelectedEvent(event);
     setData([]);
     setTotalRecords(0);
-    lastParamsRef.current = undefined;
     if (event) fetchSignins(undefined, event);
   };
 
   const handleQueryChange = useCallback(
     (params: CrudQueryParams) => {
-      lastParamsRef.current = params;
       fetchSignins(params);
     },
     [fetchSignins]
@@ -118,7 +116,7 @@ export default function EventRegistration() {
       setRotating(true);
       await signinEventsAPI.rotate(selectedEvent.name, selectedEvent.init_date);
       showNotification("Fila rotacionada com sucesso", "success");
-      await fetchSignins(lastParamsRef.current);
+      setTableKey((k) => k + 1);
     } catch (err: any) {
       showNotification(err.response?.data?.message || "Erro ao rodar fila", "error");
     } finally {
@@ -287,8 +285,10 @@ export default function EventRegistration() {
               </div>
             )}
             <CrudTable
+              key={tableKey}
               data={data}
               fields={fieldsForEvent}
+              defaultSortField="status_priority"
               onEdit={handleEdit}
               onDelete={handleDelete}
               onCreate={handleCreate}
@@ -305,8 +305,10 @@ export default function EventRegistration() {
       {!selectedEvent && (
         <div className="rounded-xl border border-border bg-card/80 p-5">
           <CrudTable
+            key={tableKey}
             data={data}
             fields={fields}
+            defaultSortField="status_priority"
             onEdit={handleEdit}
             onDelete={handleDelete}
             onCreate={handleCreate}
