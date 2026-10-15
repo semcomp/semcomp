@@ -35,16 +35,30 @@ func NewSigninEventService(repo SigninEventRepository, eventRepo event.EventRepo
 	return &signinEventService{repo: repo, eventRepo: eventRepo}
 }
 
-func relativeWaitListPosition(status RegistrationStatus, max uint, position uint) uint {
-	if status == StatusWaitListed && max > 0 && position > max {
-		return position - max
+func relativeWaitListPosition(status RegistrationStatus, confirmedCount uint, position uint) uint {
+	if status == StatusWaitListed && position > confirmedCount {
+		return position - confirmedCount
 	}
 	return position
 }
 
-func (s *signinEventService) relativePosition(signin *SigninEvent, max uint) *SigninEvent {
-	signin.UserWaitListPosition = relativeWaitListPosition(signin.Status, max, signin.UserWaitListPosition)
-	return signin
+// relativePosition converts a waitlisted inscription's absolute position into
+// its relative queue position (1st, 2nd, ...). The base is the number of
+// confirmed active inscriptions of the event rather than max_participants, so
+// the value stays correct when the event is not completely full. Non-waitlisted
+// inscriptions are returned unchanged.
+func (s *signinEventService) relativePosition(signin *SigninEvent) (*SigninEvent, error) {
+	if signin.Status != StatusWaitListed {
+		return signin, nil
+	}
+
+	confirmedCount, err := s.repo.CountConfirmedSignins(signin.EventName, signin.EventInitDate)
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao calcular posição na fila", err)
+	}
+
+	signin.UserWaitListPosition = relativeWaitListPosition(signin.Status, confirmedCount, signin.UserWaitListPosition)
+	return signin, nil
 }
 
 func (s *signinEventService) eventMaxParticipants(eventName string, initDate time.Time) (uint, error) {
@@ -94,7 +108,12 @@ func (s *signinEventService) CreateSignin(userNumber uint, request CreateSigninR
 		}
 	}
 
-	return s.relativePosition(newSignin, eventRecord.MaxParticipants), nil
+	positioned, err := s.relativePosition(newSignin)
+	if err != nil {
+		return nil, err
+	}
+
+	return positioned, nil
 }
 
 func (s *signinEventService) GetSigninEvents() ([]event.Event, error) {
@@ -231,12 +250,7 @@ func (s *signinEventService) GetSigninAdmin(userNumber string, eventName string,
 		return nil, apierrors.InternalServerError("Erro ao buscar inscrição", err)
 	}
 
-	max, err := s.eventMaxParticipants(signin.EventName, signin.EventInitDate)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.relativePosition(signin, max), nil
+	return s.relativePosition(signin)
 }
 
 func (s *signinEventService) CreateSigninAdmin(request CreateSigninAdminRequest) (*SigninEvent, error) {
@@ -248,12 +262,7 @@ func (s *signinEventService) CreateSigninAdmin(request CreateSigninAdminRequest)
 		return nil, apierrors.InternalServerError("Erro ao criar inscrição", err)
 	}
 
-	max, err := s.eventMaxParticipants(newSignin.EventName, newSignin.EventInitDate)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.relativePosition(newSignin, max), nil
+	return s.relativePosition(newSignin)
 }
 
 func (s *signinEventService) UpdateSigninAdmin(userNumber string, eventName string, eventInitDate string, request UpdateSigninAdminRequest) (*SigninEvent, error) {
@@ -280,7 +289,7 @@ func (s *signinEventService) UpdateSigninAdmin(userNumber string, eventName stri
 		return nil, apierrors.InternalServerError("Erro ao atualizar inscrição", err)
 	}
 
-	return s.relativePosition(signin, maxParticipants), nil
+	return s.relativePosition(signin)
 }
 
 func (s *signinEventService) DeleteSigninAdmin(userNumber string, eventName string, eventInitDate string) error {
@@ -335,12 +344,7 @@ func (s *signinEventService) RegisterSigninAdmin(userNumber string, eventName st
 		}
 	}
 
-	max, err := s.eventMaxParticipants(signin.EventName, signin.EventInitDate)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.relativePosition(signin, max), nil
+	return s.relativePosition(signin)
 }
 
 func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate string) ([]SigninEvent, error) {
@@ -367,7 +371,9 @@ func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate 
 	}
 
 	for i := range signins {
-		s.relativePosition(&signins[i], eventRecord.MaxParticipants)
+		if _, err := s.relativePosition(&signins[i]); err != nil {
+			return nil, err
+		}
 	}
 
 	return signins, nil
