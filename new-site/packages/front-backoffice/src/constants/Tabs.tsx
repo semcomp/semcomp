@@ -1,4 +1,4 @@
-import { Calendar, UserCog, User, Key, Hand, ToggleLeft, ShoppingBag, Handshake, DollarSign, FileCheck, Puzzle, SlidersHorizontal, FileWarning, ClipboardList, UserCheck, BarChart3 } from "lucide-react";
+import { Calendar, UserCog, User, Key, Hand, ToggleLeft, ShoppingBag, Handshake, DollarSign, FileCheck, Puzzle, SlidersHorizontal, FileWarning, ClipboardList, UserCheck, BarChart3, PackageCheck } from "lucide-react";
 
 // section deve coincidir com KnownSections em backend/internal/permission/model.go
 export const Tabs: {
@@ -179,6 +179,16 @@ export const Tabs: {
     description: "Visualize métricas e dados da Semcomp.",
     pageNavigate: "/dashboard",
     icon: <BarChart3 className="w-5 h-5" />,
+    bg: "bg-primary/15",
+    hoverBg: "bg-primary/25",
+  },
+  {
+    key: "deliveries",
+    section: "Entregas",
+    label: "Entregas",
+    description: "Controle a entrega de kits e crachás para os participantes.",
+    pageNavigate: "/deliveries",
+    icon: <PackageCheck className="w-5 h-5" />,
     bg: "bg-primary/15",
     hoverBg: "bg-primary/25",
   },

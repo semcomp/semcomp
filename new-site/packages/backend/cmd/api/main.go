@@ -62,7 +62,7 @@ func main() {
 	hadEmailVerifiedColumn := db.Migrator().HasColumn(&user.User{}, "email_verified")
 
 	err := db.AutoMigrate(
-		&user.User{}, &user.PapfeDocument{}, &event.Event{}, &presence.Presence{},
+		&user.User{}, &user.PapfeDocument{}, &user.BadgeDelivery{}, &event.Event{}, &presence.Presence{},
 		&presencesettings.PresenceTypeWeight{},
 		&signinEvent.SigninEvent{},
 		&userBackoffice.UserBackoffice{}, &log.AuditLog{}, &permission.Permission{},
@@ -172,7 +172,8 @@ func main() {
 
 	userRepo := user.NewUserRepository(db)
 	papfeRepo := user.NewPapfeDocumentRepository(db)
-	userService := user.NewUserService(userRepo, papfeRepo, passwordProvider, tokenProvider, mailProvider, emailValidationProvider, tokenRepo, m)
+	badgeRepo := user.NewBadgeDeliveryRepository(db)
+	userService := user.NewUserService(userRepo, papfeRepo, badgeRepo, passwordProvider, tokenProvider, mailProvider, emailValidationProvider, tokenRepo, m)
 	userHandler := user.NewUserHandler(userService)
 
 	presenceSettingsRepo := presencesettings.NewPresenceSettingsRepository(db)
@@ -201,7 +202,7 @@ func main() {
 	eventService.SetRateRecalculator(rateCalculator)
 	presenceService.SetRateRecalculator(rateCalculator)
 	presenceSettingsService.SetRateRecalculator(rateCalculator)
-	
+
 	absenceJustificationRepo := absenceJustification.NewAbsenceJustificationRepository(db)
 	absenceJustificationService := absenceJustification.NewAbsenceJustificationService(absenceJustificationRepo)
 	absenceJustificationService.SetRateRecalculator(rateCalculator)
@@ -285,6 +286,16 @@ func main() {
 	// Inicialização de valores base de permissões para o banco de dados
 	if err := permissionService.InitializePermissions(); err != nil {
 		panic("Failed to initialize admin's permissions in backoffice: " + err.Error())
+	}
+
+	// Garante que usuários existentes tenham entradas para todas as seções conhecidas.
+	// Necessário quando novas seções são adicionadas ao KnownSections após criação dos usuários.
+	if allUsers, err := userBackofficeService.GetAllUsers(1, 100000, "email", "asc", "", ""); err == nil {
+		for _, u := range allUsers.Users {
+			if seedErr := permissionService.SeedUserPermissions(u.Email); seedErr != nil {
+				stdlog.Printf("[init] erro ao semear permissões de %s: %v", u.Email, seedErr)
+			}
+		}
 	}
 
 	// Pesos padrão de presença (Palestra=1.0, Vitrine=0.5) em banco vazio
@@ -422,9 +433,16 @@ func main() {
 	admin.GET("/papfe-documents", permMW("PAPFE", permission.PermR), userHandler.GetAllPapfeDocuments)
 	admin.GET("/users/:id/papfe-document", permMW("PAPFE", permission.PermR), userHandler.GetPapfeDocument)
 	admin.PUT("/users/:id/papfe-document/approval", permMW("PAPFE", permission.PermRW), userHandler.ApprovePapfeDocument)
+
 	admin.POST("/users", permMW("Usuários Semcomp", permission.PermRW), userHandler.CreateUser)
 	admin.PUT("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.UpdateUser)
 	admin.DELETE("/users/:id", permMW("Usuários Semcomp", permission.PermRW), userHandler.DeleteUser)
+
+	// Entregas
+	admin.GET("/badge-deliveries", permMW("Entregas", permission.PermR), userHandler.GetBadgeDeliveries)
+	admin.POST("/badge-deliveries/:userNumber", permMW("Entregas", permission.PermRW), userHandler.MarkBadgeDelivered)
+	admin.DELETE("/badge-deliveries/:userNumber", permMW("Entregas", permission.PermRW), userHandler.UnmarkBadgeDelivered)
+	admin.GET("/deliveries/kits", permMW("Entregas", permission.PermR), salesHandler.GetKitDeliveries)
 
 	// Eventos
 	eventInvalidate := middleware.CacheInvalidate(cacheStore, "GET:/events", "GET:/event/")
@@ -471,7 +489,7 @@ func main() {
 	admin.POST("/presence-settings", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.CreateWeight)
 	admin.PUT("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.UpdateWeight)
 	admin.DELETE("/presence-settings/:typeName", permMW("Configurações Presença", permission.PermRW), presenceSettingsHandler.DeleteWeight)
-	
+
 	// Justificativas de Ausência
 	admin.GET("/absence-justifications", permMW("Justificativas de Ausência", permission.PermR), absenceJustificationHandler.GetAbsenceJustifications)
 	admin.GET("/absence-justifications/:id/attachment", permMW("Justificativas de Ausência", permission.PermR), absenceJustificationHandler.GetAttachment)
@@ -496,7 +514,7 @@ func main() {
 	admin.GET("/sales", permMW("Vendas", permission.PermR), salesHandler.GetAllSales)
 	admin.PUT("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.UpdateSaleByID)
 	admin.DELETE("/sales/:id", permMW("Vendas", permission.PermRW), salesHandler.DeleteSaleByID)
-	admin.PATCH("/sales/items/:itemId/pickup", permMW("Vendas", permission.PermRW), salesHandler.UpdateItemPickup)
+	admin.PATCH("/sales/items/:itemId/pickup", permMW("Entregas", permission.PermRW), salesHandler.UpdateItemPickup)
 
 	// Avisos
 	admin.GET("/notices", permMW("Avisos", permission.PermR), noticeHandler.GetNotices)

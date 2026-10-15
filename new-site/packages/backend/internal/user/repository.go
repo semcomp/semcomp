@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -288,4 +289,115 @@ func (r *papfeDocumentRepository) UpdateApproval(email string, approved bool, re
 // DeleteByEmail remove o comprovante PAPFE associado ao e-mail informado.
 func (r *papfeDocumentRepository) DeleteByEmail(email string) error {
 	return r.db.Where("user_email = ?", email).Delete(&PapfeDocument{}).Error
+}
+
+// BadgeDeliveryRepository define as operações de acesso a dados para entrega de crachás.
+type BadgeDeliveryRepository interface {
+	GetAll(page, limit int, sortBy, sortOrder string) (*BadgeDeliveryListResult, error)
+	Mark(userNumber uint, adminEmail string) error
+	Unmark(userNumber uint) error
+}
+
+type badgeDeliveryRepository struct {
+	db *gorm.DB
+}
+
+func NewBadgeDeliveryRepository(db *gorm.DB) BadgeDeliveryRepository {
+	return &badgeDeliveryRepository{db: db}
+}
+
+// GetAll retorna todos os usuários com quer_cracha=true, com o status de entrega do crachá.
+func (r *badgeDeliveryRepository) GetAll(page, limit int, sortBy, sortOrder string) (*BadgeDeliveryListResult, error) {
+	allowedSortFields := []string{"name", "user_number"}
+	field := strings.ToLower(sortBy)
+	if !slices.Contains(allowedSortFields, field) {
+		return nil, apierrors.ValidationError("Campo de ordenação inválido para entregas de crachá", nil)
+	}
+	ord := strings.ToLower(sortOrder)
+	if ord != "asc" && ord != "desc" {
+		return nil, apierrors.ValidationError("Direção de ordenação inválida", nil)
+	}
+	order := field + " " + ord
+
+	type row struct {
+		UserNumber  uint
+		Name        string
+		Email       string
+		Delivered   bool
+		DeliveredAt *time.Time
+		AdminEmail  string
+	}
+
+	var rows []row
+	var total int64
+
+	base := r.db.Table("users").Where("quer_cracha = true")
+
+	if err := base.Count(&total).Error; err != nil {
+		return nil, apierrors.InternalServerError("Erro ao contar usuários com crachá", err)
+	}
+
+	offset := (page - 1) * limit
+
+	err := r.db.Table("users u").
+		Select("u.user_number, u.name, u.email, CASE WHEN bd.user_number IS NOT NULL THEN true ELSE false END AS delivered, bd.delivered_at, bd.admin_email").
+		Joins("LEFT JOIN badge_deliveries bd ON bd.user_number = u.user_number").
+		Where("u.quer_cracha = true").
+		Order("u." + order).
+		Limit(limit).
+		Offset(offset).
+		Scan(&rows).Error
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao listar entregas de crachá", err)
+	}
+
+	infos := make([]BadgeDeliveryInfo, 0, len(rows))
+	for _, r := range rows {
+		infos = append(infos, BadgeDeliveryInfo{
+			UserNumber:  fmt.Sprintf("%05d", r.UserNumber),
+			Name:        r.Name,
+			Email:       r.Email,
+			Delivered:   r.Delivered,
+			DeliveredAt: r.DeliveredAt,
+			AdminEmail:  r.AdminEmail,
+		})
+	}
+
+	return &BadgeDeliveryListResult{
+		Users:           infos,
+		TotalRecords:    total,
+		FilteredRecords: total,
+	}, nil
+}
+
+// Mark insere ou atualiza o registro de entrega do crachá para um usuário.
+func (r *badgeDeliveryRepository) Mark(userNumber uint, adminEmail string) error {
+	var count int64
+	if err := r.db.Model(&User{}).Where("user_number = ? AND quer_cracha = true", userNumber).Count(&count).Error; err != nil {
+		return apierrors.InternalServerError("Erro ao verificar usuário", err)
+	}
+	if count == 0 {
+		return apierrors.NotFoundError("Usuário não encontrado ou não solicitou crachá", nil)
+	}
+
+	delivery := BadgeDelivery{
+		UserNumber: userNumber,
+		AdminEmail: adminEmail,
+	}
+	return r.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "user_number"}},
+		DoUpdates: clause.AssignmentColumns([]string{"delivered_at", "admin_email"}),
+	}).Create(&delivery).Error
+}
+
+// Unmark remove o registro de entrega do crachá para um usuário.
+func (r *badgeDeliveryRepository) Unmark(userNumber uint) error {
+	result := r.db.Delete(&BadgeDelivery{}, userNumber)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return apierrors.NotFoundError("Registro de entrega de crachá não encontrado", nil)
+	}
+	return nil
 }

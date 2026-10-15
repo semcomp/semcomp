@@ -24,6 +24,7 @@ import AbsenceJustifications from "@/pages/AbsenceJustifications";
 import DashboardPage from "@/pages/Dashboard";
 import PresencePage from "@/pages/Dashboard/presence";
 import NotFoundPage from "@/pages/NotFound";
+import DeliveriesPage from "@/pages/Deliveries";
 
 export const router = createBrowserRouter(
   [
@@ -123,6 +124,10 @@ export const router = createBrowserRouter(
                 { path: "/dashboard", element: <DashboardPage /> },
                 { path: "/dashboard/presence", element: <PresencePage /> },
               ],
+            },
+            {
+              element: <RequirePermission section="Entregas" />,
+              children: [{ path: "/deliveries", element: <DeliveriesPage /> }],
             },
             {
               path: "*",

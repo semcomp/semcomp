@@ -175,6 +175,29 @@ type UpdateProfileRequest struct {
 	Telegram   *string `json:"telegram,omitempty"`
 }
 
+// BadgeDelivery tracks which users with quer_cracha=true have received their badge.
+// Presence/absence of a row indicates delivery status (no soft-delete needed).
+type BadgeDelivery struct {
+	UserNumber  uint      `gorm:"primaryKey;not null"  json:"user_number"`
+	DeliveredAt time.Time `gorm:"autoCreateTime"       json:"delivered_at"`
+	AdminEmail  string    `gorm:"size:150;not null"    json:"admin_email"`
+}
+
+type BadgeDeliveryInfo struct {
+	UserNumber  string     `json:"user_number"`
+	Name        string     `json:"name"`
+	Email       string     `json:"email"`
+	Delivered   bool       `json:"delivered"`
+	DeliveredAt *time.Time `json:"delivered_at,omitempty"`
+	AdminEmail  string     `json:"admin_email,omitempty"`
+}
+
+type BadgeDeliveryListResult struct {
+	Users           []BadgeDeliveryInfo `json:"users"`
+	TotalRecords    int64               `json:"total_records"`
+	FilteredRecords int64               `json:"filtered_records"`
+}
+
 type PapfeApprovalRequest struct {
 	Approved *bool `json:"approved" binding:"required"`
 

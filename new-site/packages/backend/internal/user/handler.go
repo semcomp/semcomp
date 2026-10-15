@@ -699,3 +699,80 @@ func (h *UserHandler) ResetPasswordHandler(c *gin.Context) {
 	c.Set("responseMessage", "Senha redefinida com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Senha redefinida com sucesso!"})
 }
+
+// GetBadgeDeliveries retorna todos os usuários com quer_cracha=true e seu status de entrega.
+func (h *UserHandler) GetBadgeDeliveries(c *gin.Context) {
+	page := 1
+	limit := 10
+	sortBy := c.DefaultQuery("sort_by", "name")
+	sortOrder := c.DefaultQuery("sort_order", "asc")
+
+	if pageQuery := c.Query("page"); pageQuery != "" {
+		if v, err := strconv.Atoi(pageQuery); err == nil && v >= 1 {
+			page = v
+		}
+	}
+	if limitQuery := c.Query("limit"); limitQuery != "" {
+		if v, err := strconv.Atoi(limitQuery); err == nil && v >= 1 {
+			if v > 1000 {
+				v = 1000
+			}
+			limit = v
+		}
+	}
+
+	result, err := h.userService.GetBadgeDeliveries(page, limit, sortBy, sortOrder)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Set("responseMessage", "Entregas de crachá listadas com sucesso!")
+	c.JSON(http.StatusOK, gin.H{
+		"page":             page,
+		"limit":            limit,
+		"sort_by":          sortBy,
+		"sort_order":       sortOrder,
+		"total_records":    result.TotalRecords,
+		"filtered_records": result.FilteredRecords,
+		"users":            result.Users,
+	})
+}
+
+// MarkBadgeDelivered marca o crachá de um usuário como entregue.
+func (h *UserHandler) MarkBadgeDelivered(c *gin.Context) {
+	userNumber, err := strconv.Atoi(c.Param("userNumber"))
+	if err != nil || userNumber <= 0 {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("userNumber inválido", err))
+		return
+	}
+
+	adminEmail := c.MustGet("email").(string)
+
+	if err := h.userService.MarkBadgeDelivered(uint(userNumber), adminEmail); err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	message := "Crachá marcado como entregue!"
+	c.Set("responseMessage", message)
+	c.JSON(http.StatusOK, gin.H{"message": message})
+}
+
+// UnmarkBadgeDelivered remove a marcação de entrega do crachá de um usuário.
+func (h *UserHandler) UnmarkBadgeDelivered(c *gin.Context) {
+	userNumber, err := strconv.Atoi(c.Param("userNumber"))
+	if err != nil || userNumber <= 0 {
+		apierrors.HandleAPIError(c, apierrors.ValidationError("userNumber inválido", err))
+		return
+	}
+
+	if err := h.userService.UnmarkBadgeDelivered(uint(userNumber)); err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	message := "Entrega de crachá desmarcada!"
+	c.Set("responseMessage", message)
+	c.JSON(http.StatusOK, gin.H{"message": message})
+}
