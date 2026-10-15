@@ -50,3 +50,10 @@ logs-db:
 	
 ps:
 	docker compose -p $(PROJECT) ps
+
+seed:
+	docker compose -p $(PROJECT) --env-file ./backend/.env build backend
+	docker compose -p $(PROJECT) --env-file ./backend/.env run --rm --entrypoint ./seed backend
+
+unseed:
+	docker compose -p $(PROJECT) exec -T db sh -c 'psql -U $$DB_USER -d $$DB_NAME' < ./backend/scripts/unseed.sql

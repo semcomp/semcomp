@@ -43,16 +43,69 @@ Tipo: `front-site/src/types/SigninEventType.ts`
 
 ## Lógica de Fila (Backend)
 
-- Se `max_participants > 0` e `countActiveByEvent >= max_participants` → inscrição com `StatusWaitListed`; `UserWaitListPosition` = contagem de espera atual + 1
-- Cancelamento de `"Inscrito"` confirmado → `GetFirstWaitListed` → `PromoteToRegistered` (primeiro da fila promovido automaticamente)
-- Cancelamento de `"Lista de Espera"` → apenas marca como `"Cancelado"`
-- Status `"Aguardando Aprovação"` (`StatusWaitingDonation`): inscrição pendente de confirmação presencial no Fernão (1kg de alimento ou PAPFE aprovado)
+- Se `max_participants > 0` e `count >= max_participants` → inscrição com `StatusWaitListed`; `UserWaitListPosition` = contagem atual + 1
+- Se `max_participants > 0` e há vagas → inscrição com `StatusWaitingDonation`
+- Cancelamento de `StatusRegistered` ou `StatusWaitingDonation` → promove primeiro `StatusWaitListed` com posição ≤ max para `StatusWaitingDonation`
+- Cancelamento de `StatusWaitListed` → apenas decrementa posições e marca como `StatusCancelled`
+- Status `"Aguardando Aprovação"` (`StatusWaitingDonation`): inscrição pendente de confirmação presencial no Fernão
+
+### Invariantes de Segurança
+
+**Posição não é controlável pelo usuário.** `UserWaitListPosition` é computada server-side como `count+1` dentro da transação com advisory lock — não está no DTO de criação (`CreateSigninRequest` tem apenas `event_name` e `event_init_date`).
+
+**`userNumber` vem do JWT**, nunca do body — um usuário não consegue se inscrever como outro.
+
 
 ### Rotar Fila (Admin)
 `POST /admin/signin-events/rotate/:eventName/:eventInitDate` — remove inscrições `"Aguardando Aprovação"` e promove os primeiros da lista de espera até preencher vagas.  
 **Guarda**: rejeitado com 400 se evento tem `max_participants = 0` (vagas ilimitadas).
 
-Repository: `Create`, `GetByUserEventAndInitDate`, `CountByStatus`, `CountActiveByEvent`, `FindActiveByUser`, `UpdateStatus`, `GetFirstWaitListed`, `PromoteToRegistered`, `DeleteByStatus`
+**Detalhe de design**: promoção via rotação vai direto para `StatusRegistered` ("Inscrito"), **não** para `StatusWaitingDonation`. Isso é intencional — a rotação ocorre após o prazo de doação, então os novos promovidos são registrados sem exigir confirmação presencial. Contrasta com a promoção por cancelamento de usuário (`RemoveAtomicSignin`), que promove para `StatusWaitingDonation` porque ainda há tempo para o ciclo de doação.
+
+---
+
+## Concorrência — Advisory Locks (PostgreSQL)
+
+Todas as operações que modificam a fila usam `pg_advisory_xact_lock` dentro de transações.
+
+### Criação (`CreateAtomicSignin`)
+Dois locks adquiridos em ordem fixa (previne deadlock):
+1. **Lock por usuário** — `pg_advisory_xact_lock(int64(userNumber))` — serializa todas as tentativas de inscrição simultâneas do mesmo usuário, eliminando a race TOCTOU no check de eventos concomitantes.
+2. **Lock por evento** — `pg_advisory_xact_lock(hashtext(eventName), hashtext(initDate))` — serializa contagem de vagas e insert.
+
+Dentro da transação (sob ambos os locks):
+- Check de inscrição duplicada → `ErrDuplicateInscription`
+- Check de eventos concomitantes (join com `events`) → `ErrOverlappingInscription`
+- Contagem de ativos → atribuição de `UserWaitListPosition` e `Status`
+- Insert
+
+### Remoção (`RemoveAtomicSignin`)
+Lock por evento adquirido antes de: fetch, delete, `DecrementPositionsAfter`, `PromoteWithinLimit` — tudo dentro de uma única transação. Elimina a race entre cancelamento e inscrição simultânea que causava overbooking.
+
+### Rotação (`RotateAtomicSignins`)
+Lock por evento adquirido antes de: delete `WaitingDonation`, contagem de `Registered`, promoção de waitlisted, reordenação de posições por window function (`ROW_NUMBER() OVER`). Tudo em uma única transação.
+
+### Criação Admin (`CreateAdminSignin`)
+Lock por evento (sem lock por usuário — admin bypassa o check de sobreposição). Duplicate check + count + insert atomicamente.
+
+---
+
+## Repository
+
+Interface atual (8 métodos):
+
+| Método | Descrição |
+|---|---|
+| `CreateAtomicSignin(userNumber, eventName, initDate, maxParticipants, targetEndDate)` | Inscrição pública — dois advisory locks + checks + insert |
+| `CreateAdminSignin(userNumber, eventName, initDate, status)` | Inscrição admin — lock por evento + duplicate check + insert |
+| `RemoveAtomicSignin(userNumber, eventName, initDate, maxParticipants)` | Remoção atômica — lock por evento + delete + decrement + promote |
+| `GetByUserEventAndInitDate(userNumber, eventName, initDate)` | Busca por chave composta |
+| `FindActiveByUser(userNumber)` | Lista inscrições ativas com join em `events` |
+| `UpdateByComposite(userNumber, eventName, initDate, updated)` | Atualiza campos por chave composta |
+| `GetAll(query)` | Lista paginada com filtros (backoffice) |
+| `RotateAtomicSignins(eventName, initDate, maxParticipants)` | Rotação atômica da fila |
+
+Erros sentinela do pacote: `ErrDuplicateInscription`, `ErrOverlappingInscription`
 
 ---
 
@@ -75,11 +128,35 @@ Funcionalidades:
 | POST | `/admin/signin-events` | PermRW | `signinEventsAPI.create(item)` |
 | POST | `/admin/signin-events/rotate/:eventName/:eventInitDate` | PermRW | `signinEventsAPI.rotate(name, date)` |
 | PUT | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | PermRW | `signinEventsAPI.update(...)` |
+| PUT | `/admin/signin-events/:userNumber/:eventName/:eventInitDate/register` | PermRW | `signinEventsAPI.register(...)` |
 | DELETE | `/admin/signin-events/:userNumber/:eventName/:eventInitDate` | PermRW | `signinEventsAPI.delete(...)` |
 
 Arquivo de API: `front-backoffice/src/api/signinEvent.ts` (não está no barrel `index.ts`)  
 Tipo: `front-backoffice/src/types/SigninEventType.ts`  
 Campos CRUD: `front-backoffice/src/data/eventRegistrationCrudField.ts` (`fields` global / `fieldsForEvent` por evento)
+
+---
+
+## Fluxo — Backoffice (Confirmações de Presença)
+
+Seção: `"Confirmações de Inscrição"` | Página: `front-backoffice/src/pages/ConfirmRegistrations/index.tsx`  
+Tab em `Tabs.tsx` (key: `"confirm-registrations"`) → rota `/admin/confirm-registrations` com `RequirePermission("Confirmações de Inscrição")`.
+
+Responsabilidade: confirmar presença de participantes que chegaram ao Fernão com 1kg de alimento. Apenas inscrições com status `"Aguardando Aprovação"` aparecem nesta tela. Ao aprovar, o status muda para `"Inscrito"`.
+
+Funcionalidades:
+- Seletor de evento (dropdown via `confirmationsAPI.getSigninableEvents()`)
+- Sem evento selecionado: exibe todas as inscrições `"Aguardando Aprovação"` (todos os eventos)
+- Com evento selecionado: filtra client-side por `eventName + eventInitDate` sobre a mesma consulta
+- Botão "Aprovar" por linha → modal de confirmação → `confirmationsAPI.approve()`
+
+| Método | Path | Guard | Handler TS |
+|---|---|---|---|
+| GET | `/admin/confirmations` | PermR (`Confirmações de Inscrição`) | `confirmationsAPI.getAll(...)` |
+| GET | `/admin/confirmations/events` | PermR (`Confirmações de Inscrição`) | `confirmationsAPI.getSigninableEvents()` |
+| PUT | `/admin/confirmations/:userNumber/:eventName/:eventInitDate` | PermRW (`Confirmações de Inscrição`) | `confirmationsAPI.approve(...)` |
+
+Esses endpoints são aliases dos handlers de `signinEvent`: `GET /admin/confirmations` → `GetSigninsAdmin`, `GET /admin/confirmations/events` → `GetSigninEvents`, `PUT /admin/confirmations/:...` → `RegisterSigninAdmin`.
 
 ---
 

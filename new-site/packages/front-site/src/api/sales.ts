@@ -9,7 +9,6 @@ export interface SaleItem {
 export interface CreateSalePayload {
   items: SaleItem[];
   payment_method: string;
-  status?: string;
   dietary_restrictions?: string;
 }
 

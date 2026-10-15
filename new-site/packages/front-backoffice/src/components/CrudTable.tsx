@@ -68,6 +68,13 @@ export interface CrudField {
   multiValueOptions?: string[];
   readOnly?: boolean;
   accept?: string;
+  /** Quando false, o cabeçalho da coluna não ordena e não mostra o ícone de
+   * ordenação. Use em colunas que não existem como campo no backend (ex.: um
+   * resumo montado no front). Default: true. */
+  sortable?: boolean;
+  /** Quando false, o campo não aparece na lista de "Filtrar por". Use quando o
+   * backend não sabe filtrar pelo campo. Default: true. */
+  searchable?: boolean;
   /** Hides the field in the form unless formData[field] === value */
   showWhen?: { field: string; value: unknown };
   /** Quando true, o campo é exibido no dialog mas não pode ser editado */
@@ -161,7 +168,8 @@ function formatDateForInput(val: unknown): string {
 
 // ─── FilterControl ─────────────────────────────────────────────────────────────
 
-// Type-aware filter: boolean → Sim/Não select, select+variants → variant select, others → text input.
+// Type-aware filter: boolean → Sim/Não select, select+variants → variant select,
+// date → data + hora opcional (24h), others → text input.
 function FilterControl({
   activeField,
   filter,
@@ -173,6 +181,40 @@ function FilterControl({
 }) {
   const triggerCls = "flex-1 bg-muted/40 border-muted/30 text-foreground text-sm";
   const itemCls = "text-primary focus:bg-muted/50 cursor-pointer";
+
+  // Filtro de data = dois campos locais (data + hora opcional). A hora é
+  // opcional: deixá-la vazia busca o dia inteiro; preenchida, busca o horário
+  // exato. Guardamos data e hora separados porque o <input type="date"> reporta
+  // value="" enquanto os segmentos estão incompletos — propagar esse "" para o
+  // filtro limparia o campo no meio da digitação. Só sobe data COMPLETA; limpar
+  // o filtro é pelo botão X (ou ao sair do campo vazio, no blur).
+  const [datePart, setDatePart] = useState(
+    activeField?.type === "date" ? filter?.slice(0, 10) ?? "" : ""
+  );
+  const [timePart, setTimePart] = useState(
+    activeField?.type === "date" && filter?.includes(" ")
+      ? filter.slice(11, 16)
+      : ""
+  );
+
+  // Só reage à limpeza externa (troca de campo / X). Não sincroniza valores
+  // não-vazios: o estado local já é a fonte correta dos campos.
+  useEffect(() => {
+    if (activeField?.type === "date" && !filter) {
+      setDatePart("");
+      setTimePart("");
+    }
+  }, [filter, activeField?.type]);
+
+  // Monta o valor do filtro: sem data não há busca; com hora → AAAA-MM-DD HH:MM,
+  // sem hora → AAAA-MM-DD (dia inteiro).
+  const emitDateFilter = (date: string, time: string) => {
+    if (!date) {
+      onChange("");
+      return;
+    }
+    onChange(time ? `${date} ${time}` : date);
+  };
 
   if (activeField?.type === "boolean") {
     return (
@@ -218,6 +260,53 @@ function FilterControl({
           ))}
         </SelectContent>
       </Select>
+    );
+  }
+
+  // Data + hora opcional. A hora deixa o formato em 24h (padrão pt-BR).
+  if (activeField?.type === "date") {
+    return (
+      <div className="flex flex-1 items-center gap-2">
+        <Input
+          type="date"
+          lang="pt-BR"
+          value={datePart}
+          onChange={(e) => {
+            const d = e.target.value;
+            setDatePart(d);
+            if (d) emitDateFilter(d, timePart); // só sobe data completa
+          }}
+          onBlur={() => {
+            if (!datePart) onChange(""); // saiu vazio → limpa o filtro
+          }}
+          className="flex-1 bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+        />
+        <Input
+          type="time"
+          lang="pt-BR"
+          value={timePart}
+          onChange={(e) => {
+            const t = e.target.value;
+            setTimePart(t);
+            if (datePart) emitDateFilter(datePart, t);
+          }}
+          className="w-[6.5rem] bg-muted/40 border-muted/30 text-foreground focus-visible:ring-primary"
+          aria-label="Hora (opcional)"
+        />
+        {datePart && (
+          <button
+            onClick={() => {
+              setDatePart("");
+              setTimePart("");
+              onChange("");
+            }}
+            className="shrink-0 text-muted-foreground hover:text-foreground"
+            aria-label="Limpar filtro de data"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     );
   }
 
@@ -296,15 +385,20 @@ export function CrudTable({
   onToggleField,
   onFieldChange,
 }: CrudTableProps) {
-  // Fields that make sense as filter targets (files cannot be text-searched)
+  // Fields that make sense as filter targets (files cannot be text-searched,
+  // and fields explicitly marked as not searchable are left out)
   const filterableFields = fields.filter(
-    (f) => f.type !== "file" && f.type !== "image-preview"
+    (f) => f.type !== "file" && f.type !== "image-preview" && f.searchable !== false
   );
+  // Colunas que podem ordenar no servidor (default: todas, exceto as marcadas
+  // como `sortable: false`, cujo valor não existe como campo no backend).
+  const sortableFields = fields.filter((f) => f.sortable !== false).map((f) => f.value);
   // Colunas de fato exibidas na tabela (hideInTable tira campos só-de-form,
   // como "image-preview", que só fazem sentido dentro do modal).
   const tableFields = fields.filter((f) => !f.hideInTable);
 
   const [filter, setFilter] = useState("");
+  const [debouncedFilter, setDebouncedFilter] = useState("");
   const [filterField, setFilterField] = useState(
     filterableFields[0]?.value ?? "name"
   );
@@ -375,6 +469,14 @@ export function CrudTable({
     });
   };
 
+  // Espera o usuário parar de digitar antes de buscar: sem isso cada tecla
+  // dispara uma requisição e valores parciais de data (ex.: "2026-10-0") voltam
+  // 400, limpando a tabela e piscando o banner de erro durante a digitação.
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedFilter(filter), 400);
+    return () => clearTimeout(timer);
+  }, [filter]);
+
   useEffect(() => {
     if (!onQueryChange) return;
     onQueryChange({
@@ -383,9 +485,9 @@ export function CrudTable({
       sortField,
       sortOrder,
       filterField,
-      filterValue: filter,
+      filterValue: debouncedFilter,
     });
-  }, [page, pageSize, sortField, sortOrder, filterField, filter]);
+  }, [page, pageSize, sortField, sortOrder, filterField, debouncedFilter]);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -405,6 +507,9 @@ export function CrudTable({
   const handleFilterFieldChange = (value: string) => {
     setFilterField(value);
     setFilter("");
+    // Limpa o valor debounced junto: senão a troca de campo dispara uma busca
+    // imediata com o campo novo e o texto antigo ainda pendente.
+    setDebouncedFilter("");
     setPage(1);
   };
 
@@ -459,6 +564,7 @@ export function CrudTable({
   };
 
   const SortIcon = ({ field }: { field: string }) => {
+    if (!sortableFields.includes(field)) return null;
     if (sortField !== field)
       return (
         <ChevronsUpDown className="inline ml-1 w-3.5 h-3.5 opacity-30" />
@@ -800,16 +906,21 @@ export function CrudTable({
         <Table>
           <TableHeader>
             <TableRow className="border-border bg-muted/30 hover:bg-muted/30">
-              {tableFields.map((f) => (
-                <TableHead
-                  key={f.value}
-                  className="cursor-pointer select-none text-muted-foreground text-xs font-semibold uppercase tracking-wider hover:text-primary transition-colors"
-                  onClick={() => handleSort(f.sortValue ?? f.value)}
-                >
-                  {f.label}
-                  <SortIcon field={f.value} />
-                </TableHead>
-              ))}
+              {tableFields.map((f) => {
+                const isSortable = sortableFields.includes(f.value);
+                return (
+                  <TableHead
+                    key={f.value}
+                    className={`select-none text-muted-foreground text-xs font-semibold uppercase tracking-wider transition-colors ${
+                      isSortable ? "cursor-pointer hover:text-primary" : ""
+                    }`}
+                    onClick={isSortable ? () => handleSort(f.sortValue ?? f.value) : undefined}
+                  >
+                    {f.label}
+                    <SortIcon field={f.value} />
+                  </TableHead>
+                );
+              })}
               <TableHead className="text-muted-foreground text-xs font-semibold uppercase tracking-wider w-24">
                 Ações
               </TableHead>

@@ -216,13 +216,12 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
   return (
     <div className="border rounded-xl p-4 mb-3 bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white flex flex-col items-start">
       <div className="w-full">
-        <div className="flex items-start gap-2">
-          <div className="flex flex-col shrink-0">
-            <span className="font-bold">{ev.name}</span>
-            <span className="text-xs opacity-60">{ev.type}</span>
+        <div className="flex flex-col gap-1 mb-1">
+          <div className="flex items-baseline gap-1.5 flex-wrap">
+            <span className="font-bold wrap-break-word">{ev.name}</span>
+            <span className="text-xs opacity-60 shrink-0">{ev.type}</span>
           </div>
-          <span className="opacity-60">|</span>
-          <p className="text-sm leading-relaxed opacity-90 wrap-break-words">{ev.description}</p>
+          <p className="text-sm leading-relaxed opacity-90 wrap-break-word">{ev.description}</p>
         </div>
         <p className="mt-3 text-sm opacity-80 font-medium text-center">
           {diaSemana} ({data}), {formatTime(ev.dateInit)} às {formatTime(ev.dateEnd)}
@@ -235,8 +234,8 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
             {subscription.status === "Aguardando Aprovação" ? (
               <span className="w-full p-2 text-center text-sm font-semibold text-blue-700 dark:text-blue-400">
                 {papfeApproved
-                  ? "Você deve confirmar a sua presença no Fernão"
-                  : "Traga 1kg de alimento para confirmar sua inscrição na entrada do Fernão"}
+                  ? "Você deve confirmar a sua presença na entrada do Fernão"
+                  : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição"}
               </span>
             ) : (
               <span className={`w-full p-2 text-center text-sm font-semibold ${
@@ -445,14 +444,14 @@ export default function Profile({
   }, [isAuthenticated, navigate, name, email]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !isFeatureEnabled("cronograma")) return;
     Promise.all([signinEventsAPI.getSigninEvents(), signinEventsAPI.getMySignins()])
       .then(([events, signins]) => {
         setSigninEvents(events);
         setMySignins(signins);
       })
       .catch((err) => console.error("Erro ao buscar eventos de inscrição", err));
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isFeatureEnabled]);
 
   function getSubscription(ev: EventType): SigninEventType | undefined {
     return mySignins.find(
@@ -634,7 +633,7 @@ export default function Profile({
         {/* Header com Background */}
         <div className="relative h-80 w-full overflow-hidden bg-semcompMidLightBlue dark:bg-semcompDarkBlue">
           <AnimatedBackground />
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1]">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1] mt-15">
             <img src="/img/semcomp/logo_default_branco.webp" alt="SEMCOMP Logo" className="w-1/2 max-w-50 object-contain drop-shadow-2xl" />
           </div>
           <div className="absolute inset-0 bg-linear-to-b from-transparent to-semcompMidLightBlue dark:to-semcompAlmostDarkBlue" />
@@ -1314,7 +1313,7 @@ export default function Profile({
         {cancelModal}
         {cancelConfirmModal}
         <div
-          className="relative overflow-hidden h-[calc(90vh-70px)] w-full flex flex-row justify-center items-center gap-10 font-poppins"
+          className="relative overflow-hidden h-[calc(90vh-70px)] w-full flex flex-row justify-center items-center gap-10 font-poppins mt-15"
         >
           <AnimatedBackground />
           <div
@@ -1418,9 +1417,9 @@ export default function Profile({
                         onClick={() => setOpenSubscription(openSubscription === index ? -1 : index)}
                       >
                         <div className="w-1/2 flex flex-col text-left gap-1 items-start pr-4">
-                          <span className="font-bold text-lg shrink-0">{evento.name}</span>
+                          <span className="font-bold text-lg wrap-break-word">{evento.name}</span>
                           <span className="text-xs opacity-60 shrink-0">{evento.type}</span>
-                          <span className="text-sm font-medium wrap-break-words flex-1 opacity-90">{evento.description}</span>
+                          <span className="text-sm font-medium wrap-break-word flex-1 opacity-90">{evento.description}</span>
                         </div>
                         <div className="w-auto flex flex-col items-end shrink-0 gap-1">
                           <div className="flex flex-row gap-3 items-center">
@@ -1445,8 +1444,8 @@ export default function Profile({
                               {subscription.status === "Aguardando Aprovação" ? (
                                 <span className="text-lg font-bold text-blue-600 dark:text-blue-400 text-center">
                                   {papfeDoc?.is_approved === true
-                                    ? "Você deve confirmar a sua presença no Fernão"
-                                    : "Traga 1kg de alimento para confirmar sua inscrição na entrada do Fernão"}
+                                    ? "Você deve confirmar a sua presença na entrada do Fernão"
+                                    : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição"}
                                 </span>
                               ) : (
                                 <span className={`text-lg font-bold ${

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import type { FeatureKey } from "@/types/FeatureKeyType";
 import { pagesAPI } from "@/api/pages";
 
@@ -49,9 +49,10 @@ export function FeatureFlagsProvider({
     fetchFeatures();
   }, []);
 
-  const isFeatureEnabled = (key: FeatureKey) => {
-    return features[key] ?? true;
-  };
+  const isFeatureEnabled = useCallback(
+    (key: FeatureKey) => features[key] ?? true,
+    [features]
+  );
 
   return (
     <FeatureFlagsContext.Provider

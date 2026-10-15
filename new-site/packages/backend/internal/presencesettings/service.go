@@ -49,6 +49,7 @@ var DefaultTypeWeights = []CreatePresenceTypeWeightRequest{
 	{TypeName: "Concursos", Weight: 0.0, DefaultHasAttendance: boolPtr(false)},
 	{TypeName: "Luau", Weight: 0.0, DefaultHasAttendance: boolPtr(false)},
 	{TypeName: "Gamenight", Weight: 0.0, DefaultHasAttendance: boolPtr(false)},
+	{TypeName: "Hackathon", Weight: 0.0, DefaultHasAttendance: boolPtr(false)},
 	{TypeName: "Oficina", Weight: 0.0, DefaultHasAttendance: boolPtr(false)},
 	{TypeName: "Contest", Weight: 0.0, DefaultHasAttendance: boolPtr(false)},
 	{TypeName: "Jogos de rua", Weight: 0.0, DefaultHasAttendance: boolPtr(false)},

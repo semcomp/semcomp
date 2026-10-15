@@ -136,22 +136,10 @@ const normalizeRFC3339 = (value: unknown): string => {
 };
 
 /**
- * Mapa de campos frontend -> backend (para sort/search)
- */
-const fieldMap: Record<string, string> = {
-  productId: "id",
-  type: "type",
-  isSelling: "is_selling",
-  price: "price",
-  kitName: "kit.name",
-  kitSize: "kit.size",
-  kitColor: "kit.color",
-  coffeeName: "coffee.name",
-  coffeeDateTime: "coffee.date_time",
-};
-
-/**
  * API para gerenciar produtos
+ *
+ * `sortBy` e `searchBy` já chegam com o nome do campo no backend: quem chama é
+ * responsável por traduzir via `API_FIELD_MAP` (ver data/productsCrudField.ts).
  */
 export const productsAPI = {
   getAll: async (
@@ -164,13 +152,10 @@ export const productsAPI = {
     /** Always filter by product type (KIT / COFFEE / COMBO) */
     typeFilter?: string,
   ): Promise<ProductsListResponse> => {
-    const backendSortBy = fieldMap[sortBy] ?? sortBy;
-    const backendSearchBy = searchBy ? (fieldMap[searchBy] ?? searchBy) : undefined;
-
-    let url = `/admin/products?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
+    let url = `/admin/products?page=${page}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
     if (typeFilter) url += `&type=${typeFilter}`;
-    if (backendSearchBy && searchValue) {
-      url += `&search_by=${backendSearchBy}&search_value=${searchValue}`;
+    if (searchBy && searchValue) {
+      url += `&search_by=${searchBy}&search_value=${encodeURIComponent(searchValue)}`;
     }
 
     const response = await client.get<any>(url);

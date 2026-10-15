@@ -23,6 +23,17 @@ const kitSize: CrudField = {
   ),
 };
 
+// "Itens" é um resumo montado no front a partir de combo_items, então não existe
+// como coluna no backend para ordenar nem para filtrar.
+const comboItems: CrudField = {
+  value: "comboItems",
+  label: "Itens",
+  type: "text",
+  readOnly: true,
+  sortable: false,
+  searchable: false,
+};
+
 export const kitFields: CrudField[] = [
   productId,
   isSelling,
@@ -58,14 +69,26 @@ export const comboFields: CrudField[] = [
   { value: "name", label: "Nome", type: "text", readOnly: true },
   isSelling,
   price,
-  { value: "comboItems", label: "Itens", type: "text", readOnly: true },
+  comboItems,
   pictureUrl,
   description,
 ];
 
+// Fonte única do mapeamento coluna da tabela -> campo esperado pelo backend.
+// Vale para ordenação (sort_by) e busca (search_by); campos ausentes aqui são
+// repassados ao backend com o nome cru.
 export const API_FIELD_MAP: Record<string, string> = {
   productId: "id",
   type: "type",
   isSelling: "is_selling",
   price: "price",
+  name: "name",
+  kitName: "kit.name",
+  kitSize: "kit.size",
+  kitColor: "kit.color",
+  kitIsBabylook: "kit.is_babylook",
+  coffeeName: "coffee.name",
+  coffeeDateTime: "coffee.date_time",
+  pictureUrl: "picture_url",
+  description: "description",
 };

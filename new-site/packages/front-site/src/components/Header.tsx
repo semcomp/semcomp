@@ -8,19 +8,21 @@ import type { FeatureKey } from "@/types/FeatureKeyType";
 
 type TabKey = "home" | "loja" | "login" | "perfil" | "cronograma" | "riddle";
 
+type Tab = { key: TabKey; featureKey?: FeatureKey; label: string; path: string; status: boolean; solidHeader?: boolean };
+
 export default function Header() {
   const { width } = useWindowDimensions();
   const location = useLocation();
   const { isAuthenticated } = useAuth();
   const { isFeatureEnabled } = useFeatureFlags();
 
-  const allTabs: Array<{ key: TabKey; featureKey?: FeatureKey; label: string; path: string; status: boolean }> = [
+  const allTabs: Array<Tab> = [
     { key: "home", featureKey: "home", label: "HOME", path: "/", status: true },
-    { key: "cronograma", featureKey: "cronograma", label: "CRONOGRAMA", path: "/cronograma", status: true },
+    { key: "cronograma", featureKey: "cronograma", label: "CRONOGRAMA", path: "/cronograma", status: true, solidHeader: true },
     { key: "loja", featureKey: "loja", label: "LOJA", path: "/loja", status: isAuthenticated },
     { key: "riddle", featureKey: "riddle", label: "RIDDLE", path: "/riddle", status: isAuthenticated },
     { key: "login", featureKey: "login", label: "INSCRIÇÃO", path: "/login", status: !isAuthenticated },
-    { key: "perfil", featureKey: "login", label: "PERFIL", path: "/profile", status: isAuthenticated },
+    { key: "perfil", featureKey: "login", label: "PERFIL", path: "/profile", status: isAuthenticated, solidHeader: true },
   ];
 
   const visibleTabs = allTabs.filter(tab =>
@@ -43,6 +45,8 @@ export default function Header() {
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+
+  const solidHeader = allTabs.find((t) => t.path === location.pathname)?.solidHeader ?? false;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -76,7 +80,7 @@ export default function Header() {
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 pt-[env(safe-area-inset-top)] ${
-      hasScrolled ? "bg-semcompMidLightBlue dark:bg-semcompDarkBlue backdrop-blur-sm shadow-lg" : "bg-transparent"
+      solidHeader || hasScrolled ? "bg-semcompMidLightBlue dark:bg-semcompDarkBlue backdrop-blur-sm shadow-lg" : "bg-transparent"
     }`}>
       <div className="mx-auto flex w-[80%] items-center justify-end pt-5 pb-5">
 

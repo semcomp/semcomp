@@ -104,7 +104,8 @@ export const eventsAPI = {
 
     let url = `/admin/events?page=${page}&limit=${limit}&sort_by=${backendSortBy}&sort_order=${sortOrder}`;
     if (backendSearchBy && searchValue) {
-      url += `&search_by=${backendSearchBy}&search_value=${searchValue}`;
+      // search_value pode conter espaço (data + hora, ex.: "2026-10-06 14:30")
+      url += `&search_by=${backendSearchBy}&search_value=${encodeURIComponent(searchValue)}`;
     }
     const response = await client.get<any>(url);
     return {

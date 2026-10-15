@@ -172,7 +172,6 @@ type CreateSaleItemRequest struct {
 type CreateSaleRequest struct {
 	PaymentMethod       string                  `json:"payment_method" binding:"required,max=50"`
 	Items               []CreateSaleItemRequest `json:"items" binding:"required,min=1,dive"`
-	Status              SaleStatus              `json:"status" binding:"omitempty,oneof=PENDENTE PAGO REJEITADO CANCELADO REEMBOLSADO"`
 	DietaryRestrictions string                  `json:"dietary_restrictions" binding:"omitempty,max=1000"`
 	// Description é opcional e usada apenas na descrição da cobrança PIX no Mercado Pago.
 	Description string `json:"description" binding:"omitempty,max=255"`
