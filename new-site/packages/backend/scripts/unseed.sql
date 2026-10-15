@@ -44,4 +44,21 @@ DELETE FROM sponsors WHERE name LIKE '[SEED]%';
 DELETE FROM notices WHERE title   LIKE '[SEED]%';
 DELETE FROM riddles WHERE hint1  LIKE '[SEED]%';
 
+-- Ressincroniza as sequences das tabelas populadas pelo seed para que o
+-- próximo valor seja MAX+1. Sem isso, IDs inseridos explicitamente (dados
+-- reais/importados) deixam a sequence atrás do MAX e o re-seed colide com
+-- "duplicate key value violates unique constraint" (ex.: sale_items_pkey).
+-- Ignora usuários "sentinela" de teste (user_number >= 100000) para não empurrar
+-- a numeração normal (formato de crachá tem 5 dígitos, %05d).
+SELECT setval(pg_get_serial_sequence('users', 'user_number'), COALESCE((SELECT MAX(user_number) FROM users WHERE user_number < 100000), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('products', 'id'), COALESCE((SELECT MAX(id) FROM products), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('sales', 'id'), COALESCE((SELECT MAX(id) FROM sales), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('sale_items', 'id'), COALESCE((SELECT MAX(id) FROM sale_items), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('riddles', 'id'), COALESCE((SELECT MAX(id) FROM riddles), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('teams', 'id'), COALESCE((SELECT MAX(id) FROM teams), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('notices', 'id'), COALESCE((SELECT MAX(id) FROM notices), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('papfe_documents', 'id'), COALESCE((SELECT MAX(id) FROM papfe_documents), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('absence_justifications', 'id'), COALESCE((SELECT MAX(id) FROM absence_justifications), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('presence_type_weights', 'id'), COALESCE((SELECT MAX(id) FROM presence_type_weights), 0) + 1, false);
+
 COMMIT;
