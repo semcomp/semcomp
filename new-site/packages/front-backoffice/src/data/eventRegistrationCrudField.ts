@@ -7,8 +7,16 @@ const statusVariants = {
   Cancelado: "bg-red-500/20 text-red-300 border border-red-500/30",
 };
 
+const papfeVariants = {
+  Aprovado: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
+  Pendente: "bg-amber-500/20 text-amber-300 border border-amber-500/30",
+  Rejeitado: "bg-red-500/20 text-red-300 border border-red-500/30",
+  "Sem PAPFE": "bg-slate-500/20 text-slate-400 border border-slate-500/30",
+};
+
 export const fields: CrudField[] = [
   { value: "userNumber", label: "Número do Participante", type: "text" },
+  { value: "papfeStatus", label: "PAPFE", type: "select", selectVariants: papfeVariants, readonly: true, sortable: false, searchable: false },
   { value: "eventName", label: "Nome do Evento", type: "text" },
   { value: "eventInitDate", label: "Data do Evento", type: "date" },
   { value: "status", label: "Status", type: "select", selectVariants: statusVariants },
@@ -17,6 +25,7 @@ export const fields: CrudField[] = [
 
 export const fieldsForEvent: CrudField[] = [
   { value: "userNumber", label: "Número do Participante", type: "text" },
+  { value: "papfeStatus", label: "PAPFE", type: "select", selectVariants: papfeVariants, readonly: true, sortable: false, searchable: false },
   { value: "status", label: "Status", type: "select", selectVariants: statusVariants },
   { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true },
 ];
