@@ -10,6 +10,10 @@ A tabela de presenca é composta por:
 - `EventName`: Nome do evento.
 - `EventInitDate`: Data e hora do início do evento.
 - `EmailAdmin`: Email do usuário backoffice que cadastrou a presença.
+- `created_at`: Instante em que a presença foi lançada, preenchido automaticamente
+  pelo GORM no insert (UTC no banco). Nunca é alterado em um update — o instante
+  original é o que interessa para auditar duplicatas. Linhas anteriores à
+  introdução da coluna vêm como `null`.
 
 ## Formato de data
 
@@ -42,15 +46,22 @@ Resposta de sucesso (`201`):
     "name": "Fulano de Ciclano",
     "event_name": "Workshop A",
     "event_init_date": "2026-07-10T14:00:00Z",
-    "email_admin": "Example@semcomp.com"
+    "email_admin": "Example@semcomp.com",
+    "created_at": "2026-07-10T14:03:21Z"
   }
 }
 ```
 
 Erros comuns:
 
-- `400`: `{"error":"Dados inválidos"}`
-- `500`: `{"error":"..."}`
+- `400`: `{"code":"validation_error","message":"Dados da requisição inválidos"}`
+- `404`: `{"code":"not_found","message":"Participante não encontrado"}` — o
+  `user_number` enviado não existe.
+- `409`: `{"code":"conflict","message":"Presença já registrada em 06/10/2026 09:00 por admin@semcomp.com"}`
+  — já existe presença deste usuário neste evento. A mensagem informa o instante
+  (no fuso de São Paulo) e o admin que registrou antes. Vale tanto para o caminho
+  normal quanto quando dois scans simultâneos disputam a mesma vaga.
+- `500`: `{"code":"internal_server_error","message":"Erro ao criar presença"}`
 
 ---
 
@@ -72,6 +83,7 @@ Erros comuns:
 - `event_name`
 - `event_init_date`
 - `email_admin`
+- `created_at`
 
 ### Valores permitidos em `sort_order`
 
@@ -88,6 +100,7 @@ Campos permitidos em `search_by`:
 - `event_name`
 - `event_init_date` (valor em RFC3339)
 - `email_admin`
+- `created_at` (valor em `AAAA-MM-DD` ou RFC3339; a busca é por dia, no fuso de São Paulo)
 
 Exemplo:
 

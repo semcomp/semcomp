@@ -18,6 +18,7 @@ type ProductService interface {
 	DeleteProductByID(id string) error
 	UpdateProductByID(id string, request UpdateProductRequest) (*Product, error)
 	GetProducts(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string, typeFilter string) (*ProductListResult, error)
+	GetAvailableCoffees() ([]Product, error)
 }
 
 type productService struct {
@@ -26,6 +27,10 @@ type productService struct {
 
 func NewProductService(repo ProductRepository) ProductService {
 	return &productService{repo: repo}
+}
+
+func (s *productService) GetAvailableCoffees() ([]Product, error) {
+	return s.repo.GetAvailableCoffees()
 }
 
 // buildComboItems valida a lista de itens de um combo e retorna os ComboItems prontos
