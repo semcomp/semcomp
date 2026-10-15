@@ -442,6 +442,7 @@ func main() {
 	admin.GET("/badge-deliveries", permMW("Entregas", permission.PermR), userHandler.GetBadgeDeliveries)
 	admin.POST("/badge-deliveries/:userNumber", permMW("Entregas", permission.PermRW), userHandler.MarkBadgeDelivered)
 	admin.DELETE("/badge-deliveries/:userNumber", permMW("Entregas", permission.PermRW), userHandler.UnmarkBadgeDelivered)
+	admin.GET("/deliveries/kits", permMW("Entregas", permission.PermR), salesHandler.GetKitDeliveries)
 
 	// Eventos
 	eventInvalidate := middleware.CacheInvalidate(cacheStore, "GET:/events", "GET:/event/")

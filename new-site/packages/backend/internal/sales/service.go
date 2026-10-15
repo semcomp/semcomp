@@ -55,6 +55,10 @@ type SaleService interface {
 	// indisponíveis para o usuário — já consumidos ou travados por um pedido
 	// ativo (incluindo o fechamento via combos).
 	GetConsumed(userNumber uint) ([]uint, error)
+
+	// GetKitDeliveries retorna todas as vendas com status PAGO para a página
+	// de controle de entregas de kits (seção "Entregas", sem exigir "Vendas").
+	GetKitDeliveries() (*SaleListResult, error)
 }
 
 type saleService struct {
@@ -738,4 +742,15 @@ func (s *saleService) syncConsumptionForSale(saleID uint) error {
 // o usuário (o mesmo usado pelo CreateSale para rejeitar compras duplicadas).
 func (s *saleService) GetConsumed(userNumber uint) ([]uint, error) {
 	return s.getUnavailableProductIDs(userNumber)
+}
+
+func (s *saleService) GetKitDeliveries() (*SaleListResult, error) {
+	return s.saleRepo.GetAll(SaleListQuery{
+		Limit:       100000,
+		Offset:      0,
+		SortBy:      "created_at",
+		SortOrder:   "desc",
+		SearchBy:    "status",
+		SearchValue: "PAGO",
+	})
 }

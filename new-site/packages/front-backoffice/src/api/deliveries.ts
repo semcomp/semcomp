@@ -1,4 +1,5 @@
 import client from "./client";
+import type { Sale, SaleItem } from "./sales";
 
 export interface BadgeDeliveryUser {
   user_number: string;
@@ -38,5 +39,21 @@ export const deliveriesAPI = {
 
   unmarkDelivered: async (userNumber: string): Promise<void> => {
     await client.delete(`/admin/badge-deliveries/${userNumber}`);
+  },
+
+  getKitDeliveries: async (): Promise<{ sales: Sale[] }> => {
+    const response = await client.get<{ sales: Sale[] }>("/admin/deliveries/kits");
+    return response.data;
+  },
+
+  updateItemPickup: async (
+    itemId: string,
+    isPickedUp: boolean,
+  ): Promise<{ message: string; item: SaleItem }> => {
+    const response = await client.patch<{ message: string; item: SaleItem }>(
+      `/admin/sales/items/${itemId}/pickup`,
+      { is_picked_up: isPickedUp },
+    );
+    return response.data;
   },
 };

@@ -5,7 +5,6 @@ import { Tabs } from "@/constants/Tabs";
 import { BannerCard } from "@/components/BannerCard";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useHasPermission } from "@/contexts/AuthContext";
-import { salesAPI } from "@/api/sales";
 import { deliveriesAPI } from "@/api/deliveries";
 import type { BadgeDeliveryUser } from "@/api/deliveries";
 import type { Sale, SaleItem, SaleProduct } from "@/api/sales";
@@ -191,7 +190,7 @@ function KitTab({ canWrite }: { canWrite: boolean }) {
     try {
       setLoading(true);
       setError(null);
-      const response = await salesAPI.getAll(1, 1000, "created_at", "desc", "status", "PAGO");
+      const response = await deliveriesAPI.getKitDeliveries();
       allRef.current = flattenKitItems(response.sales ?? []);
       const { items, total } = applyClientQuery(
         allRef.current as unknown as Record<string, unknown>[],
@@ -218,7 +217,7 @@ function KitTab({ canWrite }: { canWrite: boolean }) {
     setSaving(true);
     try {
       const newValue = !confirmItem.is_picked_up;
-      const { item: updated } = await salesAPI.updateItemPickup(String(confirmItem.itemId), newValue);
+      const { item: updated } = await deliveriesAPI.updateItemPickup(String(confirmItem.itemId), newValue);
       // atualiza no array mestre
       allRef.current = allRef.current.map((i) =>
         i.itemId === confirmItem.itemId
