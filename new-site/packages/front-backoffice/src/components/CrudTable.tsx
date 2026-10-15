@@ -613,6 +613,20 @@ export function CrudTable({
     const raw = (item as Record<string, unknown>)[field.value];
     const val = String(raw ?? "—");
 
+    // Posição na Fila: só exibe para inscrições em Lista de Espera
+    if (field.value === "userWaitListPosition") {
+      const status = (item as Record<string, unknown>).status as
+        | string
+        | undefined;
+      if (status !== "Lista de Espera") {
+        return <span className="text-foreground">—</span>;
+      }
+      if (raw === null || raw === undefined || raw === "") {
+        return <span className="text-foreground">—</span>;
+      }
+      return <span className="text-foreground">{String(raw)}</span>;
+    }
+
     if (field.type === "boolean") {
       const bool = Boolean(raw);
 
