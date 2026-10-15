@@ -14,7 +14,14 @@ var (
 	ErrDuplicateInscription   = errors.New("inscription already exists")
 	ErrOverlappingInscription = errors.New("overlapping inscription")
 	ErrAlreadyRegistered      = errors.New("inscription already registered")
+	ErrEventFull              = errors.New("event is full")
 )
+
+// isConfirmedStatus reports whether a status occupies a confirmed slot and
+// therefore counts against the event's max_participants.
+func isConfirmedStatus(status RegistrationStatus) bool {
+	return status == StatusRegistered || status == StatusWaitingDonation
+}
 
 type SigninEventRepository interface {
 	// CreateAtomicSignin serializes via per-user + per-event advisory locks,
@@ -22,7 +29,9 @@ type SigninEventRepository interface {
 	CreateAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint, targetEndDate time.Time) (*SigninEvent, error)
 	// CreateAdminSignin is the admin variant: only the per-event advisory lock
 	// is acquired and no overlap check is performed (admins bypass that rule).
-	CreateAdminSignin(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus) (*SigninEvent, error)
+	// Confirmed statuses are rejected with ErrEventFull when the event has no
+	// vacancies left (maxParticipants > 0).
+	CreateAdminSignin(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus, maxParticipants uint) (*SigninEvent, error)
 	// RemoveAtomicSignin deletes an inscription and atomically decrements
 	// queue positions and promotes waitlisted users, all under the per-event
 	// advisory lock so concurrent inscriptions cannot race the promotion step.
@@ -38,7 +47,10 @@ type SigninEventRepository interface {
 	CountConfirmedSignins(eventName string, initDate time.Time) (uint, error)
 	// RegisterAtomicSignin promotes an inscription to StatusRegistered atomically
 	// under the per-event advisory lock, preventing races with RotateAtomicSignins.
-	RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error)
+	// Promoting a non-confirmed inscription is rejected with ErrEventFull when the
+	// event has no vacancies left; already-confirmed inscriptions (e.g. approving
+	// "Aguardando Aprovação") do not consume an extra slot and are always allowed.
+	RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) (*SigninEvent, error)
 	// UpdateAdminSigninStatus changes an inscription's status atomically under the
 	// per-event advisory lock. It reorders all waitlist positions after the change
 	// and promotes the first eligible waitlisted user if a confirmed slot was vacated.
@@ -136,7 +148,7 @@ func (r *signinEventRepository) CreateAtomicSignin(userNumber uint, eventName st
 	return result, err
 }
 
-func (r *signinEventRepository) CreateAdminSignin(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus) (*SigninEvent, error) {
+func (r *signinEventRepository) CreateAdminSignin(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus, maxParticipants uint) (*SigninEvent, error) {
 	var result *SigninEvent
 
 	err := r.db.Transaction(func(tx *gorm.DB) error {
@@ -160,6 +172,22 @@ func (r *signinEventRepository) CreateAdminSignin(userNumber uint, eventName str
 			return ErrDuplicateInscription
 		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
+		}
+
+		// Admins bypass the overlap rule but must not overbook a limited event:
+		// a confirmed status (Inscrito / Aguardando Aprovação) is rejected when
+		// there is no vacancy left.
+		if isConfirmedStatus(status) && maxParticipants > 0 {
+			var confirmedCount int64
+			if err := tx.Model(&SigninEvent{}).
+				Where("event_name = ? AND event_init_date = ? AND (status = ? OR status = ?)",
+					eventName, initDate, StatusRegistered, StatusWaitingDonation).
+				Count(&confirmedCount).Error; err != nil {
+				return err
+			}
+			if confirmedCount >= int64(maxParticipants) {
+				return ErrEventFull
+			}
 		}
 
 		var count int64
@@ -382,7 +410,7 @@ func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEvent
 	}, nil
 }
 
-func (r *signinEventRepository) RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error) {
+func (r *signinEventRepository) RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) (*SigninEvent, error) {
 	var result *SigninEvent
 
 	err := r.db.Transaction(func(tx *gorm.DB) error {
@@ -401,6 +429,23 @@ func (r *signinEventRepository) RegisterAtomicSignin(userNumber uint, eventName 
 
 		if signin.Status == StatusRegistered {
 			return ErrAlreadyRegistered
+		}
+
+		// Promoting a non-confirmed inscription consumes a slot, so it must not
+		// exceed the event capacity. Already-confirmed inscriptions (e.g. an
+		// "Aguardando Aprovação" being approved) occupy a slot already and are
+		// always allowed.
+		if !isConfirmedStatus(signin.Status) && maxParticipants > 0 {
+			var confirmedCount int64
+			if err := tx.Model(&SigninEvent{}).
+				Where("event_name = ? AND event_init_date = ? AND (status = ? OR status = ?)",
+					eventName, initDate, StatusRegistered, StatusWaitingDonation).
+				Count(&confirmedCount).Error; err != nil {
+				return err
+			}
+			if confirmedCount >= int64(maxParticipants) {
+				return ErrEventFull
+			}
 		}
 
 		if err := tx.Model(&SigninEvent{}).
@@ -436,6 +481,23 @@ func (r *signinEventRepository) UpdateAdminSigninStatus(userNumber uint, eventNa
 		}
 
 		oldStatus := signin.Status
+
+		// A manual transition into a confirmed status consumes a slot and must
+		// not overbook a limited event. Transitions between confirmed statuses
+		// (e.g. "Inscrito" <-> "Aguardando Aprovação") keep the same count and
+		// are always allowed.
+		if isConfirmedStatus(newStatus) && !isConfirmedStatus(oldStatus) && maxParticipants > 0 {
+			var confirmedCount int64
+			if err := tx.Model(&SigninEvent{}).
+				Where("event_name = ? AND event_init_date = ? AND (status = ? OR status = ?)",
+					eventName, initDate, StatusRegistered, StatusWaitingDonation).
+				Count(&confirmedCount).Error; err != nil {
+				return err
+			}
+			if confirmedCount >= int64(maxParticipants) {
+				return ErrEventFull
+			}
+		}
 
 		if err := tx.Model(&SigninEvent{}).
 			Where("user_number = ? AND event_name = ? AND event_init_date = ?",

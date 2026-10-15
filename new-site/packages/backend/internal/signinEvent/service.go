@@ -254,12 +254,24 @@ func (s *signinEventService) GetSigninAdmin(userNumber string, eventName string,
 }
 
 func (s *signinEventService) CreateSigninAdmin(request CreateSigninAdminRequest) (*SigninEvent, error) {
-	newSignin, err := s.repo.CreateAdminSignin(request.UserNumber, request.EventName, request.EventInitDate, request.Status)
+	eventRecord, err := s.eventRepo.GetByNameAndInitTime(request.EventName, request.EventInitDate)
 	if err != nil {
-		if errors.Is(err, ErrDuplicateInscription) {
-			return nil, apierrors.ConflictError("Inscrição já existente", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apierrors.NotFoundError("Evento não encontrado", err)
 		}
-		return nil, apierrors.InternalServerError("Erro ao criar inscrição", err)
+		return nil, apierrors.InternalServerError("Erro ao buscar evento", err)
+	}
+
+	newSignin, err := s.repo.CreateAdminSignin(request.UserNumber, request.EventName, request.EventInitDate, request.Status, eventRecord.MaxParticipants)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrDuplicateInscription):
+			return nil, apierrors.ConflictError("Inscrição já existente", err)
+		case errors.Is(err, ErrEventFull):
+			return nil, apierrors.ConflictError("Evento lotado: não há vagas disponíveis", err)
+		default:
+			return nil, apierrors.InternalServerError("Erro ao criar inscrição", err)
+		}
 	}
 
 	return s.relativePosition(newSignin)
@@ -283,10 +295,14 @@ func (s *signinEventService) UpdateSigninAdmin(userNumber string, eventName stri
 
 	signin, err := s.repo.UpdateAdminSigninStatus(uint(num), eventName, initTime, request.Status, maxParticipants)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
 			return nil, apierrors.NotFoundError("Inscrição não encontrada", err)
+		case errors.Is(err, ErrEventFull):
+			return nil, apierrors.ConflictError("Evento lotado: não há vagas disponíveis", err)
+		default:
+			return nil, apierrors.InternalServerError("Erro ao atualizar inscrição", err)
 		}
-		return nil, apierrors.InternalServerError("Erro ao atualizar inscrição", err)
 	}
 
 	return s.relativePosition(signin)
@@ -332,13 +348,20 @@ func (s *signinEventService) RegisterSigninAdmin(userNumber string, eventName st
 		return nil, apierrors.ValidationError("Número do usuário inválido", err)
 	}
 
-	signin, err := s.repo.RegisterAtomicSignin(uint(num), eventName, initTime)
+	maxParticipants, err := s.eventMaxParticipants(eventName, initTime)
+	if err != nil {
+		return nil, err
+	}
+
+	signin, err := s.repo.RegisterAtomicSignin(uint(num), eventName, initTime, maxParticipants)
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return nil, apierrors.NotFoundError("Inscrição não encontrada", err)
 		case errors.Is(err, ErrAlreadyRegistered):
 			return nil, apierrors.ConflictError("Inscrição já registrada", nil)
+		case errors.Is(err, ErrEventFull):
+			return nil, apierrors.ConflictError("Evento lotado: não há vagas disponíveis", err)
 		default:
 			return nil, apierrors.InternalServerError("Erro ao registrar inscrição", err)
 		}
