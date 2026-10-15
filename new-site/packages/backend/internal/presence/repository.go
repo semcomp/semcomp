@@ -120,6 +120,10 @@ func applySearchFilter(dbQuery *gorm.DB, query PresenceListQuery) *gorm.DB {
 	case "event_init_date":
 		parsedTime, _ := time.Parse(time.RFC3339, query.SearchValue)
 		return dbQuery.Where("event_init_date = ?", parsedTime)
+	case "created_at":
+		// O value chega normalizado como AAAA-MM-DD pelo service. Compara no fuso
+		// do app (banco em UTC) para o dia bater com o exibido na tabela.
+		return dbQuery.Where("DATE(created_at AT TIME ZONE 'America/Sao_Paulo') = DATE(?)", query.SearchValue)
 	default:
 		return dbQuery
 	}
@@ -131,6 +135,7 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 		"event_name",
 		"event_init_date",
 		"email_admin",
+		"created_at",
 	}
 
 	field := strings.ToLower(sortBy)

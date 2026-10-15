@@ -193,6 +193,9 @@ func main() {
 	presenceService.SetRateRecalculator(rateCalculator)
 	presenceSettingsService.SetRateRecalculator(rateCalculator)
 
+	// Presença só pode ser lançada para um participante existente.
+	presenceService.SetUserLookup(userRepo)
+
 	absenceJustificationRepo := absenceJustification.NewAbsenceJustificationRepository(db)
 	absenceJustificationService := absenceJustification.NewAbsenceJustificationService(absenceJustificationRepo)
 	absenceJustificationService.SetRateRecalculator(rateCalculator)

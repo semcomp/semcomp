@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"backend/internal/apierrors"
+	"backend/internal/user"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
@@ -98,6 +100,106 @@ func TestCreatePresence_RepoError(t *testing.T) {
 	})
 
 	assertAPIError(t, err, "internal_server_error")
+}
+
+// mockUserLookup devolve o erro configurado para qualquer user_number.
+type mockUserLookup struct {
+	err error
+}
+
+func (m *mockUserLookup) GetByID(id uint) (*user.User, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return &user.User{UserNumber: id}, nil
+}
+
+// Duplicata na pré-checagem: a mensagem precisa dizer quando e por quem.
+func TestCreatePresence_DuplicateMessage(t *testing.T) {
+	registeredAt := time.Date(2026, 10, 6, 12, 0, 0, 0, time.UTC) // 09:00 em São Paulo
+	repo := &mockPresenceRepository{
+		GetByUserEventandInitDateFunc: func(_ int64, _ string, _ time.Time) (*Presence, error) {
+			return &Presence{
+				UserNumber: 1, EventName: "Evento",
+				EventInitDate: registeredAt, EmailAdmin: "admin@test.com",
+				CreatedAt: registeredAt,
+			}, nil
+		},
+	}
+	svc := NewPresenceService(repo)
+
+	_, err := svc.CreatePresence(CreatePresenceRequest{
+		UserNumber: 1, EventName: "Evento",
+		EventInitDate: time.Now(), EmailAdmin: "outro@test.com",
+	})
+
+	assertAPIError(t, err, "conflict")
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatal("esperava *apierrors.APIError")
+	}
+	expected := "Presença já registrada em 06/10/2026 09:00 por admin@test.com"
+	if apiErr.Message != expected {
+		t.Errorf("esperava %q, got %q", expected, apiErr.Message)
+	}
+}
+
+// Corrida: o insert perde para a constraint UNIQUE (23505) e o perdedor recebe
+// o mesmo conflito informativo, não um 500.
+func TestCreatePresence_UniqueViolationBecomesConflict(t *testing.T) {
+	registeredAt := time.Date(2026, 10, 6, 12, 0, 0, 0, time.UTC)
+	found := false
+	repo := &mockPresenceRepository{
+		CreateFunc: func(p *Presence) error {
+			return &pgconn.PgError{Code: "23505"}
+		},
+		GetByUserEventandInitDateFunc: func(_ int64, _ string, _ time.Time) (*Presence, error) {
+			if found {
+				return &Presence{
+					UserNumber: 1, EventName: "Evento",
+					EmailAdmin: "admin@test.com", CreatedAt: registeredAt,
+				}, nil
+			}
+			found = true // 1ª chamada: pré-checagem não achou nada
+			return nil, gorm.ErrRecordNotFound
+		},
+	}
+	svc := NewPresenceService(repo)
+
+	_, err := svc.CreatePresence(CreatePresenceRequest{
+		UserNumber: 1, EventName: "Evento",
+		EventInitDate: time.Now(), EmailAdmin: "outro@test.com",
+	})
+
+	assertAPIError(t, err, "conflict")
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatal("esperava *apierrors.APIError")
+	}
+	expected := "Presença já registrada em 06/10/2026 09:00 por admin@test.com"
+	if apiErr.Message != expected {
+		t.Errorf("esperava %q, got %q", expected, apiErr.Message)
+	}
+}
+
+// Participante inexistente é rejeitado antes de qualquer gravação.
+func TestCreatePresence_UnknownUserRejected(t *testing.T) {
+	created := false
+	repo := &mockPresenceRepository{
+		CreateFunc: func(p *Presence) error { created = true; return nil },
+	}
+	svc := NewPresenceService(repo)
+	svc.SetUserLookup(&mockUserLookup{err: gorm.ErrRecordNotFound})
+
+	_, err := svc.CreatePresence(CreatePresenceRequest{
+		UserNumber: 999, EventName: "Evento",
+		EventInitDate: time.Now(), EmailAdmin: "a@b.com",
+	})
+
+	assertAPIError(t, err, "not_found")
+	if created {
+		t.Error("presença não deveria ter sido gravada para usuário inexistente")
+	}
 }
 
 // --- GetPresence ---

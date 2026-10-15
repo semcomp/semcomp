@@ -2,18 +2,22 @@ package presence
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
 	"time"
 
 	"backend/internal/apierrors"
+	"backend/internal/user"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
 type PresenceService interface {
 	SetRateRecalculator(recalculator RateRecalculator)
+	SetUserLookup(lookup UserLookup)
 	CreatePresence(request CreatePresenceRequest) (*Presence, error)
 	GetPresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) (*Presence, error)
 	DeletePresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) error
@@ -26,9 +30,17 @@ type RateRecalculator interface {
 	RecalculateUsers(userNumbers ...int64) error
 }
 
+// UserLookup é a dependência mínima do módulo user usada para confirmar que o
+// participante existe antes de gravar uma presença. Declarada aqui (e não
+// importada de user.UserService) para o pacote não depender de `user` inteiro.
+type UserLookup interface {
+	GetByID(id uint) (*user.User, error)
+}
+
 type presenceService struct {
-	repo      PresenceRepository
+	repo         PresenceRepository
 	recalculator RateRecalculator
+	userLookup   UserLookup
 }
 
 func NewPresenceService(repo PresenceRepository) PresenceService {
@@ -37,6 +49,36 @@ func NewPresenceService(repo PresenceRepository) PresenceService {
 
 func (s *presenceService) SetRateRecalculator(recalculator RateRecalculator) {
 	s.recalculator = recalculator
+}
+
+func (s *presenceService) SetUserLookup(lookup UserLookup) {
+	s.userLookup = lookup
+}
+
+// presenceTimezone é o fuso em que o admin lê os horários no credenciamento. O
+// banco roda em UTC (ver database/connection.go), então o "quando" precisa ser
+// convertido na saída — uma presença das 21h em São Paulo viraria 00h do dia
+// seguinte se fosse exibida em UTC.
+const presenceTimezone = "America/Sao_Paulo"
+
+// formatPresenceTimestamp formata o instante do registro para exibição, no fuso
+// do evento. Cai para UTC se o tzdata não estiver disponível no ambiente.
+func formatPresenceTimestamp(t time.Time) string {
+	loc, err := time.LoadLocation(presenceTimezone)
+	if err != nil {
+		return t.UTC().Format("02/01/2006 15:04")
+	}
+	return t.In(loc).Format("02/01/2006 15:04")
+}
+
+// duplicatePresenceError monta o conflito informativo usado nas duas vias de
+// duplicata (pré-checagem e corrida de insert), para a mensagem ser idêntica.
+func duplicatePresenceError(existing *Presence) error {
+	return apierrors.ConflictError(
+		fmt.Sprintf("Presença já registrada em %s por %s",
+			formatPresenceTimestamp(existing.CreatedAt), existing.EmailAdmin),
+		nil,
+	)
 }
 
 func (s *presenceService) recalcUsers(userNumbers ...int64) {
@@ -49,12 +91,16 @@ func (s *presenceService) recalcUsers(userNumbers ...int64) {
 }
 
 func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presence, error) {
-	str := strconv.Itoa(int(request.UserNumber))
-	_, err := s.GetPresenceByUserEventandInitDate(str, request.EventName, request.EventInitDate.Format(time.RFC3339))
-	if err == nil {
-		return nil, apierrors.ConflictError("Presença já cadastrada", err)
+	if err := s.ensureUserExists(request.UserNumber); err != nil {
+		return nil, err
 	}
-	
+
+	str := strconv.Itoa(int(request.UserNumber))
+	existing, err := s.GetPresenceByUserEventandInitDate(str, request.EventName, request.EventInitDate.Format(time.RFC3339))
+	if err == nil {
+		return nil, duplicatePresenceError(existing)
+	}
+
 	newPresence := Presence{
 		UserNumber:    request.UserNumber,
 		EventName:     request.EventName,
@@ -64,12 +110,39 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 
 	err = s.repo.Create(&newPresence)
 	if err != nil {
+		// Corrida entre dois scans do mesmo participante: o SELECT acima não
+		// achou nada, mas a PK composta (user_number, event_name,
+		// event_init_date) é UNIQUE e o Postgres barra este insert com 23505.
+		// O perdedor da corrida merece o mesmo conflito informativo do caminho
+		// acima, não um 500 genérico. Mesmo tratamento que o PUT já faz.
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			if winner, gerr := s.GetPresenceByUserEventandInitDate(str, request.EventName, request.EventInitDate.Format(time.RFC3339)); gerr == nil {
+				return nil, duplicatePresenceError(winner)
+			}
+		}
 		return nil, apierrors.InternalServerError("Erro ao criar presença", err)
 	}
 
 	s.recalcUsers(newPresence.UserNumber)
 
 	return &newPresence, nil
+}
+
+// ensureUserExists rejeita presença para um user_number inexistente (QR forjado
+// ou participante apagado), evitando presença órfã. No-op quando o lookup não
+// foi injetado, para o service seguir testável sem a dependência.
+func (s *presenceService) ensureUserExists(userNumber int64) error {
+	if s.userLookup == nil {
+		return nil
+	}
+	if _, err := s.userLookup.GetByID(uint(userNumber)); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return apierrors.NotFoundError("Participante não encontrado", err)
+		}
+		return apierrors.InternalServerError("Erro ao verificar participante", err)
+	}
+	return nil
 }
 
 func (s *presenceService) GetPresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) (*Presence, error) {
@@ -179,6 +252,7 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 		"event_name":      true,
 		"event_init_date": true,
 		"email_admin":     true,
+		"created_at":      true,
 	}
 
 	if !allowedSortFields[sortBy] {
@@ -201,6 +275,7 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 			"event_name":      true,
 			"email_admin":     true,
 			"event_init_date": true,
+			"created_at":      true,
 		}
 
 		if !allowedSearchFields[searchBy] {
@@ -213,6 +288,19 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 				return nil, apierrors.ValidationError("Parâmetro 'search_value' inválido para 'event_init_date', use o formato RFC3339", nil)
 			}
 			searchValue = parsedDateTime.Format(time.RFC3339)
+		}
+
+		// created_at: busca por dia (AAAA-MM-DD) ou por instante (RFC3339). O
+		// valor é normalizado para AAAA-MM-DD, que é o que o repositório compara.
+		if searchBy == "created_at" {
+			parsed, err := time.Parse("2006-01-02", searchValue)
+			if err != nil {
+				parsed, err = time.Parse(time.RFC3339, searchValue)
+				if err != nil {
+					return nil, apierrors.ValidationError("Parâmetro 'search_value' inválido para 'created_at', use o formato AAAA-MM-DD", nil)
+				}
+			}
+			searchValue = parsed.Format("2006-01-02")
 		}
 	}
 
