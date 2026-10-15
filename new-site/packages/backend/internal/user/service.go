@@ -116,7 +116,7 @@ func (s *userService) CreateUser(request CreateUserRequest) (*SafeUser, error) {
 		Profession:    request.Profession,
 		Linkedin:      request.Linkedin,
 		Telegram:      request.Telegram,
-		QuerCracha:               request.QuerCracha,
+		QuerCracha:               false,
 		AutorizaCompartilhamento: request.AutorizaCompartilhamento,
 		PresenceRate:             0.0,
 		EmailVerified: false,
@@ -309,6 +309,9 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 		"profession":  true,
 		"linkedin":    true,
 		"telegram":    true,
+		"quer_cracha":               true,
+		"autoriza_compartilhamento": true,
+		"disabilities":              true,
 	}
 
 	if !allowedSortFields[sortBy] {
@@ -339,6 +342,8 @@ func (s *userService) GetAllUsers(page int, limit int, sortBy string, sortOrder 
 			"profession":   true,
 			"linkedin":     true,
 			"telegram":     true,
+			"quer_cracha":               true,
+			"autoriza_compartilhamento": true,
 		}
 
 		if !allowedSearchFields[searchBy] {
@@ -433,7 +438,7 @@ func (s *userService) UpdateUser(id uint, request UpdateUserRequest) error {
 	user.Profession = request.Profession
 	user.Linkedin = request.Linkedin
 	user.Telegram = request.Telegram
-	user.QuerCracha = request.QuerCracha
+	user.QuerCracha = false
 
 	return s.repo.Update(user)
 }

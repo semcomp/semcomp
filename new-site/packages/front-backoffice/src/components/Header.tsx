@@ -7,13 +7,12 @@ import { LogOut } from "lucide-react";
 import SemcompLogo from "@/assets/img/semcomp/logo.webp";
 import { Tabs } from "@/constants/Tabs";
 
-
 export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
+
   // Referência para o primeiro item do menu para focar ao abrir
   const firstNavLinkRef = useRef<HTMLAnchorElement>(null);
 
@@ -21,20 +20,24 @@ export default function Header() {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
-  // Gerenciamento de Overflow e Auto-foco ao abrir o menu
+  // Trava o scroll do body enquanto o menu está aberto.
+  // O cleanup roda tanto quando isMenuOpen muda quanto no unmount do componente,
+  // garantindo que o overflow nunca fique residual no <body> (o que desativaria
+  // o pull-to-refresh nativo em navegadores mobile).
   useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden";
-      
-      // Move o foco para o primeiro link do menu após a renderização
-      const timer = setTimeout(() => {
-        firstNavLinkRef.current?.focus();
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    } else {
+    document.body.style.overflow = isMenuOpen ? "hidden" : "";
+    return () => {
       document.body.style.overflow = "";
-    }
+    };
+  }, [isMenuOpen]);
+
+  // Auto-foco no primeiro link do menu ao abrir
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const timer = setTimeout(() => {
+      firstNavLinkRef.current?.focus();
+    }, 100);
+    return () => clearTimeout(timer);
   }, [isMenuOpen]);
 
   // Fechar menu com a tecla ESC
@@ -52,14 +55,18 @@ export default function Header() {
   };
 
   const initials = user?.name
-    ? user.name.split(" ").slice(0, 2).map((n: string) => n[0]).join("").toUpperCase()
+    ? user.name
+        .split(" ")
+        .slice(0, 2)
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
     : "";
 
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
-          
           <div className="flex items-center gap-3">
             {isAuthenticated && (
               <Button
@@ -67,19 +74,30 @@ export default function Header() {
                 size="icon"
                 variant="ghost"
                 className="h-9 w-9 rounded-lg"
-                onClick={() => setIsMenuOpen(v => !v)}
+                onClick={() => setIsMenuOpen((v) => !v)}
                 tabIndex={-1}
                 aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
               >
                 {isMenuOpen ? <IoClose size={24} /> : <IoMenu size={24} />}
               </Button>
             )}
-            
-            <Link to="/home" className="flex items-center gap-3 group transition ">
-              <img src={SemcompLogo} alt="Brand Logo" className="w-8 h-8 rounded-full transition group-hover:contrast-70" />
+
+            <Link
+              to="/home"
+              className="flex items-center gap-3 group transition "
+            >
+              <img
+                src={SemcompLogo}
+                alt="Brand Logo"
+                className="w-8 h-8 rounded-full transition group-hover:contrast-70"
+              />
               <div className="hidden sm:block group-hover:scale-105 transition">
-                <p className="text-[10px] uppercase leading-none tracking-[0.35em] text-foreground/50">Backoffice</p>
-                <h1 className="font-comfortaa text-sm leading-tight tracking-wide text-foreground">semcomp</h1>
+                <p className="text-[10px] uppercase leading-none tracking-[0.35em] text-foreground/50">
+                  Backoffice
+                </p>
+                <h1 className="font-comfortaa text-sm leading-tight tracking-wide text-foreground">
+                  semcomp
+                </h1>
               </div>
             </Link>
           </div>
@@ -92,8 +110,12 @@ export default function Header() {
                     {initials}
                   </div>
                   <div className="hidden md:flex flex-col">
-                    <span className="text-xs font-medium leading-none text-foreground">{user?.name ?? "Admin"}</span>
-                    <span className="mt-1 text-[10px] italic uppercase tracking-wider text-muted-foreground">{user?.email}</span>
+                    <span className="text-xs font-medium leading-none text-foreground">
+                      {user?.name ?? "Admin"}
+                    </span>
+                    <span className="mt-1 text-[10px] italic uppercase tracking-wider text-muted-foreground">
+                      {user?.email}
+                    </span>
                   </div>
                 </div>
 
@@ -126,11 +148,11 @@ export default function Header() {
             id="main-navigation"
             role="dialog"
             aria-modal="true"
-            className="fixed left-0 top-0 z-50 flex h-full w-70 flex-col border-r border-border bg-background shadow-2xl"
+            className="fixed left-0 top-0 z-50 flex h-full w-70 flex-col border-r border-border bg-background shadow-2xl overscroll-contain"
           >
             <nav
               aria-label="Navegação Principal"
-                    className="flex-1 p-4 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-hide"
+              className="flex-1 p-4 space-y-2 overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-slate-800 scrollbar-hide"
             >
               {Tabs.map((tab) => (
                 <NavLink
@@ -147,15 +169,23 @@ export default function Header() {
                 >
                   {({ isActive }) => (
                     <>
-                      <span 
-                        className={`rounded-lg p-2 ${isActive ? "bg-primary text-primary-foreground" : "bg-accent/20 text-muted-foreground"}`} 
+                      <span
+                        className={`rounded-lg p-2 ${
+                          isActive
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-accent/20 text-muted-foreground"
+                        }`}
                         aria-hidden="true"
                       >
                         {tab.icon}
                       </span>
                       <div>
-                        <p className="text-sm text-foreground font-semibold">{tab.label}</p>
-                        <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">{tab.description}</p>
+                        <p className="text-sm text-foreground font-semibold">
+                          {tab.label}
+                        </p>
+                        <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
+                          {tab.description}
+                        </p>
                       </div>
                     </>
                   )}
@@ -164,7 +194,7 @@ export default function Header() {
             </nav>
 
             <div className="shrink-0 border-t border-border p-6 text-center text-[10px] uppercase tracking-widest text-muted-foreground">
-                Semcomp - Backoffice
+              Semcomp - Backoffice
             </div>
           </aside>
         </>

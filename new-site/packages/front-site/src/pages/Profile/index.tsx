@@ -41,7 +41,7 @@ function StatusEyeButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       aria-label="Ver motivo da negativa"
       title="Ver motivo da negativa"
-      className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-semcompDarkBlue text-white transition-colors hover:bg-semcompMidDarkBlue dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white"
+      className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-semcompDarkBlue text-white transition-colors hover:bg-semcompMidDarkBlue dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white cursor-pointer"
     >
       <Eye className="w-4 h-4" />
     </button>
@@ -216,13 +216,12 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
   return (
     <div className="border rounded-xl p-4 mb-3 bg-black/10 border-semcompDarkBlue/20 text-semcompDarkBlue dark:bg-white/10 dark:border-white/20 dark:text-white flex flex-col items-start">
       <div className="w-full">
-        <div className="flex items-start gap-2">
-          <div className="flex flex-col shrink-0">
-            <span className="font-bold">{ev.name}</span>
-            <span className="text-xs opacity-60">{ev.type}</span>
+        <div className="flex flex-col gap-1 mb-1">
+          <div className="flex items-baseline gap-1.5 flex-wrap">
+            <span className="font-bold wrap-break-word">{ev.name}</span>
+            <span className="text-xs opacity-60 shrink-0">{ev.type}</span>
           </div>
-          <span className="opacity-60">|</span>
-          <p className="text-sm leading-relaxed opacity-90 wrap-break-words">{ev.description}</p>
+          <p className="text-sm leading-relaxed opacity-90 wrap-break-word">{ev.description}</p>
         </div>
         <p className="mt-3 text-sm opacity-80 font-medium text-center">
           {diaSemana} ({data}), {formatTime(ev.dateInit)} às {formatTime(ev.dateEnd)}
@@ -235,8 +234,8 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
             {subscription.status === "Aguardando Aprovação" ? (
               <span className="w-full p-2 text-center text-sm font-semibold text-blue-700 dark:text-blue-400">
                 {papfeApproved
-                  ? "Você deve confirmar a sua presença no Fernão"
-                  : "Traga 1kg de alimento para confirmar sua inscrição na entrada do Fernão"}
+                  ? "Você deve confirmar a sua presença na entrada do Fernão. Para mais informações, leia o Mural de Avisos acima."
+                  : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição. Para mais informações, leia o Mural de Avisos acima."}
               </span>
             ) : (
               <span className={`w-full p-2 text-center text-sm font-semibold ${
@@ -268,6 +267,26 @@ const EventCardMobile = memo(({ ev, subscription, onSignin, isSigningIn, onCance
     </div>
   );
 });
+
+function getErrorMessage(error: unknown): string {
+  if (typeof error === "string") return error;
+
+  if (typeof error === "object" && error !== null) {
+    // Axios: mensagem enviada pelo backend
+    const data = (error as { response?: { data?: unknown } }).response?.data;
+    if (typeof data === "string" && data) return data;
+    if (typeof data === "object" && data !== null) {
+      const d = data as { message?: unknown; error?: unknown };
+      if (typeof d.message === "string" && d.message) return d.message;
+      if (typeof d.error === "string" && d.error) return d.error;
+    }
+  }
+
+  // Error padrão (fetch, rede, etc.)
+  if (error instanceof Error && error.message) return error.message;
+
+  return "erro desconhecido.";
+}
 
 interface BackendNoticeResponse {
   notices: Array<{
@@ -445,14 +464,14 @@ export default function Profile({
   }, [isAuthenticated, navigate, name, email]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !isFeatureEnabled("cronograma")) return;
     Promise.all([signinEventsAPI.getSigninEvents(), signinEventsAPI.getMySignins()])
       .then(([events, signins]) => {
         setSigninEvents(events);
         setMySignins(signins);
       })
       .catch((err) => console.error("Erro ao buscar eventos de inscrição", err));
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isFeatureEnabled]);
 
   function getSubscription(ev: EventType): SigninEventType | undefined {
     return mySignins.find(
@@ -485,8 +504,12 @@ export default function Profile({
       const updatedSignins = await signinEventsAPI.getMySignins();
       setMySignins(updatedSignins);
       showNotification("Inscrição realizada com sucesso!", "info");
-    } catch {
-      showNotification("Erro ao se inscrever no evento.", "warning");
+    } catch (error) {
+      console.error("Erro ao se inscrever no evento:", error);
+      showNotification(
+        `Erro ao se inscrever no evento: ${getErrorMessage(error)}`,
+        "warning"
+      );
     } finally {
       setSigningInKey(null);
     }
@@ -502,13 +525,13 @@ export default function Profile({
         <p className="text-sm text-center opacity-70 mb-6">Tem certeza que deseja desistir deste evento? Você pode perder sua vaga.</p>
         <div className="flex gap-3">
           <button
-            className="flex-1 py-2.5 rounded-xl border border-black/20 dark:border-white/20 text-sm font-semibold transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+            className="flex-1 py-2.5 rounded-xl border border-black/20 dark:border-white/20 text-sm font-semibold transition-colors hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer"
             onClick={() => setCancelConfirm(null)}
           >
             Voltar
           </button>
           <button
-            className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+            className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors cursor-pointer"
             onClick={() => {
               handleCancelSignin(cancelConfirm.eventName, cancelConfirm.eventInitDate);
               setCancelConfirm(null);
@@ -652,7 +675,7 @@ export default function Profile({
           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex backdrop-blur-md rounded-full p-1 border w-[90%] max-w-sm z-20 bg-semcompMidLightBlue/40 border-semcompDarkBlue/20 dark:bg-black/40 dark:border-white/20">
             <button
               onClick={() => setActiveTab("qr")}
-              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold cursor-pointer ${
                 activeTab === "qr"
                   ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
                   : "text-semcompDarkBlue dark:text-white opacity-80"
@@ -662,7 +685,7 @@ export default function Profile({
             </button>
             <button
               onClick={() => setActiveTab("account")}
-              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold cursor-pointer ${
                 activeTab === "account"
                   ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
                   : "text-semcompDarkBlue dark:text-white opacity-80"
@@ -672,7 +695,7 @@ export default function Profile({
             </button>
             <button
               onClick={() => setActiveTab("purchases")}
-              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold ${
+              className={`flex-1 py-2 text-xs md:text-sm rounded-full transition-all font-bold cursor-pointer ${
                 activeTab === "purchases"
                   ? "bg-semcompDarkBlue text-semcompOffWhite dark:bg-[#D9D9D9] dark:text-[#0B2639]"
                   : "text-semcompDarkBlue dark:text-white opacity-80"
@@ -769,14 +792,14 @@ export default function Profile({
                 {isEditing ? (
                   <div className="flex gap-3 mb-4">
                     <button
-                      className="flex-1 bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold disabled:opacity-60"
+                      className="flex-1 bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
                       onClick={saveProfile}
                       disabled={isSaving || !editForm.name.trim() || !editForm.city.trim()}
                     >
                       {isSaving ? "Salvando..." : "Salvar"}
                     </button>
                     <button
-                      className="flex-1 border border-semcompDarkBlue text-semcompDarkBlue py-3 rounded-lg text-sm font-semibold"
+                      className="flex-1 border border-semcompDarkBlue text-semcompDarkBlue py-3 rounded-lg text-sm font-semibold cursor-pointer disabled:cursor-not-allowed"
                       onClick={() => setIsEditing(false)}
                       disabled={isSaving}
                     >
@@ -785,14 +808,14 @@ export default function Profile({
                   </div>
                 ) : (
                   <button
-                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 cursor-pointer"
                     onClick={startEditing}
                   >
                     Editar Informações
                   </button>
                 )}
 
-                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 cursor-pointer"
                   onClick={() => setPapfeModalOpen(true)}>
                   {papfeDoc ? "Atualizar Comprovante PAPFE" : "Enviar Comprovante PAPFE"}
                 </button>
@@ -833,7 +856,7 @@ export default function Profile({
                   </div>
                 </div>
 
-                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mt-4 mb-4 disabled:cursor-not-allowed disabled:opacity-50"
+                <button className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mt-4 mb-4 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
                   disabled={justificationLocked}
                   onClick={() => setJustifyOpen(true)}>
                   Justificar Ausência
@@ -850,7 +873,7 @@ export default function Profile({
                   </div>
                 )}
 
-                <button className="w-full text-red-700 font-bold text-sm py-2" onClick={logout}>
+                <button className="w-full text-red-700 font-bold text-sm py-2 cursor-pointer" onClick={logout}>
                   Sair da conta
                 </button>
               </div>
@@ -862,7 +885,7 @@ export default function Profile({
                 {isFeatureEnabled("loja") && pendingSalesCount > 0 && (
                   <button
                     onClick={() => navigate("/loja/pagamentos")}
-                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4"
+                    className="w-full bg-semcompDarkBlue text-white py-3 rounded-lg text-sm font-semibold mb-4 cursor-pointer"
                   >
                     Ver pagamentos pendentes ({pendingSalesCount})
                   </button>
@@ -902,7 +925,7 @@ export default function Profile({
                           <button
                             type="button"
                             onClick={() => requestCancelPurchase(purchase)}
-                            className="mt-3 w-full text-sm font-semibold text-red-600 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors"
+                            className="mt-3 w-full text-sm font-semibold text-red-600 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors cursor-pointer"
                           >
                             Cancelar pedido
                           </button>
@@ -1036,7 +1059,7 @@ export default function Profile({
       <div className="flex mx-auto mb-5 w-[85%] rounded-full m-3 p-1 gap-1 border-2 border-semcompOffWhite/20 bg-semcompMidLight/20">
         <button
           onClick={() => setActiveTab("qr")}
-          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 ${
+          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 cursor-pointer ${
             activeTab === "qr"
               ? "bg-semcompDarkBlue text-semcompOffWhite shadow-md font-semibold"
               : "text-semcompDarkBlue/70 hover:text-semcompDarkBlue"
@@ -1046,7 +1069,7 @@ export default function Profile({
         </button>
         <button
           onClick={() => setActiveTab("account")}
-          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 ${
+          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 cursor-pointer ${
             activeTab === "account"
               ? "bg-semcompDarkBlue text-semcompOffWhite shadow-md font-semibold"
               : "text-semcompDarkBlue/70 hover:text-semcompDarkBlue"
@@ -1056,7 +1079,7 @@ export default function Profile({
         </button>
         <button
           onClick={() => setActiveTab("purchases")}
-          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 ${
+          className={`flex-1 text-center py-2 rounded-full text-sm transition-all duration-200 cursor-pointer ${
             activeTab === "purchases"
               ? "bg-semcompDarkBlue text-semcompOffWhite shadow-md font-semibold"
               : "text-semcompDarkBlue/70 hover:text-semcompDarkBlue"
@@ -1156,14 +1179,14 @@ export default function Profile({
           {isEditing ? (
             <div className="flex gap-2 mb-4">
               <button
-                className="flex-1 bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-60"
+                className="flex-1 bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
                 onClick={saveProfile}
                 disabled={isSaving || !editForm.name.trim() || !editForm.city.trim()}
               >
                 {isSaving ? "Salvando..." : "Salvar"}
               </button>
               <button
-                className="flex-1 border border-semcompDarkBlue/40 text-semcompDarkBlue py-2.5 rounded-lg text-sm font-semibold hover:bg-semcompDarkBlue/5 transition-all"
+                className="flex-1 border border-semcompDarkBlue/40 text-semcompDarkBlue py-2.5 rounded-lg text-sm font-semibold hover:bg-semcompDarkBlue/5 transition-all cursor-pointer disabled:cursor-not-allowed"
                 onClick={() => setIsEditing(false)}
                 disabled={isSaving}
               >
@@ -1172,7 +1195,7 @@ export default function Profile({
             </div>
           ) : (
             <button
-              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8"
+              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-8 cursor-pointer"
               onClick={startEditing}
             >
               Editar Informações
@@ -1181,7 +1204,7 @@ export default function Profile({
 
           <button
             onClick={() => setPapfeModalOpen(true)}
-            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 cursor-pointer"
           >
             {papfeDoc ? "Atualizar Comprovante PAPFE" : "Enviar Comprovante PAPFE"}
           </button>
@@ -1220,7 +1243,7 @@ export default function Profile({
           <button
             onClick={() => setJustifyOpen(true)}
             disabled={justificationLocked}
-            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           >
             Justificar Ausência
           </button>
@@ -1235,7 +1258,7 @@ export default function Profile({
 
           <button
             onClick={logout}
-            className="mt-6 text-xs text-white font-medium mx-auto bg-destructive/70 hover:text-semcompOffWhite hover:bg-destructive/50 transition-colors py-2 px-3 rounded-lg"
+            className="mt-6 text-xs text-white font-medium mx-auto bg-destructive/70 hover:text-semcompOffWhite hover:bg-destructive/50 transition-colors py-2 px-3 rounded-lg cursor-pointer"
           >
             Sair da conta
           </button>
@@ -1252,7 +1275,7 @@ export default function Profile({
           {isFeatureEnabled("loja") && pendingSalesCount > 0 && (
             <button
               onClick={() => navigate("/loja/pagamentos")}
-              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4"
+              className="w-full bg-semcompMidDarkBlue hover:bg-semcompDarkBlue/90 text-white py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md mb-4 cursor-pointer"
             >
               Ver pagamentos pendentes ({pendingSalesCount})
             </button>
@@ -1289,7 +1312,7 @@ export default function Profile({
                     <button
                       type="button"
                       onClick={() => requestCancelPurchase(purchase)}
-                      className="mt-3 w-full text-sm font-semibold text-red-600 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors"
+                      className="mt-3 w-full text-sm font-semibold text-red-600 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors cursor-pointer"
                     >
                       Cancelar pedido
                     </button>
@@ -1418,9 +1441,9 @@ export default function Profile({
                         onClick={() => setOpenSubscription(openSubscription === index ? -1 : index)}
                       >
                         <div className="w-1/2 flex flex-col text-left gap-1 items-start pr-4">
-                          <span className="font-bold text-lg shrink-0">{evento.name}</span>
+                          <span className="font-bold text-lg wrap-break-word">{evento.name}</span>
                           <span className="text-xs opacity-60 shrink-0">{evento.type}</span>
-                          <span className="text-sm font-medium wrap-break-words flex-1 opacity-90">{evento.description}</span>
+                          <span className="text-sm font-medium wrap-break-word flex-1 opacity-90">{evento.description}</span>
                         </div>
                         <div className="w-auto flex flex-col items-end shrink-0 gap-1">
                           <div className="flex flex-row gap-3 items-center">
@@ -1445,8 +1468,8 @@ export default function Profile({
                               {subscription.status === "Aguardando Aprovação" ? (
                                 <span className="text-lg font-bold text-blue-600 dark:text-blue-400 text-center">
                                   {papfeDoc?.is_approved === true
-                                    ? "Você deve confirmar a sua presença no Fernão"
-                                    : "Traga 1kg de alimento para confirmar sua inscrição na entrada do Fernão"}
+                                    ? "Você deve confirmar a sua presença na entrada do Fernão. Para mais informações, leia o Mural de Avisos acima."
+                                    : "Traga 1kg de alimento na entrada do Fernão para confirmar sua inscrição. Para mais informações, leia o Mural de Avisos acima."}
                                 </span>
                               ) : (
                                 <span className={`text-lg font-bold ${
@@ -1460,7 +1483,7 @@ export default function Profile({
                                 </span>
                               )}
                               <button
-                                className="px-6 py-2 rounded-xl font-bold text-sm uppercase tracking-wide shadow-sm hover:-translate-y-0.5 transition-all duration-300 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                                className="px-6 py-2 rounded-xl font-bold text-sm uppercase tracking-wide shadow-sm hover:-translate-y-0.5 transition-all duration-300 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 cursor-pointer"
                                 disabled={cancelingKey === key}
                                 onClick={() => setCancelConfirm({ eventName: evento.name, eventInitDate: evento.dateInit })}
                               >
@@ -1469,7 +1492,7 @@ export default function Profile({
                             </div>
                           ) : (
                             <button
-                              className="px-8 py-3 rounded-xl font-bold uppercase tracking-wide shadow-md hover:-translate-y-1 transition-all duration-300 bg-semcompDarkBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-semcompDarkBlue/40 dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white dark:hover:shadow-white/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                              className="px-8 py-3 rounded-xl font-bold uppercase tracking-wide shadow-md hover:-translate-y-1 transition-all duration-300 bg-semcompDarkBlue text-semcompOffWhite hover:bg-semcompMidDarkBlue hover:shadow-semcompDarkBlue/40 dark:bg-semcompOffWhite dark:text-semcompDarkBlue dark:hover:bg-white dark:hover:shadow-white/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 cursor-pointer"
                               disabled={signingInKey === key}
                               onClick={() => handleSignin(evento.name, evento.dateInit)}
                             >

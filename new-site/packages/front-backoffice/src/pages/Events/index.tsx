@@ -36,11 +36,6 @@ export default function Events() {
       setLoading(true);
       setError(null);
 
-      if (params?.filterField == "dateInit" || params?.filterField == "dateEnd") {
-        showNotification(`A busca por esse campo está desativada`, "error");
-        return;
-      }
-
       // O backend busca o tipo pelo nome (type_name), não pelo ID do select
       const filterValue = params?.filterField === "presence_type_weight_id"
         ? (weights.find((w) => String(w.id) === params.filterValue)?.type_name ?? params.filterValue)

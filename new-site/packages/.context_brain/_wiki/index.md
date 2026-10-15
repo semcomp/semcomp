@@ -62,3 +62,4 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - **Riddle (CSV)**: o upload substitui a fila com **hard delete** e é bloqueado (409) enquanto houver equipes em progresso — o fluxo exige a fila zerada antes de recriar
 - **Cronograma (image)**: `EventType` do front-site tem campo `image?: string` e `mapBackendEvent` tenta mapear `event.image`, mas o modelo `Event` do backend não possui esse campo — `image` sempre será `undefined` na API atual
 - **SiteStat**: sem rate-limiting em `POST /visit` — contador vulnerável a inflação por bots
+- **QuerCracha (temporário)**: `quer_cracha` está **hardcoded como `false`** no backend (`internal/user/service.go` linhas de criação e atualização de usuário) e no front-site (`src/api/auth.ts`). O campo ainda existe no modelo/DB. Quando o prazo de crachá reabrir, reverter: service.go → `request.QuerCracha`; auth.ts → reexpor parâmetro; Login/index.tsx → descomentar o bloco JSX do checkbox

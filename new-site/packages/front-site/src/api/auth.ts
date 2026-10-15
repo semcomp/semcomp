@@ -62,7 +62,6 @@ export const authAPI = {
     education: string,
     hasPapfe: boolean,
     disabilities: string[],
-    querCracha: boolean,
     autorizaCompartilhamento: boolean,
     profession?: string,
     linkedin?: string,
@@ -79,7 +78,7 @@ export const authAPI = {
     fd.append("education", education);
     fd.append("hasPapfe", String(hasPapfe));
     fd.append("disabilities", disabilities.join(", "));
-    fd.append("quer_cracha", String(querCracha));
+    fd.append("quer_cracha", "false");
     fd.append("autoriza_compartilhamento", String(autorizaCompartilhamento));
     if (profession?.trim()) fd.append("profession", profession.trim());
     if (linkedin?.trim()) fd.append("linkedin", linkedin.trim());

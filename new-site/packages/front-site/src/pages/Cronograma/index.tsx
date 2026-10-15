@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, memo, type ReactElement } from "react";
-import { MicVocal, Rocket, Trophy, Target, Gamepad2, Flag, Coffee, Clock, MapPin } from "lucide-react";
+import { MicVocal, Rocket, Trophy, Target, Gamepad2, Flag, Coffee, Clock, MapPin, X, MessageCircle, Store, Award, Music} from "lucide-react";
 import { eventsAPI } from "@/api/events";
 import type { EventType } from "@/types/EventType.ts";
 import { useTheme } from "@/contexts/useTheme";
@@ -19,14 +19,20 @@ const EVENT_DAYS = Array.from(
 const MS_PER_HOUR = 60 * 60 * 1000;
 // São Paulo = UTC-3; midnight BR = 03:00 UTC (October, before DST)
 const BR_OFFSET_MS = 3 * MS_PER_HOUR;
-const PX_PER_HOUR_DAY = 120;
-const PX_PER_HOUR_WEEK = 90;
+const PX_PER_HOUR_DAY = 180;
+
+// Tamanhos de fonte padronizados entre os cards
+const FONT = {
+  type: "text-[10px] md:text-[11px]",   // tipo do evento
+  name: "text-[11px] md:text-xs",       // nome do evento
+  meta: "text-[10px] md:text-[11px]",   // horário e local
+};
+const ICON_META = "h-3 w-3 shrink-0";   // relógio e pin
 
 type DayOption = {
   day: number;
   label: string;
   weekdayShort: string;
-  weekdayLong: string;
   isToday: boolean;
   isPast: boolean;
 };
@@ -44,15 +50,10 @@ const buildDayOptions = (): DayOption[] => {
       .replace(".", "")
       .toUpperCase();
 
-    const weekdayLong = date
-      .toLocaleDateString("pt-BR", { weekday: "long", timeZone: "UTC" })
-      .toUpperCase();
-
     return {
       day,
       label: `${String(day).padStart(2, "0")}/${String(SEMCOMP_MONTH).padStart(2, "0")}`,
       weekdayShort,
-      weekdayLong,
       isToday: dayUTC === todayUTC,
       isPast: dayUTC < todayUTC,
     };
@@ -67,6 +68,7 @@ const getDayOption = (day: number): DayOption => dayOptions[day - EVENT_DAYS_STA
 type PositionedEvent = EventType & {
   column: number;
   totalColumns: number;
+  columnSpan: number;
 };
 
 /**
@@ -120,10 +122,27 @@ const computeLayout = (events: EventType[]): PositionedEvent[] => {
     });
   }
 
+  const spans = new Array(n).fill(1);
+
+  for (let i = 0; i < n; i++) {
+    for (let nextCol = cols[i] + 1; nextCol < totalColsArr[i]; nextCol++) {
+      const hasConflict = sorted.some((_, j) =>
+        cols[j] === nextCol &&
+        starts[i] < ends[j] &&
+        starts[j] < ends[i]
+      );
+
+      if (hasConflict) break;
+
+      spans[i]++;
+    }
+  }  
+
   return sorted.map((event, i) => ({
     ...event,
     column: cols[i],
     totalColumns: totalColsArr[i],
+    columnSpan: spans[i],
   }));
 };
 
@@ -138,97 +157,95 @@ const getTimeRange = (events: EventType[]): { start: number; end: number } | nul
   };
 };
 
-/**
- * Shared "time-of-day" range (hours since midnight BR) across all week days.
- * Uses the BR calendar day anchor so that events crossing UTC midnight are handled correctly.
- */
-const getWeekTimeOfDayRange = (
-  processedWeek: { option: DayOption; events: EventType[] }[]
-): { startHours: number; endHours: number } | null => {
-  let minH = Infinity;
-  let maxH = -Infinity;
-
-  for (const { option, events: dayEvents } of processedWeek) {
-    if (!dayEvents.length) continue;
-    // Midnight BR = 03:00 UTC of the same UTC calendar day
-    const brDayStart = Date.UTC(SEMCOMP_YEAR, SEMCOMP_MONTH - 1, option.day) + BR_OFFSET_MS;
-    for (const ev of dayEvents) {
-      const s = (new Date(ev.dateInit).getTime() - brDayStart) / MS_PER_HOUR;
-      const e = (new Date(ev.dateEnd).getTime() - brDayStart) / MS_PER_HOUR;
-      if (s < minH) minH = s;
-      if (e > maxH) maxH = e;
-    }
-  }
-
-  if (minH === Infinity) return null;
-  return { startHours: Math.floor(minH), endHours: Math.ceil(maxH) };
-};
-
-/** Converts a time-of-day range into absolute UTC timestamps for a specific UTC calendar day. */
-const getDayRangeForWeek = (
-  utcDay: number,
-  weekRange: { startHours: number; endHours: number }
-): { start: number; end: number } => {
-  const brDayStart = Date.UTC(SEMCOMP_YEAR, SEMCOMP_MONTH - 1, utcDay) + BR_OFFSET_MS;
-  return {
-    start: brDayStart + weekRange.startHours * MS_PER_HOUR,
-    end: brDayStart + weekRange.endHours * MS_PER_HOUR,
-  };
-};
-
 // ─── Style helpers ────────────────────────────────────────────────────────────
 
-const getEventTypeStyle = (type: string) => {
+const getEventTypeStyle = (type: string): { classes: string; captionClasses?: string; icon: string } => {
   switch (type) {
+    case "Abertura":
+      return {
+        classes: "text-gray-900 bg-[#fcca00] border-[#fcca00] dark:bg-[#fcca00]/80 dark:border-[#fcca00]/60",
+        captionClasses: "text-gray-800/90",
+        icon: "flag",
+      };
     case "Palestra":
       return {
-        classes: "bg-blue-100 border-blue-300 dark:bg-blue-950/60 dark:border-blue-700",
+        classes: "text-white bg-[#042f94] border-[#042f94] dark:bg-[#042f94]/80 dark:border-[#042f94]/60",
         icon: "microphone",
+      };
+    case "Encerramento":
+      return {
+        classes: "text-gray-900 bg-[#fcca00] border-[#fcca00] dark:bg-[#fcca00]/80 dark:border-[#fcca00]/60",
+        captionClasses: "text-gray-800/90",
+        icon: "flag",
       };
     case "Minicurso":
     case "Workshop":
       return {
-        classes: "bg-green-100 border-green-300 dark:bg-green-950/60 dark:border-green-700",
+        classes: "text-white bg-[#038511] border-[#038511] dark:bg-[#038511]/80 dark:border-[#038511]/60",
         icon: "rocket",
       };
-    case "Concurso":
     case "Competicao":
       return {
-        classes: "bg-yellow-100 border-yellow-300 dark:bg-yellow-950/60 dark:border-yellow-700",
+        classes: "text-gray-900 bg-[#fcca00] border-[#fcca00] dark:bg-[#fcca00]/80 dark:border-[#fcca00]/60",
+        captionClasses: "text-gray-800/90",
         icon: "trophy",
+      };
+    case "Luau":
+      return {
+        classes: "text-white bg-[#ff5e22] border-[#ff5e22] dark:bg-[#ff5e22]/80 dark:border-[#ff5e22]/60",
+        icon: "music",
+      };
+    case "Concurso":
+      return {
+        classes: "text-white bg-[#ff1d02] border-[#ff1d02] dark:bg-[#ff1d02]/80 dark:border-[#ff1d02]/60",
+        icon: "award",
       };
     case "Hackathon":
       return {
-        classes: "bg-purple-100 border-purple-300 dark:bg-purple-950/60 dark:border-purple-700",
+        classes: "text-white bg-[#ff1d02] border-[#ff1d02] dark:bg-[#ff1d02]/80 dark:border-[#ff1d02]/60",
         icon: "target",
       };
-    case "Game Night":
+    case "Gamenight":
       return {
-        classes: "bg-pink-100 border-pink-300 dark:bg-pink-950/60 dark:border-pink-700",
+        classes: "text-white bg-[#ff5e22] border-[#ff5e22] dark:bg-[#ff5e22]/80 dark:border-[#ff5e22]/60",
         icon: "gamepad",
       };
+    case "Rodas de conversa":
+      return {
+        classes: "text-white bg-[#08201a] border-[#08201a] dark:bg-[#08201a] dark:border-[#08201a]/80",
+        icon: "talk",
+      };
+    case "Coffee":
+    case "Coffee Livre":
+    case "Coffee Noturno":
     case "Intervalo":
       return {
-        classes: "bg-orange-100 border-orange-300 dark:bg-orange-950/60 dark:border-orange-700",
+        classes: "text-white bg-[#b7581f] border-[#b7581f] dark:bg-[#b7581f]/80 dark:border-[#b7581f]/60",
         icon: "coffee",
       };
-    case "Encerramento":
+    case "Vitrine":
       return {
-        classes: "bg-violet-100 border-violet-300 dark:bg-violet-950/60 dark:border-violet-700",
-        icon: "flag",
+        classes: "text-gray-900 bg-[#fcca00] border-[#fcca00] dark:bg-[#fcca00]/80 dark:border-[#fcca00]/60",
+        captionClasses: "text-gray-800/90",
+        icon: "store",
+      };
+    case "Contest":
+      return {
+        classes: "text-gray-900 bg-[#f3e8cb] border-[#f3e8cb] dark:bg-[#f3e8cb]/80 dark:border-[#f3e8cb]/60",
+        captionClasses: "text-gray-800/90",
+        icon: "trophy",
       };
     default:
       return {
-        classes:
-          "bg-white/70 border-semcompLightBlue dark:bg-semcompAlmostDarkBlue/75 dark:border-semcompMidDarkBlue",
+        classes: "text-white bg-[#08201a] border-[#08201a] dark:bg-[#08201a] dark:border-[#08201a]/80",
         icon: "flag",
       };
   }
 };
 
-function EventTypeIcon({ type }: { type: string }) {
+function EventTypeIcon({ type, className }: { type: string; className?: string }) {
   const icon = getEventTypeStyle(type).icon;
-  const cls = "h-5 w-5 md:h-6 md:w-6 shrink-0";
+  const cls = className ?? "h-5 w-5 md:h-6 md:w-6 shrink-0";
   switch (icon) {
     case "microphone": return <MicVocal className={cls} />;
     case "rocket":     return <Rocket className={cls} />;
@@ -236,6 +253,10 @@ function EventTypeIcon({ type }: { type: string }) {
     case "target":     return <Target className={cls} />;
     case "gamepad":    return <Gamepad2 className={cls} />;
     case "coffee":     return <Coffee className={cls} />;
+    case "talk":       return <MessageCircle className={cls}/>;
+    case "music":      return <Music className={cls}/>
+    case "award": return <Award className={cls} />;
+    case "store": return <Store className={cls} />;
     default:           return <Flag className={cls} />;
   }
 }
@@ -246,53 +267,45 @@ const EventButton = memo(function EventButton({
   evento,
   onClick,
   captionClasses,
-  viewMode,
-  exportMode = false,
   compact = false,
-  small = false,
-  totalColumns = 1,
+  heightPx = Infinity,
 }: {
   evento: EventType;
   onClick: (evento: EventType) => void;
   captionClasses: string;
-  viewMode: "day" | "week";
-  exportMode?: boolean;
   compact?: boolean;
-  small?: boolean;
-  totalColumns?: number;
+  heightPx?: number;
 }): ReactElement {
-  const concurrent = totalColumns >= 2;
   const eventStyle = getEventTypeStyle(evento.type);
+  const effectiveCaptionClasses = eventStyle.captionClasses ?? captionClasses;
 
-  // Compact (< 50 px): apenas nome, sem mais nada
+  // O que cabe em cada altura
+  const showTime = heightPx >= 90;
+  const showLocation = heightPx >= 55;
+  const showType = heightPx >= 80;
+  const showIconBox = heightPx >= 40;
+
+  
+
+  const base =
+    "h-full w-full overflow-hidden rounded-xl border text-left cursor-pointer transition-all duration-300 hover:scale-[1.02]";
+
+  // compact: ícone + nome truncado em linha — para cards muito curtos ou colunas estreitas
   if (compact) {
     return (
       <button
         type="button"
-        className={`w-full h-full overflow-hidden rounded-lg border px-1.5 py-0.5 text-left cursor-pointer transition-colors ${eventStyle.classes}`}
-        onClick={() => onClick(evento)}
+        className={`${base} flex items-center gap-1.5 px-2 py-1 ${eventStyle.classes}`}
+        onClick={() => onClick(evento)} 
       >
-        <p className="font-poppins-bold text-[9px] md:text-[10px] leading-tight break-words">{evento.name}</p>
-      </button>
-    );
-  }
-
-  // Small (50–100 px): nome + tipo (só no dia) + horário — sem ícone nem localização
-  if (small) {
-    return (
-      <button
-        type="button"
-        className={`w-full h-full overflow-hidden rounded-xl border px-2 py-1.5 text-left cursor-pointer transition-colors hover:brightness-95 ${eventStyle.classes}`}
-        onClick={() => onClick(evento)}
-      >
-        {viewMode === "day" && (
-          <p className={`text-[9px] md:text-[10px] font-medium truncate ${captionClasses}`}>{evento.type}</p>
-        )}
-        <p className="font-poppins-bold text-[10px] md:text-[11px] leading-snug break-words">{evento.name}</p>
-        <p className={`flex items-center gap-1 text-[9px] md:text-[10px] mt-0.5 ${captionClasses}`}>
-          <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
-          {formatTime(evento.dateInit)} – {formatTime(evento.dateEnd)}
-        </p>
+        <div
+          className={`flex shrink-0 items-center justify-center rounded-md border p-1 ${eventStyle.classes}`}
+        >
+          <EventTypeIcon type={evento.type} className="h-3.5 w-3.5" />
+        </div>
+        <span className={`min-w-0 break-words font-poppins-bold leading-tight ${FONT.name}`}>
+          {evento.name}
+        </span>
       </button>
     );
   }
@@ -300,109 +313,56 @@ const EventButton = memo(function EventButton({
   return (
     <button
       type="button"
-      className={`
-        flex group/btn w-full min-h-full rounded-xl border
-        transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md cursor-pointer
-        max-lg:px-2 max-lg:py-2 min-lg:px-4 min-lg:py-4
-        ${viewMode === "day"
-          ? concurrent
-            ? "max-md:flex-col max-md:gap-0.5 max-md:!px-1.5 max-md:!py-1 md:max-[1500px]:flex-col md:max-[1500px]:gap-2 min-[1500px]:flex-row min-[1500px]:items-start min-[1500px]:gap-5 text-left"
-            : "max-md:flex-row max-md:items-start max-md:gap-2 md:max-[1500px]:flex-col md:max-[1500px]:gap-2 min-[1500px]:flex-row min-[1500px]:items-start min-[1500px]:gap-5 text-left"
-          : "flex-col gap-1.5 items-start text-left"
-        }
-        ${eventStyle.classes}`}
+      className={`${base} flex items-center px-2 py-1.5 md:px-4 md:py-3 ${eventStyle.classes}`}
       onClick={() => onClick(evento)}
     >
-      {viewMode === "day" && (
-        <div
-          className={`
-            border flex items-center justify-center rounded-xl gap-2
-            ${concurrent ? "max-md:hidden" : "max-md:shrink-0 max-md:self-start max-md:p-1.5 max-md:rounded-lg"}
-            md:px-2 md:py-2 md:max-[1500px]:w-full md:justify-center lg:px-3 lg:py-3
-            ${eventStyle.classes}`}
-        >
-          <EventTypeIcon type={evento.type} />
-          <div className="max-md:hidden min-[1500px]:hidden">
-            <p className="font-poppins text-[11px] md:text-xs">{evento.type}</p>
-            <p
-              className={`font-poppins-bold break-words text-left ${
-                exportMode ? "text-xs" : "text-sm md:text-base"
-              }`}
-            >
-              {evento.name}
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className={viewMode === "day" ? "flex-1 min-w-0" : "w-full min-w-0"}>
-        {viewMode === "week" && (
-          <p className={`text-[8px] sm:text-[9px] font-semibold truncate mb-0.5 ${captionClasses}`}>
-            {evento.type}
-          </p>
-        )}
-
-        {viewMode === "day" && (
-          <p className="font-poppins text-[9px] md:text-xs md:max-[1500px]:hidden">
-            {evento.type}
-          </p>
-        )}
-
-        <p
-          className={`font-poppins-bold break-words ${
-            viewMode === "week"
-              ? "text-[10px] sm:text-[11px] md:text-xs text-left"
-              : `text-[11px] md:text-sm lg:text-base text-left md:max-[1500px]:hidden ${concurrent ? "max-md:text-[10px]" : ""}`
-          }`}
-        >
-          {evento.name}
-        </p>
-
-        <div
-          className={`items-center w-full mt-0.5 ${exportMode ? "grid gap-1" : "flex flex-col gap-0.5"}`}
-        >
-          <p
-            className={`flex items-center gap-1 text-[9px] sm:text-[10px] md:text-xs ${captionClasses}`}
-          >
-            <Clock className={`h-3 w-3 shrink-0 ${exportMode ? "hidden" : ""}`} aria-hidden="true" />
-            {formatTime(evento.dateInit)} – {formatTime(evento.dateEnd)}
-          </p>
-
-          <p
-            className={`flex items-center gap-1 text-[9px] sm:text-[10px] md:text-xs ${
-              viewMode === "day" || exportMode ? "" : "md:hidden"
-            } ${concurrent ? "max-md:hidden" : ""} ${captionClasses}`}
-          >
-            <MapPin className={`h-3 w-3 shrink-0 ${exportMode ? "hidden" : ""}`} aria-hidden="true" />
-            <span className="break-words">Local: {evento.location}</span>
-          </p>
-        </div>
-
-        <div className="grid max-h-none grid-rows-[0fr] overflow-hidden opacity-0 transition-all duration-300 group-hover/btn:mt-2 group-hover/btn:grid-rows-[1fr] group-hover/btn:opacity-100">
-          <div className="overflow-hidden">
-            <div className="flex flex-col gap-2 text-left">
-              {evento.image && (
-                <div className="w-full flex justify-left">
-                  <img
-                    src={evento.image}
-                    alt={evento.name}
-                    loading="lazy"
-                    className="h-28 w-auto max-w-xs rounded-lg object-cover"
-                  />
+      <div className="flex w-full min-w-0 flex-col justify-center gap-0.5 @sm:flex-row @sm:items-center @sm:gap-3">
+        {/* Ícone + tipo e nome */}
+        <div className="flex min-w-0 flex-col gap-0.5 @sm:flex-1">
+          {(showIconBox || showType) && (
+            <div className="flex min-w-0 items-center gap-1.5">
+              {showIconBox && (
+                <div
+                  className={`flex shrink-0 items-center justify-center rounded-md border p-1 @min-[7rem]:rounded-lg @min-[7rem]:p-1.5 @sm:rounded-xl @sm:p-2.5 ${eventStyle.classes}`}
+                >
+                  <EventTypeIcon type={evento.type} className="h-3.5 w-3.5 @min-[7rem]:h-4 @min-[7rem]:w-4 @sm:h-6 @sm:w-6" />
                 </div>
               )}
-              {viewMode === "week" && (
-                <p className={`flex items-center gap-1 text-[9px] sm:text-[10px] max-md:hidden ${captionClasses}`}>
-                  <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
-                  <span className="break-words">Local: {evento.location}</span>
+              {showType && (
+                <p className={`truncate font-medium uppercase tracking-wide ${FONT.type} ${effectiveCaptionClasses}`}>
+                  {evento.type}
                 </p>
               )}
-              <p className={`text-[10px] sm:text-xs leading-relaxed break-words max-md:hidden ${captionClasses}`}>
-                {evento.description || "Mais detalhes deste evento."}
-              </p>
             </div>
-          </div>
+          )}
+          <p className={`line-clamp-2 break-words font-poppins-bold leading-snug ${FONT.name}`}>
+            {evento.name}
+          </p>
         </div>
+
+        {/* Horário e local */}
+        {showTime && (
+          <div
+            className={`flex min-w-0 flex-col gap-0.5 leading-tight ${FONT.meta} ${effectiveCaptionClasses}
+              @sm:ml-auto @sm:max-w-[45%] @sm:shrink-0 @sm:items-end @sm:text-right`}
+          >
+            <span className="flex flex-wrap items-center gap-x-1">
+              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                <Clock className={ICON_META} aria-hidden="true" />
+                {formatTime(evento.dateInit)}
+              </span>
+              <span className="whitespace-nowrap">– {formatTime(evento.dateEnd)}</span>
+            </span>
+            {showLocation && evento.location && (
+              <span className="hidden min-w-0 items-center gap-1 @min-[12rem]:flex">
+                <MapPin className={ICON_META} aria-hidden="true" />
+                <span className="truncate @sm:whitespace-normal @sm:break-words">
+                  {evento.location}
+                </span>
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </button>
   );
@@ -421,40 +381,55 @@ function EventModal({
 }): ReactElement | null {
   if (!selected) return null;
 
+  const eventStyle = getEventTypeStyle(selected.type);
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar rounded-2xl border p-6 shadow-2xl border-semcompLightBlue bg-white text-semcompDarkBlue dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue dark:text-semcompOffWhite"
+        className="w-full max-w-md overflow-hidden rounded-2xl shadow-2xl bg-white dark:bg-semcompAlmostDarkBlue text-semcompDarkBlue dark:text-semcompOffWhite"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="font-poppins-bold text-xl">{selected.name}</h2>
-        <div className="text-sm mt-1">
-          <p className={`flex gap-1 items-center ${captionClasses}`}>
-            <Flag className="h-4 w-4" aria-hidden="true" />
-            Tipo de Evento: {selected.type}
-          </p>
-          <p className={`flex gap-1 items-center ${captionClasses}`}>
-            <Clock className="h-4 w-4" aria-hidden="true" />
-            {formatTime(selected.dateInit)} - {formatTime(selected.dateEnd)}
-          </p>
-          <p className={`flex items-center gap-1 ${captionClasses}`}>
+        {/* Header colorido por tipo */}
+        <div className={`relative flex items-center gap-3 px-5 py-4 border-b ${eventStyle.classes}`}>
+          <div className="flex items-center justify-center rounded-xl p-2 bg-white/30 dark:bg-black/20 shrink-0">
+            <EventTypeIcon type={selected.type} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-widest opacity-60">{selected.type}</p>
+            <h2 className="font-poppins-bold text-base sm:text-lg leading-snug">{selected.name}</h2>
+          </div>
+          <button
+            type="button"
+            aria-label="Fechar"
+            onClick={onClose}
+            className="shrink-0 ml-1 p-1.5 rounded-lg cursor-pointer transition-colors hover:bg-black/10 dark:hover:bg-white/10"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Metadados */}
+        <div className="px-5 pt-4 pb-1 flex flex-col gap-2">
+          <div className={`flex items-center gap-2 text-sm ${captionClasses}`}>
+            <Clock className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>{formatTime(selected.dateInit)} – {formatTime(selected.dateEnd)}</span>
+          </div>
+          <div className={`flex items-center gap-2 text-sm ${captionClasses}`}>
             <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="break-words min-w-10 text-left">Local: {selected.location}</span>
-          </p>
-          <hr className="mt-3" />
-          <p className="mt-3 text-center leading-relaxed md:text-base">
-            {selected.description || "Sem descrição."}
+            <span className="break-words">{selected.location}</span>
+          </div>
+        </div>
+
+        {/* Descrição */}
+        <div className="px-5 pt-3 pb-5 max-h-60 overflow-y-auto custom-scrollbar">
+          <hr className="mb-3 border-semcompLightBlue/30 dark:border-semcompMidDarkBlue" />
+          <p className="text-sm leading-relaxed">
+            {selected.description || <span className={`italic ${captionClasses}`}>Sem descrição.</span>}
           </p>
         </div>
-        <button
-          className="mt-6 cursor-pointer inline-flex rounded-lg px-4 py-2 text-sm font-semibold transition-colors bg-semcompMidDarkBlue text-semcompOffWhite hover:bg-semcompAlmostDarkBlue dark:hover:bg-semcompMidLightBlue"
-          onClick={onClose}
-        >
-          Fechar
-        </button>
       </div>
     </div>
   );
@@ -482,7 +457,7 @@ const DayPill = memo(function DayPill({
       : "border-neutral-300/80 bg-neutral-200/40 text-neutral-400 dark:border-neutral-700/60 dark:bg-neutral-800/40 dark:text-neutral-500"
     : active
     ? "border-semcompMidDarkBlue bg-semcompMidDarkBlue text-semcompOffWhite shadow-md dark:border-semcompLightBlue dark:bg-semcompLightBlue dark:text-semcompDarkBlue"
-    : "border-semcompLightBlue bg-white/70 text-semcompDarkBlue hover:bg-white dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 dark:text-semcompOffWhite dark:hover:bg-semcompAlmostDarkBlue";
+    : "border-semcompMidLightBlue/60 bg-white/80 text-semcompDarkBlue hover:bg-white dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 dark:text-semcompOffWhite dark:hover:bg-semcompAlmostDarkBlue";
 
   const captionTheme = option.isPast
     ? "text-neutral-400/70 dark:text-neutral-500/80"
@@ -521,19 +496,15 @@ function TimeGrid({
   timeRange,
   onSelect,
   captionClasses,
-  viewMode,
   showHourLabels = false,
   pxPerHour = PX_PER_HOUR_DAY,
-  exportMode = false,
 }: {
   events: EventType[];
   timeRange: { start: number; end: number };
   onSelect: (evento: EventType) => void;
   captionClasses: string;
-  viewMode: "day" | "week";
   showHourLabels?: boolean;
   pxPerHour?: number;
-  exportMode?: boolean;
 }) {
   const positioned = useMemo(() => computeLayout(events), [events]);
   const totalMs = timeRange.end - timeRange.start;
@@ -548,49 +519,51 @@ function TimeGrid({
     hourMarks.push(t);
   }
 
+  const labelW = showHourLabels ? 36 : 0;
+
   return (
-    <div className="flex gap-2 min-h-0">
-      {showHourLabels && (
-        <div className="relative shrink-0 w-10 select-none" style={{ height: containerHeight }}>
-          {hourMarks.map((t) => {
-            const topPx = ((t - timeRange.start) / MS_PER_HOUR) * pxPerHour;
-            return (
-              <span
-                key={t}
-                className={`absolute right-0 -translate-y-1/2 text-xs ${captionClasses}`}
-                style={{ top: topPx }}
-              >
-                {formatTime(new Date(t).toISOString())}
-              </span>
-            );
-          })}
-        </div>
-      )}
+    <div className="relative w-full" style={{ height: containerHeight }}>
+      {/* Hour lines — largura total */}
+      {hourMarks.map((t) => {
+        const topPx = ((t - timeRange.start) / MS_PER_HOUR) * pxPerHour;
+        return (
+          <div
+            key={t}
+            className="absolute inset-x-0 border-t border-semcompMidDarkBlue/15 dark:border-white/10 pointer-events-none"
+            style={{ top: topPx }}
+          />
+        );
+      })}
 
-      <div className="relative flex-1" style={{ height: containerHeight }}>
-        {hourMarks.map((t) => {
-          const topPx = ((t - timeRange.start) / MS_PER_HOUR) * pxPerHour;
-          return (
-            <div
-              key={t}
-              className="absolute inset-x-0 border-t border-white/10 pointer-events-none"
-              style={{ top: topPx }}
-            />
-          );
-        })}
+      {/* Labels sobrepostos à esquerda */}
+      {showHourLabels && hourMarks.map((t) => {
+        const topPx = ((t - timeRange.start) / MS_PER_HOUR) * pxPerHour;
+        return (
+          <span
+            key={t}
+            className="absolute left-0 -translate-y-1/2 z-10 text-[10px] leading-none text-semcompDarkBlue/60 dark:text-semcompLightBlue/90 select-none pointer-events-none"
+            style={{ top: topPx }}
+          >
+            {formatTime(new Date(t).toISOString())}
+          </span>
+        );
+      })}
 
+      {/* Eventos — deslocados para não sobrepor os labels */}
+      <div className="absolute inset-y-0 right-0" style={{ left: labelW }}>
         {positioned.map((event) => {
           const s = new Date(event.dateInit).getTime();
           const e = new Date(event.dateEnd).getTime();
           const topPx = ((s - timeRange.start) / MS_PER_HOUR) * pxPerHour;
           const heightPx = ((e - s) / MS_PER_HOUR) * pxPerHour;
+
           const leftPct = (event.column / event.totalColumns) * 100;
-          const widthPct = (1 / event.totalColumns) * 100;
+          const widthPct = (event.columnSpan / event.totalColumns) * 100;
 
           return (
             <div
               key={`${event.name}-${event.dateInit}`}
-              className="absolute box-border p-0.5 group/card hover:z-10"
+              className="@container absolute box-border p-0.5 group/card hover:z-10"
               style={{
                 top: topPx,
                 height: Math.max(heightPx, 28),
@@ -602,11 +575,7 @@ function TimeGrid({
                 evento={event}
                 onClick={onSelect}
                 captionClasses={captionClasses}
-                viewMode={viewMode}
-                exportMode={exportMode}
-                compact={heightPx < 50}
-                small={heightPx >= 50 && heightPx < 100}
-                totalColumns={event.totalColumns}
+                heightPx={Math.max(heightPx, 28)}
               />
             </div>
           );
@@ -621,7 +590,6 @@ function TimeGrid({
 export default function CronogramaPage(): ReactElement {
   const { isDarkMode } = useTheme();
 
-  const [viewMode, setViewMode] = useState<"day" | "week">("day");
   const [events, setEvents] = useState<EventType[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
@@ -634,8 +602,9 @@ export default function CronogramaPage(): ReactElement {
     return withinEventWindow ? today.getDate() : EVENT_DAYS[0];
   });
 
-  const captionClasses = "text-semcompMidDarkBlue/85 dark:text-semcompLightBlue/90";
-  const gradientColor = isDarkMode ? "#0B2639" : "#357BA3";
+  const cardCaptionClasses = "text-white/95 dark:text-white/85";
+  const modalCaptionClasses = "text-semcompMidDarkBlue/85 dark:text-semcompLightBlue/90";
+  const gradientColor = isDarkMode ? "#0B2639" : "#D2EDFF";
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -656,11 +625,11 @@ export default function CronogramaPage(): ReactElement {
   const filteredEvents = useMemo(
     () =>
       events.filter((event) => {
-        const date = new Date(event.dateInit);
+        const brDate = new Date(new Date(event.dateInit).getTime() - BR_OFFSET_MS);
         return (
-          date.getUTCFullYear() === SEMCOMP_YEAR &&
-          date.getUTCMonth() === SEMCOMP_MONTH - 1 &&
-          date.getUTCDate() === selectedDay
+          brDate.getUTCFullYear() === SEMCOMP_YEAR &&
+          brDate.getUTCMonth() === SEMCOMP_MONTH - 1 &&
+          brDate.getUTCDate() === selectedDay
         );
       }),
     [events, selectedDay]
@@ -683,7 +652,7 @@ export default function CronogramaPage(): ReactElement {
         if (d <= 0) continue;
         const slot = d * p;
         // min heights match the rendered variants (after mobile text reduction)
-        const minH = slot < 50 ? 22 : slot < 100 ? 50 : 88;
+        const minH = 44;
         if (slot < minH) next = Math.max(next, minH / d);
       }
       if (next <= p + 0.5) break;
@@ -692,26 +661,6 @@ export default function CronogramaPage(): ReactElement {
     return Math.ceil(p);
   }, [filteredEvents]);
 
-  const processedWeek = useMemo(
-    () =>
-      dayOptions.map((option) => {
-        const dayEvents = events.filter((event) => {
-          const date = new Date(event.dateInit);
-          return (
-            date.getUTCFullYear() === SEMCOMP_YEAR &&
-            date.getUTCMonth() === SEMCOMP_MONTH - 1 &&
-            date.getUTCDate() === option.day
-          );
-        });
-        return { option, events: dayEvents };
-      }),
-    [events]
-  );
-
-  const weekTimeOfDayRange = useMemo(
-    () => getWeekTimeOfDayRange(processedWeek),
-    [processedWeek]
-  );
 
   const handleSelectEvent = useCallback((evento: EventType) => {
     setSelectedEvent(evento);
@@ -741,7 +690,7 @@ export default function CronogramaPage(): ReactElement {
   const arrowBase =
     "flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semcompMidLightBlue";
   const arrowEnabled =
-    "border-semcompLightBlue bg-white/70 text-semcompMidDarkBlue hover:-translate-y-0.5 hover:bg-white hover:text-semcompDarkBlue dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 dark:text-semcompLightBlue dark:hover:bg-semcompAlmostDarkBlue dark:hover:text-semcompOffWhite";
+    "border-semcompMidLightBlue/60 bg-white/80 text-semcompMidDarkBlue hover:-translate-y-0.5 hover:bg-white hover:text-semcompDarkBlue dark:border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75 dark:text-semcompLightBlue dark:hover:bg-semcompAlmostDarkBlue dark:hover:text-semcompOffWhite";
   const arrowDisabled =
     "cursor-not-allowed border-neutral-300/80 bg-neutral-200/40 text-neutral-400 dark:border-neutral-700/60 dark:bg-neutral-800/40 dark:text-neutral-600";
 
@@ -754,7 +703,7 @@ export default function CronogramaPage(): ReactElement {
         <div className="absolute -right-32 bottom-4 h-[500px] w-[500px] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-semcompAlmostDarkBlue/12 dark:from-semcompLightBlue/8 to-transparent" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-[95%] md:max-w-[80%] px-3 py-8 md:px-6 md:py-14">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-3 py-8 md:px-6 md:py-14">
         <header>
           <div className="flex w-full flex-col gap-4 md:flex-row md:justify-between">
             <div>
@@ -769,54 +718,33 @@ export default function CronogramaPage(): ReactElement {
               </h1>
             </div>
 
-            <div className="flex flex-wrap md:items-end md:justify-end gap-3">
-              <div className="inline-flex rounded-xl border border-semcompLightBlue bg-white/70 p-1 border-semcompMidDarkBlue dark:bg-semcompAlmostDarkBlue/75">
-                <button
-                  type="button"
-                  onClick={() => setViewMode("day")}
-                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
-                    viewMode === "day"
-                      ? "dark:bg-semcompMidDarkBlue bg-semcompMidLightBlue text-white"
-                      : "text-semcompDarkBlue dark:text-semcompOffWhite"
-                  }`}
-                >
-                  Por dia
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode("week")}
-                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
-                    viewMode === "week"
-                      ? "dark:bg-semcompMidDarkBlue bg-semcompMidLightBlue text-white"
-                      : "text-semcompDarkBlue dark:text-semcompOffWhite"
-                  }`}
-                >
-                  Semana
-                </button>
-              </div>
-            </div>
+            
           </div>
 
-          <div
-            className="w-full h-30 rounded-t-lg mt-4 border border-b-0"
-            style={{
-              backgroundImage: `linear-gradient(to top, ${gradientColor} 5%, ${gradientColor}00 100%), url('/img/backgrounds/schedule.jpg')`,
-            }}
-          />
+          <div className="relative w-full mt-4 border border-b-0 rounded-t-lg overflow-hidden">
+            <img
+              src="/img/backgrounds/cronograma.webp"
+              alt="Cronograma SEMCOMP"
+              className="w-full block"
+            />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: `linear-gradient(to top, ${gradientColor} 5%, transparent 100%)` }}
+            />
+          </div>
         </header>
 
         {/* ── Day navigation ── */}
-        {viewMode === "day" && (
           <nav
             aria-label="Dias do cronograma"
-            className="mb-3 flex items-center justify-center gap-2 sm:gap-4 dark:bg-semcompDarkBlue bg-semcompMidLightBlue border border-t-0 rounded-b-[4px] py-3 px-5"
+            className="mb-3 flex items-center justify-center gap-2 sm:gap-4 bg-semcompLightBlue dark:bg-semcompDarkBlue border border-t-0 rounded-b-[4px] py-3 px-5"
           >
             <button
               type="button"
               aria-label="Dia anterior"
               disabled={!canGoPrev}
               onClick={() => handleShiftDay(-1)}
-              className={`${arrowBase} ${canGoPrev ? arrowEnabled : arrowDisabled}`}
+              className={`${arrowBase} cursor-pointer disabled:cursor-not-allowed ${canGoPrev ? arrowEnabled : arrowDisabled}`}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}
                 strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
@@ -855,7 +783,7 @@ export default function CronogramaPage(): ReactElement {
               aria-label="Próximo dia"
               disabled={!canGoNext}
               onClick={() => handleShiftDay(1)}
-              className={`${arrowBase} ${canGoNext ? arrowEnabled : arrowDisabled}`}
+              className={`${arrowBase} cursor-pointer disabled:cursor-not-allowed ${canGoNext ? arrowEnabled : arrowDisabled}`}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}
                 strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
@@ -863,104 +791,38 @@ export default function CronogramaPage(): ReactElement {
               </svg>
             </button>
           </nav>
-        )}
+        
 
-        <EventModal selected={selectedEvent} onClose={handleCloseModal} captionClasses={captionClasses} />
+        <EventModal selected={selectedEvent} onClose={handleCloseModal} captionClasses={modalCaptionClasses} />
 
         {/* ── Day view ── */}
-        {viewMode === "day" && (
           <div
-            className="overflow-y-auto custom-scrollbar p-5 rounded-lg"
+            className="overflow-y-auto custom-scrollbar px-2 py-4 md:p-5 rounded-lg"
             style={{
               backgroundImage: `linear-gradient(to top, ${gradientColor} 100%, #ffffff 50%)`,
             }}
           >
             {loading ? (
               <div className="flex items-center justify-center text-center py-12">
-                <p className="text-white/70">Carregando eventos...</p>
+                <p className="text-semcompDarkBlue/60 dark:text-white/70">Carregando eventos...</p>
               </div>
             ) : filteredEvents.length === 0 ? (
               <div className="flex items-center justify-center text-center py-12">
-                <p className="text-white/70">Nenhum evento neste dia.</p>
+                <p className="text-semcompDarkBlue/60 dark:text-white/70">Nenhum evento neste dia.</p>
               </div>
             ) : dayTimeRange ? (
               <TimeGrid
                 events={filteredEvents}
                 timeRange={dayTimeRange}
                 onSelect={handleSelectEvent}
-                captionClasses={captionClasses}
-                viewMode="day"
+                captionClasses={cardCaptionClasses}
                 showHourLabels
                 pxPerHour={dayPxPerHour}
               />
             ) : null}
           </div>
-        )}
+        
 
-        {/* ── Week view ── */}
-        {viewMode === "week" && (
-          loading ? (
-            <div className="flex items-center justify-center py-12">
-              <p className="text-white/70">Carregando eventos...</p>
-            </div>
-          ) : (
-            <div
-              className="flex w-full gap-2 sm:gap-3 md:gap-5 overflow-x-auto custom-scrollbar p-3 sm:p-4 md:p-5 rounded-b-md border border-t-0"
-              style={{
-                backgroundImage: `linear-gradient(to top, ${gradientColor} 100%, ${gradientColor}00 100%)`,
-              }}
-            >
-              {processedWeek.map(({ option, events: dayEvents }, index) => {
-                const dayRange = weekTimeOfDayRange
-                  ? getDayRangeForWeek(option.day, weekTimeOfDayRange)
-                  : null;
-
-                return (
-                  <div
-                    key={option.day}
-                    className={`w-100 shrink-0 ${
-                      index !== processedWeek.length - 1
-                        ? "border-r border-semcompMidDarkBlue/20 pr-2 sm:pr-3 md:pr-5"
-                        : ""
-                    }`}
-                  >
-                    <h2 className="mb-2 font-poppins-bold text-[10px] sm:text-xs md:text-sm text-white text-center">
-                      <span className="hidden sm:inline">{option.weekdayLong} — </span>
-                      <span className="sm:hidden">{option.weekdayShort} </span>
-                      {option.label}
-                    </h2>
-
-                    {dayRange ? (
-                      dayEvents.length === 0 ? (
-                        <div
-                          className="relative flex items-center justify-center"
-                          style={{
-                            height:
-                              ((weekTimeOfDayRange!.endHours - weekTimeOfDayRange!.startHours) *
-                                PX_PER_HOUR_WEEK),
-                          }}
-                        >
-                          <p className="text-white/40 text-sm">Nenhum evento</p>
-                        </div>
-                      ) : (
-                        <TimeGrid
-                          events={dayEvents}
-                          timeRange={dayRange}
-                          onSelect={handleSelectEvent}
-                          captionClasses={captionClasses}
-                          viewMode="week"
-                          pxPerHour={PX_PER_HOUR_WEEK}
-                        />
-                      )
-                    ) : (
-                      <p className="text-white/60 text-center">Nenhum evento neste dia.</p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )
-        )}
       </div>
 
     </section>
