@@ -145,7 +145,15 @@ func (s *signinEventService) DeleteSignin(userNumber uint, eventName string, eve
 		return apierrors.ValidationError("Data do evento inválida. Use o formato RFC3339", err)
 	}
 
-	if err := s.repo.RemoveAtomicSignin(userNumber, eventName, initTime); err != nil {
+	maxParticipants := uint(0)
+	eventRecord, err := s.eventRepo.GetByNameAndInitTime(eventName, initTime)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return apierrors.InternalServerError("Erro ao buscar evento", err)
+	} else if err == nil {
+		maxParticipants = eventRecord.MaxParticipants
+	}
+
+	if err := s.repo.RemoveAtomicSignin(userNumber, eventName, initTime, maxParticipants); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apierrors.NotFoundError("Inscrição não encontrada", err)
 		}
@@ -317,7 +325,15 @@ func (s *signinEventService) DeleteSigninAdmin(userNumber string, eventName stri
 		return apierrors.ValidationError("Número do usuário inválido", err)
 	}
 
-	if err := s.repo.RemoveAtomicSignin(uint(num), eventName, initTime); err != nil {
+	maxParticipants := uint(0)
+	eventRecord, err := s.eventRepo.GetByNameAndInitTime(eventName, initTime)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return apierrors.InternalServerError("Erro ao buscar evento", err)
+	} else if err == nil {
+		maxParticipants = eventRecord.MaxParticipants
+	}
+
+	if err := s.repo.RemoveAtomicSignin(uint(num), eventName, initTime, maxParticipants); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apierrors.NotFoundError("Inscrição não encontrada", err)
 		}

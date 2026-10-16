@@ -63,7 +63,7 @@ func (s *stubSigninRepo) CreateAtomicSignin(userNumber uint, eventName string, i
 func (s *stubSigninRepo) CreateAdminSignin(userNumber uint, eventName string, initDate time.Time, status signinEvent.RegistrationStatus, maxParticipants uint) (*signinEvent.SigninEvent, error) {
 	return nil, nil
 }
-func (s *stubSigninRepo) RemoveAtomicSignin(userNumber uint, eventName string, initDate time.Time) error {
+func (s *stubSigninRepo) RemoveAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) error {
 	return nil
 }
 func (s *stubSigninRepo) GetByUserEventAndInitDate(userNumber uint, eventName string, initDate time.Time) (*signinEvent.SigninEvent, error) {

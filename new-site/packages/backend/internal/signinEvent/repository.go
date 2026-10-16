@@ -33,10 +33,10 @@ type SigninEventRepository interface {
 	// vacancies left (maxParticipants > 0).
 	CreateAdminSignin(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus, maxParticipants uint) (*SigninEvent, error)
 	// RemoveAtomicSignin deletes an inscription and atomically decrements the
-	// queue positions of the inscriptions that came after it, under the
-	// per-event advisory lock. Freeing a slot does not promote the waitlist —
-	// that only happens when the queue is explicitly rotated.
-	RemoveAtomicSignin(userNumber uint, eventName string, initDate time.Time) error
+	// queue positions of the inscriptions that came after it, all under the
+	// per-event advisory lock. When a confirmed slot is vacated in a limited
+	// event, the first waitlisted user is promoted to StatusWaitingDonation.
+	RemoveAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) error
 	GetByUserEventAndInitDate(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error)
 	FindActiveByUser(userNumber uint) ([]SigninEventsDetailed, error)
 	UpdateByComposite(userNumber uint, eventName string, initDate time.Time, updated *SigninEvent) error
@@ -53,9 +53,9 @@ type SigninEventRepository interface {
 	// "Aguardando Aprovação") do not consume an extra slot and are always allowed.
 	RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) (*SigninEvent, error)
 	// UpdateAdminSigninStatus changes an inscription's status atomically under the
-	// per-event advisory lock. It reorders all waitlist positions after the change;
-	// vacating a confirmed slot does not promote the waitlist — that only happens
-	// when the queue is explicitly rotated.
+	// per-event advisory lock. It reorders all waitlist positions after the change
+	// and promotes the first eligible waitlisted user to StatusWaitingDonation if a
+	// confirmed slot was vacated.
 	UpdateAdminSigninStatus(userNumber uint, eventName string, initDate time.Time, newStatus RegistrationStatus, maxParticipants uint) (*SigninEvent, error)
 	// RotateAtomicSignins removes all WaitingDonation inscriptions, promotes
 	// waitlisted users to fill vacancies, and reorders all queue positions,
@@ -218,12 +218,12 @@ func (r *signinEventRepository) CreateAdminSignin(userNumber uint, eventName str
 	return result, err
 }
 
-func (r *signinEventRepository) RemoveAtomicSignin(userNumber uint, eventName string, initDate time.Time) error {
+func (r *signinEventRepository) RemoveAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		// Per-event lock — prevents a concurrent CreateAtomicSignin from
-		// inserting a new position between the delete and the decrement step,
+		// inserting a new position between the delete and the promote step,
 		// which would cause the newly inserted position to be decremented into
-		// the confirmed slot range.
+		// the confirmed slot range and then promoted a second time (overbooking).
 		if err := tx.Exec(
 			"SELECT pg_advisory_xact_lock(hashtext(?), hashtext(?))",
 			eventName, initDate.Format(time.RFC3339),
@@ -250,6 +250,24 @@ func (r *signinEventRepository) RemoveAtomicSignin(userNumber uint, eventName st
 				Where("event_name = ? AND event_init_date = ? AND user_wait_list_position > ?",
 					eventName, initDate, signin.UserWaitListPosition).
 				Update("user_wait_list_position", gorm.Expr("user_wait_list_position - 1")).Error; err != nil {
+				return err
+			}
+		}
+
+		// Exactly one confirmed slot was vacated — promote only the first
+		// waitlisted user still within the limit. Unlimited events (0) never
+		// promote on cancellation.
+		if isConfirmedStatus(signin.Status) && maxParticipants > 0 {
+			sub := tx.Model(&SigninEvent{}).
+				Select("user_number").
+				Where("event_name = ? AND event_init_date = ? AND status = ? AND user_wait_list_position <= ?",
+					eventName, initDate, StatusWaitListed, maxParticipants).
+				Order("user_wait_list_position asc").
+				Limit(1)
+			if err := tx.Model(&SigninEvent{}).
+				Where("event_name = ? AND event_init_date = ? AND user_number IN (?)",
+					eventName, initDate, sub).
+				Update("status", StatusWaitingDonation).Error; err != nil {
 				return err
 			}
 		}
@@ -497,6 +515,38 @@ func (r *signinEventRepository) UpdateAdminSigninStatus(userNumber uint, eventNa
 			  AND se.event_init_date = ?
 		`, eventName, initDate, StatusCancelled, eventName, initDate).Error; err != nil {
 			return err
+		}
+
+		// If a confirmed slot was vacated, count remaining confirmed users and
+		// promote the first eligible waitlisted user if a vacancy still exists.
+		// The changed user is excluded from promotion to avoid immediately
+		// re-promoting someone the admin just demoted to WaitListed.
+		wasConfirmed := isConfirmedStatus(oldStatus)
+		isNowUnconfirmed := newStatus == StatusCancelled || newStatus == StatusWaitListed
+		if wasConfirmed && isNowUnconfirmed && maxParticipants > 0 {
+			var confirmedCount int64
+			if err := tx.Model(&SigninEvent{}).
+				Where("event_name = ? AND event_init_date = ? AND (status = ? OR status = ?)",
+					eventName, initDate, StatusRegistered, StatusWaitingDonation).
+				Count(&confirmedCount).Error; err != nil {
+				return err
+			}
+
+			if confirmedCount < int64(maxParticipants) {
+				sub := tx.Model(&SigninEvent{}).
+					Select("user_number").
+					Where("event_name = ? AND event_init_date = ? AND status = ? AND user_number != ?",
+						eventName, initDate, StatusWaitListed, userNumber).
+					Order("user_wait_list_position asc").
+					Limit(1)
+
+				if err := tx.Model(&SigninEvent{}).
+					Where("event_name = ? AND event_init_date = ? AND status = ? AND user_number IN (?)",
+						eventName, initDate, StatusWaitListed, sub).
+					Update("status", StatusWaitingDonation).Error; err != nil {
+					return err
+				}
+			}
 		}
 
 		if err := tx.Where("user_number = ? AND event_name = ? AND event_init_date = ?",
