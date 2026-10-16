@@ -3,33 +3,13 @@ import { sponsorsAPI, getSponsorImageUrl, recordSponsorClick } from "@/api/spons
 import type { Sponsor } from "@/api/sponsors";
 import { useTheme } from "@/contexts/useTheme";
 import LogoLoop from "@/components/ui/LogoLoop";
+import { buildLogoImgClassName } from "@/components/ui/logoClasses";
 
 const GRID_THRESHOLD = 4;
 
-function SponsorLogo({ sponsor }: { sponsor: Sponsor }) {
-  const handleClick = () => {
-    recordSponsorClick(sponsor.cnpj);
-    const url = /^https?:\/\//i.test(sponsor.website)
-      ? sponsor.website
-      : `https://${sponsor.website}`;
-    window.open(url, "_blank", "noopener noreferrer");
-  };
-
-  return (
-    <button
-      onClick={handleClick}
-      title={sponsor.name}
-      aria-label={`Visitar site de ${sponsor.name}`}
-      className="flex items-center justify-center cursor-pointer"
-    >
-      <img
-        src={getSponsorImageUrl(sponsor.logo)}
-        alt={sponsor.name}
-        className="h-16 w-auto max-w-[160px] object-contain"
-      />
-    </button>
-  );
-}
+/** Aceita o site com ou sem protocolo e devolve uma URL absoluta navegável. */
+const toWebsiteUrl = (website: string) =>
+  /^https?:\/\//i.test(website) ? website : `https://${website}`;
 
 const PatrocinadoresSection = () => {
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
@@ -60,14 +40,32 @@ const PatrocinadoresSection = () => {
         {sponsors.length < GRID_THRESHOLD ? (
           <div className="flex flex-wrap items-center justify-center gap-10 px-8">
             {sponsors.map((sp) => (
-              <SponsorLogo key={sp.cnpj} sponsor={sp} />
+              <a
+                key={sp.cnpj}
+                href={toWebsiteUrl(sp.website)}
+                target="_blank"
+                rel="noreferrer noopener"
+                onClick={() => recordSponsorClick(sp.cnpj)}
+                title={sp.name}
+                aria-label={`Visitar site de ${sp.name}`}
+                className="group flex items-center justify-center focus-visible:outline-2 focus-visible:outline-current focus-visible:outline-offset-2"
+              >
+                <img
+                  src={getSponsorImageUrl(sp.logo)}
+                  alt={sp.name}
+                  className={`h-16 w-auto max-w-[160px] ${buildLogoImgClassName(isDarkMode)}`}
+                />
+              </a>
             ))}
           </div>
         ) : (
           <LogoLoop
             logos={sponsors.map((sp) => ({
-              node: <SponsorLogo sponsor={sp} />,
+              src: getSponsorImageUrl(sp.logo),
+              alt: sp.name,
               title: sp.name,
+              href: toWebsiteUrl(sp.website),
+              onClick: () => recordSponsorClick(sp.cnpj),
             }))}
             speed={80}
             direction="left"
@@ -77,7 +75,7 @@ const PatrocinadoresSection = () => {
             hoverSpeed={0}
             fadeOut
             fadeOutColor={backgroundColorBack}
-            isDarkMode={true}
+            isDarkMode={isDarkMode}
             ariaLabel="Patrocinadores da SEMCOMP"
           />
         )}

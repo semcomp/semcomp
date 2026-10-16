@@ -1,11 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { buildLogoImgClassName, cx, type LogoHoverTheme } from './logoClasses';
 
-// Combina class names filtrando falsy values
-const cx = (...classes: (string | false | null | undefined)[]) =>
-  classes.filter(Boolean).join(' ');
-
-/** Tema em que um logo deve ficar branco no hover. */
-export type LogoHoverTheme = 'light' | 'dark' | 'both';
+export type { LogoHoverTheme };
 
 export type LogoItem =
   | {
@@ -25,6 +21,11 @@ export type LogoItem =
       height?: number;
       /** Escala extra do <img>, para arquivos com muita área morta em volta da marca. */
       scale?: number;
+      /**
+       * Disparado no clique, antes de o navegador seguir o `href` — para métricas.
+       * Não precisa de `preventDefault`: a navegação do link segue normalmente.
+       */
+      onClick?: () => void;
       /**
        * Tema em que este logo fica branco puro no hover, em vez de revelar a cor do
        * arquivo. Use quando a cor original da marca se aproxima do fundo da seção.
@@ -56,30 +57,6 @@ const ANIMATION_CONFIG = {
   SMOOTH_TAU: 0.25,
   MIN_COPIES: 2,
   COPY_HEADROOM: 2,
-} as const;
-
-/**
- * Filtro aplicado no hover, por tema.
- * - `original`: descarta o grayscale/invert do estado base e devolve a cor do arquivo.
- * - `white`: zera o RGB (brightness(0)) e inverte para branco puro, preservando o
- *   canal alpha — a marca vira uma silhueta branca, sem depender da cor original.
- *
- * Os literais completos ficam aqui (e não concatenados) porque é o texto no arquivo
- * que o Tailwind usa para gerar cada classe.
- */
-const HOVER_FILTER = {
-  light: {
-    original:
-      '[@media(hover:hover)]:group-hover:[filter:brightness(1.2)_drop-shadow(0_0_12px_rgba(0,0,0,0.6))]',
-    white:
-      '[@media(hover:hover)]:group-hover:[filter:brightness(0)_invert(1)_drop-shadow(0_0_12px_rgba(0,0,0,0.6))]',
-  },
-  dark: {
-    original:
-      '[@media(hover:hover)]:group-hover:[filter:brightness(1.2)_drop-shadow(0_0_14px_rgba(255,255,255,0.4))]',
-    white:
-      '[@media(hover:hover)]:group-hover:[filter:brightness(0)_invert(1)_drop-shadow(0_0_14px_rgba(255,255,255,0.4))]',
-  },
 } as const;
 
 const toCssLength = (value?: number | string): string | undefined =>
@@ -277,38 +254,11 @@ export const LogoLoop = React.memo<LogoLoopProps>(
     ), [hasHoverEffect]);
 
     /** Classes da <img> — filtro + transição + hover effect (por item, por causa de whiteOnHover) */
-    const buildImgClassName = useCallback((whiteOnHover?: LogoHoverTheme) => {
-      const theme = isDarkMode === false ? 'light' : 'dark';
-      const isWhiteOnHover =
-        whiteOnHover === 'both' ||
-        (isDarkMode === true && whiteOnHover === 'dark') ||
-        (isDarkMode === false && whiteOnHover === 'light');
-
-      const hoverFilter = HOVER_FILTER[theme][isWhiteOnHover ? 'white' : 'original'];
-
-      return cx(
-        'block object-contain pointer-events-none select-none [-webkit-user-drag:none]',
-        'transition-[filter,opacity,transform] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none will-change-[filter,opacity,transform]',
-
-        isDarkMode === true && cx(
-          '[@media(hover:hover)]:[filter:grayscale(1)_brightness(0.35)_invert(1)]',
-          '[@media(hover:hover)]:opacity-80',
-          hoverFilter,
-          '[@media(hover:hover)]:group-hover:opacity-100',
-          '[@media(hover:hover)]:group-hover:scale-[1.15]',
-          '[@media(hover:hover)]:group-hover:origin-center',
-        ),
-        isDarkMode === false && cx(
-          '[@media(hover:hover)]:[filter:grayscale(1)_brightness(0.35)_invert(1)]',
-          '[@media(hover:hover)]:opacity-100',
-          hoverFilter,
-          '[@media(hover:hover)]:group-hover:opacity-100',
-          '[@media(hover:hover)]:group-hover:scale-[1.15]',
-          '[@media(hover:hover)]:group-hover:origin-center',
-        ),
-        isDarkMode === undefined && scaleOnHover && 'group-hover:scale-[1.2] group-hover:origin-center',
-      );
-    }, [isDarkMode, scaleOnHover]);
+    const buildImgClassName = useCallback(
+      (whiteOnHover?: LogoHoverTheme) =>
+        buildLogoImgClassName(isDarkMode, whiteOnHover, scaleOnHover),
+      [isDarkMode, scaleOnHover]
+    );
 
     /**
      * Style inline da <img> — dimensões do box + escala opcional do item.
@@ -388,6 +338,7 @@ export const LogoLoop = React.memo<LogoLoopProps>(
         const itemContent = (item as any).href ? (
           <a
             href={(item as any).href}
+            onClick={imgItem?.onClick}
             aria-label={itemAriaLabel || 'logo link'}
             target="_blank"
             rel="noreferrer noopener"
