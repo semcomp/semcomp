@@ -72,9 +72,6 @@ func (s *stubSigninRepo) GetByUserEventAndInitDate(userNumber uint, eventName st
 func (s *stubSigninRepo) FindActiveByUser(userNumber uint) ([]signinEvent.SigninEventsDetailed, error) {
 	return nil, nil
 }
-func (s *stubSigninRepo) CountConfirmedSignins(eventName string, initDate time.Time) (uint, error) {
-	return 0, nil
-}
 func (s *stubSigninRepo) UpdateByComposite(userNumber uint, eventName string, initDate time.Time, updated *signinEvent.SigninEvent) error {
 	return nil
 }

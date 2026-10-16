@@ -37,35 +37,19 @@ func NewSigninEventService(repo SigninEventRepository, eventRepo event.EventRepo
 	return &signinEventService{repo: repo, eventRepo: eventRepo, mailer: m}
 }
 
-func relativeWaitListPosition(status RegistrationStatus, confirmedCount uint, position uint) uint {
+func relativeWaitListPosition(status RegistrationStatus, max uint, position uint) uint {
 	if status != StatusWaitListed {
 		return 0
 	}
-	if position > confirmedCount {
-		return position - confirmedCount
+	if max > 0 && position > max {
+		return position - max
 	}
-	return 1
+	return position
 }
 
-// relativePosition converts a waitlisted inscription's absolute position into
-// its relative queue position (1st, 2nd, ...). The base is the number of
-// confirmed active inscriptions of the event rather than max_participants, so
-// the value stays correct when the event is not completely full. Non-waitlisted
-// inscriptions have no meaningful queue position, so it is zeroed (and omitted
-// from the JSON via `omitempty`).
-func (s *signinEventService) relativePosition(signin *SigninEvent) (*SigninEvent, error) {
-	if signin.Status != StatusWaitListed {
-		signin.UserWaitListPosition = 0
-		return signin, nil
-	}
-
-	confirmedCount, err := s.repo.CountConfirmedSignins(signin.EventName, signin.EventInitDate)
-	if err != nil {
-		return nil, apierrors.InternalServerError("Erro ao calcular posição na fila", err)
-	}
-
-	signin.UserWaitListPosition = relativeWaitListPosition(signin.Status, confirmedCount, signin.UserWaitListPosition)
-	return signin, nil
+func (s *signinEventService) relativePosition(signin *SigninEvent, max uint) *SigninEvent {
+	signin.UserWaitListPosition = relativeWaitListPosition(signin.Status, max, signin.UserWaitListPosition)
+	return signin
 }
 
 func (s *signinEventService) eventMaxParticipants(eventName string, initDate time.Time) (uint, error) {
@@ -115,12 +99,7 @@ func (s *signinEventService) CreateSignin(userNumber uint, request CreateSigninR
 		}
 	}
 
-	positioned, err := s.relativePosition(newSignin)
-	if err != nil {
-		return nil, err
-	}
-
-	return positioned, nil
+	return s.relativePosition(newSignin, eventRecord.MaxParticipants), nil
 }
 
 func (s *signinEventService) GetSigninEvents() ([]event.Event, error) {
@@ -258,7 +237,12 @@ func (s *signinEventService) GetSigninAdmin(userNumber string, eventName string,
 		return nil, apierrors.InternalServerError("Erro ao buscar inscrição", err)
 	}
 
-	return s.relativePosition(signin)
+	max, err := s.eventMaxParticipants(signin.EventName, signin.EventInitDate)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.relativePosition(signin, max), nil
 }
 
 func (s *signinEventService) CreateSigninAdmin(request CreateSigninAdminRequest) (*SigninEvent, error) {
@@ -282,7 +266,7 @@ func (s *signinEventService) CreateSigninAdmin(request CreateSigninAdminRequest)
 		}
 	}
 
-	return s.relativePosition(newSignin)
+	return s.relativePosition(newSignin, eventRecord.MaxParticipants), nil
 }
 
 func (s *signinEventService) UpdateSigninAdmin(userNumber string, eventName string, eventInitDate string, request UpdateSigninAdminRequest) (*SigninEvent, error) {
@@ -313,7 +297,7 @@ func (s *signinEventService) UpdateSigninAdmin(userNumber string, eventName stri
 		}
 	}
 
-	return s.relativePosition(signin)
+	return s.relativePosition(signin, maxParticipants), nil
 }
 
 func (s *signinEventService) DeleteSigninAdmin(userNumber string, eventName string, eventInitDate string) error {
@@ -375,7 +359,7 @@ func (s *signinEventService) RegisterSigninAdmin(userNumber string, eventName st
 		}
 	}
 
-	return s.relativePosition(signin)
+	return s.relativePosition(signin, maxParticipants), nil
 }
 
 func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate string) ([]SigninEvent, error) {
@@ -402,9 +386,7 @@ func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate 
 	}
 
 	for i := range signins {
-		if _, err := s.relativePosition(&signins[i]); err != nil {
-			return nil, err
-		}
+		s.relativePosition(&signins[i], eventRecord.MaxParticipants)
 	}
 
 	if len(promotedUserNumbers) > 0 {

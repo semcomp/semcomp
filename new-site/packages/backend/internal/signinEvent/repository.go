@@ -45,7 +45,6 @@ type SigninEventRepository interface {
 	// (Inscrito or Aguardando Aprovação) for an event. It is the base used to
 	// derive a waitlisted user's relative queue position (absolute position
 	// minus this count).
-	CountConfirmedSignins(eventName string, initDate time.Time) (uint, error)
 	// RegisterAtomicSignin promotes an inscription to StatusRegistered atomically
 	// under the per-event advisory lock, preventing races with RotateAtomicSignins.
 	// Promoting a non-confirmed inscription is rejected with ErrEventFull when the
@@ -261,7 +260,7 @@ func (r *signinEventRepository) RemoveAtomicSignin(userNumber uint, eventName st
 
 		// Exactly one confirmed slot was vacated — promote only the first
 		// waitlisted user still within the limit. Unlimited events (0) never
-		// promote on cancellation.
+		// have waitlisted users, so no promotion is needed.
 		if isConfirmedStatus(signin.Status) && maxParticipants > 0 {
 			sub := tx.Model(&SigninEvent{}).
 				Select("user_number").
@@ -295,28 +294,6 @@ func (r *signinEventRepository) GetByUserEventAndInitDate(userNumber uint, event
 	return &signin, nil
 }
 
-// confirmedCountJoin aggregates the number of confirmed (Inscrito or Aguardando
-// Aprovação) inscriptions per event. A waitlisted inscription's relative queue
-// position is its absolute position minus this count — more accurate than
-// subtracting max_participants, which only holds when the event is completely
-// full (e.g. it breaks after running the queue or after cancellations).
-const confirmedCountJoin = `LEFT JOIN (
-		SELECT event_name, event_init_date, COUNT(*) AS confirmed_count
-		FROM signin_events
-		WHERE status IN (?, ?)
-		GROUP BY event_name, event_init_date
-	) confirmed_signins
-		ON confirmed_signins.event_name = signin_events.event_name
-		AND confirmed_signins.event_init_date = signin_events.event_init_date`
-
-// relativeWaitListPositionSelect projects the relative queue position for
-// waitlisted inscriptions. Every other status has no meaningful queue position
-// and projects 0, which the JSON `omitempty` drops entirely.
-const relativeWaitListPositionSelect = `CASE
-		WHEN signin_events.status = ?
-		THEN GREATEST(signin_events.user_wait_list_position - COALESCE(confirmed_signins.confirmed_count, 0), 1)
-		ELSE 0 END`
-
 func (r *signinEventRepository) FindActiveByUser(userNumber uint) ([]SigninEventsDetailed, error) {
 	var signins []SigninEventsDetailed
 
@@ -324,10 +301,12 @@ func (r *signinEventRepository) FindActiveByUser(userNumber uint) ([]SigninEvent
 		Select("signin_events.user_number, signin_events.event_name, signin_events.event_init_date, "+
 			"events.end_date AS event_end_date, events.type AS event_type, events.location AS event_location, "+
 			"events.description AS event_description, "+
-			relativeWaitListPositionSelect+" AS user_wait_list_position, "+
+			"CASE WHEN signin_events.status = ? AND events.max_participants > 0 "+
+			"AND signin_events.user_wait_list_position > events.max_participants "+
+			"THEN signin_events.user_wait_list_position - events.max_participants "+
+			"ELSE signin_events.user_wait_list_position END AS user_wait_list_position, "+
 			"signin_events.status", StatusWaitListed).
 		Joins("JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date").
-		Joins(confirmedCountJoin, StatusRegistered, StatusWaitingDonation).
 		Where("signin_events.user_number = ? AND signin_events.status != ?", userNumber, StatusCancelled).
 		Order("signin_events.event_init_date asc").
 		Scan(&signins).Error
@@ -336,19 +315,6 @@ func (r *signinEventRepository) FindActiveByUser(userNumber uint) ([]SigninEvent
 	}
 
 	return signins, nil
-}
-
-func (r *signinEventRepository) CountConfirmedSignins(eventName string, initDate time.Time) (uint, error) {
-	var count int64
-	err := r.db.Model(&SigninEvent{}).
-		Where("event_name = ? AND event_init_date = ? AND (status = ? OR status = ?)",
-			eventName, initDate, StatusRegistered, StatusWaitingDonation).
-		Count(&count).Error
-	if err != nil {
-		return 0, err
-	}
-
-	return uint(count), nil
 }
 
 func (r *signinEventRepository) UpdateByComposite(userNumber uint, eventName string, initDate time.Time, updated *SigninEvent) error {
@@ -395,9 +361,12 @@ func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEvent
 	dataQuery := applySearchFilter(r.db.Table("signin_events"), query)
 	err = dataQuery.
 		Select("signin_events.user_number, signin_events.event_name, signin_events.event_init_date, "+
-			relativeWaitListPositionSelect+" AS user_wait_list_position, "+
+			"CASE WHEN signin_events.status = ? AND events.max_participants > 0 "+
+			"AND signin_events.user_wait_list_position > events.max_participants "+
+			"THEN signin_events.user_wait_list_position - events.max_participants "+
+			"ELSE signin_events.user_wait_list_position END AS user_wait_list_position, "+
 			"signin_events.status, users.name AS user_name, users.email AS user_email", StatusWaitListed).
-		Joins(confirmedCountJoin, StatusRegistered, StatusWaitingDonation).
+		Joins("LEFT JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date").
 		Joins("LEFT JOIN users ON users.user_number = signin_events.user_number").
 		Order(sortClause).Limit(query.Limit).Offset(query.Offset).Scan(&signins).Error
 	if err != nil {
