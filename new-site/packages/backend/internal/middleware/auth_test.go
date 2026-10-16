@@ -6,10 +6,13 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
+	"backend/internal/permission"
 	"backend/internal/providers"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func init() {
@@ -163,4 +166,138 @@ func TestAuthBackofficeMiddleware(t *testing.T) {
 			t.Errorf("esperado 'Token inválido para o backoffice', recebido '%s'", resp["error"])
 		}
 	})
+
+	t.Run("Rejeita token de backoffice expirado", func(t *testing.T) {
+		token := signTestToken(t, os.Getenv("JWT_SECRET"), jwt.MapClaims{
+			"sub":   "admin@semcomp.com",
+			"email": "admin@semcomp.com",
+			"scope": providers.ScopeBackoffice,
+			"exp":   time.Now().Add(-1 * time.Minute).Unix(),
+		})
+
+		w := doBackofficeRequest(r, "/admin/test-dashboard", token)
+		if w.Code != http.StatusUnauthorized {
+			t.Fatalf("esperado status 401, recebido %d", w.Code)
+		}
+	})
+
+	t.Run("Rejeita token de backoffice com assinatura inválida", func(t *testing.T) {
+		token := signTestToken(t, "outra-chave-qualquer", jwt.MapClaims{
+			"sub":   "admin@semcomp.com",
+			"email": "admin@semcomp.com",
+			"scope": providers.ScopeBackoffice,
+			"exp":   time.Now().Add(1 * time.Hour).Unix(),
+		})
+
+		w := doBackofficeRequest(r, "/admin/test-dashboard", token)
+		if w.Code != http.StatusUnauthorized {
+			t.Fatalf("esperado status 401, recebido %d", w.Code)
+		}
+	})
+}
+
+// fakePermissionService concede permissões a partir de um mapa email -> seção -> nível
+// e registra se CheckPermission foi chamado.
+type fakePermissionService struct {
+	permission.PermissionService
+	grants map[string]map[string]permission.PermissionLevel
+	called bool
+}
+
+func (f *fakePermissionService) CheckPermission(email, section string, required permission.PermissionLevel) (bool, error) {
+	f.called = true
+	actual, ok := f.grants[email][section]
+	if !ok {
+		return false, nil
+	}
+	return permission.HasLevel(actual, required), nil
+}
+
+// Garante que a autenticação do backoffice (escopo do token) acontece antes do RBAC
+// e que a correção da Vulnerabilidade 1 não enfraqueceu o controle de permissões.
+func TestBackofficeAuthAndPermissionChain(t *testing.T) {
+	jwtProvider := setupTestJWTEnv(t)
+
+	perms := &fakePermissionService{grants: map[string]map[string]permission.PermissionLevel{
+		"admin@semcomp.com": {"Configurações Presença": permission.PermRW},
+	}}
+
+	r := gin.New()
+	admin := r.Group("/admin")
+	admin.Use(AuthBackofficeMiddleware(jwtProvider))
+	admin.GET("/presence-settings", RequirePermission(perms, "Configurações Presença", permission.PermR), func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"ok": true})
+	})
+
+	t.Run("Sem cookie retorna 401 sem consultar o RBAC", func(t *testing.T) {
+		perms.called = false
+		w := doBackofficeRequest(r, "/admin/presence-settings", "")
+		if w.Code != http.StatusUnauthorized {
+			t.Fatalf("esperado status 401, recebido %d", w.Code)
+		}
+		if perms.called {
+			t.Error("RBAC não deveria ser consultado sem autenticação")
+		}
+	})
+
+	// Vetor de escalada: participante do site cadastrado com o mesmo email de um admin.
+	// Antes da correção, o RBAC era avaliado com as permissões do admin.
+	t.Run("Token do site com email de admin é rejeitado na autenticação (401), não no RBAC", func(t *testing.T) {
+		perms.called = false
+		siteToken, err := jwtProvider.Generate(1, "admin@semcomp.com")
+		if err != nil {
+			t.Fatalf("falha ao gerar token de site: %v", err)
+		}
+
+		w := doBackofficeRequest(r, "/admin/presence-settings", siteToken)
+		if w.Code != http.StatusUnauthorized {
+			t.Fatalf("esperado status 401, recebido %d. Body: %s", w.Code, w.Body.String())
+		}
+		if perms.called {
+			t.Error("RBAC não deveria ser consultado para token de outro contexto")
+		}
+	})
+
+	t.Run("Admin válido sem permissão na seção recebe 403", func(t *testing.T) {
+		token, err := jwtProvider.GenerateToBackoffice("semperm@semcomp.com")
+		if err != nil {
+			t.Fatalf("falha ao gerar token: %v", err)
+		}
+
+		w := doBackofficeRequest(r, "/admin/presence-settings", token)
+		if w.Code != http.StatusForbidden {
+			t.Fatalf("esperado status 403, recebido %d", w.Code)
+		}
+	})
+
+	t.Run("Admin válido com permissão na seção recebe 200", func(t *testing.T) {
+		token, err := jwtProvider.GenerateToBackoffice("admin@semcomp.com")
+		if err != nil {
+			t.Fatalf("falha ao gerar token: %v", err)
+		}
+
+		w := doBackofficeRequest(r, "/admin/presence-settings", token)
+		if w.Code != http.StatusOK {
+			t.Fatalf("esperado status 200, recebido %d. Body: %s", w.Code, w.Body.String())
+		}
+	})
+}
+
+func doBackofficeRequest(r *gin.Engine, path, token string) *httptest.ResponseRecorder {
+	req, _ := http.NewRequest(http.MethodGet, path, nil)
+	if token != "" {
+		req.AddCookie(&http.Cookie{Name: "semcomp-backoffice-token", Value: token})
+	}
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	return w
+}
+
+func signTestToken(t *testing.T, secret string, claims jwt.MapClaims) string {
+	t.Helper()
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secret))
+	if err != nil {
+		t.Fatalf("falha ao assinar token: %v", err)
+	}
+	return token
 }
