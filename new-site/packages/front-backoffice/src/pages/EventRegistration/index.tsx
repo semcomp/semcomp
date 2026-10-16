@@ -347,6 +347,28 @@ export default function EventRegistration() {
               <span className="text-amber-400 font-medium">Lista de Espera</span> serão
               promovidas até preencher as vagas disponíveis. Esta ação não pode ser desfeita.
             </p>
+            {selectedEvent && (
+              <div className="rounded-lg bg-slate-800 border border-slate-700 p-4 space-y-1.5 text-sm">
+                <p>
+                  <span className="text-slate-400">Evento:</span>{" "}
+                  <span className="text-white font-medium">{selectedEvent.name}</span>
+                </p>
+                <p>
+                  <span className="text-slate-400">Data:</span>{" "}
+                  <span className="text-white font-medium">
+                    {formatDate(selectedEvent.init_date)} → {formatDate(selectedEvent.end_date)}
+                  </span>
+                </p>
+                <p>
+                  <span className="text-slate-400">Vagas:</span>{" "}
+                  <span className="text-white font-medium">
+                    {selectedEvent.max_participants
+                      ? selectedEvent.max_participants
+                      : "Vagas ilimitadas"}
+                  </span>
+                </p>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="gap-2">
