@@ -76,7 +76,7 @@ Arquivo: `pages/EventRegistration/index.tsx`
 
 - Seletor de evento (dropdown via `signinEventsAPI.getSigninableEvents()` — eventos com `has_signin=true`)
 - Quando evento selecionado: exibe info (nome, datas, local, vagas) + contadores (inscritos / espera / aguardando aprovação)
-- Botão "Rodar fila" (`signinEventsAPI.rotate`): promove lista de espera; desabilitado se `max_participants = 0`
+- Botão "Rodar fila" (`signinEventsAPI.rotate`): abre modal de confirmação; remove inscrições "Aguardando Aprovação" e promove lista de espera para "Aguardando Aprovação"; desabilitado se `max_participants = 0`
 - Tabela CRUD (`CrudTable`) com campos distintos para visão global (`fields`) e visão por evento (`fieldsForEvent`)
 - `canWrite = useHasPermission("Inscrições", "RW")`
 - → [[Feature_SigninEvent]]
