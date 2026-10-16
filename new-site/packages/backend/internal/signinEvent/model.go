@@ -19,6 +19,7 @@ type SigninEvent struct {
 	Status               RegistrationStatus `gorm:"size:50;not null" json:"status"`
 	UserName             string             `gorm:"->" json:"user_name,omitempty"`
 	UserEmail            string             `gorm:"->" json:"user_email,omitempty"`
+	PapfeStatus          string             `gorm:"->" json:"papfe_status"`
 }
 
 type CreateSigninRequest struct {

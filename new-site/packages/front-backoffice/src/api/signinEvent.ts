@@ -27,6 +27,7 @@ const mapBackendSignin = (signin: any) => {
         status: signin.status,
         userName: signin.user_name,
         userEmail: signin.user_email,
+        papfeStatus: signin.papfe_status,
     };
 };
 

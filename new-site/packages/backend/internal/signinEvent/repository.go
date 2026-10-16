@@ -365,9 +365,14 @@ func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEvent
 			"AND signin_events.user_wait_list_position > events.max_participants "+
 			"THEN signin_events.user_wait_list_position - events.max_participants "+
 			"ELSE signin_events.user_wait_list_position END AS user_wait_list_position, "+
-			"signin_events.status, users.name AS user_name, users.email AS user_email", StatusWaitListed).
+			"signin_events.status, users.name AS user_name, users.email AS user_email, "+
+			"CASE WHEN NOT users.has_papfe THEN 'Sem PAPFE' "+
+			"WHEN papfe_documents.is_approved IS NULL THEN 'Pendente' "+
+			"WHEN papfe_documents.is_approved = true THEN 'Aprovado' "+
+			"ELSE 'Rejeitado' END AS papfe_status", StatusWaitListed).
 		Joins("LEFT JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date").
 		Joins("LEFT JOIN users ON users.user_number = signin_events.user_number").
+		Joins("LEFT JOIN papfe_documents ON papfe_documents.user_email = users.email").
 		Order(sortClause).Limit(query.Limit).Offset(query.Offset).Scan(&signins).Error
 	if err != nil {
 		return nil, err
