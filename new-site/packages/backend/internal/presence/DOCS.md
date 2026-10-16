@@ -17,13 +17,34 @@ A tabela de presenca é composta por:
 
 ## Regra de inscrição
 
-Quando o evento tem `has_signin = true` (Minicursos, Oficinas, Coffees…), a
+Quando o evento tem `has_signin = true` (Minicursos, Oficinas…), a
 presença só é aceita se o participante tiver uma inscrição (`signin_events`)
 naquele evento com status **`Inscrito`**. Sem inscrição, ou com status
 `Lista de Espera` / `Aguardando Aprovação` / `Cancelado`, a resposta é `403`.
 
+> **Coffee não usa esta regra.** Coffee não é evento com inscrição
+> (`has_signin = false`). O que libera a presença num evento de coffee é ter
+> **comprado o produto de coffee** daquele horário — ver a seção "Regra do
+> coffee" abaixo.
+
 Eventos sem inscrição (`has_signin = false`, ex.: Palestras, Vitrine) aceitam
 qualquer participante.
+
+## Regra do coffee
+
+Coffee não é evento com inscrição — um coffee é um **produto vendido**. Ao
+marcar presença num evento de coffee, o sistema exige que o participante tenha
+**comprado o produto COFFEE** correspondente, com a venda em status **`PAGO`**
+(PENDENTE não conta: bastaria iniciar o checkout sem pagar para liberar).
+
+A associação evento ↔ produto é por **data/hora**: o evento de coffee das 09:00
+corresponde ao produto COFFEE cujo `coffees.date_time` é 09:00 daquele dia.
+
+| Situação | Resposta |
+|---|---|
+| Comprou o coffee do horário (`PAGO`) | presença liberada |
+| Não comprou | `403 {"code":"forbidden","message":"Usuário não comprou o coffee deste evento"}` |
+| Evento sem produto de coffee associado (ex.: Palestra) | checagem ignorada, presença liberada |
 
 ## Formato de data
 
@@ -69,6 +90,8 @@ Erros comuns:
   evento exige inscrição (`has_signin = true`) e o participante não tem nenhuma.
   `"Usuário não possui inscrição confirmada neste evento"` quando existe inscrição
   mas o status não é `Inscrito`.
+  `"Usuário não comprou o coffee deste evento"` quando o horário tem um produto
+  de coffee associado e o participante não o comprou (venda `PAGO`).
 - `404`: `{"code":"not_found","message":"Evento não encontrado"}`
 - `409`: `{"code":"conflict","message":"Presença já registrada em 06/10/2026 09:00 por admin@semcomp.com"}`
   — já existe presença deste usuário neste evento. A mensagem informa o instante

@@ -7,6 +7,7 @@ import (
 
 	"backend/internal/apierrors"
 	"backend/internal/event"
+	"backend/internal/product"
 	"backend/internal/signinEvent"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -123,6 +124,39 @@ func buildService(
 	signinRepo signinEvent.SigninEventRepository,
 ) PresenceService {
 	return NewPresenceService(presenceRepo, eventRepo, signinRepo)
+}
+
+// Fakes para a regra de coffee --------------------------------------------------
+
+// stubCoffeeProducts resolve o produto de coffee pelo horário. Sem produto
+// configurado (errRecordNotFound), o evento não é de coffee.
+type stubCoffeeProducts struct {
+	result *product.Product
+	err    error
+}
+
+func (s *stubCoffeeProducts) GetCoffeeByDateTime(dateTime time.Time) (*product.Product, error) {
+	return s.result, s.err
+}
+
+type stubCoffeePurchases struct {
+	purchased bool
+	err       error
+}
+
+func (s *stubCoffeePurchases) UserHasPaidProduct(userNumber uint, productID uint) (bool, error) {
+	return s.purchased, s.err
+}
+
+// buildServiceWithCoffee devolve um service com a checagem de coffee injetada.
+func buildServiceWithCoffee(
+	presenceRepo PresenceRepository,
+	coffeeProducts *stubCoffeeProducts,
+	coffeePurchases *stubCoffeePurchases,
+) PresenceService {
+	svc := NewPresenceService(presenceRepo, &stubEventRepo{getResult: &event.Event{HasSignin: false}}, &stubSigninRepo{})
+	svc.SetCoffeePurchaseCheck(coffeeProducts, coffeePurchases)
+	return svc
 }
 
 func assertForbidden(t *testing.T, err error) {
@@ -331,21 +365,6 @@ func TestCreatePresence_UniqueViolationBecomesConflict(t *testing.T) {
 	}
 }
 
-// O caso que motivou a regra: um coffee é um evento com inscrição, então quem
-// não está inscrito no coffee não pode receber presença nele.
-func TestCreatePresence_CoffeeRequiresSignin(t *testing.T) {
-	req := newRequest()
-	req.EventName = "[SEED] Coffee da manhã - Terça"
-
-	svc := buildService(
-		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
-		&stubEventRepo{getResult: &event.Event{Name: req.EventName, HasSignin: true}},
-		&stubSigninRepo{getErr: gorm.ErrRecordNotFound}, // não inscrito no coffee
-	)
-
-	assertForbidden(t, func() error { _, err := svc.CreatePresence(req); return err }())
-}
-
 // O delete precisa usar o caminho atômico (DeleteAtomic), que recalcula a taxa
 // na mesma transação — não o delete simples seguido de recálculo fora dela.
 func TestDeletePresence_UsesAtomicPath(t *testing.T) {
@@ -392,5 +411,66 @@ func TestDeletePresence_NotFound(t *testing.T) {
 	}
 	if apiErr.Status != 404 {
 		t.Errorf("esperava 404, got %d", apiErr.Status)
+	}
+}
+
+// ── Regra do coffee: exige a compra do produto, não inscrição ────────────────
+
+// Comprou o coffee do horário → presença liberada.
+func TestCreatePresence_CoffeePurchased_Allowed(t *testing.T) {
+	svc := buildServiceWithCoffee(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubCoffeeProducts{result: &product.Product{ID: 24, Type: product.ProductTypeCoffee}},
+		&stubCoffeePurchases{purchased: true},
+	)
+
+	p, err := svc.CreatePresence(newRequest())
+	if err != nil {
+		t.Fatalf("esperava sucesso, got %v", err)
+	}
+	if p.UserNumber != 42 {
+		t.Errorf("UserNumber esperado 42, got %d", p.UserNumber)
+	}
+}
+
+// Não comprou → 403, mesmo sem qualquer inscrição envolvida.
+func TestCreatePresence_CoffeeNotPurchased_Blocked(t *testing.T) {
+	svc := buildServiceWithCoffee(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubCoffeeProducts{result: &product.Product{ID: 24, Type: product.ProductTypeCoffee}},
+		&stubCoffeePurchases{purchased: false},
+	)
+
+	assertForbidden(t, func() error { _, err := svc.CreatePresence(newRequest()); return err }())
+}
+
+// Evento sem produto de coffee associado (palestra) → checagem ignorada.
+func TestCreatePresence_NoCoffeeProduct_Skipped(t *testing.T) {
+	svc := buildServiceWithCoffee(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubCoffeeProducts{err: gorm.ErrRecordNotFound},
+		&stubCoffeePurchases{purchased: false},
+	)
+
+	if _, err := svc.CreatePresence(newRequest()); err != nil {
+		t.Fatalf("esperava sucesso (evento não é de coffee), got %v", err)
+	}
+}
+
+// Erro de banco na verificação de compra não deve virar 403 silencioso.
+func TestCreatePresence_CoffeeCheckDBError_Internal(t *testing.T) {
+	svc := buildServiceWithCoffee(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubCoffeeProducts{result: &product.Product{ID: 24}},
+		&stubCoffeePurchases{err: errors.New("db down")},
+	)
+
+	_, err := svc.CreatePresence(newRequest())
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("esperava *apierrors.APIError, got %T", err)
+	}
+	if apiErr.Status != 500 {
+		t.Errorf("esperava 500, got %d", apiErr.Status)
 	}
 }

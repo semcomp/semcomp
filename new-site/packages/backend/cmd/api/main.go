@@ -250,6 +250,11 @@ func main() {
 	salesService := sales.NewSaleService(salesRepo, productRepo, papfeRepo)
 	salesHandler := sales.NewSaleHandler(salesService)
 
+	// Presença em evento de coffee exige a compra do produto de coffee daquele
+	// horário — coffee não é evento com inscrição. Injetado aqui porque tanto o
+	// productRepo quanto o salesRepo só existem a partir deste ponto.
+	presenceService.SetCoffeePurchaseCheck(productRepo, salesRepo)
+
 	dashboardRepo := dashboardbackoffice.NewDashboardRepository(db)
 	dashboardService := dashboardbackoffice.NewDashboardService(dashboardRepo)
 	dashboardHandler := dashboardbackoffice.NewDashboardHandler(dashboardService)

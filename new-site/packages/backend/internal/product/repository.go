@@ -13,6 +13,10 @@ import (
 )
 
 type ProductRepository interface {
+	// GetCoffeeByDateTime resolve o produto COFFEE associado a um horário de
+	// evento. A associação é por data/hora: cada evento de coffee tem um produto
+	// COFFEE com coffees.date_time igual ao init_date do evento.
+	GetCoffeeByDateTime(dateTime time.Time) (*Product, error)
 	Create(product *Product) error
 	BulkCreate(products []*Product) ([]Product, error)
 	GetByID(id uint) (*Product, error)
@@ -49,6 +53,25 @@ func (r *productRepository) GetByID(id uint) (*Product, error) {
 		Where("id = ?", id).
 		First(&product).Error
 	if err != nil {
+		return nil, err
+	}
+	return &product, nil
+}
+
+// GetCoffeeByDateTime devolve o produto COFFEE cujo coffees.date_time casa o
+// horário informado. É a ponte entre um evento de coffee e o produto vendido
+// para ele. Não encontrado → gorm.ErrRecordNotFound.
+func (r *productRepository) GetCoffeeByDateTime(dateTime time.Time) (*Product, error) {
+	var coffee Coffee
+	if err := r.db.Where("date_time = ?", dateTime).First(&coffee).Error; err != nil {
+		return nil, err
+	}
+
+	var product Product
+	if err := r.db.
+		Preload("Coffee").
+		Where("id = ?", coffee.ID).
+		First(&product).Error; err != nil {
 		return nil, err
 	}
 	return &product, nil

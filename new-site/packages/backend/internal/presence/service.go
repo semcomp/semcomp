@@ -10,6 +10,7 @@ import (
 
 	"backend/internal/apierrors"
 	"backend/internal/event"
+	"backend/internal/product"
 	"backend/internal/signinEvent"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -18,6 +19,7 @@ import (
 
 type PresenceService interface {
 	SetRateRecalculator(recalculator RateRecalculator)
+	SetCoffeePurchaseCheck(products coffeeProductLookup, purchases coffeePurchaseLookup)
 	CreatePresence(request CreatePresenceRequest) (*Presence, error)
 	GetPresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) (*Presence, error)
 	DeletePresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) error
@@ -37,11 +39,58 @@ type RateRecalculatorTx interface {
 	RecalculateUsersTx(tx *gorm.DB, userNumbers ...int64) error
 }
 
+// coffeeProductLookup resolve o produto COFFEE vendido para um horário de
+// evento. Interface mínima para não importar internal/product inteiro.
+type coffeeProductLookup interface {
+	GetCoffeeByDateTime(dateTime time.Time) (*product.Product, error)
+}
+
+// coffeePurchaseLookup responde se o usuário comprou um produto (venda PAGO).
+type coffeePurchaseLookup interface {
+	UserHasPaidProduct(userNumber uint, productID uint) (bool, error)
+}
+
 type presenceService struct {
 	repo            PresenceRepository
 	eventRepo       event.EventRepository
 	signinEventRepo signinEvent.SigninEventRepository
 	recalculator    RateRecalculator
+	coffeeProducts  coffeeProductLookup
+	coffeePurchases coffeePurchaseLookup
+}
+
+// SetCoffeePurchaseCheck injeta a verificação de compra de coffee usada para
+// liberar presença em eventos de coffee. Chamado no main.
+func (s *presenceService) SetCoffeePurchaseCheck(products coffeeProductLookup, purchases coffeePurchaseLookup) {
+	s.coffeeProducts = products
+	s.coffeePurchases = purchases
+}
+
+// ensureCoffeePurchased exige que o usuário tenha comprado o produto de coffee
+// associado ao horário do evento. Sem produto de coffee configurado para o
+// horário, o evento não é de coffee e a checagem é ignorada. No-op quando a
+// verificação não foi injetada (mantém o service testável sem a dependência).
+func (s *presenceService) ensureCoffeePurchased(userNumber int64, initDate time.Time) error {
+	if s.coffeeProducts == nil || s.coffeePurchases == nil {
+		return nil
+	}
+
+	coffee, err := s.coffeeProducts.GetCoffeeByDateTime(initDate)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil // não há produto de coffee para este horário
+		}
+		return apierrors.InternalServerError("Erro ao buscar produto de coffee", err)
+	}
+
+	purchased, err := s.coffeePurchases.UserHasPaidProduct(uint(userNumber), coffee.ID)
+	if err != nil {
+		return apierrors.InternalServerError("Erro ao verificar compra do coffee", err)
+	}
+	if !purchased {
+		return apierrors.ForbiddenError("Usuário não comprou o coffee deste evento", nil)
+	}
+	return nil
 }
 
 func NewPresenceService(repo PresenceRepository, eventRepo event.EventRepository, signinEventRepo signinEvent.SigninEventRepository) PresenceService {
@@ -101,6 +150,12 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 			return nil, apierrors.NotFoundError("Evento não encontrado", err)
 		}
 		return nil, apierrors.InternalServerError("Erro ao buscar evento", err)
+	}
+
+	// Coffee não é evento com inscrição: o que libera a presença é ter comprado
+	// o produto de coffee daquele horário.
+	if err := s.ensureCoffeePurchased(request.UserNumber, request.EventInitDate); err != nil {
+		return nil, err
 	}
 
 	if eventRecord.HasSignin {
