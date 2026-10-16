@@ -118,6 +118,10 @@ export default function EventRegistration() {
     [fetchSignins]
   );
 
+  const handleRotateClick = () => {
+    setRotateConfirmOpen(true);
+  };
+
   const handleRotate = async () => {
     if (!selectedEvent) return;
     try {
@@ -269,7 +273,7 @@ export default function EventRegistration() {
 
             {canWrite && (
               <Button
-                onClick={handleRotate}
+                onClick={handleRotateClick}
                 disabled={rotating || !selectedEvent.max_participants}
                 title={!selectedEvent.max_participants ? "Evento com vagas ilimitadas" : undefined}
                 variant="outline"
