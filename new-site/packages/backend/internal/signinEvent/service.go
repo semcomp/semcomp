@@ -8,6 +8,7 @@ import (
 
 	"backend/internal/apierrors"
 	"backend/internal/event"
+	"backend/internal/mailer"
 
 	"gorm.io/gorm"
 )
@@ -29,10 +30,11 @@ type SigninEventService interface {
 type signinEventService struct {
 	repo      SigninEventRepository
 	eventRepo event.EventRepository
+	mailer    *mailer.Mailer
 }
 
-func NewSigninEventService(repo SigninEventRepository, eventRepo event.EventRepository) SigninEventService {
-	return &signinEventService{repo: repo, eventRepo: eventRepo}
+func NewSigninEventService(repo SigninEventRepository, eventRepo event.EventRepository, m *mailer.Mailer) SigninEventService {
+	return &signinEventService{repo: repo, eventRepo: eventRepo, mailer: m}
 }
 
 func relativeWaitListPosition(status RegistrationStatus, confirmedCount uint, position uint) uint {
@@ -394,7 +396,7 @@ func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate 
 		return nil, apierrors.ValidationError("Não é possível rodar a fila em eventos com vagas ilimitadas", nil)
 	}
 
-	signins, err := s.repo.RotateAtomicSignins(eventName, initTime, eventRecord.MaxParticipants)
+	signins, promotedUserNumbers, err := s.repo.RotateAtomicSignins(eventName, initTime, eventRecord.MaxParticipants)
 	if err != nil {
 		return nil, apierrors.InternalServerError("Erro ao rodar a fila de inscrições", err)
 	}
@@ -405,5 +407,19 @@ func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate 
 		}
 	}
 
+	if len(promotedUserNumbers) > 0 {
+		go s.sendPromotionEmails(promotedUserNumbers, eventRecord.Name)
+	}
+
 	return signins, nil
+}
+
+func (s *signinEventService) sendPromotionEmails(userNumbers []uint, eventName string) {
+	infos, err := s.repo.FetchUserInfosByNumbers(userNumbers)
+	if err != nil {
+		return
+	}
+	for _, u := range infos {
+		s.mailer.SendRegistrationConfirmationEmail(u.Name, u.Email, eventName)
+	}
 }

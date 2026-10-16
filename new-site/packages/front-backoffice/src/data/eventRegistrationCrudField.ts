@@ -9,6 +9,8 @@ const statusVariants = {
 
 export const fields: CrudField[] = [
   { value: "userNumber", label: "Número do Participante", type: "text" },
+  { value: "userName", label: "Nome", type: "text", readonly: true },
+  { value: "userEmail", label: "Email", type: "text", readonly: true },
   { value: "eventName", label: "Nome do Evento", type: "text" },
   { value: "eventInitDate", label: "Data do Evento", type: "date" },
   { value: "status", label: "Status", type: "select", selectVariants: statusVariants, sortValue: "status_priority" },
@@ -17,6 +19,8 @@ export const fields: CrudField[] = [
 
 export const fieldsForEvent: CrudField[] = [
   { value: "userNumber", label: "Número do Participante", type: "text" },
+  { value: "userName", label: "Nome", type: "text", readonly: true },
+  { value: "userEmail", label: "Email", type: "text", readonly: true },
   { value: "status", label: "Status", type: "select", selectVariants: statusVariants, sortValue: "status_priority" },
   { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true },
 ];

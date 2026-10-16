@@ -36,3 +36,12 @@ func (m *Mailer) SendPasswordResetEmail(name, email, token string) {
 	}
 	go m.sender.Send(context.Background(), msg)
 }
+
+func (m *Mailer) SendRegistrationConfirmationEmail(name, email, eventName string) {
+	msg := Message{
+		To:      email,
+		Subject: "Inscrição confirmada - SEMCOMP",
+		Body:    fmt.Sprintf("Olá %s,\n\nSua inscrição no evento \"%s\" foi confirmada!\n\nNos vemos lá.", name, eventName),
+	}
+	go m.sender.Send(context.Background(), msg)
+}

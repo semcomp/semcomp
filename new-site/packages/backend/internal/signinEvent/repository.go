@@ -60,8 +60,12 @@ type SigninEventRepository interface {
 	// RotateAtomicSignins removes all WaitingDonation inscriptions, promotes
 	// waitlisted users to fill the remaining vacancies as StatusWaitingDonation,
 	// and reorders all queue positions, atomically under the per-event advisory
-	// lock.
-	RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, error)
+	// lock. Returns all active signins and the numbers of users just promoted
+	// from the waitlist.
+	RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, []uint, error)
+	// FetchUserInfosByNumbers returns name and email for the given user numbers,
+	// used to notify promoted users after a queue rotation.
+	FetchUserInfosByNumbers(userNumbers []uint) ([]PromotedUserInfo, error)
 }
 
 type signinEventRepository struct {
@@ -279,7 +283,11 @@ func (r *signinEventRepository) RemoveAtomicSignin(userNumber uint, eventName st
 
 func (r *signinEventRepository) GetByUserEventAndInitDate(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error) {
 	var signin SigninEvent
-	err := r.db.Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).First(&signin).Error
+	err := r.db.Table("signin_events").
+		Select("signin_events.*, users.name AS user_name, users.email AS user_email").
+		Joins("LEFT JOIN users ON users.user_number = signin_events.user_number").
+		Where("signin_events.user_number = ? AND signin_events.event_name = ? AND signin_events.event_init_date = ?", userNumber, eventName, initDate).
+		First(&signin).Error
 	if err != nil {
 		return nil, err
 	}
@@ -388,7 +396,7 @@ func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEvent
 	err = dataQuery.
 		Select("signin_events.user_number, signin_events.event_name, signin_events.event_init_date, "+
 			relativeWaitListPositionSelect+" AS user_wait_list_position, "+
-			"signin_events.status, users.name AS user_name", StatusWaitListed).
+			"signin_events.status, users.name AS user_name, users.email AS user_email", StatusWaitListed).
 		Joins(confirmedCountJoin, StatusRegistered, StatusWaitingDonation).
 		Joins("LEFT JOIN users ON users.user_number = signin_events.user_number").
 		Order(sortClause).Limit(query.Limit).Offset(query.Offset).Scan(&signins).Error
@@ -562,8 +570,9 @@ func (r *signinEventRepository) UpdateAdminSigninStatus(userNumber uint, eventNa
 	return result, err
 }
 
-func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, error) {
+func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, []uint, error) {
 	var result []SigninEvent
+	var promotedUserNumbers []uint
 
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Exec(
@@ -589,16 +598,19 @@ func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate t
 
 		toPromote := int(maxParticipants) - int(registeredCount)
 		if toPromote > 0 {
-			sub := tx.Model(&SigninEvent{}).
+			if err := tx.Model(&SigninEvent{}).
 				Select("user_number").
 				Where("event_name = ? AND event_init_date = ? AND status = ?",
 					eventName, initDate, StatusWaitListed).
 				Order("user_wait_list_position asc").
-				Limit(toPromote)
+				Limit(toPromote).
+				Pluck("user_number", &promotedUserNumbers).Error; err != nil {
+				return err
+			}
 
 			if err := tx.Model(&SigninEvent{}).
 				Where("event_name = ? AND event_init_date = ? AND status = ? AND user_number IN (?)",
-					eventName, initDate, StatusWaitListed, sub).
+					eventName, initDate, StatusWaitListed, promotedUserNumbers).
 				Update("status", StatusWaitingDonation).Error; err != nil {
 				return err
 			}
@@ -623,9 +635,12 @@ func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate t
 			return err
 		}
 
-		if err := tx.Where("event_name = ? AND event_init_date = ? AND status != ?",
-			eventName, initDate, StatusCancelled).
-			Order("user_wait_list_position asc").
+		if err := tx.Table("signin_events").
+			Select("signin_events.*, users.name AS user_name, users.email AS user_email").
+			Joins("LEFT JOIN users ON users.user_number = signin_events.user_number").
+			Where("signin_events.event_name = ? AND signin_events.event_init_date = ? AND signin_events.status != ?",
+				eventName, initDate, StatusCancelled).
+			Order("signin_events.user_wait_list_position asc").
 			Find(&result).Error; err != nil {
 			return err
 		}
@@ -633,7 +648,19 @@ func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate t
 		return nil
 	})
 
-	return result, err
+	return result, promotedUserNumbers, err
+}
+
+func (r *signinEventRepository) FetchUserInfosByNumbers(userNumbers []uint) ([]PromotedUserInfo, error) {
+	if len(userNumbers) == 0 {
+		return nil, nil
+	}
+	var infos []PromotedUserInfo
+	err := r.db.Table("users").
+		Select("user_number, name, email").
+		Where("user_number IN (?)", userNumbers).
+		Scan(&infos).Error
+	return infos, err
 }
 
 func applySearchFilter(dbQuery *gorm.DB, query SigninEventListQuery) *gorm.DB {

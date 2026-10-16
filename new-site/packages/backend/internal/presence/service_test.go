@@ -87,7 +87,10 @@ func (s *stubSigninRepo) RegisterAtomicSignin(userNumber uint, eventName string,
 func (s *stubSigninRepo) UpdateAdminSigninStatus(userNumber uint, eventName string, initDate time.Time, newStatus signinEvent.RegistrationStatus, maxParticipants uint) (*signinEvent.SigninEvent, error) {
 	return nil, nil
 }
-func (s *stubSigninRepo) RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]signinEvent.SigninEvent, error) {
+func (s *stubSigninRepo) RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]signinEvent.SigninEvent, []uint, error) {
+	return nil, nil, nil
+}
+func (s *stubSigninRepo) FetchUserInfosByNumbers(userNumbers []uint) ([]signinEvent.PromotedUserInfo, error) {
 	return nil, nil
 }
 

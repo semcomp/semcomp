@@ -26,6 +26,7 @@ const mapBackendSignin = (signin: any) => {
         userWaitListPosition: signin.user_wait_list_position,
         status: signin.status,
         userName: signin.user_name,
+        userEmail: signin.user_email,
     };
 };
 
