@@ -203,6 +203,13 @@ func main() {
 	presenceService.SetRateRecalculator(rateCalculator)
 	presenceSettingsService.SetRateRecalculator(rateCalculator)
 
+	// O recalculador transacional permite que a remoção de presença e o
+	// recálculo da taxa aconteçam na mesma transação (ver presence.DeleteAtomic).
+	presenceRepo.SetRateRecalculatorTx(rateCalculator)
+	// Cancelar uma inscrição remove a presença respaldada por ela, senão a linha
+	// fica órfã e continua creditando o peso do evento.
+	signinEventService.SetPresenceCleaner(presenceRepo)
+
 	absenceJustificationRepo := absenceJustification.NewAbsenceJustificationRepository(db)
 	absenceJustificationService := absenceJustification.NewAbsenceJustificationService(absenceJustificationRepo)
 	absenceJustificationService.SetRateRecalculator(rateCalculator)

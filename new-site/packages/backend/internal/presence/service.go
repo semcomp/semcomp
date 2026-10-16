@@ -30,6 +30,13 @@ type RateRecalculator interface {
 	RecalculateUsers(userNumbers ...int64) error
 }
 
+// RateRecalculatorTx recalcula usando a transação informada, permitindo que o
+// recálculo seja atômico junto da mutação de presença. Implementado por
+// presencerate.Calculator.
+type RateRecalculatorTx interface {
+	RecalculateUsersTx(tx *gorm.DB, userNumbers ...int64) error
+}
+
 type presenceService struct {
 	repo            PresenceRepository
 	eventRepo       event.EventRepository
@@ -175,15 +182,16 @@ func (s *presenceService) DeletePresenceByUserEventandInitDate(userNumber string
 		return apierrors.ValidationError("Número do usuário inválido", err)
 	}
 
-	err = s.repo.DeleteByUserEventandInitDate(num, eventName, initDateParsed)
+	// DeleteAtomic remove a linha e recalcula a taxa na mesma transação — não
+	// há mais o recalcUsers fora daqui, que deixava a remoção e o recálculo em
+	// passos separados (se o recálculo falhasse, a taxa ficava desatualizada).
+	err = s.repo.DeleteAtomic(num, eventName, initDateParsed)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apierrors.NotFoundError("Presença não encontrada", err)
 		}
 		return apierrors.InternalServerError("Erro ao deletar presença", err)
 	}
-
-	s.recalcUsers(num)
 
 	return nil
 }

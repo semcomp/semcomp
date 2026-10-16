@@ -16,9 +16,11 @@ import (
 // Stubs ---------------------------------------------------------------------------
 
 type stubPresenceRepo struct {
-	createErr error
-	getResult *Presence
-	getErr    error
+	createErr        error
+	getResult        *Presence
+	getErr           error
+	deleteAtomicErr  error
+	deleteAtomicCall bool
 	// getFn, quando setado, tem precedência sobre getResult/getErr. Usado para
 	// simular sequências de chamadas — ex.: a pré-checagem não acha nada e a
 	// releitura após o 23505 acha o registro vencedor da corrida.
@@ -33,6 +35,14 @@ func (s *stubPresenceRepo) GetByUserEventandInitDate(userNumber int64, eventName
 	return s.getResult, s.getErr
 }
 func (s *stubPresenceRepo) DeleteByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time) error {
+	return nil
+}
+func (s *stubPresenceRepo) SetRateRecalculatorTx(calculator RateRecalculatorTx) {}
+func (s *stubPresenceRepo) DeleteAtomic(userNumber int64, eventName string, initDate time.Time) error {
+	s.deleteAtomicCall = true
+	return s.deleteAtomicErr
+}
+func (s *stubPresenceRepo) ClearByUserEventAtomic(userNumber int64, eventName string, initDate time.Time) error {
 	return nil
 }
 func (s *stubPresenceRepo) UpdateByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time, updatedPresence *Presence) error {
@@ -334,4 +344,53 @@ func TestCreatePresence_CoffeeRequiresSignin(t *testing.T) {
 	)
 
 	assertForbidden(t, func() error { _, err := svc.CreatePresence(req); return err }())
+}
+
+// O delete precisa usar o caminho atômico (DeleteAtomic), que recalcula a taxa
+// na mesma transação — não o delete simples seguido de recálculo fora dela.
+func TestDeletePresence_UsesAtomicPath(t *testing.T) {
+	repo := &stubPresenceRepo{}
+	svc := buildService(repo, &stubEventRepo{}, &stubSigninRepo{})
+
+	err := svc.DeletePresenceByUserEventandInitDate("42", "Palestra Go", "2026-11-01T10:00:00Z")
+	if err != nil {
+		t.Fatalf("esperava sucesso, got %v", err)
+	}
+	if !repo.deleteAtomicCall {
+		t.Error("esperava que o delete usasse DeleteAtomic (transação única)")
+	}
+}
+
+// Se o recálculo falhar dentro da transação, o erro tem de subir — a transação
+// reverte e a taxa não fica desatualizada em relação à presença removida.
+func TestDeletePresence_RecalcFailurePropagates(t *testing.T) {
+	repo := &stubPresenceRepo{deleteAtomicErr: errors.New("falha no recalculo")}
+	svc := buildService(repo, &stubEventRepo{}, &stubSigninRepo{})
+
+	err := svc.DeletePresenceByUserEventandInitDate("42", "Palestra Go", "2026-11-01T10:00:00Z")
+	if err == nil {
+		t.Fatal("esperava erro propagado do recálculo")
+	}
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("esperava *apierrors.APIError, got %T", err)
+	}
+	if apiErr.Status != 500 {
+		t.Errorf("esperava 500, got %d", apiErr.Status)
+	}
+}
+
+// Presença inexistente continua dando 404.
+func TestDeletePresence_NotFound(t *testing.T) {
+	repo := &stubPresenceRepo{deleteAtomicErr: gorm.ErrRecordNotFound}
+	svc := buildService(repo, &stubEventRepo{}, &stubSigninRepo{})
+
+	err := svc.DeletePresenceByUserEventandInitDate("42", "Palestra Go", "2026-11-01T10:00:00Z")
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("esperava *apierrors.APIError, got %T", err)
+	}
+	if apiErr.Status != 404 {
+		t.Errorf("esperava 404, got %d", apiErr.Status)
+	}
 }
