@@ -349,7 +349,8 @@ export default function EventRegistration() {
               <span className="text-blue-400 font-medium">Aguardando Aprovação</span> serão
               removidas e as pessoas da{" "}
               <span className="text-amber-400 font-medium">Lista de Espera</span> serão
-              promovidas até preencher as vagas disponíveis. Esta ação não pode ser desfeita.
+              movidas para Aguardando Aprovação até preencher as vagas disponíveis. Esta
+              ação não pode ser desfeita.
             </p>
             {selectedEvent && (
               <div className="rounded-lg bg-slate-800 border border-slate-700 p-4 space-y-1.5 text-sm">

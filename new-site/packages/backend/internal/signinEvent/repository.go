@@ -58,8 +58,9 @@ type SigninEventRepository interface {
 	// confirmed slot was vacated.
 	UpdateAdminSigninStatus(userNumber uint, eventName string, initDate time.Time, newStatus RegistrationStatus, maxParticipants uint) (*SigninEvent, error)
 	// RotateAtomicSignins removes all WaitingDonation inscriptions, promotes
-	// waitlisted users to fill vacancies, and reorders all queue positions,
-	// atomically under the per-event advisory lock.
+	// waitlisted users to fill the remaining vacancies as StatusWaitingDonation,
+	// and reorders all queue positions, atomically under the per-event advisory
+	// lock.
 	RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, error)
 }
 
@@ -598,7 +599,7 @@ func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate t
 			if err := tx.Model(&SigninEvent{}).
 				Where("event_name = ? AND event_init_date = ? AND status = ? AND user_number IN (?)",
 					eventName, initDate, StatusWaitListed, sub).
-				Update("status", StatusRegistered).Error; err != nil {
+				Update("status", StatusWaitingDonation).Error; err != nil {
 				return err
 			}
 		}

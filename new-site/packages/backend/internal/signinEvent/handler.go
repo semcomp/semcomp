@@ -329,9 +329,9 @@ func (h *SigninEventHandler) RegisterSigninAdmin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Inscrição registrada com sucesso!", "signin": signin})
 }
 
-// RotateSigninsAdmin remove inscrições aguardando doação e promove a fila de espera (backoffice).
+// RotateSigninsAdmin remove inscrições aguardando doação e promove a fila de espera para "Aguardando Aprovação" (backoffice).
 // @Summary Rotaciona as inscrições de um evento (backoffice)
-// @Description Remove todas as inscrições com status "Aguardando Aprovação" e promove os primeiros da fila de espera para "Inscrito", recompondo as posições da fila
+// @Description Remove todas as inscrições com status "Aguardando Aprovação" e move os primeiros da fila de espera para "Aguardando Aprovação", recompondo as posições da fila
 // @Tags Signin Event Backoffice
 // @Accept json
 // @Produce json
