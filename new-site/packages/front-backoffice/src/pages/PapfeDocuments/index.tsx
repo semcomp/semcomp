@@ -77,7 +77,7 @@ function applyClientQuery(
   if (params.filterField && params.filterValue) {
     const val = params.filterValue.toLowerCase();
     filtered = rows.filter((r) =>
-      String((r as Record<string, unknown>)[params.filterField] ?? "")
+      String((r as unknown as Record<string, unknown>)[params.filterField] ?? "")
         .toLowerCase()
         .includes(val)
     );
@@ -86,8 +86,8 @@ function applyClientQuery(
   if (params.sortField) {
     const dir = params.sortOrder === "desc" ? -1 : 1;
     filtered = [...filtered].sort((a, b) => {
-      const av = String((a as Record<string, unknown>)[params.sortField] ?? "");
-      const bv = String((b as Record<string, unknown>)[params.sortField] ?? "");
+      const av = String((a as unknown as Record<string, unknown>)[params.sortField] ?? "");
+      const bv = String((b as unknown as Record<string, unknown>)[params.sortField] ?? "");
       return av.localeCompare(bv, "pt-BR") * dir;
     });
   }

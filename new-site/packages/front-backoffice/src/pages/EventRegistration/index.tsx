@@ -49,7 +49,7 @@ function applyClientQuery(
     const apiField = API_FIELD_MAP[params.filterField] ?? params.filterField;
     // Tenta o campo mapeado para API (snake_case) ou o campo original (camelCase)
     filtered = rows.filter((r) => {
-      const rec = r as Record<string, unknown>;
+      const rec = r as unknown as Record<string, unknown>;
       const cellValue =
         rec[params.filterField] !== undefined
           ? rec[params.filterField]
@@ -61,8 +61,8 @@ function applyClientQuery(
   if (params.sortField) {
     const dir = params.sortOrder === "desc" ? -1 : 1;
     filtered = [...filtered].sort((a, b) => {
-      const rec_a = a as Record<string, unknown>;
-      const rec_b = b as Record<string, unknown>;
+      const rec_a = a as unknown as Record<string, unknown>;
+      const rec_b = b as unknown as Record<string, unknown>;
       const av = String(rec_a[params.sortField] ?? "");
       const bv = String(rec_b[params.sortField] ?? "");
       return av.localeCompare(bv, "pt-BR") * dir;
