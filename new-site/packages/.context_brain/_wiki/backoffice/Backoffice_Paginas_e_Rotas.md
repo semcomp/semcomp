@@ -29,6 +29,7 @@ Porta dev: **5174** | `basename: "/admin"` | Router: React Router v6 (imports es
 | `/notices` | `pages/Notices/index.tsx` | RequireAuth + RequirePermission | `"Avisos"` |
 | `/absence-justifications` | `pages/AbsenceJustifications/index.tsx` | RequireAuth + RequirePermission | `"Justificativas de Ausência"` |
 | `/dashboard` | `pages/Dashboard/index.tsx` | RequireAuth + RequirePermission | `"Dashboard"` |
+| `/dashboard/presence` | `pages/Dashboard/presence.tsx` | RequireAuth + RequirePermission | `"Dashboard"` |
 | `*` | `pages/NotFound/index.tsx` | RequireAuth | — |
 
 ## Home do Backoffice (`/home`)
@@ -114,3 +115,12 @@ Arquivo: `pages/Riddles/index.tsx` (CrudTable sobre `riddlesAPI`)
 - Preview de imagem (`image-preview`) no modal de criar/editar
 - `canWrite = useHasPermission("Riddles", "RW")`
 - → [[Feature_Riddle_e_Jogo]]
+
+## Dashboard (`/dashboard`)
+Arquivo: `pages/Dashboard/index.tsx` (cards em `pages/Dashboard/components/`)
+
+- Um único `dashboardAPI.get()` alimenta os cards: Overview de participantes, Vendas de kits, Coffes vendidos, Presença em eventos, Compras e produtos
+- "Compras e produtos": ranking por quantidade ou faturamento, uma linha por variante de camiseta (KIT avulso e COMBO) com badge `tamanho · cor · corte`
+- `/dashboard/presence` (`pages/Dashboard/presence.tsx`): detalhamento de presença por dia/evento, acessado pelo card de presença
+- Somente leitura — sem `canWrite`
+- → [[Feature_Dashboard]]

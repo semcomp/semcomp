@@ -138,6 +138,15 @@ Arquivo TS: `front-backoffice/src/api/signinEvent.ts` (não está no barrel `ind
 > UI em `pages/Riddles` (`/riddles`). Campo `is_active` usa `interactiveToggle` na CrudTable.
 > → [[Feature_Riddle_e_Jogo]]
 
+### Dashboard (`"Dashboard"`)
+| Método | Path | Guard extra | Handler TS |
+|---|---|---|---|
+| GET | `/admin/dashboard?sections=` | PermR | `dashboardAPI.get({ sections? })` |
+
+> `sections` aceita `users`, `events`, `kits`, `coffees`, `combos`, `sales`; vazio = todas.
+> `sales.topProducts[]` (`ProductRank`) traz `kitProductId`/`size`/`color`/`isBabylook` para KITs e COMBOs (uma linha por variante de camiseta).
+> → [[Feature_Dashboard]]
+
 ---
 
 ## Mapeamento de Campos Críticos
