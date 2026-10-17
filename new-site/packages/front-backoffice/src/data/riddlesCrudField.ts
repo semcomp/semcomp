@@ -1,7 +1,7 @@
 import { type CrudField } from "@/components/CrudTable";
 
 export const fields: CrudField[] = [
-  { value: "id", label: "ID", type: "text", readonly: true, hideInEdit: true },
+  { value: "id", label: "ID", type: "text", readonly: true, hideInEdit: true, searchable: false },
   { value: "hint1", label: "Título", type: "textarea" },
   // Pré-visualização ao vivo do link da imagem (campo abaixo). Só existe nos
   // modais de criar/editar — hideInTable tira da tabela, já que não é um

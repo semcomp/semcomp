@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
 import { CrudTable } from "@/components/CrudTable";
-import type { CrudField } from "@/components/CrudTable";
+import type { CrudField, CrudQueryParams } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
 import { Tabs } from "@/constants/Tabs";
 import { useAbsenceJustifications } from "@/hooks/useAbsenceJustifications";
@@ -95,6 +95,36 @@ const toRow = (j: AbsenceJustificationType): AbsenceJustificationRow => ({
   status: STATUS_LABEL[j.status],
 });
 
+function applyClientQuery(
+  rows: AbsenceJustificationRow[],
+  params: CrudQueryParams
+): { items: AbsenceJustificationRow[]; total: number } {
+  let filtered = rows;
+
+  if (params.filterField && params.filterValue) {
+    const val = params.filterValue.toLowerCase();
+    filtered = rows.filter((r) =>
+      String((r as Record<string, unknown>)[params.filterField] ?? "")
+        .toLowerCase()
+        .includes(val)
+    );
+  }
+
+  if (params.sortField) {
+    const dir = params.sortOrder === "desc" ? -1 : 1;
+    filtered = [...filtered].sort((a, b) => {
+      const av = String((a as Record<string, unknown>)[params.sortField] ?? "");
+      const bv = String((b as Record<string, unknown>)[params.sortField] ?? "");
+      return av.localeCompare(bv, "pt-BR") * dir;
+    });
+  }
+
+  const total = filtered.length;
+  const start = (params.page - 1) * params.pageSize;
+  const items = filtered.slice(start, start + params.pageSize);
+  return { items, total };
+}
+
 export default function AbsenceJustifications() {
   const canWrite = useHasPermission("Justificativas de Ausência", "RW");
   const navigate = useNavigate();
@@ -107,8 +137,21 @@ export default function AbsenceJustifications() {
     useState<AbsenceJustificationStatus | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [queryParams, setQueryParams] = useState<CrudQueryParams>({
+    page: 1,
+    pageSize: 10,
+    sortField: "submitted_at",
+    sortOrder: "desc",
+    filterField: "",
+    filterValue: "",
+  });
 
-  const rows = useMemo(() => justifications.map(toRow), [justifications]);
+  const allRows = useMemo(() => justifications.map(toRow), [justifications]);
+
+  const { items: rows, total: filteredCount } = useMemo(
+    () => applyClientQuery(allRows, queryParams),
+    [allRows, queryParams]
+  );
 
   const openModal = async (justification: AbsenceJustificationType) => {
     setPendingDecision(null);
@@ -212,12 +255,12 @@ export default function AbsenceJustifications() {
       />
 
       <div className="rounded-xl border border-border bg-card/80 p-5">
-        {loading && rows.length === 0 && (
+        {loading && allRows.length === 0 && (
           <div className="flex items-center justify-center py-12">
             <p className="text-slate-400">Carregando justificativas...</p>
           </div>
         )}
-        {!loading && rows.length === 0 ? (
+        {!loading && justifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
             <p className="text-slate-400">
               Nenhuma justificativa de ausência foi enviada até o momento.
@@ -234,6 +277,8 @@ export default function AbsenceJustifications() {
             actionIcon={<Eye className="w-3.5 h-3.5" />}
             actionTitle="Ver justificativa"
             entityLabel="justificativa"
+            totalRecords={filteredCount}
+            onQueryChange={setQueryParams}
           />
         )}
       </div>
