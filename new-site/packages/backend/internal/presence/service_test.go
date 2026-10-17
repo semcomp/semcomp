@@ -149,12 +149,13 @@ func (s *stubCoffeePurchases) UserHasPaidProduct(userNumber uint, productID uint
 }
 
 // buildServiceWithCoffee devolve um service com a checagem de coffee injetada.
+// O evento stub tem Type "Coffee" para que isCoffeePurchaseRequired dispare.
 func buildServiceWithCoffee(
 	presenceRepo PresenceRepository,
 	coffeeProducts *stubCoffeeProducts,
 	coffeePurchases *stubCoffeePurchases,
 ) PresenceService {
-	svc := NewPresenceService(presenceRepo, &stubEventRepo{getResult: &event.Event{HasSignin: false}}, &stubSigninRepo{})
+	svc := NewPresenceService(presenceRepo, &stubEventRepo{getResult: &event.Event{HasSignin: false, Type: "Coffee"}}, &stubSigninRepo{})
 	svc.SetCoffeePurchaseCheck(coffeeProducts, coffeePurchases)
 	return svc
 }
@@ -444,16 +445,48 @@ func TestCreatePresence_CoffeeNotPurchased_Blocked(t *testing.T) {
 	assertForbidden(t, func() error { _, err := svc.CreatePresence(newRequest()); return err }())
 }
 
-// Evento sem produto de coffee associado (palestra) → checagem ignorada.
-func TestCreatePresence_NoCoffeeProduct_Skipped(t *testing.T) {
+// Evento tipo "Coffee" sem produto configurado → 403 (erro de configuração).
+func TestCreatePresence_CoffeeTypeMissingProduct_Blocked(t *testing.T) {
 	svc := buildServiceWithCoffee(
 		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
 		&stubCoffeeProducts{err: gorm.ErrRecordNotFound},
 		&stubCoffeePurchases{purchased: false},
 	)
 
+	assertForbidden(t, func() error { _, err := svc.CreatePresence(newRequest()); return err }())
+}
+
+// Evento tipo "Palestra" sem produto de coffee → checagem não roda, presença liberada.
+func TestCreatePresence_NonCoffeeType_NoCoffeeCheck(t *testing.T) {
+	svc := NewPresenceService(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubEventRepo{getResult: &event.Event{HasSignin: false, Type: "Palestra"}},
+		&stubSigninRepo{},
+	)
+	svc.SetCoffeePurchaseCheck(
+		&stubCoffeeProducts{result: &product.Product{ID: 24, Type: product.ProductTypeCoffee}},
+		&stubCoffeePurchases{purchased: false},
+	)
+
 	if _, err := svc.CreatePresence(newRequest()); err != nil {
-		t.Fatalf("esperava sucesso (evento não é de coffee), got %v", err)
+		t.Fatalf("esperava sucesso (não é evento de coffee), got %v", err)
+	}
+}
+
+// Evento tipo "Coffee Livre" → checagem não roda mesmo sem compra.
+func TestCreatePresence_CoffeeLivre_NoCheckRequired(t *testing.T) {
+	svc := NewPresenceService(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubEventRepo{getResult: &event.Event{HasSignin: false, Type: "Coffee Livre"}},
+		&stubSigninRepo{},
+	)
+	svc.SetCoffeePurchaseCheck(
+		&stubCoffeeProducts{result: &product.Product{ID: 24, Type: product.ProductTypeCoffee}},
+		&stubCoffeePurchases{purchased: false},
+	)
+
+	if _, err := svc.CreatePresence(newRequest()); err != nil {
+		t.Fatalf("esperava sucesso (Coffee Livre é isento), got %v", err)
 	}
 }
 

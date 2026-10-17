@@ -66,10 +66,21 @@ func (s *presenceService) SetCoffeePurchaseCheck(products coffeeProductLookup, p
 	s.coffeePurchases = purchases
 }
 
+// isCoffeePurchaseRequired reporta se o tipo de evento exige que o usuário
+// tenha comprado o produto de coffee para o horário. "Coffee Livre" é
+// explicitamente isento — qualquer participante pode comparecer. Demais tipos
+// que começam com "Coffee" (ex.: "Coffee Noturno") exigem compra.
+func isCoffeePurchaseRequired(eventType string) bool {
+	lower := strings.ToLower(strings.TrimSpace(eventType))
+	return strings.HasPrefix(lower, "coffee") && lower != "coffee livre"
+}
+
 // ensureCoffeePurchased exige que o usuário tenha comprado o produto de coffee
-// associado ao horário do evento. Sem produto de coffee configurado para o
-// horário, o evento não é de coffee e a checagem é ignorada. No-op quando a
-// verificação não foi injetada (mantém o service testável sem a dependência).
+// associado ao horário do evento. Deve ser chamado apenas quando o tipo do
+// evento exige compra (ver isCoffeePurchaseRequired). Sem produto de coffee
+// configurado para o horário, retorna 403 — evento de coffee sem produto é
+// erro de configuração. No-op quando a verificação não foi injetada (mantém o
+// service testável sem a dependência).
 func (s *presenceService) ensureCoffeePurchased(userNumber int64, initDate time.Time) error {
 	if s.coffeeProducts == nil || s.coffeePurchases == nil {
 		return nil
@@ -78,7 +89,7 @@ func (s *presenceService) ensureCoffeePurchased(userNumber int64, initDate time.
 	coffee, err := s.coffeeProducts.GetCoffeeByDateTime(initDate)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil // não há produto de coffee para este horário
+			return apierrors.ForbiddenError("Não há produto de coffee configurado para este horário", nil)
 		}
 		return apierrors.InternalServerError("Erro ao buscar produto de coffee", err)
 	}
@@ -152,10 +163,13 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 		return nil, apierrors.InternalServerError("Erro ao buscar evento", err)
 	}
 
-	// Coffee não é evento com inscrição: o que libera a presença é ter comprado
-	// o produto de coffee daquele horário.
-	if err := s.ensureCoffeePurchased(request.UserNumber, request.EventInitDate); err != nil {
-		return nil, err
+	// Eventos de coffee com compra obrigatória exigem que o usuário tenha
+	// adquirido o produto de coffee daquele horário (diretamente ou via combo).
+	// "Coffee Livre" é isento — qualquer participante pode comparecer.
+	if isCoffeePurchaseRequired(eventRecord.Type) {
+		if err := s.ensureCoffeePurchased(request.UserNumber, request.EventInitDate); err != nil {
+			return nil, err
+		}
 	}
 
 	if eventRecord.HasSignin {
