@@ -2,9 +2,17 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import FitText from "@/components/FitText";
 import { ShoppingBag } from "lucide-react";
-import type { SalesOverviewStats } from "@/api/dashboard";
+import type { ProductRank, SalesOverviewStats } from "@/api/dashboard";
 
 type SortMode = "sold" | "revenue";
+
+// Descreve a camiseta da linha (ex: "M · Preta · Babylook"); null quando o
+// produto não tem camiseta (COFFEE).
+function variantLabel(product: ProductRank): string | null {
+  if (product.kitProductId == null) return null;
+  const cut = product.isBabylook ? "Babylook" : "Tradicional";
+  return [product.size, product.color, cut].filter(Boolean).join(" · ");
+}
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -36,7 +44,7 @@ export default function ProductsCard({
   ];
 
   return (
-    <Card className="border-border bg-card/80 rounded-2xl transition-colors hover:border-primary/40">
+    <Card className="min-w-0 overflow-hidden border-border bg-card/80 rounded-2xl transition-colors hover:border-primary/40">
       <CardHeader>
         <div className="mb-1 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -96,26 +104,34 @@ export default function ProductsCard({
               <div className="mt-4 space-y-2 max-h-96 overflow-y-auto pr-1">
                 {ranked.map((product, index) => {
                   const width = maxValue > 0 ? (product[mode] / maxValue) * 100 : 0;
+                  const variant = variantLabel(product);
                   return (
                     <div
-                      key={product.productId}
+                      key={`${product.productId}-${product.kitProductId ?? ""}`}
                       className="rounded-xl border border-border/50 bg-muted/20 p-3"
                     >
-                      <div className="mb-2 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <div className="flex min-w-0 flex-1 items-start gap-2">
                           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
                             {index + 1}º
                           </span>
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-foreground">
+                          <div className="min-w-0 flex-1">
+                            <p className="break-words text-sm font-semibold text-foreground">
                               {product.name}
                             </p>
-                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase text-primary">
-                              {product.type}
-                            </span>
+                            <div className="mt-1 flex flex-wrap items-center gap-1">
+                              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase text-primary">
+                                {product.type}
+                              </span>
+                              {variant && (
+                                <span className="max-w-full break-words rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-semibold text-sky-600 dark:text-sky-300">
+                                  {variant}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <div className="min-w-0 text-right">
+                        <div className="min-w-0 max-w-[40%] shrink-0 text-right">
                           <FitText
                             value={
                               mode === "sold"

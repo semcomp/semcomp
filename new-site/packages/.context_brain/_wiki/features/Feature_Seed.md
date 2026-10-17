@@ -103,6 +103,10 @@ if n > 0 {
 
 Criados apenas para vendas com status `PAGO` ou `PENDENTE` cujos itens sejam do tipo `COFFEE` ou `COMBO`. Reflete a invariante de negócio: coffees só podem ser consumidos uma vez, e só existem registros de consumed_item para vendas ativas.
 
+### SaleItems de COMBO sem `kit_product_id`
+
+O seed cria `sale_items` de COMBO **sem** `kit_product_id` (o fluxo real em `sales/service.go` exige o campo quando o combo contém KIT). Cada combo `[SEED]` tem no máximo um KIT, então o ranking do dashboard resolve a variante pelo único KIT do combo → [[Feature_Dashboard]]. `GetKitSalesStats` (que depende só de `kit_product_id`) não conta as camisetas desses combos.
+
 ---
 
 ## Remoção (`unseed.sql`)

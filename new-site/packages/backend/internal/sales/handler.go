@@ -424,6 +424,17 @@ func (h *SaleHandler) UpdateItemPickup(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Status atualizado com sucesso!", "item": item})
 }
 
+// GetKitDeliveries retorna as vendas com status PAGO para o controle de
+// entregas de kits (seção "Entregas", sem exigir permissão "Vendas").
+func (h *SaleHandler) GetKitDeliveries(c *gin.Context) {
+	result, err := h.saleService.GetKitDeliveries()
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"sales": result.Sales})
+}
+
 // CancelSale permite que o usuário cancele um pedido próprio ainda pendente
 // de pagamento (ex: desistiu de pagar o PIX). Libera a trava de compra única
 // do item (coffee/combo) para que ele possa ser comprado de novo.

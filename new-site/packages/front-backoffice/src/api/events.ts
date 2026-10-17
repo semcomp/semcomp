@@ -83,6 +83,7 @@ const fieldMap: Record<string, string> = {
   hasSignin: "has_signin",
   maxParticipants: "max_participants",
   type: "type",
+  presence_type_weight_id: "type",
   description: "description",
 };
 

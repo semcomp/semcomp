@@ -193,7 +193,7 @@ func seedEvents(db *gorm.DB, ptypes []presencesettings.PresenceTypeWeight) []eve
 			{Name: "[SEED] Abertura Semcomp 29", InitDate: dt(2026, 10, 6, 19, 0), EndDate: dt(2026, 10, 6, 21, 0), PresenceTypeID: ptypeID(ptypes, "Abertura"), Type: "Abertura", Location: "Auditório Fernandinho - ICMC", Description: "Cerimônia de abertura da 29ª edição da Semcomp.", HasAttendance: false, HasSignin: false},
 			{Name: "[SEED] Coffee de Abertura", InitDate: dt(2026, 10, 6, 21, 0), EndDate: dt(2026, 10, 6, 22, 0), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee de confraternização após a cerimônia de abertura.", HasAttendance: false, HasSignin: false},
 			// ── Terça-feira 07/10 ────────────────────────────────────────
-			{Name: "[SEED] Minicurso: Go para Iniciantes", InitDate: dt(2026, 10, 7, 10, 0), EndDate: dt(2026, 10, 7, 12, 0), PresenceTypeID: ptypeID(ptypes, "Minicurso"), Type: "Minicurso", Location: "Sala 5-001 - ICMC", Description: "Introdução à linguagem Go com foco em APIs REST e concorrência.", HasAttendance: false, HasSignin: true, MaxParticipants: 30},
+			{Name: "[SEED] Minicurso: Go para Iniciantes", InitDate: dt(2026, 10, 7, 10, 0), EndDate: dt(2026, 10, 7, 12, 0), PresenceTypeID: ptypeID(ptypes, "Minicurso"), Type: "Minicurso", Location: "Sala 5-001 - ICMC", Description: "Introdução à linguagem Go com foco em APIs REST e concorrência.", HasAttendance: false, HasSignin: true, MaxParticipants: 4},
 			{Name: "[SEED] Coffee da manhã - Terça", InitDate: dt(2026, 10, 7, 9, 0), EndDate: dt(2026, 10, 7, 9, 30), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee break matinal do segundo dia.", HasAttendance: false, HasSignin: false},
 			{Name: "[SEED] Palestra: Inteligência Artificial na Prática", InitDate: dt(2026, 10, 7, 14, 0), EndDate: dt(2026, 10, 7, 15, 30), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Aplicações reais de IA em produtos de grande escala.", HasAttendance: true, HasSignin: false},
 			{Name: "[SEED] Oficina: Docker do Zero", InitDate: dt(2026, 10, 7, 16, 0), EndDate: dt(2026, 10, 7, 18, 0), PresenceTypeID: ptypeID(ptypes, "Oficina"), Type: "Oficina", Location: "Laboratório de Sistemas - ICMC", Description: "Oficina prática de containerização com Docker e Docker Compose.", HasAttendance: false, HasSignin: true, MaxParticipants: 25},
@@ -208,13 +208,13 @@ func seedEvents(db *gorm.DB, ptypes []presencesettings.PresenceTypeWeight) []eve
 			{Name: "[SEED] Coffee da manhã - Quinta", InitDate: dt(2026, 10, 9, 9, 0), EndDate: dt(2026, 10, 9, 9, 30), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee break matinal do quarto dia.", HasAttendance: false, HasSignin: false},
 			{Name: "[SEED] Palestra: Sistemas Distribuídos na Nuvem", InitDate: dt(2026, 10, 9, 10, 0), EndDate: dt(2026, 10, 9, 11, 30), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Arquiteturas modernas de microsserviços, Kubernetes e observabilidade.", HasAttendance: true, HasSignin: false},
 			{Name: "[SEED] Oficina: Git Avançado", InitDate: dt(2026, 10, 9, 14, 0), EndDate: dt(2026, 10, 9, 16, 0), PresenceTypeID: ptypeID(ptypes, "Oficina"), Type: "Oficina", Location: "Laboratório de Sistemas - ICMC", Description: "Dominando rebase, cherry-pick, hooks e workflows colaborativos.", HasAttendance: false, HasSignin: true, MaxParticipants: 25},
-			{Name: "[SEED] Concurso de Programação", InitDate: dt(2026, 10, 9, 14, 0), EndDate: dt(2026, 10, 9, 18, 0), PresenceTypeID: ptypeID(ptypes, "Concursos"), Type: "Concursos", Location: "Laboratório de Computação - ICMC", Description: "Maratona de programação com premiação.", HasAttendance: false, HasSignin: true, MaxParticipants: 50},
+			{Name: "[SEED] Concurso de Programação", InitDate: dt(2026, 10, 9, 14, 0), EndDate: dt(2026, 10, 9, 18, 0), PresenceTypeID: ptypeID(ptypes, "Concursos"), Type: "Concursos", Location: "Laboratório de Computação - ICMC", Description: "Maratona de programação com premiação.", HasAttendance: false, HasSignin: true, MaxParticipants: 4},
 			{Name: "[SEED] Palestra: Open Source: Como Contribuir", InitDate: dt(2026, 10, 9, 16, 30), EndDate: dt(2026, 10, 9, 18, 0), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Como fazer sua primeira contribuição a projetos open source.", HasAttendance: true, HasSignin: false},
 			{Name: "[SEED] Luau Semcomp", InitDate: dt(2026, 10, 9, 20, 0), EndDate: dt(2026, 10, 9, 23, 59), PresenceTypeID: ptypeID(ptypes, "Luau"), Type: "Luau", Location: "Área externa do ICMC", Description: "Luau de integração com música ao vivo.", HasAttendance: false, HasSignin: true, MaxParticipants: 200},
 			// ── Sexta-feira 10/10 ────────────────────────────────────────
 			{Name: "[SEED] Coffee da manhã - Sexta", InitDate: dt(2026, 10, 10, 9, 0), EndDate: dt(2026, 10, 10, 9, 30), PresenceTypeID: ptypeID(ptypes, "Coffee"), Type: "Coffee", Location: "Hall do ICMC", Description: "Coffee break matinal do último dia.", HasAttendance: false, HasSignin: false},
 			{Name: "[SEED] Palestra: Empreendedorismo em Tech", InitDate: dt(2026, 10, 10, 10, 0), EndDate: dt(2026, 10, 10, 11, 30), PresenceTypeID: ptypeID(ptypes, "Palestra"), Type: "Palestra", Location: "Auditório Fernandinho - ICMC", Description: "Da ideia ao produto: lições de fundadores de startups.", HasAttendance: true, HasSignin: false},
-			{Name: "[SEED] Jogos de Rua", InitDate: dt(2026, 10, 10, 14, 0), EndDate: dt(2026, 10, 10, 17, 0), PresenceTypeID: ptypeID(ptypes, "Jogos de rua"), Type: "Jogos de rua", Location: "Área externa do ICMC", Description: "Gincana e jogos de rua para encerrar a semana.", HasAttendance: false, HasSignin: true, MaxParticipants: 80},
+			{Name: "[SEED] Jogos de Rua", InitDate: dt(2026, 10, 10, 14, 0), EndDate: dt(2026, 10, 10, 17, 0), PresenceTypeID: ptypeID(ptypes, "Jogos de rua"), Type: "Jogos de rua", Location: "Área externa do ICMC", Description: "Gincana e jogos de rua para encerrar a semana.", HasAttendance: false, HasSignin: true, MaxParticipants: 3},
 			{Name: "[SEED] Encerramento Semcomp 29", InitDate: dt(2026, 10, 10, 19, 0), EndDate: dt(2026, 10, 10, 21, 0), PresenceTypeID: ptypeID(ptypes, "Encerramento"), Type: "Encerramento", Location: "Auditório Fernandinho - ICMC", Description: "Cerimônia de encerramento com premiações e retrospectiva.", HasAttendance: false, HasSignin: false},
 		}
 		res := db.Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(rows, 50)
@@ -373,44 +373,84 @@ func seedSigninEvents(db *gorm.DB, users []user.User, events []event.Event) {
 		return
 	}
 
+	// As inscrições são agrupadas por evento e, dentro do evento, recebem uma
+	// posição absoluta sequencial (1..N) entre as inscrições não-canceladas,
+	// mesmo critério de CreateAtomicSignin. Ao atingir max_participants, as
+	// inscrições seguintes passam a Lista de Espera — assim a posição de espera
+	// é relativa à fila de cada evento, e não à ordem de iteração do seed.
+	eventKey := func(ev event.Event) string {
+		return fmt.Sprintf("%s|%s", ev.Name, ev.InitDate.Format(time.RFC3339))
+	}
+	type group struct {
+		ev    event.Event
+		users []user.User
+	}
+
+	groups := map[string]*group{}
+	var groupOrder []string
+	used := map[string]bool{}
+	register := func(u user.User, ev event.Event) {
+		userKey := fmt.Sprintf("%d|%s", u.UserNumber, eventKey(ev))
+		if used[userKey] {
+			return
+		}
+		used[userKey] = true
+
+		key := eventKey(ev)
+		g, ok := groups[key]
+		if !ok {
+			g = &group{ev: ev}
+			groups[key] = g
+			groupOrder = append(groupOrder, key)
+		}
+		g.users = append(g.users, u)
+	}
+
+	for i, u := range users {
+		register(u, signinEvts[i%len(signinEvts)])
+		// segundo evento por usuário para cobrir diversidade
+		if len(signinEvts) > 1 {
+			register(u, signinEvts[(i+3)%len(signinEvts)])
+		}
+	}
+
 	statuses := []signinEvent.RegistrationStatus{
-		signinEvent.StatusRegistered, signinEvent.StatusRegistered, signinEvent.StatusRegistered,
-		signinEvent.StatusWaitListed, signinEvent.StatusWaitingDonation, signinEvent.StatusCancelled,
+		signinEvent.StatusRegistered, signinEvent.StatusWaitingDonation,
+		signinEvent.StatusRegistered, signinEvent.StatusCancelled,
 	}
 
 	var rows []signinEvent.SigninEvent
-	used := map[string]bool{}
-	waitPos := uint(1)
-
-	for i, u := range users {
-		ev := signinEvts[i%len(signinEvts)]
-		key := fmt.Sprintf("%d|%s", u.UserNumber, ev.Name)
-		if used[key] {
-			continue
-		}
-		used[key] = true
-		st := statuses[i%len(statuses)]
-		pos := uint(0)
-		if st == signinEvent.StatusWaitListed {
-			pos = waitPos
-			waitPos++
-		}
-		rows = append(rows, signinEvent.SigninEvent{
-			UserNumber: u.UserNumber, EventName: ev.Name, EventInitDate: ev.InitDate,
-			Status: st, UserWaitListPosition: pos,
-		})
-
-		// segundo evento por usuário para cobrir diversidade
-		if len(signinEvts) > 1 {
-			ev2 := signinEvts[(i+3)%len(signinEvts)]
-			key2 := fmt.Sprintf("%d|%s", u.UserNumber, ev2.Name)
-			if !used[key2] {
-				used[key2] = true
+	for _, key := range groupOrder {
+		g := groups[key]
+		var activePos, confirmed uint
+		for idx, u := range g.users {
+			// Cancelados não ocupam posição na fila nem consomem vaga.
+			if statuses[idx%len(statuses)] == signinEvent.StatusCancelled {
 				rows = append(rows, signinEvent.SigninEvent{
-					UserNumber: u.UserNumber, EventName: ev2.Name, EventInitDate: ev2.InitDate,
-					Status: signinEvent.StatusRegistered,
+					UserNumber: u.UserNumber, EventName: g.ev.Name, EventInitDate: g.ev.InitDate,
+					Status: signinEvent.StatusCancelled,
 				})
+				continue
 			}
+
+			activePos++
+			if g.ev.MaxParticipants > 0 && confirmed >= g.ev.MaxParticipants {
+				rows = append(rows, signinEvent.SigninEvent{
+					UserNumber: u.UserNumber, EventName: g.ev.Name, EventInitDate: g.ev.InitDate,
+					Status: signinEvent.StatusWaitListed, UserWaitListPosition: activePos,
+				})
+				continue
+			}
+
+			confirmed++
+			st := signinEvent.StatusRegistered
+			if idx%2 == 1 {
+				st = signinEvent.StatusWaitingDonation
+			}
+			rows = append(rows, signinEvent.SigninEvent{
+				UserNumber: u.UserNumber, EventName: g.ev.Name, EventInitDate: g.ev.InitDate,
+				Status: st, UserWaitListPosition: activePos,
+			})
 		}
 	}
 

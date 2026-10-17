@@ -216,7 +216,9 @@ export const userSemcompAPI = {
       city: data.city,
       education: data.education,
       hasPapfe: data.hasPapfe,
-      disabilities: data.disabilities,
+      disabilities: Array.isArray(data.disabilities)
+        ? data.disabilities.join(",")
+        : (data.disabilities ?? ""),
       profession: data.profession,
       linkedin: data.linkedin,
       telegram: data.telegram,

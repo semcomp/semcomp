@@ -5,7 +5,7 @@ import { BannerCard } from "@/components/BannerCard";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useHasPermission } from "@/contexts/AuthContext";
 import { salesAPI } from "@/api/sales";
-import type { Sale, SaleItem, SaleProduct } from "@/api/sales";
+import type { Sale, SaleProduct } from "@/api/sales";
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudQueryParams } from "@/components/CrudTable";
 import { fields } from "@/data/salesCrudField";
@@ -21,7 +21,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingBag, PackageCheck, PackageX, UtensilsCrossed } from "lucide-react";
+import { ShoppingBag, PackageCheck, UtensilsCrossed } from "lucide-react";
 
 function getProductDisplayName(product: SaleProduct | undefined, kitProduct?: SaleProduct): string {
   if (!product) return "Produto";
@@ -242,35 +242,6 @@ export default function SalesCRUD() {
     setItemsOpen(true);
   };
 
-  const handleTogglePickup = async (item: SaleItem, newValue: boolean) => {
-    if (!itemsSale) return;
-    try {
-      const { item: updatedItem } = await salesAPI.updateItemPickup(item.id.toString(), newValue);
-
-      // Atualiza o estado local do item dentro da venda
-      setItemsSale((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          items: prev.items?.map((i) => (i.id === item.id ? updatedItem : i)),
-        };
-      });
-
-      // Atualiza a tabela geral
-      setData((prev) =>
-        prev.map((s) =>
-          s.id === itemsSale.id
-            ? { ...s, items: s.items?.map((i) => (i.id === item.id ? updatedItem : i)) }
-            : s
-        )
-      );
-
-      showNotification(`Status de retirada atualizado para ${newValue ? 'Retirado' : 'Pendente'}`, "success");
-    } catch (err: any) {
-      showNotification(err.response?.data?.message || "Erro ao atualizar status de retirada", "error");
-    }
-  };
-
   const tableData: CrudItemType[] = data.map((sale) => ({
     ...sale,
     id: sale.id.toString(),
@@ -285,7 +256,7 @@ export default function SalesCRUD() {
         iconClassName="text-violet-400"
         label="Loja"
         title="Gerenciamento de Vendas"
-        description="Acompanhe os pedidos, altere o status de pagamento e dê baixa nos kits retirados pelos participantes."
+        description="Acompanhe os pedidos e altere o status de pagamento."
         onBack={() => navigate("/home")}
         cardClassName="border-slate-800 bg-linear-to-br from-slate-900 via-slate-900 to-emerald-950/30 overflow-hidden relative"
         labelClassName="text-xs uppercase tracking-[0.3em] text-violet-400 font-medium"
@@ -393,23 +364,9 @@ export default function SalesCRUD() {
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                          <Badge className={item.is_picked_up ? "bg-emerald-900/40 text-emerald-300" : "bg-slate-800 text-slate-300"}>
-                            {item.is_picked_up ? "Retirado" : "Pendente"}
-                          </Badge>
-
-                          {canWrite && (
-                            <Button
-                              size="sm"
-                              variant={item.is_picked_up ? "outline" : "default"}
-                              className={`h-8 w-8 p-0 ${item.is_picked_up ? "border-emerald-500/30 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/20" : "bg-emerald-600 hover:bg-emerald-500 text-white"}`}
-                              onClick={() => handleTogglePickup(item, !item.is_picked_up)}
-                              title={item.is_picked_up ? "Desfazer retirada" : "Marcar como retirado"}
-                            >
-                              {item.is_picked_up ? <PackageX className="h-4 w-4" /> : <PackageCheck className="h-4 w-4" />}
-                            </Button>
-                          )}
-                        </div>
+                        <Badge className={item.is_picked_up ? "bg-emerald-900/40 text-emerald-300" : "bg-slate-800 text-slate-300"}>
+                          {item.is_picked_up ? "Retirado" : "Pendente"}
+                        </Badge>
                       </div>
                     ))}
                   </div>

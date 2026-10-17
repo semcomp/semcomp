@@ -45,7 +45,7 @@ Tipo: `front-site/src/types/SigninEventType.ts`
 
 - Se `max_participants > 0` e `count >= max_participants` → inscrição com `StatusWaitListed`; `UserWaitListPosition` = contagem atual + 1
 - Se `max_participants > 0` e há vagas → inscrição com `StatusWaitingDonation`
-- Cancelamento de `StatusRegistered` ou `StatusWaitingDonation` → promove primeiro `StatusWaitListed` com posição ≤ max para `StatusWaitingDonation`
+- Cancelamento (delete do usuário/admin ou admin mudando status para `Cancelado`/`Lista de Espera`) de `StatusRegistered` ou `StatusWaitingDonation` → promove primeiro `StatusWaitListed` com posição ≤ max para `StatusWaitingDonation`. Em eventos ilimitados (`max_participants = 0`), cancelamento não promove ninguém
 - Cancelamento de `StatusWaitListed` → apenas decrementa posições e marca como `StatusCancelled`
 - Status `"Aguardando Aprovação"` (`StatusWaitingDonation`): inscrição pendente de confirmação presencial no Fernão
 
@@ -57,10 +57,10 @@ Tipo: `front-site/src/types/SigninEventType.ts`
 
 
 ### Rotar Fila (Admin)
-`POST /admin/signin-events/rotate/:eventName/:eventInitDate` — remove inscrições `"Aguardando Aprovação"` e promove os primeiros da lista de espera até preencher vagas.  
+`POST /admin/signin-events/rotate/:eventName/:eventInitDate` — remove inscrições `"Aguardando Aprovação"` e move os primeiros da lista de espera para `"Aguardando Aprovação"` até preencher vagas. O botão no backoffice abre um modal de confirmação antes de executar.  
 **Guarda**: rejeitado com 400 se evento tem `max_participants = 0` (vagas ilimitadas).
 
-**Detalhe de design**: promoção via rotação vai direto para `StatusRegistered` ("Inscrito"), **não** para `StatusWaitingDonation`. Isso é intencional — a rotação ocorre após o prazo de doação, então os novos promovidos são registrados sem exigir confirmação presencial. Contrasta com a promoção por cancelamento de usuário (`RemoveAtomicSignin`), que promove para `StatusWaitingDonation` porque ainda há tempo para o ciclo de doação.
+**Detalhe de design**: a rotação remove (`DELETE`) as inscrições `"Aguardando Aprovação"` que não foram aprovadas manualmente e promove os primeiros da lista de espera para `StatusWaitingDonation` ("Aguardando Aprovação") — o mesmo alvo da promoção por cancelamento. Os promovidos passam pelo mesmo ciclo de confirmação: ou são aprovados manualmente na tela de Confirmações (`RegisterSigninAdmin` → `Inscrito`), ou são removidos na próxima rotação.
 
 ---
 
@@ -83,7 +83,7 @@ Dentro da transação (sob ambos os locks):
 Lock por evento adquirido antes de: fetch, delete, `DecrementPositionsAfter`, `PromoteWithinLimit` — tudo dentro de uma única transação. Elimina a race entre cancelamento e inscrição simultânea que causava overbooking.
 
 ### Rotação (`RotateAtomicSignins`)
-Lock por evento adquirido antes de: delete `WaitingDonation`, contagem de `Registered`, promoção de waitlisted, reordenação de posições por window function (`ROW_NUMBER() OVER`). Tudo em uma única transação.
+Lock por evento adquirido antes de: delete `WaitingDonation`, contagem de `Registered`, promoção de waitlisted para `StatusWaitingDonation`, reordenação de posições por window function (`ROW_NUMBER() OVER`). Tudo em uma única transação.
 
 ### Criação Admin (`CreateAdminSignin`)
 Lock por evento (sem lock por usuário — admin bypassa o check de sobreposição). Duplicate check + count + insert atomicamente.
@@ -116,7 +116,7 @@ Tab em `Tabs.tsx` (key: `"event-registration"`) → rota `/admin/event-registrat
 
 Funcionalidades:
 - Seletor de evento (dropdown com eventos que têm `has_signin=true` via `getSigninableEvents()`)
-- Quando evento selecionado: exibe info do evento + botão "Rodar fila" (desabilitado para vagas ilimitadas)
+- Quando evento selecionado: exibe info do evento + botão "Rodar fila" (abre modal de confirmação; desabilitado para vagas ilimitadas)
 - Tabela CRUD filtrada pelo evento ou global
 - Status `"Aguardando Aprovação"` renderizado em badge azul
 

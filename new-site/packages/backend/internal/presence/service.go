@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"backend/internal/apierrors"
+	"backend/internal/event"
+	"backend/internal/signinEvent"
 
 	"gorm.io/gorm"
 )
@@ -27,12 +29,14 @@ type RateRecalculator interface {
 }
 
 type presenceService struct {
-	repo      PresenceRepository
-	recalculator RateRecalculator
+	repo            PresenceRepository
+	eventRepo       event.EventRepository
+	signinEventRepo signinEvent.SigninEventRepository
+	recalculator    RateRecalculator
 }
 
-func NewPresenceService(repo PresenceRepository) PresenceService {
-	return &presenceService{repo: repo}
+func NewPresenceService(repo PresenceRepository, eventRepo event.EventRepository, signinEventRepo signinEvent.SigninEventRepository) PresenceService {
+	return &presenceService{repo: repo, eventRepo: eventRepo, signinEventRepo: signinEventRepo}
 }
 
 func (s *presenceService) SetRateRecalculator(recalculator RateRecalculator) {
@@ -54,7 +58,33 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 	if err == nil {
 		return nil, apierrors.ConflictError("Presença já cadastrada", err)
 	}
-	
+
+	// Verifica se o evento exige inscrição prévia
+	eventRecord, err := s.eventRepo.GetByNameAndInitTime(request.EventName, request.EventInitDate)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apierrors.NotFoundError("Evento não encontrado", err)
+		}
+		return nil, apierrors.InternalServerError("Erro ao buscar evento", err)
+	}
+
+	if eventRecord.HasSignin {
+		signin, err := s.signinEventRepo.GetByUserEventAndInitDate(
+			uint(request.UserNumber),
+			request.EventName,
+			request.EventInitDate,
+		)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, apierrors.ForbiddenError("Usuário não está inscrito neste evento", nil)
+			}
+			return nil, apierrors.InternalServerError("Erro ao verificar inscrição do usuário", err)
+		}
+		if signin.Status != signinEvent.StatusRegistered {
+			return nil, apierrors.ForbiddenError("Usuário não possui inscrição confirmada neste evento", nil)
+		}
+	}
+
 	newPresence := Presence{
 		UserNumber:    request.UserNumber,
 		EventName:     request.EventName,

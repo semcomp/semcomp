@@ -7,4 +7,6 @@ export interface SigninEventType extends CrudItemType{
     userWaitListPosition?: number;
     status: "Inscrito" | "Lista de Espera" | "Aguardando Aprovação" | "Cancelado";
     userName?: string;
+    userEmail?: string;
+    papfeStatus?: "Aprovado" | "Pendente" | "Rejeitado" | "Sem PAPFE";
 }

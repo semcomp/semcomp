@@ -29,6 +29,7 @@ Porta dev: **5174** | `basename: "/admin"` | Router: React Router v6 (imports es
 | `/notices` | `pages/Notices/index.tsx` | RequireAuth + RequirePermission | `"Avisos"` |
 | `/absence-justifications` | `pages/AbsenceJustifications/index.tsx` | RequireAuth + RequirePermission | `"Justificativas de Ausência"` |
 | `/dashboard` | `pages/Dashboard/index.tsx` | RequireAuth + RequirePermission | `"Dashboard"` |
+| `/dashboard/presence` | `pages/Dashboard/presence.tsx` | RequireAuth + RequirePermission | `"Dashboard"` |
 | `*` | `pages/NotFound/index.tsx` | RequireAuth | — |
 
 ## Home do Backoffice (`/home`)
@@ -76,7 +77,7 @@ Arquivo: `pages/EventRegistration/index.tsx`
 
 - Seletor de evento (dropdown via `signinEventsAPI.getSigninableEvents()` — eventos com `has_signin=true`)
 - Quando evento selecionado: exibe info (nome, datas, local, vagas) + contadores (inscritos / espera / aguardando aprovação)
-- Botão "Rodar fila" (`signinEventsAPI.rotate`): promove lista de espera; desabilitado se `max_participants = 0`
+- Botão "Rodar fila" (`signinEventsAPI.rotate`): abre modal de confirmação; remove inscrições "Aguardando Aprovação" e promove lista de espera para "Aguardando Aprovação"; desabilitado se `max_participants = 0`
 - Tabela CRUD (`CrudTable`) com campos distintos para visão global (`fields`) e visão por evento (`fieldsForEvent`)
 - `canWrite = useHasPermission("Inscrições", "RW")`
 - → [[Feature_SigninEvent]]
@@ -114,3 +115,12 @@ Arquivo: `pages/Riddles/index.tsx` (CrudTable sobre `riddlesAPI`)
 - Preview de imagem (`image-preview`) no modal de criar/editar
 - `canWrite = useHasPermission("Riddles", "RW")`
 - → [[Feature_Riddle_e_Jogo]]
+
+## Dashboard (`/dashboard`)
+Arquivo: `pages/Dashboard/index.tsx` (cards em `pages/Dashboard/components/`)
+
+- Um único `dashboardAPI.get()` alimenta os cards: Overview de participantes, Vendas de kits, Coffes vendidos, Presença em eventos, Compras e produtos
+- "Compras e produtos": ranking por quantidade ou faturamento, uma linha por variante de camiseta (KIT avulso e COMBO) com badge `tamanho · cor · corte`
+- `/dashboard/presence` (`pages/Dashboard/presence.tsx`): detalhamento de presença por dia/evento, acessado pelo card de presença
+- Somente leitura — sem `canWrite`
+- → [[Feature_Dashboard]]

@@ -16,6 +16,8 @@ export { presenceSettingsAPI } from "./presenceSettings";
 export { sponsorsAPI } from "./sponsors";
 export { absenceJustificationsAPI } from "./absenceJustifications";
 export { salesAPI } from "./sales";
+export { deliveriesAPI } from "./deliveries";
+export type { BadgeDeliveryUser, BadgeDeliveryListResponse } from "./deliveries";
 export { riddlesAPI } from "./riddles";
 export { dashboardAPI } from "./dashboard";
 export { default as client } from "./client";

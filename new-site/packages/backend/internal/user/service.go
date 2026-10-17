@@ -41,12 +41,16 @@ type UserService interface {
 	ResendVerification(email string) error
 	RequestPasswordReset(email string) error
 	ResetPassword(tokenPlain string, newPassword string) error
+	GetBadgeDeliveries(page, limit int, sortBy, sortOrder string) (*BadgeDeliveryListResult, error)
+	MarkBadgeDelivered(userNumber uint, adminEmail string) error
+	UnmarkBadgeDelivered(userNumber uint) error
 }
 
 // userService é a implementação concreta de UserService.
 type userService struct {
 	repo                    UserRepository
 	papfeRepo               PapfeDocumentRepository
+	badgeRepo               BadgeDeliveryRepository
 	passwordProvider        providers.PasswordProvider
 	tokenProvider           providers.TokenProvider
 	mailProvider            providers.MailProvider
@@ -59,6 +63,7 @@ type userService struct {
 func NewUserService(
 	repo UserRepository,
 	papfeRepo PapfeDocumentRepository,
+	badgeRepo BadgeDeliveryRepository,
 	passwordProvider providers.PasswordProvider,
 	tokenProvider providers.TokenProvider,
 	mailProvider providers.MailProvider,
@@ -69,6 +74,7 @@ func NewUserService(
 	return &userService{
 		repo:                    repo,
 		papfeRepo:               papfeRepo,
+		badgeRepo:               badgeRepo,
 		passwordProvider:        passwordProvider,
 		tokenProvider:           tokenProvider,
 		mailProvider:            mailProvider,
@@ -580,6 +586,30 @@ func (s *userService) RequestPasswordReset(email string) error {
 	s.mailer.SendPasswordResetEmail(userRecord.Name, userRecord.Email, plainToken)
 
 	return nil
+}
+
+func (s *userService) GetBadgeDeliveries(page, limit int, sortBy, sortOrder string) (*BadgeDeliveryListResult, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+	if sortBy == "" {
+		sortBy = "name"
+	}
+	if sortOrder == "" {
+		sortOrder = "asc"
+	}
+	return s.badgeRepo.GetAll(page, limit, sortBy, sortOrder)
+}
+
+func (s *userService) MarkBadgeDelivered(userNumber uint, adminEmail string) error {
+	return s.badgeRepo.Mark(userNumber, adminEmail)
+}
+
+func (s *userService) UnmarkBadgeDelivered(userNumber uint) error {
+	return s.badgeRepo.Unmark(userNumber)
 }
 
 func (s *userService) ResetPassword(tokenPlain string, newPassword string) error {

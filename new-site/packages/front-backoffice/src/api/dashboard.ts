@@ -120,6 +120,11 @@ export interface ProductRank {
   productId: number;
   name: string;
   type: string;
+  // Variante de camiseta (KIT avulso ou escolhida no COMBO); ausente em COFFEE.
+  kitProductId?: number;
+  size?: string;
+  color?: string;
+  isBabylook?: boolean;
   sold: number;
   revenue: number;
 }

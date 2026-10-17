@@ -117,6 +117,9 @@ export interface CrudTableProps {
   getItemKey?: (item: CrudItemType) => string;
   entityLabel?: string;
   defaultPageSize?: number;
+  /** Campo de ordenação inicial (chave enviada ao backend). Default: o
+   *  `sortValue`/`value` do primeiro campo. */
+  defaultSortField?: string;
   /** Total records on the server (used to calculate page count) */
   totalRecords?: number;
   /** Called whenever page, pageSize, sort or filter changes */
@@ -267,7 +270,7 @@ function FilterControl({
           <SelectItem value="__all__" className={itemCls}>Todos</SelectItem>
           {Object.keys(activeField.selectVariants).map((v) => (
             <SelectItem key={v} value={v} className={itemCls}>
-              {v}
+              {activeField.selectLabels?.[v] ?? v}
             </SelectItem>
           ))}
         </SelectContent>
@@ -399,6 +402,7 @@ export function CrudTable({
   getItemKey,
   entityLabel = "item",
   defaultPageSize = 10,
+  defaultSortField,
   totalRecords,
   onQueryChange,
   canWrite = true,
@@ -425,7 +429,7 @@ export function CrudTable({
     filterableFields[0]?.value ?? "name"
   );
   const [sortField, setSortField] = useState(
-    fields[0]?.sortValue ?? fields[0]?.value ?? "name"
+    defaultSortField ?? fields[0]?.sortValue ?? fields[0]?.value ?? "name"
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
@@ -613,6 +617,20 @@ export function CrudTable({
     const raw = (item as Record<string, unknown>)[field.value];
     const val = String(raw ?? "—");
 
+    // Posição na Fila: só exibe para inscrições em Lista de Espera
+    if (field.value === "userWaitListPosition") {
+      const status = (item as Record<string, unknown>).status as
+        | string
+        | undefined;
+      if (status !== "Lista de Espera") {
+        return <span className="text-foreground">—</span>;
+      }
+      if (raw === null || raw === undefined || raw === "") {
+        return <span className="text-foreground">—</span>;
+      }
+      return <span className="text-foreground">{String(raw)}</span>;
+    }
+
     if (field.type === "boolean") {
       const bool = Boolean(raw);
 
@@ -691,9 +709,13 @@ export function CrudTable({
     }
 
     if (field.type === "select" && field.selectVariants) {
+      // Valor vazio (sem tipo) é exibido como "Nenhum", igual à opção do
+      // filtro e dos formulários, em vez do "—" genérico.
+      const isEmpty = raw == null || raw === "";
+      const key = isEmpty && "__none__" in field.selectVariants ? "__none__" : val;
       const cls =
-        field.selectVariants[val] ?? "bg-muted/50 text-foreground";
-      const label = val === "__none__" ? "Nenhum" : (field.selectLabels?.[val] ?? val);
+        field.selectVariants[key] ?? "bg-muted/50 text-foreground";
+      const label = key === "__none__" ? "Nenhum" : (field.selectLabels?.[key] ?? key);
       return (
         <Badge className={`text-xs font-medium px-2 py-0.5 ${cls}`}>
           {label}
