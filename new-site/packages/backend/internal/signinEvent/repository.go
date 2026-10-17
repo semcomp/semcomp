@@ -23,6 +23,46 @@ func isConfirmedStatus(status RegistrationStatus) bool {
 	return status == StatusRegistered || status == StatusWaitingDonation
 }
 
+// papfeStatusColumn derives the user's PAPFE review state from the users and
+// papfe_documents joins added by joinUserInfo.
+const papfeStatusColumn = "CASE WHEN NOT users.has_papfe THEN 'Sem PAPFE' " +
+	"WHEN papfe_documents.is_approved IS NULL THEN 'Pendente' " +
+	"WHEN papfe_documents.is_approved = true THEN 'Aprovado' " +
+	"ELSE 'Rejeitado' END AS papfe_status"
+
+// userInfoColumns are the read-only SigninEvent fields filled from the joins.
+const userInfoColumns = "users.name AS user_name, users.email AS user_email, " + papfeStatusColumn
+
+// signinWithUserInfoColumns lists signin_events columns explicitly instead of
+// signin_events.*: AutoMigrate also creates (always empty) user_name,
+// user_email and papfe_status columns on the table, which would collide with
+// the joined values of the same name.
+const signinWithUserInfoColumns = "signin_events.user_number, signin_events.event_name, " +
+	"signin_events.event_init_date, signin_events.user_wait_list_position, signin_events.status, " +
+	userInfoColumns
+
+// joinUserInfo adds the joins needed to fill user_name, user_email and
+// papfe_status on signin_events queries.
+func joinUserInfo(q *gorm.DB) *gorm.DB {
+	return q.Joins("LEFT JOIN users ON users.user_number = signin_events.user_number").
+		Joins("LEFT JOIN papfe_documents ON papfe_documents.user_email = users.email")
+}
+
+// findSigninWithUserInfo fetches a single inscription with its user data, so
+// admin mutations return the same shape as the backoffice listing.
+func findSigninWithUserInfo(db *gorm.DB, userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error) {
+	var signin SigninEvent
+	err := joinUserInfo(db.Table("signin_events").Select(signinWithUserInfoColumns)).
+		Where("signin_events.user_number = ? AND signin_events.event_name = ? AND signin_events.event_init_date = ?",
+			userNumber, eventName, initDate).
+		First(&signin).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &signin, nil
+}
+
 type SigninEventRepository interface {
 	// CreateAtomicSignin serializes via per-user + per-event advisory locks,
 	// checks for duplicate and overlapping inscriptions, then inserts.
@@ -215,7 +255,12 @@ func (r *signinEventRepository) CreateAdminSignin(userNumber uint, eventName str
 			return err
 		}
 
-		result = signin
+		created, err := findSigninWithUserInfo(tx, userNumber, eventName, initDate)
+		if err != nil {
+			return err
+		}
+
+		result = created
 		return nil
 	})
 
@@ -281,17 +326,7 @@ func (r *signinEventRepository) RemoveAtomicSignin(userNumber uint, eventName st
 }
 
 func (r *signinEventRepository) GetByUserEventAndInitDate(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error) {
-	var signin SigninEvent
-	err := r.db.Table("signin_events").
-		Select("signin_events.*, users.name AS user_name, users.email AS user_email").
-		Joins("LEFT JOIN users ON users.user_number = signin_events.user_number").
-		Where("signin_events.user_number = ? AND signin_events.event_name = ? AND signin_events.event_init_date = ?", userNumber, eventName, initDate).
-		First(&signin).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return &signin, nil
+	return findSigninWithUserInfo(r.db, userNumber, eventName, initDate)
 }
 
 func (r *signinEventRepository) FindActiveByUser(userNumber uint) ([]SigninEventsDetailed, error) {
@@ -359,20 +394,15 @@ func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEvent
 	}
 
 	dataQuery := applySearchFilter(r.db.Table("signin_events"), query)
-	err = dataQuery.
+	dataQuery = dataQuery.
 		Select("signin_events.user_number, signin_events.event_name, signin_events.event_init_date, "+
 			"CASE WHEN signin_events.status = ? AND events.max_participants > 0 "+
 			"AND signin_events.user_wait_list_position > events.max_participants "+
 			"THEN signin_events.user_wait_list_position - events.max_participants "+
 			"ELSE signin_events.user_wait_list_position END AS user_wait_list_position, "+
-			"signin_events.status, users.name AS user_name, users.email AS user_email, "+
-			"CASE WHEN NOT users.has_papfe THEN 'Sem PAPFE' "+
-			"WHEN papfe_documents.is_approved IS NULL THEN 'Pendente' "+
-			"WHEN papfe_documents.is_approved = true THEN 'Aprovado' "+
-			"ELSE 'Rejeitado' END AS papfe_status", StatusWaitListed).
-		Joins("LEFT JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date").
-		Joins("LEFT JOIN users ON users.user_number = signin_events.user_number").
-		Joins("LEFT JOIN papfe_documents ON papfe_documents.user_email = users.email").
+			"signin_events.status, "+userInfoColumns, StatusWaitListed).
+		Joins("LEFT JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date")
+	err = joinUserInfo(dataQuery).
 		Order(sortClause).Limit(query.Limit).Offset(query.Offset).Scan(&signins).Error
 	if err != nil {
 		return nil, err
@@ -430,8 +460,12 @@ func (r *signinEventRepository) RegisterAtomicSignin(userNumber uint, eventName 
 			return err
 		}
 
-		signin.Status = StatusRegistered
-		result = &signin
+		registered, err := findSigninWithUserInfo(tx, userNumber, eventName, initDate)
+		if err != nil {
+			return err
+		}
+
+		result = registered
 		return nil
 	})
 
@@ -532,12 +566,12 @@ func (r *signinEventRepository) UpdateAdminSigninStatus(userNumber uint, eventNa
 			}
 		}
 
-		if err := tx.Where("user_number = ? AND event_name = ? AND event_init_date = ?",
-			userNumber, eventName, initDate).First(&signin).Error; err != nil {
+		updated, err := findSigninWithUserInfo(tx, userNumber, eventName, initDate)
+		if err != nil {
 			return err
 		}
 
-		result = &signin
+		result = updated
 		return nil
 	})
 
@@ -609,9 +643,7 @@ func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate t
 			return err
 		}
 
-		if err := tx.Table("signin_events").
-			Select("signin_events.*, users.name AS user_name, users.email AS user_email").
-			Joins("LEFT JOIN users ON users.user_number = signin_events.user_number").
+		if err := joinUserInfo(tx.Table("signin_events").Select(signinWithUserInfoColumns)).
 			Where("signin_events.event_name = ? AND signin_events.event_init_date = ? AND signin_events.status != ?",
 				eventName, initDate, StatusCancelled).
 			Order("signin_events.user_wait_list_position asc").

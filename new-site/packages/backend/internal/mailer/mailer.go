@@ -42,7 +42,7 @@ func (m *Mailer) SendRegistrationConfirmationEmail(name, email, eventName string
 		To:      email,
 		Subject: "Inscrição confirmada - SEMCOMP",
 		Body: fmt.Sprintf(
-			"Olá %s,\n\nSua inscrição no evento \"%s\" foi confirmada!\n\nComo sua vaga foi garantida pelo processo de rodar a fila, a doação passa a ser opcional — mesmo para quem não possui PAPFE. Basta comparecer ao Auditório Fernão Dias para confirmar sua presença.\n\nNos vemos lá!",
+			"Olá %s,\n\nSua inscrição no evento \"%s\" foi confirmada!\n\nComo sua vaga foi garantida pelo processo de rodar a fila, a doação passa a ser opcional. Basta comparecer ao Auditório Fernão para confirmar sua presença.\n\nNos vemos lá!",
 			name, eventName,
 		),
 	}
