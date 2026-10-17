@@ -22,7 +22,7 @@ export const fields: CrudField[] = [
   { value: "eventName", label: "Nome do Evento", type: "text" },
   { value: "eventInitDate", label: "Data do Evento", type: "date" },
   { value: "status", label: "Status", type: "select", selectVariants: statusVariants, sortValue: "status_priority" },
-  { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true },
+  { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true, searchable: false },
 ];
 
 export const fieldsForEvent: CrudField[] = [
@@ -31,7 +31,7 @@ export const fieldsForEvent: CrudField[] = [
   { value: "userEmail", label: "Email", type: "text", readonly: true },
   { value: "papfeStatus", label: "PAPFE", type: "select", selectVariants: papfeVariants, readonly: true, sortable: false, searchable: false },
   { value: "status", label: "Status", type: "select", selectVariants: statusVariants, sortValue: "status_priority" },
-  { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true },
+  { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true, searchable: false },
 ];
 
 export const API_FIELD_MAP: Record<string, string> = {

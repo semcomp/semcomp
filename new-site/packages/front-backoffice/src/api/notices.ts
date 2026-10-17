@@ -51,7 +51,7 @@ const fieldMap: Record<string, string> = {
   title: "title",
   dateTime: "date_time",
   category: "category",
-  description: "description",
+  description: "content",
 };
 
 /**

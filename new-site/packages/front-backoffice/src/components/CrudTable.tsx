@@ -495,13 +495,7 @@ export function CrudTable({
     });
   };
 
-  // Espera o usuário parar de digitar antes de buscar: sem isso cada tecla
-  // dispara uma requisição e valores parciais de data (ex.: "2026-10-0") voltam
-  // 400, limpando a tabela e piscando o banner de erro durante a digitação.
-  useEffect(() => {
-    const timer = setTimeout(() => setCommittedFilter(filter), 400);
-    return () => clearTimeout(timer);
-  }, [filter]);
+  
 
   useEffect(() => {
     if (!onQueryChange) return;
