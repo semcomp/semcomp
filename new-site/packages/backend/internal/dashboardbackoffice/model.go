@@ -114,12 +114,18 @@ type SalesOverviewStats struct {
 }
 
 // ProductRank agrega vendas de um produto específico (apenas pedidos PAGO).
+// KITs e COMBOs são separados pela variante de camiseta (tamanho/cor/corte);
+// os campos de variante ficam nulos para produtos sem camiseta (COFFEE).
 type ProductRank struct {
-	ProductID uint    `json:"productId"`
-	Name      string  `json:"name"`
-	Type      string  `json:"type"`
-	Sold      int64   `json:"sold"`    // quantidade vendida
-	Revenue   float64 `json:"revenue"` // faturamento (soma de unit_price * quantity)
+	ProductID    uint    `json:"productId"`
+	Name         string  `json:"name"`
+	Type         string  `json:"type"`
+	KitProductID *uint   `json:"kitProductId,omitempty"` // variante de KIT (o próprio KIT ou a escolhida no combo)
+	Size         *string `json:"size,omitempty"`
+	Color        *string `json:"color,omitempty"`
+	IsBabylook   *bool   `json:"isBabylook,omitempty"`
+	Sold         int64   `json:"sold"`    // quantidade vendida
+	Revenue      float64 `json:"revenue"` // faturamento (soma de unit_price * quantity)
 }
 
 // Vendas de combos - visão geral de vendas de combos -------------------------------

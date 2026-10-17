@@ -15,7 +15,7 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 ---
 
 ## Backend
-- [[Backend_Arquitetura]] — módulos, camadas, startup, grupos de rota (17 módulos: auth, signinEvent, sponsor, sitestat, etc.)
+- [[Backend_Arquitetura]] — módulos, camadas, startup, grupos de rota (auth, signinEvent, sponsor, sitestat, dashboardbackoffice, etc.)
 - [[Backend_Modelos_Core]] — User (+ quer_cracha, autoriza_compartilhamento), Event, SigninEvent (completo), PapfeDocument, Presence, Section, AuditLog, JWT Claims, ListQuery
 - [[Backend_Modelos_Loja]] — Product (KIT/COFFEE/COMBO), Payment, DTOs de PIX
 - [[Backend_Providers]] — JWT (2 fluxos), bcrypt, email, token
@@ -26,7 +26,7 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - [[Site_Contextos_UI]] — ThemeContext, NotificationContext, FeatureFlagsContext, CartContext
 
 ## Frontend — Backoffice (`front-backoffice`)
-- [[Backoffice_Paginas_e_Rotas]] — rotas /admin/*, guards duplos (auth + permissão), 9 rotas (+ Sponsors, PAPFE)
+- [[Backoffice_Paginas_e_Rotas]] — rotas /admin/*, guards duplos (auth + permissão), CRUDs + Dashboard (`/dashboard`, `/dashboard/presence`)
 - [[Backoffice_Contextos_e_Lib]] — AuthContext admin, RequirePermission, Tabs (8), CrudTable, API barrel
 
 ## Integração
@@ -47,6 +47,7 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - [[Feature_Patrocinadores]] — Sponsor + SponsorPackage, CRUD backoffice, GET público, click tracking
 - [[Feature_PAPFE]] — upload de comprovante, revisão tri-state, aprovação backoffice
 - [[Feature_SiteStat]] — contador de visitas key/value, POST /visit, GET /stats
+- [[Feature_Dashboard]] — `GET /admin/dashboard` (módulo `dashboardbackoffice`, seção `"Dashboard"` R): cards de participantes, presença, kits, coffees e vendas; ranking de produtos separado por variante de camiseta (KIT e COMBO)
 - [[Feature_Seed]] — seed de dados de exemplo para dev/backoffice: `make seed` / `make unseed`; prefixo [SEED] / @teste.semcomp.com; cobre todas as 16 tabelas; idempotente
 
 ---
@@ -61,5 +62,6 @@ Ponto de entrada do grafo — todo nó do projeto conecta-se aqui.
 - **Riddle (Answer)**: o struct `Riddle` serializa `Answer` e só é seguro porque hoje é usado apenas nas rotas de backoffice; um futuro endpoint público do participante **não deve** expor esse struct diretamente — deve usar `PublicRiddle` (sem `Answer`) ou vaza as respostas do jogo
 - **Riddle (CSV)**: o upload substitui a fila com **hard delete** e é bloqueado (409) enquanto houver equipes em progresso — o fluxo exige a fila zerada antes de recriar
 - **Cronograma (image)**: `EventType` do front-site tem campo `image?: string` e `mapBackendEvent` tenta mapear `event.image`, mas o modelo `Event` do backend não possui esse campo — `image` sempre será `undefined` na API atual
+- **Dashboard (seed de combos)**: vendas de COMBO criadas pelo seed não têm `sale_items.kit_product_id`; o ranking `GetTopProducts` usa o único KIT do combo como fallback, mas `GetKitSalesStats` não conta essas camisetas. Combos com vários KITs e sem `kit_product_id` aparecem sem variante no ranking
 - **SiteStat**: sem rate-limiting em `POST /visit` — contador vulnerável a inflação por bots
 - **QuerCracha (temporário)**: `quer_cracha` está **hardcoded como `false`** no backend (`internal/user/service.go` linhas de criação e atualização de usuário) e no front-site (`src/api/auth.ts`). O campo ainda existe no modelo/DB. Quando o prazo de crachá reabrir, reverter: service.go → `request.QuerCracha`; auth.ts → reexpor parâmetro; Login/index.tsx → descomentar o bloco JSX do checkbox

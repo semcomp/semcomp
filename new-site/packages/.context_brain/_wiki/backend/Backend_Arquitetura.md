@@ -145,6 +145,12 @@ Exceção: `log` não tem handler próprio (escrita via `AuditMiddleware`).
 - Sem UI; usado pela Home do site para contar visitantes
 - → [[Feature_SiteStat]]
 
+### dashboardbackoffice
+- Rota backoffice: `GET /admin/dashboard?sections=...` (`permMW("Dashboard", PermR)`)
+- Sem tabela própria — agrega via SQL cru sobre users, events/presences, sales/sale_items, products/kits/coffees/combo_items
+- Seções: `users`, `events`, `kits`, `coffees`, `combos`, `sales` (+ ranking `GetTopProducts` separado por variante de camiseta)
+- → [[Feature_Dashboard]]
+
 ### log
 - Sem handler próprio — escrita via `AuditMiddleware` em toda requisição
 - Registra: method, path, status, latency, userNumber, userEmail, responseMessage
