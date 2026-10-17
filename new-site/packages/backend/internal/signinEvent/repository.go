@@ -14,7 +14,54 @@ var (
 	ErrDuplicateInscription   = errors.New("inscription already exists")
 	ErrOverlappingInscription = errors.New("overlapping inscription")
 	ErrAlreadyRegistered      = errors.New("inscription already registered")
+	ErrEventFull              = errors.New("event is full")
 )
+
+// isConfirmedStatus reports whether a status occupies a confirmed slot and
+// therefore counts against the event's max_participants.
+func isConfirmedStatus(status RegistrationStatus) bool {
+	return status == StatusRegistered || status == StatusWaitingDonation
+}
+
+// papfeStatusColumn derives the user's PAPFE review state from the users and
+// papfe_documents joins added by joinUserInfo.
+const papfeStatusColumn = "CASE WHEN NOT users.has_papfe THEN 'Sem PAPFE' " +
+	"WHEN papfe_documents.is_approved IS NULL THEN 'Pendente' " +
+	"WHEN papfe_documents.is_approved = true THEN 'Aprovado' " +
+	"ELSE 'Rejeitado' END AS papfe_status"
+
+// userInfoColumns are the read-only SigninEvent fields filled from the joins.
+const userInfoColumns = "users.name AS user_name, users.email AS user_email, " + papfeStatusColumn
+
+// signinWithUserInfoColumns lists signin_events columns explicitly instead of
+// signin_events.*: AutoMigrate also creates (always empty) user_name,
+// user_email and papfe_status columns on the table, which would collide with
+// the joined values of the same name.
+const signinWithUserInfoColumns = "signin_events.user_number, signin_events.event_name, " +
+	"signin_events.event_init_date, signin_events.user_wait_list_position, signin_events.status, " +
+	userInfoColumns
+
+// joinUserInfo adds the joins needed to fill user_name, user_email and
+// papfe_status on signin_events queries.
+func joinUserInfo(q *gorm.DB) *gorm.DB {
+	return q.Joins("LEFT JOIN users ON users.user_number = signin_events.user_number").
+		Joins("LEFT JOIN papfe_documents ON papfe_documents.user_email = users.email")
+}
+
+// findSigninWithUserInfo fetches a single inscription with its user data, so
+// admin mutations return the same shape as the backoffice listing.
+func findSigninWithUserInfo(db *gorm.DB, userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error) {
+	var signin SigninEvent
+	err := joinUserInfo(db.Table("signin_events").Select(signinWithUserInfoColumns)).
+		Where("signin_events.user_number = ? AND signin_events.event_name = ? AND signin_events.event_init_date = ?",
+			userNumber, eventName, initDate).
+		First(&signin).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &signin, nil
+}
 
 type SigninEventRepository interface {
 	// CreateAtomicSignin serializes via per-user + per-event advisory locks,
@@ -22,26 +69,42 @@ type SigninEventRepository interface {
 	CreateAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint, targetEndDate time.Time) (*SigninEvent, error)
 	// CreateAdminSignin is the admin variant: only the per-event advisory lock
 	// is acquired and no overlap check is performed (admins bypass that rule).
-	CreateAdminSignin(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus) (*SigninEvent, error)
-	// RemoveAtomicSignin deletes an inscription and atomically decrements
-	// queue positions and promotes waitlisted users, all under the per-event
-	// advisory lock so concurrent inscriptions cannot race the promotion step.
+	// Confirmed statuses are rejected with ErrEventFull when the event has no
+	// vacancies left (maxParticipants > 0).
+	CreateAdminSignin(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus, maxParticipants uint) (*SigninEvent, error)
+	// RemoveAtomicSignin deletes an inscription and atomically decrements the
+	// queue positions of the inscriptions that came after it, all under the
+	// per-event advisory lock. When a confirmed slot is vacated in a limited
+	// event, the first waitlisted user is promoted to StatusWaitingDonation.
 	RemoveAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) error
 	GetByUserEventAndInitDate(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error)
 	FindActiveByUser(userNumber uint) ([]SigninEventsDetailed, error)
 	UpdateByComposite(userNumber uint, eventName string, initDate time.Time, updated *SigninEvent) error
 	GetAll(query SigninEventListQuery) (*SigninEventListResult, error)
+	// CountConfirmedSignins returns the number of active confirmed inscriptions
+	// (Inscrito or Aguardando Aprovação) for an event. It is the base used to
+	// derive a waitlisted user's relative queue position (absolute position
+	// minus this count).
 	// RegisterAtomicSignin promotes an inscription to StatusRegistered atomically
 	// under the per-event advisory lock, preventing races with RotateAtomicSignins.
-	RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error)
+	// Promoting a non-confirmed inscription is rejected with ErrEventFull when the
+	// event has no vacancies left; already-confirmed inscriptions (e.g. approving
+	// "Aguardando Aprovação") do not consume an extra slot and are always allowed.
+	RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) (*SigninEvent, error)
 	// UpdateAdminSigninStatus changes an inscription's status atomically under the
 	// per-event advisory lock. It reorders all waitlist positions after the change
-	// and promotes the first eligible waitlisted user if a confirmed slot was vacated.
+	// and promotes the first eligible waitlisted user to StatusWaitingDonation if a
+	// confirmed slot was vacated.
 	UpdateAdminSigninStatus(userNumber uint, eventName string, initDate time.Time, newStatus RegistrationStatus, maxParticipants uint) (*SigninEvent, error)
 	// RotateAtomicSignins removes all WaitingDonation inscriptions, promotes
-	// waitlisted users to fill vacancies, and reorders all queue positions,
-	// atomically under the per-event advisory lock.
-	RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, error)
+	// waitlisted users to fill the remaining vacancies as StatusWaitingDonation,
+	// and reorders all queue positions, atomically under the per-event advisory
+	// lock. Returns all active signins and the numbers of users just promoted
+	// from the waitlist.
+	RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, []uint, error)
+	// FetchUserInfosByNumbers returns name and email for the given user numbers,
+	// used to notify promoted users after a queue rotation.
+	FetchUserInfosByNumbers(userNumbers []uint) ([]PromotedUserInfo, error)
 }
 
 type signinEventRepository struct {
@@ -131,7 +194,7 @@ func (r *signinEventRepository) CreateAtomicSignin(userNumber uint, eventName st
 	return result, err
 }
 
-func (r *signinEventRepository) CreateAdminSignin(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus) (*SigninEvent, error) {
+func (r *signinEventRepository) CreateAdminSignin(userNumber uint, eventName string, initDate time.Time, status RegistrationStatus, maxParticipants uint) (*SigninEvent, error) {
 	var result *SigninEvent
 
 	err := r.db.Transaction(func(tx *gorm.DB) error {
@@ -157,6 +220,22 @@ func (r *signinEventRepository) CreateAdminSignin(userNumber uint, eventName str
 			return err
 		}
 
+		// Admins bypass the overlap rule but must not overbook a limited event:
+		// a confirmed status (Inscrito / Aguardando Aprovação) is rejected when
+		// there is no vacancy left.
+		if isConfirmedStatus(status) && maxParticipants > 0 {
+			var confirmedCount int64
+			if err := tx.Model(&SigninEvent{}).
+				Where("event_name = ? AND event_init_date = ? AND (status = ? OR status = ?)",
+					eventName, initDate, StatusRegistered, StatusWaitingDonation).
+				Count(&confirmedCount).Error; err != nil {
+				return err
+			}
+			if confirmedCount >= int64(maxParticipants) {
+				return ErrEventFull
+			}
+		}
+
 		var count int64
 		if err := tx.Model(&SigninEvent{}).
 			Where("event_name = ? AND event_init_date = ? AND status != ?", eventName, initDate, StatusCancelled).
@@ -176,7 +255,12 @@ func (r *signinEventRepository) CreateAdminSignin(userNumber uint, eventName str
 			return err
 		}
 
-		result = signin
+		created, err := findSigninWithUserInfo(tx, userNumber, eventName, initDate)
+		if err != nil {
+			return err
+		}
+
+		result = created
 		return nil
 	})
 
@@ -219,30 +303,21 @@ func (r *signinEventRepository) RemoveAtomicSignin(userNumber uint, eventName st
 			}
 		}
 
-		if signin.Status == StatusRegistered || signin.Status == StatusWaitingDonation {
-			if maxParticipants > 0 {
-				// Limited event: exactly one vacancy was freed — promote only the
-				// highest-priority waitlisted user now within the limit.
-				sub := tx.Model(&SigninEvent{}).
-					Select("user_number").
-					Where("event_name = ? AND event_init_date = ? AND status = ? AND user_wait_list_position <= ?",
-						eventName, initDate, StatusWaitListed, maxParticipants).
-					Order("user_wait_list_position asc").
-					Limit(1)
-				if err := tx.Model(&SigninEvent{}).
-					Where("event_name = ? AND event_init_date = ? AND user_number IN (?)",
-						eventName, initDate, sub).
-					Update("status", StatusWaitingDonation).Error; err != nil {
-					return err
-				}
-			} else {
-				// Unlimited event: no capacity constraint — promote all waitlisted.
-				if err := tx.Model(&SigninEvent{}).
-					Where("event_name = ? AND event_init_date = ? AND status = ?",
-						eventName, initDate, StatusWaitListed).
-					Update("status", StatusWaitingDonation).Error; err != nil {
-					return err
-				}
+		// Exactly one confirmed slot was vacated — promote only the first
+		// waitlisted user still within the limit. Unlimited events (0) never
+		// have waitlisted users, so no promotion is needed.
+		if isConfirmedStatus(signin.Status) && maxParticipants > 0 {
+			sub := tx.Model(&SigninEvent{}).
+				Select("user_number").
+				Where("event_name = ? AND event_init_date = ? AND status = ? AND user_wait_list_position <= ?",
+					eventName, initDate, StatusWaitListed, maxParticipants).
+				Order("user_wait_list_position asc").
+				Limit(1)
+			if err := tx.Model(&SigninEvent{}).
+				Where("event_name = ? AND event_init_date = ? AND user_number IN (?)",
+					eventName, initDate, sub).
+				Update("status", StatusWaitingDonation).Error; err != nil {
+				return err
 			}
 		}
 
@@ -251,13 +326,7 @@ func (r *signinEventRepository) RemoveAtomicSignin(userNumber uint, eventName st
 }
 
 func (r *signinEventRepository) GetByUserEventAndInitDate(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error) {
-	var signin SigninEvent
-	err := r.db.Where("user_number = ? AND event_name = ? AND event_init_date = ?", userNumber, eventName, initDate).First(&signin).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return &signin, nil
+	return findSigninWithUserInfo(r.db, userNumber, eventName, initDate)
 }
 
 func (r *signinEventRepository) FindActiveByUser(userNumber uint) ([]SigninEventsDetailed, error) {
@@ -325,20 +394,15 @@ func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEvent
 	}
 
 	dataQuery := applySearchFilter(r.db.Table("signin_events"), query)
-	err = dataQuery.
+	dataQuery = dataQuery.
 		Select("signin_events.user_number, signin_events.event_name, signin_events.event_init_date, "+
 			"CASE WHEN signin_events.status = ? AND events.max_participants > 0 "+
 			"AND signin_events.user_wait_list_position > events.max_participants "+
 			"THEN signin_events.user_wait_list_position - events.max_participants "+
 			"ELSE signin_events.user_wait_list_position END AS user_wait_list_position, "+
-			"signin_events.status, users.name AS user_name, "+
-			"CASE WHEN NOT users.has_papfe THEN 'Sem PAPFE' "+
-			"WHEN papfe_documents.is_approved IS NULL THEN 'Pendente' "+
-			"WHEN papfe_documents.is_approved = true THEN 'Aprovado' "+
-			"ELSE 'Rejeitado' END AS papfe_status", StatusWaitListed).
-		Joins("LEFT JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date").
-		Joins("LEFT JOIN users ON users.user_number = signin_events.user_number").
-		Joins("LEFT JOIN papfe_documents ON papfe_documents.user_email = users.email").
+			"signin_events.status, "+userInfoColumns, StatusWaitListed).
+		Joins("LEFT JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date")
+	err = joinUserInfo(dataQuery).
 		Order(sortClause).Limit(query.Limit).Offset(query.Offset).Scan(&signins).Error
 	if err != nil {
 		return nil, err
@@ -351,7 +415,7 @@ func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEvent
 	}, nil
 }
 
-func (r *signinEventRepository) RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time) (*SigninEvent, error) {
+func (r *signinEventRepository) RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) (*SigninEvent, error) {
 	var result *SigninEvent
 
 	err := r.db.Transaction(func(tx *gorm.DB) error {
@@ -372,6 +436,23 @@ func (r *signinEventRepository) RegisterAtomicSignin(userNumber uint, eventName 
 			return ErrAlreadyRegistered
 		}
 
+		// Promoting a non-confirmed inscription consumes a slot, so it must not
+		// exceed the event capacity. Already-confirmed inscriptions (e.g. an
+		// "Aguardando Aprovação" being approved) occupy a slot already and are
+		// always allowed.
+		if !isConfirmedStatus(signin.Status) && maxParticipants > 0 {
+			var confirmedCount int64
+			if err := tx.Model(&SigninEvent{}).
+				Where("event_name = ? AND event_init_date = ? AND (status = ? OR status = ?)",
+					eventName, initDate, StatusRegistered, StatusWaitingDonation).
+				Count(&confirmedCount).Error; err != nil {
+				return err
+			}
+			if confirmedCount >= int64(maxParticipants) {
+				return ErrEventFull
+			}
+		}
+
 		if err := tx.Model(&SigninEvent{}).
 			Where("user_number = ? AND event_name = ? AND event_init_date = ?",
 				userNumber, eventName, initDate).
@@ -379,8 +460,12 @@ func (r *signinEventRepository) RegisterAtomicSignin(userNumber uint, eventName 
 			return err
 		}
 
-		signin.Status = StatusRegistered
-		result = &signin
+		registered, err := findSigninWithUserInfo(tx, userNumber, eventName, initDate)
+		if err != nil {
+			return err
+		}
+
+		result = registered
 		return nil
 	})
 
@@ -405,6 +490,23 @@ func (r *signinEventRepository) UpdateAdminSigninStatus(userNumber uint, eventNa
 		}
 
 		oldStatus := signin.Status
+
+		// A manual transition into a confirmed status consumes a slot and must
+		// not overbook a limited event. Transitions between confirmed statuses
+		// (e.g. "Inscrito" <-> "Aguardando Aprovação") keep the same count and
+		// are always allowed.
+		if isConfirmedStatus(newStatus) && !isConfirmedStatus(oldStatus) && maxParticipants > 0 {
+			var confirmedCount int64
+			if err := tx.Model(&SigninEvent{}).
+				Where("event_name = ? AND event_init_date = ? AND (status = ? OR status = ?)",
+					eventName, initDate, StatusRegistered, StatusWaitingDonation).
+				Count(&confirmedCount).Error; err != nil {
+				return err
+			}
+			if confirmedCount >= int64(maxParticipants) {
+				return ErrEventFull
+			}
+		}
 
 		if err := tx.Model(&SigninEvent{}).
 			Where("user_number = ? AND event_name = ? AND event_init_date = ?",
@@ -436,7 +538,7 @@ func (r *signinEventRepository) UpdateAdminSigninStatus(userNumber uint, eventNa
 		// promote the first eligible waitlisted user if a vacancy still exists.
 		// The changed user is excluded from promotion to avoid immediately
 		// re-promoting someone the admin just demoted to WaitListed.
-		wasConfirmed := oldStatus == StatusRegistered || oldStatus == StatusWaitingDonation
+		wasConfirmed := isConfirmedStatus(oldStatus)
 		isNowUnconfirmed := newStatus == StatusCancelled || newStatus == StatusWaitListed
 		if wasConfirmed && isNowUnconfirmed && maxParticipants > 0 {
 			var confirmedCount int64
@@ -464,20 +566,21 @@ func (r *signinEventRepository) UpdateAdminSigninStatus(userNumber uint, eventNa
 			}
 		}
 
-		if err := tx.Where("user_number = ? AND event_name = ? AND event_init_date = ?",
-			userNumber, eventName, initDate).First(&signin).Error; err != nil {
+		updated, err := findSigninWithUserInfo(tx, userNumber, eventName, initDate)
+		if err != nil {
 			return err
 		}
 
-		result = &signin
+		result = updated
 		return nil
 	})
 
 	return result, err
 }
 
-func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, error) {
+func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, []uint, error) {
 	var result []SigninEvent
+	var promotedUserNumbers []uint
 
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Exec(
@@ -503,17 +606,20 @@ func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate t
 
 		toPromote := int(maxParticipants) - int(registeredCount)
 		if toPromote > 0 {
-			sub := tx.Model(&SigninEvent{}).
+			if err := tx.Model(&SigninEvent{}).
 				Select("user_number").
 				Where("event_name = ? AND event_init_date = ? AND status = ?",
 					eventName, initDate, StatusWaitListed).
 				Order("user_wait_list_position asc").
-				Limit(toPromote)
+				Limit(toPromote).
+				Pluck("user_number", &promotedUserNumbers).Error; err != nil {
+				return err
+			}
 
 			if err := tx.Model(&SigninEvent{}).
 				Where("event_name = ? AND event_init_date = ? AND status = ? AND user_number IN (?)",
-					eventName, initDate, StatusWaitListed, sub).
-				Update("status", StatusRegistered).Error; err != nil {
+					eventName, initDate, StatusWaitListed, promotedUserNumbers).
+				Update("status", StatusWaitingDonation).Error; err != nil {
 				return err
 			}
 		}
@@ -537,9 +643,10 @@ func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate t
 			return err
 		}
 
-		if err := tx.Where("event_name = ? AND event_init_date = ? AND status != ?",
-			eventName, initDate, StatusCancelled).
-			Order("user_wait_list_position asc").
+		if err := joinUserInfo(tx.Table("signin_events").Select(signinWithUserInfoColumns)).
+			Where("signin_events.event_name = ? AND signin_events.event_init_date = ? AND signin_events.status != ?",
+				eventName, initDate, StatusCancelled).
+			Order("signin_events.user_wait_list_position asc").
 			Find(&result).Error; err != nil {
 			return err
 		}
@@ -547,7 +654,19 @@ func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate t
 		return nil
 	})
 
-	return result, err
+	return result, promotedUserNumbers, err
+}
+
+func (r *signinEventRepository) FetchUserInfosByNumbers(userNumbers []uint) ([]PromotedUserInfo, error) {
+	if len(userNumbers) == 0 {
+		return nil, nil
+	}
+	var infos []PromotedUserInfo
+	err := r.db.Table("users").
+		Select("user_number, name, email").
+		Where("user_number IN (?)", userNumbers).
+		Scan(&infos).Error
+	return infos, err
 }
 
 func applySearchFilter(dbQuery *gorm.DB, query SigninEventListQuery) *gorm.DB {
@@ -577,6 +696,7 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 		"event_init_date",
 		"status",
 		"user_wait_list_position",
+		"status_priority",
 	}
 
 	field := strings.ToLower(sortBy)
@@ -590,5 +710,24 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 		return "", fmt.Errorf("invalid sort order")
 	}
 
-	return field + " " + order, nil
+	if field == "status_priority" {
+		// Agrupa pelo status na ordem de operação do evento — Inscrito,
+		// Aguardando Aprovação, Lista de Espera (na ordem da fila) e por fim
+		// Cancelado — desempatando por evento e posição de inscrição.
+		statusPriority := fmt.Sprintf(`CASE signin_events.status
+			WHEN '%s' THEN 1
+			WHEN '%s' THEN 2
+			WHEN '%s' THEN 3
+			WHEN '%s' THEN 4
+			ELSE 5 END`, StatusRegistered, StatusWaitingDonation, StatusWaitListed, StatusCancelled)
+		return statusPriority + " " + order +
+			", signin_events.event_name asc" +
+			", signin_events.user_wait_list_position asc" +
+			", signin_events.user_number asc", nil
+	}
+
+	// Qualifica a coluna para que o ORDER BY não resolva para o alias
+	// projetado (o CASE de user_wait_list_position), que zera os status
+	// não-espera e embaralharia a ordenação.
+	return "signin_events." + field + " " + order, nil
 }

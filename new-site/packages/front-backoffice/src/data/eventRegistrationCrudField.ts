@@ -16,17 +16,21 @@ const papfeVariants = {
 
 export const fields: CrudField[] = [
   { value: "userNumber", label: "Número do Participante", type: "text" },
+  { value: "userName", label: "Nome", type: "text", readonly: true },
+  { value: "userEmail", label: "Email", type: "text", readonly: true },
   { value: "papfeStatus", label: "PAPFE", type: "select", selectVariants: papfeVariants, readonly: true, sortable: false, searchable: false },
   { value: "eventName", label: "Nome do Evento", type: "text" },
   { value: "eventInitDate", label: "Data do Evento", type: "date" },
-  { value: "status", label: "Status", type: "select", selectVariants: statusVariants },
+  { value: "status", label: "Status", type: "select", selectVariants: statusVariants, sortValue: "status_priority" },
   { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true, searchable: false },
 ];
 
 export const fieldsForEvent: CrudField[] = [
   { value: "userNumber", label: "Número do Participante", type: "text" },
+  { value: "userName", label: "Nome", type: "text", readonly: true },
+  { value: "userEmail", label: "Email", type: "text", readonly: true },
   { value: "papfeStatus", label: "PAPFE", type: "select", selectVariants: papfeVariants, readonly: true, sortable: false, searchable: false },
-  { value: "status", label: "Status", type: "select", selectVariants: statusVariants },
+  { value: "status", label: "Status", type: "select", selectVariants: statusVariants, sortValue: "status_priority" },
   { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true, searchable: false },
 ];
 

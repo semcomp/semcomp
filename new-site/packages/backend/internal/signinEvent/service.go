@@ -8,6 +8,7 @@ import (
 
 	"backend/internal/apierrors"
 	"backend/internal/event"
+	"backend/internal/mailer"
 
 	"gorm.io/gorm"
 )
@@ -29,14 +30,18 @@ type SigninEventService interface {
 type signinEventService struct {
 	repo      SigninEventRepository
 	eventRepo event.EventRepository
+	mailer    *mailer.Mailer
 }
 
-func NewSigninEventService(repo SigninEventRepository, eventRepo event.EventRepository) SigninEventService {
-	return &signinEventService{repo: repo, eventRepo: eventRepo}
+func NewSigninEventService(repo SigninEventRepository, eventRepo event.EventRepository, m *mailer.Mailer) SigninEventService {
+	return &signinEventService{repo: repo, eventRepo: eventRepo, mailer: m}
 }
 
 func relativeWaitListPosition(status RegistrationStatus, max uint, position uint) uint {
-	if status == StatusWaitListed && max > 0 && position > max {
+	if status != StatusWaitListed {
+		return 0
+	}
+	if max > 0 && position > max {
 		return position - max
 	}
 	return position
@@ -163,6 +168,7 @@ func (s *signinEventService) GetSigninsAdmin(page int, limit int, sortBy string,
 		"event_init_date":         true,
 		"status":                  true,
 		"user_wait_list_position": true,
+		"status_priority":         true,
 	}
 	if !allowedSortFields[sortBy] {
 		return nil, apierrors.ValidationError("Parâmetro 'sort_by' inválido", nil)
@@ -240,20 +246,27 @@ func (s *signinEventService) GetSigninAdmin(userNumber string, eventName string,
 }
 
 func (s *signinEventService) CreateSigninAdmin(request CreateSigninAdminRequest) (*SigninEvent, error) {
-	newSignin, err := s.repo.CreateAdminSignin(request.UserNumber, request.EventName, request.EventInitDate, request.Status)
+	eventRecord, err := s.eventRepo.GetByNameAndInitTime(request.EventName, request.EventInitDate)
 	if err != nil {
-		if errors.Is(err, ErrDuplicateInscription) {
-			return nil, apierrors.ConflictError("Inscrição já existente", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apierrors.NotFoundError("Evento não encontrado", err)
 		}
-		return nil, apierrors.InternalServerError("Erro ao criar inscrição", err)
+		return nil, apierrors.InternalServerError("Erro ao buscar evento", err)
 	}
 
-	max, err := s.eventMaxParticipants(newSignin.EventName, newSignin.EventInitDate)
+	newSignin, err := s.repo.CreateAdminSignin(request.UserNumber, request.EventName, request.EventInitDate, request.Status, eventRecord.MaxParticipants)
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, ErrDuplicateInscription):
+			return nil, apierrors.ConflictError("Inscrição já existente", err)
+		case errors.Is(err, ErrEventFull):
+			return nil, apierrors.ConflictError("Evento lotado: não há vagas disponíveis", err)
+		default:
+			return nil, apierrors.InternalServerError("Erro ao criar inscrição", err)
+		}
 	}
 
-	return s.relativePosition(newSignin, max), nil
+	return s.relativePosition(newSignin, eventRecord.MaxParticipants), nil
 }
 
 func (s *signinEventService) UpdateSigninAdmin(userNumber string, eventName string, eventInitDate string, request UpdateSigninAdminRequest) (*SigninEvent, error) {
@@ -274,10 +287,14 @@ func (s *signinEventService) UpdateSigninAdmin(userNumber string, eventName stri
 
 	signin, err := s.repo.UpdateAdminSigninStatus(uint(num), eventName, initTime, request.Status, maxParticipants)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
 			return nil, apierrors.NotFoundError("Inscrição não encontrada", err)
+		case errors.Is(err, ErrEventFull):
+			return nil, apierrors.ConflictError("Evento lotado: não há vagas disponíveis", err)
+		default:
+			return nil, apierrors.InternalServerError("Erro ao atualizar inscrição", err)
 		}
-		return nil, apierrors.InternalServerError("Erro ao atualizar inscrição", err)
 	}
 
 	return s.relativePosition(signin, maxParticipants), nil
@@ -323,24 +340,26 @@ func (s *signinEventService) RegisterSigninAdmin(userNumber string, eventName st
 		return nil, apierrors.ValidationError("Número do usuário inválido", err)
 	}
 
-	signin, err := s.repo.RegisterAtomicSignin(uint(num), eventName, initTime)
+	maxParticipants, err := s.eventMaxParticipants(eventName, initTime)
+	if err != nil {
+		return nil, err
+	}
+
+	signin, err := s.repo.RegisterAtomicSignin(uint(num), eventName, initTime, maxParticipants)
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return nil, apierrors.NotFoundError("Inscrição não encontrada", err)
 		case errors.Is(err, ErrAlreadyRegistered):
 			return nil, apierrors.ConflictError("Inscrição já registrada", nil)
+		case errors.Is(err, ErrEventFull):
+			return nil, apierrors.ConflictError("Evento lotado: não há vagas disponíveis", err)
 		default:
 			return nil, apierrors.InternalServerError("Erro ao registrar inscrição", err)
 		}
 	}
 
-	max, err := s.eventMaxParticipants(signin.EventName, signin.EventInitDate)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.relativePosition(signin, max), nil
+	return s.relativePosition(signin, maxParticipants), nil
 }
 
 func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate string) ([]SigninEvent, error) {
@@ -361,7 +380,7 @@ func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate 
 		return nil, apierrors.ValidationError("Não é possível rodar a fila em eventos com vagas ilimitadas", nil)
 	}
 
-	signins, err := s.repo.RotateAtomicSignins(eventName, initTime, eventRecord.MaxParticipants)
+	signins, promotedUserNumbers, err := s.repo.RotateAtomicSignins(eventName, initTime, eventRecord.MaxParticipants)
 	if err != nil {
 		return nil, apierrors.InternalServerError("Erro ao rodar a fila de inscrições", err)
 	}
@@ -370,5 +389,19 @@ func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate 
 		s.relativePosition(&signins[i], eventRecord.MaxParticipants)
 	}
 
+	if len(promotedUserNumbers) > 0 {
+		go s.sendPromotionEmails(promotedUserNumbers, eventRecord.Name)
+	}
+
 	return signins, nil
+}
+
+func (s *signinEventService) sendPromotionEmails(userNumbers []uint, eventName string) {
+	infos, err := s.repo.FetchUserInfosByNumbers(userNumbers)
+	if err != nil {
+		return
+	}
+	for _, u := range infos {
+		s.mailer.SendRegistrationConfirmationEmail(u.Name, u.Email, eventName)
+	}
 }
