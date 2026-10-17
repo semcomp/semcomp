@@ -189,7 +189,7 @@ func main() {
 	riddleHandler := riddle.NewRiddleHandler(riddleService)
 
 	signinEventRepo := signinEvent.NewSigninEventRepository(db)
-	signinEventService := signinEvent.NewSigninEventService(signinEventRepo, eventRepo)
+	signinEventService := signinEvent.NewSigninEventService(signinEventRepo, eventRepo, m)
 	signinEventHandler := signinEvent.NewSigninEventHandler(signinEventService)
 
 	presenceRepo := presence.NewPresenceRepository(db)

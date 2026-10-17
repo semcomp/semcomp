@@ -117,6 +117,9 @@ export interface CrudTableProps {
   getItemKey?: (item: CrudItemType) => string;
   entityLabel?: string;
   defaultPageSize?: number;
+  /** Campo de ordenação inicial (chave enviada ao backend). Default: o
+   *  `sortValue`/`value` do primeiro campo. */
+  defaultSortField?: string;
   /** Total records on the server (used to calculate page count) */
   totalRecords?: number;
   /** Called whenever page, pageSize, sort or filter changes */
@@ -399,6 +402,7 @@ export function CrudTable({
   getItemKey,
   entityLabel = "item",
   defaultPageSize = 10,
+  defaultSortField,
   totalRecords,
   onQueryChange,
   canWrite = true,
@@ -425,7 +429,7 @@ export function CrudTable({
     filterableFields[0]?.value ?? "name"
   );
   const [sortField, setSortField] = useState(
-    fields[0]?.sortValue ?? fields[0]?.value ?? "name"
+    defaultSortField ?? fields[0]?.sortValue ?? fields[0]?.value ?? "name"
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
@@ -612,6 +616,20 @@ export function CrudTable({
   const renderCell = (item: CrudItemType, field: CrudField) => {
     const raw = (item as Record<string, unknown>)[field.value];
     const val = String(raw ?? "—");
+
+    // Posição na Fila: só exibe para inscrições em Lista de Espera
+    if (field.value === "userWaitListPosition") {
+      const status = (item as Record<string, unknown>).status as
+        | string
+        | undefined;
+      if (status !== "Lista de Espera") {
+        return <span className="text-foreground">—</span>;
+      }
+      if (raw === null || raw === undefined || raw === "") {
+        return <span className="text-foreground">—</span>;
+      }
+      return <span className="text-foreground">{String(raw)}</span>;
+    }
 
     if (field.type === "boolean") {
       const bool = Boolean(raw);

@@ -60,7 +60,7 @@ type stubSigninRepo struct {
 func (s *stubSigninRepo) CreateAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint, targetEndDate time.Time) (*signinEvent.SigninEvent, error) {
 	return nil, nil
 }
-func (s *stubSigninRepo) CreateAdminSignin(userNumber uint, eventName string, initDate time.Time, status signinEvent.RegistrationStatus) (*signinEvent.SigninEvent, error) {
+func (s *stubSigninRepo) CreateAdminSignin(userNumber uint, eventName string, initDate time.Time, status signinEvent.RegistrationStatus, maxParticipants uint) (*signinEvent.SigninEvent, error) {
 	return nil, nil
 }
 func (s *stubSigninRepo) RemoveAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) error {
@@ -78,13 +78,16 @@ func (s *stubSigninRepo) UpdateByComposite(userNumber uint, eventName string, in
 func (s *stubSigninRepo) GetAll(query signinEvent.SigninEventListQuery) (*signinEvent.SigninEventListResult, error) {
 	return &signinEvent.SigninEventListResult{}, nil
 }
-func (s *stubSigninRepo) RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time) (*signinEvent.SigninEvent, error) {
+func (s *stubSigninRepo) RegisterAtomicSignin(userNumber uint, eventName string, initDate time.Time, maxParticipants uint) (*signinEvent.SigninEvent, error) {
 	return nil, nil
 }
 func (s *stubSigninRepo) UpdateAdminSigninStatus(userNumber uint, eventName string, initDate time.Time, newStatus signinEvent.RegistrationStatus, maxParticipants uint) (*signinEvent.SigninEvent, error) {
 	return nil, nil
 }
-func (s *stubSigninRepo) RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]signinEvent.SigninEvent, error) {
+func (s *stubSigninRepo) RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]signinEvent.SigninEvent, []uint, error) {
+	return nil, nil, nil
+}
+func (s *stubSigninRepo) FetchUserInfosByNumbers(userNumbers []uint) ([]signinEvent.PromotedUserInfo, error) {
 	return nil, nil
 }
 
