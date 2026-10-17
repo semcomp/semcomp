@@ -7,24 +7,43 @@ import (
 
 	"backend/internal/apierrors"
 	"backend/internal/event"
+	"backend/internal/product"
 	"backend/internal/signinEvent"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
 // Stubs ---------------------------------------------------------------------------
 
 type stubPresenceRepo struct {
-	createErr error
-	getResult *Presence
-	getErr    error
+	createErr        error
+	getResult        *Presence
+	getErr           error
+	deleteAtomicErr  error
+	deleteAtomicCall bool
+	// getFn, quando setado, tem precedência sobre getResult/getErr. Usado para
+	// simular sequências de chamadas — ex.: a pré-checagem não acha nada e a
+	// releitura após o 23505 acha o registro vencedor da corrida.
+	getFn func() (*Presence, error)
 }
 
 func (s *stubPresenceRepo) Create(p *Presence) error { return s.createErr }
 func (s *stubPresenceRepo) GetByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time) (*Presence, error) {
+	if s.getFn != nil {
+		return s.getFn()
+	}
 	return s.getResult, s.getErr
 }
 func (s *stubPresenceRepo) DeleteByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time) error {
+	return nil
+}
+func (s *stubPresenceRepo) SetRateRecalculatorTx(calculator RateRecalculatorTx) {}
+func (s *stubPresenceRepo) DeleteAtomic(userNumber int64, eventName string, initDate time.Time) error {
+	s.deleteAtomicCall = true
+	return s.deleteAtomicErr
+}
+func (s *stubPresenceRepo) ClearByUserEventAtomic(userNumber int64, eventName string, initDate time.Time) error {
 	return nil
 }
 func (s *stubPresenceRepo) UpdateByUserEventandInitDate(userNumber int64, eventName string, initDate time.Time, updatedPresence *Presence) error {
@@ -105,6 +124,39 @@ func buildService(
 	signinRepo signinEvent.SigninEventRepository,
 ) PresenceService {
 	return NewPresenceService(presenceRepo, eventRepo, signinRepo)
+}
+
+// Fakes para a regra de coffee --------------------------------------------------
+
+// stubCoffeeProducts resolve o produto de coffee pelo horário. Sem produto
+// configurado (errRecordNotFound), o evento não é de coffee.
+type stubCoffeeProducts struct {
+	result *product.Product
+	err    error
+}
+
+func (s *stubCoffeeProducts) GetCoffeeByDateTime(dateTime time.Time) (*product.Product, error) {
+	return s.result, s.err
+}
+
+type stubCoffeePurchases struct {
+	purchased bool
+	err       error
+}
+
+func (s *stubCoffeePurchases) UserHasPaidProduct(userNumber uint, productID uint) (bool, error) {
+	return s.purchased, s.err
+}
+
+// buildServiceWithCoffee devolve um service com a checagem de coffee injetada.
+func buildServiceWithCoffee(
+	presenceRepo PresenceRepository,
+	coffeeProducts *stubCoffeeProducts,
+	coffeePurchases *stubCoffeePurchases,
+) PresenceService {
+	svc := NewPresenceService(presenceRepo, &stubEventRepo{getResult: &event.Event{HasSignin: false}}, &stubSigninRepo{})
+	svc.SetCoffeePurchaseCheck(coffeeProducts, coffeePurchases)
+	return svc
 }
 
 func assertForbidden(t *testing.T, err error) {
@@ -248,5 +300,177 @@ func TestCreatePresence_DuplicatePresence(t *testing.T) {
 	}
 	if apiErr.Status != 409 {
 		t.Errorf("esperava status HTTP 409, got %d", apiErr.Status)
+	}
+}
+
+// Duplicata: a mensagem precisa dizer QUANDO e POR QUEM foi registrada antes.
+// O instante é convertido para o fuso de São Paulo (banco guarda UTC).
+func TestCreatePresence_DuplicateMessage(t *testing.T) {
+	registeredAt := time.Date(2026, 10, 6, 12, 0, 0, 0, time.UTC) // 09:00 em São Paulo
+	svc := buildService(
+		&stubPresenceRepo{getResult: &Presence{
+			UserNumber: 42, EmailAdmin: "admin@semcomp.com", CreatedAt: registeredAt,
+		}},
+		&stubEventRepo{getResult: &event.Event{HasSignin: false}},
+		&stubSigninRepo{},
+	)
+
+	_, err := svc.CreatePresence(newRequest())
+
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("esperava *apierrors.APIError, got %T: %v", err, err)
+	}
+	if apiErr.Status != 409 {
+		t.Fatalf("esperava 409, got %d", apiErr.Status)
+	}
+	expected := "Presença já registrada em 06/10/2026 09:00 por admin@semcomp.com"
+	if apiErr.Message != expected {
+		t.Errorf("esperava %q, got %q", expected, apiErr.Message)
+	}
+}
+
+// Corrida: o insert perde para a constraint UNIQUE (23505). O perdedor recebe o
+// mesmo conflito informativo — não um 500 genérico.
+func TestCreatePresence_UniqueViolationBecomesConflict(t *testing.T) {
+	registeredAt := time.Date(2026, 10, 6, 12, 0, 0, 0, time.UTC)
+	calls := 0
+	svc := buildService(
+		&stubPresenceRepo{
+			createErr: &pgconn.PgError{Code: "23505"},
+			getFn: func() (*Presence, error) {
+				calls++
+				if calls == 1 { // pré-checagem: ninguém registrou ainda
+					return nil, gorm.ErrRecordNotFound
+				}
+				return &Presence{EmailAdmin: "admin@semcomp.com", CreatedAt: registeredAt}, nil
+			},
+		},
+		&stubEventRepo{getResult: &event.Event{HasSignin: false}},
+		&stubSigninRepo{},
+	)
+
+	_, err := svc.CreatePresence(newRequest())
+
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("esperava *apierrors.APIError, got %T: %v", err, err)
+	}
+	if apiErr.Status != 409 {
+		t.Fatalf("esperava 409 (não 500), got %d: %s", apiErr.Status, apiErr.Message)
+	}
+	expected := "Presença já registrada em 06/10/2026 09:00 por admin@semcomp.com"
+	if apiErr.Message != expected {
+		t.Errorf("esperava %q, got %q", expected, apiErr.Message)
+	}
+}
+
+// O delete precisa usar o caminho atômico (DeleteAtomic), que recalcula a taxa
+// na mesma transação — não o delete simples seguido de recálculo fora dela.
+func TestDeletePresence_UsesAtomicPath(t *testing.T) {
+	repo := &stubPresenceRepo{}
+	svc := buildService(repo, &stubEventRepo{}, &stubSigninRepo{})
+
+	err := svc.DeletePresenceByUserEventandInitDate("42", "Palestra Go", "2026-11-01T10:00:00Z")
+	if err != nil {
+		t.Fatalf("esperava sucesso, got %v", err)
+	}
+	if !repo.deleteAtomicCall {
+		t.Error("esperava que o delete usasse DeleteAtomic (transação única)")
+	}
+}
+
+// Se o recálculo falhar dentro da transação, o erro tem de subir — a transação
+// reverte e a taxa não fica desatualizada em relação à presença removida.
+func TestDeletePresence_RecalcFailurePropagates(t *testing.T) {
+	repo := &stubPresenceRepo{deleteAtomicErr: errors.New("falha no recalculo")}
+	svc := buildService(repo, &stubEventRepo{}, &stubSigninRepo{})
+
+	err := svc.DeletePresenceByUserEventandInitDate("42", "Palestra Go", "2026-11-01T10:00:00Z")
+	if err == nil {
+		t.Fatal("esperava erro propagado do recálculo")
+	}
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("esperava *apierrors.APIError, got %T", err)
+	}
+	if apiErr.Status != 500 {
+		t.Errorf("esperava 500, got %d", apiErr.Status)
+	}
+}
+
+// Presença inexistente continua dando 404.
+func TestDeletePresence_NotFound(t *testing.T) {
+	repo := &stubPresenceRepo{deleteAtomicErr: gorm.ErrRecordNotFound}
+	svc := buildService(repo, &stubEventRepo{}, &stubSigninRepo{})
+
+	err := svc.DeletePresenceByUserEventandInitDate("42", "Palestra Go", "2026-11-01T10:00:00Z")
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("esperava *apierrors.APIError, got %T", err)
+	}
+	if apiErr.Status != 404 {
+		t.Errorf("esperava 404, got %d", apiErr.Status)
+	}
+}
+
+// ── Regra do coffee: exige a compra do produto, não inscrição ────────────────
+
+// Comprou o coffee do horário → presença liberada.
+func TestCreatePresence_CoffeePurchased_Allowed(t *testing.T) {
+	svc := buildServiceWithCoffee(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubCoffeeProducts{result: &product.Product{ID: 24, Type: product.ProductTypeCoffee}},
+		&stubCoffeePurchases{purchased: true},
+	)
+
+	p, err := svc.CreatePresence(newRequest())
+	if err != nil {
+		t.Fatalf("esperava sucesso, got %v", err)
+	}
+	if p.UserNumber != 42 {
+		t.Errorf("UserNumber esperado 42, got %d", p.UserNumber)
+	}
+}
+
+// Não comprou → 403, mesmo sem qualquer inscrição envolvida.
+func TestCreatePresence_CoffeeNotPurchased_Blocked(t *testing.T) {
+	svc := buildServiceWithCoffee(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubCoffeeProducts{result: &product.Product{ID: 24, Type: product.ProductTypeCoffee}},
+		&stubCoffeePurchases{purchased: false},
+	)
+
+	assertForbidden(t, func() error { _, err := svc.CreatePresence(newRequest()); return err }())
+}
+
+// Evento sem produto de coffee associado (palestra) → checagem ignorada.
+func TestCreatePresence_NoCoffeeProduct_Skipped(t *testing.T) {
+	svc := buildServiceWithCoffee(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubCoffeeProducts{err: gorm.ErrRecordNotFound},
+		&stubCoffeePurchases{purchased: false},
+	)
+
+	if _, err := svc.CreatePresence(newRequest()); err != nil {
+		t.Fatalf("esperava sucesso (evento não é de coffee), got %v", err)
+	}
+}
+
+// Erro de banco na verificação de compra não deve virar 403 silencioso.
+func TestCreatePresence_CoffeeCheckDBError_Internal(t *testing.T) {
+	svc := buildServiceWithCoffee(
+		&stubPresenceRepo{getErr: gorm.ErrRecordNotFound},
+		&stubCoffeeProducts{result: &product.Product{ID: 24}},
+		&stubCoffeePurchases{err: errors.New("db down")},
+	)
+
+	_, err := svc.CreatePresence(newRequest())
+	var apiErr *apierrors.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("esperava *apierrors.APIError, got %T", err)
+	}
+	if apiErr.Status != 500 {
+		t.Errorf("esperava 500, got %d", apiErr.Status)
 	}
 }

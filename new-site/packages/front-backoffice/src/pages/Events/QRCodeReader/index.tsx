@@ -16,6 +16,20 @@
     datetime?: string;
   }
 
+  // Formata o instante do registro para exibição. O backend devolve o horário
+  // em UTC; o toLocaleString aplica o fuso do navegador do admin (pt-BR).
+  const formatRegisteredAt = (value: string): string => {
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return value;
+    return parsed.toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   export default function QRCodeReader() {
     const user = useAuth();
     const navigate = useNavigate();
@@ -29,6 +43,7 @@
     const [isScanning, setIsScanning] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState("");
+    const [registeredAt, setRegisteredAt] = useState<string | null>(null);
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     const { showNotification } = useNotification();
 
@@ -46,8 +61,9 @@
     const registerPresence = async (userNumber: string) => {
       try {
         setError("");
-        
-        await participationAPI.createByQRCode(
+        setRegisteredAt(null);
+
+        const created = await participationAPI.createByQRCode(
           userNumber,
           resolvedEventName,
           resolvedDateTime,
@@ -55,6 +71,7 @@
         );
 
         setResult(userNumber);
+        setRegisteredAt(created?.createdAt ?? null);
 
         setShowSuccessPopup(true);
 
@@ -143,6 +160,7 @@
     const scanAgain = async () => {
       setShowSuccessPopup(false);
       setResult("");
+      setRegisteredAt(null);
       setError("");
 
       try {
@@ -308,6 +326,12 @@
                         {result}
                       </p>
                     </div>
+
+                    {registeredAt && (
+                      <p className="text-xs text-muted-foreground">
+                        Registrado em {formatRegisteredAt(registeredAt)}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

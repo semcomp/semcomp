@@ -2,6 +2,7 @@ package signinEvent
 
 import (
 	"errors"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -13,6 +14,7 @@ import (
 )
 
 type SigninEventService interface {
+	SetPresenceCleaner(cleaner presenceCleaner)
 	CreateSignin(userNumber uint, request CreateSigninRequest) (*SigninEvent, error)
 	GetSigninEvents() ([]event.Event, error)
 	GetMySignins(userNumber uint) ([]SigninEventsDetailed, error)
@@ -26,9 +28,23 @@ type SigninEventService interface {
 	RotateSigninsAdmin(eventName string, eventInitDate string) ([]SigninEvent, error)
 }
 
+// presenceCleaner remove a presença do usuário no evento quando a inscrição é
+// cancelada. Declarado como interface mínima (e injetado por setter) para não
+// importar internal/presence — que já importa este pacote.
+type presenceCleaner interface {
+	ClearByUserEventAtomic(userNumber int64, eventName string, initDate time.Time) error
+}
+
 type signinEventService struct {
-	repo      SigninEventRepository
-	eventRepo event.EventRepository
+	repo            SigninEventRepository
+	eventRepo       event.EventRepository
+	presenceCleaner presenceCleaner
+}
+
+// SetPresenceCleaner injeta a limpeza de presença disparada ao cancelar
+// inscrição. Chamado no main com o repositório de presença.
+func (s *signinEventService) SetPresenceCleaner(cleaner presenceCleaner) {
+	s.presenceCleaner = cleaner
 }
 
 func NewSigninEventService(repo SigninEventRepository, eventRepo event.EventRepository) SigninEventService {
@@ -136,6 +152,22 @@ func (s *signinEventService) DeleteSignin(userNumber uint, eventName string, eve
 		return apierrors.InternalServerError("Erro ao cancelar inscrição", err)
 	}
 
+	// Cancela a inscrição, então a presença lançada para este evento deixa de
+	// ter respaldo — removê-la evita presença órfã creditando o peso do evento.
+	return s.clearPresenceForSignin(userNumber, eventName, initTime)
+}
+
+// clearPresenceForSignin remove a presença do usuário no evento, se existir,
+// recalculando a taxa na mesma transação. Best-effort: se a limpeza falhar, a
+// inscrição já foi cancelada e não deve ser revertida; apenas loga.
+func (s *signinEventService) clearPresenceForSignin(userNumber uint, eventName string, initTime time.Time) error {
+	if s.presenceCleaner == nil {
+		return nil
+	}
+	if err := s.presenceCleaner.ClearByUserEventAtomic(int64(userNumber), eventName, initTime); err != nil {
+		log.Printf("[signinEvent] erro ao limpar presença do usuário %d no evento %q: %v",
+			userNumber, eventName, err)
+	}
 	return nil
 }
 
@@ -309,7 +341,8 @@ func (s *signinEventService) DeleteSigninAdmin(userNumber string, eventName stri
 		return apierrors.InternalServerError("Erro ao remover inscrição", err)
 	}
 
-	return nil
+	// Mesma razão do DeleteSignin: sem inscrição, a presença fica órfã.
+	return s.clearPresenceForSignin(uint(num), eventName, initTime)
 }
 
 func (s *signinEventService) RegisterSigninAdmin(userNumber string, eventName string, eventInitDate string) (*SigninEvent, error) {

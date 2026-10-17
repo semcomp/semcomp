@@ -49,6 +49,10 @@ type SaleRepository interface {
 	// consumed_items na mesma transação, garantindo consistência entre os dois.
 	CancelWithRelease(saleID uint) error
 	GetConsumedProductIDs(userNumber uint) ([]uint, error)
+	// UserHasPaidProduct responde se o usuário tem alguma venda PAGA contendo o
+	// produto. Usado para liberar presença em eventos de coffee, que exigem a
+	// compra do coffee correspondente.
+	UserHasPaidProduct(userNumber uint, productID uint) (bool, error)
 	// GetCoffeeIDsInCombos retorna os coffees (item_id) dentro dos combos dados.
 	GetCoffeeIDsInCombos(comboIDs []uint) ([]uint, error)
 	// GetComboIDsContainingCoffee retorna os combos que contêm os coffees dados.
@@ -391,6 +395,34 @@ func (r *saleRepository) GetConsumedProductIDs(userNumber uint) ([]uint, error) 
 		Where("user_number = ?", userNumber).
 		Pluck("product_id", &ids).Error
 	return ids, err
+}
+
+// UserHasPaidProduct responde se existe venda PAGA do usuário que dá posse ao
+// produto, diretamente OU por meio de um COMBO que o contenha.
+//
+// O caso do combo é o mesmo critério que a loja usa para compra única:
+// `getUnavailableProductIDs` fecha o conjunto nos dois sentidos (combo
+// consumido ↔ coffees dentro dele), e o seed cria ConsumedItem só do combo.
+// Ignorar isso barrava indevidamente quem comprou o combo.
+//
+// Exige PAGO — PENDENTE não conta, senão bastaria iniciar o checkout sem pagar
+// para liberar a presença no coffee.
+func (r *saleRepository) UserHasPaidProduct(userNumber uint, productID uint) (bool, error) {
+	var count int64
+	err := r.db.Model(&SaleItem{}).
+		Joins("JOIN sales ON sales.id = sale_items.sale_id").
+		Where(`sales.sale_user_number = ? AND sales.status = ?
+			AND (sale_items.product_id = ?
+			     OR EXISTS (
+			       SELECT 1 FROM combo_items ci
+			       WHERE ci.combo_id = sale_items.product_id AND ci.item_id = ?
+			     ))`,
+			userNumber, SaleStatusPaid, productID, productID).
+		Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 // GetCoffeeIDsInCombos retorna os ids dos produtos COFFEE dentro dos combos

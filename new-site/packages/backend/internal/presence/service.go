@@ -2,6 +2,7 @@ package presence
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -9,13 +10,16 @@ import (
 
 	"backend/internal/apierrors"
 	"backend/internal/event"
+	"backend/internal/product"
 	"backend/internal/signinEvent"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
 type PresenceService interface {
 	SetRateRecalculator(recalculator RateRecalculator)
+	SetCoffeePurchaseCheck(products coffeeProductLookup, purchases coffeePurchaseLookup)
 	CreatePresence(request CreatePresenceRequest) (*Presence, error)
 	GetPresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) (*Presence, error)
 	DeletePresenceByUserEventandInitDate(userNumber string, eventName string, initDate string) error
@@ -28,11 +32,65 @@ type RateRecalculator interface {
 	RecalculateUsers(userNumbers ...int64) error
 }
 
+// RateRecalculatorTx recalcula usando a transação informada, permitindo que o
+// recálculo seja atômico junto da mutação de presença. Implementado por
+// presencerate.Calculator.
+type RateRecalculatorTx interface {
+	RecalculateUsersTx(tx *gorm.DB, userNumbers ...int64) error
+}
+
+// coffeeProductLookup resolve o produto COFFEE vendido para um horário de
+// evento. Interface mínima para não importar internal/product inteiro.
+type coffeeProductLookup interface {
+	GetCoffeeByDateTime(dateTime time.Time) (*product.Product, error)
+}
+
+// coffeePurchaseLookup responde se o usuário comprou um produto (venda PAGO).
+type coffeePurchaseLookup interface {
+	UserHasPaidProduct(userNumber uint, productID uint) (bool, error)
+}
+
 type presenceService struct {
 	repo            PresenceRepository
 	eventRepo       event.EventRepository
 	signinEventRepo signinEvent.SigninEventRepository
 	recalculator    RateRecalculator
+	coffeeProducts  coffeeProductLookup
+	coffeePurchases coffeePurchaseLookup
+}
+
+// SetCoffeePurchaseCheck injeta a verificação de compra de coffee usada para
+// liberar presença em eventos de coffee. Chamado no main.
+func (s *presenceService) SetCoffeePurchaseCheck(products coffeeProductLookup, purchases coffeePurchaseLookup) {
+	s.coffeeProducts = products
+	s.coffeePurchases = purchases
+}
+
+// ensureCoffeePurchased exige que o usuário tenha comprado o produto de coffee
+// associado ao horário do evento. Sem produto de coffee configurado para o
+// horário, o evento não é de coffee e a checagem é ignorada. No-op quando a
+// verificação não foi injetada (mantém o service testável sem a dependência).
+func (s *presenceService) ensureCoffeePurchased(userNumber int64, initDate time.Time) error {
+	if s.coffeeProducts == nil || s.coffeePurchases == nil {
+		return nil
+	}
+
+	coffee, err := s.coffeeProducts.GetCoffeeByDateTime(initDate)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil // não há produto de coffee para este horário
+		}
+		return apierrors.InternalServerError("Erro ao buscar produto de coffee", err)
+	}
+
+	purchased, err := s.coffeePurchases.UserHasPaidProduct(uint(userNumber), coffee.ID)
+	if err != nil {
+		return apierrors.InternalServerError("Erro ao verificar compra do coffee", err)
+	}
+	if !purchased {
+		return apierrors.ForbiddenError("Usuário não comprou o coffee deste evento", nil)
+	}
+	return nil
 }
 
 func NewPresenceService(repo PresenceRepository, eventRepo event.EventRepository, signinEventRepo signinEvent.SigninEventRepository) PresenceService {
@@ -41,6 +99,32 @@ func NewPresenceService(repo PresenceRepository, eventRepo event.EventRepository
 
 func (s *presenceService) SetRateRecalculator(recalculator RateRecalculator) {
 	s.recalculator = recalculator
+}
+
+// presenceTimezone é o fuso em que o admin lê os horários no credenciamento. O
+// banco roda em UTC, então o "quando" precisa ser convertido na saída — uma
+// presença das 21h em São Paulo viraria 00h do dia seguinte se exibida em UTC.
+const presenceTimezone = "America/Sao_Paulo"
+
+// formatPresenceTimestamp formata o instante do registro para exibição, no fuso
+// do evento. Cai para UTC se o tzdata não estiver disponível no ambiente.
+func formatPresenceTimestamp(t time.Time) string {
+	loc, err := time.LoadLocation(presenceTimezone)
+	if err != nil {
+		return t.UTC().Format("02/01/2006 15:04")
+	}
+	return t.In(loc).Format("02/01/2006 15:04")
+}
+
+// duplicatePresenceError monta o conflito informativo com quando e por quem a
+// presença foi registrada antes. Usado nas duas vias de duplicata (pré-checagem
+// e corrida de insert), para a mensagem ser idêntica nas duas.
+func duplicatePresenceError(existing *Presence) error {
+	return apierrors.ConflictError(
+		fmt.Sprintf("Presença já registrada em %s por %s",
+			formatPresenceTimestamp(existing.CreatedAt), existing.EmailAdmin),
+		nil,
+	)
 }
 
 func (s *presenceService) recalcUsers(userNumbers ...int64) {
@@ -54,9 +138,9 @@ func (s *presenceService) recalcUsers(userNumbers ...int64) {
 
 func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presence, error) {
 	str := strconv.Itoa(int(request.UserNumber))
-	_, err := s.GetPresenceByUserEventandInitDate(str, request.EventName, request.EventInitDate.Format(time.RFC3339))
+	existing, err := s.GetPresenceByUserEventandInitDate(str, request.EventName, request.EventInitDate.Format(time.RFC3339))
 	if err == nil {
-		return nil, apierrors.ConflictError("Presença já cadastrada", err)
+		return nil, duplicatePresenceError(existing)
 	}
 
 	// Verifica se o evento exige inscrição prévia
@@ -66,6 +150,12 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 			return nil, apierrors.NotFoundError("Evento não encontrado", err)
 		}
 		return nil, apierrors.InternalServerError("Erro ao buscar evento", err)
+	}
+
+	// Coffee não é evento com inscrição: o que libera a presença é ter comprado
+	// o produto de coffee daquele horário.
+	if err := s.ensureCoffeePurchased(request.UserNumber, request.EventInitDate); err != nil {
+		return nil, err
 	}
 
 	if eventRecord.HasSignin {
@@ -94,6 +184,17 @@ func (s *presenceService) CreatePresence(request CreatePresenceRequest) (*Presen
 
 	err = s.repo.Create(&newPresence)
 	if err != nil {
+		// Corrida entre dois scans do mesmo participante: o SELECT acima não
+		// achou nada, mas a PK composta (user_number, event_name,
+		// event_init_date) é UNIQUE e o Postgres barra este insert com 23505.
+		// O perdedor da corrida merece o mesmo conflito informativo do caminho
+		// acima, não um 500 genérico.
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			if winner, gerr := s.GetPresenceByUserEventandInitDate(str, request.EventName, request.EventInitDate.Format(time.RFC3339)); gerr == nil {
+				return nil, duplicatePresenceError(winner)
+			}
+		}
 		return nil, apierrors.InternalServerError("Erro ao criar presença", err)
 	}
 
@@ -136,15 +237,16 @@ func (s *presenceService) DeletePresenceByUserEventandInitDate(userNumber string
 		return apierrors.ValidationError("Número do usuário inválido", err)
 	}
 
-	err = s.repo.DeleteByUserEventandInitDate(num, eventName, initDateParsed)
+	// DeleteAtomic remove a linha e recalcula a taxa na mesma transação — não
+	// há mais o recalcUsers fora daqui, que deixava a remoção e o recálculo em
+	// passos separados (se o recálculo falhasse, a taxa ficava desatualizada).
+	err = s.repo.DeleteAtomic(num, eventName, initDateParsed)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apierrors.NotFoundError("Presença não encontrada", err)
 		}
 		return apierrors.InternalServerError("Erro ao deletar presença", err)
 	}
-
-	s.recalcUsers(num)
 
 	return nil
 }
@@ -209,6 +311,7 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 		"event_name":      true,
 		"event_init_date": true,
 		"email_admin":     true,
+		"created_at":      true,
 	}
 
 	if !allowedSortFields[sortBy] {
@@ -231,6 +334,7 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 			"event_name":      true,
 			"email_admin":     true,
 			"event_init_date": true,
+			"created_at":      true,
 		}
 
 		if !allowedSearchFields[searchBy] {
@@ -243,6 +347,19 @@ func (s *presenceService) GetPresences(page int, limit int, sortBy string, sortO
 				return nil, apierrors.ValidationError("Parâmetro 'search_value' inválido para 'event_init_date', use o formato RFC3339", nil)
 			}
 			searchValue = parsedDateTime.Format(time.RFC3339)
+		}
+
+		// created_at: busca por dia (AAAA-MM-DD) ou por instante (RFC3339). O
+		// valor é normalizado para AAAA-MM-DD, que é o que o repositório compara.
+		if searchBy == "created_at" {
+			parsed, err := time.Parse("2006-01-02", searchValue)
+			if err != nil {
+				parsed, err = time.Parse(time.RFC3339, searchValue)
+				if err != nil {
+					return nil, apierrors.ValidationError("Parâmetro 'search_value' inválido para 'created_at', use o formato AAAA-MM-DD", nil)
+				}
+			}
+			searchValue = parsed.Format("2006-01-02")
 		}
 	}
 

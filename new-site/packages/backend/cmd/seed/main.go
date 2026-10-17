@@ -810,12 +810,12 @@ func seedPapfeDocs(db *gorm.DB, users []user.User) {
 			rejReason = strPtr(reasons[idx])
 		}
 		rows = append(rows, user.PapfeDocument{
-			UserEmail:   u.Email,
-			Filename:    fmt.Sprintf("seed_%s_papfe.pdf", sanitizeEmail(u.Email)),
-			ContentType: "application/pdf",
-			FilePath:    fmt.Sprintf("uploads/papfe/seed_%s_papfe.pdf", sanitizeEmail(u.Email)),
-			UploadedAt:  now.AddDate(0, 0, -(i + 1)),
-			IsApproved:  statuses[idx],
+			UserEmail:       u.Email,
+			Filename:        fmt.Sprintf("seed_%s_papfe.pdf", sanitizeEmail(u.Email)),
+			ContentType:     "application/pdf",
+			FilePath:        fmt.Sprintf("uploads/papfe/seed_%s_papfe.pdf", sanitizeEmail(u.Email)),
+			UploadedAt:      now.AddDate(0, 0, -(i + 1)),
+			IsApproved:      statuses[idx],
 			RejectionReason: rejReason,
 		})
 	}
