@@ -397,15 +397,27 @@ func (r *saleRepository) GetConsumedProductIDs(userNumber uint) ([]uint, error) 
 	return ids, err
 }
 
-// UserHasPaidProduct responde se existe venda PAGA do usuário contendo o
-// produto. Exige PAGO — PENDENTE não conta, senão bastaria iniciar o checkout
-// sem pagar para liberar a presença no coffee.
+// UserHasPaidProduct responde se existe venda PAGA do usuário que dá posse ao
+// produto, diretamente OU por meio de um COMBO que o contenha.
+//
+// O caso do combo é o mesmo critério que a loja usa para compra única:
+// `getUnavailableProductIDs` fecha o conjunto nos dois sentidos (combo
+// consumido ↔ coffees dentro dele), e o seed cria ConsumedItem só do combo.
+// Ignorar isso barrava indevidamente quem comprou o combo.
+//
+// Exige PAGO — PENDENTE não conta, senão bastaria iniciar o checkout sem pagar
+// para liberar a presença no coffee.
 func (r *saleRepository) UserHasPaidProduct(userNumber uint, productID uint) (bool, error) {
 	var count int64
 	err := r.db.Model(&SaleItem{}).
 		Joins("JOIN sales ON sales.id = sale_items.sale_id").
-		Where("sales.sale_user_number = ? AND sales.status = ? AND sale_items.product_id = ?",
-			userNumber, SaleStatusPaid, productID).
+		Where(`sales.sale_user_number = ? AND sales.status = ?
+			AND (sale_items.product_id = ?
+			     OR EXISTS (
+			       SELECT 1 FROM combo_items ci
+			       WHERE ci.combo_id = sale_items.product_id AND ci.item_id = ?
+			     ))`,
+			userNumber, SaleStatusPaid, productID, productID).
 		Count(&count).Error
 	if err != nil {
 		return false, err

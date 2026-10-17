@@ -42,9 +42,15 @@ corresponde ao produto COFFEE cujo `coffees.date_time` é 09:00 daquele dia.
 
 | Situação | Resposta |
 |---|---|
-| Comprou o coffee do horário (`PAGO`) | presença liberada |
+| Comprou o coffee do horário (`PAGO`), direto ou via **combo** que o contém | presença liberada |
 | Não comprou | `403 {"code":"forbidden","message":"Usuário não comprou o coffee deste evento"}` |
 | Evento sem produto de coffee associado (ex.: Palestra) | checagem ignorada, presença liberada |
+
+**Combo conta como posse do coffee.** Quem comprou um COMBO que contém o coffee
+daquele horário recebe presença — é o mesmo critério que a loja usa para compra
+única (`getUnavailableProductIDs` fecha combo ↔ coffees nos dois sentidos).
+Vale só para o coffee que o combo contém: ter comprado um combo não libera
+presença em coffees de outros horários.
 
 ## Formato de data
 
