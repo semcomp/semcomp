@@ -196,6 +196,11 @@ func applySaleSearchFilter(dbQuery *gorm.DB, query SaleListQuery) *gorm.DB {
 		return dbQuery.Where("payment_method ILIKE ?", "%"+query.SearchValue+"%")
 	case "user_number":
 		return dbQuery.Where("sale_user_number = ?", query.SearchValue)
+	case "user_name":
+		return dbQuery.Where(
+			"sale_user_number IN (SELECT user_number FROM users WHERE name ILIKE ?)",
+			"%"+query.SearchValue+"%",
+		)
 	default:
 		return dbQuery
 	}
@@ -204,7 +209,10 @@ func applySaleSearchFilter(dbQuery *gorm.DB, query SaleListQuery) *gorm.DB {
 func resolveSaleSortClause(sortBy string, sortOrder string) (string, error) {
 	// Mapeia o campo enviado pela API (json tag) para a coluna real do banco.
 	// `user_number` (json) corresponde à coluna GORM `sale_user_number`.
+	// `user_name` não é coluna de `sales`: ordena pelo nome do comprador via
+	// subquery correlata (evita JOIN, que tornaria `id`/`created_at` ambíguos).
 	sortColumnMap := map[string]string{
+		"user_name":      "(SELECT name FROM users WHERE users.user_number = sales.sale_user_number)",
 		"id":             "id",
 		"status":         "status",
 		"total_amount":   "total_amount",
@@ -222,6 +230,12 @@ func resolveSaleSortClause(sortBy string, sortOrder string) (string, error) {
 	order := strings.ToLower(sortOrder)
 	if order != "asc" && order != "desc" {
 		return "", fmt.Errorf("invalid sort order")
+	}
+
+	// Desempate por id: nomes se repetem (mesmo comprador, várias vendas) e,
+	// sem ordem total, a paginação poderia repetir/omitir linhas.
+	if field == "user_name" {
+		return column + " " + order + ", id " + order, nil
 	}
 
 	return column + " " + order, nil

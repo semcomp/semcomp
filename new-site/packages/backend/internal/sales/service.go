@@ -515,6 +515,7 @@ func (s *saleService) GetAllSales(page int, limit int, sortBy string, sortOrder 
 		"total_amount":   true,
 		"created_at":     true,
 		"user_number":    true,
+		"user_name":      true,
 		"payment_method": true,
 	}
 	if !allowedSortFields[sortBy] {
