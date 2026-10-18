@@ -511,13 +511,30 @@ func (r *DashboardRepository) GetSalesOverview() (*SalesOverviewStats, error) {
 // GetTopProducts retorna o ranking de produtos por quantidade vendida e
 // faturamento. O nome exibido prioriza o nome do produto; quando vazio, usa o
 // nome do kit/coffee relacionado; em último caso, o próprio tipo.
+//
+// Camisetas são separadas por variante: um KIT avulso já é a própria variante
+// (k.id) e um COMBO é quebrado pela variante escolhida (si.kit_product_id).
+// Vendas de combo sem kit_product_id (legado/seed) caem no único KIT do combo,
+// quando o combo tem exatamente um.
 func (r *DashboardRepository) GetTopProducts() ([]ProductRank, error) {
 	var products []ProductRank
 	if err := r.db.Raw(`
+		WITH single_kit_combos AS (
+			SELECT ci.combo_id, MIN(ci.item_id) AS kit_id
+			FROM combo_items ci
+			JOIN products pk ON pk.id = ci.item_id
+			WHERE pk.type = 'KIT'
+			GROUP BY ci.combo_id
+			HAVING COUNT(*) = 1
+		)
 		SELECT
 			p.id AS product_id,
 			COALESCE(NULLIF(p.name, ''), k.name, c.name, p.type) AS name,
 			p.type AS type,
+			kv.id          AS kit_product_id,
+			kv.size        AS size,
+			kv.color       AS color,
+			kv.is_babylook AS is_babylook,
 			SUM(si.quantity)                  AS sold,
 			SUM(si.unit_price * si.quantity)  AS revenue
 		FROM sale_items si
@@ -525,8 +542,10 @@ func (r *DashboardRepository) GetTopProducts() ([]ProductRank, error) {
 		JOIN products p ON p.id = si.product_id
 		LEFT JOIN kits k ON k.id = p.id
 		LEFT JOIN coffees c ON c.id = p.id
+		LEFT JOIN single_kit_combos skc ON skc.combo_id = p.id
+		LEFT JOIN kits kv ON kv.id = COALESCE(si.kit_product_id, k.id, skc.kit_id)
 		WHERE s.status = 'PAGO'
-		GROUP BY p.id, p.name, p.type, k.name, c.name
+		GROUP BY p.id, p.name, p.type, k.name, c.name, kv.id, kv.size, kv.color, kv.is_babylook
 		ORDER BY sold DESC
 	`).Scan(&products).Error; err != nil {
 		return nil, err

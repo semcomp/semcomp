@@ -18,6 +18,8 @@ type SigninEvent struct {
 	UserWaitListPosition uint               `json:"user_wait_list_position,omitempty"`
 	Status               RegistrationStatus `gorm:"size:50;not null" json:"status"`
 	UserName             string             `gorm:"->" json:"user_name,omitempty"`
+	UserEmail            string             `gorm:"->" json:"user_email,omitempty"`
+	PapfeStatus          string             `gorm:"->" json:"papfe_status"`
 }
 
 type CreateSigninRequest struct {
@@ -49,6 +51,12 @@ type SigninEventListResult struct {
 	Signins         []SigninEvent `json:"signins"`
 	TotalRecords    int64         `json:"total_records"`
 	FilteredRecords int64         `json:"filtered_records"`
+}
+
+type PromotedUserInfo struct {
+	UserNumber uint
+	Name       string
+	Email      string
 }
 
 type SigninEventsDetailed struct {

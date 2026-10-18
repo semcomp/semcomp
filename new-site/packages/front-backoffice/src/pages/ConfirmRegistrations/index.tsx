@@ -30,9 +30,17 @@ const STATUS_VARIANT: Record<string, string> = {
   "Aguardando Aprovação": "bg-blue-500/20 text-blue-300 border border-blue-500/30",
 };
 
+const PAPFE_VARIANT: Record<string, string> = {
+  Aprovado: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
+  Pendente: "bg-amber-500/20 text-amber-300 border border-amber-500/30",
+  Rejeitado: "bg-red-500/20 text-red-300 border border-red-500/30",
+  "Sem PAPFE": "bg-slate-500/20 text-slate-400 border border-slate-500/30",
+};
+
 const globalFields: CrudField[] = [
   { value: "userNumber", label: "Nº Participante", type: "text", readonly: true },
   { value: "userName", label: "Nome", type: "text", readonly: true },
+  { value: "papfeStatus", label: "PAPFE", type: "select", selectVariants: PAPFE_VARIANT, readonly: true, sortable: false, searchable: false },
   { value: "eventName", label: "Evento", type: "text", readonly: true },
   { value: "eventInitDate", label: "Data", type: "date", readonly: true },
   { value: "status", label: "Status", type: "select", selectVariants: STATUS_VARIANT, readonly: true },
@@ -41,6 +49,7 @@ const globalFields: CrudField[] = [
 const eventFields: CrudField[] = [
   { value: "userNumber", label: "Nº Participante", type: "text", readonly: true },
   { value: "userName", label: "Nome", type: "text", readonly: true },
+  { value: "papfeStatus", label: "PAPFE", type: "select", selectVariants: PAPFE_VARIANT, readonly: true, sortable: false, searchable: false },
   { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true },
   { value: "status", label: "Status", type: "select", selectVariants: STATUS_VARIANT, readonly: true },
 ];

@@ -208,7 +208,8 @@ func (h *SigninEventHandler) GetSigninAdmin(c *gin.Context) {
 // @Param request body signinEvent.CreateSigninAdminRequest true "Dados da inscrição"
 // @Success 201 {object} map[string]interface{} "Inscrição criada com sucesso!"
 // @Failure 400 {object} map[string]string "Dados inválidos"
-// @Failure 409 {object} map[string]string "Inscrição já existente"
+// @Failure 404 {object} map[string]string "Evento não encontrado"
+// @Failure 409 {object} map[string]string "Inscrição já existente / evento lotado"
 // @Failure 500 {object} map[string]string "Erro interno"
 // @Security BearerAuth
 // @Router /admin/signin-events [post]
@@ -242,6 +243,7 @@ func (h *SigninEventHandler) CreateSigninAdmin(c *gin.Context) {
 // @Success 200 {object} map[string]interface{} "Inscrição atualizada com sucesso"
 // @Failure 400 {object} map[string]string "Dados inválidos/pré-condição"
 // @Failure 404 {object} map[string]string "Inscrição não encontrada"
+// @Failure 409 {object} map[string]string "Evento lotado"
 // @Failure 500 {object} map[string]string "Erro interno"
 // @Security BearerAuth
 // @Router /admin/signin-events/{userNumber}/{eventName}/{eventInitDate} [put]
@@ -308,7 +310,7 @@ func (h *SigninEventHandler) DeleteSigninAdmin(c *gin.Context) {
 // @Success 200 {object} map[string]interface{} "Inscrição registrada com sucesso"
 // @Failure 400 {object} map[string]string "Dados inválidos"
 // @Failure 404 {object} map[string]string "Inscrição não encontrada"
-// @Failure 409 {object} map[string]string "Inscrição já registrada"
+// @Failure 409 {object} map[string]string "Inscrição já registrada / evento lotado"
 // @Failure 500 {object} map[string]string "Erro interno"
 // @Security BearerAuth
 // @Router /admin/signin-events/{userNumber}/{eventName}/{eventInitDate}/register [put]
@@ -327,9 +329,9 @@ func (h *SigninEventHandler) RegisterSigninAdmin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Inscrição registrada com sucesso!", "signin": signin})
 }
 
-// RotateSigninsAdmin remove inscrições aguardando doação e promove a fila de espera (backoffice).
+// RotateSigninsAdmin remove inscrições aguardando doação e promove a fila de espera para "Aguardando Aprovação" (backoffice).
 // @Summary Rotaciona as inscrições de um evento (backoffice)
-// @Description Remove todas as inscrições com status "Aguardando Aprovação" e promove os primeiros da fila de espera para "Inscrito", recompondo as posições da fila
+// @Description Remove todas as inscrições com status "Aguardando Aprovação" e move os primeiros da fila de espera para "Aguardando Aprovação", recompondo as posições da fila
 // @Tags Signin Event Backoffice
 // @Accept json
 // @Produce json

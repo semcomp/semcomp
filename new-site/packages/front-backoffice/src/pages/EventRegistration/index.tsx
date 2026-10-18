@@ -1,7 +1,7 @@
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudQueryParams } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
 import { signinEventsAPI, type SigninableEvent } from "@/api/signinEvent.ts";
@@ -11,6 +11,13 @@ import { Tabs } from "@/constants/Tabs";
 import { useHasPermission } from "@/contexts/AuthContext";
 import { useNotification } from "@/contexts/NotificationContext";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -43,9 +50,11 @@ export default function EventRegistration() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(false);
   const [rotating, setRotating] = useState(false);
+  const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const lastParamsRef = useRef<CrudQueryParams | undefined>(undefined);
+  // Muda a key da CrudTable para remontá-la, voltando a ordenação ao padrão
+  // (status/fila) após rodar a fila.
+  const [tableKey, setTableKey] = useState(0);
 
   useEffect(() => {
     signinEventsAPI.getSigninableEvents().then(setSigninableEvents).catch(() => {});
@@ -67,7 +76,7 @@ export default function EventRegistration() {
         const response = await signinEventsAPI.getAll(
           params?.page ?? 1,
           params?.pageSize ?? 10,
-          API_FIELD_MAP[params?.sortField ?? ""] || "user_wait_list_position",
+          API_FIELD_MAP[params?.sortField ?? ""] || "status_priority",
           params?.sortOrder ?? "asc",
           filterField,
           filterValue
@@ -91,7 +100,6 @@ export default function EventRegistration() {
       setSelectedEvent(null);
       setData([]);
       setTotalRecords(0);
-      lastParamsRef.current = undefined;
       fetchSignins(undefined, null);
       return;
     }
@@ -100,25 +108,28 @@ export default function EventRegistration() {
     setSelectedEvent(event);
     setData([]);
     setTotalRecords(0);
-    lastParamsRef.current = undefined;
     if (event) fetchSignins(undefined, event);
   };
 
   const handleQueryChange = useCallback(
     (params: CrudQueryParams) => {
-      lastParamsRef.current = params;
       fetchSignins(params);
     },
     [fetchSignins]
   );
+
+  const handleRotateClick = () => {
+    setRotateConfirmOpen(true);
+  };
 
   const handleRotate = async () => {
     if (!selectedEvent) return;
     try {
       setRotating(true);
       await signinEventsAPI.rotate(selectedEvent.name, selectedEvent.init_date);
+      setRotateConfirmOpen(false);
       showNotification("Fila rotacionada com sucesso", "success");
-      await fetchSignins(lastParamsRef.current);
+      setTableKey((k) => k + 1);
     } catch (err: any) {
       showNotification(err.response?.data?.message || "Erro ao rodar fila", "error");
     } finally {
@@ -262,7 +273,7 @@ export default function EventRegistration() {
 
             {canWrite && (
               <Button
-                onClick={handleRotate}
+                onClick={handleRotateClick}
                 disabled={rotating || !selectedEvent.max_participants}
                 title={!selectedEvent.max_participants ? "Evento com vagas ilimitadas" : undefined}
                 variant="outline"
@@ -287,8 +298,10 @@ export default function EventRegistration() {
               </div>
             )}
             <CrudTable
+              key={tableKey}
               data={data}
               fields={fieldsForEvent}
+              defaultSortField="status_priority"
               onEdit={handleEdit}
               onDelete={handleDelete}
               onCreate={handleCreate}
@@ -305,8 +318,10 @@ export default function EventRegistration() {
       {!selectedEvent && (
         <div className="rounded-xl border border-border bg-card/80 p-5">
           <CrudTable
+            key={tableKey}
             data={data}
             fields={fields}
+            defaultSortField="status_priority"
             onEdit={handleEdit}
             onDelete={handleDelete}
             onCreate={handleCreate}
@@ -318,6 +333,68 @@ export default function EventRegistration() {
           />
         </div>
       )}
+      {/* Confirmation modal */}
+      <Dialog open={rotateConfirmOpen} onOpenChange={setRotateConfirmOpen}>
+        <DialogContent
+          className="bg-slate-900 border-slate-700 text-slate-100"
+          style={{ maxWidth: "min(36rem, calc(100% - 2rem))" }}
+        >
+          <DialogHeader>
+            <DialogTitle className="text-white">Rodar fila?</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            <p className="text-slate-300 text-sm">
+              Ao rodar a fila, as inscrições com status{" "}
+              <span className="text-blue-400 font-medium">Aguardando Aprovação</span> serão
+              removidas e as pessoas da{" "}
+              <span className="text-amber-400 font-medium">Lista de Espera</span> serão
+              movidas para Aguardando Aprovação até preencher as vagas disponíveis. Esta
+              ação não pode ser desfeita.
+            </p>
+            {selectedEvent && (
+              <div className="rounded-lg bg-slate-800 border border-slate-700 p-4 space-y-1.5 text-sm">
+                <p>
+                  <span className="text-slate-400">Evento:</span>{" "}
+                  <span className="text-white font-medium">{selectedEvent.name}</span>
+                </p>
+                <p>
+                  <span className="text-slate-400">Data:</span>{" "}
+                  <span className="text-white font-medium">
+                    {formatDate(selectedEvent.init_date)} → {formatDate(selectedEvent.end_date)}
+                  </span>
+                </p>
+                <p>
+                  <span className="text-slate-400">Vagas:</span>{" "}
+                  <span className="text-white font-medium">
+                    {selectedEvent.max_participants
+                      ? selectedEvent.max_participants
+                      : "Vagas ilimitadas"}
+                  </span>
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setRotateConfirmOpen(false)}
+              disabled={rotating}
+              className="border-slate-600 text-slate-300 hover:bg-slate-800"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleRotate}
+              disabled={rotating}
+              className="bg-violet-600 hover:bg-violet-700 text-white"
+            >
+              {rotating ? "Rodando..." : "Rodar fila"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
