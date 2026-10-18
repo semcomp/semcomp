@@ -74,7 +74,7 @@ func (r *presenceRepository) UpdateByUserEventandInitDate(userNumber int64, even
 }
 
 func (r *presenceRepository) GetPresences(query PresenceListQuery) (*PresenceListResult, error) {
-	var presences []Presence
+	presences := make([]Presence, 0)
 	var totalRecords int64
 	var filteredRecords int64
 

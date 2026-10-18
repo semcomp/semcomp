@@ -151,7 +151,7 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 // GetAll retorna uma lista de todos os usuários cadastrados, com os devidos filtros e
 // ordenações aplicados.
 func (r *userRepository) GetAll(query UserListQuery) (*UserListResult, error) {
-	var users []User
+	users := make([]User, 0)
 	var totalRecords int64
 	var filteredRecords int64
 

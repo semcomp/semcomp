@@ -136,7 +136,7 @@ func (r *saleRepository) GetByID(id uint) (*Sale, error) {
 }
 
 func (r *saleRepository) GetByUserNumber(userNumber uint) ([]Sale, error) {
-	var sales []Sale
+	sales := make([]Sale, 0)
 	err := r.db.
 		Where("sale_user_number = ?", userNumber).
 		Preload("Items").
@@ -278,7 +278,7 @@ func resolveSaleSortClause(sortBy string, sortOrder string) (string, error) {
 }
 
 func (r *saleRepository) GetAll(query SaleListQuery) (*SaleListResult, error) {
-	var sales []Sale
+	sales := make([]Sale, 0)
 	var totalRecords int64
 	var filteredRecords int64
 

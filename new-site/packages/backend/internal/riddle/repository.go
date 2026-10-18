@@ -129,7 +129,7 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 }
 
 func (r *riddleRepository) GetRiddles(query RiddleListQuery) (*RiddleListResult, error) {
-	var riddles []Riddle
+	riddles := make([]Riddle, 0)
 	var totalRecords int64
 	var filteredRecords int64
 

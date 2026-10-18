@@ -30,7 +30,7 @@ func NewSponsorRepository(db *gorm.DB) SponsorRepository {
 }
 
 func (r *sponsorRepository) GetPublic(year int) ([]Sponsor, error) {
-	var sponsors []Sponsor
+	sponsors := make([]Sponsor, 0)
 	err := r.db.
 		Joins("JOIN sponsor_packages ON sponsor_packages.sponsor_cnpj = sponsors.cnpj AND sponsor_packages.year = ?", year).
 		Distinct("sponsors.*").
@@ -143,7 +143,7 @@ func resolveSponsorSortClause(sortBy, sortOrder string) (string, error) {
 }
 
 func (r *sponsorRepository) GetAll(query SponsorListQuery) (*SponsorListResult, error) {
-	var sponsors []Sponsor
+	sponsors := make([]Sponsor, 0)
 	var totalRecords, filteredRecords int64
 
 	sortClause, err := resolveSponsorSortClause(query.SortBy, query.SortOrder)
