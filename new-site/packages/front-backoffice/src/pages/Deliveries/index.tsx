@@ -110,7 +110,6 @@ const KIT_FIELDS: CrudField[] = [
     label: "Status",
     type: "select",
     sortable: false,
-    searchable: false,
     selectVariants: {
       Retirado: "bg-emerald-900/40 text-emerald-300 border border-emerald-700/30",
       Pendente: "bg-slate-800 text-slate-300 border border-slate-600/30",
@@ -126,7 +125,6 @@ const BADGE_FIELDS: CrudField[] = [
     label: "Status",
     type: "select",
     sortable: false,
-    searchable: false,
     selectVariants: {
       Entregue: "bg-emerald-900/40 text-emerald-300 border border-emerald-700/30",
       Pendente: "bg-slate-800 text-slate-300 border border-slate-600/30",

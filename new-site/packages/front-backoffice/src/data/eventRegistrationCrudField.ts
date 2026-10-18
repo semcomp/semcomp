@@ -18,20 +18,20 @@ export const fields: CrudField[] = [
   { value: "userNumber", label: "Número do Participante", type: "text" },
   { value: "userName", label: "Nome", type: "text", readonly: true },
   { value: "userEmail", label: "Email", type: "text", readonly: true },
-  { value: "papfeStatus", label: "PAPFE", type: "select", selectVariants: papfeVariants, readonly: true, sortable: false, searchable: false },
+  { value: "papfeStatus", label: "PAPFE", type: "select", selectVariants: papfeVariants, readonly: true, sortable: false },
   { value: "eventName", label: "Nome do Evento", type: "text" },
   { value: "eventInitDate", label: "Data do Evento", type: "date" },
   { value: "status", label: "Status", type: "select", selectVariants: statusVariants, sortValue: "status_priority" },
-  { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true, searchable: false },
+  { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true },
 ];
 
 export const fieldsForEvent: CrudField[] = [
   { value: "userNumber", label: "Número do Participante", type: "text" },
   { value: "userName", label: "Nome", type: "text", readonly: true },
   { value: "userEmail", label: "Email", type: "text", readonly: true },
-  { value: "papfeStatus", label: "PAPFE", type: "select", selectVariants: papfeVariants, readonly: true, sortable: false, searchable: false },
+  { value: "papfeStatus", label: "PAPFE", type: "select", selectVariants: papfeVariants, readonly: true, sortable: false },
   { value: "status", label: "Status", type: "select", selectVariants: statusVariants, sortValue: "status_priority" },
-  { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true, searchable: false },
+  { value: "userWaitListPosition", label: "Posição na Fila", type: "number", readonly: true },
 ];
 
 export const API_FIELD_MAP: Record<string, string> = {
@@ -39,5 +39,6 @@ export const API_FIELD_MAP: Record<string, string> = {
   eventName: "event_name",
   eventInitDate: "event_init_date",
   userWaitListPosition: "user_wait_list_position",
+  papfeStatus: "papfe_status",
   status: "status",
 };

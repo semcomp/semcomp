@@ -388,21 +388,30 @@ func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEvent
 		return nil, err
 	}
 
-	filteredQuery := applySearchFilter(r.db.Model(&SigninEvent{}), query)
+	// papfe_status é calculado via joins em users/papfe_documents; o count também
+	// precisa dessas tabelas quando o filtro referencia essa expressão.
+	countBase := r.db.Model(&SigninEvent{})
+	if query.SearchBy == "papfe_status" {
+		countBase = joinUserInfo(countBase)
+	}
+	filteredQuery := applySearchFilter(countBase, query)
 	if err := filteredQuery.Count(&filteredRecords).Error; err != nil {
 		return nil, err
 	}
 
-	dataQuery := applySearchFilter(r.db.Table("signin_events"), query)
-	dataQuery = dataQuery.
-		Select("signin_events.user_number, signin_events.event_name, signin_events.event_init_date, "+
-			"CASE WHEN signin_events.status = ? AND events.max_participants > 0 "+
-			"AND signin_events.user_wait_list_position > events.max_participants "+
-			"THEN signin_events.user_wait_list_position - events.max_participants "+
-			"ELSE signin_events.user_wait_list_position END AS user_wait_list_position, "+
-			"signin_events.status, "+userInfoColumns, StatusWaitListed).
-		Joins("LEFT JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date")
-	err = joinUserInfo(dataQuery).
+	// Os joins de users/papfe_documents são adicionados antes do filtro para que
+	// applySearchFilter possa referenciar essas tabelas (ex.: papfe_status).
+	dataBase := joinUserInfo(
+		r.db.Table("signin_events").
+			Select("signin_events.user_number, signin_events.event_name, signin_events.event_init_date, "+
+				"CASE WHEN signin_events.status = ? AND events.max_participants > 0 "+
+				"AND signin_events.user_wait_list_position > events.max_participants "+
+				"THEN signin_events.user_wait_list_position - events.max_participants "+
+				"ELSE signin_events.user_wait_list_position END AS user_wait_list_position, "+
+				"signin_events.status, "+userInfoColumns, StatusWaitListed).
+			Joins("LEFT JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date"),
+	)
+	err = applySearchFilter(dataBase, query).
 		Order(sortClause).Limit(query.Limit).Offset(query.Offset).Scan(&signins).Error
 	if err != nil {
 		return nil, err
@@ -684,6 +693,18 @@ func applySearchFilter(dbQuery *gorm.DB, query SigninEventListQuery) *gorm.DB {
 		return dbQuery.Where("DATE(signin_events.event_init_date) = DATE(?)", parsedTime)
 	case "status":
 		return dbQuery.Where("signin_events.status ILIKE ?", "%"+query.SearchValue+"%")
+	case "user_wait_list_position":
+		return dbQuery.Where("signin_events.user_wait_list_position = ?", query.SearchValue)
+	case "papfe_status":
+		// papfe_status é uma expressão CASE sobre users/papfe_documents; as tabelas
+		// devem estar joinadas antes de chamar esta função (ver GetAll).
+		return dbQuery.Where(
+			"CASE WHEN NOT users.has_papfe THEN 'Sem PAPFE' "+
+				"WHEN papfe_documents.is_approved IS NULL THEN 'Pendente' "+
+				"WHEN papfe_documents.is_approved = true THEN 'Aprovado' "+
+				"ELSE 'Rejeitado' END ILIKE ?",
+			"%"+query.SearchValue+"%",
+		)
 	default:
 		return dbQuery
 	}

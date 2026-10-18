@@ -201,6 +201,10 @@ func applySaleSearchFilter(dbQuery *gorm.DB, query SaleListQuery) *gorm.DB {
 			"sale_user_number IN (SELECT user_number FROM users WHERE name ILIKE ?)",
 			"%"+query.SearchValue+"%",
 		)
+	case "total_amount":
+		return dbQuery.Where("total_amount = ?", query.SearchValue)
+	case "created_at":
+		return dbQuery.Where("DATE(created_at)::text ILIKE ?", "%"+query.SearchValue+"%")
 	default:
 		return dbQuery
 	}

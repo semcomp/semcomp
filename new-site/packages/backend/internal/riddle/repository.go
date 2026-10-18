@@ -98,6 +98,8 @@ func applySearchFilter(dbQuery *gorm.DB, query RiddleListQuery) *gorm.DB {
 	}
 
 	switch query.SearchBy {
+	case "id":
+		return dbQuery.Where("id = ?", query.SearchValue)
 	case "hint1":
 		return dbQuery.Where("hint1 ILIKE ?", "%"+query.SearchValue+"%")
 	case "hint2":
