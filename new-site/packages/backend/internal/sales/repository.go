@@ -501,7 +501,7 @@ func (r *saleRepository) kitBaseQuery() *gorm.DB {
 		Joins("JOIN products p ON p.id = si.product_id").
 		Joins("LEFT JOIN kits pk ON pk.id = si.product_id").
 		Joins("LEFT JOIN kits pkc ON pkc.id = si.kit_product_id").
-		Joins("JOIN users u ON u.user_number = s.user_number").
+		Joins("JOIN users u ON u.user_number = s.sale_user_number").
 		Where("s.status = ?", SaleStatusPaid).
 		Where("(p.type = ? OR (p.type = ? AND si.kit_product_id IS NOT NULL))", "KIT", "COMBO")
 }
