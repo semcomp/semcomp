@@ -63,7 +63,7 @@ type ModalState =
 const FIELDS: CrudField[] = [
   { value: "user_name", label: "Participante" },
   { value: "event_name", label: "Evento" },
-  { value: "reason_preview", label: "Justificativa", searchable: false },
+  { value: "reason_preview", label: "Justificativa", searchable: false, sortable: false },
   { value: "submitted_at", label: "Enviado em", type: "date" },
   {
     value: "status",
