@@ -765,6 +765,7 @@ func applySearchFilter(dbQuery *gorm.DB, query SigninEventListQuery) *gorm.DB {
 func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 	allowedSortFields := []string{
 		"user_number",
+		"user_name",
 		"event_name",
 		"event_init_date",
 		"status",
@@ -797,6 +798,10 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 			", signin_events.event_name asc" +
 			", signin_events.user_wait_list_position asc" +
 			", signin_events.user_number asc", nil
+	}
+
+	if field == "user_name" {
+		return "users.name " + order, nil
 	}
 
 	// Qualifica a coluna para que o ORDER BY não resolva para o alias
