@@ -41,7 +41,7 @@ const DELIVERY_TABS: { type: DeliveryTab; label: string; icon: React.ReactNode; 
 // ── Campos CrudTable ──────────────────────────────────────────────────────────
 
 const KIT_FIELDS: CrudField[] = [
-  { value: "user_number_formatted", label: "Nº", type: "text", sortable: false },
+  { value: "user_number", label: "Nº", type: "text" },
   { value: "user_name", label: "Participante", type: "text" },
   { value: "kit_name", label: "Kit", type: "text" },
   { value: "kit_details", label: "Detalhes", type: "text", sortable: false, searchable: false },
@@ -77,7 +77,7 @@ const BADGE_FIELDS: CrudField[] = [
 
 interface KitDisplayRow extends CrudItemType {
   itemId: number;
-  user_number_formatted: string;
+  user_number: string;
   user_name: string;
   kit_name: string;
   kit_details: string;
@@ -93,7 +93,7 @@ function fromApiKitItem(item: KitDeliveryItem): KitDisplayRow {
   return {
     id: String(item.item_id),
     itemId: item.item_id,
-    user_number_formatted: item.user_number,
+    user_number: item.user_number,
     user_name: item.user_name,
     kit_name: item.kit_name,
     kit_details: parts.join(" · "),
@@ -117,7 +117,6 @@ function KitTab({ canWrite }: { canWrite: boolean }) {
     setLoading(true);
     try {
       const kitFieldMap: Record<string, string> = {
-        user_number_formatted: "user_number",
         status: "is_picked_up",
       };
       const backendSortBy = kitFieldMap[params.sortField] ?? params.sortField;
@@ -204,7 +203,7 @@ function KitTab({ canWrite }: { canWrite: boolean }) {
           <div className="py-3 space-y-1 text-sm text-muted-foreground">
             <p>
               <span className="text-foreground font-medium">{confirmItem?.user_name}</span>
-              {" "}— Nº {confirmItem?.user_number_formatted}
+              {" "}— Nº {confirmItem?.user_number}
             </p>
             <p>
               <span className="text-foreground">{confirmItem?.kit_name}</span>
