@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { CrudTable } from "@/components/CrudTable";
-import type { CrudField } from "@/components/CrudTable";
+import type { CrudField, CrudQueryParams } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
 import { BannerCard } from "@/components/BannerCard";
 import { confirmationsAPI, type SigninableEvent } from "@/api/signinEvent";
@@ -72,9 +72,12 @@ export default function ConfirmRegistrations() {
 
   const [signinableEvents, setSigninableEvents] = useState<SigninableEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<SigninableEvent | null>(null);
+  const selectedEventRef = useRef<SigninableEvent | null>(null);
 
   const [data, setData] = useState<SigninEventType[]>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [crudKey, setCrudKey] = useState(0);
 
   const [confirmItem, setConfirmItem] = useState<SigninEventType | null>(null);
   const [approving, setApproving] = useState(false);
@@ -83,47 +86,54 @@ export default function ConfirmRegistrations() {
     confirmationsAPI.getSigninableEvents().then(setSigninableEvents).catch(() => {});
   }, []);
 
-  const fetchPending = useCallback(
-    async (event?: SigninableEvent | null) => {
-      const activeEvent = event !== undefined ? event : selectedEvent;
-      try {
-        setLoading(true);
-        const response = await confirmationsAPI.getAll(
-          1,
-          500,
-          "user_wait_list_position",
-          "asc",
-          activeEvent ? "event_name" : "status",
-          activeEvent ? activeEvent.name : "Aguardando Aprovação"
-        );
-        const pending = activeEvent
-          ? response.signins.filter((s) => s.status === "Aguardando Aprovação")
-          : response.signins;
-        setData(pending);
-      } catch {
-        showNotification("Erro ao carregar inscrições pendentes", "error");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [selectedEvent, showNotification]
-  );
+  const handleQueryChange = useCallback(async (params: CrudQueryParams) => {
+    setLoading(true);
+    try {
+      const event = selectedEventRef.current;
 
-  useEffect(() => {
-    fetchPending();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      // Mapeia nomes de campo camelCase do frontend → snake_case do backend
+      const fieldMap: Record<string, string> = {
+        userNumber: "user_number",
+        userName: "user_name",
+        eventName: "event_name",
+        eventInitDate: "event_init_date",
+        status: "status",
+        userWaitListPosition: "user_wait_list_position",
+      };
+      const backendSortBy = fieldMap[params.sortField] ?? params.sortField;
+      const backendSearchBy = params.filterField
+        ? (fieldMap[params.filterField] ?? params.filterField)
+        : undefined;
+
+      const response = await confirmationsAPI.getAll(
+        params.page,
+        params.pageSize,
+        backendSortBy || "user_number",
+        params.sortOrder || "asc",
+        backendSearchBy,
+        params.filterValue || undefined,
+        event?.name
+      );
+      setData(response.signins);
+      setTotalRecords(response.filtered_records);
+    } catch {
+      showNotification("Erro ao carregar inscrições pendentes", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [showNotification]);
 
   const handleEventChange = (value: string) => {
     if (value === "__all__") {
+      selectedEventRef.current = null;
       setSelectedEvent(null);
-      fetchPending(null);
-      return;
+    } else {
+      const event = signinableEvents.find((e) => `${e.name}__${e.init_date}` === value) ?? null;
+      selectedEventRef.current = event;
+      setSelectedEvent(event);
     }
-    const event =
-      signinableEvents.find((e) => `${e.name}__${e.init_date}` === value) ?? null;
-    setSelectedEvent(event);
-    if (event) fetchPending(event);
+    // Incrementar o key reseta a paginação do CrudTable e dispara novo onQueryChange
+    setCrudKey((k) => k + 1);
   };
 
   const resolveKey = useCallback((item: CrudItemType) => {
@@ -146,6 +156,7 @@ export default function ConfirmRegistrations() {
       );
       const key = resolveKey(confirmItem);
       setData((prev) => prev.filter((s) => resolveKey(s) !== key));
+      setTotalRecords((n) => Math.max(0, n - 1));
       showNotification("Inscrição aprovada com sucesso", "success");
       setConfirmItem(null);
     } catch (err: any) {
@@ -224,16 +235,16 @@ export default function ConfirmRegistrations() {
             </span>
           </div>
           <p className="text-sm font-medium text-blue-400 pt-1">
-            {data.length}{" "}
-            {data.length === 1 ? "inscrição aguardando" : "inscrições aguardando"} aprovação
+            {totalRecords}{" "}
+            {totalRecords === 1 ? "inscrição aguardando" : "inscrições aguardando"} aprovação
           </p>
         </div>
       )}
 
       {!selectedEvent && !loading && (
         <p className="text-sm text-slate-400 px-1">
-          {data.length}{" "}
-          {data.length === 1
+          {totalRecords}{" "}
+          {totalRecords === 1
             ? "inscrição aguardando aprovação em todos os eventos"
             : "inscrições aguardando aprovação em todos os eventos"}
         </p>
@@ -245,17 +256,19 @@ export default function ConfirmRegistrations() {
           <p className="text-center text-slate-400 py-12">Carregando...</p>
         )}
         <CrudTable
+          key={crudKey}
           data={data}
           fields={selectedEvent ? eventFields : globalFields}
           onEdit={() => {}}
           onDelete={() => {}}
           getItemKey={resolveKey}
           entityLabel="inscrição pendente"
-          totalRecords={data.length}
+          totalRecords={totalRecords}
           canWrite={false}
           onAction={canWrite ? handleApproveClick : undefined}
           actionIcon={<CheckCircle2 className="w-4 h-4" />}
           actionTitle="Aprovar inscrição"
+          onQueryChange={handleQueryChange}
         />
       </div>
 

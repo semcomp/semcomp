@@ -13,6 +13,34 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+type KitDeliveryListQuery struct {
+	Limit       int
+	Offset      int
+	SortBy      string
+	SortOrder   string
+	SearchBy    string
+	SearchValue string
+}
+
+type KitDeliveryItem struct {
+	ItemID       uint   `json:"item_id"`
+	SaleID       uint   `json:"sale_id"`
+	UserNumber   string `json:"user_number"`
+	UserName     string `json:"user_name"`
+	KitName      string `json:"kit_name"`
+	KitSize      string `json:"kit_size"`
+	KitColor     string `json:"kit_color"`
+	KitIsBabylook bool  `json:"kit_is_babylook"`
+	Quantity     int    `json:"quantity"`
+	IsPickedUp   bool   `json:"is_picked_up"`
+}
+
+type KitDeliveryListResult struct {
+	Items           []KitDeliveryItem `json:"kit_deliveries"`
+	TotalRecords    int64             `json:"total_records"`
+	FilteredRecords int64             `json:"filtered_records"`
+}
+
 type SaleRepository interface {
 	Create(sale *Sale) error
 	GetByID(id uint) (*Sale, error)
@@ -59,6 +87,10 @@ type SaleRepository interface {
 	// casam o predicado no momento do update, evitando sobrescrever um PAGO
 	// recém-chegado do webhook.
 	ExpirePendingPixSales() ([]uint, error)
+
+	// GetKitDeliveriesPaged retorna uma lista paginada de itens de kit a serem
+	// entregues, juntando vendas PAGO + itens KIT/COMBO+kit direto no banco.
+	GetKitDeliveriesPaged(query KitDeliveryListQuery) (*KitDeliveryListResult, error)
 }
 
 type saleRepository struct {
@@ -459,4 +491,106 @@ func (r *saleRepository) ExpirePendingPixSales() ([]uint, error) {
 		SaleStatusExpired, SaleStatusPending, "pix", time.Now().Add(-PixExpirationWindow),
 	).Scan(&ids).Error
 	return ids, err
+}
+
+// kitBaseQuery retorna a query base que une itens de kit (KIT direto ou KIT dentro de COMBO)
+// com vendas PAGO e dados do usuário.
+func (r *saleRepository) kitBaseQuery() *gorm.DB {
+	return r.db.Table("sale_items si").
+		Joins("JOIN sales s ON s.id = si.sale_id").
+		Joins("JOIN products p ON p.id = si.product_id").
+		Joins("LEFT JOIN kits pk ON pk.id = si.product_id").
+		Joins("LEFT JOIN kits pkc ON pkc.id = si.kit_product_id").
+		Joins("JOIN users u ON u.user_number = s.user_number").
+		Where("s.status = ?", SaleStatusPaid).
+		Where("(p.type = ? OR (p.type = ? AND si.kit_product_id IS NOT NULL))", "KIT", "COMBO")
+}
+
+func applyKitSearchFilter(q *gorm.DB, searchBy, searchValue string) *gorm.DB {
+	if searchBy == "" || searchValue == "" {
+		return q
+	}
+	switch searchBy {
+	case "user_name":
+		return q.Where("u.name ILIKE ?", "%"+searchValue+"%")
+	case "user_number":
+		return q.Where("u.user_number::text ILIKE ?", "%"+searchValue+"%")
+	case "kit_name":
+		return q.Where("COALESCE(pkc.name, pk.name) ILIKE ?", "%"+searchValue+"%")
+	case "kit_size":
+		return q.Where("COALESCE(pkc.size, pk.size) ILIKE ?", "%"+searchValue+"%")
+	case "kit_color":
+		return q.Where("COALESCE(pkc.color, pk.color) ILIKE ?", "%"+searchValue+"%")
+	case "is_picked_up":
+		switch strings.ToLower(searchValue) {
+		case "true", "sim", "entregue", "retirado":
+			return q.Where("si.is_picked_up = true")
+		case "false", "não", "nao", "pendente":
+			return q.Where("si.is_picked_up = false")
+		}
+	}
+	return q
+}
+
+func resolveKitSortClause(sortBy, sortOrder string) (string, error) {
+	allowedMap := map[string]string{
+		"user_name":    "u.name",
+		"user_number":  "u.user_number",
+		"kit_name":     "COALESCE(pkc.name, pk.name)",
+		"kit_size":     "COALESCE(pkc.size, pk.size)",
+		"is_picked_up": "si.is_picked_up",
+	}
+	col, ok := allowedMap[strings.ToLower(sortBy)]
+	if !ok {
+		return "", fmt.Errorf("invalid sort field")
+	}
+	ord := strings.ToLower(sortOrder)
+	if ord != "asc" && ord != "desc" {
+		return "", fmt.Errorf("invalid sort order")
+	}
+	return col + " " + ord, nil
+}
+
+func (r *saleRepository) GetKitDeliveriesPaged(query KitDeliveryListQuery) (*KitDeliveryListResult, error) {
+	sortClause, err := resolveKitSortClause(query.SortBy, query.SortOrder)
+	if err != nil {
+		return nil, apierrors.ValidationError("Campo de ordenação inválido para kits", err)
+	}
+
+	var totalRecords int64
+	var filteredRecords int64
+	var items []KitDeliveryItem
+
+	baseCount := r.kitBaseQuery()
+	if err := baseCount.Count(&totalRecords).Error; err != nil {
+		return nil, apierrors.InternalServerError("Erro ao contar kits", err)
+	}
+
+	if err := applyKitSearchFilter(baseCount, query.SearchBy, query.SearchValue).Count(&filteredRecords).Error; err != nil {
+		return nil, apierrors.InternalServerError("Erro ao contar kits filtrados", err)
+	}
+
+	err = applyKitSearchFilter(r.kitBaseQuery(), query.SearchBy, query.SearchValue).
+		Select(`si.id AS item_id, s.id AS sale_id,
+			LPAD(u.user_number::text, 5, '0') AS user_number,
+			u.name AS user_name,
+			COALESCE(pkc.name, pk.name) AS kit_name,
+			COALESCE(pkc.size, pk.size) AS kit_size,
+			COALESCE(pkc.color, pk.color) AS kit_color,
+			COALESCE(pkc.is_babylook, pk.is_babylook) AS kit_is_babylook,
+			si.quantity,
+			si.is_picked_up`).
+		Order(sortClause).
+		Limit(query.Limit).
+		Offset(query.Offset).
+		Scan(&items).Error
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao listar entregas de kit", err)
+	}
+
+	return &KitDeliveryListResult{
+		Items:           items,
+		TotalRecords:    totalRecords,
+		FilteredRecords: filteredRecords,
+	}, nil
 }

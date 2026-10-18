@@ -19,12 +19,14 @@ type SigninEventService interface {
 	GetMySignins(userNumber uint) ([]SigninEventsDetailed, error)
 	DeleteSignin(userNumber uint, eventName string, eventInitDate string) error
 	GetSigninsAdmin(page int, limit int, sortBy string, sortOrder string, searchBy string, searchValue string) (*SigninEventListResult, error)
+	GetPendingSigninsAdmin(page, limit int, sortBy, sortOrder, searchBy, searchValue, eventNameFilter string) (*SigninEventListResult, error)
 	GetSigninAdmin(userNumber string, eventName string, eventInitDate string) (*SigninEvent, error)
 	CreateSigninAdmin(request CreateSigninAdminRequest) (*SigninEvent, error)
 	UpdateSigninAdmin(userNumber string, eventName string, eventInitDate string, request UpdateSigninAdminRequest) (*SigninEvent, error)
 	DeleteSigninAdmin(userNumber string, eventName string, eventInitDate string) error
 	RegisterSigninAdmin(userNumber string, eventName string, eventInitDate string) (*SigninEvent, error)
 	RotateSigninsAdmin(eventName string, eventInitDate string) ([]SigninEvent, error)
+	GetSigninStatusCounts(eventName string) (*SigninEventStatusCounts, error)
 }
 
 type signinEventService struct {
@@ -218,6 +220,37 @@ func (s *signinEventService) GetSigninsAdmin(page int, limit int, sortBy string,
 	return result, nil
 }
 
+func (s *signinEventService) GetPendingSigninsAdmin(page, limit int, sortBy, sortOrder, searchBy, searchValue, eventNameFilter string) (*SigninEventListResult, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+	if sortBy == "" {
+		sortBy = "user_number"
+	}
+	if sortOrder == "" {
+		sortOrder = "asc"
+	}
+	offset := (page - 1) * limit
+	query := SigninEventListQuery{
+		Limit:           limit,
+		Offset:          offset,
+		SortBy:          strings.ToLower(sortBy),
+		SortOrder:       strings.ToLower(sortOrder),
+		SearchBy:        searchBy,
+		SearchValue:     searchValue,
+		StatusFilter:    string(StatusWaitingDonation),
+		EventNameFilter: eventNameFilter,
+	}
+	result, err := s.repo.GetAll(query)
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao listar confirmações pendentes", err)
+	}
+	return result, nil
+}
+
 func (s *signinEventService) GetSigninAdmin(userNumber string, eventName string, eventInitDate string) (*SigninEvent, error) {
 	initTime, err := time.Parse(time.RFC3339, eventInitDate)
 	if err != nil {
@@ -394,6 +427,10 @@ func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate 
 	}
 
 	return signins, nil
+}
+
+func (s *signinEventService) GetSigninStatusCounts(eventName string) (*SigninEventStatusCounts, error) {
+	return s.repo.GetStatusCounts(eventName)
 }
 
 func (s *signinEventService) sendPromotionEmails(userNumbers []uint, eventName string) {

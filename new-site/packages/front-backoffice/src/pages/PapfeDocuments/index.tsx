@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
 import { CrudTable } from "@/components/CrudTable";
@@ -68,78 +68,40 @@ const toRow = (doc: PapfeDocumentInfo): PapfeRow => ({
       : "Pendente",
 });
 
-function applyClientQuery(
-  rows: PapfeRow[],
-  params: CrudQueryParams
-): { items: PapfeRow[]; total: number } {
-  let filtered = rows;
-
-  if (params.filterField && params.filterValue) {
-    const val = params.filterValue.toLowerCase();
-    filtered = rows.filter((r) =>
-      String((r as unknown as Record<string, unknown>)[params.filterField] ?? "")
-        .toLowerCase()
-        .includes(val)
-    );
-  }
-
-  if (params.sortField) {
-    const dir = params.sortOrder === "desc" ? -1 : 1;
-    filtered = [...filtered].sort((a, b) => {
-      const av = String((a as unknown as Record<string, unknown>)[params.sortField] ?? "");
-      const bv = String((b as unknown as Record<string, unknown>)[params.sortField] ?? "");
-      return av.localeCompare(bv, "pt-BR") * dir;
-    });
-  }
-
-  const total = filtered.length;
-  const start = (params.page - 1) * params.pageSize;
-  const items = filtered.slice(start, start + params.pageSize);
-  return { items, total };
-}
-
 export default function PapfeDocuments() {
   const canWrite = useHasPermission("PAPFE", "RW");
   const navigate = useNavigate();
   const { showNotification } = useNotification();
 
-  const [allDocuments, setAllDocuments] = useState<PapfeDocumentInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [documents, setDocuments] = useState<PapfeDocumentInfo[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
-  const [queryParams, setQueryParams] = useState<CrudQueryParams>({
-    page: 1,
-    pageSize: 10,
-    sortField: "uploaded_at",
-    sortOrder: "desc",
-    filterField: "",
-    filterValue: "",
-  });
 
-  const allRows = useMemo(() => allDocuments.map(toRow), [allDocuments]);
+  const rows = useMemo(() => documents.map(toRow), [documents]);
 
-  const { items: rows, total: filteredCount } = useMemo(
-    () => applyClientQuery(allRows, queryParams),
-    [allRows, queryParams]
-  );
-
-  const fetchDocuments = useCallback(async () => {
+  const handleQueryChange = useCallback(async (params: CrudQueryParams) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const docs = await papfeAPI.getAll();
-      setAllDocuments(docs);
+      const result = await papfeAPI.getAll(
+        params.page,
+        params.pageSize,
+        params.sortField || "uploaded_at",
+        params.sortOrder || "desc",
+        params.filterField || undefined,
+        params.filterValue || undefined
+      );
+      setDocuments(result.papfe_documents);
+      setTotalRecords(result.filtered_records);
     } catch {
       showNotification("Erro ao carregar comprovantes PAPFE", "error");
     } finally {
       setLoading(false);
     }
   }, [showNotification]);
-
-  useEffect(() => {
-    fetchDocuments();
-  }, [fetchDocuments]);
 
   const openModal = async (doc: PapfeDocumentInfo) => {
     setRejecting(false);
@@ -163,7 +125,7 @@ export default function PapfeDocuments() {
   };
 
   const handleAction = (item: CrudItemType) => {
-    const doc = allDocuments.find((d) => String(d.id) === item.id);
+    const doc = documents.find((d) => String(d.id) === item.id);
     if (doc) openModal(doc);
   };
 
@@ -181,7 +143,7 @@ export default function PapfeDocuments() {
         is_approved: approved,
         rejection_reason: approved ? null : rejectionReason.trim(),
       };
-      setAllDocuments((prev) =>
+      setDocuments((prev) =>
         prev.map((d) => (d.id === modal.doc.id ? updatedDoc : d))
       );
       setModal({ ...modal, doc: updatedDoc });
@@ -217,7 +179,7 @@ export default function PapfeDocuments() {
       />
 
       <div className="rounded-xl border border-border bg-card/80 p-5">
-        {loading && allRows.length === 0 && (
+        {loading && rows.length === 0 && (
           <div className="flex items-center justify-center py-12">
             <p className="text-slate-400">Carregando comprovantes...</p>
           </div>
@@ -232,8 +194,8 @@ export default function PapfeDocuments() {
           actionIcon={<Eye className="w-3.5 h-3.5" />}
           actionTitle="Ver documento"
           entityLabel="comprovante"
-          totalRecords={filteredCount}
-          onQueryChange={setQueryParams}
+          totalRecords={totalRecords}
+          onQueryChange={handleQueryChange}
         />
       </div>
 

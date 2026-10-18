@@ -38,7 +38,7 @@ func (m *MockUserService) VerifyEmail(rawToken string) error { return m.VerifyEm
 func (m *MockUserService) ResendVerification(email string) error {
 	return m.ResendVerificationFunc(email)
 }
-func (m *MockUserService) GetAllPapfeDocuments() ([]PapfeDocumentInfo, error) {
+func (m *MockUserService) GetAllPapfeDocuments(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*PapfeDocumentListResult, error) {
 	panic("not implemented in mock")
 }
 func (m *MockUserService) GetPapfeDocument(email string) (*PapfeDocument, error) {
@@ -62,7 +62,7 @@ func (m *MockUserService) RequestPasswordReset(email string) error {
 func (m *MockUserService) ResetPassword(tokenPlain string, newPassword string) error {
 	panic("not implemented in mock")
 }
-func (m *MockUserService) GetBadgeDeliveries(page, limit int, sortBy, sortOrder string) (*BadgeDeliveryListResult, error) {
+func (m *MockUserService) GetBadgeDeliveries(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*BadgeDeliveryListResult, error) {
 	panic("not implemented in mock")
 }
 func (m *MockUserService) MarkBadgeDelivered(userNumber uint, adminEmail string) error {

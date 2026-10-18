@@ -1,11 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudField, CrudQueryParams } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
 import { Tabs } from "@/constants/Tabs";
-import { useAbsenceJustifications } from "@/hooks/useAbsenceJustifications";
 import type {
   AbsenceJustificationType,
   AbsenceJustificationStatus,
@@ -23,6 +22,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { absenceJustificationsAPI } from "@/api/absenceJustifications";
 
 const STATUS_LABEL: Record<AbsenceJustificationStatus, string> = {
   em_analise: "Em análise",
@@ -63,7 +63,7 @@ type ModalState =
 const FIELDS: CrudField[] = [
   { value: "user_name", label: "Participante" },
   { value: "event_name", label: "Evento" },
-  { value: "reason_preview", label: "Justificativa" },
+  { value: "reason_preview", label: "Justificativa", searchable: false },
   { value: "submitted_at", label: "Enviado em", type: "date" },
   {
     value: "status",
@@ -95,63 +95,48 @@ const toRow = (j: AbsenceJustificationType): AbsenceJustificationRow => ({
   status: STATUS_LABEL[j.status],
 });
 
-function applyClientQuery(
-  rows: AbsenceJustificationRow[],
-  params: CrudQueryParams
-): { items: AbsenceJustificationRow[]; total: number } {
-  let filtered = rows;
-
-  if (params.filterField && params.filterValue) {
-    const val = params.filterValue.toLowerCase();
-    filtered = rows.filter((r) =>
-      String((r as unknown as Record<string, unknown>)[params.filterField] ?? "")
-        .toLowerCase()
-        .includes(val)
-    );
-  }
-
-  if (params.sortField) {
-    const dir = params.sortOrder === "desc" ? -1 : 1;
-    filtered = [...filtered].sort((a, b) => {
-      const av = String((a as unknown as Record<string, unknown>)[params.sortField] ?? "");
-      const bv = String((b as unknown as Record<string, unknown>)[params.sortField] ?? "");
-      return av.localeCompare(bv, "pt-BR") * dir;
-    });
-  }
-
-  const total = filtered.length;
-  const start = (params.page - 1) * params.pageSize;
-  const items = filtered.slice(start, start + params.pageSize);
-  return { items, total };
-}
-
 export default function AbsenceJustifications() {
   const canWrite = useHasPermission("Justificativas de Ausência", "RW");
   const navigate = useNavigate();
   const { showNotification } = useNotification();
-  const { justifications, loading, updateStatus, getAttachmentUrl } =
-    useAbsenceJustifications();
 
+  const [justifications, setJustifications] = useState<AbsenceJustificationType[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [pendingDecision, setPendingDecision] =
     useState<AbsenceJustificationStatus | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [queryParams, setQueryParams] = useState<CrudQueryParams>({
-    page: 1,
-    pageSize: 10,
-    sortField: "submitted_at",
-    sortOrder: "desc",
-    filterField: "",
-    filterValue: "",
-  });
 
-  const allRows = useMemo(() => justifications.map(toRow), [justifications]);
+  const lastQueryRef = useRef<CrudQueryParams | null>(null);
 
-  const { items: rows, total: filteredCount } = useMemo(
-    () => applyClientQuery(allRows, queryParams),
-    [allRows, queryParams]
-  );
+  const fetchPage = useCallback(async (params: CrudQueryParams) => {
+    setLoading(true);
+    try {
+      const result = await absenceJustificationsAPI.getAll(
+        params.page,
+        params.pageSize,
+        params.sortField || "submitted_at",
+        params.sortOrder || "desc",
+        params.filterField || undefined,
+        params.filterValue || undefined
+      );
+      setJustifications(result.absence_justifications);
+      setTotalRecords(result.filtered_records);
+    } catch {
+      showNotification("Erro ao carregar justificativas de ausência", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [showNotification]);
+
+  const handleQueryChange = useCallback((params: CrudQueryParams) => {
+    lastQueryRef.current = params;
+    fetchPage(params);
+  }, [fetchPage]);
+
+  const rows = useMemo(() => justifications.map(toRow), [justifications]);
 
   const openModal = async (justification: AbsenceJustificationType) => {
     setPendingDecision(null);
@@ -163,7 +148,8 @@ export default function AbsenceJustifications() {
       loadingAttachment: true,
     });
     try {
-      const url = await getAttachmentUrl(justification.id);
+      const blob = await absenceJustificationsAPI.getAttachment(justification.id);
+      const url = URL.createObjectURL(blob);
       setModal({
         open: true,
         justification,
@@ -193,29 +179,27 @@ export default function AbsenceJustifications() {
 
   const confirmDecision = async () => {
     if (!modal.open || !pendingDecision) return;
-    if (
-      pendingDecision === "negado" &&
-      !rejectionReason.trim()
-    ) {
+    if (pendingDecision === "negado" && !rejectionReason.trim()) {
       showNotification("Informe o motivo da negativa.", "warning");
       return;
     }
     setSubmitting(true);
     try {
-      await updateStatus(
+      await absenceJustificationsAPI.updateStatus(
         modal.justification.id,
         pendingDecision,
         pendingDecision === "negado" ? rejectionReason.trim() : undefined
       );
-      setModal({
-        ...modal,
-        justification: {
-          ...modal.justification,
-          status: pendingDecision,
-          rejection_reason:
-            pendingDecision === "negado" ? rejectionReason.trim() : null,
-        },
-      });
+      const updated = {
+        ...modal.justification,
+        status: pendingDecision,
+        rejection_reason:
+          pendingDecision === "negado" ? rejectionReason.trim() : null,
+      };
+      setModal({ ...modal, justification: updated });
+      setJustifications((prev) =>
+        prev.map((j) => (j.id === updated.id ? updated : j))
+      );
       showNotification(
         pendingDecision === "aprovado"
           ? "Justificativa aprovada!"
@@ -255,32 +239,24 @@ export default function AbsenceJustifications() {
       />
 
       <div className="rounded-xl border border-border bg-card/80 p-5">
-        {loading && allRows.length === 0 && (
+        {loading && rows.length === 0 && (
           <div className="flex items-center justify-center py-12">
             <p className="text-slate-400">Carregando justificativas...</p>
           </div>
         )}
-        {!loading && justifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-            <p className="text-slate-400">
-              Nenhuma justificativa de ausência foi enviada até o momento.
-            </p>
-          </div>
-        ) : (
-          <CrudTable
-            data={rows}
-            fields={FIELDS}
-            onEdit={() => {}}
-            onDelete={() => {}}
-            canWrite={false}
-            onAction={handleAction}
-            actionIcon={<Eye className="w-3.5 h-3.5" />}
-            actionTitle="Ver justificativa"
-            entityLabel="justificativa"
-            totalRecords={filteredCount}
-            onQueryChange={setQueryParams}
-          />
-        )}
+        <CrudTable
+          data={rows}
+          fields={FIELDS}
+          onEdit={() => {}}
+          onDelete={() => {}}
+          canWrite={false}
+          onAction={handleAction}
+          actionIcon={<Eye className="w-3.5 h-3.5" />}
+          actionTitle="Ver justificativa"
+          entityLabel="justificativa"
+          totalRecords={totalRecords}
+          onQueryChange={handleQueryChange}
+        />
       </div>
 
       <Dialog open={modal.open} onOpenChange={(open) => { if (!open) closeModal(); }}>

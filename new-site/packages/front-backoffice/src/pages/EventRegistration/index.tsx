@@ -4,7 +4,7 @@ import type { CrudItemType } from "@/types/CrudItem";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
-import { signinEventsAPI, type SigninableEvent } from "@/api/signinEvent.ts";
+import { signinEventsAPI, type SigninableEvent, type SigninStatusCounts } from "@/api/signinEvent.ts";
 import type { SigninEventType } from "@/types/SigninEventType";
 import { fields, fieldsForEvent, API_FIELD_MAP } from "@/data/eventRegistrationCrudField";
 import { Tabs } from "@/constants/Tabs";
@@ -98,6 +98,8 @@ export default function EventRegistration() {
     filterValue: "",
   });
 
+  const [counts, setCounts] = useState<SigninStatusCounts>({ inscrito: 0, aguardando_aprovacao: 0, lista_de_espera: 0 });
+
   const [loading, setLoading] = useState(false);
   const [rotating, setRotating] = useState(false);
   const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
@@ -178,6 +180,15 @@ export default function EventRegistration() {
     [showNotification]
   );
 
+  const fetchStats = useCallback(async (eventName?: string) => {
+    try {
+      const stats = await signinEventsAPI.getStats(eventName);
+      setCounts(stats);
+    } catch {
+      // não bloqueia a UI se stats falhar
+    }
+  }, []);
+
   const handleEventChange = (value: string) => {
     if (value === "__all__") {
       setSelectedEvent(null);
@@ -185,6 +196,7 @@ export default function EventRegistration() {
       setServerData([]);
       setServerTotal(0);
       fetchGlobal(undefined);
+      fetchStats();
       return;
     }
     const event =
@@ -201,7 +213,10 @@ export default function EventRegistration() {
       filterField: "",
       filterValue: "",
     });
-    if (event) fetchAllForEvent(event);
+    if (event) {
+      fetchAllForEvent(event);
+      fetchStats(event.name);
+    }
   };
 
   // Handler para visão global
@@ -233,6 +248,7 @@ export default function EventRegistration() {
         filterValue: "",
       });
       await fetchAllForEvent(selectedEvent);
+      fetchStats(selectedEvent.name);
     } catch (err: any) {
       showNotification(err.response?.data?.message || "Erro ao rodar fila", "error");
     } finally {
@@ -311,12 +327,6 @@ export default function EventRegistration() {
     }
   };
 
-  const counts = {
-    inscrito: allEventData.filter((s) => s.status === "Inscrito").length,
-    espera: allEventData.filter((s) => s.status === "Lista de Espera").length,
-    aguardando: allEventData.filter((s) => s.status === "Aguardando Aprovação").length,
-  };
-
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6 overflow-x-auto scrollbar-hide">
       <BannerCard
@@ -382,10 +392,10 @@ export default function EventRegistration() {
               </div>
               <div className="flex flex-wrap gap-4 text-sm pt-1">
                 <span className="text-emerald-400 font-medium">{counts.inscrito} inscritos</span>
-                <span className="text-amber-400 font-medium">{counts.espera} em espera</span>
-                {counts.aguardando > 0 && (
+                <span className="text-amber-400 font-medium">{counts.lista_de_espera} em espera</span>
+                {counts.aguardando_aprovacao > 0 && (
                   <span className="text-blue-400 font-medium">
-                    {counts.aguardando} aguardando doação
+                    {counts.aguardando_aprovacao} aguardando doação
                   </span>
                 )}
               </div>
