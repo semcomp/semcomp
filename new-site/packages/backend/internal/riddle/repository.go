@@ -104,6 +104,10 @@ func applySearchFilter(dbQuery *gorm.DB, query RiddleListQuery) *gorm.DB {
 		return dbQuery.Where("hint1 ILIKE ?", "%"+query.SearchValue+"%")
 	case "hint2":
 		return dbQuery.Where("hint2 ILIKE ?", "%"+query.SearchValue+"%")
+	case "answer":
+		return dbQuery.Where("answer ILIKE ?", "%"+query.SearchValue+"%")
+	case "image_url":
+		return dbQuery.Where("image_url ILIKE ?", "%"+query.SearchValue+"%")
 	case "is_active":
 		return dbQuery.Where("is_active = ?", query.SearchValue)
 	default:

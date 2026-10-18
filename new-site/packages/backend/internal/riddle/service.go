@@ -148,8 +148,11 @@ func (s *riddleService) GetRiddles(page int, limit int, sortBy string, sortOrder
 		searchBy = strings.ToLower(searchBy)
 
 		allowedSearchFields := map[string]bool{
+			"id":        true,
 			"hint1":     true,
 			"hint2":     true,
+			"answer":    true,
+			"image_url": true,
 			"is_active": true,
 		}
 
