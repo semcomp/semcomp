@@ -56,9 +56,9 @@ type SaleService interface {
 	// ativo (incluindo o fechamento via combos).
 	GetConsumed(userNumber uint) ([]uint, error)
 
-	// GetKitDeliveries retorna todas as vendas com status PAGO para a página
-	// de controle de entregas de kits (seção "Entregas", sem exigir "Vendas").
-	GetKitDeliveries() (*SaleListResult, error)
+	// GetKitDeliveriesPaged retorna uma lista paginada de itens de kit a serem
+	// entregues, a partir de vendas com status PAGO.
+	GetKitDeliveriesPaged(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*KitDeliveryListResult, error)
 }
 
 type saleService struct {
@@ -515,6 +515,7 @@ func (s *saleService) GetAllSales(page int, limit int, sortBy string, sortOrder 
 		"total_amount":   true,
 		"created_at":     true,
 		"user_number":    true,
+		"user_name":      true,
 		"payment_method": true,
 	}
 	if !allowedSortFields[sortBy] {
@@ -744,13 +745,26 @@ func (s *saleService) GetConsumed(userNumber uint) ([]uint, error) {
 	return s.getUnavailableProductIDs(userNumber)
 }
 
-func (s *saleService) GetKitDeliveries() (*SaleListResult, error) {
-	return s.saleRepo.GetAll(SaleListQuery{
-		Limit:       100000,
-		Offset:      0,
-		SortBy:      "created_at",
-		SortOrder:   "desc",
-		SearchBy:    "status",
-		SearchValue: "PAGO",
+func (s *saleService) GetKitDeliveriesPaged(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*KitDeliveryListResult, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+	if sortBy == "" {
+		sortBy = "user_name"
+	}
+	if sortOrder == "" {
+		sortOrder = "asc"
+	}
+	offset := (page - 1) * limit
+	return s.saleRepo.GetKitDeliveriesPaged(KitDeliveryListQuery{
+		Limit:       limit,
+		Offset:      offset,
+		SortBy:      sortBy,
+		SortOrder:   sortOrder,
+		SearchBy:    searchBy,
+		SearchValue: searchValue,
 	})
 }

@@ -1,10 +1,10 @@
 import { CrudTable } from "@/components/CrudTable";
 import type { CrudQueryParams } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
-import { signinEventsAPI, type SigninableEvent } from "@/api/signinEvent.ts";
+import { signinEventsAPI, type SigninableEvent, type SigninStatusCounts } from "@/api/signinEvent.ts";
 import type { SigninEventType } from "@/types/SigninEventType";
 import { fields, fieldsForEvent, API_FIELD_MAP } from "@/data/eventRegistrationCrudField";
 import { Tabs } from "@/constants/Tabs";
@@ -38,6 +38,43 @@ const formatDate = (iso: string) => {
   });
 };
 
+function applyClientQuery(
+  rows: SigninEventType[],
+  params: CrudQueryParams
+): { items: SigninEventType[]; total: number } {
+  let filtered = rows;
+
+  if (params.filterField && params.filterValue) {
+    const val = params.filterValue.toLowerCase();
+    const apiField = API_FIELD_MAP[params.filterField] ?? params.filterField;
+    // Tenta o campo mapeado para API (snake_case) ou o campo original (camelCase)
+    filtered = rows.filter((r) => {
+      const rec = r as unknown as Record<string, unknown>;
+      const cellValue =
+        rec[params.filterField] !== undefined
+          ? rec[params.filterField]
+          : rec[apiField];
+      return String(cellValue ?? "").toLowerCase().includes(val);
+    });
+  }
+
+  if (params.sortField) {
+    const dir = params.sortOrder === "desc" ? -1 : 1;
+    filtered = [...filtered].sort((a, b) => {
+      const rec_a = a as unknown as Record<string, unknown>;
+      const rec_b = b as unknown as Record<string, unknown>;
+      const av = String(rec_a[params.sortField] ?? "");
+      const bv = String(rec_b[params.sortField] ?? "");
+      return av.localeCompare(bv, "pt-BR") * dir;
+    });
+  }
+
+  const total = filtered.length;
+  const start = (params.page - 1) * params.pageSize;
+  const items = filtered.slice(start, start + params.pageSize);
+  return { items, total };
+}
+
 export default function EventRegistration() {
   const canWrite = useHasPermission("Inscrições", "RW");
   const navigate = useNavigate();
@@ -46,8 +83,23 @@ export default function EventRegistration() {
   const [signinableEvents, setSigninableEvents] = useState<SigninableEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<SigninableEvent | null>(null);
 
-  const [data, setData] = useState<SigninEventType[]>([]);
-  const [totalRecords, setTotalRecords] = useState(0);
+  // Visão global (sem evento): dados paginados pelo servidor
+  const [serverData, setServerData] = useState<SigninEventType[]>([]);
+  const [serverTotal, setServerTotal] = useState(0);
+
+  // Visão com evento: todos os registros do evento (servidor), filtrados client-side
+  const [allEventData, setAllEventData] = useState<SigninEventType[]>([]);
+  const [eventQueryParams, setEventQueryParams] = useState<CrudQueryParams>({
+    page: 1,
+    pageSize: 10,
+    sortField: "userWaitListPosition",
+    sortOrder: "asc",
+    filterField: "",
+    filterValue: "",
+  });
+
+  const [counts, setCounts] = useState<SigninStatusCounts>({ inscrito: 0, aguardando_aprovacao: 0, lista_de_espera: 0 });
+
   const [loading, setLoading] = useState(false);
   const [rotating, setRotating] = useState(false);
   const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
@@ -56,22 +108,27 @@ export default function EventRegistration() {
   // (status/fila) após rodar a fila.
   const [tableKey, setTableKey] = useState(0);
 
+  // Dados derivados para a visão com evento (client-side filter + sort + paginate)
+  const { items: eventPageData, total: eventFilteredTotal } = useMemo(
+    () => applyClientQuery(allEventData, eventQueryParams),
+    [allEventData, eventQueryParams]
+  );
+
   useEffect(() => {
     signinEventsAPI.getSigninableEvents().then(setSigninableEvents).catch(() => {});
   }, []);
 
-  const fetchSignins = useCallback(
-    async (params?: CrudQueryParams, event?: SigninableEvent | null) => {
-      const activeEvent = event !== undefined ? event : selectedEvent;
-
+  // Busca server-side para a visão global (sem evento selecionado)
+  const fetchGlobal = useCallback(
+    async (params?: CrudQueryParams) => {
       try {
         setLoading(true);
         setError(null);
 
-        const filterField = activeEvent ? "event_name" : params?.filterField
+        const filterField = params?.filterField
           ? API_FIELD_MAP[params.filterField] || params.filterField
           : undefined;
-        const filterValue = activeEvent ? activeEvent.name : params?.filterValue || undefined;
+        const filterValue = params?.filterValue || undefined;
 
         const response = await signinEventsAPI.getAll(
           params?.page ?? 1,
@@ -82,8 +139,8 @@ export default function EventRegistration() {
           filterValue
         );
 
-        setData(response.signins);
-        setTotalRecords(response.filtered_records ?? response.total_records ?? 0);
+        setServerData(response.signins);
+        setServerTotal(response.filtered_records ?? response.total_records ?? 0);
       } catch (err: any) {
         const msg = err.response?.data?.message || "Erro ao carregar inscrições";
         setError(msg);
@@ -92,30 +149,82 @@ export default function EventRegistration() {
         setLoading(false);
       }
     },
-    [selectedEvent, showNotification]
+    [showNotification]
   );
+
+  // Busca server-side para carregar TODOS os registros de um evento (sem paginação CrudTable)
+  const fetchAllForEvent = useCallback(
+    async (event: SigninableEvent) => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await signinEventsAPI.getAll(
+          1,
+          10000, // carrega todos de uma vez para filtro client-side
+          "user_wait_list_position",
+          "asc",
+          "event_name",
+          event.name
+        );
+
+        setAllEventData(response.signins);
+      } catch (err: any) {
+        const msg = err.response?.data?.message || "Erro ao carregar inscrições";
+        setError(msg);
+        showNotification(msg, "error");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [showNotification]
+  );
+
+  const fetchStats = useCallback(async (eventName?: string) => {
+    try {
+      const stats = await signinEventsAPI.getStats(eventName);
+      setCounts(stats);
+    } catch {
+      // não bloqueia a UI se stats falhar
+    }
+  }, []);
 
   const handleEventChange = (value: string) => {
     if (value === "__all__") {
       setSelectedEvent(null);
-      setData([]);
-      setTotalRecords(0);
-      fetchSignins(undefined, null);
+      setAllEventData([]);
+      setServerData([]);
+      setServerTotal(0);
+      fetchGlobal(undefined);
+      fetchStats();
       return;
     }
     const event =
       signinableEvents.find((e) => `${e.name}__${e.init_date}` === value) ?? null;
     setSelectedEvent(event);
-    setData([]);
-    setTotalRecords(0);
-    if (event) fetchSignins(undefined, event);
+    setAllEventData([]);
+    setServerData([]);
+    setServerTotal(0);
+    setEventQueryParams({
+      page: 1,
+      pageSize: 10,
+      sortField: "userWaitListPosition",
+      sortOrder: "asc",
+      filterField: "",
+      filterValue: "",
+    });
+    if (event) {
+      fetchAllForEvent(event);
+      fetchStats(event.name);
+    }
   };
 
-  const handleQueryChange = useCallback(
+  // Handler para visão global
+  const handleGlobalQueryChange = useCallback(
     (params: CrudQueryParams) => {
-      fetchSignins(params);
+      fetchGlobal(params);
     },
-    [fetchSignins]
+    [fetchGlobal]
   );
 
   const handleRotateClick = () => {
@@ -130,6 +239,16 @@ export default function EventRegistration() {
       setRotateConfirmOpen(false);
       showNotification("Fila rotacionada com sucesso", "success");
       setTableKey((k) => k + 1);
+      setEventQueryParams({
+        page: 1,
+        pageSize: 10,
+        sortField: "userWaitListPosition",
+        sortOrder: "asc",
+        filterField: "",
+        filterValue: "",
+      });
+      await fetchAllForEvent(selectedEvent);
+      fetchStats(selectedEvent.name);
     } catch (err: any) {
       showNotification(err.response?.data?.message || "Erro ao rodar fila", "error");
     } finally {
@@ -144,11 +263,17 @@ export default function EventRegistration() {
 
   const handleDelete = async (itemKey: string) => {
     try {
-      const signin = data.find((item) => resolveSigninKey(item) === itemKey);
+      // Busca em serverData (visão global) ou allEventData (visão com evento)
+      const source = selectedEvent ? allEventData : serverData;
+      const signin = source.find((item) => resolveSigninKey(item) === itemKey);
       if (!signin) return;
       await signinEventsAPI.delete(signin.userNumber, signin.eventName, signin.eventInitDate);
-      setData((prev) => prev.filter((item) => resolveSigninKey(item) !== itemKey));
-      setTotalRecords((prev) => prev - 1);
+      if (selectedEvent) {
+        setAllEventData((prev) => prev.filter((item) => resolveSigninKey(item) !== itemKey));
+      } else {
+        setServerData((prev) => prev.filter((item) => resolveSigninKey(item) !== itemKey));
+        setServerTotal((prev) => prev - 1);
+      }
       showNotification("Inscrição deletada com sucesso", "success");
     } catch (err: any) {
       showNotification(err.response?.data?.message || "Erro ao deletar inscrição", "error");
@@ -163,8 +288,12 @@ export default function EventRegistration() {
         typedItem.eventInitDate = selectedEvent.init_date;
       }
       const created = await signinEventsAPI.create(typedItem);
-      setData((prev) => [...prev, created]);
-      setTotalRecords((prev) => prev + 1);
+      if (selectedEvent) {
+        setAllEventData((prev) => [...prev, created]);
+      } else {
+        setServerData((prev) => [...prev, created]);
+        setServerTotal((prev) => prev + 1);
+      }
       showNotification("Inscrição criada com sucesso", "success");
     } catch (err: any) {
       showNotification(err.response?.data?.message || "Erro ao criar inscrição", "error");
@@ -174,7 +303,8 @@ export default function EventRegistration() {
   const handleEdit = async (item: CrudItemType, itemKey: string) => {
     try {
       const typedItem = item as SigninEventType;
-      const original = data.find((s) => resolveSigninKey(s) === itemKey);
+      const source = selectedEvent ? allEventData : serverData;
+      const original = source.find((s) => resolveSigninKey(s) === itemKey);
       if (!original) return;
       const updated = await signinEventsAPI.update(
         original.userNumber,
@@ -182,19 +312,19 @@ export default function EventRegistration() {
         original.eventInitDate,
         typedItem
       );
-      setData((prev) =>
-        prev.map((s) => (resolveSigninKey(s) === itemKey ? updated : s))
-      );
+      if (selectedEvent) {
+        setAllEventData((prev) =>
+          prev.map((s) => (resolveSigninKey(s) === itemKey ? updated : s))
+        );
+      } else {
+        setServerData((prev) =>
+          prev.map((s) => (resolveSigninKey(s) === itemKey ? updated : s))
+        );
+      }
       showNotification("Inscrição editada com sucesso", "success");
     } catch (err: any) {
       showNotification(err.response?.data?.message || "Erro ao editar inscrição", "error");
     }
-  };
-
-  const counts = {
-    inscrito: data.filter((s) => s.status === "Inscrito").length,
-    espera: data.filter((s) => s.status === "Lista de Espera").length,
-    aguardando: data.filter((s) => s.status === "Aguardando Aprovação").length,
   };
 
   return (
@@ -262,10 +392,10 @@ export default function EventRegistration() {
               </div>
               <div className="flex flex-wrap gap-4 text-sm pt-1">
                 <span className="text-emerald-400 font-medium">{counts.inscrito} inscritos</span>
-                <span className="text-amber-400 font-medium">{counts.espera} em espera</span>
-                {counts.aguardando > 0 && (
+                <span className="text-amber-400 font-medium">{counts.lista_de_espera} em espera</span>
+                {counts.aguardando_aprovacao > 0 && (
                   <span className="text-blue-400 font-medium">
-                    {counts.aguardando} aguardando doação
+                    {counts.aguardando_aprovacao} aguardando doação
                   </span>
                 )}
               </div>
@@ -285,21 +415,21 @@ export default function EventRegistration() {
             )}
           </div>
 
-          {/* Sign-ups table */}
+          {/* Sign-ups table (event view — client-side filter) */}
           <div className="rounded-xl border border-border bg-card/80 p-5">
             {error && (
               <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
                 {error}
               </div>
             )}
-            {loading && data.length === 0 && (
+            {loading && allEventData.length === 0 && (
               <div className="flex items-center justify-center py-12">
                 <p className="text-slate-400">Carregando inscrições...</p>
               </div>
             )}
             <CrudTable
               key={tableKey}
-              data={data}
+              data={eventPageData}
               fields={fieldsForEvent}
               defaultSortField="status_priority"
               onEdit={handleEdit}
@@ -307,8 +437,8 @@ export default function EventRegistration() {
               onCreate={handleCreate}
               getItemKey={resolveSigninKey}
               entityLabel="inscrição"
-              totalRecords={totalRecords}
-              onQueryChange={handleQueryChange}
+              totalRecords={eventFilteredTotal}
+              onQueryChange={setEventQueryParams}
               canWrite={canWrite}
             />
           </div>
@@ -317,9 +447,19 @@ export default function EventRegistration() {
 
       {!selectedEvent && (
         <div className="rounded-xl border border-border bg-card/80 p-5">
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-900/20 border border-red-700 p-4 text-red-200">
+              {error}
+            </div>
+          )}
+          {loading && serverData.length === 0 && (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-slate-400">Carregando inscrições...</p>
+            </div>
+          )}
           <CrudTable
             key={tableKey}
-            data={data}
+            data={serverData}
             fields={fields}
             defaultSortField="status_priority"
             onEdit={handleEdit}
@@ -327,8 +467,8 @@ export default function EventRegistration() {
             onCreate={handleCreate}
             getItemKey={resolveSigninKey}
             entityLabel="inscrição"
-            totalRecords={totalRecords}
-            onQueryChange={handleQueryChange}
+            totalRecords={serverTotal}
+            onQueryChange={handleGlobalQueryChange}
             canWrite={canWrite}
           />
         </div>

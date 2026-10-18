@@ -424,15 +424,38 @@ func (h *SaleHandler) UpdateItemPickup(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Status atualizado com sucesso!", "item": item})
 }
 
-// GetKitDeliveries retorna as vendas com status PAGO para o controle de
+// GetKitDeliveries retorna os itens de kit paginados para o controle de
 // entregas de kits (seção "Entregas", sem exigir permissão "Vendas").
 func (h *SaleHandler) GetKitDeliveries(c *gin.Context) {
-	result, err := h.saleService.GetKitDeliveries()
+	page := 1
+	limit := 10
+	sortBy := c.DefaultQuery("sort_by", "user_name")
+	sortOrder := c.DefaultQuery("sort_order", "asc")
+	searchBy := c.Query("search_by")
+	searchValue := c.Query("search_value")
+
+	if v, err := strconv.Atoi(c.Query("page")); err == nil && v >= 1 {
+		page = v
+	}
+	if v, err := strconv.Atoi(c.Query("limit")); err == nil && v >= 1 {
+		if v > 500 {
+			v = 500
+		}
+		limit = v
+	}
+
+	result, err := h.saleService.GetKitDeliveriesPaged(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"sales": result.Sales})
+	c.JSON(http.StatusOK, gin.H{
+		"kit_deliveries":  result.Items,
+		"total_records":   result.TotalRecords,
+		"filtered_records": result.FilteredRecords,
+		"page":            page,
+		"limit":           limit,
+	})
 }
 
 // CancelSale permite que o usuário cancele um pedido próprio ainda pendente

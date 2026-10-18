@@ -20,8 +20,8 @@ export function useAbsenceJustifications() {
   const fetchJustifications = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await absenceJustificationsAPI.getAll();
-      setJustifications(data);
+      const data = await absenceJustificationsAPI.getAll(1, 10000);
+      setJustifications(data.absence_justifications);
     } catch {
       showNotification("Erro ao carregar justificativas de ausência", "error");
     } finally {

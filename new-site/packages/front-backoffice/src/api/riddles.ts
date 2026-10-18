@@ -133,6 +133,7 @@ const mapToBackendRiddle = (riddle: Partial<RiddleType>) => ({
 // coluna real no banco (o GORM não insere "_" antes de dígito em "Hint1"/"Hint2").
 const fieldMap: Record<string, string> = {
   isActive: "is_active",
+  imageUrl: "image_url",
 };
 
 export const riddlesAPI = {

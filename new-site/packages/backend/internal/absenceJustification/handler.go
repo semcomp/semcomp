@@ -235,13 +235,36 @@ func (h *AbsenceJustificationHandler) GetOwnAttachment(c *gin.Context) {
 // @Security BearerAuth
 // @Router /admin/absence-justifications [get]
 func (h *AbsenceJustificationHandler) GetAbsenceJustifications(c *gin.Context) {
-	justifications, err := h.service.GetAllAbsenceJustifications()
+	page := 1
+	limit := 10
+	sortBy := c.DefaultQuery("sort_by", "submitted_at")
+	sortOrder := c.DefaultQuery("sort_order", "desc")
+	searchBy := c.Query("search_by")
+	searchValue := c.Query("search_value")
+
+	if v, err := strconv.Atoi(c.Query("page")); err == nil && v >= 1 {
+		page = v
+	}
+	if v, err := strconv.Atoi(c.Query("limit")); err == nil && v >= 1 {
+		if v > 200 {
+			v = 200
+		}
+		limit = v
+	}
+
+	result, err := h.service.GetAllAbsenceJustifications(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Justificativas de ausência listadas com sucesso!")
-	c.JSON(http.StatusOK, gin.H{"absence_justifications": justifications})
+	c.JSON(http.StatusOK, gin.H{
+		"absence_justifications": result.Justifications,
+		"total_records":          result.TotalRecords,
+		"filtered_records":       result.FilteredRecords,
+		"page":                   page,
+		"limit":                  limit,
+	})
 }
 
 // GetAttachment serve o anexo de uma justificativa de ausência para download (admin).

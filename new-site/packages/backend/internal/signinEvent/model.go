@@ -45,6 +45,12 @@ type SigninEventListQuery struct {
 	SortOrder   string
 	SearchBy    string
 	SearchValue string
+	// StatusFilter aplica um filtro fixo de status (ex: "Aguardando Aprovação")
+	// antes mesmo da paginação. Não é exposto ao CrudTable — é definido no handler.
+	StatusFilter string
+	// EventNameFilter filtra por evento específico (usado em ConfirmRegistrations
+	// onde o seletor de evento é externo ao CrudTable).
+	EventNameFilter string
 }
 
 type SigninEventListResult struct {
@@ -57,6 +63,12 @@ type PromotedUserInfo struct {
 	UserNumber uint
 	Name       string
 	Email      string
+}
+
+type SigninEventStatusCounts struct {
+	Inscrito            int64 `json:"inscrito"`
+	AguardandoAprovacao int64 `json:"aguardando_aprovacao"`
+	ListaDeEspera       int64 `json:"lista_de_espera"`
 }
 
 type SigninEventsDetailed struct {

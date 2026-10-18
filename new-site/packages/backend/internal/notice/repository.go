@@ -94,7 +94,7 @@ func resolveNoticeSortClause(sortBy string, sortOrder string) (string, error) {
 }
 
 func (r *noticeRepository) GetNotices(query NoticeListQuery) (*NoticeListResult, error) {
-	var notices []Notice
+	notices := make([]Notice, 0)
 	var totalRecords int64
 	var filteredRecords int64
 

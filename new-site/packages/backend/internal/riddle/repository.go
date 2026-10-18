@@ -98,10 +98,16 @@ func applySearchFilter(dbQuery *gorm.DB, query RiddleListQuery) *gorm.DB {
 	}
 
 	switch query.SearchBy {
+	case "id":
+		return dbQuery.Where("id = ?", query.SearchValue)
 	case "hint1":
 		return dbQuery.Where("hint1 ILIKE ?", "%"+query.SearchValue+"%")
 	case "hint2":
 		return dbQuery.Where("hint2 ILIKE ?", "%"+query.SearchValue+"%")
+	case "answer":
+		return dbQuery.Where("answer ILIKE ?", "%"+query.SearchValue+"%")
+	case "image_url":
+		return dbQuery.Where("image_url ILIKE ?", "%"+query.SearchValue+"%")
 	case "is_active":
 		return dbQuery.Where("is_active = ?", query.SearchValue)
 	default:
@@ -127,7 +133,7 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 }
 
 func (r *riddleRepository) GetRiddles(query RiddleListQuery) (*RiddleListResult, error) {
-	var riddles []Riddle
+	riddles := make([]Riddle, 0)
 	var totalRecords int64
 	var filteredRecords int64
 

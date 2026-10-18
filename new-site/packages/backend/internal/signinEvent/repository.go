@@ -105,6 +105,9 @@ type SigninEventRepository interface {
 	// FetchUserInfosByNumbers returns name and email for the given user numbers,
 	// used to notify promoted users after a queue rotation.
 	FetchUserInfosByNumbers(userNumbers []uint) ([]PromotedUserInfo, error)
+	// GetStatusCounts returns the count of active inscriptions per status for
+	// the given event (or all events when eventName is empty).
+	GetStatusCounts(eventName string) (*SigninEventStatusCounts, error)
 }
 
 type signinEventRepository struct {
@@ -374,8 +377,18 @@ func (r *signinEventRepository) UpdateByComposite(userNumber uint, eventName str
 	return nil
 }
 
+func applyBaseFilters(q *gorm.DB, query SigninEventListQuery) *gorm.DB {
+	if query.StatusFilter != "" {
+		q = q.Where("signin_events.status = ?", query.StatusFilter)
+	}
+	if query.EventNameFilter != "" {
+		q = q.Where("signin_events.event_name = ?", query.EventNameFilter)
+	}
+	return q
+}
+
 func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEventListResult, error) {
-	var signins []SigninEvent
+	signins := make([]SigninEvent, 0)
 	var totalRecords int64
 	var filteredRecords int64
 
@@ -384,25 +397,40 @@ func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEvent
 		return nil, err
 	}
 
-	if err := r.db.Model(&SigninEvent{}).Count(&totalRecords).Error; err != nil {
+	// totalRecords respeita os filtros base (StatusFilter/EventNameFilter) para que
+	// a paginação faça sentido em contextos que sempre restringem o conjunto (ex: confirmações).
+	baseCount := applyBaseFilters(r.db.Model(&SigninEvent{}), query)
+	if err := baseCount.Count(&totalRecords).Error; err != nil {
 		return nil, err
 	}
 
-	filteredQuery := applySearchFilter(r.db.Model(&SigninEvent{}), query)
+	// papfe_status e user_name são calculados via joins em users/papfe_documents;
+	// o count também precisa dessas tabelas quando o filtro referencia essas expressões.
+	countBase := applyBaseFilters(r.db.Model(&SigninEvent{}), query)
+	if query.SearchBy == "papfe_status" || query.SearchBy == "user_name" {
+		countBase = joinUserInfo(countBase)
+	}
+	filteredQuery := applySearchFilter(countBase, query)
 	if err := filteredQuery.Count(&filteredRecords).Error; err != nil {
 		return nil, err
 	}
 
-	dataQuery := applySearchFilter(r.db.Table("signin_events"), query)
-	dataQuery = dataQuery.
-		Select("signin_events.user_number, signin_events.event_name, signin_events.event_init_date, "+
-			"CASE WHEN signin_events.status = ? AND events.max_participants > 0 "+
-			"AND signin_events.user_wait_list_position > events.max_participants "+
-			"THEN signin_events.user_wait_list_position - events.max_participants "+
-			"ELSE signin_events.user_wait_list_position END AS user_wait_list_position, "+
-			"signin_events.status, "+userInfoColumns, StatusWaitListed).
-		Joins("LEFT JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date")
-	err = joinUserInfo(dataQuery).
+	// Os joins de users/papfe_documents são adicionados antes do filtro para que
+	// applySearchFilter possa referenciar essas tabelas (ex.: papfe_status).
+	dataBase := joinUserInfo(
+		applyBaseFilters(
+			r.db.Table("signin_events").
+				Select("signin_events.user_number, signin_events.event_name, signin_events.event_init_date, "+
+					"CASE WHEN signin_events.status = ? AND events.max_participants > 0 "+
+					"AND signin_events.user_wait_list_position > events.max_participants "+
+					"THEN signin_events.user_wait_list_position - events.max_participants "+
+					"ELSE signin_events.user_wait_list_position END AS user_wait_list_position, "+
+					"signin_events.status, "+userInfoColumns, StatusWaitListed).
+				Joins("LEFT JOIN events ON events.name = signin_events.event_name AND events.init_date = signin_events.event_init_date"),
+			query,
+		),
+	)
+	err = applySearchFilter(dataBase, query).
 		Order(sortClause).Limit(query.Limit).Offset(query.Offset).Scan(&signins).Error
 	if err != nil {
 		return nil, err
@@ -669,6 +697,36 @@ func (r *signinEventRepository) FetchUserInfosByNumbers(userNumbers []uint) ([]P
 	return infos, err
 }
 
+func (r *signinEventRepository) GetStatusCounts(eventName string) (*SigninEventStatusCounts, error) {
+	type row struct {
+		Status string
+		Count  int64
+	}
+	var rows []row
+	q := r.db.Model(&SigninEvent{}).
+		Select("status, COUNT(*) as count").
+		Where("status != ?", StatusCancelled).
+		Group("status")
+	if eventName != "" {
+		q = q.Where("event_name = ?", eventName)
+	}
+	if err := q.Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	counts := &SigninEventStatusCounts{}
+	for _, row := range rows {
+		switch RegistrationStatus(row.Status) {
+		case StatusRegistered:
+			counts.Inscrito = row.Count
+		case StatusWaitingDonation:
+			counts.AguardandoAprovacao = row.Count
+		case StatusWaitListed:
+			counts.ListaDeEspera = row.Count
+		}
+	}
+	return counts, nil
+}
+
 func applySearchFilter(dbQuery *gorm.DB, query SigninEventListQuery) *gorm.DB {
 	if query.SearchBy == "" || query.SearchValue == "" {
 		return dbQuery
@@ -684,6 +742,21 @@ func applySearchFilter(dbQuery *gorm.DB, query SigninEventListQuery) *gorm.DB {
 		return dbQuery.Where("DATE(signin_events.event_init_date) = DATE(?)", parsedTime)
 	case "status":
 		return dbQuery.Where("signin_events.status ILIKE ?", "%"+query.SearchValue+"%")
+	case "user_name":
+		// user_name vem do join com users (via joinUserInfo)
+		return dbQuery.Where("users.name ILIKE ?", "%"+query.SearchValue+"%")
+	case "user_wait_list_position":
+		return dbQuery.Where("signin_events.user_wait_list_position = ?", query.SearchValue)
+	case "papfe_status":
+		// papfe_status é uma expressão CASE sobre users/papfe_documents; as tabelas
+		// devem estar joinadas antes de chamar esta função (ver GetAll).
+		return dbQuery.Where(
+			"CASE WHEN NOT users.has_papfe THEN 'Sem PAPFE' "+
+				"WHEN papfe_documents.is_approved IS NULL THEN 'Pendente' "+
+				"WHEN papfe_documents.is_approved = true THEN 'Aprovado' "+
+				"ELSE 'Rejeitado' END ILIKE ?",
+			"%"+query.SearchValue+"%",
+		)
 	default:
 		return dbQuery
 	}
@@ -692,6 +765,7 @@ func applySearchFilter(dbQuery *gorm.DB, query SigninEventListQuery) *gorm.DB {
 func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 	allowedSortFields := []string{
 		"user_number",
+		"user_name",
 		"event_name",
 		"event_init_date",
 		"status",
@@ -724,6 +798,10 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 			", signin_events.event_name asc" +
 			", signin_events.user_wait_list_position asc" +
 			", signin_events.user_number asc", nil
+	}
+
+	if field == "user_name" {
+		return "users.name " + order, nil
 	}
 
 	// Qualifica a coluna para que o ORDER BY não resolva para o alias

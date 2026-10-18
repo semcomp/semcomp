@@ -477,6 +477,7 @@ func main() {
 	// Inscrições (Signin Events)
 	admin.GET("/signin-events/events", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninEvents)
 	admin.GET("/signin-events", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninsAdmin)
+	admin.GET("/signin-events/stats", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninStatsAdmin)
 	admin.GET("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermR), signinEventHandler.GetSigninAdmin)
 	admin.POST("/signin-events", permMW("Inscrições", permission.PermRW), signinEventHandler.CreateSigninAdmin)
 	admin.PUT("/signin-events/:userNumber/:eventName/:eventInitDate", permMW("Inscrições", permission.PermRW), signinEventHandler.UpdateSigninAdmin)
@@ -486,7 +487,7 @@ func main() {
 
 	// Confirmações de Inscrição — rotas próprias com permissão própria
 	admin.GET("/confirmations/events", permMW("Confirmações de Inscrição", permission.PermR), signinEventHandler.GetSigninEvents)
-	admin.GET("/confirmations", permMW("Confirmações de Inscrição", permission.PermR), signinEventHandler.GetSigninsAdmin)
+	admin.GET("/confirmations", permMW("Confirmações de Inscrição", permission.PermR), signinEventHandler.GetPendingConfirmationsAdmin)
 	admin.PUT("/confirmations/:userNumber/:eventName/:eventInitDate", permMW("Confirmações de Inscrição", permission.PermRW), signinEventHandler.RegisterSigninAdmin)
 
 	// Participações

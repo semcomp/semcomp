@@ -243,10 +243,29 @@ export const userSemcompAPI = {
   },
 };
 
+export interface PapfeDocumentsListResponse {
+  papfe_documents: PapfeDocumentInfo[];
+  total_records: number;
+  filtered_records: number;
+  page: number;
+  limit: number;
+}
+
 export const papfeAPI = {
-  getAll: async (): Promise<PapfeDocumentInfo[]> => {
-    const response = await client.get<{ papfe_documents: PapfeDocumentInfo[] }>("/admin/papfe-documents");
-    return response.data.papfe_documents ?? [];
+  getAll: async (
+    page = 1,
+    limit = 10,
+    sortBy = "uploaded_at",
+    sortOrder = "desc",
+    searchBy?: string,
+    searchValue?: string
+  ): Promise<PapfeDocumentsListResponse> => {
+    let url = `/admin/papfe-documents?page=${page}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+    if (searchBy && searchValue) {
+      url += `&search_by=${encodeURIComponent(searchBy)}&search_value=${encodeURIComponent(searchValue)}`;
+    }
+    const response = await client.get<PapfeDocumentsListResponse>(url);
+    return response.data;
   },
 
   getDocument: async (userId: number): Promise<Blob> => {

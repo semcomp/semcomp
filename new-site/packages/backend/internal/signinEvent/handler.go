@@ -169,6 +169,36 @@ func (h *SigninEventHandler) GetSigninsAdmin(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+// GetPendingConfirmationsAdmin lista paginada de inscrições com status "Aguardando Aprovação".
+func (h *SigninEventHandler) GetPendingConfirmationsAdmin(c *gin.Context) {
+	page := 1
+	limit := 10
+	sortBy := c.DefaultQuery("sort_by", "user_number")
+	sortOrder := c.DefaultQuery("sort_order", "asc")
+	searchBy := c.Query("search_by")
+	searchValue := c.Query("search_value")
+	eventNameFilter := c.Query("event_name")
+
+	if v, err := strconv.Atoi(c.Query("page")); err == nil && v >= 1 {
+		page = v
+	}
+	if v, err := strconv.Atoi(c.Query("limit")); err == nil && v >= 1 {
+		if v > 500 {
+			v = 500
+		}
+		limit = v
+	}
+
+	result, err := h.service.GetPendingSigninsAdmin(page, limit, sortBy, sortOrder, searchBy, searchValue, eventNameFilter)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+
+	c.Set("responseMessage", "Confirmações pendentes listadas com sucesso!")
+	c.JSON(http.StatusOK, result)
+}
+
 // GetSigninAdmin retorna uma inscrição específica por chave composta (backoffice).
 // @Summary Busca inscrição por chave composta
 // @Description Retorna a inscrição pelo número do usuário, nome do evento e data de início
@@ -355,4 +385,15 @@ func (h *SigninEventHandler) RotateSigninsAdmin(c *gin.Context) {
 
 	c.Set("responseMessage", "Rotação de inscrições realizada com sucesso!")
 	c.JSON(http.StatusOK, gin.H{"message": "Rotação de inscrições realizada com sucesso!", "signins": signins})
+}
+
+// GetSigninStatsAdmin retorna contagem de inscrições ativas por status.
+func (h *SigninEventHandler) GetSigninStatsAdmin(c *gin.Context) {
+	eventName := c.Query("event_name")
+	counts, err := h.service.GetSigninStatusCounts(eventName)
+	if err != nil {
+		apierrors.HandleAPIError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, counts)
 }

@@ -151,7 +151,7 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 // GetAll retorna uma lista de todos os usuários cadastrados, com os devidos filtros e
 // ordenações aplicados.
 func (r *userRepository) GetAll(query UserListQuery) (*UserListResult, error) {
-	var users []User
+	users := make([]User, 0)
 	var totalRecords int64
 	var filteredRecords int64
 
@@ -192,9 +192,25 @@ func (r *userRepository) Delete(id uint) error {
 	return r.db.Delete(&User{}, id).Error
 }
 
+type PapfeDocumentListQuery struct {
+	Limit       int
+	Offset      int
+	SortBy      string
+	SortOrder   string
+	SearchBy    string
+	SearchValue string
+}
+
+type PapfeDocumentListResult struct {
+	Documents       []PapfeDocumentInfo `json:"papfe_documents"`
+	TotalRecords    int64               `json:"total_records"`
+	FilteredRecords int64               `json:"filtered_records"`
+}
+
 // PapfeDocumentRepository define as operações de acesso a dados para comprovantes PAPFE.
 type PapfeDocumentRepository interface {
 	FindByEmail(email string) (*PapfeDocument, error)
+	GetAll(query PapfeDocumentListQuery) (*PapfeDocumentListResult, error)
 	FindAll() ([]PapfeDocumentInfo, error)
 	FindInfoByEmail(email string) (*PapfeDocumentInfo, error)
 	Upsert(doc *PapfeDocument) error
@@ -216,6 +232,82 @@ func (r *papfeDocumentRepository) papfeInfoQuery() *gorm.DB {
 	return r.db.Table("papfe_documents pd").
 		Select("pd.id, u.user_number, u.name AS user_name, pd.user_email, pd.filename, pd.content_type, pd.uploaded_at, pd.is_approved, pd.rejection_reason").
 		Joins("JOIN users u ON u.email = pd.user_email")
+}
+
+func applyPapfeSearchFilter(dbQuery *gorm.DB, query PapfeDocumentListQuery) *gorm.DB {
+	if query.SearchBy == "" || query.SearchValue == "" {
+		return dbQuery
+	}
+	switch query.SearchBy {
+	case "user_name":
+		return dbQuery.Where("u.name ILIKE ?", "%"+query.SearchValue+"%")
+	case "uploaded_at":
+		return dbQuery.Where("DATE(pd.uploaded_at)::text ILIKE ?", "%"+query.SearchValue+"%")
+	case "status":
+		switch strings.ToLower(query.SearchValue) {
+		case "aprovado":
+			return dbQuery.Where("pd.is_approved = ?", true)
+		case "rejeitado":
+			return dbQuery.Where("pd.is_approved = ?", false)
+		case "pendente":
+			return dbQuery.Where("pd.is_approved IS NULL")
+		}
+	}
+	return dbQuery
+}
+
+func resolvePapfeSortClause(sortBy, sortOrder string) (string, error) {
+	allowed := []string{"user_name", "uploaded_at"}
+	field := strings.ToLower(sortBy)
+	if !slices.Contains(allowed, field) {
+		return "", fmt.Errorf("invalid sort field")
+	}
+	order := strings.ToLower(sortOrder)
+	if order != "asc" && order != "desc" {
+		return "", fmt.Errorf("invalid sort order")
+	}
+	columnMap := map[string]string{
+		"user_name":   "u.name",
+		"uploaded_at": "pd.uploaded_at",
+	}
+	return columnMap[field] + " " + order, nil
+}
+
+func (r *papfeDocumentRepository) GetAll(query PapfeDocumentListQuery) (*PapfeDocumentListResult, error) {
+	var totalRecords int64
+	var filteredRecords int64
+	results := make([]PapfeDocumentInfo, 0)
+
+	sortClause, err := resolvePapfeSortClause(query.SortBy, query.SortOrder)
+	if err != nil {
+		return nil, apierrors.ValidationError("Campo de ordenação inválido para PAPFE", err)
+	}
+
+	baseCount := r.db.Table("papfe_documents pd").
+		Joins("JOIN users u ON u.email = pd.user_email")
+
+	if err := baseCount.Count(&totalRecords).Error; err != nil {
+		return nil, apierrors.InternalServerError("Erro ao contar comprovantes PAPFE", err)
+	}
+
+	if err := applyPapfeSearchFilter(baseCount, query).Count(&filteredRecords).Error; err != nil {
+		return nil, apierrors.InternalServerError("Erro ao contar comprovantes PAPFE filtrados", err)
+	}
+
+	err = applyPapfeSearchFilter(r.papfeInfoQuery(), query).
+		Order(sortClause).
+		Limit(query.Limit).
+		Offset(query.Offset).
+		Scan(&results).Error
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao listar comprovantes PAPFE", err)
+	}
+
+	return &PapfeDocumentListResult{
+		Documents:       results,
+		TotalRecords:    totalRecords,
+		FilteredRecords: filteredRecords,
+	}, nil
 }
 
 // FindAll retorna metadados de todos os comprovantes PAPFE, com nome e número do usuário.
@@ -293,7 +385,7 @@ func (r *papfeDocumentRepository) DeleteByEmail(email string) error {
 
 // BadgeDeliveryRepository define as operações de acesso a dados para entrega de crachás.
 type BadgeDeliveryRepository interface {
-	GetAll(page, limit int, sortBy, sortOrder string) (*BadgeDeliveryListResult, error)
+	GetAll(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*BadgeDeliveryListResult, error)
 	Mark(userNumber uint, adminEmail string) error
 	Unmark(userNumber uint) error
 }
@@ -307,7 +399,7 @@ func NewBadgeDeliveryRepository(db *gorm.DB) BadgeDeliveryRepository {
 }
 
 // GetAll retorna todos os usuários com quer_cracha=true, com o status de entrega do crachá.
-func (r *badgeDeliveryRepository) GetAll(page, limit int, sortBy, sortOrder string) (*BadgeDeliveryListResult, error) {
+func (r *badgeDeliveryRepository) GetAll(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*BadgeDeliveryListResult, error) {
 	allowedSortFields := []string{"name", "user_number"}
 	field := strings.ToLower(sortBy)
 	if !slices.Contains(allowedSortFields, field) {
@@ -328,21 +420,52 @@ func (r *badgeDeliveryRepository) GetAll(page, limit int, sortBy, sortOrder stri
 		AdminEmail  string
 	}
 
-	var rows []row
+	rows := make([]row, 0)
 	var total int64
+	var filtered int64
 
-	base := r.db.Table("users").Where("quer_cracha = true")
+	baseCount := r.db.Table("users u").
+		Joins("LEFT JOIN badge_deliveries bd ON bd.user_number = u.user_number").
+		Where("u.quer_cracha = true")
 
-	if err := base.Count(&total).Error; err != nil {
+	if err := baseCount.Count(&total).Error; err != nil {
 		return nil, apierrors.InternalServerError("Erro ao contar usuários com crachá", err)
+	}
+
+	applyBadgeSearch := func(q *gorm.DB) *gorm.DB {
+		if searchBy == "" || searchValue == "" {
+			return q
+		}
+		switch searchBy {
+		case "name":
+			return q.Where("u.name ILIKE ?", "%"+searchValue+"%")
+		case "email":
+			return q.Where("u.email ILIKE ?", "%"+searchValue+"%")
+		case "user_number":
+			return q.Where("u.user_number::text ILIKE ?", "%"+searchValue+"%")
+		case "delivered":
+			switch strings.ToLower(searchValue) {
+			case "true", "sim", "entregue":
+				return q.Where("bd.user_number IS NOT NULL")
+			case "false", "não", "nao", "pendente":
+				return q.Where("bd.user_number IS NULL")
+			}
+		}
+		return q
+	}
+
+	if err := applyBadgeSearch(baseCount).Count(&filtered).Error; err != nil {
+		return nil, apierrors.InternalServerError("Erro ao contar entregas de crachá filtradas", err)
 	}
 
 	offset := (page - 1) * limit
 
-	err := r.db.Table("users u").
+	dataQuery := r.db.Table("users u").
 		Select("u.user_number, u.name, u.email, CASE WHEN bd.user_number IS NOT NULL THEN true ELSE false END AS delivered, bd.delivered_at, bd.admin_email").
 		Joins("LEFT JOIN badge_deliveries bd ON bd.user_number = u.user_number").
-		Where("u.quer_cracha = true").
+		Where("u.quer_cracha = true")
+
+	err := applyBadgeSearch(dataQuery).
 		Order("u." + order).
 		Limit(limit).
 		Offset(offset).
@@ -366,7 +489,7 @@ func (r *badgeDeliveryRepository) GetAll(page, limit int, sortBy, sortOrder stri
 	return &BadgeDeliveryListResult{
 		Users:           infos,
 		TotalRecords:    total,
-		FilteredRecords: total,
+		FilteredRecords: filtered,
 	}, nil
 }
 

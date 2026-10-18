@@ -107,6 +107,13 @@ export const signinEventsAPI = {
         return response.data.events ?? [];
     },
 
+    getStats: async (eventName?: string): Promise<SigninStatusCounts> => {
+        let url = "/admin/signin-events/stats";
+        if (eventName) url += `?event_name=${encodeURIComponent(eventName)}`;
+        const response = await client.get<SigninStatusCounts>(url);
+        return response.data;
+    },
+
     register: async (
         userNumber: number,
         eventName: string,
@@ -122,15 +129,19 @@ export const signinEventsAPI = {
 export const confirmationsAPI = {
     getAll: async (
         page = 1,
-        limit = 500,
-        sortBy = "user_wait_list_position",
+        limit = 10,
+        sortBy = "user_number",
         sortOrder: "asc" | "desc" = "asc",
         searchBy?: string,
-        searchValue?: string
+        searchValue?: string,
+        eventName?: string
     ): Promise<SigninsListResponse> => {
         let url = `/admin/confirmations?page=${page}&limit=${limit}&sort_by=${sortBy}&sort_order=${sortOrder}`;
         if (searchBy && searchValue) {
             url += `&search_by=${encodeURIComponent(searchBy)}&search_value=${encodeURIComponent(searchValue)}`;
+        }
+        if (eventName) {
+            url += `&event_name=${encodeURIComponent(eventName)}`;
         }
         const response = await client.get<any>(url);
         const signins = response.data.signins ?? [];
@@ -156,6 +167,12 @@ export const confirmationsAPI = {
         return mapBackendSignin(response.data.signin);
     },
 };
+
+export interface SigninStatusCounts {
+    inscrito: number;
+    aguardando_aprovacao: number;
+    lista_de_espera: number;
+}
 
 export interface SigninableEvent {
     name: string;

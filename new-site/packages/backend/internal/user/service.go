@@ -32,7 +32,7 @@ type UserService interface {
 	UpdateUser(id uint, request UpdateUserRequest) error
 	UpdateProfile(email string, request UpdateProfileRequest) (*SafeUser, error)
 	DeleteUser(id uint) error
-	GetAllPapfeDocuments() ([]PapfeDocumentInfo, error)
+	GetAllPapfeDocuments(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*PapfeDocumentListResult, error)
 	GetPapfeDocument(email string) (*PapfeDocument, error)
 	GetMyPapfeDocument(email string) (*PapfeDocumentInfo, error)
 	UpdatePapfeDocument(email string, filename string, contentType string, data []byte) error
@@ -41,7 +41,7 @@ type UserService interface {
 	ResendVerification(email string) error
 	RequestPasswordReset(email string) error
 	ResetPassword(tokenPlain string, newPassword string) error
-	GetBadgeDeliveries(page, limit int, sortBy, sortOrder string) (*BadgeDeliveryListResult, error)
+	GetBadgeDeliveries(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*BadgeDeliveryListResult, error)
 	MarkBadgeDelivered(userNumber uint, adminEmail string) error
 	UnmarkBadgeDelivered(userNumber uint) error
 }
@@ -488,13 +488,29 @@ func savePapfeFile(data []byte, contentType string) (string, error) {
 	return filePath, nil
 }
 
-// GetAllPapfeDocuments retorna metadados de todos os comprovantes PAPFE cadastrados.
-func (s *userService) GetAllPapfeDocuments() ([]PapfeDocumentInfo, error) {
-	docs, err := s.papfeRepo.FindAll()
-	if err != nil {
-		return nil, err
+// GetAllPapfeDocuments retorna metadados paginados de comprovantes PAPFE cadastrados.
+func (s *userService) GetAllPapfeDocuments(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*PapfeDocumentListResult, error) {
+	if page < 1 {
+		page = 1
 	}
-	return docs, nil
+	if limit < 1 {
+		limit = 10
+	}
+	if sortBy == "" {
+		sortBy = "uploaded_at"
+	}
+	if sortOrder == "" {
+		sortOrder = "desc"
+	}
+	offset := (page - 1) * limit
+	return s.papfeRepo.GetAll(PapfeDocumentListQuery{
+		Limit:       limit,
+		Offset:      offset,
+		SortBy:      sortBy,
+		SortOrder:   sortOrder,
+		SearchBy:    searchBy,
+		SearchValue: searchValue,
+	})
 }
 
 // GetPapfeDocument retorna o comprovante PAPFE de um usuário pelo e-mail.
@@ -588,7 +604,7 @@ func (s *userService) RequestPasswordReset(email string) error {
 	return nil
 }
 
-func (s *userService) GetBadgeDeliveries(page, limit int, sortBy, sortOrder string) (*BadgeDeliveryListResult, error) {
+func (s *userService) GetBadgeDeliveries(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*BadgeDeliveryListResult, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -601,7 +617,7 @@ func (s *userService) GetBadgeDeliveries(page, limit int, sortBy, sortOrder stri
 	if sortOrder == "" {
 		sortOrder = "asc"
 	}
-	return s.badgeRepo.GetAll(page, limit, sortBy, sortOrder)
+	return s.badgeRepo.GetAll(page, limit, sortBy, sortOrder, searchBy, searchValue)
 }
 
 func (s *userService) MarkBadgeDelivered(userNumber uint, adminEmail string) error {
