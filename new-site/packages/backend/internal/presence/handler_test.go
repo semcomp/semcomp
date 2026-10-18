@@ -37,7 +37,8 @@ func (m *mockPresenceService) UpdatePresenceByUserEventandInitDate(userNumber, e
 func (m *mockPresenceService) GetPresences(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*PresenceListResult, error) {
 	return m.GetPresencesFunc(page, limit, sortBy, sortOrder, searchBy, searchValue)
 }
-func (m *mockPresenceService) SetRateRecalculator(recalculator RateRecalculator) {}
+func (m *mockPresenceService) SetRateRecalculator(recalculator RateRecalculator)                    {}
+func (m *mockPresenceService) SetCoffeePurchaseCheck(p coffeeProductLookup, u coffeePurchaseLookup) {}
 
 // setupRouter cria um roteador Gin em modo de teste com todas as rotas do PresenceHandler
 func setupRouter(h *PresenceHandler) *gin.Engine {

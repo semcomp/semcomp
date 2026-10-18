@@ -10,6 +10,47 @@ A tabela de presenca é composta por:
 - `EventName`: Nome do evento.
 - `EventInitDate`: Data e hora do início do evento.
 - `EmailAdmin`: Email do usuário backoffice que cadastrou a presença.
+- `created_at`: Instante em que a presença foi lançada, preenchido automaticamente
+  pelo GORM no insert (UTC no banco). Nunca é alterado em um update — o instante
+  original é o que interessa para auditar duplicatas. Linhas anteriores à
+  introdução da coluna vêm como `null`.
+
+## Regra de inscrição
+
+Quando o evento tem `has_signin = true` (Minicursos, Oficinas…), a
+presença só é aceita se o participante tiver uma inscrição (`signin_events`)
+naquele evento com status **`Inscrito`**. Sem inscrição, ou com status
+`Lista de Espera` / `Aguardando Aprovação` / `Cancelado`, a resposta é `403`.
+
+> **Coffee não usa esta regra.** Coffee não é evento com inscrição
+> (`has_signin = false`). O que libera a presença num evento de coffee é ter
+> **comprado o produto de coffee** daquele horário — ver a seção "Regra do
+> coffee" abaixo.
+
+Eventos sem inscrição (`has_signin = false`, ex.: Palestras, Vitrine) aceitam
+qualquer participante.
+
+## Regra do coffee
+
+Coffee não é evento com inscrição — um coffee é um **produto vendido**. Ao
+marcar presença num evento de coffee, o sistema exige que o participante tenha
+**comprado o produto COFFEE** correspondente, com a venda em status **`PAGO`**
+(PENDENTE não conta: bastaria iniciar o checkout sem pagar para liberar).
+
+A associação evento ↔ produto é por **data/hora**: o evento de coffee das 09:00
+corresponde ao produto COFFEE cujo `coffees.date_time` é 09:00 daquele dia.
+
+| Situação | Resposta |
+|---|---|
+| Comprou o coffee do horário (`PAGO`), direto ou via **combo** que o contém | presença liberada |
+| Não comprou | `403 {"code":"forbidden","message":"Usuário não comprou o coffee deste evento"}` |
+| Evento sem produto de coffee associado (ex.: Palestra) | checagem ignorada, presença liberada |
+
+**Combo conta como posse do coffee.** Quem comprou um COMBO que contém o coffee
+daquele horário recebe presença — é o mesmo critério que a loja usa para compra
+única (`getUnavailableProductIDs` fecha combo ↔ coffees nos dois sentidos).
+Vale só para o coffee que o combo contém: ter comprado um combo não libera
+presença em coffees de outros horários.
 
 ## Formato de data
 
@@ -42,15 +83,27 @@ Resposta de sucesso (`201`):
     "name": "Fulano de Ciclano",
     "event_name": "Workshop A",
     "event_init_date": "2026-07-10T14:00:00Z",
-    "email_admin": "Example@semcomp.com"
+    "email_admin": "Example@semcomp.com",
+    "created_at": "2026-07-10T14:03:21Z"
   }
 }
 ```
 
 Erros comuns:
 
-- `400`: `{"error":"Dados inválidos"}`
-- `500`: `{"error":"..."}`
+- `400`: `{"code":"validation_error","message":"Dados da requisição inválidos"}`
+- `403`: `{"code":"forbidden","message":"Usuário não está inscrito neste evento"}` — o
+  evento exige inscrição (`has_signin = true`) e o participante não tem nenhuma.
+  `"Usuário não possui inscrição confirmada neste evento"` quando existe inscrição
+  mas o status não é `Inscrito`.
+  `"Usuário não comprou o coffee deste evento"` quando o horário tem um produto
+  de coffee associado e o participante não o comprou (venda `PAGO`).
+- `404`: `{"code":"not_found","message":"Evento não encontrado"}`
+- `409`: `{"code":"conflict","message":"Presença já registrada em 06/10/2026 09:00 por admin@semcomp.com"}`
+  — já existe presença deste usuário neste evento. A mensagem informa o instante
+  (fuso de São Paulo) e o admin que registrou antes. Vale tanto para o caminho
+  normal quanto quando dois scans simultâneos disputam a mesma vaga.
+- `500`: `{"code":"internal_server_error","message":"Erro ao criar presença"}`
 
 ---
 
@@ -72,6 +125,7 @@ Erros comuns:
 - `event_name`
 - `event_init_date`
 - `email_admin`
+- `created_at`
 
 ### Valores permitidos em `sort_order`
 
@@ -88,6 +142,7 @@ Campos permitidos em `search_by`:
 - `event_name`
 - `event_init_date` (valor em RFC3339)
 - `email_admin`
+- `created_at` (valor em `AAAA-MM-DD` ou RFC3339; a busca é por dia, no fuso de São Paulo)
 
 Exemplo:
 

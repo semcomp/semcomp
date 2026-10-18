@@ -16,7 +16,8 @@ const mapBackendPresence = (presence: any): any => {
         userNumber: presence.user_number,
         nameEvent: presence.event_name,
         dateEvent: presence.event_init_date,
-        userBackoffice: presence.email_admin
+        userBackoffice: presence.email_admin,
+        createdAt: presence.created_at
     };
 };
 
