@@ -40,7 +40,9 @@ export default function ParticipationCRUD() {
         ? API_FIELD_MAP[params.filterField] || params.filterField
         : "user_number";
 
-      if (filterFieldApi == "event_init_date") {
+      // Campos de data não têm filtro utilizável nesta página (não há datepicker
+      // e a busca exige valor exato). Vale para event_init_date e created_at.
+      if (filterFieldApi == "event_init_date" || filterFieldApi == "created_at") {
         showNotification(`A busca por esse campo está desativada`, "error");
         return;
       }

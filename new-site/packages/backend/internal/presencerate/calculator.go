@@ -122,14 +122,25 @@ func (c *Calculator) RecalculateUsers(userNumbers ...int64) error {
 	if c == nil || c.db == nil || len(userNumbers) == 0 {
 		return nil
 	}
+	return c.RecalculateUsersTx(c.db, userNumbers...)
+}
 
-	input, err := c.loadInput()
+// RecalculateUsersTx recalcula a taxa usando a conexão/transação informada. É o
+// que permite chamar o recálculo dentro de uma transação do chamador e torná-lo
+// atômico junto de outra mutação (ex.: remover uma presença). Reusa a mesma
+// fórmula (loadInput + Compute) de RecalculateUsers.
+func (c *Calculator) RecalculateUsersTx(tx *gorm.DB, userNumbers ...int64) error {
+	if c == nil || tx == nil || len(userNumbers) == 0 {
+		return nil
+	}
+
+	input, err := c.loadInputTx(tx)
 	if err != nil {
 		return err
 	}
 
 	var presences []presence.Presence
-	if err := c.db.Where("user_number IN ?", userNumbers).Find(&presences).Error; err != nil {
+	if err := tx.Where("user_number IN ?", userNumbers).Find(&presences).Error; err != nil {
 		return err
 	}
 	input.Presences = presences
@@ -145,7 +156,16 @@ func (c *Calculator) RecalculateUsers(userNumbers ...int64) error {
 
 	rates := Compute(input)
 
-	return c.persist(userNumbers, rates)
+	// Escrita direta na tx do chamador — sem abrir transação aninhada, para o
+	// recalculo commitar ou reverter junto da mutação que o originou.
+	for _, n := range userNumbers {
+		if err := tx.Model(&user.User{}).
+			Where("user_number = ?", n).
+			Update("presence_rate", rates[n]).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // RecalculateAll recalcula a taxa de todos os usuários do sistema.
@@ -200,8 +220,14 @@ func (c *Calculator) RecalculateAll() error {
 }
 
 func (c *Calculator) loadInput() (ComputeInput, error) {
+	return c.loadInputTx(c.db)
+}
+
+// loadInputTx carrega pesos, eventos e justificativas pela conexão informada —
+// permitindo ler o estado dentro da transação do chamador.
+func (c *Calculator) loadInputTx(tx *gorm.DB) (ComputeInput, error) {
 	var weights []presencesettings.PresenceTypeWeight
-	if err := c.db.Find(&weights).Error; err != nil {
+	if err := tx.Find(&weights).Error; err != nil {
 		return ComputeInput{}, err
 	}
 
@@ -211,14 +237,14 @@ func (c *Calculator) loadInput() (ComputeInput, error) {
 	}
 
 	var events []event.Event
-	if err := c.db.Find(&events).Error; err != nil {
+	if err := tx.Find(&events).Error; err != nil {
 		return ComputeInput{}, err
 	}
 
 	// Justificativas de ausência aprovadas: buscar user_numbers via JOIN
 	type justifiedRow struct{ UserNumber int64 }
 	var justified []justifiedRow
-	if err := c.db.Raw(
+	if err := tx.Raw(
 		`SELECT u.user_number FROM absence_justifications aj
 		 JOIN users u ON u.email = aj.user_email
 		 WHERE aj.status = 'aprovado'`,
