@@ -276,7 +276,7 @@ func resolvePapfeSortClause(sortBy, sortOrder string) (string, error) {
 func (r *papfeDocumentRepository) GetAll(query PapfeDocumentListQuery) (*PapfeDocumentListResult, error) {
 	var totalRecords int64
 	var filteredRecords int64
-	var results []PapfeDocumentInfo
+	results := make([]PapfeDocumentInfo, 0)
 
 	sortClause, err := resolvePapfeSortClause(query.SortBy, query.SortOrder)
 	if err != nil {
@@ -420,7 +420,7 @@ func (r *badgeDeliveryRepository) GetAll(page, limit int, sortBy, sortOrder, sea
 		AdminEmail  string
 	}
 
-	var rows []row
+	rows := make([]row, 0)
 	var total int64
 	var filtered int64
 

@@ -559,7 +559,7 @@ func (r *saleRepository) GetKitDeliveriesPaged(query KitDeliveryListQuery) (*Kit
 
 	var totalRecords int64
 	var filteredRecords int64
-	var items []KitDeliveryItem
+	items := make([]KitDeliveryItem, 0)
 
 	baseCount := r.kitBaseQuery()
 	if err := baseCount.Count(&totalRecords).Error; err != nil {

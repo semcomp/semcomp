@@ -118,7 +118,7 @@ func resolveAJSortClause(sortBy, sortOrder string) (string, error) {
 func (r *absenceJustificationRepository) GetAll(query AbsenceJustificationListQuery) (*AbsenceJustificationListResult, error) {
 	var totalRecords int64
 	var filteredRecords int64
-	var results []AbsenceJustificationInfo
+	results := make([]AbsenceJustificationInfo, 0)
 
 	sortClause, err := resolveAJSortClause(query.SortBy, query.SortOrder)
 	if err != nil {

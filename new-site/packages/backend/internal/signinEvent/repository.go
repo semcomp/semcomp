@@ -388,7 +388,7 @@ func applyBaseFilters(q *gorm.DB, query SigninEventListQuery) *gorm.DB {
 }
 
 func (r *signinEventRepository) GetAll(query SigninEventListQuery) (*SigninEventListResult, error) {
-	var signins []SigninEvent
+	signins := make([]SigninEvent, 0)
 	var totalRecords int64
 	var filteredRecords int64
 
