@@ -120,12 +120,13 @@ function KitTab({ canWrite }: { canWrite: boolean }) {
         user_number_formatted: "user_number",
         status: "is_picked_up",
       };
+      const backendSortBy = kitFieldMap[params.sortField] ?? params.sortField;
       const backendSearchBy = kitFieldMap[params.filterField] ?? params.filterField;
 
       const result = await deliveriesAPI.getKitDeliveries(
         params.page,
         params.pageSize,
-        params.sortField || "user_name",
+        backendSortBy || "user_name",
         params.sortOrder || "asc",
         backendSearchBy || undefined,
         params.filterValue || undefined
@@ -182,6 +183,7 @@ function KitTab({ canWrite }: { canWrite: boolean }) {
       <CrudTable
         data={rows as unknown as CrudItemType[]}
         fields={KIT_FIELDS}
+        defaultSortField="user_name"
         onEdit={() => {}}
         onEditClick={canWrite ? handleEditClick : undefined}
         editIcon={<PackageCheck className="w-3.5 h-3.5" />}
