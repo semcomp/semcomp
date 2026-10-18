@@ -185,7 +185,7 @@ function KitTab({ canWrite }: { canWrite: boolean }) {
         onEdit={() => {}}
         onEditClick={canWrite ? handleEditClick : undefined}
         editIcon={<PackageCheck className="w-3.5 h-3.5" />}
-        getItemKey={(item) => (item as unknown as KitDisplayRow).id}
+        getItemKey={(item) => (item as unknown as KitDisplayRow).id!}
         entityLabel="kit"
         totalRecords={totalRecords}
         onQueryChange={handleQueryChange}
