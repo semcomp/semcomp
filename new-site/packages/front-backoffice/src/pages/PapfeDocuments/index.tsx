@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
 import { CrudTable } from "@/components/CrudTable";
-import type { CrudField } from "@/components/CrudTable";
+import type { CrudField, CrudQueryParams } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
 import { Tabs } from "@/constants/Tabs";
 import { papfeAPI } from "@/api/users";
@@ -74,7 +74,8 @@ export default function PapfeDocuments() {
   const { showNotification } = useNotification();
 
   const [documents, setDocuments] = useState<PapfeDocumentInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
@@ -82,21 +83,25 @@ export default function PapfeDocuments() {
 
   const rows = useMemo(() => documents.map(toRow), [documents]);
 
-  const fetchDocuments = useCallback(async () => {
+  const handleQueryChange = useCallback(async (params: CrudQueryParams) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const docs = await papfeAPI.getAll();
-      setDocuments(docs);
+      const result = await papfeAPI.getAll(
+        params.page,
+        params.pageSize,
+        params.sortField || "uploaded_at",
+        params.sortOrder || "desc",
+        params.filterField || undefined,
+        params.filterValue || undefined
+      );
+      setDocuments(result.papfe_documents);
+      setTotalRecords(result.filtered_records);
     } catch {
       showNotification("Erro ao carregar comprovantes PAPFE", "error");
     } finally {
       setLoading(false);
     }
   }, [showNotification]);
-
-  useEffect(() => {
-    fetchDocuments();
-  }, [fetchDocuments]);
 
   const openModal = async (doc: PapfeDocumentInfo) => {
     setRejecting(false);
@@ -189,6 +194,8 @@ export default function PapfeDocuments() {
           actionIcon={<Eye className="w-3.5 h-3.5" />}
           actionTitle="Ver documento"
           entityLabel="comprovante"
+          totalRecords={totalRecords}
+          onQueryChange={handleQueryChange}
         />
       </div>
 

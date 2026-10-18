@@ -1,11 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { BannerCard } from "@/components/BannerCard";
 import { CrudTable } from "@/components/CrudTable";
-import type { CrudField } from "@/components/CrudTable";
+import type { CrudField, CrudQueryParams } from "@/components/CrudTable";
 import type { CrudItemType } from "@/types/CrudItem";
 import { Tabs } from "@/constants/Tabs";
-import { useAbsenceJustifications } from "@/hooks/useAbsenceJustifications";
 import type {
   AbsenceJustificationType,
   AbsenceJustificationStatus,
@@ -23,6 +22,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { absenceJustificationsAPI } from "@/api/absenceJustifications";
 
 const STATUS_LABEL: Record<AbsenceJustificationStatus, string> = {
   em_analise: "Em análise",
@@ -63,18 +63,19 @@ type ModalState =
 const FIELDS: CrudField[] = [
   { value: "user_name", label: "Participante" },
   { value: "event_name", label: "Evento" },
-  { value: "reason_preview", label: "Justificativa" },
+  { value: "reason_preview", label: "Justificativa", searchable: false, sortable: false },
   { value: "submitted_at", label: "Enviado em", type: "date" },
   {
     value: "status",
     label: "Status",
     type: "select",
     selectVariants: {
-      "Em análise": STATUS_BADGE_CLASS.em_analise,
-      Aprovado: STATUS_BADGE_CLASS.aprovado,
-      Negado: STATUS_BADGE_CLASS.negado,
-      "Documento Inválido": STATUS_BADGE_CLASS.documento_invalido,
+      em_analise: STATUS_BADGE_CLASS.em_analise,
+      aprovado: STATUS_BADGE_CLASS.aprovado,
+      negado: STATUS_BADGE_CLASS.negado,
+      documento_invalido: STATUS_BADGE_CLASS.documento_invalido,
     },
+    selectLabels: STATUS_LABEL,
   },
 ];
 
@@ -92,21 +93,49 @@ const toRow = (j: AbsenceJustificationType): AbsenceJustificationRow => ({
   event_name: j.event_name,
   reason_preview: truncate(j.reason, REASON_PREVIEW_LENGTH),
   submitted_at: j.submitted_at,
-  status: STATUS_LABEL[j.status],
+  status: j.status,
 });
 
 export default function AbsenceJustifications() {
   const canWrite = useHasPermission("Justificativas de Ausência", "RW");
   const navigate = useNavigate();
   const { showNotification } = useNotification();
-  const { justifications, loading, updateStatus, getAttachmentUrl } =
-    useAbsenceJustifications();
 
+  const [justifications, setJustifications] = useState<AbsenceJustificationType[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [pendingDecision, setPendingDecision] =
     useState<AbsenceJustificationStatus | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const lastQueryRef = useRef<CrudQueryParams | null>(null);
+
+  const fetchPage = useCallback(async (params: CrudQueryParams) => {
+    setLoading(true);
+    try {
+      const result = await absenceJustificationsAPI.getAll(
+        params.page,
+        params.pageSize,
+        params.sortField || "submitted_at",
+        params.sortOrder || "desc",
+        params.filterField || undefined,
+        params.filterValue || undefined
+      );
+      setJustifications(result.absence_justifications);
+      setTotalRecords(result.filtered_records);
+    } catch {
+      showNotification("Erro ao carregar justificativas de ausência", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [showNotification]);
+
+  const handleQueryChange = useCallback((params: CrudQueryParams) => {
+    lastQueryRef.current = params;
+    fetchPage(params);
+  }, [fetchPage]);
 
   const rows = useMemo(() => justifications.map(toRow), [justifications]);
 
@@ -120,7 +149,8 @@ export default function AbsenceJustifications() {
       loadingAttachment: true,
     });
     try {
-      const url = await getAttachmentUrl(justification.id);
+      const blob = await absenceJustificationsAPI.getAttachment(justification.id);
+      const url = URL.createObjectURL(blob);
       setModal({
         open: true,
         justification,
@@ -150,29 +180,27 @@ export default function AbsenceJustifications() {
 
   const confirmDecision = async () => {
     if (!modal.open || !pendingDecision) return;
-    if (
-      pendingDecision === "negado" &&
-      !rejectionReason.trim()
-    ) {
+    if (pendingDecision === "negado" && !rejectionReason.trim()) {
       showNotification("Informe o motivo da negativa.", "warning");
       return;
     }
     setSubmitting(true);
     try {
-      await updateStatus(
+      await absenceJustificationsAPI.updateStatus(
         modal.justification.id,
         pendingDecision,
         pendingDecision === "negado" ? rejectionReason.trim() : undefined
       );
-      setModal({
-        ...modal,
-        justification: {
-          ...modal.justification,
-          status: pendingDecision,
-          rejection_reason:
-            pendingDecision === "negado" ? rejectionReason.trim() : null,
-        },
-      });
+      const updated = {
+        ...modal.justification,
+        status: pendingDecision,
+        rejection_reason:
+          pendingDecision === "negado" ? rejectionReason.trim() : null,
+      };
+      setModal({ ...modal, justification: updated });
+      setJustifications((prev) =>
+        prev.map((j) => (j.id === updated.id ? updated : j))
+      );
       showNotification(
         pendingDecision === "aprovado"
           ? "Justificativa aprovada!"
@@ -217,25 +245,19 @@ export default function AbsenceJustifications() {
             <p className="text-slate-400">Carregando justificativas...</p>
           </div>
         )}
-        {!loading && rows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-            <p className="text-slate-400">
-              Nenhuma justificativa de ausência foi enviada até o momento.
-            </p>
-          </div>
-        ) : (
-          <CrudTable
-            data={rows}
-            fields={FIELDS}
-            onEdit={() => {}}
-            onDelete={() => {}}
-            canWrite={false}
-            onAction={handleAction}
-            actionIcon={<Eye className="w-3.5 h-3.5" />}
-            actionTitle="Ver justificativa"
-            entityLabel="justificativa"
-          />
-        )}
+        <CrudTable
+          data={rows}
+          fields={FIELDS}
+          onEdit={() => {}}
+          onDelete={() => {}}
+          canWrite={false}
+          onAction={handleAction}
+          actionIcon={<Eye className="w-3.5 h-3.5" />}
+          actionTitle="Ver justificativa"
+          entityLabel="justificativa"
+          totalRecords={totalRecords}
+          onQueryChange={handleQueryChange}
+        />
       </div>
 
       <Dialog open={modal.open} onOpenChange={(open) => { if (!open) closeModal(); }}>

@@ -109,6 +109,9 @@ func (s *stubSigninRepo) RotateAtomicSignins(eventName string, initDate time.Tim
 func (s *stubSigninRepo) FetchUserInfosByNumbers(userNumbers []uint) ([]signinEvent.PromotedUserInfo, error) {
 	return nil, nil
 }
+func (s *stubSigninRepo) GetStatusCounts(eventName string) (*signinEvent.SigninEventStatusCounts, error) {
+	return &signinEvent.SigninEventStatusCounts{}, nil
+}
 
 // Helpers --------------------------------------------------------------------------
 

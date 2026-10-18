@@ -229,7 +229,7 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 }
 
 func (r *eventRepository) GetEvents(query EventListQuery) (*EventListResult, error) {
-	var events []Event
+	events := make([]Event, 0)
 	var totalRecords int64
 	var filteredRecords int64
 
@@ -300,7 +300,7 @@ func (r *eventRepository) GetEvents(query EventListQuery) (*EventListResult, err
 }
 
 func (r *eventRepository) ListSigninableEvents() ([]Event, error) {
-	var events []Event
+	events := make([]Event, 0)
 	err := r.db.Where("has_signin = ?", true).
 		Order("init_date asc").
 		Find(&events).Error

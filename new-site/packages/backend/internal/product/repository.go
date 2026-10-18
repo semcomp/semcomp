@@ -187,7 +187,7 @@ func (r *productRepository) BulkCreate(products []*Product) ([]Product, error) {
 	if err != nil {
 		return nil, err
 	}
-	var result []Product
+	result := make([]Product, 0)
 	err = r.db.
 		Preload("Kit").
 		Preload("Coffee").
@@ -392,7 +392,7 @@ func resolveProductSortClause(sortBy string, sortOrder string) (string, error) {
 }
 
 func (r *productRepository) GetProducts(query ProductListQuery) (*ProductListResult, error) {
-	var products []Product
+	products := make([]Product, 0)
 	var totalRecords int64
 	var filteredRecords int64
 

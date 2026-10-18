@@ -18,7 +18,7 @@ type AbsenceJustificationService interface {
 	GetMine(userEmail string) (*AbsenceJustificationInfo, error)
 	UpdateJustification(userEmail string, id uint, request UpdateAbsenceJustificationRequest) (*AbsenceJustificationInfo, error)
 	GetOwnAttachment(userEmail string, id uint) (*AbsenceJustification, error)
-	GetAllAbsenceJustifications() ([]AbsenceJustificationInfo, error)
+	GetAllAbsenceJustifications(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*AbsenceJustificationListResult, error)
 	GetAttachment(id uint) (*AbsenceJustification, error)
 	UpdateStatus(id uint, status string, rejectionReason string) error
 }
@@ -158,8 +158,28 @@ func (s *absenceJustificationService) GetOwnAttachment(userEmail string, id uint
 	return justification, nil
 }
 
-func (s *absenceJustificationService) GetAllAbsenceJustifications() ([]AbsenceJustificationInfo, error) {
-	return s.repo.FindAll()
+func (s *absenceJustificationService) GetAllAbsenceJustifications(page, limit int, sortBy, sortOrder, searchBy, searchValue string) (*AbsenceJustificationListResult, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+	if sortBy == "" {
+		sortBy = "submitted_at"
+	}
+	if sortOrder == "" {
+		sortOrder = "desc"
+	}
+	offset := (page - 1) * limit
+	return s.repo.GetAll(AbsenceJustificationListQuery{
+		Limit:       limit,
+		Offset:      offset,
+		SortBy:      sortBy,
+		SortOrder:   sortOrder,
+		SearchBy:    searchBy,
+		SearchValue: searchValue,
+	})
 }
 
 func (s *absenceJustificationService) GetAttachment(id uint) (*AbsenceJustification, error) {

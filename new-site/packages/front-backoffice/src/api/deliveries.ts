@@ -1,5 +1,5 @@
 import client from "./client";
-import type { Sale, SaleItem } from "./sales";
+import type { SaleItem } from "./sales";
 
 export interface BadgeDeliveryUser {
   user_number: string;
@@ -20,16 +20,42 @@ export interface BadgeDeliveryListResponse {
   users: BadgeDeliveryUser[];
 }
 
+export interface KitDeliveryItem {
+  item_id: number;
+  sale_id: number;
+  user_number: string;
+  user_name: string;
+  kit_name: string;
+  kit_size: string;
+  kit_color: string;
+  kit_is_babylook: boolean;
+  quantity: number;
+  is_picked_up: boolean;
+}
+
+export interface KitDeliveryListResponse {
+  kit_deliveries: KitDeliveryItem[];
+  total_records: number;
+  filtered_records: number;
+  page: number;
+  limit: number;
+}
+
 export const deliveriesAPI = {
   getBadgeDeliveries: async (
     page = 1,
     limit = 10,
     sortBy = "name",
     sortOrder = "asc",
+    searchBy?: string,
+    searchValue?: string
   ): Promise<BadgeDeliveryListResponse> => {
-    const response = await client.get<BadgeDeliveryListResponse>("/admin/badge-deliveries", {
-      params: { page, limit, sort_by: sortBy, sort_order: sortOrder },
-    });
+    const params: Record<string, string | number> = { page, limit, sort_by: sortBy, sort_order: sortOrder };
+    if (searchBy && searchValue) {
+      params.search_by = searchBy;
+      params.search_value = searchValue;
+    }
+    const response = await client.get<BadgeDeliveryListResponse>("/admin/badge-deliveries", { params });
     return response.data;
   },
 
@@ -41,8 +67,20 @@ export const deliveriesAPI = {
     await client.delete(`/admin/badge-deliveries/${userNumber}`);
   },
 
-  getKitDeliveries: async (): Promise<{ sales: Sale[] }> => {
-    const response = await client.get<{ sales: Sale[] }>("/admin/deliveries/kits");
+  getKitDeliveries: async (
+    page = 1,
+    limit = 10,
+    sortBy = "user_name",
+    sortOrder = "asc",
+    searchBy?: string,
+    searchValue?: string
+  ): Promise<KitDeliveryListResponse> => {
+    const params: Record<string, string | number> = { page, limit, sort_by: sortBy, sort_order: sortOrder };
+    if (searchBy && searchValue) {
+      params.search_by = searchBy;
+      params.search_value = searchValue;
+    }
+    const response = await client.get<KitDeliveryListResponse>("/admin/deliveries/kits", { params });
     return response.data;
   },
 

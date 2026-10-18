@@ -2,15 +2,34 @@ package absenceJustification
 
 import (
 	"errors"
+	"fmt"
+	"slices"
+	"strings"
 
 	"backend/internal/apierrors"
 
 	"gorm.io/gorm"
 )
 
+type AbsenceJustificationListQuery struct {
+	Limit       int
+	Offset      int
+	SortBy      string
+	SortOrder   string
+	SearchBy    string
+	SearchValue string
+}
+
+type AbsenceJustificationListResult struct {
+	Justifications  []AbsenceJustificationInfo `json:"absence_justifications"`
+	TotalRecords    int64                       `json:"total_records"`
+	FilteredRecords int64                       `json:"filtered_records"`
+}
+
 type AbsenceJustificationRepository interface {
 	Create(justification *AbsenceJustification) error
 	Update(justification *AbsenceJustification) error
+	GetAll(query AbsenceJustificationListQuery) (*AbsenceJustificationListResult, error)
 	FindAll() ([]AbsenceJustificationInfo, error)
 	FindByID(id uint) (*AbsenceJustification, error)
 	FindByUserEmail(email string) (*AbsenceJustification, error)
@@ -58,6 +77,79 @@ func (r *absenceJustificationRepository) infoQuery() *gorm.DB {
 	return r.db.Table("absence_justifications aj").
 		Select("aj.id, u.user_number, u.name AS user_name, aj.user_email, aj.event_name, aj.event_init_date, aj.reason, aj.attachment_filename, aj.attachment_content_type, aj.submitted_at, aj.status, aj.rejection_reason").
 		Joins("JOIN users u ON u.email = aj.user_email")
+}
+
+func applyAJSearchFilter(dbQuery *gorm.DB, query AbsenceJustificationListQuery) *gorm.DB {
+	if query.SearchBy == "" || query.SearchValue == "" {
+		return dbQuery
+	}
+	switch query.SearchBy {
+	case "user_name":
+		return dbQuery.Where("u.name ILIKE ?", "%"+query.SearchValue+"%")
+	case "event_name":
+		return dbQuery.Where("aj.event_name ILIKE ?", "%"+query.SearchValue+"%")
+	case "submitted_at":
+		return dbQuery.Where("DATE(aj.submitted_at)::text ILIKE ?", "%"+query.SearchValue+"%")
+	case "status":
+		return dbQuery.Where("aj.status ILIKE ?", "%"+query.SearchValue+"%")
+	}
+	return dbQuery
+}
+
+func resolveAJSortClause(sortBy, sortOrder string) (string, error) {
+	allowed := []string{"user_name", "event_name", "submitted_at", "status"}
+	field := strings.ToLower(sortBy)
+	if !slices.Contains(allowed, field) {
+		return "", fmt.Errorf("invalid sort field")
+	}
+	order := strings.ToLower(sortOrder)
+	if order != "asc" && order != "desc" {
+		return "", fmt.Errorf("invalid sort order")
+	}
+	columnMap := map[string]string{
+		"user_name":    "u.name",
+		"event_name":   "aj.event_name",
+		"submitted_at": "aj.submitted_at",
+		"status":       "aj.status",
+	}
+	return columnMap[field] + " " + order, nil
+}
+
+func (r *absenceJustificationRepository) GetAll(query AbsenceJustificationListQuery) (*AbsenceJustificationListResult, error) {
+	var totalRecords int64
+	var filteredRecords int64
+	results := make([]AbsenceJustificationInfo, 0)
+
+	sortClause, err := resolveAJSortClause(query.SortBy, query.SortOrder)
+	if err != nil {
+		return nil, apierrors.ValidationError("Campo de ordenação inválido", err)
+	}
+
+	baseCount := r.db.Table("absence_justifications aj").
+		Joins("JOIN users u ON u.email = aj.user_email")
+
+	if err := baseCount.Count(&totalRecords).Error; err != nil {
+		return nil, apierrors.InternalServerError("Erro ao contar justificativas", err)
+	}
+
+	if err := applyAJSearchFilter(baseCount, query).Count(&filteredRecords).Error; err != nil {
+		return nil, apierrors.InternalServerError("Erro ao contar justificativas filtradas", err)
+	}
+
+	err = applyAJSearchFilter(r.infoQuery(), query).
+		Order(sortClause).
+		Limit(query.Limit).
+		Offset(query.Offset).
+		Scan(&results).Error
+	if err != nil {
+		return nil, apierrors.InternalServerError("Erro ao listar justificativas de ausência", err)
+	}
+
+	return &AbsenceJustificationListResult{
+		Justifications:  results,
+		TotalRecords:    totalRecords,
+		FilteredRecords: filteredRecords,
+	}, nil
 }
 
 // FindAll retorna todas as justificativas de ausência, com nome e número do usuário.

@@ -73,7 +73,7 @@ func resolveSortClause(sortBy string, sortOrder string) (string, error) {
 }
 
 func (r *userBackofficeRepository) GetAll(query UserBListQuery) (*UserBListResult, error) {
-	var users []UserBackoffice
+	users := make([]UserBackoffice, 0)
 	var totalRecords int64
 	var filteredRecords int64
 

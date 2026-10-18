@@ -244,13 +244,36 @@ func (h *UserHandler) UpdatePapfeDocument(c *gin.Context) {
 // @Security BearerAuth
 // @Router /admin/papfe-documents [get]
 func (h *UserHandler) GetAllPapfeDocuments(c *gin.Context) {
-	docs, err := h.userService.GetAllPapfeDocuments()
+	page := 1
+	limit := 10
+	sortBy := c.DefaultQuery("sort_by", "uploaded_at")
+	sortOrder := c.DefaultQuery("sort_order", "desc")
+	searchBy := c.Query("search_by")
+	searchValue := c.Query("search_value")
+
+	if v, err := strconv.Atoi(c.Query("page")); err == nil && v >= 1 {
+		page = v
+	}
+	if v, err := strconv.Atoi(c.Query("limit")); err == nil && v >= 1 {
+		if v > 200 {
+			v = 200
+		}
+		limit = v
+	}
+
+	result, err := h.userService.GetAllPapfeDocuments(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
 	}
 	c.Set("responseMessage", "Comprovantes PAPFE listados com sucesso!")
-	c.JSON(http.StatusOK, gin.H{"papfe_documents": docs})
+	c.JSON(http.StatusOK, gin.H{
+		"papfe_documents":  result.Documents,
+		"total_records":    result.TotalRecords,
+		"filtered_records": result.FilteredRecords,
+		"page":             page,
+		"limit":            limit,
+	})
 }
 
 // GetPapfeDocument serve o comprovante PAPFE de um usuário para download (admin).
@@ -706,6 +729,8 @@ func (h *UserHandler) GetBadgeDeliveries(c *gin.Context) {
 	limit := 10
 	sortBy := c.DefaultQuery("sort_by", "name")
 	sortOrder := c.DefaultQuery("sort_order", "asc")
+	searchBy := c.Query("search_by")
+	searchValue := c.Query("search_value")
 
 	if pageQuery := c.Query("page"); pageQuery != "" {
 		if v, err := strconv.Atoi(pageQuery); err == nil && v >= 1 {
@@ -721,7 +746,7 @@ func (h *UserHandler) GetBadgeDeliveries(c *gin.Context) {
 		}
 	}
 
-	result, err := h.userService.GetBadgeDeliveries(page, limit, sortBy, sortOrder)
+	result, err := h.userService.GetBadgeDeliveries(page, limit, sortBy, sortOrder, searchBy, searchValue)
 	if err != nil {
 		apierrors.HandleAPIError(c, err)
 		return
