@@ -70,11 +70,12 @@ const FIELDS: CrudField[] = [
     label: "Status",
     type: "select",
     selectVariants: {
-      "Em análise": STATUS_BADGE_CLASS.em_analise,
-      Aprovado: STATUS_BADGE_CLASS.aprovado,
-      Negado: STATUS_BADGE_CLASS.negado,
-      "Documento Inválido": STATUS_BADGE_CLASS.documento_invalido,
+      em_analise: STATUS_BADGE_CLASS.em_analise,
+      aprovado: STATUS_BADGE_CLASS.aprovado,
+      negado: STATUS_BADGE_CLASS.negado,
+      documento_invalido: STATUS_BADGE_CLASS.documento_invalido,
     },
+    selectLabels: STATUS_LABEL,
   },
 ];
 
@@ -92,7 +93,7 @@ const toRow = (j: AbsenceJustificationType): AbsenceJustificationRow => ({
   event_name: j.event_name,
   reason_preview: truncate(j.reason, REASON_PREVIEW_LENGTH),
   submitted_at: j.submitted_at,
-  status: STATUS_LABEL[j.status],
+  status: j.status,
 });
 
 export default function AbsenceJustifications() {
