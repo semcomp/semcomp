@@ -40,7 +40,7 @@ func Compute(input ComputeInput) map[int64]float64 {
 			continue
 		}
 		w, ok := input.Weights[*e.PresenceTypeID]
-		if !ok {
+		if !ok || w <= 0 {
 			continue
 		}
 		countable[i] = w
