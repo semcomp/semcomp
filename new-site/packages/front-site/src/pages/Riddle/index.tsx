@@ -46,8 +46,8 @@ export default function Riddle() {
 
   // Card da pregunta — "bolha branca" da referencia, com sombra; escuro usa tokens do projeto.
   const questionCard = isDarkMode
-    ? "rounded-2xl border border-slate-700 shadow-xl p-8 flex flex-col items-center bg-semcompDarkBlue"
-    : "rounded-2xl border border-gray-100 shadow-xl p-8 flex flex-col items-center bg-white/90";
+    ? "w-full min-w-0 rounded-2xl border border-slate-700 shadow-xl p-4 sm:p-8 flex flex-col items-center bg-semcompDarkBlue"
+    : "w-full min-w-0 rounded-2xl border border-gray-100 shadow-xl p-4 sm:p-8 flex flex-col items-center bg-white/90";
 
   const questionInput = isDarkMode
     ? "border-2 border-semcompOffWhite bg-semcompDarkBlue text-white placeholder:text-white"
@@ -340,11 +340,11 @@ export default function Riddle() {
 
           {/* Imagem (se existir) */}
           {currentRiddle.image_url && (
-            <div className="mt-6 overflow-hidden shadow-lg">
+            <div className="mt-6 max-w-full overflow-hidden shadow-lg">
               <img
                 src={currentRiddle.image_url}
                 alt="Ilustração do enigma"
-                className="max-h-64 max-w-180 object-contain"
+                className="h-auto max-h-64 max-w-full object-contain"
               />
             </div>
           )}

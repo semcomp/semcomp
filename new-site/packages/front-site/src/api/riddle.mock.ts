@@ -32,6 +32,8 @@ const FIXTURES: MockRiddle[] = [
     hint_1: "Como em todo bom jogo, a primeira dica é sempre a mais fácil.",
     hint_2: "Digite a palavra correta para resolver: 'resposta'.",
     answer: "resposta",
+    // Proporção 8:1 para reproduzir o overflow do card antigo no mobile.
+    image_url: "/images/riddle-wide-test.svg",
   },
   {
     id: 2,
@@ -58,7 +60,7 @@ const BASE_TEAM: Team = {
   id: 1,
   name: "Os Enigmeros",
   code: "ABC123XY",
-  current_riddle_index: 1,
+  current_riddle_index: 0,
   members: MEMBERS,
 };
 
@@ -92,7 +94,7 @@ function getState(): MockState {
       break;
     case "team":
     default:
-      state = { scenario, team: BASE_TEAM, index: 1 };
+      state = { scenario, team: BASE_TEAM, index: 0 };
   }
 
   return state;

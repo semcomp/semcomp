@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="300" viewBox="0 0 2400 300">
+  <rect width="2400" height="300" fill="#0b2639"/>
+  <path d="M0 100H2400M0 200H2400M300 0V300M600 0V300M900 0V300M1200 0V300M1500 0V300M1800 0V300M2100 0V300" stroke="#357ba3" stroke-width="3"/>
+  <rect x="12" y="12" width="2376" height="276" rx="16" fill="none" stroke="#d2edff" stroke-width="8"/>
+  <g fill="#d2edff" font-family="sans-serif" text-anchor="middle">
+    <text x="150" y="170" font-size="48">INÍCIO</text>
+    <text x="1200" y="140" font-size="64">ENIGMA PANORÂMICO</text>
+    <text x="1200" y="210" font-size="40">2400 × 300 px — teste de largura no mobile</text>
+    <text x="2250" y="170" font-size="48">FIM</text>
+  </g>
+</svg>
