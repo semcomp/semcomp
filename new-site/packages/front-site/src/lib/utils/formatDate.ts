@@ -23,7 +23,7 @@ export function formatDate(
         return date.toLocaleDateString("pt-BR", {
             day: "numeric",
             month: "long",
-            timeZone: "UTC"
+            timeZone: "America/Sao_Paulo"
         });
     }
 
@@ -31,7 +31,7 @@ export function formatDate(
         return date.toLocaleDateString("pt-BR", {
             day: "2-digit",
             month: "2-digit",
-            timeZone: "UTC"
+            timeZone: "America/Sao_Paulo"
         });
     }
 
@@ -40,7 +40,7 @@ export function formatDate(
             day: "2-digit",
             month: "2-digit",
             year: "2-digit",
-            timeZone: "UTC"
+            timeZone: "America/Sao_Paulo"
         });
     }
 
@@ -53,6 +53,7 @@ export function formatWeekDay(dateTime: string): string {
 
     const diaSemana = date.toLocaleDateString("pt-BR", {
         weekday: "long",
+        timeZone: "America/Sao_Paulo"
     });
 
     return (
