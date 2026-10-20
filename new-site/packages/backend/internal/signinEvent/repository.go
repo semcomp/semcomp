@@ -99,9 +99,9 @@ type SigninEventRepository interface {
 	// RotateAtomicSignins removes all WaitingDonation inscriptions, promotes
 	// waitlisted users to fill the remaining vacancies as StatusWaitingDonation,
 	// and reorders all queue positions, atomically under the per-event advisory
-	// lock. Returns all active signins and the numbers of users just promoted
-	// from the waitlist.
-	RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, []uint, error)
+	// lock. Returns all active signins, the numbers of users just promoted from
+	// the waitlist, and the numbers of users removed from WaitingDonation.
+	RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, []uint, []uint, error)
 	// FetchUserInfosByNumbers returns name and email for the given user numbers,
 	// used to notify promoted users after a queue rotation.
 	FetchUserInfosByNumbers(userNumbers []uint) ([]PromotedUserInfo, error)
@@ -606,15 +606,24 @@ func (r *signinEventRepository) UpdateAdminSigninStatus(userNumber uint, eventNa
 	return result, err
 }
 
-func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, []uint, error) {
+func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate time.Time, maxParticipants uint) ([]SigninEvent, []uint, []uint, error) {
 	var result []SigninEvent
 	var promotedUserNumbers []uint
+	var removedUserNumbers []uint
 
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Exec(
 			"SELECT pg_advisory_xact_lock(hashtext(?), hashtext(?))",
 			eventName, initDate.Format(time.RFC3339),
 		).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&SigninEvent{}).
+			Select("user_number").
+			Where("event_name = ? AND event_init_date = ? AND status = ?",
+				eventName, initDate, StatusWaitingDonation).
+			Pluck("user_number", &removedUserNumbers).Error; err != nil {
 			return err
 		}
 
@@ -682,7 +691,7 @@ func (r *signinEventRepository) RotateAtomicSignins(eventName string, initDate t
 		return nil
 	})
 
-	return result, promotedUserNumbers, err
+	return result, promotedUserNumbers, removedUserNumbers, err
 }
 
 func (r *signinEventRepository) FetchUserInfosByNumbers(userNumbers []uint) ([]PromotedUserInfo, error) {

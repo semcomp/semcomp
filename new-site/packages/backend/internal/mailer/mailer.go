@@ -48,3 +48,15 @@ func (m *Mailer) SendRegistrationConfirmationEmail(name, email, eventName string
 	}
 	go m.sender.Send(context.Background(), msg)
 }
+
+func (m *Mailer) SendRemovedFromQueueEmail(name, email, eventName string) {
+	msg := Message{
+		To:      email,
+		Subject: "Atualização sobre sua inscrição - SEMCOMP",
+		Body: fmt.Sprintf(
+			"Olá %s,\n\nInfelizmente sua inscrição no evento \"%s\" foi removida durante a rotação da fila, pois o prazo de confirmação de presença encerrou.\n\nCaso ainda tenha interesse em comparecer ao evento, você pode tentar se inscrever novamente pelo site https://semcomp.icmc.usp.br para verificar se ainda existem vagas remanescentes.\n\nAtenciosamente,\nEquipe SEMCOMP",
+			name, eventName,
+		),
+	}
+	go m.sender.Send(context.Background(), msg)
+}
