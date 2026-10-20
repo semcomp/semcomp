@@ -447,7 +447,7 @@ func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate 
 		return nil, apierrors.ValidationError("Não é possível rodar a fila em eventos com vagas ilimitadas", nil)
 	}
 
-	signins, promotedUserNumbers, err := s.repo.RotateAtomicSignins(eventName, initTime, eventRecord.MaxParticipants)
+	signins, promotedUserNumbers, removedUserNumbers, err := s.repo.RotateAtomicSignins(eventName, initTime, eventRecord.MaxParticipants)
 	if err != nil {
 		return nil, apierrors.InternalServerError("Erro ao rodar a fila de inscrições", err)
 	}
@@ -458,6 +458,10 @@ func (s *signinEventService) RotateSigninsAdmin(eventName string, eventInitDate 
 
 	if len(promotedUserNumbers) > 0 {
 		go s.sendPromotionEmails(promotedUserNumbers, eventRecord.Name)
+	}
+
+	if len(removedUserNumbers) > 0 {
+		go s.sendRemovalEmails(removedUserNumbers, eventRecord.Name)
 	}
 
 	return signins, nil
@@ -474,5 +478,15 @@ func (s *signinEventService) sendPromotionEmails(userNumbers []uint, eventName s
 	}
 	for _, u := range infos {
 		s.mailer.SendRegistrationConfirmationEmail(u.Name, u.Email, eventName)
+	}
+}
+
+func (s *signinEventService) sendRemovalEmails(userNumbers []uint, eventName string) {
+	infos, err := s.repo.FetchUserInfosByNumbers(userNumbers)
+	if err != nil {
+		return
+	}
+	for _, u := range infos {
+		s.mailer.SendRemovedFromQueueEmail(u.Name, u.Email, eventName)
 	}
 }
