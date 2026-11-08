@@ -29,7 +29,7 @@ QR_FG = (0, 0, 0)
 QR_BG = (255, 255, 255)
 
 FILTER_QUER_CRACHA = True
-OUTPUT_DIR = "crachas_gerados"
+OUTPUT_DIR = Path(__file__).parent / "crachas_gerados"
 
 # ──────────────────────────────────────────────────────────────────────────────
 

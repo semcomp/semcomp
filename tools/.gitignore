@@ -1,2 +1,5 @@
-crachas_gerados/
 *.json
+crachas/crachas_gerados/
+crachas/*.json
+emails/*.json
+emails/enviados.log
