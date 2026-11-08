@@ -26,14 +26,23 @@ echo
 echo "========================================"
 echo "Configurando o ambiente virtual"
 echo "========================================"
-if [[ ! -d .venv ]]; then
-    echo "Criando .venv..."
-    python3 -m venv .venv
+
+if [[ -w "$SCRIPT_DIR" ]]; then
+    VENV_DIR="$SCRIPT_DIR/.venv"
 else
-    echo ".venv ja existe, reaproveitando o ambiente"
+    VENV_DIR="${HOME}/.local/share/semcomp-tools/venv"
+    echo "Diretorio sem permissao de escrita; usando venv em: $VENV_DIR"
 fi
 
-source .venv/bin/activate
+if [[ ! -d "$VENV_DIR" ]]; then
+    echo "Criando venv em $VENV_DIR..."
+    mkdir -p "$(dirname "$VENV_DIR")"
+    python3 -m venv "$VENV_DIR"
+else
+    echo "venv ja existe, reaproveitando o ambiente"
+fi
+
+source "$VENV_DIR/bin/activate"
 python -m pip install --upgrade pip
 
 if [[ -f requirements.txt && -s requirements.txt ]]; then
