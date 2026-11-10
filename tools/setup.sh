@@ -34,9 +34,9 @@ else
     echo "Diretorio sem permissao de escrita; usando venv em: $VENV_DIR"
 fi
 
-if [[ ! -d "$VENV_DIR" ]]; then
+if [[ ! -f "$VENV_DIR/bin/activate" ]]; then
     echo "Criando venv em $VENV_DIR..."
-    mkdir -p "$(dirname "$VENV_DIR")"
+    mkdir -p "$VENV_DIR"
     python3 -m venv "$VENV_DIR"
 else
     echo "venv ja existe, reaproveitando o ambiente"
