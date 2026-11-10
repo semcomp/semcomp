@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
-
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
-
 is_sourced() {
     [[ "${BASH_SOURCE[0]}" != "$0" ]]
 }
+
+if ! is_sourced; then
+    set -euo pipefail
+fi
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
 
 echo
 echo "========================================"
@@ -19,7 +21,7 @@ if ! command -v python3 >/dev/null 2>&1; then
     echo "Fedora: sudo dnf install python3"
     echo "Arch: sudo pacman -S python"
     echo "macOS: brew install python"
-    exit 1
+    return 1 2>/dev/null || exit 1
 fi
 
 echo
